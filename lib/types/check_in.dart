@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'check_in.freezed.dart';
 part 'check_in.g.dart';
 
-const List<String> kCheckInResultTierSymbols = ['大凶', '凶', '中平', '吉', '大吉'];
+const List<String> kCheckInResultTierSymbols = ['Bad', 'Poor', 'Medium', 'Good', 'Great'];
 
 @freezed
 class SnCheckInRecord with _$SnCheckInRecord {

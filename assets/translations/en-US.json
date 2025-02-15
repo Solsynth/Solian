@@ -419,7 +419,7 @@
   "callMessageEnded": "Call lasted {}",
   "callMessageStarted": "Call started",
   "dailyCheckIn": "Check In",
-  "dailyCheckInNone": "You haven't checked in today",
+  "dailyCheckInNone": "You haven't divined today",
   "dailyCheckAction": "Check in right now!",
   "dailyCheckDetail": "Can't understand the symbol? Master, help me understand it!",
   "dailyCheckDetailTitle": "{}'s fortune details",

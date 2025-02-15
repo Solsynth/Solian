@@ -54,7 +54,7 @@ class CheckInWidget : GlanceAppWidget() {
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .registerTypeAdapter(Instant::class.java, InstantAdapter())
                 .create()
-        val resultTierSymbols = listOf("大凶", "凶", "中平", "吉", "大吉")
+        val resultTierSymbols = listOf("Bad", "Poor", "Medium", "Good", "Great")
 
         val prefs = currentState.preferences
         val checkInRaw: String? = prefs.getString("pas_check_in_record", null)
@@ -120,7 +120,7 @@ class CheckInWidget : GlanceAppWidget() {
             }
 
             Text(
-                text = "You haven't checked in today",
+                text = "You haven't divined today",
                 style = TextStyle(fontSize = 15.sp, color = GlanceTheme.colors.onSurface)
             )
         }

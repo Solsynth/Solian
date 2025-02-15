@@ -15,14 +15,14 @@ struct CheckInProvider: TimelineProvider {
 
     func getSnapshot(in context: Context, completion: @escaping (CheckInEntry) -> ()) {
         let prefs = UserDefaults(suiteName: "group.solsynth.solian")
-        
+
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
-        
+
         let jsonDecoder = JSONDecoder()
         jsonDecoder.dateDecodingStrategy = .formatted(dateFormatter)
         jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
-        
+
         let checkInRaw = prefs?.string(forKey: "pas_check_in_record")
         var checkIn: SolarCheckInRecord?
         if let checkInRaw = checkInRaw {
@@ -31,7 +31,7 @@ struct CheckInProvider: TimelineProvider {
                 checkIn = nil
             }
         }
-        
+
         let entry = CheckInEntry(
             date: Date(),
             checkIn: checkIn
@@ -54,11 +54,11 @@ struct CheckInEntry: TimelineEntry {
 
 struct CheckInWidgetEntryView : View {
     var entry: CheckInProvider.Entry
-    
-    private let resultTierSymbols: [String] = ["大凶", "凶", "中平", "吉", "大吉"]
-    
+
+    private let resultTierSymbols: [String] = ["Bad", "Poor", "Medium", "Good", "Great"]
+
     func checkIn() -> Void {}
-    
+
     func seeDetail() -> Void {}
 
     var body: some View {
@@ -68,9 +68,9 @@ struct CheckInWidgetEntryView : View {
                     Text(resultTierSymbols[checkIn.resultTier]).font(.system(size: 27, weight: .bold))
                     Text("+\(checkIn.resultExperience) EXP").font(.system(size: 15, design: .monospaced))
                 }.padding(.horizontal, 4)
-                
+
                 Spacer()
-                
+
                 HStack {
                     VStack(alignment: .leading) {
                         Text(
@@ -82,7 +82,7 @@ struct CheckInWidgetEntryView : View {
                             format: .dateTime.day().month()
                         ).font(.system(size: 13))
                     }.padding(.leading, 4)
-                    
+
                     Button("See Detail", systemImage: "arrow.right", action: seeDetail)
                         .labelStyle(.iconOnly)
                         .buttonBorderShape(.circle)
@@ -91,11 +91,11 @@ struct CheckInWidgetEntryView : View {
             } else {
                 VStack(alignment: .leading) {
                     Text("Check In").font(.system(size: 19, weight: .bold))
-                    Text("You haven't check in today").font(.system(size: 15))
+                    Text("You haven't divined today").font(.system(size: 15))
                 }.padding(.horizontal, 4)
-                
+
                 Spacer()
-                
+
                 HStack(alignment: .bottom) {
                     Button("Check In", systemImage: "checkmark", action: checkIn).labelStyle(.iconOnly).buttonBorderShape(.circle).frame(maxWidth: .infinity, alignment: .trailing)
                 }
