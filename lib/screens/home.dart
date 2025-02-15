@@ -131,6 +131,7 @@ class _HomeDashUpdateWidget extends StatelessWidget {
           return Container(
             padding: padding,
             child: Card(
+              margin: EdgeInsets.zero,
               child: ListTile(
                 leading: Icon(Symbols.update),
                 title: Text('updateAvailable').tr(),
@@ -180,6 +181,7 @@ class _HomeDashSpecialDayWidgetState extends State<_HomeDashSpecialDayWidget> {
       return Column(
           children: days.map((ele) {
         return Card(
+          margin: EdgeInsets.zero,
           child: ListTile(
             leading: Text(kSpecialDaysSymbol[ele] ?? '🎉').fontSize(24),
             title: Text('celebrate$ele').tr(args: [ua.user?.nick ?? 'user']),
@@ -203,6 +205,7 @@ class _HomeDashSpecialDayWidgetState extends State<_HomeDashSpecialDayWidget> {
       final progress = dayz.getSpecialDayProgress(lastOne.$2, date);
       final diff = nextOne.$2.difference(DateTime.now());
       return Card(
+        margin: EdgeInsets.zero,
         child: ListTile(
           leading: Text(kSpecialDaysSymbol[name] ?? '🎉').fontSize(24),
           title: Text('pending$name').tr(args: [RelativeTime(context).format(date).replaceFirst('in', '').trim()]),
@@ -270,6 +273,7 @@ class _HomeDashTodayNewsState extends State<_HomeDashTodayNews> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -469,6 +473,7 @@ class _HomeDashCheckInWidgetState extends State<_HomeDashCheckInWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -594,6 +599,7 @@ class _HomeDashNotificationWidgetState extends State<_HomeDashNotificationWidget
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -667,11 +673,13 @@ class _HomeDashRecommendationPostWidgetState extends State<_HomeDashRecommendati
   Widget build(BuildContext context) {
     if (_isBusy) {
       return Card(
+        margin: EdgeInsets.zero,
         child: CircularProgressIndicator().center(),
       );
     }
 
     return Card(
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

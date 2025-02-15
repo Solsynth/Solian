@@ -45,7 +45,7 @@ class ChatMessageInputState extends State<ChatMessageInput> {
 
   final HotKey _pasteHotKey = HotKey(
     key: PhysicalKeyboardKey.keyV,
-    modifiers: [Platform.isMacOS ? HotKeyModifier.meta : HotKeyModifier.control],
+    modifiers: [(!kIsWeb && Platform.isMacOS) ? HotKeyModifier.meta : HotKeyModifier.control],
     scope: HotKeyScope.inapp,
   );
 

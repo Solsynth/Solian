@@ -47,6 +47,8 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:version/version.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:image_picker_android/image_picker_android.dart';
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 
 @pragma('vm:entry-point')
 void appBackgroundDispatcher() {
@@ -107,6 +109,13 @@ void main() async {
     }
   }
 
+  if (!kIsWeb && Platform.isAndroid) {
+    final ImagePickerPlatform imagePickerImplementation = ImagePickerPlatform.instance;
+    if (imagePickerImplementation is ImagePickerAndroid) {
+      imagePickerImplementation.useAndroidPhotoPicker = true;
+    }
+  }
+
   runApp(const SolianApp());
 }
 
@@ -160,8 +169,8 @@ class SolianApp extends StatelessWidget {
         ),
       ),
       breakpoints: [
-        const Breakpoint(start: 0, end: 450, name: MOBILE),
-        const Breakpoint(start: 451, end: 800, name: TABLET),
+        const Breakpoint(start: 0, end: 600, name: MOBILE),
+        const Breakpoint(start: 601, end: 800, name: TABLET),
         const Breakpoint(start: 801, end: 1920, name: DESKTOP),
       ],
     );

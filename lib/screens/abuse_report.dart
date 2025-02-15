@@ -74,7 +74,10 @@ class _AbuseReportScreenState extends State<AbuseReportScreen> {
           ),
           const Divider(height: 1),
           if (_isBusy)
-            const CircularProgressIndicator().padding(all: 24).center()
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: const CircularProgressIndicator(),
+            ).center()
           else
             Expanded(
               child: ListView.builder(

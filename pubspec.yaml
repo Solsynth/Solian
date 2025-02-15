@@ -120,6 +120,7 @@ dependencies:
   xml: ^6.5.0
   tray_manager: ^0.3.2
   hotkey_manager: ^0.2.3
+  image_picker_android: ^0.8.12+20
 
 dev_dependencies:
   flutter_test:
