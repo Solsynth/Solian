@@ -17,7 +17,6 @@
         android:label="Solian"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true"
         android:requestLegacyExternalStorage="true">
         <meta-data
             android:name="flutterEmbedding"
