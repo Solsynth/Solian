@@ -385,7 +385,7 @@ class _$SnAccountImpl extends _SnAccount {
       required this.description,
       required this.name,
       required this.nick,
-      required final Map<String, dynamic> permNodes,
+      final Map<String, dynamic> permNodes = const {},
       required this.language,
       required this.profile,
       final List<SnAccountBadge> badges = const [],
@@ -437,6 +437,7 @@ class _$SnAccountImpl extends _SnAccount {
   final String nick;
   final Map<String, dynamic> _permNodes;
   @override
+  @JsonKey()
   Map<String, dynamic> get permNodes {
     if (_permNodes is EqualUnmodifiableMapView) return _permNodes;
     // ignore: implicit_dynamic_type
@@ -566,7 +567,7 @@ abstract class _SnAccount extends SnAccount {
       required final String description,
       required final String name,
       required final String nick,
-      required final Map<String, dynamic> permNodes,
+      final Map<String, dynamic> permNodes,
       required final String language,
       required final SnAccountProfile? profile,
       final List<SnAccountBadge> badges,

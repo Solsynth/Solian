@@ -20,7 +20,7 @@ class SnAccount with _$SnAccount {
     required String description,
     required String name,
     required String nick,
-    required Map<String, dynamic> permNodes,
+    @Default({}) Map<String, dynamic> permNodes,
     required String language,
     required SnAccountProfile? profile,
     @Default([]) List<SnAccountBadge> badges,

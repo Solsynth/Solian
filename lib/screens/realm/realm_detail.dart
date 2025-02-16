@@ -343,12 +343,9 @@ class _RealmSettingsWidgetState extends State<_RealmSettingsWidget> {
     setState(() => _isBusy = true);
 
     try {
-      await sn.client.delete('/cgi/id/realms/${widget.realm!.alias}');
+      await sn.client.delete('/cgi/id/realms/${widget.realm!.id}');
       if (!mounted) return;
       Navigator.pop(context, true);
-      context.showSnackbar('realmDeleted'.tr(args: [
-        '#${widget.realm!.alias}',
-      ]));
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);

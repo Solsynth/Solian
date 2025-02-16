@@ -186,7 +186,11 @@ class _RealmScreenState extends State<RealmScreen> {
                           GoRouter.of(context).pushNamed(
                             'realmDetail',
                             pathParameters: {'alias': realm.alias},
-                          );
+                          ).then((value) {
+                            if (value == true) {
+                              _fetchRealms();
+                            }
+                          });
                         },
                       );
                     }
@@ -244,7 +248,11 @@ class _RealmScreenState extends State<RealmScreen> {
                             GoRouter.of(context).pushNamed(
                               'realmDetail',
                               pathParameters: {'alias': realm.alias},
-                            );
+                            ).then((value) {
+                              if (value == true) {
+                                _fetchRealms();
+                              }
+                            });
                           },
                         ),
                       ),

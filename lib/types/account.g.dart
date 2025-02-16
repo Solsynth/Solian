@@ -25,7 +25,7 @@ _$SnAccountImpl _$$SnAccountImplFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String,
       name: json['name'] as String,
       nick: json['nick'] as String,
-      permNodes: json['perm_nodes'] as Map<String, dynamic>,
+      permNodes: json['perm_nodes'] as Map<String, dynamic>? ?? const {},
       language: json['language'] as String,
       profile: json['profile'] == null
           ? null
