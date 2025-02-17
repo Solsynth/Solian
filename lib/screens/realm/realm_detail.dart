@@ -189,7 +189,7 @@ class _RealmMemberListWidgetState extends State<_RealmMemberListWidget> {
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/id/realms/${widget.realm!.alias}/members', queryParameters: {
         'take': 10,
-        'offset': 0,
+        'offset': _members.length,
       });
 
       final out = List<SnRealmMember>.from(

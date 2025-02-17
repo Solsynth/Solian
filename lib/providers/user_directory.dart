@@ -14,9 +14,32 @@ class UserDirectoryProvider {
   final Map<int, SnAccount> _cache = {};
 
   Future<List<SnAccount?>> listAccount(Iterable<dynamic> id) async {
-    final out = await Future.wait(
-      id.map((e) => getAccount(e)),
-    );
+    final out = List<SnAccount?>.generate(id.length, (e) => null);
+    final plannedQuery = <int>{};
+    for (var idx = 0; idx < out.length; idx++) {
+      var item = id.elementAt(idx);
+      if (item is String && _idCache.containsKey(item)) {
+        item = _idCache[item];
+      }
+      if (_cache.containsKey(item)) {
+        out[idx] = _cache[item];
+      } else {
+        plannedQuery.add(item);
+      }
+    }
+    final resp = await _sn.client.get('/cgi/id/users', queryParameters: {'id': plannedQuery.join(',')});
+    final respDecoded = resp.data.map((e) => SnAccount.fromJson(e)).cast<SnAccount>().toList();
+    var sideIdx = 0;
+    for (var idx = 0; idx < out.length; idx++) {
+      if (out[idx] != null) continue;
+      if (respDecoded.length <= sideIdx) {
+        break;
+      }
+      out[idx] = respDecoded[sideIdx];
+      _cache[respDecoded[sideIdx].id] = out[idx]!;
+      _idCache[respDecoded[sideIdx].name] = respDecoded[sideIdx].id;
+      sideIdx++;
+    }
     return out;
   }
 

@@ -45,8 +45,8 @@ class ConfigProvider extends ChangeNotifier {
     bool newDrawerIsCollapsed = false;
     bool newDrawerIsExpanded = false;
     if (withMediaQuery) {
-      newDrawerIsCollapsed = MediaQuery.of(context).size.width < 450;
-      newDrawerIsExpanded = MediaQuery.of(context).size.width >= 451;
+      newDrawerIsCollapsed = MediaQuery.of(context).size.width < 600;
+      newDrawerIsExpanded = MediaQuery.of(context).size.width >= 601;
     } else {
       final rpb = ResponsiveBreakpoints.of(context);
       newDrawerIsCollapsed = rpb.smallerOrEqualTo(MOBILE);

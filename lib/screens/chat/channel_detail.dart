@@ -474,7 +474,7 @@ class _ChannelMemberListWidgetState extends State<_ChannelMemberListWidget> {
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/im/channels/${widget.channel.keyPath}/members', queryParameters: {
         'take': 10,
-        'offset': 0,
+        'offset': _members.length,
       });
       final out = List<SnChannelMember>.from(
         resp.data['data']?.map((e) => SnChannelMember.fromJson(e)) ?? [],
