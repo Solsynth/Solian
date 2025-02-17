@@ -650,5 +650,10 @@
   "realmIsCommunity": "Community Realm",
   "realmIsCommunityDescription": "Community realm will be displayed on the discover page.",
   "realmLeave": "Leave Realm",
-  "realmLeaveDescription": "Leave the current realm and delete the realm's identity."
+  "realmLeaveDescription": "Leave the current realm and delete the realm's identity.",
+  "checkInResultTier1": "Worst",
+  "checkInResultTier2": "Worse",
+  "checkInResultTier3": "Normal",
+  "checkInResultTier4": "Better",
+  "checkInResultTier5": "Best"
 }

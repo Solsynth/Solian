@@ -649,5 +649,10 @@
   "realmIsCommunity": "社区领域",
   "realmIsCommunityDescription": "社区领域会显示在发现页面上。",
   "realmLeave": "离开领域",
-  "realmLeaveDescription": "离开当前领域，并且删除领域中的身份。"
+  "realmLeaveDescription": "离开当前领域，并且删除领域中的身份。",
+  "checkInResultTier1": "大凶",
+  "checkInResultTier2": "凶",
+  "checkInResultTier3": "中平",
+  "checkInResultTier4": "吉",
+  "checkInResultTier5": "大吉"
 }

@@ -1,9 +1,17 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'check_in.freezed.dart';
+
 part 'check_in.g.dart';
 
-const List<String> kCheckInResultTierSymbols = ['Bad', 'Poor', 'Medium', 'Good', 'Great'];
+final List<String> kCheckInResultTierSymbols = [
+  'checkInResultTier1',
+  'checkInResultTier2',
+  'checkInResultTier3',
+  'checkInResultTier4',
+  'checkInResultTier5'
+].map((e) => e.tr()).toList();
 
 @freezed
 class SnCheckInRecord with _$SnCheckInRecord {
@@ -21,8 +29,7 @@ class SnCheckInRecord with _$SnCheckInRecord {
     required int accountId,
   }) = _SnCheckInRecord;
 
-  factory SnCheckInRecord.fromJson(Map<String, dynamic> json) =>
-      _$SnCheckInRecordFromJson(json);
+  factory SnCheckInRecord.fromJson(Map<String, dynamic> json) => _$SnCheckInRecordFromJson(json);
 
   String get symbol => kCheckInResultTierSymbols[resultTier];
 }

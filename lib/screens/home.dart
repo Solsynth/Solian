@@ -663,10 +663,24 @@ class _HomeDashRecommendationPostWidgetState extends State<_HomeDashRecommendati
     }
   }
 
+  int _currentPage = 0;
+  final PageController _pageController = PageController();
+
   @override
   void initState() {
     super.initState();
     _fetchRecommendationPosts();
+    _pageController.addListener(() {
+      setState(() {
+        _currentPage = _pageController.page?.round() ?? 0;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -684,17 +698,24 @@ class _HomeDashRecommendationPostWidgetState extends State<_HomeDashRecommendati
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Symbols.star),
-              const Gap(8),
-              Text(
-                'postRecommendation',
-                style: Theme.of(context).textTheme.titleLarge,
-              ).tr()
+              Row(
+                children: [
+                  const Icon(Symbols.star),
+                  const Gap(8),
+                  Text(
+                    'postRecommendation',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ).tr(),
+                ],
+              ),
+              Text('${_currentPage + 1}/${_posts?.length ?? 0}', style: GoogleFonts.robotoMono())
             ],
           ).padding(horizontal: 18, top: 12, bottom: 8),
           Expanded(
             child: PageView.builder(
+              controller: _pageController,
               scrollBehavior: ScrollConfiguration.of(context).copyWith(dragDevices: {
                 PointerDeviceKind.mouse,
                 PointerDeviceKind.touch,
