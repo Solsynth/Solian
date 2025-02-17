@@ -123,48 +123,59 @@ class NotificationService: UNNotificationServiceExtension {
         }
         
         if let imageIdentifier = metadata["image"] as? String {
-            attachMedia(to: content, withIdentifier: imageIdentifier, fileType: UTType.jpeg, doScaleDown: true)
+            attachMedia(to: content, withIdentifier: [imageIdentifier], fileType: UTType.jpeg, doScaleDown: true)
         } else if let avatarIdentifier = metadata["avatar"] as? String {
-            attachMedia(to: content, withIdentifier: avatarIdentifier, fileType: UTType.jpeg, doScaleDown: true)
+            attachMedia(to: content, withIdentifier: [avatarIdentifier], fileType: UTType.jpeg, doScaleDown: true)
+        } else if let imagesIdentifier = metadata["images"] as? Array<String> {
+            attachMedia(to: content, withIdentifier: imagesIdentifier, fileType: UTType.jpeg, doScaleDown: true)
         } else {
             contentHandler?(content)
         }
     }
     
-    private func attachMedia(to content: UNMutableNotificationContent, withIdentifier identifier: String, fileType type: UTType?, doScaleDown scaleDown: Bool = false) {
-        let attachmentUrl = getAttachmentUrl(for: identifier)
-        
-        guard let remoteUrl = URL(string: attachmentUrl) else {
-            print("Invalid URL for attachment: \(attachmentUrl)")
+    private func attachMedia(to content: UNMutableNotificationContent, withIdentifier identifier: Array<String>, fileType type: UTType?, doScaleDown scaleDown: Bool = false) {
+        let attachmentUrls = identifier.compactMap { element in
+            return getAttachmentUrl(for: element)
+        }
+
+        guard !attachmentUrls.isEmpty else {
+            print("Invalid URLs for attachments: \(attachmentUrls)")
             return
         }
-        
+
         let targetSize = 800
         let scaleProcessor = ResizingImageProcessor(referenceSize: CGSize(width: targetSize, height: targetSize), mode: .aspectFit)
-        
-        KingfisherManager.shared.retrieveImage(with: remoteUrl, options: scaleDown ? [
-            .processor(scaleProcessor)
-        ] : nil) { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let retrievalResult):
-                // The image is either retrieved from cache or downloaded
-                let tempDirectory = FileManager.default.temporaryDirectory
-                let cachedFileUrl = tempDirectory.appendingPathComponent(identifier)
-                
-                do {
-                    // Write the image data to a temporary file for UNNotificationAttachment
-                    try retrievalResult.image.pngData()?.write(to: cachedFileUrl)
-                    self.attachLocalMedia(to: content, fileType: type?.identifier, from: cachedFileUrl, withIdentifier: identifier)
-                } catch {
-                    print("Failed to write media to temporary file: \(error.localizedDescription)")
+
+        for attachmentUrl in attachmentUrls {
+            guard let remoteUrl = URL(string: attachmentUrl) else {
+                print("Invalid URL for attachment: \(attachmentUrl)")
+                continue // Skip this URL and move to the next one
+            }
+
+            KingfisherManager.shared.retrieveImage(with: remoteUrl, options: scaleDown ? [
+                .processor(scaleProcessor)
+            ] : nil) { [weak self] result in
+                guard let self = self else { return }
+
+                switch result {
+                case .success(let retrievalResult):
+                    // The image is either retrieved from cache or downloaded
+                    let tempDirectory = FileManager.default.temporaryDirectory
+                    let cachedFileUrl = tempDirectory.appendingPathComponent(UUID().uuidString) // Unique identifier for each file
+
+                    do {
+                        // Write the image data to a temporary file for UNNotificationAttachment
+                        try retrievalResult.image.pngData()?.write(to: cachedFileUrl)
+                        self.attachLocalMedia(to: content, fileType: type?.identifier, from: cachedFileUrl, withIdentifier: attachmentUrl)
+                    } catch {
+                        print("Failed to write media to temporary file: \(error.localizedDescription)")
+                        self.contentHandler?(content)
+                    }
+
+                case .failure(let error):
+                    print("Failed to retrieve image: \(error.localizedDescription)")
                     self.contentHandler?(content)
                 }
-                
-            case .failure(let error):
-                print("Failed to retrieve image: \(error.localizedDescription)")
-                self.contentHandler?(content)
             }
         }
     }
