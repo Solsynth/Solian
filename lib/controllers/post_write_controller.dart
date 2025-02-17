@@ -158,6 +158,14 @@ class PostWriteController extends ChangeNotifier {
   final TextEditingController aliasController = TextEditingController();
   final TextEditingController rewardController = TextEditingController();
 
+  ContentInsertionConfiguration get contentInsertionConfiguration => ContentInsertionConfiguration(
+    onContentInserted: (KeyboardInsertedContent content) {
+      if (content.hasData) {
+        addAttachments([PostWriteMedia.fromBytes(content.data!, 'attachmentInsertedImage'.tr(), SnMediaType.image)]);
+      }
+    },
+  );
+
   bool _temporarySaveActive = false;
 
   PostWriteController({bool doLoadFromTemporary = true}) {

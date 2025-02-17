@@ -331,6 +331,7 @@
   "addAttachmentFromRandomId": "通过访问 ID 链接",
   "attachmentDetailInfo": "附件详细信息",
   "attachmentPastedImage": "粘贴的图片",
+  "attachmentInsertedImage": "插入的图片",
   "attachmentInsertLink": "插入连接",
   "attachmentSetAsPostThumbnail": "设置为帖子缩略图",
   "attachmentUnsetAsPostThumbnail": "取消设置为帖子缩略图",

@@ -333,6 +333,7 @@
   "addAttachmentFromRandomId": "Link via RID",
   "attachmentDetailInfo": "Attachment details",
   "attachmentPastedImage": "Pasted Image",
+  "attachmentInsertedImage": "Inserted Image",
   "attachmentInsertLink": "Insert Link",
   "attachmentSetAsPostThumbnail": "Set as post thumbnail",
   "attachmentUnsetAsPostThumbnail": "Unset as post thumbnail",
