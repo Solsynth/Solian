@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:relative_time/relative_time.dart';
@@ -59,10 +60,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final resp = await sn.client.get('/cgi/id/notifications?take=10');
       _totalCount = resp.data['count'];
       _notifications.addAll(
-        resp.data['data']
-                ?.map((e) => SnNotification.fromJson(e))
-                .cast<SnNotification>() ??
-            [],
+        resp.data['data']?.map((e) => SnNotification.fromJson(e)).cast<SnNotification>() ?? [],
       );
       nty.updateTray();
     } catch (err) {
@@ -188,8 +186,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   _fetchNotifications();
                 },
                 isLoading: _isBusy,
-                hasReachedMax: _totalCount != null &&
-                    _notifications.length >= _totalCount!,
+                hasReachedMax: _totalCount != null && _notifications.length >= _totalCount!,
                 itemBuilder: (context, idx) {
                   final nty = _notifications[idx];
                   return Row(
@@ -221,29 +218,36 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 isAutoWarp: true,
                               ),
                             ),
-                            if ([
-                                  'interactive.feedback',
-                                  'interactive.subscription'
-                                ].contains(nty.topic) &&
+                            if (['interactive.reply', 'interactive.feedback', 'interactive.subscription']
+                                    .contains(nty.topic) &&
                                 nty.metadata['related_post'] != null)
-                              StyledWidget(Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(8)),
-                                  border: Border.all(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 1,
+                              GestureDetector(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                    border: Border.all(
+                                      color: Theme.of(context).dividerColor,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: PostItem(
+                                    data: SnPost.fromJson(
+                                      nty.metadata['related_post']!,
+                                    ),
+                                    showComments: false,
+                                    showReactions: false,
+                                    showMenu: false,
                                   ),
                                 ),
-                                child: PostItem(
-                                  data: SnPost.fromJson(
-                                    nty.metadata['related_post']!,
-                                  ),
-                                  showComments: false,
-                                  showReactions: false,
-                                  showMenu: false,
-                                ),
-                              )).padding(top: 8),
+                                onTap: () {
+                                  GoRouter.of(context).pushNamed(
+                                    'postDetail',
+                                    pathParameters: {
+                                      'slug': nty.metadata['related_post']!['id'].toString(),
+                                    },
+                                  );
+                                },
+                              ).padding(top: 8),
                             const Gap(8),
                             Row(
                               children: [
@@ -268,10 +272,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       IconButton(
                         icon: const Icon(Symbols.check),
                         padding: EdgeInsets.all(0),
-                        visualDensity:
-                            const VisualDensity(horizontal: -4, vertical: -4),
-                        onPressed:
-                            _isSubmitting ? null : () => _markOneAsRead(nty),
+                        visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+                        onPressed: _isSubmitting ? null : () => _markOneAsRead(nty),
                       ),
                     ],
                   ).padding(horizontal: 16);

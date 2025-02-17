@@ -62,6 +62,9 @@ _$SnPostImpl _$$SnPostImplFromJson(Map<String, dynamic> json) => _$SnPostImpl(
           : DateTime.parse(json['published_until'] as String),
       totalUpvote: (json['total_upvote'] as num).toInt(),
       totalDownvote: (json['total_downvote'] as num).toInt(),
+      totalViews: (json['total_views'] as num?)?.toInt() ?? 0,
+      totalAggregatedViews:
+          (json['total_aggregated_views'] as num?)?.toInt() ?? 0,
       publisherId: (json['publisher_id'] as num).toInt(),
       pollId: (json['poll_id'] as num?)?.toInt(),
       publisher:
@@ -101,6 +104,8 @@ Map<String, dynamic> _$$SnPostImplToJson(_$SnPostImpl instance) =>
       'published_until': instance.publishedUntil?.toIso8601String(),
       'total_upvote': instance.totalUpvote,
       'total_downvote': instance.totalDownvote,
+      'total_views': instance.totalViews,
+      'total_aggregated_views': instance.totalAggregatedViews,
       'publisher_id': instance.publisherId,
       'poll_id': instance.pollId,
       'publisher': instance.publisher.toJson(),

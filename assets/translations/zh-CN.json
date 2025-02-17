@@ -654,5 +654,14 @@
   "checkInResultTier2": "凶",
   "checkInResultTier3": "中平",
   "checkInResultTier4": "吉",
-  "checkInResultTier5": "大吉"
+  "checkInResultTier5": "大吉",
+  "flagPostAction": "吹哨",
+  "flagPost": "吹哨不良内容",
+  "flagPostDescription": "吹哨不良内容，如果吹哨用户占浏览量的 50% 或以上，则帖子会被折叠。吹哨后不可撤销。",
+  "flaggedPost": "哨子已经吹响。",
+  "postViews": {
+    "zero": "{} 次浏览",
+    "one": "{} 次浏览",
+    "other": "{} 次浏览"
+  }
 }

@@ -37,6 +37,8 @@ class SnPost with _$SnPost {
     required DateTime? publishedUntil,
     required int totalUpvote,
     required int totalDownvote,
+    @Default(0) int totalViews,
+    @Default(0) int totalAggregatedViews,
     required int publisherId,
     required int? pollId,
     required SnPublisher publisher,

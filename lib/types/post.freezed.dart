@@ -47,6 +47,8 @@ mixin _$SnPost {
   DateTime? get publishedUntil => throw _privateConstructorUsedError;
   int get totalUpvote => throw _privateConstructorUsedError;
   int get totalDownvote => throw _privateConstructorUsedError;
+  int get totalViews => throw _privateConstructorUsedError;
+  int get totalAggregatedViews => throw _privateConstructorUsedError;
   int get publisherId => throw _privateConstructorUsedError;
   int? get pollId => throw _privateConstructorUsedError;
   SnPublisher get publisher => throw _privateConstructorUsedError;
@@ -95,6 +97,8 @@ abstract class $SnPostCopyWith<$Res> {
       DateTime? publishedUntil,
       int totalUpvote,
       int totalDownvote,
+      int totalViews,
+      int totalAggregatedViews,
       int publisherId,
       int? pollId,
       SnPublisher publisher,
@@ -150,6 +154,8 @@ class _$SnPostCopyWithImpl<$Res, $Val extends SnPost>
     Object? publishedUntil = freezed,
     Object? totalUpvote = null,
     Object? totalDownvote = null,
+    Object? totalViews = null,
+    Object? totalAggregatedViews = null,
     Object? publisherId = null,
     Object? pollId = freezed,
     Object? publisher = null,
@@ -264,6 +270,14 @@ class _$SnPostCopyWithImpl<$Res, $Val extends SnPost>
       totalDownvote: null == totalDownvote
           ? _value.totalDownvote
           : totalDownvote // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalViews: null == totalViews
+          ? _value.totalViews
+          : totalViews // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalAggregatedViews: null == totalAggregatedViews
+          ? _value.totalAggregatedViews
+          : totalAggregatedViews // ignore: cast_nullable_to_non_nullable
               as int,
       publisherId: null == publisherId
           ? _value.publisherId
@@ -386,6 +400,8 @@ abstract class _$$SnPostImplCopyWith<$Res> implements $SnPostCopyWith<$Res> {
       DateTime? publishedUntil,
       int totalUpvote,
       int totalDownvote,
+      int totalViews,
+      int totalAggregatedViews,
       int publisherId,
       int? pollId,
       SnPublisher publisher,
@@ -444,6 +460,8 @@ class __$$SnPostImplCopyWithImpl<$Res>
     Object? publishedUntil = freezed,
     Object? totalUpvote = null,
     Object? totalDownvote = null,
+    Object? totalViews = null,
+    Object? totalAggregatedViews = null,
     Object? publisherId = null,
     Object? pollId = freezed,
     Object? publisher = null,
@@ -559,6 +577,14 @@ class __$$SnPostImplCopyWithImpl<$Res>
           ? _value.totalDownvote
           : totalDownvote // ignore: cast_nullable_to_non_nullable
               as int,
+      totalViews: null == totalViews
+          ? _value.totalViews
+          : totalViews // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalAggregatedViews: null == totalAggregatedViews
+          ? _value.totalAggregatedViews
+          : totalAggregatedViews // ignore: cast_nullable_to_non_nullable
+              as int,
       publisherId: null == publisherId
           ? _value.publisherId
           : publisherId // ignore: cast_nullable_to_non_nullable
@@ -614,6 +640,8 @@ class _$SnPostImpl extends _SnPost {
       required this.publishedUntil,
       required this.totalUpvote,
       required this.totalDownvote,
+      this.totalViews = 0,
+      this.totalAggregatedViews = 0,
       required this.publisherId,
       required this.pollId,
       required this.publisher,
@@ -731,6 +759,12 @@ class _$SnPostImpl extends _SnPost {
   @override
   final int totalDownvote;
   @override
+  @JsonKey()
+  final int totalViews;
+  @override
+  @JsonKey()
+  final int totalAggregatedViews;
+  @override
   final int publisherId;
   @override
   final int? pollId;
@@ -743,7 +777,7 @@ class _$SnPostImpl extends _SnPost {
 
   @override
   String toString() {
-    return 'SnPost(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, body: $body, language: $language, alias: $alias, aliasPrefix: $aliasPrefix, tags: $tags, categories: $categories, replies: $replies, replyId: $replyId, repostId: $repostId, replyTo: $replyTo, repostTo: $repostTo, visibleUsersList: $visibleUsersList, invisibleUsersList: $invisibleUsersList, visibility: $visibility, editedAt: $editedAt, pinnedAt: $pinnedAt, lockedAt: $lockedAt, isDraft: $isDraft, publishedAt: $publishedAt, publishedUntil: $publishedUntil, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, publisherId: $publisherId, pollId: $pollId, publisher: $publisher, metric: $metric, preload: $preload)';
+    return 'SnPost(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, body: $body, language: $language, alias: $alias, aliasPrefix: $aliasPrefix, tags: $tags, categories: $categories, replies: $replies, replyId: $replyId, repostId: $repostId, replyTo: $replyTo, repostTo: $repostTo, visibleUsersList: $visibleUsersList, invisibleUsersList: $invisibleUsersList, visibility: $visibility, editedAt: $editedAt, pinnedAt: $pinnedAt, lockedAt: $lockedAt, isDraft: $isDraft, publishedAt: $publishedAt, publishedUntil: $publishedUntil, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, totalViews: $totalViews, totalAggregatedViews: $totalAggregatedViews, publisherId: $publisherId, pollId: $pollId, publisher: $publisher, metric: $metric, preload: $preload)';
   }
 
   @override
@@ -796,6 +830,10 @@ class _$SnPostImpl extends _SnPost {
                 other.totalUpvote == totalUpvote) &&
             (identical(other.totalDownvote, totalDownvote) ||
                 other.totalDownvote == totalDownvote) &&
+            (identical(other.totalViews, totalViews) ||
+                other.totalViews == totalViews) &&
+            (identical(other.totalAggregatedViews, totalAggregatedViews) ||
+                other.totalAggregatedViews == totalAggregatedViews) &&
             (identical(other.publisherId, publisherId) ||
                 other.publisherId == publisherId) &&
             (identical(other.pollId, pollId) || other.pollId == pollId) &&
@@ -836,6 +874,8 @@ class _$SnPostImpl extends _SnPost {
         publishedUntil,
         totalUpvote,
         totalDownvote,
+        totalViews,
+        totalAggregatedViews,
         publisherId,
         pollId,
         publisher,
@@ -888,6 +928,8 @@ abstract class _SnPost extends SnPost {
       required final DateTime? publishedUntil,
       required final int totalUpvote,
       required final int totalDownvote,
+      final int totalViews,
+      final int totalAggregatedViews,
       required final int publisherId,
       required final int? pollId,
       required final SnPublisher publisher,
@@ -951,6 +993,10 @@ abstract class _SnPost extends SnPost {
   int get totalUpvote;
   @override
   int get totalDownvote;
+  @override
+  int get totalViews;
+  @override
+  int get totalAggregatedViews;
   @override
   int get publisherId;
   @override

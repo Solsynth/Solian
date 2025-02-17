@@ -655,5 +655,14 @@
   "checkInResultTier2": "Worse",
   "checkInResultTier3": "Normal",
   "checkInResultTier4": "Better",
-  "checkInResultTier5": "Best"
+  "checkInResultTier5": "Best",
+  "flagPostAction": "Flag the Post",
+  "flagPost": "Flag objectionable content",
+  "flagPostDescription": "If flagged users takes 50% or more of the views, the post will be collapsed. You cannot revoke the action.",
+  "flaggedPost": "Post has been flagged.",
+  "postViews": {
+    "zero": "No views",
+    "one": "{} view",
+    "other": "{} views"
+  }
 }

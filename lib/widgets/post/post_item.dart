@@ -684,6 +684,15 @@ class _PostBottomAction extends StatelessWidget {
                     );
                   },
                 ),
+              InkWell(
+                child: Row(
+                  children: [
+                    Icon(Symbols.play_circle, size: 20, color: iconColor),
+                    const Gap(8),
+                    Text('postViews').plural(data.totalViews),
+                  ],
+                ),
+              ),
             ],
           ),
         InkWell(
@@ -829,9 +838,27 @@ class _PostContentHeader extends StatelessWidget {
       await sn.client.delete('/cgi/co/posts/${data.id}', queryParameters: {
         'publisherId': data.publisherId,
       });
-
       if (!context.mounted) return;
       context.showSnackbar('postDeleted'.tr(args: ['#${data.id}']));
+    } catch (err) {
+      if (!context.mounted) return;
+      context.showErrorDialog(err);
+    }
+  }
+
+  Future<void> _flagPost(BuildContext context) async {
+    final confirm = await context.showConfirmDialog(
+      'flagPost'.tr(),
+      'flagPostDescription'.tr(),
+    );
+    if (!confirm) return;
+    if (!context.mounted) return;
+
+    try {
+      final sn = context.read<SnNetworkProvider>();
+      await sn.client.post('/cgi/co/posts/${data.id}/flag');
+      if (!context.mounted) return;
+      context.showSnackbar('postFlagged'.tr());
     } catch (err) {
       if (!context.mounted) return;
       context.showErrorDialog(err);
@@ -1028,6 +1055,18 @@ class _PostContentHeader extends StatelessWidget {
                 child: Row(
                   children: [
                     const Icon(Symbols.flag),
+                    const Gap(16),
+                    Text('flagPostAction').tr(),
+                  ],
+                ),
+                onTap: () {
+                  _flagPost(context);
+                },
+              ),
+              PopupMenuItem(
+                child: Row(
+                  children: [
+                    const Icon(Symbols.report),
                     const Gap(16),
                     Text('report').tr(),
                   ],
