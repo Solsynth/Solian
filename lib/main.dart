@@ -427,8 +427,16 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
         });
         return false;
       },
-      child: SizeChangedLayoutNotifier(
-        child: widget.child,
+      child: OrientationBuilder(
+        builder: (context, orientation) {
+          final cfg = context.read<ConfigProvider>();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            cfg.calcDrawerSize(context);
+          });
+          return SizeChangedLayoutNotifier(
+            child: widget.child,
+          );
+        },
       ),
     );
   }
