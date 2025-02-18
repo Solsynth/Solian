@@ -95,6 +95,10 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
       'description': _descriptionController.text,
       'is_public': _isPublic,
       'is_community': _isCommunity,
+      if (_editingChannel != null && _belongToRealm == null)
+        'new_belongs_realm': 'global'
+      else if (_editingChannel != null && _belongToRealm?.id != _editingChannel?.realm?.id)
+        'new_belongs_realm': _belongToRealm!.alias,
     };
 
     try {
@@ -171,7 +175,6 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
                 items: [
                   ...(_realms?.map(
                         (SnRealm item) => DropdownMenuItem<SnRealm>(
-                          enabled: _editingChannel == null || _editingChannel?.realmId == item.id,
                           value: item,
                           child: Row(
                             children: [
@@ -204,7 +207,6 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
                       ) ??
                       []),
                   DropdownMenuItem<SnRealm>(
-                    enabled: _editingChannel == null,
                     value: null,
                     child: Row(
                       children: [
