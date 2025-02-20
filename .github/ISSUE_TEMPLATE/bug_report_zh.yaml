@@ -1,0 +1,83 @@
+name: 问题反馈
+description: 提交 Bug 或其它问题的反馈
+title: "[Bug] 标题"
+labels: [Bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        非常感谢，你将要提交的反馈会让我们变得更好！
+
+  - type: checkboxes
+    id: duplication
+    attributes:
+      label: ⠀
+      options:
+        - label: 我已经搜索并确认此 issue 不与其它任何 issue 重复
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 清楚且详细地描述你遇到的 Bug 或问题
+      placeholder: |
+        发生了什么？生动地描述你所看到的一切
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望表现
+      description: 清楚且详细地描述你期望发生的事
+      placeholder: |
+        什么功能应该正常运行，运行后会有什么结果
+        什么界面应该正常显示，应该会显示什么内容
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 能够复现问题的每一步
+      placeholder: |
+        1. 尽可能详细地描述每一步
+        2. 更改的设置、添加的好友...
+        3. 这里也可以描述你看到的界面
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境/版本
+      description: 提供运行时的环境信息
+      placeholder: |
+        示例:
+          设备型号: Google Pixel 8 Pro
+          系统板本: Baklava (BP22.250124.009)
+          程序版本: 2.3.2
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 屏幕截图/录制
+      description: 提供截屏或录屏来更好地描述问题
+      placeholder: |
+        错误显示的界面/崩溃时的界面、先前改动的设置
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 更多信息
+      description: 任何与问题有关且有用的信息
+      placeholder: |
+        崩溃报告、日志，或是你的用户名
+    validations:
+      required: false
