@@ -1,0 +1,49 @@
+name: 功能建议
+description: 提出你想要添加或更改的功能
+title: "[Feature] 标题"
+labels: [Feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        非常感谢，你将要提交的请求会让我们变得更好！
+
+  - type: checkboxes
+    id: duplication
+    attributes:
+      label: ⠀
+      options:
+        - label: 我已经搜索并确认此 issue 不与其它任何 issue 重复
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 功能描述
+      description: 清楚且详细地描述要添加/更改后的功能
+    validations:
+      required: true
+
+  - type: textarea
+    id: reasons
+    attributes:
+      label: 添加/更改理由
+      description: 解释为什么要这样做，对用户有什么好处
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: 功能示例
+      description: 相似/已存在功能的截图，或画出大致的界面
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 更多信息
+      description: 任何与功能有关且有用的信息，或已存在功能的代码/仓库
+    validations:
+      required: false

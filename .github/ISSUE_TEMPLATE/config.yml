@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Solsynth Releases
+    url: https://files.solsynth.dev/production01/solian
+    about: Another place to download released apps

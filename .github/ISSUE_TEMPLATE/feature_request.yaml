@@ -1,0 +1,59 @@
+name: Feature request
+description: Suggest features you want to add or suggest to modify existing features
+title: "[Feature] "
+labels: [Feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to make us better!
+
+  - type: checkboxes
+    id: duplication
+    attributes:
+      label: ⠀
+      options:
+        - label: This issue is not duplicated with any other open or closed issues
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the feature
+      description: A clear and concise description of what the feature is
+      placeholder: |
+        Example:
+          A Quick Settings tile to start the service, long press to launch the app.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reasons
+    attributes:
+      label: Reason for adding
+      description: Explain why this feature would be useful to you
+      placeholder: |
+        Example:
+          Start the service quickly from the Quick Settings tile and save lots of time.
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example(s)
+      description: Post screenshots/drawings/links/etc of the feature request, or proof-of-concept images about the feature
+      placeholder: |
+        Example:
+          shazam_toggle.jpg
+          nekobox_switch.jpg
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context about the feature here
+    validations:
+      required: false
