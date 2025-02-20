@@ -177,3 +177,14 @@ class SnStickerPack with _$SnStickerPack {
 
   factory SnStickerPack.fromJson(Map<String, Object?> json) => _$SnStickerPackFromJson(json);
 }
+
+@freezed
+class SnAttachmentBilling with _$SnAttachmentBilling {
+  const factory SnAttachmentBilling({
+    required int currentBytes,
+    required int discountFileSize,
+    required double includedRatio,
+  }) = _SnAttachmentBilling;
+
+  factory SnAttachmentBilling.fromJson(Map<String, Object?> json) => _$SnAttachmentBillingFromJson(json);
+}

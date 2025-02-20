@@ -281,3 +281,19 @@ Map<String, dynamic> _$$SnStickerPackImplToJson(_$SnStickerPackImpl instance) =>
       'stickers': instance.stickers?.map((e) => e.toJson()).toList(),
       'account_id': instance.accountId,
     };
+
+_$SnAttachmentBillingImpl _$$SnAttachmentBillingImplFromJson(
+        Map<String, dynamic> json) =>
+    _$SnAttachmentBillingImpl(
+      currentBytes: (json['current_bytes'] as num).toInt(),
+      discountFileSize: (json['discount_file_size'] as num).toInt(),
+      includedRatio: (json['included_ratio'] as num).toDouble(),
+    );
+
+Map<String, dynamic> _$$SnAttachmentBillingImplToJson(
+        _$SnAttachmentBillingImpl instance) =>
+    <String, dynamic>{
+      'current_bytes': instance.currentBytes,
+      'discount_file_size': instance.discountFileSize,
+      'included_ratio': instance.includedRatio,
+    };

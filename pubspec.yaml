@@ -121,6 +121,8 @@ dependencies:
   tray_manager: ^0.3.2
   hotkey_manager: ^0.2.3
   image_picker_android: ^0.8.12+20
+  cached_network_image_platform_interface: ^4.1.1
+  image_picker_platform_interface: ^2.10.1
 
 dev_dependencies:
   flutter_test:

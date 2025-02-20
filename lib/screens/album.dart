@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
@@ -27,8 +33,22 @@ class _AlbumScreenState extends State<AlbumScreen> {
   bool _isBusy = false;
   int? _totalCount;
 
+  SnAttachmentBilling? _billing;
+
   final List<SnAttachment> _attachments = List.empty(growable: true);
   final List<String> _heroTags = List.empty(growable: true);
+
+  Future<void> _fetchBillingStatus() async {
+    try {
+      final sn = context.read<SnNetworkProvider>();
+      final resp = await sn.client.get('/cgi/uc/billing');
+      final out = SnAttachmentBilling.fromJson(resp.data);
+      setState(() => _billing = out);
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    }
+  }
 
   Future<void> _fetchAttachments() async {
     setState(() => _isBusy = true);
@@ -62,6 +82,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
   @override
   void initState() {
     super.initState();
+    _fetchBillingStatus();
     _fetchAttachments();
     _scrollController.addListener(() {
       if (_scrollController.position.atEdge) {
@@ -90,6 +111,48 @@ class _AlbumScreenState extends State<AlbumScreen> {
           SliverAppBar(
             leading: AutoAppBarLeading(),
             title: Text('screenAlbum').tr(),
+          ),
+          SliverToBoxAdapter(
+            child: Card(
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: CircularProgressIndicator(
+                      value: _billing?.includedRatio ?? 0,
+                      strokeWidth: 8,
+                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    ),
+                  ).padding(all: 12),
+                  const Gap(24),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('attachmentBillingUploaded').tr().bold(),
+                        Text(
+                          (_billing?.currentBytes ?? 0).formatBytes(decimals: 4),
+                          style: GoogleFonts.robotoMono(),
+                        ),
+                        Text('attachmentBillingDiscount').tr().bold(),
+                        Text(
+                          '${(_billing?.discountFileSize ?? 0).formatBytes(decimals: 2)} · ${((_billing?.includedRatio ?? 0) * 100).toStringAsFixed(2)}%',
+                          style: GoogleFonts.robotoMono(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Tooltip(
+                    message: 'attachmentBillingHint'.tr(),
+                    child: IconButton(
+                      icon: const Icon(Symbols.info),
+                      onPressed: () {},
+                    ),
+                  ),
+                ],
+              ).padding(horizontal: 24, vertical: 8),
+            ),
           ),
           SliverMasonryGrid.extent(
             childCount: _attachments.length,

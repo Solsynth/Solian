@@ -3007,3 +3007,195 @@ abstract class _SnStickerPack implements SnStickerPack {
   _$$SnStickerPackImplCopyWith<_$SnStickerPackImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+SnAttachmentBilling _$SnAttachmentBillingFromJson(Map<String, dynamic> json) {
+  return _SnAttachmentBilling.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SnAttachmentBilling {
+  int get currentBytes => throw _privateConstructorUsedError;
+  int get discountFileSize => throw _privateConstructorUsedError;
+  double get includedRatio => throw _privateConstructorUsedError;
+
+  /// Serializes this SnAttachmentBilling to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SnAttachmentBilling
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SnAttachmentBillingCopyWith<SnAttachmentBilling> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SnAttachmentBillingCopyWith<$Res> {
+  factory $SnAttachmentBillingCopyWith(
+          SnAttachmentBilling value, $Res Function(SnAttachmentBilling) then) =
+      _$SnAttachmentBillingCopyWithImpl<$Res, SnAttachmentBilling>;
+  @useResult
+  $Res call({int currentBytes, int discountFileSize, double includedRatio});
+}
+
+/// @nodoc
+class _$SnAttachmentBillingCopyWithImpl<$Res, $Val extends SnAttachmentBilling>
+    implements $SnAttachmentBillingCopyWith<$Res> {
+  _$SnAttachmentBillingCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SnAttachmentBilling
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? currentBytes = null,
+    Object? discountFileSize = null,
+    Object? includedRatio = null,
+  }) {
+    return _then(_value.copyWith(
+      currentBytes: null == currentBytes
+          ? _value.currentBytes
+          : currentBytes // ignore: cast_nullable_to_non_nullable
+              as int,
+      discountFileSize: null == discountFileSize
+          ? _value.discountFileSize
+          : discountFileSize // ignore: cast_nullable_to_non_nullable
+              as int,
+      includedRatio: null == includedRatio
+          ? _value.includedRatio
+          : includedRatio // ignore: cast_nullable_to_non_nullable
+              as double,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SnAttachmentBillingImplCopyWith<$Res>
+    implements $SnAttachmentBillingCopyWith<$Res> {
+  factory _$$SnAttachmentBillingImplCopyWith(_$SnAttachmentBillingImpl value,
+          $Res Function(_$SnAttachmentBillingImpl) then) =
+      __$$SnAttachmentBillingImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int currentBytes, int discountFileSize, double includedRatio});
+}
+
+/// @nodoc
+class __$$SnAttachmentBillingImplCopyWithImpl<$Res>
+    extends _$SnAttachmentBillingCopyWithImpl<$Res, _$SnAttachmentBillingImpl>
+    implements _$$SnAttachmentBillingImplCopyWith<$Res> {
+  __$$SnAttachmentBillingImplCopyWithImpl(_$SnAttachmentBillingImpl _value,
+      $Res Function(_$SnAttachmentBillingImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SnAttachmentBilling
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? currentBytes = null,
+    Object? discountFileSize = null,
+    Object? includedRatio = null,
+  }) {
+    return _then(_$SnAttachmentBillingImpl(
+      currentBytes: null == currentBytes
+          ? _value.currentBytes
+          : currentBytes // ignore: cast_nullable_to_non_nullable
+              as int,
+      discountFileSize: null == discountFileSize
+          ? _value.discountFileSize
+          : discountFileSize // ignore: cast_nullable_to_non_nullable
+              as int,
+      includedRatio: null == includedRatio
+          ? _value.includedRatio
+          : includedRatio // ignore: cast_nullable_to_non_nullable
+              as double,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SnAttachmentBillingImpl implements _SnAttachmentBilling {
+  const _$SnAttachmentBillingImpl(
+      {required this.currentBytes,
+      required this.discountFileSize,
+      required this.includedRatio});
+
+  factory _$SnAttachmentBillingImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SnAttachmentBillingImplFromJson(json);
+
+  @override
+  final int currentBytes;
+  @override
+  final int discountFileSize;
+  @override
+  final double includedRatio;
+
+  @override
+  String toString() {
+    return 'SnAttachmentBilling(currentBytes: $currentBytes, discountFileSize: $discountFileSize, includedRatio: $includedRatio)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SnAttachmentBillingImpl &&
+            (identical(other.currentBytes, currentBytes) ||
+                other.currentBytes == currentBytes) &&
+            (identical(other.discountFileSize, discountFileSize) ||
+                other.discountFileSize == discountFileSize) &&
+            (identical(other.includedRatio, includedRatio) ||
+                other.includedRatio == includedRatio));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, currentBytes, discountFileSize, includedRatio);
+
+  /// Create a copy of SnAttachmentBilling
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SnAttachmentBillingImplCopyWith<_$SnAttachmentBillingImpl> get copyWith =>
+      __$$SnAttachmentBillingImplCopyWithImpl<_$SnAttachmentBillingImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SnAttachmentBillingImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _SnAttachmentBilling implements SnAttachmentBilling {
+  const factory _SnAttachmentBilling(
+      {required final int currentBytes,
+      required final int discountFileSize,
+      required final double includedRatio}) = _$SnAttachmentBillingImpl;
+
+  factory _SnAttachmentBilling.fromJson(Map<String, dynamic> json) =
+      _$SnAttachmentBillingImpl.fromJson;
+
+  @override
+  int get currentBytes;
+  @override
+  int get discountFileSize;
+  @override
+  double get includedRatio;
+
+  /// Create a copy of SnAttachmentBilling
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SnAttachmentBillingImplCopyWith<_$SnAttachmentBillingImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}

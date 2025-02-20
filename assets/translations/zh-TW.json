@@ -546,6 +546,7 @@
   "termAcceptNextWithAgree": "點擊 “下一步”，即表示你同意我們的各項條款，包括其之後的更新。",
   "unauthorized": "未登陸",
   "unauthorizedDescription": "登陸以探索整個 Solar Network。",
+  "projectDetail": "項目詳情",
   "serviceStatus": "服務狀態",
   "termRelated": "相關條款",
   "appDetails": "應用程序詳情",
@@ -664,5 +665,8 @@
     "zero": "{} 次瀏覽",
     "one": "{} 次瀏覽",
     "other": "{} 次瀏覽"
-  }
+  },
+  "attachmentBillingUploaded": "已佔用的字節數",
+  "attachmentBillingDiscount": "免費的字節數",
+  "attachmentBillingHint": "滑動窗口計價®\n在24小時內上傳的文件大小超出免費空間才會適用扣費。"
 }
