@@ -128,6 +128,7 @@ _$SnRealmImpl _$$SnRealmImplFromJson(Map<String, dynamic> json) =>
       accountId: (json['account_id'] as num).toInt(),
       isPublic: json['is_public'] as bool,
       isCommunity: json['is_community'] as bool,
+      popularity: (json['popularity'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$$SnRealmImplToJson(_$SnRealmImpl instance) =>
@@ -146,4 +147,5 @@ Map<String, dynamic> _$$SnRealmImplToJson(_$SnRealmImpl instance) =>
       'account_id': instance.accountId,
       'is_public': instance.isPublic,
       'is_community': instance.isCommunity,
+      'popularity': instance.popularity,
     };

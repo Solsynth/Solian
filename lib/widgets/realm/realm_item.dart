@@ -15,6 +15,7 @@ class RealmItemWidget extends StatelessWidget {
   final List<PopupMenuItem>? actionListView;
   final Function? onUpdate;
   final Function? onTap;
+  final bool showPopularity;
 
   const RealmItemWidget({
     super.key,
@@ -23,6 +24,7 @@ class RealmItemWidget extends StatelessWidget {
     this.actionListView,
     this.onUpdate,
     this.onTap,
+    this.showPopularity = true,
   });
 
   @override
@@ -35,13 +37,27 @@ class RealmItemWidget extends StatelessWidget {
           fallbackWidget: const Icon(Symbols.group, size: 20),
         ),
         title: Text(item.name),
-        subtitle: Text(
-          item.description,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        subtitle: Row(
+          children: [
+            if (showPopularity) const Icon(Symbols.local_fire_department, size: 18).padding(right: 1),
+            if (showPopularity) Text(item.popularity.toString()),
+            if (showPopularity) const Gap(6),
+            Expanded(
+              child: Text(
+                item.description,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
-        trailing: PopupMenuButton(itemBuilder: (BuildContext context) => actionListView ?? []),
+        trailing:
+            actionListView != null ? PopupMenuButton(itemBuilder: (BuildContext context) => actionListView!) : null,
         onTap: () {
+          if (onTap != null) {
+            onTap!();
+            return;
+          }
           GoRouter.of(context).pushNamed(
             'realmDetail',
             pathParameters: {'alias': item.alias},
@@ -100,13 +116,23 @@ class RealmItemWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(item.name).textStyle(Theme.of(context).textTheme.titleMedium!),
+                  if (showPopularity)
+                    Row(
+                      children: [
+                        Text(item.popularity.toString()),
+                        const Icon(Symbols.local_fire_department, size: 16).padding(bottom: 2),
+                      ],
+                    ).padding(top: 6),
                   Text(item.description).textStyle(Theme.of(context).textTheme.bodySmall!),
                 ],
               ).padding(horizontal: 24, bottom: 14),
             ],
           ),
           onTap: () {
-            if (onTap != null) onTap!();
+            if (onTap != null) {
+              onTap!();
+              return;
+            }
             GoRouter.of(context).pushNamed(
               'realmDetail',
               pathParameters: {'alias': item.alias},

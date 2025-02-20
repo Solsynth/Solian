@@ -394,6 +394,7 @@ mixin _$SnRealm {
   bool get isPublic => throw _privateConstructorUsedError;
   @HiveField(12)
   bool get isCommunity => throw _privateConstructorUsedError;
+  int get popularity => throw _privateConstructorUsedError;
 
   /// Serializes this SnRealm to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -423,7 +424,8 @@ abstract class $SnRealmCopyWith<$Res> {
       @HiveField(9) Map<String, dynamic>? accessPolicy,
       @HiveField(10) int accountId,
       @HiveField(11) bool isPublic,
-      @HiveField(12) bool isCommunity});
+      @HiveField(12) bool isCommunity,
+      int popularity});
 }
 
 /// @nodoc
@@ -455,6 +457,7 @@ class _$SnRealmCopyWithImpl<$Res, $Val extends SnRealm>
     Object? accountId = null,
     Object? isPublic = null,
     Object? isCommunity = null,
+    Object? popularity = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -513,6 +516,10 @@ class _$SnRealmCopyWithImpl<$Res, $Val extends SnRealm>
           ? _value.isCommunity
           : isCommunity // ignore: cast_nullable_to_non_nullable
               as bool,
+      popularity: null == popularity
+          ? _value.popularity
+          : popularity // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -538,7 +545,8 @@ abstract class _$$SnRealmImplCopyWith<$Res> implements $SnRealmCopyWith<$Res> {
       @HiveField(9) Map<String, dynamic>? accessPolicy,
       @HiveField(10) int accountId,
       @HiveField(11) bool isPublic,
-      @HiveField(12) bool isCommunity});
+      @HiveField(12) bool isCommunity,
+      int popularity});
 }
 
 /// @nodoc
@@ -568,6 +576,7 @@ class __$$SnRealmImplCopyWithImpl<$Res>
     Object? accountId = null,
     Object? isPublic = null,
     Object? isCommunity = null,
+    Object? popularity = null,
   }) {
     return _then(_$SnRealmImpl(
       id: null == id
@@ -626,6 +635,10 @@ class __$$SnRealmImplCopyWithImpl<$Res>
           ? _value.isCommunity
           : isCommunity // ignore: cast_nullable_to_non_nullable
               as bool,
+      popularity: null == popularity
+          ? _value.popularity
+          : popularity // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -648,7 +661,8 @@ class _$SnRealmImpl extends _SnRealm {
       @HiveField(9) required final Map<String, dynamic>? accessPolicy,
       @HiveField(10) required this.accountId,
       @HiveField(11) required this.isPublic,
-      @HiveField(12) required this.isCommunity})
+      @HiveField(12) required this.isCommunity,
+      this.popularity = 0})
       : _members = members,
         _accessPolicy = accessPolicy,
         super._();
@@ -713,10 +727,13 @@ class _$SnRealmImpl extends _SnRealm {
   @override
   @HiveField(12)
   final bool isCommunity;
+  @override
+  @JsonKey()
+  final int popularity;
 
   @override
   String toString() {
-    return 'SnRealm(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, alias: $alias, name: $name, description: $description, members: $members, avatar: $avatar, banner: $banner, accessPolicy: $accessPolicy, accountId: $accountId, isPublic: $isPublic, isCommunity: $isCommunity)';
+    return 'SnRealm(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, alias: $alias, name: $name, description: $description, members: $members, avatar: $avatar, banner: $banner, accessPolicy: $accessPolicy, accountId: $accountId, isPublic: $isPublic, isCommunity: $isCommunity, popularity: $popularity)';
   }
 
   @override
@@ -745,7 +762,9 @@ class _$SnRealmImpl extends _SnRealm {
             (identical(other.isPublic, isPublic) ||
                 other.isPublic == isPublic) &&
             (identical(other.isCommunity, isCommunity) ||
-                other.isCommunity == isCommunity));
+                other.isCommunity == isCommunity) &&
+            (identical(other.popularity, popularity) ||
+                other.popularity == popularity));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -765,7 +784,8 @@ class _$SnRealmImpl extends _SnRealm {
       const DeepCollectionEquality().hash(_accessPolicy),
       accountId,
       isPublic,
-      isCommunity);
+      isCommunity,
+      popularity);
 
   /// Create a copy of SnRealm
   /// with the given fields replaced by the non-null parameter values.
@@ -798,7 +818,8 @@ abstract class _SnRealm extends SnRealm {
       @HiveField(9) required final Map<String, dynamic>? accessPolicy,
       @HiveField(10) required final int accountId,
       @HiveField(11) required final bool isPublic,
-      @HiveField(12) required final bool isCommunity}) = _$SnRealmImpl;
+      @HiveField(12) required final bool isCommunity,
+      final int popularity}) = _$SnRealmImpl;
   const _SnRealm._() : super._();
 
   factory _SnRealm.fromJson(Map<String, dynamic> json) = _$SnRealmImpl.fromJson;
@@ -844,6 +865,8 @@ abstract class _SnRealm extends SnRealm {
   @override
   @HiveField(12)
   bool get isCommunity;
+  @override
+  int get popularity;
 
   /// Create a copy of SnRealm
   /// with the given fields replaced by the non-null parameter values.

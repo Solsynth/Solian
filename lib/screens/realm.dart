@@ -136,6 +136,7 @@ class _RealmScreenState extends State<RealmScreen> {
                     final realm = _realms![idx];
 
                     return RealmItemWidget(
+                      showPopularity: false,
                       item: realm,
                       isListView: _isCompactView,
                       actionListView: [

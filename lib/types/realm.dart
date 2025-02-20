@@ -43,6 +43,7 @@ class SnRealm with _$SnRealm {
     @HiveField(10) required int accountId,
     @HiveField(11) required bool isPublic,
     @HiveField(12) required bool isCommunity,
+    @Default(0) int popularity,
   }) = _SnRealm;
 
   factory SnRealm.fromJson(Map<String, dynamic> json) =>
