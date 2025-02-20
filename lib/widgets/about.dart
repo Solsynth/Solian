@@ -97,6 +97,13 @@ class AboutScreen extends StatelessWidget {
                       launchUrlString('https://status.solsynth.dev');
                     },
                   ),
+                  TextButton(
+                    style: denseButtonStyle,
+                    child: Text('projectDetail').tr(),
+                    onPressed: () {
+                      launchUrlString('https://solsynth.dev/products/solar-network');
+                    },
+                  ),
                 ],
               ),
             ).center(),
@@ -108,6 +115,12 @@ class AboutScreen extends StatelessWidget {
                 fontSize: 12,
               ),
             ),
+            InkWell(
+              child: Text('GitHub', style: TextStyle(fontSize: 12)),
+              onTap: () {
+                launchUrlString('https://github.com/Solsynth/HyperNet.Surface');
+              },
+            )
           ],
         ),
       ),
