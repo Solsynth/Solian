@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:surface/providers/config.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/chat.dart';
@@ -12,6 +13,7 @@ import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
+import 'package:surface/widgets/realm/realm_item.dart';
 import 'package:surface/widgets/universal_image.dart';
 
 class RealmDiscoveryScreen extends StatefulWidget {
@@ -24,6 +26,7 @@ class RealmDiscoveryScreen extends StatefulWidget {
 class _RealmDiscoveryScreenState extends State<RealmDiscoveryScreen> {
   List<SnRealm>? _realms;
   bool _isBusy = false;
+  bool _isCompactView = false;
 
   Future<void> _fetchRealms() async {
     try {
@@ -44,16 +47,25 @@ class _RealmDiscoveryScreenState extends State<RealmDiscoveryScreen> {
   @override
   void initState() {
     super.initState();
+    _isCompactView = context.read<ConfigProvider>().realmCompactView;
     _fetchRealms();
   }
 
   @override
   Widget build(BuildContext context) {
-    final sn = context.read<SnNetworkProvider>();
-
     return AppScaffold(
       appBar: AppBar(
         title: Text('screenRealmDiscovery').tr(),
+        actions: [
+          IconButton(
+            icon: _isCompactView ? const Icon(Symbols.view_list) : const Icon(Symbols.view_module),
+            onPressed: () {
+              setState(() => _isCompactView = !_isCompactView);
+              context.read<ConfigProvider>().realmCompactView = _isCompactView;
+            },
+          ),
+          const Gap(8),
+        ],
       ),
       body: Column(
         children: [
@@ -66,64 +78,16 @@ class _RealmDiscoveryScreenState extends State<RealmDiscoveryScreen> {
                 itemCount: _realms?.length ?? 0,
                 itemBuilder: (context, idx) {
                   final realm = _realms![idx];
-                  return Container(
-                    constraints: BoxConstraints(maxWidth: 640),
-                    child: Card(
-                      margin: const EdgeInsets.all(12),
-                      child: InkWell(
-                        borderRadius: const BorderRadius.all(Radius.circular(8)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AspectRatio(
-                              aspectRatio: 16 / 7,
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                fit: StackFit.expand,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                    child: Container(
-                                      color: Theme.of(context).colorScheme.surfaceContainer,
-                                      child: (realm.banner?.isEmpty ?? true)
-                                          ? const SizedBox.shrink()
-                                          : AutoResizeUniversalImage(
-                                              sn.getAttachmentUrl(realm.banner!),
-                                              fit: BoxFit.cover,
-                                            ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    bottom: -30,
-                                    left: 18,
-                                    child: AccountImage(
-                                      content: realm.avatar,
-                                      radius: 24,
-                                      fallbackWidget: const Icon(Symbols.group, size: 24),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Gap(20 + 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(realm.name).textStyle(Theme.of(context).textTheme.titleMedium!),
-                                Text(realm.description).textStyle(Theme.of(context).textTheme.bodySmall!),
-                              ],
-                            ).padding(horizontal: 24, bottom: 14),
-                          ],
-                        ),
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (context) => _RealmJoinPopup(realm: realm),
-                          );
-                        },
-                      ),
-                    ),
-                  ).center();
+                  return RealmItemWidget(
+                    item: realm,
+                    isListView: _isCompactView,
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) => _RealmJoinPopup(realm: realm),
+                      );
+                    },
+                  );
                 },
               ),
             ),
