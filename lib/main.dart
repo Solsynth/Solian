@@ -87,7 +87,7 @@ void main() async {
   Hive.registerAdapter(SnChannelMemberImplAdapter());
   Hive.registerAdapter(SnChatMessageImplAdapter());
 
-  if (kIsWeb && !Platform.isLinux) {
+  if (!kIsWeb && !Platform.isLinux) {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );

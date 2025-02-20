@@ -235,6 +235,8 @@ class _RealmJoinPopupState extends State<_RealmJoinPopup> {
                   ),
                   Text(
                     widget.realm.description,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
