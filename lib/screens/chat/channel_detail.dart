@@ -104,7 +104,7 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
     try {
       final sn = context.read<SnNetworkProvider>();
       await sn.client.delete(
-        '/cgi/im/channels/${_channel!.realm?.alias ?? 'global'}/${_channel!.alias}/members/me',
+        '/cgi/im/channels/${_channel!.realm?.alias ?? 'global'}/${_channel!.alias}/me',
       );
       if (!mounted) return;
       Navigator.pop(context, false);

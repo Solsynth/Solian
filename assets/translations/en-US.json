@@ -671,5 +671,8 @@
   "attachmentBillingDiscount": "Free space",
   "attachmentBillingRatio": "Usage",
   "attachmentBillingHint": "Sliding Window Pricing®\nFees will only apply if the size of the file uploaded within 24 hours exceeds the free space.",
-  "postThumbnail": "Post Thumbnail"
+  "postThumbnail": "Post Thumbnail",
+  "accountRealms": "Realms",
+  "postInGlobal": "Global",
+  "postInGlobalDescription": "Do not link this post with any realm."
 }

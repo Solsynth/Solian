@@ -20,6 +20,7 @@ import 'package:surface/providers/sn_attachment.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/types/post.dart';
+import 'package:surface/types/realm.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/attachment/attachment_input.dart';
 import 'package:surface/widgets/attachment/attachment_item.dart';
@@ -34,6 +35,8 @@ import 'package:surface/widgets/dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:surface/widgets/post/post_poll_editor.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../providers/sn_realm.dart';
 
 class PostEditorExtra {
   final String? text;
@@ -79,6 +82,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
   bool get _isLoading => _isFetching || _writeController.isLoading;
 
   List<SnPublisher>? _publishers;
+  List<SnRealm>? _realms;
 
   Future<void> _fetchPublishers() async {
     setState(() => _isFetching = true);
@@ -98,6 +102,16 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
       context.showErrorDialog(err);
     } finally {
       setState(() => _isFetching = false);
+    }
+  }
+
+  Future<void> _fetchRealms() async {
+    final rels = context.read<SnRealmProvider>();
+    try {
+      _realms = await rels.listAvailableRealms();
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
     }
   }
 
@@ -139,6 +153,19 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
         publishers: _publishers,
         onUpdate: () {
           _fetchPublishers();
+        },
+      ),
+    );
+  }
+
+  void _showRealmPopup() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => _PostRealmPopup(
+        controller: _writeController,
+        realms: _realms,
+        onUpdate: () {
+          _fetchRealms();
         },
       ),
     );
@@ -194,6 +221,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     } else {
       _writeController.setMode(widget.mode);
     }
+    _fetchRealms();
     _fetchPublishers();
     _writeController.fetchRelatedPost(
       context,
@@ -335,6 +363,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                         'stories' => _PostStoryEditor(
                             controller: _writeController,
                             onTapPublisher: _showPublisherPopup,
+                            onTapRealm: _showRealmPopup,
                           ),
                         'articles' => _PostArticleEditor(
                             controller: _writeController,
@@ -575,11 +604,65 @@ class _PostPublisherPopup extends StatelessWidget {
   }
 }
 
+class _PostRealmPopup extends StatelessWidget {
+  final PostWriteController controller;
+  final List<SnRealm>? realms;
+  final Function onUpdate;
+
+  const _PostRealmPopup({required this.controller, this.realms, required this.onUpdate});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(Symbols.face, size: 24),
+            const Gap(16),
+            Text('accountRealms', style: Theme.of(context).textTheme.titleLarge).tr(),
+          ],
+        ).padding(horizontal: 20, top: 16, bottom: 12),
+        ListTile(
+          leading: const Icon(Symbols.close),
+          title: Text('postInGlobal').tr(),
+          subtitle: Text('postInGlobalDescription').tr(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          onTap: () {
+            controller.setRealm(null);
+            Navigator.pop(context, true);
+          },
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ListView.builder(
+            itemCount: realms?.length ?? 0,
+            itemBuilder: (context, idx) {
+              final realm = realms![idx];
+              return ListTile(
+                title: Text(realm.name),
+                subtitle: Text('@${realm.alias}'),
+                leading: AccountImage(content: realm.avatar, radius: 18),
+                onTap: () {
+                  controller.setRealm(realm);
+                  Navigator.pop(context, true);
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _PostStoryEditor extends StatelessWidget {
   final PostWriteController controller;
   final Function? onTapPublisher;
+  final Function? onTapRealm;
 
-  const _PostStoryEditor({required this.controller, this.onTapPublisher});
+  const _PostStoryEditor({required this.controller, this.onTapPublisher, this.onTapRealm});
 
   @override
   Widget build(BuildContext context) {
@@ -589,17 +672,36 @@ class _PostStoryEditor extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Material(
-            elevation: 2,
-            borderRadius: const BorderRadius.all(Radius.circular(24)),
-            child: GestureDetector(
-              onTap: () {
-                onTapPublisher?.call();
-              },
-              child: AccountImage(
-                content: controller.publisher?.avatar,
+          Column(
+            children: [
+              Material(
+                elevation: 2,
+                borderRadius: const BorderRadius.all(Radius.circular(24)),
+                child: GestureDetector(
+                  onTap: () {
+                    onTapPublisher?.call();
+                  },
+                  child: AccountImage(
+                    content: controller.publisher?.avatar,
+                  ),
+                ),
               ),
-            ),
+              const Gap(10),
+              Material(
+                elevation: 1,
+                borderRadius: const BorderRadius.all(Radius.circular(24)),
+                child: GestureDetector(
+                  onTap: () {
+                    onTapRealm?.call();
+                  },
+                  child: AccountImage(
+                    content: controller.realm?.avatar,
+                    fallbackWidget: const Icon(Symbols.globe, size: 20),
+                    radius: 14,
+                  ),
+                ),
+              ),
+            ],
           ),
           Expanded(
             child: Column(

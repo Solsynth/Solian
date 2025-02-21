@@ -669,5 +669,8 @@
   "attachmentBillingUploaded": "已占用的字节数",
   "attachmentBillingDiscount": "免费的字节数",
   "attachmentBillingHint": "滑动窗口计价®\n在24小时内上传的文件大小超出免费空间才会适用扣费。",
-  "postThumbnail": "帖子缩略图"
+  "postThumbnail": "帖子缩略图",
+  "accountRealms": "领域",
+  "postInGlobal": "全站",
+  "postInGlobalDescription": "不关联此帖子与任何领域。"
 }

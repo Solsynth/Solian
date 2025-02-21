@@ -18,6 +18,7 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/types/poll.dart';
 import 'package:surface/types/post.dart';
+import 'package:surface/types/realm.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/universal_image.dart';
 import 'package:video_compress/video_compress.dart';
@@ -197,6 +198,7 @@ class PostWriteController extends ChangeNotifier {
   bool isLoading = false, isBusy = false;
   double? progress;
 
+  SnRealm? realm;
   SnPublisher? publisher;
   SnPost? editingPost, repostingPost, replyingPost;
 
@@ -622,6 +624,11 @@ class PostWriteController extends ChangeNotifier {
   void setInvisibleUsers(List<int> value) {
     invisibleUsers = value;
     _temporaryPlanSave();
+    notifyListeners();
+  }
+
+  void setRealm(SnRealm? value) {
+    realm = value;
     notifyListeners();
   }
 

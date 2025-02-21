@@ -365,7 +365,7 @@ class _RealmSettingsWidgetState extends State<_RealmSettingsWidget> {
     final sn = context.read<SnNetworkProvider>();
 
     try {
-      await sn.client.delete('/cgi/id/realms/${widget.realm!.alias}/members/me');
+      await sn.client.delete('/cgi/id/realms/${widget.realm!.alias}/me');
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (err) {
