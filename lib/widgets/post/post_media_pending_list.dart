@@ -30,25 +30,21 @@ import 'package:surface/widgets/universal_image.dart';
 import '../attachment/pending_attachment_compress.dart';
 
 class PostMediaPendingList extends StatelessWidget {
-  final PostWriteMedia? thumbnail;
   final List<PostWriteMedia> attachments;
   final bool isBusy;
   final Future<void> Function(int idx, PostWriteMedia updatedMedia)? onUpdate;
   final Future<void> Function(int idx)? onRemove;
   final Future<void> Function(int idx)? onUpload;
-  final void Function(int? idx)? onPostSetThumbnail;
   final void Function(int idx)? onInsertLink;
   final void Function(bool state)? onUpdateBusy;
 
   const PostMediaPendingList({
     super.key,
-    this.thumbnail,
     required this.attachments,
     required this.isBusy,
     this.onUpdate,
     this.onRemove,
     this.onUpload,
-    this.onPostSetThumbnail,
     this.onInsertLink,
     this.onUpdateBusy,
   });
@@ -116,7 +112,7 @@ class PostMediaPendingList extends StatelessWidget {
   }
 
   Future<void> _deleteAttachment(BuildContext context, int idx) async {
-    final media = idx == -1 ? thumbnail! : attachments[idx];
+    final media = attachments[idx];
     if (media.attachment == null) return;
 
     try {
@@ -212,22 +208,6 @@ class PostMediaPendingList extends StatelessWidget {
               onSelected: () {
                 onUpload!(idx);
               }),
-        if (media.attachment != null && media.type == SnMediaType.image && onPostSetThumbnail != null && idx != -1)
-          MenuItem(
-            label: 'attachmentSetAsPostThumbnail'.tr(),
-            icon: Symbols.gallery_thumbnail,
-            onSelected: () {
-              onPostSetThumbnail!(idx);
-            },
-          )
-        else if (media.attachment != null && media.type == SnMediaType.image && onPostSetThumbnail != null)
-          MenuItem(
-            label: 'attachmentUnsetAsPostThumbnail'.tr(),
-            icon: Symbols.cancel,
-            onSelected: () {
-              onPostSetThumbnail!(null);
-            },
-          ),
         if (media.attachment != null && onInsertLink != null)
           MenuItem(
             label: 'attachmentInsertLink'.tr(),
@@ -291,35 +271,18 @@ class PostMediaPendingList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints(maxHeight: 120),
-      child: Row(
-        children: [
-          const Gap(16),
-          if (thumbnail != null)
-            ContextMenuArea(
-              contextMenu: _createContextMenu(context, -1, thumbnail!),
-              child: _PostMediaPendingItem(media: thumbnail!),
-            ),
-          if (thumbnail != null)
-            const VerticalDivider(width: 1, thickness: 1).padding(
-              horizontal: 12,
-              vertical: 16,
-            ),
-          Expanded(
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(right: 8),
-              separatorBuilder: (context, index) => const Gap(8),
-              itemCount: attachments.length,
-              itemBuilder: (context, idx) {
-                final media = attachments[idx];
-                return ContextMenuArea(
-                  contextMenu: _createContextMenu(context, idx, media),
-                  child: _PostMediaPendingItem(media: media),
-                );
-              },
-            ),
-          ),
-        ],
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        separatorBuilder: (context, index) => const Gap(8),
+        itemCount: attachments.length,
+        itemBuilder: (context, idx) {
+          final media = attachments[idx];
+          return ContextMenuArea(
+            contextMenu: _createContextMenu(context, idx, media),
+            child: _PostMediaPendingItem(media: media),
+          );
+        },
       ),
     );
   }

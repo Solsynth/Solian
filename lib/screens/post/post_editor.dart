@@ -161,6 +161,20 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     }
   }
 
+  void _showThumbnailEditorDialog() async {
+    final attachment = await showDialog<SnAttachment?>(
+      context: context,
+      builder: (context) => AttachmentInputDialog(
+        title: 'postThumbnail'.tr(),
+        pool: 'interactive',
+        mediaType: SnMediaType.image,
+      ),
+    );
+    if (!context.mounted) return;
+    if (attachment == null) return;
+    _writeController.setThumbnail(attachment);
+  }
+
   @override
   void dispose() {
     _writeController.dispose();
@@ -344,14 +358,10 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                         left: 0,
                         right: 0,
                         child: PostMediaPendingList(
-                          thumbnail: _writeController.thumbnail,
                           attachments: _writeController.attachments,
                           isBusy: _writeController.isBusy,
                           onUpload: (int idx) async {
                             await _writeController.uploadSingleAttachment(context, idx);
-                          },
-                          onPostSetThumbnail: (int? idx) {
-                            _writeController.setThumbnail(idx);
                           },
                           onInsertLink: (int idx) async {
                             _writeController.contentController.text +=
@@ -451,6 +461,22 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                                       ),
                                       onPressed: () {
                                         _showPollEditorDialog();
+                                      },
+                                    ),
+                                  if (_writeController.mode == 'articles')
+                                    IconButton(
+                                      icon: Icon(Symbols.image, color: Theme.of(context).colorScheme.primary),
+                                      style: ButtonStyle(
+                                        backgroundColor: _writeController.thumbnail == null
+                                            ? null
+                                            : WidgetStatePropertyAll(Theme.of(context).colorScheme.surfaceContainer),
+                                      ),
+                                      onPressed: () {
+                                        if (_writeController.thumbnail != null) {
+                                          _writeController.setThumbnail(null);
+                                          return;
+                                        }
+                                        _showThumbnailEditorDialog();
                                       },
                                     ),
                                 ],
@@ -668,7 +694,24 @@ class _PostArticleEditor extends StatelessWidget {
         onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         contentInsertionConfiguration: controller.contentInsertionConfiguration,
       ).padding(horizontal: 16),
-      const Gap(4),
+      if (controller.thumbnail != null)
+        Container(
+          margin: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Theme.of(context).dividerColor),
+          ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: AttachmentItem(
+                data: controller.thumbnail!.attachment!,
+                heroTag: "post-editor-thumbnail-preview",
+              ),
+            ),
+          ),
+        ),
     ];
 
     if (ResponsiveBreakpoints.of(context).largerThan(MOBILE)) {

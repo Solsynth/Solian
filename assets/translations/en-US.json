@@ -670,5 +670,6 @@
   "attachmentBillingUploaded": "Used space",
   "attachmentBillingDiscount": "Free space",
   "attachmentBillingRatio": "Usage",
-  "attachmentBillingHint": "Sliding Window Pricing®\nFees will only apply if the size of the file uploaded within 24 hours exceeds the free space."
+  "attachmentBillingHint": "Sliding Window Pricing®\nFees will only apply if the size of the file uploaded within 24 hours exceeds the free space.",
+  "postThumbnail": "Post Thumbnail"
 }

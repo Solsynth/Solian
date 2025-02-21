@@ -159,12 +159,13 @@ class PostWriteController extends ChangeNotifier {
   final TextEditingController rewardController = TextEditingController();
 
   ContentInsertionConfiguration get contentInsertionConfiguration => ContentInsertionConfiguration(
-    onContentInserted: (KeyboardInsertedContent content) {
-      if (content.hasData) {
-        addAttachments([PostWriteMedia.fromBytes(content.data!, 'attachmentInsertedImage'.tr(), SnMediaType.image)]);
-      }
-    },
-  );
+        onContentInserted: (KeyboardInsertedContent content) {
+          if (content.hasData) {
+            addAttachments(
+                [PostWriteMedia.fromBytes(content.data!, 'attachmentInsertedImage'.tr(), SnMediaType.image)]);
+          }
+        },
+      );
 
   bool _temporarySaveActive = false;
 
@@ -571,17 +572,8 @@ class PostWriteController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setThumbnail(int? idx) {
-    if (idx == null) {
-      attachments.add(thumbnail!);
-      thumbnail = null;
-    } else {
-      if (thumbnail != null) {
-        attachments.add(thumbnail!);
-      }
-      thumbnail = attachments[idx];
-      attachments.removeAt(idx);
-    }
+  void setThumbnail(SnAttachment? value) {
+    thumbnail = value == null ? null : PostWriteMedia(value);
     notifyListeners();
   }
 

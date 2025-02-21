@@ -668,5 +668,6 @@
   },
   "attachmentBillingUploaded": "已佔用的字節數",
   "attachmentBillingDiscount": "免費的字節數",
-  "attachmentBillingHint": "滑動窗口計價®\n在24小時內上傳的文件大小超出免費空間才會適用扣費。"
+  "attachmentBillingHint": "滑動窗口計價®\n在24小時內上傳的文件大小超出免費空間才會適用扣費。",
+  "postThumbnail": "帖子縮略圖"
 }
