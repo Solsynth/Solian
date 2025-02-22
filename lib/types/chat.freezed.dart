@@ -66,21 +66,21 @@ abstract class $SnChannelCopyWith<$Res> {
       _$SnChannelCopyWithImpl<$Res, SnChannel>;
   @useResult
   $Res call(
-      {@HiveField(0) int id,
-      @HiveField(1) DateTime createdAt,
-      @HiveField(2) DateTime updatedAt,
-      @HiveField(3) dynamic deletedAt,
-      @HiveField(4) String alias,
-      @HiveField(5) String name,
-      @HiveField(6) String description,
-      @HiveField(7) List<SnChannelMember>? members,
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      dynamic deletedAt,
+      String alias,
+      String name,
+      String description,
+      List<SnChannelMember>? members,
       List<SnChatMessage>? messages,
-      @HiveField(8) int type,
-      @HiveField(9) int accountId,
-      @HiveField(10) SnRealm? realm,
-      @HiveField(11) int? realmId,
-      @HiveField(12) bool isPublic,
-      @HiveField(13) bool isCommunity});
+      int type,
+      int accountId,
+      SnRealm? realm,
+      int? realmId,
+      bool isPublic,
+      bool isCommunity});
 
   $SnRealmCopyWith<$Res>? get realm;
 }
@@ -204,21 +204,21 @@ abstract class _$$SnChannelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) int id,
-      @HiveField(1) DateTime createdAt,
-      @HiveField(2) DateTime updatedAt,
-      @HiveField(3) dynamic deletedAt,
-      @HiveField(4) String alias,
-      @HiveField(5) String name,
-      @HiveField(6) String description,
-      @HiveField(7) List<SnChannelMember>? members,
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      dynamic deletedAt,
+      String alias,
+      String name,
+      String description,
+      List<SnChannelMember>? members,
       List<SnChatMessage>? messages,
-      @HiveField(8) int type,
-      @HiveField(9) int accountId,
-      @HiveField(10) SnRealm? realm,
-      @HiveField(11) int? realmId,
-      @HiveField(12) bool isPublic,
-      @HiveField(13) bool isCommunity});
+      int type,
+      int accountId,
+      SnRealm? realm,
+      int? realmId,
+      bool isPublic,
+      bool isCommunity});
 
   @override
   $SnRealmCopyWith<$Res>? get realm;
@@ -323,21 +323,21 @@ class __$$SnChannelImplCopyWithImpl<$Res>
 @HiveType(typeId: 2)
 class _$SnChannelImpl extends _SnChannel {
   const _$SnChannelImpl(
-      {@HiveField(0) required this.id,
-      @HiveField(1) required this.createdAt,
-      @HiveField(2) required this.updatedAt,
-      @HiveField(3) required this.deletedAt,
-      @HiveField(4) required this.alias,
-      @HiveField(5) required this.name,
-      @HiveField(6) required this.description,
-      @HiveField(7) required final List<SnChannelMember>? members,
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.alias,
+      required this.name,
+      required this.description,
+      required final List<SnChannelMember>? members,
       final List<SnChatMessage>? messages,
-      @HiveField(8) required this.type,
-      @HiveField(9) required this.accountId,
-      @HiveField(10) required this.realm,
-      @HiveField(11) required this.realmId,
-      @HiveField(12) required this.isPublic,
-      @HiveField(13) required this.isCommunity})
+      required this.type,
+      required this.accountId,
+      required this.realm,
+      required this.realmId,
+      required this.isPublic,
+      required this.isCommunity})
       : _members = members,
         _messages = messages,
         super._();
@@ -477,21 +477,21 @@ class _$SnChannelImpl extends _SnChannel {
 
 abstract class _SnChannel extends SnChannel {
   const factory _SnChannel(
-      {@HiveField(0) required final int id,
-      @HiveField(1) required final DateTime createdAt,
-      @HiveField(2) required final DateTime updatedAt,
-      @HiveField(3) required final dynamic deletedAt,
-      @HiveField(4) required final String alias,
-      @HiveField(5) required final String name,
-      @HiveField(6) required final String description,
-      @HiveField(7) required final List<SnChannelMember>? members,
+      {required final int id,
+      required final DateTime createdAt,
+      required final DateTime updatedAt,
+      required final dynamic deletedAt,
+      required final String alias,
+      required final String name,
+      required final String description,
+      required final List<SnChannelMember>? members,
       final List<SnChatMessage>? messages,
-      @HiveField(8) required final int type,
-      @HiveField(9) required final int accountId,
-      @HiveField(10) required final SnRealm? realm,
-      @HiveField(11) required final int? realmId,
-      @HiveField(12) required final bool isPublic,
-      @HiveField(13) required final bool isCommunity}) = _$SnChannelImpl;
+      required final int type,
+      required final int accountId,
+      required final SnRealm? realm,
+      required final int? realmId,
+      required final bool isPublic,
+      required final bool isCommunity}) = _$SnChannelImpl;
   const _SnChannel._() : super._();
 
   factory _SnChannel.fromJson(Map<String, dynamic> json) =
@@ -597,17 +597,17 @@ abstract class $SnChannelMemberCopyWith<$Res> {
       _$SnChannelMemberCopyWithImpl<$Res, SnChannelMember>;
   @useResult
   $Res call(
-      {@HiveField(0) int id,
-      @HiveField(1) DateTime createdAt,
-      @HiveField(2) DateTime updatedAt,
-      @HiveField(3) DateTime? deletedAt,
-      @HiveField(4) int channelId,
-      @HiveField(5) int accountId,
-      @HiveField(6) String? nick,
-      @HiveField(7) SnChannel? channel,
-      @HiveField(8) SnAccount? account,
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      int channelId,
+      int accountId,
+      String? nick,
+      SnChannel? channel,
+      SnAccount? account,
       int notify,
-      @HiveField(9) int powerLevel,
+      int powerLevel,
       dynamic calls,
       dynamic events});
 
@@ -738,17 +738,17 @@ abstract class _$$SnChannelMemberImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) int id,
-      @HiveField(1) DateTime createdAt,
-      @HiveField(2) DateTime updatedAt,
-      @HiveField(3) DateTime? deletedAt,
-      @HiveField(4) int channelId,
-      @HiveField(5) int accountId,
-      @HiveField(6) String? nick,
-      @HiveField(7) SnChannel? channel,
-      @HiveField(8) SnAccount? account,
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      int channelId,
+      int accountId,
+      String? nick,
+      SnChannel? channel,
+      SnAccount? account,
       int notify,
-      @HiveField(9) int powerLevel,
+      int powerLevel,
       dynamic calls,
       dynamic events});
 
@@ -847,17 +847,17 @@ class __$$SnChannelMemberImplCopyWithImpl<$Res>
 @HiveType(typeId: 3)
 class _$SnChannelMemberImpl extends _SnChannelMember {
   const _$SnChannelMemberImpl(
-      {@HiveField(0) required this.id,
-      @HiveField(1) required this.createdAt,
-      @HiveField(2) required this.updatedAt,
-      @HiveField(3) required this.deletedAt,
-      @HiveField(4) required this.channelId,
-      @HiveField(5) required this.accountId,
-      @HiveField(6) required this.nick,
-      @HiveField(7) required this.channel,
-      @HiveField(8) required this.account,
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.channelId,
+      required this.accountId,
+      required this.nick,
+      required this.channel,
+      required this.account,
       this.notify = 0,
-      @HiveField(9) required this.powerLevel,
+      required this.powerLevel,
       this.calls,
       this.events})
       : super._();
@@ -971,17 +971,17 @@ class _$SnChannelMemberImpl extends _SnChannelMember {
 
 abstract class _SnChannelMember extends SnChannelMember {
   const factory _SnChannelMember(
-      {@HiveField(0) required final int id,
-      @HiveField(1) required final DateTime createdAt,
-      @HiveField(2) required final DateTime updatedAt,
-      @HiveField(3) required final DateTime? deletedAt,
-      @HiveField(4) required final int channelId,
-      @HiveField(5) required final int accountId,
-      @HiveField(6) required final String? nick,
-      @HiveField(7) required final SnChannel? channel,
-      @HiveField(8) required final SnAccount? account,
+      {required final int id,
+      required final DateTime createdAt,
+      required final DateTime updatedAt,
+      required final DateTime? deletedAt,
+      required final int channelId,
+      required final int accountId,
+      required final String? nick,
+      required final SnChannel? channel,
+      required final SnAccount? account,
       final int notify,
-      @HiveField(9) required final int powerLevel,
+      required final int powerLevel,
       final dynamic calls,
       final dynamic events}) = _$SnChannelMemberImpl;
   const _SnChannelMember._() : super._();
@@ -1085,19 +1085,19 @@ abstract class $SnChatMessageCopyWith<$Res> {
       _$SnChatMessageCopyWithImpl<$Res, SnChatMessage>;
   @useResult
   $Res call(
-      {@HiveField(0) int id,
-      @HiveField(1) DateTime createdAt,
-      @HiveField(2) DateTime updatedAt,
-      @HiveField(3) DateTime? deletedAt,
-      @HiveField(4) String uuid,
-      @HiveField(5) Map<String, dynamic> body,
-      @HiveField(6) String type,
-      @HiveField(7) SnChannel channel,
-      @HiveField(8) SnChannelMember sender,
-      @HiveField(9) int channelId,
-      @HiveField(10) int senderId,
-      @HiveField(11) int? quoteEventId,
-      @HiveField(12) int? relatedEventId,
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String uuid,
+      Map<String, dynamic> body,
+      String type,
+      SnChannel channel,
+      SnChannelMember sender,
+      int channelId,
+      int senderId,
+      int? quoteEventId,
+      int? relatedEventId,
       SnChatMessagePreload? preload});
 
   $SnChannelCopyWith<$Res> get channel;
@@ -1239,19 +1239,19 @@ abstract class _$$SnChatMessageImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) int id,
-      @HiveField(1) DateTime createdAt,
-      @HiveField(2) DateTime updatedAt,
-      @HiveField(3) DateTime? deletedAt,
-      @HiveField(4) String uuid,
-      @HiveField(5) Map<String, dynamic> body,
-      @HiveField(6) String type,
-      @HiveField(7) SnChannel channel,
-      @HiveField(8) SnChannelMember sender,
-      @HiveField(9) int channelId,
-      @HiveField(10) int senderId,
-      @HiveField(11) int? quoteEventId,
-      @HiveField(12) int? relatedEventId,
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String uuid,
+      Map<String, dynamic> body,
+      String type,
+      SnChannel channel,
+      SnChannelMember sender,
+      int channelId,
+      int senderId,
+      int? quoteEventId,
+      int? relatedEventId,
       SnChatMessagePreload? preload});
 
   @override
@@ -1356,19 +1356,19 @@ class __$$SnChatMessageImplCopyWithImpl<$Res>
 @HiveType(typeId: 4)
 class _$SnChatMessageImpl extends _SnChatMessage {
   const _$SnChatMessageImpl(
-      {@HiveField(0) required this.id,
-      @HiveField(1) required this.createdAt,
-      @HiveField(2) required this.updatedAt,
-      @HiveField(3) required this.deletedAt,
-      @HiveField(4) required this.uuid,
-      @HiveField(5) final Map<String, dynamic> body = const {},
-      @HiveField(6) required this.type,
-      @HiveField(7) required this.channel,
-      @HiveField(8) required this.sender,
-      @HiveField(9) required this.channelId,
-      @HiveField(10) required this.senderId,
-      @HiveField(11) required this.quoteEventId,
-      @HiveField(12) required this.relatedEventId,
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.uuid,
+      final Map<String, dynamic> body = const {},
+      required this.type,
+      required this.channel,
+      required this.sender,
+      required this.channelId,
+      required this.senderId,
+      required this.quoteEventId,
+      required this.relatedEventId,
       this.preload})
       : _body = body,
         super._();
@@ -1495,19 +1495,19 @@ class _$SnChatMessageImpl extends _SnChatMessage {
 
 abstract class _SnChatMessage extends SnChatMessage {
   const factory _SnChatMessage(
-      {@HiveField(0) required final int id,
-      @HiveField(1) required final DateTime createdAt,
-      @HiveField(2) required final DateTime updatedAt,
-      @HiveField(3) required final DateTime? deletedAt,
-      @HiveField(4) required final String uuid,
-      @HiveField(5) final Map<String, dynamic> body,
-      @HiveField(6) required final String type,
-      @HiveField(7) required final SnChannel channel,
-      @HiveField(8) required final SnChannelMember sender,
-      @HiveField(9) required final int channelId,
-      @HiveField(10) required final int senderId,
-      @HiveField(11) required final int? quoteEventId,
-      @HiveField(12) required final int? relatedEventId,
+      {required final int id,
+      required final DateTime createdAt,
+      required final DateTime updatedAt,
+      required final DateTime? deletedAt,
+      required final String uuid,
+      final Map<String, dynamic> body,
+      required final String type,
+      required final SnChannel channel,
+      required final SnChannelMember sender,
+      required final int channelId,
+      required final int senderId,
+      required final int? quoteEventId,
+      required final int? relatedEventId,
       final SnChatMessagePreload? preload}) = _$SnChatMessageImpl;
   const _SnChatMessage._() : super._();
 

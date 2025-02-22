@@ -58,7 +58,7 @@ abstract class $SnAccountCopyWith<$Res> {
       _$SnAccountCopyWithImpl<$Res, SnAccount>;
   @useResult
   $Res call(
-      {@HiveField(0) int id,
+      {int id,
       DateTime createdAt,
       DateTime updatedAt,
       DateTime? deletedAt,
@@ -226,7 +226,7 @@ abstract class _$$SnAccountImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) int id,
+      {int id,
       DateTime createdAt,
       DateTime updatedAt,
       DateTime? deletedAt,
@@ -374,7 +374,7 @@ class __$$SnAccountImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SnAccountImpl extends _SnAccount {
   const _$SnAccountImpl(
-      {@HiveField(0) required this.id,
+      {required this.id,
       required this.createdAt,
       required this.updatedAt,
       required this.deletedAt,
@@ -556,7 +556,7 @@ class _$SnAccountImpl extends _SnAccount {
 
 abstract class _SnAccount extends SnAccount {
   const factory _SnAccount(
-      {@HiveField(0) required final int id,
+      {required final int id,
       required final DateTime createdAt,
       required final DateTime updatedAt,
       required final DateTime? deletedAt,

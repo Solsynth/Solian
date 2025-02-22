@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:surface/database/database.dart';
 import 'package:surface/providers/database.dart';
@@ -22,11 +21,6 @@ class ChatChannelProvider extends ChangeNotifier {
     _sn = context.read<SnNetworkProvider>();
     _ud = context.read<UserDirectoryProvider>();
     _dt = context.read<DatabaseProvider>();
-    _initializeLocalData();
-  }
-
-  Future<void> _initializeLocalData() async {
-    await Hive.openBox<SnChannel>(kChatChannelBoxName);
   }
 
   Future<void> _saveChannelToLocal(Iterable<SnChannel> channels) async {

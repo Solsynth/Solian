@@ -13,7 +13,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -41,8 +40,6 @@ import 'package:surface/providers/userinfo.dart';
 import 'package:surface/providers/websocket.dart';
 import 'package:surface/providers/widget.dart';
 import 'package:surface/router.dart';
-import 'package:surface/types/chat.dart';
-import 'package:surface/types/realm.dart';
 import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:surface/widgets/dialog.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -83,12 +80,6 @@ void main() async {
 
   await EasyLocalization.ensureInitialized();
 
-  await Hive.initFlutter();
-  Hive.registerAdapter(SnChannelImplAdapter());
-  Hive.registerAdapter(SnRealmImplAdapter());
-  Hive.registerAdapter(SnChannelMemberImplAdapter());
-  Hive.registerAdapter(SnChatMessageImplAdapter());
-
   if (!kIsWeb && !Platform.isLinux) {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -115,7 +106,8 @@ void main() async {
   }
 
   if (!kIsWeb && Platform.isAndroid) {
-    final ImagePickerPlatform imagePickerImplementation = ImagePickerPlatform.instance;
+    final ImagePickerPlatform imagePickerImplementation =
+        ImagePickerPlatform.instance;
     if (imagePickerImplementation is ImagePickerAndroid) {
       imagePickerImplementation.useAndroidPhotoPicker = true;
     }
@@ -234,7 +226,8 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     if (prefs.containsKey('first_boot_time')) {
       final rawTime = prefs.getString('first_boot_time');
       final time = DateTime.tryParse(rawTime ?? '');
-      if (time != null && time.isBefore(DateTime.now().subtract(const Duration(days: 3)))) {
+      if (time != null &&
+          time.isBefore(DateTime.now().subtract(const Duration(days: 3)))) {
         final inAppReview = InAppReview.instance;
         if (prefs.getBool('rating_requested') == true) return;
         if (await inAppReview.isAvailable()) {
@@ -262,13 +255,18 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       ).get(
         'https://git.solsynth.dev/api/v1/repos/HyperNet/Surface/tags?page=1&limit=1',
       );
-      final remoteVersionString = (resp.data as List).firstOrNull?['name'] ?? '0.0.0+0';
+      final remoteVersionString =
+          (resp.data as List).firstOrNull?['name'] ?? '0.0.0+0';
       final remoteVersion = Version.parse(remoteVersionString.split('+').first);
       final localVersion = Version.parse(localVersionString.split('+').first);
-      final remoteBuildNumber = int.tryParse(remoteVersionString.split('+').last) ?? 0;
-      final localBuildNumber = int.tryParse(localVersionString.split('+').last) ?? 0;
+      final remoteBuildNumber =
+          int.tryParse(remoteVersionString.split('+').last) ?? 0;
+      final localBuildNumber =
+          int.tryParse(localVersionString.split('+').last) ?? 0;
       log("[Update] Local: $localVersionString, Remote: $remoteVersionString");
-      if ((remoteVersion > localVersion || remoteBuildNumber > localBuildNumber) && mounted) {
+      if ((remoteVersion > localVersion ||
+              remoteBuildNumber > localBuildNumber) &&
+          mounted) {
         final config = context.read<ConfigProvider>();
         config.setUpdate(remoteVersionString);
         log("[Update] Update available: $remoteVersionString");
@@ -335,7 +333,9 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   Future<void> _trayInitialization() async {
     if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
 
-    final icon = Platform.isWindows ? 'assets/icon/tray-icon.ico' : 'assets/icon/tray-icon.png';
+    final icon = Platform.isWindows
+        ? 'assets/icon/tray-icon.ico'
+        : 'assets/icon/tray-icon.png';
     final appVersion = await PackageInfo.fromPlatform();
 
     trayManager.addListener(this);

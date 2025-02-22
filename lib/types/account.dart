@@ -9,7 +9,7 @@ class SnAccount with _$SnAccount {
   const SnAccount._();
 
   const factory SnAccount({
-    @HiveField(0) required int id,
+    required int id,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
