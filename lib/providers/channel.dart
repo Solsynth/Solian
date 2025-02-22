@@ -6,9 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:surface/database/database.dart';
 import 'package:surface/providers/database.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/types/chat.dart';
-import 'package:surface/types/realm.dart';
 
 class ChatChannelProvider extends ChangeNotifier {
   static const kChatChannelBoxName = 'nex_chat_channels';
@@ -16,11 +16,13 @@ class ChatChannelProvider extends ChangeNotifier {
   late final SnNetworkProvider _sn;
   late final UserDirectoryProvider _ud;
   late final DatabaseProvider _dt;
+  late final SnRealmProvider _rels;
 
   ChatChannelProvider(BuildContext context) {
     _sn = context.read<SnNetworkProvider>();
     _ud = context.read<UserDirectoryProvider>();
     _dt = context.read<DatabaseProvider>();
+    _rels = context.read<SnRealmProvider>();
   }
 
   Future<void> _saveChannelToLocal(Iterable<SnChannel> channels) async {
@@ -44,16 +46,9 @@ class ChatChannelProvider extends ChangeNotifier {
   }
 
   Future<List<SnChannel>> _fetchChannelsFromServer({
-    String scope = 'global',
-    bool direct = false,
     bool doNotSave = false,
   }) async {
-    final resp = await _sn.client.get(
-      '/cgi/im/channels/$scope/me/available',
-      queryParameters: {
-        'direct': direct,
-      },
-    );
+    final resp = await _sn.client.get('/cgi/im/channels/me/available');
     final out = List<SnChannel>.from(
       resp.data?.map((e) => SnChannel.fromJson(e)) ?? [],
     );
@@ -68,7 +63,10 @@ class ChatChannelProvider extends ChangeNotifier {
     final local = await (_dt.db.snLocalChatChannel.select()
           ..where((e) => e.alias.equals(key)))
         .getSingleOrNull();
-    if (local != null) return local.content;
+    if (local != null) {
+      final out = local.content;
+      return out.copyWith(realm: await _rels.getRealm(out.realmId!));
+    }
 
     var resp =
         await _sn.client.get('/cgi/im/channels/${key.replaceAll(':', '/')}');
@@ -76,8 +74,7 @@ class ChatChannelProvider extends ChangeNotifier {
 
     // Preload realm of the channel
     if (out.realmId != null) {
-      resp = await _sn.client.get('/cgi/id/realms/${out.realmId}');
-      out = out.copyWith(realm: SnRealm.fromJson(resp.data));
+      out = out.copyWith(realm: await _rels.getRealm(out.realmId!));
     }
 
     _saveChannelToLocal([out]);
@@ -98,44 +95,30 @@ class ChatChannelProvider extends ChangeNotifier {
                   OrderingTerm(expression: e.createdAt, mode: OrderingMode.desc)
             ]))
           .get();
-      yield local.map((e) => e.content).toList();
+      final out = local.map((e) => e.content).toList();
+      for (var idx = 0; idx < out.length; idx++) {
+        final channel = out[idx];
+        if (channel.realmId != null) {
+          out[idx] = out[idx].copyWith(
+            realm: await _rels.getRealm(channel.realmId!),
+          );
+        }
+      }
+      yield out;
     }
 
     if (noRemote) return;
-
-    var resp = await _sn.client.get('/cgi/id/realms/me/available');
-    final realms = List<SnRealm>.from(
-      resp.data?.map((e) => SnRealm.fromJson(e)) ?? [],
-    );
-    final realmMap = {
-      for (final realm in realms) realm.alias: realm,
-    };
-
-    final scopeToFetch = {'global', ...realms.map((e) => e.alias)};
-
     final List<SnChannel> result = List.empty(growable: true);
-    final directMessages = await _fetchChannelsFromServer(
-      scope: scopeToFetch.first,
-      direct: true,
-    );
-    result.addAll(directMessages);
-
-    final nonBelongsChannels = await _fetchChannelsFromServer(
-      scope: scopeToFetch.first,
-      direct: false,
-    );
-    result.addAll(nonBelongsChannels);
-
-    for (final scope in scopeToFetch.skip(1)) {
-      final channel = await _fetchChannelsFromServer(
-        scope: scope,
-        direct: false,
-        doNotSave: true,
-      );
-      final out = channel.map((ele) => ele.copyWith(realm: realmMap[scope]));
-      _saveChannelToLocal(out);
-      result.addAll(out);
+    final channels = await _fetchChannelsFromServer();
+    for (var idx = 0; idx < channels.length; idx++) {
+      final channel = channels[idx];
+      if (channel.realmId != null) {
+        channels[idx] = channels[idx].copyWith(
+          realm: await _rels.getRealm(channel.realmId!),
+        );
+      }
     }
+    result.addAll(channels);
 
     yield result;
   }

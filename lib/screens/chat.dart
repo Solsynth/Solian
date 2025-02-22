@@ -33,6 +33,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   List<SnChannel>? _channels;
   Map<int, SnChatMessage>? _lastMessages;
+  Map<int, int>? _unreadCounts;
+
+  Future<void> _fetchWhatsNew() async {
+    final sn = context.read<SnNetworkProvider>();
+    final resp = await sn.client.get('/cgi/im/whats-new');
+    final List<dynamic> out = resp.data;
+    setState(() {
+      _unreadCounts = {for (var v in out) v['channel_id']: v['count']};
+    });
+  }
 
   void _refreshChannels({bool noRemote = false}) {
     final ua = context.read<UserProvider>();
@@ -117,6 +127,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _refreshChannels();
+    _fetchWhatsNew();
   }
 
   @override
@@ -211,7 +222,10 @@ class _ChatScreenState extends State<ChatScreen> {
               context: context,
               removeTop: true,
               child: RefreshIndicator(
-                onRefresh: () => Future.sync(() => _refreshChannels()),
+                onRefresh: () => Future.wait([
+                  Future.sync(() => _refreshChannels()),
+                  _fetchWhatsNew(),
+                ]),
                 child: ListView.builder(
                   itemCount: _channels?.length ?? 0,
                   itemBuilder: (context, idx) {
@@ -226,10 +240,22 @@ class _ChatScreenState extends State<ChatScreen> {
                               );
 
                       return ListTile(
-                        title: Text(ud
-                                .getAccountFromCache(otherMember?.accountId)
-                                ?.nick ??
-                            channel.name),
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(ud
+                                      .getAccountFromCache(
+                                          otherMember?.accountId)
+                                      ?.nick ??
+                                  channel.name),
+                            ),
+                            const Gap(8),
+                            if (_unreadCounts?[channel.id] != null)
+                              Badge(
+                                label: Text('${_unreadCounts![channel.id]}'),
+                              ),
+                          ],
+                        ),
                         subtitle: lastMessage != null
                             ? Text(
                                 '${ud.getAccountFromCache(lastMessage.sender.accountId)?.nick}: ${lastMessage.body['text'] ?? 'Unable preview'}',
@@ -237,9 +263,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 overflow: TextOverflow.ellipsis,
                               )
                             : Text(
-                                'channelDirectMessageDescription'.tr(args: [
-                                  '@${ud.getAccountFromCache(otherMember?.accountId)?.name}',
-                                ]),
+                                channel.description,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -265,7 +289,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     }
 
                     return ListTile(
-                      title: Text(channel.name),
+                      title: Row(
+                        children: [
+                          Expanded(child: Text(channel.name)),
+                          const Gap(8),
+                          if (_unreadCounts?[channel.id] != null)
+                            Badge(
+                              label: Text('${_unreadCounts![channel.id]}'),
+                            ),
+                        ],
+                      ),
                       subtitle: lastMessage != null
                           ? Text(
                               '${ud.getAccountFromCache(lastMessage.sender.accountId)?.nick}: ${lastMessage.body['text'] ?? 'Unable preview'}',
