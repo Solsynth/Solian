@@ -24,6 +24,7 @@ import 'package:surface/firebase_options.dart';
 import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/chat_call.dart';
 import 'package:surface/providers/config.dart';
+import 'package:surface/providers/database.dart';
 import 'package:surface/providers/link_preview.dart';
 import 'package:surface/providers/navigation.dart';
 import 'package:surface/providers/notification.dart';
@@ -142,6 +143,9 @@ class SolianApp extends StatelessWidget {
         assetLoader: JsonAssetLoader(),
         child: MultiProvider(
           providers: [
+            // Infrastructure layer
+            Provider(create: (ctx) => DatabaseProvider(ctx)),
+
             // System extensions layer
             Provider(create: (ctx) => HomeWidgetProvider(ctx)),
 

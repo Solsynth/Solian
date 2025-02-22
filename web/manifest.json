@@ -1,11 +1,11 @@
 {
-    "name": "surface",
-    "short_name": "surface",
+    "name": "Solar Network",
+    "short_name": "Solian",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",
-    "description": "A new Flutter project.",
+    "description": "The Solar Network is a social network app.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
