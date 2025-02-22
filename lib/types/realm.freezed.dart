@@ -367,32 +367,19 @@ SnRealm _$SnRealmFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SnRealm {
-  @HiveField(0)
   int get id => throw _privateConstructorUsedError;
-  @HiveField(1)
   DateTime get createdAt => throw _privateConstructorUsedError;
-  @HiveField(2)
   DateTime get updatedAt => throw _privateConstructorUsedError;
-  @HiveField(3)
   DateTime? get deletedAt => throw _privateConstructorUsedError;
-  @HiveField(4)
   String get alias => throw _privateConstructorUsedError;
-  @HiveField(5)
   String get name => throw _privateConstructorUsedError;
-  @HiveField(6)
   String get description => throw _privateConstructorUsedError;
   List<SnRealmMember>? get members => throw _privateConstructorUsedError;
-  @HiveField(7)
   String? get avatar => throw _privateConstructorUsedError;
-  @HiveField(8)
   String? get banner => throw _privateConstructorUsedError;
-  @HiveField(9)
   Map<String, dynamic>? get accessPolicy => throw _privateConstructorUsedError;
-  @HiveField(10)
   int get accountId => throw _privateConstructorUsedError;
-  @HiveField(11)
   bool get isPublic => throw _privateConstructorUsedError;
-  @HiveField(12)
   bool get isCommunity => throw _privateConstructorUsedError;
   int get popularity => throw _privateConstructorUsedError;
 
@@ -645,7 +632,6 @@ class __$$SnRealmImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-@HiveType(typeId: 1)
 class _$SnRealmImpl extends _SnRealm {
   const _$SnRealmImpl(
       {required this.id,
@@ -671,25 +657,18 @@ class _$SnRealmImpl extends _SnRealm {
       _$$SnRealmImplFromJson(json);
 
   @override
-  @HiveField(0)
   final int id;
   @override
-  @HiveField(1)
   final DateTime createdAt;
   @override
-  @HiveField(2)
   final DateTime updatedAt;
   @override
-  @HiveField(3)
   final DateTime? deletedAt;
   @override
-  @HiveField(4)
   final String alias;
   @override
-  @HiveField(5)
   final String name;
   @override
-  @HiveField(6)
   final String description;
   final List<SnRealmMember>? _members;
   @override
@@ -702,14 +681,11 @@ class _$SnRealmImpl extends _SnRealm {
   }
 
   @override
-  @HiveField(7)
   final String? avatar;
   @override
-  @HiveField(8)
   final String? banner;
   final Map<String, dynamic>? _accessPolicy;
   @override
-  @HiveField(9)
   Map<String, dynamic>? get accessPolicy {
     final value = _accessPolicy;
     if (value == null) return null;
@@ -719,13 +695,10 @@ class _$SnRealmImpl extends _SnRealm {
   }
 
   @override
-  @HiveField(10)
   final int accountId;
   @override
-  @HiveField(11)
   final bool isPublic;
   @override
-  @HiveField(12)
   final bool isCommunity;
   @override
   @JsonKey()
@@ -825,45 +798,32 @@ abstract class _SnRealm extends SnRealm {
   factory _SnRealm.fromJson(Map<String, dynamic> json) = _$SnRealmImpl.fromJson;
 
   @override
-  @HiveField(0)
   int get id;
   @override
-  @HiveField(1)
   DateTime get createdAt;
   @override
-  @HiveField(2)
   DateTime get updatedAt;
   @override
-  @HiveField(3)
   DateTime? get deletedAt;
   @override
-  @HiveField(4)
   String get alias;
   @override
-  @HiveField(5)
   String get name;
   @override
-  @HiveField(6)
   String get description;
   @override
   List<SnRealmMember>? get members;
   @override
-  @HiveField(7)
   String? get avatar;
   @override
-  @HiveField(8)
   String? get banner;
   @override
-  @HiveField(9)
   Map<String, dynamic>? get accessPolicy;
   @override
-  @HiveField(10)
   int get accountId;
   @override
-  @HiveField(11)
   bool get isPublic;
   @override
-  @HiveField(12)
   bool get isCommunity;
   @override
   int get popularity;

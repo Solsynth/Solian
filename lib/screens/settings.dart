@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/database.dart';
+import 'package:surface/providers/notification.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/theme.dart';
 import 'package:surface/theme.dart';
@@ -560,6 +561,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     HapticFeedback.heavyImpact();
                     context.showSnackbar('databaseDeleted'.tr());
                     setState(() {});
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Symbols.notifications),
+                  title: Text('settingsEnablePushNotifications').tr(),
+                  subtitle:
+                      Text('settingsEnablePushNotificationsDescription').tr(),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () {
+                    final nty = context.read<NotificationProvider>();
+                    nty.registerPushNotifications();
                   },
                 ),
                 ListTile(

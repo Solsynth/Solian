@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
@@ -499,9 +500,38 @@ class ChatMessageController extends ChangeNotifier {
     }
   }
 
+  Timer? _readEventDebounce;
+  int? _readEventAnchor;
+
+  void readEvent(int id) {
+    if (_readEventAnchor != null) {
+      _readEventAnchor = math.max(_readEventAnchor!, id);
+    } else {
+      _readEventAnchor = id;
+    }
+    if (_readEventDebounce?.isActive ?? false) {
+      _readEventDebounce?.cancel();
+    }
+
+    _readEventDebounce = Timer(const Duration(milliseconds: 500), () {
+      _ws.conn?.sink.add(jsonEncode(
+        WebSocketPackage(
+          method: 'events.read',
+          endpoint: 'im',
+          payload: {
+            'channel_member_id': profile!.id,
+            'event_id': _readEventAnchor,
+          },
+        ).toJson(),
+      ));
+      log('[Messaging] Send read event request: $_readEventAnchor');
+    });
+  }
+
   @override
   void dispose() {
     _wsSubscription?.cancel();
+    _readEventDebounce?.cancel();
     super.dispose();
   }
 }

@@ -20,34 +20,20 @@ SnChannel _$SnChannelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SnChannel {
-  @HiveField(0)
   int get id => throw _privateConstructorUsedError;
-  @HiveField(1)
   DateTime get createdAt => throw _privateConstructorUsedError;
-  @HiveField(2)
   DateTime get updatedAt => throw _privateConstructorUsedError;
-  @HiveField(3)
   dynamic get deletedAt => throw _privateConstructorUsedError;
-  @HiveField(4)
   String get alias => throw _privateConstructorUsedError;
-  @HiveField(5)
   String get name => throw _privateConstructorUsedError;
-  @HiveField(6)
   String get description => throw _privateConstructorUsedError;
-  @HiveField(7)
   List<SnChannelMember>? get members => throw _privateConstructorUsedError;
   List<SnChatMessage>? get messages => throw _privateConstructorUsedError;
-  @HiveField(8)
   int get type => throw _privateConstructorUsedError;
-  @HiveField(9)
   int get accountId => throw _privateConstructorUsedError;
-  @HiveField(10)
   SnRealm? get realm => throw _privateConstructorUsedError;
-  @HiveField(11)
   int? get realmId => throw _privateConstructorUsedError;
-  @HiveField(12)
   bool get isPublic => throw _privateConstructorUsedError;
-  @HiveField(13)
   bool get isCommunity => throw _privateConstructorUsedError;
 
   /// Serializes this SnChannel to a JSON map.
@@ -320,7 +306,6 @@ class __$$SnChannelImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-@HiveType(typeId: 2)
 class _$SnChannelImpl extends _SnChannel {
   const _$SnChannelImpl(
       {required this.id,
@@ -346,29 +331,21 @@ class _$SnChannelImpl extends _SnChannel {
       _$$SnChannelImplFromJson(json);
 
   @override
-  @HiveField(0)
   final int id;
   @override
-  @HiveField(1)
   final DateTime createdAt;
   @override
-  @HiveField(2)
   final DateTime updatedAt;
   @override
-  @HiveField(3)
   final dynamic deletedAt;
   @override
-  @HiveField(4)
   final String alias;
   @override
-  @HiveField(5)
   final String name;
   @override
-  @HiveField(6)
   final String description;
   final List<SnChannelMember>? _members;
   @override
-  @HiveField(7)
   List<SnChannelMember>? get members {
     final value = _members;
     if (value == null) return null;
@@ -388,22 +365,16 @@ class _$SnChannelImpl extends _SnChannel {
   }
 
   @override
-  @HiveField(8)
   final int type;
   @override
-  @HiveField(9)
   final int accountId;
   @override
-  @HiveField(10)
   final SnRealm? realm;
   @override
-  @HiveField(11)
   final int? realmId;
   @override
-  @HiveField(12)
   final bool isPublic;
   @override
-  @HiveField(13)
   final bool isCommunity;
 
   @override
@@ -498,48 +469,34 @@ abstract class _SnChannel extends SnChannel {
       _$SnChannelImpl.fromJson;
 
   @override
-  @HiveField(0)
   int get id;
   @override
-  @HiveField(1)
   DateTime get createdAt;
   @override
-  @HiveField(2)
   DateTime get updatedAt;
   @override
-  @HiveField(3)
   dynamic get deletedAt;
   @override
-  @HiveField(4)
   String get alias;
   @override
-  @HiveField(5)
   String get name;
   @override
-  @HiveField(6)
   String get description;
   @override
-  @HiveField(7)
   List<SnChannelMember>? get members;
   @override
   List<SnChatMessage>? get messages;
   @override
-  @HiveField(8)
   int get type;
   @override
-  @HiveField(9)
   int get accountId;
   @override
-  @HiveField(10)
   SnRealm? get realm;
   @override
-  @HiveField(11)
   int? get realmId;
   @override
-  @HiveField(12)
   bool get isPublic;
   @override
-  @HiveField(13)
   bool get isCommunity;
 
   /// Create a copy of SnChannel
@@ -556,26 +513,16 @@ SnChannelMember _$SnChannelMemberFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SnChannelMember {
-  @HiveField(0)
   int get id => throw _privateConstructorUsedError;
-  @HiveField(1)
   DateTime get createdAt => throw _privateConstructorUsedError;
-  @HiveField(2)
   DateTime get updatedAt => throw _privateConstructorUsedError;
-  @HiveField(3)
   DateTime? get deletedAt => throw _privateConstructorUsedError;
-  @HiveField(4)
   int get channelId => throw _privateConstructorUsedError;
-  @HiveField(5)
   int get accountId => throw _privateConstructorUsedError;
-  @HiveField(6)
   String? get nick => throw _privateConstructorUsedError;
-  @HiveField(7)
   SnChannel? get channel => throw _privateConstructorUsedError;
-  @HiveField(8)
   SnAccount? get account => throw _privateConstructorUsedError;
   int get notify => throw _privateConstructorUsedError;
-  @HiveField(9)
   int get powerLevel => throw _privateConstructorUsedError;
   dynamic get calls => throw _privateConstructorUsedError;
   dynamic get events => throw _privateConstructorUsedError;
@@ -844,7 +791,6 @@ class __$$SnChannelMemberImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-@HiveType(typeId: 3)
 class _$SnChannelMemberImpl extends _SnChannelMember {
   const _$SnChannelMemberImpl(
       {required this.id,
@@ -866,37 +812,27 @@ class _$SnChannelMemberImpl extends _SnChannelMember {
       _$$SnChannelMemberImplFromJson(json);
 
   @override
-  @HiveField(0)
   final int id;
   @override
-  @HiveField(1)
   final DateTime createdAt;
   @override
-  @HiveField(2)
   final DateTime updatedAt;
   @override
-  @HiveField(3)
   final DateTime? deletedAt;
   @override
-  @HiveField(4)
   final int channelId;
   @override
-  @HiveField(5)
   final int accountId;
   @override
-  @HiveField(6)
   final String? nick;
   @override
-  @HiveField(7)
   final SnChannel? channel;
   @override
-  @HiveField(8)
   final SnAccount? account;
   @override
   @JsonKey()
   final int notify;
   @override
-  @HiveField(9)
   final int powerLevel;
   @override
   final dynamic calls;
@@ -990,36 +926,26 @@ abstract class _SnChannelMember extends SnChannelMember {
       _$SnChannelMemberImpl.fromJson;
 
   @override
-  @HiveField(0)
   int get id;
   @override
-  @HiveField(1)
   DateTime get createdAt;
   @override
-  @HiveField(2)
   DateTime get updatedAt;
   @override
-  @HiveField(3)
   DateTime? get deletedAt;
   @override
-  @HiveField(4)
   int get channelId;
   @override
-  @HiveField(5)
   int get accountId;
   @override
-  @HiveField(6)
   String? get nick;
   @override
-  @HiveField(7)
   SnChannel? get channel;
   @override
-  @HiveField(8)
   SnAccount? get account;
   @override
   int get notify;
   @override
-  @HiveField(9)
   int get powerLevel;
   @override
   dynamic get calls;
@@ -1040,31 +966,18 @@ SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SnChatMessage {
-  @HiveField(0)
   int get id => throw _privateConstructorUsedError;
-  @HiveField(1)
   DateTime get createdAt => throw _privateConstructorUsedError;
-  @HiveField(2)
   DateTime get updatedAt => throw _privateConstructorUsedError;
-  @HiveField(3)
   DateTime? get deletedAt => throw _privateConstructorUsedError;
-  @HiveField(4)
   String get uuid => throw _privateConstructorUsedError;
-  @HiveField(5)
   Map<String, dynamic> get body => throw _privateConstructorUsedError;
-  @HiveField(6)
   String get type => throw _privateConstructorUsedError;
-  @HiveField(7)
   SnChannel get channel => throw _privateConstructorUsedError;
-  @HiveField(8)
   SnChannelMember get sender => throw _privateConstructorUsedError;
-  @HiveField(9)
   int get channelId => throw _privateConstructorUsedError;
-  @HiveField(10)
   int get senderId => throw _privateConstructorUsedError;
-  @HiveField(11)
   int? get quoteEventId => throw _privateConstructorUsedError;
-  @HiveField(12)
   int? get relatedEventId => throw _privateConstructorUsedError;
   SnChatMessagePreload? get preload => throw _privateConstructorUsedError;
 
@@ -1353,7 +1266,6 @@ class __$$SnChatMessageImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-@HiveType(typeId: 4)
 class _$SnChatMessageImpl extends _SnChatMessage {
   const _$SnChatMessageImpl(
       {required this.id,
@@ -1377,24 +1289,18 @@ class _$SnChatMessageImpl extends _SnChatMessage {
       _$$SnChatMessageImplFromJson(json);
 
   @override
-  @HiveField(0)
   final int id;
   @override
-  @HiveField(1)
   final DateTime createdAt;
   @override
-  @HiveField(2)
   final DateTime updatedAt;
   @override
-  @HiveField(3)
   final DateTime? deletedAt;
   @override
-  @HiveField(4)
   final String uuid;
   final Map<String, dynamic> _body;
   @override
   @JsonKey()
-  @HiveField(5)
   Map<String, dynamic> get body {
     if (_body is EqualUnmodifiableMapView) return _body;
     // ignore: implicit_dynamic_type
@@ -1402,25 +1308,18 @@ class _$SnChatMessageImpl extends _SnChatMessage {
   }
 
   @override
-  @HiveField(6)
   final String type;
   @override
-  @HiveField(7)
   final SnChannel channel;
   @override
-  @HiveField(8)
   final SnChannelMember sender;
   @override
-  @HiveField(9)
   final int channelId;
   @override
-  @HiveField(10)
   final int senderId;
   @override
-  @HiveField(11)
   final int? quoteEventId;
   @override
-  @HiveField(12)
   final int? relatedEventId;
   @override
   final SnChatMessagePreload? preload;
@@ -1515,43 +1414,30 @@ abstract class _SnChatMessage extends SnChatMessage {
       _$SnChatMessageImpl.fromJson;
 
   @override
-  @HiveField(0)
   int get id;
   @override
-  @HiveField(1)
   DateTime get createdAt;
   @override
-  @HiveField(2)
   DateTime get updatedAt;
   @override
-  @HiveField(3)
   DateTime? get deletedAt;
   @override
-  @HiveField(4)
   String get uuid;
   @override
-  @HiveField(5)
   Map<String, dynamic> get body;
   @override
-  @HiveField(6)
   String get type;
   @override
-  @HiveField(7)
   SnChannel get channel;
   @override
-  @HiveField(8)
   SnChannelMember get sender;
   @override
-  @HiveField(9)
   int get channelId;
   @override
-  @HiveField(10)
   int get senderId;
   @override
-  @HiveField(11)
   int? get quoteEventId;
   @override
-  @HiveField(12)
   int? get relatedEventId;
   @override
   SnChatMessagePreload? get preload;

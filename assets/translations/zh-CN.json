@@ -685,5 +685,7 @@
   "databaseSize": "数据库大小",
   "databaseDelete": "删除数据库",
   "databaseDeleteDescription": "删除本地数据库，内容将从服务器重新获取。",
-  "databaseDeleted": "本地数据库已被删除。"
+  "databaseDeleted": "本地数据库已被删除。",
+  "settingsEnablePushNotifications": "启用推送数据",
+  "settingsEnablePushNotificationsDescription": "重新启用并请求推送权限，以防自动激活失败。"
 }

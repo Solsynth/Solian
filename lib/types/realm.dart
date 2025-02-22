@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:surface/types/account.dart';
 
 part 'realm.freezed.dart';
@@ -27,7 +26,6 @@ class SnRealmMember with _$SnRealmMember {
 class SnRealm with _$SnRealm {
   const SnRealm._();
 
-  @HiveType(typeId: 1)
   const factory SnRealm({
     required int id,
     required DateTime createdAt,

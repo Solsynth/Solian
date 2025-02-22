@@ -39,7 +39,8 @@ class ChatRoomScreen extends StatefulWidget {
   final String alias;
   final ChatRoomScreenExtra? extra;
 
-  const ChatRoomScreen({super.key, required this.scope, required this.alias, this.extra});
+  const ChatRoomScreen(
+      {super.key, required this.scope, required this.alias, this.extra});
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -192,10 +193,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           log('[ChatInput] Setting initial text and attachments...');
           if (widget.extra!.initialText != null) {
-            _inputGlobalKey.currentState?.setInitialText(widget.extra!.initialText!);
+            _inputGlobalKey.currentState
+                ?.setInitialText(widget.extra!.initialText!);
           }
           if (widget.extra!.initialAttachments != null) {
-            _inputGlobalKey.currentState?.setInitialAttachments(widget.extra!.initialAttachments!);
+            _inputGlobalKey.currentState
+                ?.setInitialAttachments(widget.extra!.initialAttachments!);
           }
         });
       }
@@ -241,12 +244,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       appBar: AppBar(
         title: Text(
           _channel?.type == 1
-              ? ud.getAccountFromCache(_otherMember?.accountId)?.nick ?? _channel!.name
+              ? ud.getAccountFromCache(_otherMember?.accountId)?.nick ??
+                  _channel!.name
               : _channel?.name ?? 'loading'.tr(),
         ),
         actions: [
           IconButton(
-            icon: _ongoingCall == null ? const Icon(Symbols.call) : const Icon(Symbols.call_end),
+            icon: _ongoingCall == null
+                ? const Icon(Symbols.call)
+                : const Icon(Symbols.call_end),
             onPressed: _isCalling
                 ? null
                 : _ongoingCall == null
@@ -296,9 +302,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       )
                   ],
                 ),
-              )
-                  .height(_ongoingCall != null ? 54 : 0, animate: true)
-                  .animate(const Duration(milliseconds: 300), Curves.fastLinearToSlowEaseIn),
+              ).height(_ongoingCall != null ? 54 : 0, animate: true).animate(
+                  const Duration(milliseconds: 300),
+                  Curves.fastLinearToSlowEaseIn),
               if (_messageController.isPending)
                 Expanded(
                   child: const CircularProgressIndicator().center(),
@@ -316,6 +322,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     },
                     itemBuilder: (context, idx) {
                       final message = _messageController.messages[idx];
+                      _messageController.readEvent(message.id);
 
                       bool canMerge = false, canMergePrevious = false;
                       if (idx > 0) {
@@ -337,7 +344,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           data: message,
                           isMerged: canMerge,
                           hasMerged: canMergePrevious,
-                          isPending: _messageController.unconfirmedMessages.contains(message.uuid),
+                          isPending: _messageController.unconfirmedMessages
+                              .contains(message.uuid),
                           onReply: (value) {
                             _inputGlobalKey.currentState?.setReply(value);
                           },

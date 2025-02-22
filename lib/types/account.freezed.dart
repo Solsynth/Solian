@@ -20,7 +20,6 @@ SnAccount _$SnAccountFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SnAccount {
-  @HiveField(0)
   int get id => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
@@ -403,7 +402,6 @@ class _$SnAccountImpl extends _SnAccount {
       _$$SnAccountImplFromJson(json);
 
   @override
-  @HiveField(0)
   final int id;
   @override
   final DateTime createdAt;
@@ -582,7 +580,6 @@ abstract class _SnAccount extends SnAccount {
       _$SnAccountImpl.fromJson;
 
   @override
-  @HiveField(0)
   int get id;
   @override
   DateTime get createdAt;

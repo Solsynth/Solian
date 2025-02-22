@@ -84,7 +84,7 @@ class NotificationProvider extends ChangeNotifier {
         showingCount++;
         showingTrayCount++;
         notifications.add(notification);
-        Future.delayed(const Duration(seconds: 3), () {
+        Future.delayed(const Duration(seconds: 5), () {
           if (showingCount >= 0) showingCount--;
           notifyListeners();
         });

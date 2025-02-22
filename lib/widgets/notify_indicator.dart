@@ -23,7 +23,8 @@ class NotifyIndicator extends StatefulWidget {
   State<NotifyIndicator> createState() => _NotifyIndicatorState();
 }
 
-class _NotifyIndicatorState extends State<NotifyIndicator> with SingleTickerProviderStateMixin {
+class _NotifyIndicatorState extends State<NotifyIndicator>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _animationController = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 300),
@@ -101,7 +102,8 @@ class _NotifyIndicatorState extends State<NotifyIndicator> with SingleTickerProv
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   width: double.infinity,
                   constraints: BoxConstraints(
-                    maxWidth: isMobile ? MediaQuery.of(context).size.width - 16 : 360,
+                    maxWidth:
+                        isMobile ? MediaQuery.of(context).size.width - 16 : 360,
                   ),
                   child: Material(
                     elevation: 2,
@@ -118,7 +120,8 @@ class _NotifyIndicatorState extends State<NotifyIndicator> with SingleTickerProv
                             ),
                           )
                         else
-                          Icon(kNotificationTopicIcons[current?.topic] ?? Symbols.notifications),
+                          Icon(kNotificationTopicIcons[current?.topic] ??
+                              Symbols.notifications),
                         const Gap(16),
                         Expanded(
                           child: Column(
@@ -126,14 +129,20 @@ class _NotifyIndicatorState extends State<NotifyIndicator> with SingleTickerProv
                             children: [
                               Text(
                                 current?.title ?? 'Notification',
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
                               if (current?.subtitle?.isNotEmpty ?? false)
                                 Text(
                                   current!.subtitle!,
-                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),
@@ -148,18 +157,25 @@ class _NotifyIndicatorState extends State<NotifyIndicator> with SingleTickerProv
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(DateFormat('HH:mm').format(current?.createdAt.toLocal() ?? DateTime.now()))
-                                .fontSize(12)
-                                .padding(right: 2),
+                            Text(
+                              DateFormat('HH:mm').format(
+                                  (current?.createdAt ?? DateTime.now())
+                                              .millisecondsSinceEpoch >
+                                          0
+                                      ? (current?.createdAt ?? DateTime.now())
+                                      : DateTime.now()),
+                            ).fontSize(12).padding(right: 2),
                             const Gap(6),
                             if (current?.metadata['image'] != null)
                               SizedBox(
                                 width: 40,
                                 height: 40,
                                 child: ClipRRect(
-                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)),
                                   child: AutoResizeUniversalImage(
-                                    sn.getAttachmentUrl(current?.metadata['image']),
+                                    sn.getAttachmentUrl(
+                                        current?.metadata['image']),
                                     fit: BoxFit.cover,
                                   ),
                                 ),

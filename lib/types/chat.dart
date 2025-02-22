@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:surface/types/account.dart';
 import 'package:surface/types/attachment.dart';
@@ -12,7 +11,6 @@ part 'chat.g.dart';
 class SnChannel with _$SnChannel {
   const SnChannel._();
 
-  @HiveType(typeId: 2)
   const factory SnChannel({
     required int id,
     required DateTime createdAt,
@@ -42,7 +40,6 @@ class SnChannel with _$SnChannel {
 class SnChannelMember with _$SnChannelMember {
   const SnChannelMember._();
 
-  @HiveType(typeId: 3)
   const factory SnChannelMember({
     required int id,
     required DateTime createdAt,
@@ -67,7 +64,6 @@ class SnChannelMember with _$SnChannelMember {
 class SnChatMessage with _$SnChatMessage {
   const SnChatMessage._();
 
-  @HiveType(typeId: 4)
   const factory SnChatMessage({
     required int id,
     required DateTime createdAt,

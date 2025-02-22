@@ -59,7 +59,7 @@ dependencies:
   relative_time: ^5.0.0
   image_picker: ^1.1.2
   cross_file: ^0.3.4+2
-  file_picker: ^8.1.6 # pinned due to compile failed on android, https://github.com/miguelpruivo/flutter_file_picker/issues/1643
+  file_picker: ^9.0.0 # pinned due to compile failed on android, https://github.com/miguelpruivo/flutter_file_picker/issues/1643
   croppy: ^1.3.1
   flutter_expandable_fab: ^2.3.0
   dropdown_button2: ^2.3.9
