@@ -39,6 +39,8 @@ class ExploreScreen extends StatefulWidget {
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
 
+// You know what? I'm not going to make this a global variable.
+// Cuz the global key make the selected category not update to child widget when the category is changed.
 SnPostCategory? _selectedCategory;
 
 class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProviderStateMixin {
@@ -516,28 +518,41 @@ class _PostCategoryPickerPopup extends StatelessWidget {
           },
         ),
         const Divider(height: 1),
-        Wrap(
-          spacing: 4,
-          runSpacing: 4,
+        GridView.count(
+          crossAxisCount: 4,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: 1,
           children: categories
               .map(
-                (ele) => ChoiceChip(
-                  avatar: Icon(kCategoryIcons[ele.alias] ?? Symbols.question_mark),
-                  label: Text(
-                    'postCategory${ele.alias.capitalize()}'.trExists()
-                        ? 'postCategory${ele.alias.capitalize()}'.tr()
-                        : ele.name,
-                  ),
-                  selected: ele == selected,
-                  onSelected: (value) {
-                    if (value) {
-                      Navigator.pop(context, ele);
-                    }
+                (ele) => InkWell(
+                  onTap: () {
+                    _selectedCategory = ele;
+                    Navigator.pop(context, ele);
                   },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        kCategoryIcons[ele.alias] ?? Symbols.question_mark,
+                        color: selected == ele ? Theme.of(context).colorScheme.primary : null,
+                      ),
+                      const Gap(4),
+                      Text(
+                        'postCategory${ele.alias.capitalize()}'.trExists()
+                            ? 'postCategory${ele.alias.capitalize()}'.tr()
+                            : ele.name,
+                      )
+                          .textStyle(Theme.of(context).textTheme.titleMedium!)
+                          .textColor(selected == ele ? Theme.of(context).colorScheme.primary : null),
+                    ],
+                  ),
                 ),
               )
               .toList(),
-        ).padding(horizontal: 12),
+        ),
       ],
     );
   }
