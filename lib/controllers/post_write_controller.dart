@@ -247,6 +247,9 @@ class PostWriteController extends ChangeNotifier {
         if (post.preload?.thumbnail != null && (post.preload?.thumbnail?.rid.isNotEmpty ?? false)) {
           thumbnail = PostWriteMedia(post.preload!.thumbnail);
         }
+        if (post.preload?.realm != null) {
+          realm = post.preload!.realm!;
+        }
 
         editingPost = post;
       }
@@ -382,6 +385,7 @@ class PostWriteController extends ChangeNotifier {
           if (replyingPost != null) 'reply_to': replyingPost!.toJson(),
           if (repostingPost != null) 'repost_to': repostingPost!.toJson(),
           if (poll != null) 'poll': poll!.toJson(),
+          if (realm != null) 'realm': realm!.toJson(),
         }),
       );
     });
@@ -412,6 +416,7 @@ class PostWriteController extends ChangeNotifier {
       replyingPost = data['reply_to'] != null ? SnPost.fromJson(data['reply_to']) : null;
       repostingPost = data['repost_to'] != null ? SnPost.fromJson(data['repost_to']) : null;
       poll = data['poll'] != null ? SnPoll.fromJson(data['poll']) : null;
+      realm = data['realm'] != null ? SnRealm.fromJson(data['realm']) : null;
       temporaryRestored = true;
       notifyListeners();
     });
@@ -528,6 +533,7 @@ class PostWriteController extends ChangeNotifier {
           if (reward != null) 'reward': reward,
           if (videoAttachment != null) 'video': videoAttachment!.rid,
           if (poll != null) 'poll': poll!.id,
+          if (realm != null) 'realm': realm!.id,
         },
         onSendProgress: (count, total) {
           progress = baseProgressVal + (count / total) * (kPostingProgressWeight / 2);

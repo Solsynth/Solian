@@ -58,6 +58,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   StreamSubscription? _wsSubscription;
 
+  // TODO fetch user identity and ask them to join the channel or not
   Future<void> _fetchChannel() async {
     setState(() => _isBusy = true);
 

@@ -2,19 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:surface/providers/sn_attachment.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/types/poll.dart';
 import 'package:surface/types/post.dart';
+import 'package:surface/types/realm.dart';
 
 class SnPostContentProvider {
   late final SnNetworkProvider _sn;
   late final UserDirectoryProvider _ud;
   late final SnAttachmentProvider _attach;
+  late final SnRealmProvider _realm;
 
   SnPostContentProvider(BuildContext context) {
     _sn = context.read<SnNetworkProvider>();
     _ud = context.read<UserDirectoryProvider>();
     _attach = context.read<SnAttachmentProvider>();
+    _realm = context.read<SnRealmProvider>();
   }
 
   Future<SnPoll> _fetchPoll(int id) async {
@@ -42,8 +46,12 @@ class SnPostContentProvider {
     final attachments = await _attach.getMultiple(rids.toList());
     for (var i = 0; i < out.length; i++) {
       SnPoll? poll;
+      SnRealm? realm;
       if (out[i].pollId != null) {
         poll = await _fetchPoll(out[i].pollId!);
+      }
+      if (out[i].realmId != null) {
+        realm = await _realm.getRealm(out[i].realmId!);
       }
 
       out[i] = out[i].copyWith(
@@ -52,6 +60,7 @@ class SnPostContentProvider {
           attachments: attachments.where((ele) => out[i].body['attachments']?.contains(ele?.rid) ?? false).toList(),
           video: attachments.where((ele) => ele?.rid == out[i].body['video']).firstOrNull,
           poll: poll,
+          realm: realm,
         ),
       );
     }
@@ -81,8 +90,12 @@ class SnPostContentProvider {
     final attachments = await _attach.getMultiple(rids.toList());
 
     SnPoll? poll;
+    SnRealm? realm;
     if (out.pollId != null) {
       poll = await _fetchPoll(out.pollId!);
+    }
+    if (out.realmId != null) {
+      realm = await _realm.getRealm(out.realmId!);
     }
 
     out = out.copyWith(
@@ -91,6 +104,7 @@ class SnPostContentProvider {
         attachments: attachments.where((ele) => out.body['attachments']?.contains(ele?.rid) ?? false).toList(),
         video: attachments.where((ele) => ele?.rid == out.body['video']).firstOrNull,
         poll: poll,
+        realm: realm,
       ),
     );
 

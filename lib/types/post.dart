@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/types/poll.dart';
+import 'package:surface/types/realm.dart';
 
 part 'post.freezed.dart';
 part 'post.g.dart';
@@ -24,6 +25,7 @@ class SnPost with _$SnPost {
     required List<SnPost>? replies,
     required int? replyId,
     required int? repostId,
+    required int? realmId,
     required SnPost? replyTo,
     required SnPost? repostTo,
     required List<int>? visibleUsersList,
@@ -95,6 +97,7 @@ class SnPostPreload with _$SnPostPreload {
     required List<SnAttachment?>? attachments,
     required SnAttachment? video,
     required SnPoll? poll,
+    required SnRealm? realm,
   }) = _SnPostPreload;
 
   factory SnPostPreload.fromJson(Map<String, Object?> json) =>

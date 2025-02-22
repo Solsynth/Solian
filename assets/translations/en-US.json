@@ -626,6 +626,7 @@
   "realmJoin": "Join Realm",
   "realmCommunityHint": "This realm is a community realm, you can freely join.",
   "realmCommunityPublicChannelsHint": "The public channels in this realm",
+  "realmCommunityPublishersHint": "The publishers in this realm",
   "realmJoined": "Joined realm {}.",
   "join": "Join",
   "pollEditorNew": "New Poll",

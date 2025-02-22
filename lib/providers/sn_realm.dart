@@ -10,17 +10,28 @@ class SnRealmProvider {
     _sn = context.read<SnNetworkProvider>();
   }
 
+  final Map<String, SnRealm> _cache = {};
+
   Future<List<SnRealm>> listAvailableRealms() async {
     final resp = await _sn.client.get('/cgi/id/realms/me/available');
     final out = List<SnRealm>.from(
       resp.data?.map((e) => SnRealm.fromJson(e)) ?? [],
     );
+    for (final realm in out) {
+      _cache[realm.alias] = realm;
+      _cache[realm.id.toString()] = realm;
+    }
     return out;
   }
 
-  Future<SnRealm> getRealm(String alias) async {
-    final resp = await _sn.client.get('/cgi/id/realms/$alias');
+  Future<SnRealm> getRealm(dynamic aliasOrId) async {
+    if (_cache.containsKey(aliasOrId.toString())) {
+      return _cache[aliasOrId.toString()]!;
+    }
+    final resp = await _sn.client.get('/cgi/id/realms/$aliasOrId');
     final out = SnRealm.fromJson(resp.data);
+    _cache[out.alias] = out;
+    _cache[out.id.toString()] = out;
     return out;
   }
 }

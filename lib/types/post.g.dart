@@ -31,6 +31,7 @@ _$SnPostImpl _$$SnPostImplFromJson(Map<String, dynamic> json) => _$SnPostImpl(
           .toList(),
       replyId: (json['reply_id'] as num?)?.toInt(),
       repostId: (json['repost_id'] as num?)?.toInt(),
+      realmId: (json['realm_id'] as num?)?.toInt(),
       replyTo: json['reply_to'] == null
           ? null
           : SnPost.fromJson(json['reply_to'] as Map<String, dynamic>),
@@ -91,6 +92,7 @@ Map<String, dynamic> _$$SnPostImplToJson(_$SnPostImpl instance) =>
       'replies': instance.replies?.map((e) => e.toJson()).toList(),
       'reply_id': instance.replyId,
       'repost_id': instance.repostId,
+      'realm_id': instance.realmId,
       'reply_to': instance.replyTo?.toJson(),
       'repost_to': instance.repostTo?.toJson(),
       'visible_users_list': instance.visibleUsersList,
@@ -178,6 +180,9 @@ _$SnPostPreloadImpl _$$SnPostPreloadImplFromJson(Map<String, dynamic> json) =>
       poll: json['poll'] == null
           ? null
           : SnPoll.fromJson(json['poll'] as Map<String, dynamic>),
+      realm: json['realm'] == null
+          ? null
+          : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$SnPostPreloadImplToJson(_$SnPostPreloadImpl instance) =>
@@ -186,6 +191,7 @@ Map<String, dynamic> _$$SnPostPreloadImplToJson(_$SnPostPreloadImpl instance) =>
       'attachments': instance.attachments?.map((e) => e?.toJson()).toList(),
       'video': instance.video?.toJson(),
       'poll': instance.poll?.toJson(),
+      'realm': instance.realm?.toJson(),
     };
 
 _$SnBodyImpl _$$SnBodyImplFromJson(Map<String, dynamic> json) => _$SnBodyImpl(

@@ -14,7 +14,6 @@ import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:surface/widgets/realm/realm_item.dart';
-import 'package:surface/widgets/universal_image.dart';
 
 class RealmDiscoveryScreen extends StatefulWidget {
   const RealmDiscoveryScreen({super.key});

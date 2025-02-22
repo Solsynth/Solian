@@ -9,6 +9,7 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/account.dart';
+import 'package:surface/types/chat.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/types/realm.dart';
 import 'package:surface/widgets/account/account_image.dart';
@@ -60,11 +61,29 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
     }
   }
 
+  List<SnChannel>? _channels;
+
+  Future<void> _fetchChannels() async {
+    try {
+      final sn = context.read<SnNetworkProvider>();
+      final resp = await sn.client.get('/cgi/im/channels/${widget.alias}/public');
+      _channels = List<SnChannel>.from(
+        resp.data.map((e) => SnChannel.fromJson(e)).cast<SnChannel>(),
+      );
+    } catch (err) {
+      if (mounted) context.showErrorDialog(err);
+      rethrow;
+    } finally {
+      setState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchRealm().then((_) {
       _fetchPublishers();
+      _fetchChannels();
     });
   }
 
@@ -93,7 +112,7 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
           },
           body: TabBarView(
             children: [
-              _RealmDetailHomeWidget(realm: _realm, publishers: _publishers),
+              _RealmDetailHomeWidget(realm: _realm, publishers: _publishers, channels: _channels),
               _RealmMemberListWidget(realm: _realm),
               _RealmSettingsWidget(
                 realm: _realm,
@@ -112,8 +131,9 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
 class _RealmDetailHomeWidget extends StatelessWidget {
   final SnRealm? realm;
   final List<SnPublisher>? publishers;
+  final List<SnChannel>? channels;
 
-  const _RealmDetailHomeWidget({required this.realm, this.publishers});
+  const _RealmDetailHomeWidget({required this.realm, this.publishers, this.channels});
 
   @override
   Widget build(BuildContext context) {
@@ -135,30 +155,76 @@ class _RealmDetailHomeWidget extends StatelessWidget {
             ],
           ).padding(horizontal: 24),
         const Gap(16),
-        const Divider(),
+        const Divider(height: 1),
         Expanded(
-          child: ListView.builder(
-            padding: EdgeInsets.zero,
-            itemCount: publishers?.length ?? 0,
-            itemBuilder: (context, idx) {
-              final ele = publishers![idx];
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-                leading: AccountImage(
-                  content: ele.avatar,
-                  fallbackWidget: const Icon(Symbols.group, size: 24),
+          child: CustomScrollView(
+            slivers: [
+              if (publishers?.isNotEmpty ?? false)
+                SliverToBoxAdapter(
+                  child: Container(
+                    width: double.infinity,
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    child: Text('realmCommunityPublishersHint'.tr(), style: Theme.of(context).textTheme.bodyMedium)
+                        .padding(horizontal: 24, vertical: 8),
+                  ),
                 ),
-                title: Text(ele.nick),
-                subtitle: Text('@${ele.name}'),
-                trailing: const Icon(Symbols.chevron_right),
-                onTap: () {
-                  GoRouter.of(context).pushNamed(
-                    'postPublisher',
-                    pathParameters: {'name': ele.name},
+              SliverList.builder(
+                itemCount: publishers?.length ?? 0,
+                itemBuilder: (context, idx) {
+                  final ele = publishers![idx];
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                    leading: AccountImage(
+                      content: ele.avatar,
+                      fallbackWidget: const Icon(Symbols.group, size: 24),
+                    ),
+                    title: Text(ele.nick),
+                    subtitle: Text('@${ele.name}'),
+                    trailing: const Icon(Symbols.chevron_right),
+                    onTap: () {
+                      GoRouter.of(context).pushNamed(
+                        'postPublisher',
+                        pathParameters: {'name': ele.name},
+                      );
+                    },
                   );
                 },
-              );
-            },
+              ),
+              if (channels?.isNotEmpty ?? false)
+                SliverToBoxAdapter(
+                  child: Container(
+                    width: double.infinity,
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    child: Text('realmCommunityPublicChannelsHint'.tr(), style: Theme.of(context).textTheme.bodyMedium)
+                        .padding(horizontal: 24, vertical: 8),
+                  ),
+                ),
+              SliverList.builder(
+                itemCount: channels?.length ?? 0,
+                itemBuilder: (context, idx) {
+                  final ele = channels![idx];
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                    leading: AccountImage(
+                      content: null,
+                      fallbackWidget: const Icon(Symbols.chat, size: 20),
+                    ),
+                    title: Text(ele.name),
+                    subtitle: Text('#${ele.alias}'),
+                    trailing: const Icon(Symbols.chevron_right),
+                    onTap: () {
+                      GoRouter.of(context).pushNamed(
+                        'chatRoom',
+                        pathParameters: {
+                          'scope': realm?.alias ?? 'global',
+                          'alias': ele.alias,
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ],

@@ -625,6 +625,7 @@
   "realmJoin": "加入领域",
   "realmCommunityHint": "该领域是一个社区领域，你可以自由加入。",
   "realmCommunityPublicChannelsHint": "该领域包含的公共频道",
+  "realmCommunityPublishersHint": "该领域的发布者",
   "realmJoined": "已加入领域 {}。",
   "join": "加入",
   "pollEditorNew": "新投票",
