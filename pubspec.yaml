@@ -72,8 +72,6 @@ dependencies:
   collection: ^1.18.0
   mime: ^2.0.0
   web_socket_channel: ^3.0.1
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
   swipe_to: ^1.0.6
   firebase_core: ^3.8.0
   firebase_messaging: ^15.1.5
@@ -141,7 +139,6 @@ dev_dependencies:
   json_serializable: ^6.8.0
   icons_launcher: ^3.0.0
   flutter_native_splash: ^2.4.2
-  hive_generator: ^2.0.1
   flutter_launcher_icons: ^0.14.1
   drift_dev: ^2.25.2
 
