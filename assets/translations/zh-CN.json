@@ -681,5 +681,9 @@
   "postChannelRealm": "领域",
   "postFilterReset": "重置过滤器",
   "postFilterResetDescription": "清除过滤器并显示所有帖子。",
-  "postFilterWithCategory": "查看{}区中的帖子"
+  "postFilterWithCategory": "查看{}区中的帖子",
+  "databaseSize": "数据库大小",
+  "databaseDelete": "删除数据库",
+  "databaseDeleteDescription": "删除本地数据库，内容将从服务器重新获取。",
+  "databaseDeleted": "本地数据库已被删除。"
 }

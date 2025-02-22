@@ -72,8 +72,6 @@ dependencies:
   collection: ^1.18.0
   mime: ^2.0.0
   web_socket_channel: ^3.0.1
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
   swipe_to: ^1.0.6
   firebase_core: ^3.8.0
   firebase_messaging: ^15.1.5
@@ -123,6 +121,8 @@ dependencies:
   image_picker_android: ^0.8.12+20
   cached_network_image_platform_interface: ^4.1.1
   image_picker_platform_interface: ^2.10.1
+  drift: ^2.25.1
+  drift_flutter: ^0.2.4
 
 dev_dependencies:
   flutter_test:
@@ -134,13 +134,13 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
-  build_runner: ^2.4.13
+  build_runner: ^2.4.15
   freezed: ^2.5.7
   json_serializable: ^6.8.0
   icons_launcher: ^3.0.0
   flutter_native_splash: ^2.4.2
-  hive_generator: ^2.0.1
   flutter_launcher_icons: ^0.14.1
+  drift_dev: ^2.25.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

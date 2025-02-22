@@ -683,5 +683,9 @@
   "postChannelRealm": "Realms",
   "postFilterReset": "Reset Filter",
   "postFilterResetDescription": "Clear filter and show all posts.",
-  "postFilterWithCategory": "Viewing posts in {}"
+  "postFilterWithCategory": "Viewing posts in {}",
+  "databaseSize": "Database Size",
+  "databaseDelete": "Delete Database",
+  "databaseDeleteDescription": "Remove the database on your local disk, the content will be fetched from server again.",
+  "databaseDeleted": "The local database has been deleted."
 }

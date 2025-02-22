@@ -20,6 +20,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   permission_handler_windows
   screen_brightness_windows
   share_plus
+  sqlite3_flutter_libs
   tray_manager
   url_launcher_windows
 )

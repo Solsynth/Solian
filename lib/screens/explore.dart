@@ -243,7 +243,12 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                         children: [
                           Icon(Symbols.globe, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
                           const Gap(8),
-                          Text('postChannelGlobal').tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                          Flexible(
+                            child: Text(
+                              'postChannelGlobal',
+                              maxLines: 1,
+                            ).tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                          ),
                         ],
                       ),
                     ),
@@ -254,7 +259,13 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                         children: [
                           Icon(Symbols.group, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
                           const Gap(8),
-                          Text('postChannelFriends').tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                          Flexible(
+                            child: Text(
+                              'postChannelFriends',
+                              maxLines: 1,
+                              textAlign: TextAlign.center,
+                            ).tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                          ),
                         ],
                       ),
                     ),
@@ -265,7 +276,12 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                         children: [
                           Icon(Symbols.subscriptions, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
                           const Gap(8),
-                          Text('postChannelFollowing').tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                          Flexible(
+                            child: Text(
+                              'postChannelFollowing',
+                              maxLines: 1,
+                            ).tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                          ),
                         ],
                       ),
                     ),
@@ -276,7 +292,12 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                         children: [
                           Icon(Symbols.workspaces, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
                           const Gap(8),
-                          Text('postChannelRealm').tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                          Flexible(
+                            child: Text(
+                              'postChannelRealm',
+                              maxLines: 1,
+                            ).tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                          ),
                         ],
                       ),
                     ),
