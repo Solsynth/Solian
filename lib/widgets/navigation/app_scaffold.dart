@@ -61,7 +61,9 @@ class AppScaffold extends StatelessWidget {
           isRoot: true,
           child: Column(
             children: [
-              IgnorePointer(child: SizedBox(height: appBar != null ? appBarHeight + safeTop : 0)),
+              IgnorePointer(
+                  child: SizedBox(
+                      height: appBar != null ? appBarHeight + safeTop : 0)),
               if (body != null) Expanded(child: body!),
             ],
           ),
@@ -107,11 +109,19 @@ class AppRootScaffold extends StatelessWidget {
     final isCollapseDrawer = cfg.drawerIsCollapsed;
     final isExpandedDrawer = cfg.drawerIsExpanded;
 
-    final routeName = GoRouter.of(context).routerDelegate.currentConfiguration.last.route.name;
-    final isShowBottomNavigation = NavigationProvider.kShowBottomNavScreen.contains(routeName)
-        ? ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE)
-        : false;
-    final isPopable = !NavigationProvider.kAllDestination.map((ele) => ele.screen).contains(routeName);
+    final routeName = GoRouter.of(context)
+        .routerDelegate
+        .currentConfiguration
+        .last
+        .route
+        .name;
+    final isShowBottomNavigation =
+        NavigationProvider.kShowBottomNavScreen.contains(routeName)
+            ? ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE)
+            : false;
+    final isPopable = !NavigationProvider.kAllDestination
+        .map((ele) => ele.screen)
+        .contains(routeName);
 
     final innerWidget = isCollapseDrawer
         ? body
@@ -126,7 +136,9 @@ class AppRootScaffold extends StatelessWidget {
                     ),
                   ),
                 ),
-                child: isExpandedDrawer ? AppNavigationDrawer(elevation: 0) : AppRailNavigation(),
+                child: isExpandedDrawer
+                    ? AppNavigationDrawer(elevation: 0)
+                    : AppRailNavigation(),
               ),
               Expanded(child: body),
             ],
@@ -150,7 +162,8 @@ class AppRootScaffold extends StatelessWidget {
         children: [
           Column(
             children: [
-              if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS))
+              if (!kIsWeb &&
+                  (Platform.isWindows || Platform.isLinux || Platform.isMacOS))
                 WindowTitleBarBox(
                   child: Container(
                     decoration: BoxDecoration(
@@ -164,12 +177,19 @@ class AppRootScaffold extends StatelessWidget {
                     child: MoveWindow(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: Platform.isMacOS ? MainAxisAlignment.center : MainAxisAlignment.start,
+                        mainAxisAlignment: Platform.isMacOS
+                            ? MainAxisAlignment.center
+                            : MainAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
                               'Solar Network',
                               style: GoogleFonts.spaceGrotesk(),
+                              textAlign: !kIsWeb
+                                  ? Platform.isMacOS
+                                      ? TextAlign.center
+                                      : null
+                                  : null,
                             ).padding(horizontal: 12, vertical: 5),
                           ),
                           if (!Platform.isMacOS)
@@ -179,9 +199,12 @@ class AppRootScaffold extends StatelessWidget {
                                 Expanded(child: MoveWindow()),
                                 Row(
                                   children: [
-                                    MinimizeWindowButton(colors: windowButtonColor),
-                                    MaximizeWindowButton(colors: windowButtonColor),
-                                    CloseWindowButton(colors: windowButtonColor),
+                                    MinimizeWindowButton(
+                                        colors: windowButtonColor),
+                                    MaximizeWindowButton(
+                                        colors: windowButtonColor),
+                                    CloseWindowButton(
+                                        colors: windowButtonColor),
                                   ],
                                 ),
                               ],
@@ -194,16 +217,28 @@ class AppRootScaffold extends StatelessWidget {
               Expanded(child: innerWidget),
             ],
           ),
-          Positioned(top: safeTop > 0 ? safeTop : 16, right: 8, child: NotifyIndicator()),
+          Positioned(
+              top: safeTop > 0 ? safeTop : 16,
+              right: 8,
+              child: NotifyIndicator()),
           if (ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE))
-            Positioned(bottom: safeBottom > 0 ? safeBottom : 16, left: 0, right: 0, child: ConnectionIndicator())
+            Positioned(
+                bottom: safeBottom > 0 ? safeBottom : 16,
+                left: 0,
+                right: 0,
+                child: ConnectionIndicator())
           else
-            Positioned(top: safeTop > 0 ? safeTop : 16, left: 0, right: 0, child: ConnectionIndicator()),
+            Positioned(
+                top: safeTop > 0 ? safeTop : 16,
+                left: 0,
+                right: 0,
+                child: ConnectionIndicator()),
         ],
       ),
       drawer: !isExpandedDrawer ? AppNavigationDrawer() : null,
       drawerEdgeDragWidth: isPopable ? 0 : null,
-      bottomNavigationBar: isShowBottomNavigation ? AppBottomNavigationBar() : null,
+      bottomNavigationBar:
+          isShowBottomNavigation ? AppBottomNavigationBar() : null,
     );
   }
 }

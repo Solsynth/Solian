@@ -43,8 +43,10 @@ class ExploreScreen extends StatefulWidget {
 // Cuz the global key make the selected category not update to child widget when the category is changed.
 SnPostCategory? _selectedCategory;
 
-class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProviderStateMixin {
-  late final TabController _tabController = TabController(length: 4, vsync: this);
+class _ExploreScreenState extends State<ExploreScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController =
+      TabController(length: 4, vsync: this);
 
   final _fabKey = GlobalKey<ExpandableFabState>();
   final _listKeys = List.generate(4, (_) => GlobalKey<_PostListWidgetState>());
@@ -57,7 +59,10 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/co/categories?take=100');
       setState(() {
-        _categories.addAll(resp.data.map((e) => SnPostCategory.fromJson(e)).cast<SnPostCategory>() ?? []);
+        _categories.addAll(resp.data
+                .map((e) => SnPostCategory.fromJson(e))
+                .cast<SnPostCategory>() ??
+            []);
       });
     } catch (err) {
       if (mounted) context.showErrorDialog(err);
@@ -94,20 +99,27 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
         type: ExpandableFabType.up,
         childrenAnimation: ExpandableFabAnimation.none,
         overlayStyle: ExpandableFabOverlayStyle(
-          color: Theme.of(context).colorScheme.surface.withAlpha((255 * 0.5).round()),
+          color: Theme.of(context)
+              .colorScheme
+              .surface
+              .withAlpha((255 * 0.5).round()),
         ),
         openButtonBuilder: RotateFloatingActionButtonBuilder(
           child: const Icon(Symbols.add, size: 28),
           fabSize: ExpandableFabSize.regular,
-          foregroundColor: Theme.of(context).floatingActionButtonTheme.foregroundColor,
-          backgroundColor: Theme.of(context).floatingActionButtonTheme.backgroundColor,
+          foregroundColor:
+              Theme.of(context).floatingActionButtonTheme.foregroundColor,
+          backgroundColor:
+              Theme.of(context).floatingActionButtonTheme.backgroundColor,
           shape: const CircleBorder(),
         ),
         closeButtonBuilder: DefaultFloatingActionButtonBuilder(
           child: const Icon(Symbols.close, size: 28),
           fabSize: ExpandableFabSize.regular,
-          foregroundColor: Theme.of(context).floatingActionButtonTheme.foregroundColor,
-          backgroundColor: Theme.of(context).floatingActionButtonTheme.backgroundColor,
+          foregroundColor:
+              Theme.of(context).floatingActionButtonTheme.foregroundColor,
+          backgroundColor:
+              Theme.of(context).floatingActionButtonTheme.backgroundColor,
           shape: const CircleBorder(),
         ),
         children: [
@@ -241,13 +253,18 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Symbols.globe, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
+                          Icon(Symbols.globe,
+                              size: 20,
+                              color: Theme.of(context)
+                                  .appBarTheme
+                                  .foregroundColor),
                           const Gap(8),
                           Flexible(
                             child: Text(
                               'postChannelGlobal',
                               maxLines: 1,
-                            ).tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                            ).tr().textColor(
+                                Theme.of(context).appBarTheme.foregroundColor),
                           ),
                         ],
                       ),
@@ -257,14 +274,19 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Symbols.group, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
+                          Icon(Symbols.group,
+                              size: 20,
+                              color: Theme.of(context)
+                                  .appBarTheme
+                                  .foregroundColor),
                           const Gap(8),
                           Flexible(
                             child: Text(
                               'postChannelFriends',
                               maxLines: 1,
                               textAlign: TextAlign.center,
-                            ).tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                            ).tr().textColor(
+                                Theme.of(context).appBarTheme.foregroundColor),
                           ),
                         ],
                       ),
@@ -274,13 +296,18 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Symbols.subscriptions, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
+                          Icon(Symbols.subscriptions,
+                              size: 20,
+                              color: Theme.of(context)
+                                  .appBarTheme
+                                  .foregroundColor),
                           const Gap(8),
                           Flexible(
                             child: Text(
                               'postChannelFollowing',
                               maxLines: 1,
-                            ).tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                            ).tr().textColor(
+                                Theme.of(context).appBarTheme.foregroundColor),
                           ),
                         ],
                       ),
@@ -290,13 +317,18 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Symbols.workspaces, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
+                          Icon(Symbols.workspaces,
+                              size: 20,
+                              color: Theme.of(context)
+                                  .appBarTheme
+                                  .foregroundColor),
                           const Gap(8),
                           Flexible(
                             child: Text(
                               'postChannelRealm',
                               maxLines: 1,
-                            ).tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                            ).tr().textColor(
+                                Theme.of(context).appBarTheme.foregroundColor),
                           ),
                         ],
                       ),
@@ -341,7 +373,11 @@ class _PostListWidget extends StatefulWidget {
   final bool withRealm;
   final Function onClearFilter;
 
-  const _PostListWidget({super.key, this.channel, this.withRealm = false, required this.onClearFilter});
+  const _PostListWidget(
+      {super.key,
+      this.channel,
+      this.withRealm = false,
+      required this.onClearFilter});
 
   @override
   State<_PostListWidget> createState() => _PostListWidgetState();
@@ -420,11 +456,13 @@ class _PostListWidgetState extends State<_PostListWidget> {
             content: Text(
               'postFilterWithCategory'.tr(args: [
                 'postCategory${_selectedCategory!.alias.capitalize()}'.trExists()
-                    ? 'postCategory${_selectedCategory!.alias.capitalize()}'.tr()
+                    ? 'postCategory${_selectedCategory!.alias.capitalize()}'
+                        .tr()
                     : _selectedCategory!.name,
               ]),
             ),
-            leading: Icon(kCategoryIcons[_selectedCategory!.alias] ?? Symbols.question_mark),
+            leading: Icon(kCategoryIcons[_selectedCategory!.alias] ??
+                Symbols.question_mark),
             actions: [
               IconButton(
                 icon: const Icon(Symbols.clear),
@@ -486,7 +524,8 @@ class _PostListWidgetState extends State<_PostListWidget> {
                 itemCount: _posts.length,
                 isLoading: _isBusy,
                 centerLoading: true,
-                hasReachedMax: _postCount != null && _posts.length >= _postCount!,
+                hasReachedMax:
+                    _postCount != null && _posts.length >= _postCount!,
                 onFetchData: _fetchPosts,
                 itemBuilder: (context, idx) {
                   return OpenablePostItem(
@@ -526,7 +565,9 @@ class _PostCategoryPickerPopup extends StatelessWidget {
           children: [
             const Icon(Symbols.category, size: 24),
             const Gap(16),
-            Text('postCategory').tr().textStyle(Theme.of(context).textTheme.titleLarge!),
+            Text('postCategory')
+                .tr()
+                .textStyle(Theme.of(context).textTheme.titleLarge!),
           ],
         ).padding(horizontal: 20, top: 16, bottom: 12),
         ListTile(
@@ -539,40 +580,46 @@ class _PostCategoryPickerPopup extends StatelessWidget {
           },
         ),
         const Divider(height: 1),
-        GridView.count(
-          crossAxisCount: 4,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1,
-          children: categories
-              .map(
-                (ele) => InkWell(
-                  onTap: () {
-                    _selectedCategory = ele;
-                    Navigator.pop(context, ele);
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        kCategoryIcons[ele.alias] ?? Symbols.question_mark,
-                        color: selected == ele ? Theme.of(context).colorScheme.primary : null,
-                      ),
-                      const Gap(4),
-                      Text(
-                        'postCategory${ele.alias.capitalize()}'.trExists()
-                            ? 'postCategory${ele.alias.capitalize()}'.tr()
-                            : ele.name,
-                      )
-                          .textStyle(Theme.of(context).textTheme.titleMedium!)
-                          .textColor(selected == ele ? Theme.of(context).colorScheme.primary : null),
-                    ],
+        Expanded(
+          child: GridView.count(
+            crossAxisCount: 4,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            childAspectRatio: 1,
+            children: categories
+                .map(
+                  (ele) => InkWell(
+                    onTap: () {
+                      _selectedCategory = ele;
+                      Navigator.pop(context, ele);
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          kCategoryIcons[ele.alias] ?? Symbols.question_mark,
+                          color: selected == ele
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                        ),
+                        const Gap(4),
+                        Text(
+                          'postCategory${ele.alias.capitalize()}'.trExists()
+                              ? 'postCategory${ele.alias.capitalize()}'.tr()
+                              : ele.name,
+                        )
+                            .textStyle(Theme.of(context).textTheme.titleMedium!)
+                            .textColor(selected == ele
+                                ? Theme.of(context).colorScheme.primary
+                                : null),
+                      ],
+                    ),
                   ),
-                ),
-              )
-              .toList(),
+                )
+                .toList(),
+          ),
         ),
       ],
     );
