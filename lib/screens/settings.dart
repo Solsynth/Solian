@@ -5,8 +5,10 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/config.dart';
+import 'package:surface/providers/database.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/theme.dart';
 import 'package:surface/theme.dart';
@@ -67,6 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final sn = context.read<SnNetworkProvider>();
+    final dt = context.read<DatabaseProvider>();
 
     return AppScaffold(
       appBar: AppBar(
@@ -81,7 +85,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('settingsAppearance').bold().fontSize(17).tr().padding(horizontal: 20, bottom: 4),
+                Text('settingsAppearance')
+                    .bold()
+                    .fontSize(17)
+                    .tr()
+                    .padding(horizontal: 20, bottom: 4),
                 ListTile(
                   title: Text('settingsDisplayLanguage').tr(),
                   subtitle: Text('settingsDisplayLanguageDescription').tr(),
@@ -91,15 +99,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: DropdownButton2<Locale?>(
                       isExpanded: true,
                       items: [
-                        ...EasyLocalization.of(context)!.supportedLocales.mapIndexed((idx, ele) {
+                        ...EasyLocalization.of(context)!
+                            .supportedLocales
+                            .mapIndexed((idx, ele) {
                           return DropdownMenuItem<Locale?>(
                             value: ele,
-                            child: Text('${ele.languageCode}-${ele.countryCode}').fontSize(14),
+                            child:
+                                Text('${ele.languageCode}-${ele.countryCode}')
+                                    .fontSize(14),
                           );
                         }),
                         DropdownMenuItem<Locale?>(
                           value: null,
-                          child: Text('settingsDisplayLanguageSystem').tr().fontSize(14),
+                          child: Text('settingsDisplayLanguageSystem')
+                              .tr()
+                              .fontSize(14),
                         ),
                       ],
                       value: EasyLocalization.of(context)!.currentLocale,
@@ -132,10 +146,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: const Icon(Symbols.image),
                     trailing: const Icon(Symbols.chevron_right),
                     onTap: () async {
-                      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+                      final image = await ImagePicker()
+                          .pickImage(source: ImageSource.gallery);
                       if (image == null) return;
 
-                      await File(image.path).copy('$_docBasepath/app_background_image');
+                      await File(image.path)
+                          .copy('$_docBasepath/app_background_image');
                       _prefs.setBool(kAppBackgroundStoreKey, true);
 
                       setState(() {});
@@ -143,7 +159,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 if (!kIsWeb)
                   FutureBuilder<bool>(
-                      future: File('$_docBasepath/app_background_image').exists(),
+                      future:
+                          File('$_docBasepath/app_background_image').exists(),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData || !snapshot.data!) {
                           return const SizedBox.shrink();
@@ -151,12 +168,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                         return ListTile(
                           title: Text('settingsBackgroundImageClear').tr(),
-                          subtitle: Text('settingsBackgroundImageClearDescription').tr(),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                          subtitle:
+                              Text('settingsBackgroundImageClearDescription')
+                                  .tr(),
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 24),
                           leading: const Icon(Symbols.texture),
                           trailing: const Icon(Symbols.chevron_right),
                           onTap: () {
-                            File('$_docBasepath/app_background_image').deleteSync();
+                            File('$_docBasepath/app_background_image')
+                                .deleteSync();
                             _prefs.remove(kAppBackgroundStoreKey);
                             setState(() {});
                           },
@@ -186,34 +207,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                   trailing: const Icon(Symbols.chevron_right),
                   onTap: () async {
-                    Color pickerColor = Color(_prefs.getInt(kAppColorSchemeStoreKey) ?? Colors.indigo.value);
+                    Color pickerColor = Color(
+                        _prefs.getInt(kAppColorSchemeStoreKey) ??
+                            Colors.indigo.value);
                     final color = await showDialog<Color?>(
                       context: context,
-                      builder: (context) =>
-                          AlertDialog(
-                            content: SingleChildScrollView(
-                              child: ColorPicker(
-                                pickerColor: pickerColor,
-                                onColorChanged: (color) => pickerColor = color,
-                                enableAlpha: false,
-                                hexInputBar: true,
-                              ),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('dialogDismiss').tr(),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              TextButton(
-                                child: const Text('dialogConfirm').tr(),
-                                onPressed: () {
-                                  Navigator.of(context).pop(pickerColor);
-                                },
-                              ),
-                            ],
+                      builder: (context) => AlertDialog(
+                        content: SingleChildScrollView(
+                          child: ColorPicker(
+                            pickerColor: pickerColor,
+                            onColorChanged: (color) => pickerColor = color,
+                            enableAlpha: false,
+                            hexInputBar: true,
                           ),
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            child: const Text('dialogDismiss').tr(),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          TextButton(
+                            child: const Text('dialogConfirm').tr(),
+                            onPressed: () {
+                              Navigator.of(context).pop(pickerColor);
+                            },
+                          ),
+                        ],
+                      ),
                     );
 
                     if (color == null || !context.mounted) return;
@@ -248,16 +270,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                       value: _prefs.getInt(kAppColorSchemeStoreKey) == null
                           ? 1
-                          : kColorSchemes.values
-                          .toList()
-                          .indexWhere((ele) => ele.value == _prefs.getInt(kAppColorSchemeStoreKey)),
+                          : kColorSchemes.values.toList().indexWhere((ele) =>
+                              ele.value ==
+                              _prefs.getInt(kAppColorSchemeStoreKey)),
                       onChanged: (int? value) {
                         if (value != null && value != -1) {
-                          _prefs.setInt(kAppColorSchemeStoreKey, kColorSchemes.values
-                              .elementAt(value)
-                              .value);
+                          _prefs.setInt(kAppColorSchemeStoreKey,
+                              kColorSchemes.values.elementAt(value).value);
                           final th = context.read<ThemeProvider>();
-                          th.reloadTheme(seedColorOverride: kColorSchemes.values.elementAt(value));
+                          th.reloadTheme(
+                              seedColorOverride:
+                                  kColorSchemes.values.elementAt(value));
                           setState(() {});
 
                           context.showSnackbar('colorSchemeApplied'.tr());
@@ -293,7 +316,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 CheckboxListTile(
                   secondary: const Icon(Symbols.left_panel_close),
                   title: Text('settingsDrawerPreferCollapse').tr(),
-                  subtitle: Text('settingsDrawerPreferCollapseDescription').tr(),
+                  subtitle:
+                      Text('settingsDrawerPreferCollapseDescription').tr(),
                   contentPadding: const EdgeInsets.only(left: 24, right: 17),
                   value: _prefs.getBool(kAppDrawerPreferCollapse) ?? false,
                   onChanged: (value) {
@@ -308,7 +332,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('settingsFeatures').bold().fontSize(17).tr().padding(horizontal: 20, bottom: 4),
+                Text('settingsFeatures')
+                    .bold()
+                    .fontSize(17)
+                    .tr()
+                    .padding(horizontal: 20, bottom: 4),
                 CheckboxListTile(
                   secondary: const Icon(Symbols.vibration),
                   contentPadding: const EdgeInsets.only(left: 24, right: 17),
@@ -350,7 +378,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('settingsNetwork').bold().fontSize(17).tr().padding(horizontal: 20, bottom: 4),
+                Text('settingsNetwork')
+                    .bold()
+                    .fontSize(17)
+                    .tr()
+                    .padding(horizontal: 20, bottom: 4),
                 TextField(
                   controller: _serverUrlController,
                   decoration: InputDecoration(
@@ -371,7 +403,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                   ),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ).padding(horizontal: 16, top: 8, bottom: 4),
                 ListTile(
                   title: Text('settingsNetworkServerPreset').tr(),
@@ -383,12 +416,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       isExpanded: true,
                       items: [
                         ...kNetworkServerDirectory,
-                        if (!kNetworkServerDirectory.map((ele) => ele.$2).contains(_serverUrlController.text))
+                        if (!kNetworkServerDirectory
+                            .map((ele) => ele.$2)
+                            .contains(_serverUrlController.text))
                           ('Custom', _serverUrlController.text),
                       ]
                           .map(
-                            (item) =>
-                            DropdownMenuItem<String>(
+                            (item) => DropdownMenuItem<String>(
                               value: item.$2,
                               child: Column(
                                 mainAxisSize: MainAxisSize.max,
@@ -396,11 +430,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(item.$1).fontSize(14),
-                                  Text(item.$2, overflow: TextOverflow.ellipsis).fontSize(11)
+                                  Text(item.$2, overflow: TextOverflow.ellipsis)
+                                      .fontSize(11)
                                 ],
                               ),
                             ),
-                      )
+                          )
                           .toList(),
                       value: _serverUrlController.text,
                       onChanged: (String? value) {
@@ -442,7 +477,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('settingsPerformance').bold().fontSize(17).tr().padding(horizontal: 20, bottom: 4),
+                Text('settingsPerformance')
+                    .bold()
+                    .fontSize(17)
+                    .tr()
+                    .padding(horizontal: 20, bottom: 4),
                 ListTile(
                   title: Text('settingsImageQuality').tr(),
                   subtitle: Text('settingsImageQualityDescription').tr(),
@@ -450,21 +489,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(Symbols.image),
                   trailing: DropdownButtonHideUnderline(
                     child: DropdownButton2<FilterQuality>(
-                      value: kImageQualityLevel.values.elementAtOrNull(_prefs.getInt('app_image_quality') ?? 3) ??
+                      value: kImageQualityLevel.values.elementAtOrNull(
+                              _prefs.getInt('app_image_quality') ?? 3) ??
                           FilterQuality.high,
                       isExpanded: true,
                       items: kImageQualityLevel.entries
                           .map(
-                            (item) =>
-                            DropdownMenuItem<FilterQuality>(
+                            (item) => DropdownMenuItem<FilterQuality>(
                               value: item.value,
                               child: Text(item.key).tr().fontSize(14),
                             ),
-                      )
+                          )
                           .toList(),
                       onChanged: (FilterQuality? value) {
                         if (value == null) return;
-                        _prefs.setInt('app_image_quality', kImageQualityLevel.values.toList().indexOf(value));
+                        _prefs.setInt('app_image_quality',
+                            kImageQualityLevel.values.toList().indexOf(value));
                         setState(() {});
                       },
                       buttonStyleData: const ButtonStyleData(
@@ -486,7 +526,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('settingsMisc').bold().fontSize(17).tr().padding(horizontal: 20, bottom: 4),
+                Text('settingsMisc')
+                    .bold()
+                    .fontSize(17)
+                    .tr()
+                    .padding(horizontal: 20, bottom: 4),
+                ListTile(
+                  leading: const Icon(Symbols.database),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  title: Text('databaseSize').tr(),
+                  subtitle: FutureBuilder(
+                    future: dt.getDatabaseSize(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData || kIsWeb) {
+                        return Text('unknown').tr();
+                      }
+                      return Text(
+                        snapshot.data!.formatBytes(),
+                        style: GoogleFonts.robotoMono(),
+                      );
+                    },
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Symbols.database_off),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  title: Text('databaseDelete').tr(),
+                  subtitle: Text('databaseDeleteDescription').tr(),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () async {
+                    await dt.removeDatabase();
+                    if (!context.mounted) return;
+                    HapticFeedback.heavyImpact();
+                    context.showSnackbar('databaseDeleted'.tr());
+                    setState(() {});
+                  },
+                ),
                 ListTile(
                   title: Text('settingsMiscAbout').tr(),
                   subtitle: Text('settingsMiscAboutDescription').tr(),

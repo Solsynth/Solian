@@ -18,12 +18,17 @@ class $SnLocalChatChannelTable extends SnLocalChatChannel
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _aliasMeta = const VerificationMeta('alias');
+  @override
+  late final GeneratedColumn<String> alias = GeneratedColumn<String>(
+      'alias', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _contentMeta =
       const VerificationMeta('content');
   @override
-  late final GeneratedColumnWithTypeConverter<SnChannel, Uint8List> content =
-      GeneratedColumn<Uint8List>('content', aliasedName, false,
-              type: DriftSqlType.blob, requiredDuringInsert: true)
+  late final GeneratedColumnWithTypeConverter<SnChannel, String> content =
+      GeneratedColumn<String>('content', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
           .withConverter<SnChannel>($SnLocalChatChannelTable.$convertercontent);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
@@ -34,7 +39,7 @@ class $SnLocalChatChannelTable extends SnLocalChatChannel
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
   @override
-  List<GeneratedColumn> get $columns => [id, content, createdAt];
+  List<GeneratedColumn> get $columns => [id, alias, content, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -48,6 +53,12 @@ class $SnLocalChatChannelTable extends SnLocalChatChannel
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('alias')) {
+      context.handle(
+          _aliasMeta, alias.isAcceptableOrUnknown(data['alias']!, _aliasMeta));
+    } else if (isInserting) {
+      context.missing(_aliasMeta);
     }
     context.handle(_contentMeta, const VerificationResult.success());
     if (data.containsKey('created_at')) {
@@ -65,9 +76,11 @@ class $SnLocalChatChannelTable extends SnLocalChatChannel
     return SnLocalChatChannelData(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      alias: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}alias'])!,
       content: $SnLocalChatChannelTable.$convertercontent.fromSql(
           attachedDatabase.typeMapping
-              .read(DriftSqlType.blob, data['${effectivePrefix}content'])!),
+              .read(DriftSqlType.string, data['${effectivePrefix}content'])!),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
@@ -78,25 +91,28 @@ class $SnLocalChatChannelTable extends SnLocalChatChannel
     return $SnLocalChatChannelTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<SnChannel, Uint8List, Object?> $convertercontent =
-      TypeConverter.jsonb(
-          fromJson: (json) => SnChannel.fromJson(json as Map<String, Object?>),
-          toJson: (pref) => pref.toJson());
+  static JsonTypeConverter2<SnChannel, String, Map<String, Object?>>
+      $convertercontent = const SnChannelConverter();
 }
 
 class SnLocalChatChannelData extends DataClass
     implements Insertable<SnLocalChatChannelData> {
   final int id;
+  final String alias;
   final SnChannel content;
   final DateTime createdAt;
   const SnLocalChatChannelData(
-      {required this.id, required this.content, required this.createdAt});
+      {required this.id,
+      required this.alias,
+      required this.content,
+      required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['alias'] = Variable<String>(alias);
     {
-      map['content'] = Variable<Uint8List>(
+      map['content'] = Variable<String>(
           $SnLocalChatChannelTable.$convertercontent.toSql(content));
     }
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -106,6 +122,7 @@ class SnLocalChatChannelData extends DataClass
   SnLocalChatChannelCompanion toCompanion(bool nullToAbsent) {
     return SnLocalChatChannelCompanion(
       id: Value(id),
+      alias: Value(alias),
       content: Value(content),
       createdAt: Value(createdAt),
     );
@@ -116,8 +133,9 @@ class SnLocalChatChannelData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SnLocalChatChannelData(
       id: serializer.fromJson<int>(json['id']),
+      alias: serializer.fromJson<String>(json['alias']),
       content: $SnLocalChatChannelTable.$convertercontent
-          .fromJson(serializer.fromJson<Object?>(json['content'])),
+          .fromJson(serializer.fromJson<Map<String, Object?>>(json['content'])),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -126,22 +144,25 @@ class SnLocalChatChannelData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'content': serializer.toJson<Object?>(
+      'alias': serializer.toJson<String>(alias),
+      'content': serializer.toJson<Map<String, Object?>>(
           $SnLocalChatChannelTable.$convertercontent.toJson(content)),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
   SnLocalChatChannelData copyWith(
-          {int? id, SnChannel? content, DateTime? createdAt}) =>
+          {int? id, String? alias, SnChannel? content, DateTime? createdAt}) =>
       SnLocalChatChannelData(
         id: id ?? this.id,
+        alias: alias ?? this.alias,
         content: content ?? this.content,
         createdAt: createdAt ?? this.createdAt,
       );
   SnLocalChatChannelData copyWithCompanion(SnLocalChatChannelCompanion data) {
     return SnLocalChatChannelData(
       id: data.id.present ? data.id.value : this.id,
+      alias: data.alias.present ? data.alias.value : this.alias,
       content: data.content.present ? data.content.value : this.content,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -151,6 +172,7 @@ class SnLocalChatChannelData extends DataClass
   String toString() {
     return (StringBuffer('SnLocalChatChannelData(')
           ..write('id: $id, ')
+          ..write('alias: $alias, ')
           ..write('content: $content, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -158,12 +180,13 @@ class SnLocalChatChannelData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, content, createdAt);
+  int get hashCode => Object.hash(id, alias, content, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SnLocalChatChannelData &&
           other.id == this.id &&
+          other.alias == this.alias &&
           other.content == this.content &&
           other.createdAt == this.createdAt);
 }
@@ -171,34 +194,44 @@ class SnLocalChatChannelData extends DataClass
 class SnLocalChatChannelCompanion
     extends UpdateCompanion<SnLocalChatChannelData> {
   final Value<int> id;
+  final Value<String> alias;
   final Value<SnChannel> content;
   final Value<DateTime> createdAt;
   const SnLocalChatChannelCompanion({
     this.id = const Value.absent(),
+    this.alias = const Value.absent(),
     this.content = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   SnLocalChatChannelCompanion.insert({
     this.id = const Value.absent(),
+    required String alias,
     required SnChannel content,
     this.createdAt = const Value.absent(),
-  }) : content = Value(content);
+  })  : alias = Value(alias),
+        content = Value(content);
   static Insertable<SnLocalChatChannelData> custom({
     Expression<int>? id,
-    Expression<Uint8List>? content,
+    Expression<String>? alias,
+    Expression<String>? content,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (alias != null) 'alias': alias,
       if (content != null) 'content': content,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
 
   SnLocalChatChannelCompanion copyWith(
-      {Value<int>? id, Value<SnChannel>? content, Value<DateTime>? createdAt}) {
+      {Value<int>? id,
+      Value<String>? alias,
+      Value<SnChannel>? content,
+      Value<DateTime>? createdAt}) {
     return SnLocalChatChannelCompanion(
       id: id ?? this.id,
+      alias: alias ?? this.alias,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -210,8 +243,11 @@ class SnLocalChatChannelCompanion
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
+    if (alias.present) {
+      map['alias'] = Variable<String>(alias.value);
+    }
     if (content.present) {
-      map['content'] = Variable<Uint8List>(
+      map['content'] = Variable<String>(
           $SnLocalChatChannelTable.$convertercontent.toSql(content.value));
     }
     if (createdAt.present) {
@@ -224,6 +260,7 @@ class SnLocalChatChannelCompanion
   String toString() {
     return (StringBuffer('SnLocalChatChannelCompanion(')
           ..write('id: $id, ')
+          ..write('alias: $alias, ')
           ..write('content: $content, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -255,9 +292,9 @@ class $SnLocalChatMessageTable extends SnLocalChatMessage
   static const VerificationMeta _contentMeta =
       const VerificationMeta('content');
   @override
-  late final GeneratedColumnWithTypeConverter<SnChatMessage, Uint8List>
-      content = GeneratedColumn<Uint8List>('content', aliasedName, false,
-              type: DriftSqlType.blob, requiredDuringInsert: true)
+  late final GeneratedColumnWithTypeConverter<SnChatMessage, String> content =
+      GeneratedColumn<String>('content', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
           .withConverter<SnChatMessage>(
               $SnLocalChatMessageTable.$convertercontent);
   static const VerificationMeta _createdAtMeta =
@@ -310,7 +347,7 @@ class $SnLocalChatMessageTable extends SnLocalChatMessage
           .read(DriftSqlType.int, data['${effectivePrefix}channel_id'])!,
       content: $SnLocalChatMessageTable.$convertercontent.fromSql(
           attachedDatabase.typeMapping
-              .read(DriftSqlType.blob, data['${effectivePrefix}content'])!),
+              .read(DriftSqlType.string, data['${effectivePrefix}content'])!),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
@@ -321,11 +358,8 @@ class $SnLocalChatMessageTable extends SnLocalChatMessage
     return $SnLocalChatMessageTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<SnChatMessage, Uint8List, Object?>
-      $convertercontent = TypeConverter.jsonb(
-          fromJson: (json) =>
-              SnChatMessage.fromJson(json as Map<String, Object?>),
-          toJson: (pref) => pref.toJson());
+  static JsonTypeConverter2<SnChatMessage, String, Map<String, Object?>>
+      $convertercontent = const SnMessageConverter();
 }
 
 class SnLocalChatMessageData extends DataClass
@@ -345,7 +379,7 @@ class SnLocalChatMessageData extends DataClass
     map['id'] = Variable<int>(id);
     map['channel_id'] = Variable<int>(channelId);
     {
-      map['content'] = Variable<Uint8List>(
+      map['content'] = Variable<String>(
           $SnLocalChatMessageTable.$convertercontent.toSql(content));
     }
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -368,7 +402,7 @@ class SnLocalChatMessageData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       channelId: serializer.fromJson<int>(json['channelId']),
       content: $SnLocalChatMessageTable.$convertercontent
-          .fromJson(serializer.fromJson<Object?>(json['content'])),
+          .fromJson(serializer.fromJson<Map<String, Object?>>(json['content'])),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -378,7 +412,7 @@ class SnLocalChatMessageData extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'channelId': serializer.toJson<int>(channelId),
-      'content': serializer.toJson<Object?>(
+      'content': serializer.toJson<Map<String, Object?>>(
           $SnLocalChatMessageTable.$convertercontent.toJson(content)),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -449,7 +483,7 @@ class SnLocalChatMessageCompanion
   static Insertable<SnLocalChatMessageData> custom({
     Expression<int>? id,
     Expression<int>? channelId,
-    Expression<Uint8List>? content,
+    Expression<String>? content,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -483,7 +517,7 @@ class SnLocalChatMessageCompanion
       map['channel_id'] = Variable<int>(channelId.value);
     }
     if (content.present) {
-      map['content'] = Variable<Uint8List>(
+      map['content'] = Variable<String>(
           $SnLocalChatMessageTable.$convertercontent.toSql(content.value));
     }
     if (createdAt.present) {
@@ -522,12 +556,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$SnLocalChatChannelTableCreateCompanionBuilder
     = SnLocalChatChannelCompanion Function({
   Value<int> id,
+  required String alias,
   required SnChannel content,
   Value<DateTime> createdAt,
 });
 typedef $$SnLocalChatChannelTableUpdateCompanionBuilder
     = SnLocalChatChannelCompanion Function({
   Value<int> id,
+  Value<String> alias,
   Value<SnChannel> content,
   Value<DateTime> createdAt,
 });
@@ -544,7 +580,10 @@ class $$SnLocalChatChannelTableFilterComposer
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnWithTypeConverterFilters<SnChannel, SnChannel, Uint8List> get content =>
+  ColumnFilters<String> get alias => $composableBuilder(
+      column: $table.alias, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<SnChannel, SnChannel, String> get content =>
       $composableBuilder(
           column: $table.content,
           builder: (column) => ColumnWithTypeConverterFilters(column));
@@ -565,7 +604,10 @@ class $$SnLocalChatChannelTableOrderingComposer
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<Uint8List> get content => $composableBuilder(
+  ColumnOrderings<String> get alias => $composableBuilder(
+      column: $table.alias, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
@@ -584,7 +626,10 @@ class $$SnLocalChatChannelTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<SnChannel, Uint8List> get content =>
+  GeneratedColumn<String> get alias =>
+      $composableBuilder(column: $table.alias, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<SnChannel, String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
@@ -621,21 +666,25 @@ class $$SnLocalChatChannelTableTableManager extends RootTableManager<
                   $db: db, $table: table),
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
+            Value<String> alias = const Value.absent(),
             Value<SnChannel> content = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               SnLocalChatChannelCompanion(
             id: id,
+            alias: alias,
             content: content,
             createdAt: createdAt,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
+            required String alias,
             required SnChannel content,
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               SnLocalChatChannelCompanion.insert(
             id: id,
+            alias: alias,
             content: content,
             createdAt: createdAt,
           ),
@@ -692,7 +741,7 @@ class $$SnLocalChatMessageTableFilterComposer
   ColumnFilters<int> get channelId => $composableBuilder(
       column: $table.channelId, builder: (column) => ColumnFilters(column));
 
-  ColumnWithTypeConverterFilters<SnChatMessage, SnChatMessage, Uint8List>
+  ColumnWithTypeConverterFilters<SnChatMessage, SnChatMessage, String>
       get content => $composableBuilder(
           column: $table.content,
           builder: (column) => ColumnWithTypeConverterFilters(column));
@@ -716,7 +765,7 @@ class $$SnLocalChatMessageTableOrderingComposer
   ColumnOrderings<int> get channelId => $composableBuilder(
       column: $table.channelId, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<Uint8List> get content => $composableBuilder(
+  ColumnOrderings<String> get content => $composableBuilder(
       column: $table.content, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
@@ -738,7 +787,7 @@ class $$SnLocalChatMessageTableAnnotationComposer
   GeneratedColumn<int> get channelId =>
       $composableBuilder(column: $table.channelId, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<SnChatMessage, Uint8List> get content =>
+  GeneratedColumnWithTypeConverter<SnChatMessage, String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>

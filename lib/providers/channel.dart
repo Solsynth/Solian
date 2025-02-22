@@ -1,7 +1,11 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:surface/controllers/chat_message_controller.dart';
+import 'package:surface/database/database.dart';
+import 'package:surface/providers/database.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/types/chat.dart';
@@ -12,12 +16,12 @@ class ChatChannelProvider extends ChangeNotifier {
 
   late final SnNetworkProvider _sn;
   late final UserDirectoryProvider _ud;
-
-  Box<SnChannel>? get _channelBox => Hive.box<SnChannel>(kChatChannelBoxName);
+  late final DatabaseProvider _dt;
 
   ChatChannelProvider(BuildContext context) {
     _sn = context.read<SnNetworkProvider>();
     _ud = context.read<UserDirectoryProvider>();
+    _dt = context.read<DatabaseProvider>();
     _initializeLocalData();
   }
 
@@ -26,10 +30,23 @@ class ChatChannelProvider extends ChangeNotifier {
   }
 
   Future<void> _saveChannelToLocal(Iterable<SnChannel> channels) async {
-    if (_channelBox == null) return;
-    await _channelBox!.putAll({
-      for (final channel in channels) channel.key: channel,
-    });
+    await Future.wait(
+      channels.map(
+        (ele) => _dt.db.snLocalChatChannel.insertOne(
+          SnLocalChatChannelCompanion.insert(
+            id: Value(ele.id),
+            alias: ele.key,
+            content: ele,
+            createdAt: Value(ele.createdAt),
+          ),
+          onConflict: DoUpdate(
+            (_) => SnLocalChatChannelCompanion.custom(
+              content: Constant(jsonEncode(ele.toJson())),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<List<SnChannel>> _fetchChannelsFromServer({
@@ -54,12 +71,13 @@ class ChatChannelProvider extends ChangeNotifier {
   /// It will use the local storage as much as possible.
   /// The alias should include the scope, formatted as `scope:alias`.
   Future<SnChannel> getChannel(String key) async {
-    if (_channelBox != null) {
-      final local = _channelBox!.get(key);
-      if (local != null) return local;
-    }
+    final local = await (_dt.db.snLocalChatChannel.select()
+          ..where((e) => e.alias.equals(key)))
+        .getSingleOrNull();
+    if (local != null) return local.content;
 
-    var resp = await _sn.client.get('/cgi/im/channels/$key');
+    var resp =
+        await _sn.client.get('/cgi/im/channels/${key.replaceAll(':', '/')}');
     var out = SnChannel.fromJson(resp.data);
 
     // Preload realm of the channel
@@ -77,8 +95,19 @@ class ChatChannelProvider extends ChangeNotifier {
   /// And the second time is when the data was fetched from the server.
   /// But there is some exception that will only cause one of them to be emitted.
   /// Like the local storage is broken or the server is down.
-  Stream<List<SnChannel>> fetchChannels() async* {
-    if (_channelBox != null) yield _channelBox!.values.toList();
+  Stream<List<SnChannel>> fetchChannels(
+      {bool noRemote = false, bool noLocal = false}) async* {
+    if (!noLocal) {
+      final local = await (_dt.db.snLocalChatChannel.select()
+            ..orderBy([
+              (e) =>
+                  OrderingTerm(expression: e.createdAt, mode: OrderingMode.desc)
+            ]))
+          .get();
+      yield local.map((e) => e.content).toList();
+    }
+
+    if (noRemote) return;
 
     var resp = await _sn.client.get('/cgi/id/realms/me/available');
     final realms = List<SnRealm>.from(
@@ -120,23 +149,23 @@ class ChatChannelProvider extends ChangeNotifier {
   Future<List<SnChatMessage>> getLastMessages(
     Iterable<SnChannel> channels,
   ) async {
-    final result = List<SnChatMessage>.empty(growable: true);
+    final result = List<Future<SnLocalChatMessageData?>>.empty(growable: true);
     for (final channel in channels) {
-      final channelBox = await Hive.openBox<SnChatMessage>(
-        '${ChatMessageController.kChatMessageBoxPrefix}${channel.id}',
-      );
-      final lastMessage =
-          channelBox.isNotEmpty ? channelBox.values.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b) : null;
-      if (lastMessage != null) result.add(lastMessage);
-      channelBox.close();
+      final out = (_dt.db.snLocalChatMessage.select()
+            ..where((e) => e.channelId.equals(channel.id))
+            ..orderBy([
+              (e) =>
+                  OrderingTerm(expression: e.createdAt, mode: OrderingMode.desc)
+            ])
+            ..limit(1))
+          .getSingleOrNull();
+      result.add(out);
     }
-    await _ud.listAccount(result.map((ele) => ele.sender.accountId).toSet());
-    return result;
-  }
-
-  @override
-  void dispose() {
-    _channelBox?.close();
-    super.dispose();
+    final out = (await Future.wait(result))
+        .where((e) => e != null)
+        .map((e) => e!.content)
+        .toList();
+    await _ud.listAccount(out.map((ele) => ele.sender.accountId).toSet());
+    return out;
   }
 }
