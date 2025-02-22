@@ -582,6 +582,7 @@
   "colorSchemeBlack": "黑色",
   "colorSchemeApplied": "主題色已應用，可能需要重啓來生效。",
   "postFeaturedComment": "精選評論",
+  "postCategory": "分類",
   "postCategoryTechnology": "技術",
   "postCategoryGaming": "遊戲",
   "postCategoryLife": "生活",
@@ -625,6 +626,7 @@
   "realmJoin": "加入領域",
   "realmCommunityHint": "該領域是一個社區領域，你可以自由加入。",
   "realmCommunityPublicChannelsHint": "該領域包含的公共頻道",
+  "realmCommunityPublishersHint": "該領域的發佈者",
   "realmJoined": "已加入領域 {}。",
   "join": "加入",
   "pollEditorNew": "新投票",
@@ -669,5 +671,15 @@
   "attachmentBillingUploaded": "已佔用的字節數",
   "attachmentBillingDiscount": "免費的字節數",
   "attachmentBillingHint": "滑動窗口計價®\n在24小時內上傳的文件大小超出免費空間才會適用扣費。",
-  "postThumbnail": "帖子縮略圖"
+  "postThumbnail": "帖子縮略圖",
+  "accountRealms": "領域",
+  "postInGlobal": "全站",
+  "postInGlobalDescription": "不關聯此帖子與任何領域。",
+  "postChannelGlobal": "全站",
+  "postChannelFriends": "好友",
+  "postChannelFollowing": "關注",
+  "postChannelRealm": "領域",
+  "postFilterReset": "重置過濾器",
+  "postFilterResetDescription": "清除過濾器並顯示所有帖子。",
+  "postFilterWithCategory": "查看{}區中的帖子"
 }

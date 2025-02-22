@@ -1,3 +1,4 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
@@ -8,7 +9,10 @@ import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/post.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/types/post.dart';
+import 'package:surface/types/realm.dart';
+import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
@@ -35,61 +39,47 @@ class ExploreScreen extends StatefulWidget {
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
 
-class _ExploreScreenState extends State<ExploreScreen> {
+SnPostCategory? _selectedCategory;
+
+class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProviderStateMixin {
+  late final TabController _tabController = TabController(length: 4, vsync: this);
+
   final _fabKey = GlobalKey<ExpandableFabState>();
+  final _listKeys = List.generate(4, (_) => GlobalKey<_PostListWidgetState>());
 
-  bool _isBusy = true;
-
-  final List<SnPost> _posts = List.empty(growable: true);
   final List<SnPostCategory> _categories = List.empty(growable: true);
-  int? _postCount;
-
-  String? _selectedCategory;
 
   Future<void> _fetchCategories() async {
     _categories.clear();
     try {
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/co/categories?take=100');
-      _categories.addAll(resp.data.map((e) => SnPostCategory.fromJson(e)).cast<SnPostCategory>() ?? []);
+      setState(() {
+        _categories.addAll(resp.data.map((e) => SnPostCategory.fromJson(e)).cast<SnPostCategory>() ?? []);
+      });
     } catch (err) {
-      if (!mounted) return;
-      context.showErrorDialog(err);
+      if (mounted) context.showErrorDialog(err);
     }
   }
 
-  Future<void> _fetchPosts() async {
-    if (_postCount != null && _posts.length >= _postCount!) return;
-
-    setState(() => _isBusy = true);
-
-    final pt = context.read<SnPostContentProvider>();
-    final result = await pt.listPosts(
-      take: 10,
-      offset: _posts.length,
-      categories: _selectedCategory != null ? [_selectedCategory!] : null,
-    );
-    final out = result.$1;
-
-    if (!mounted) return;
-
-    _postCount = result.$2;
-    _posts.addAll(out);
-
-    if (mounted) setState(() => _isBusy = false);
-  }
-
-  Future<void> _refreshPosts() {
-    _postCount = null;
-    _posts.clear();
-    return _fetchPosts();
+  void _clearFilter() {
+    _selectedCategory = null;
   }
 
   @override
   void initState() {
-    super.initState();
-    _fetchPosts();
     _fetchCategories();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> refreshPosts() async {
+    await _listKeys[_tabController.index].currentState?.refreshPosts();
   }
 
   @override
@@ -131,7 +121,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     'mode': 'stories',
                   }).then((value) {
                     if (value == true) {
-                      _refreshPosts();
+                      refreshPosts();
                     }
                   });
                   _fabKey.currentState!.toggle();
@@ -152,7 +142,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     'mode': 'articles',
                   }).then((value) {
                     if (value == true) {
-                      _refreshPosts();
+                      refreshPosts();
                     }
                   });
                   _fabKey.currentState!.toggle();
@@ -173,7 +163,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     'mode': 'questions',
                   }).then((value) {
                     if (value == true) {
-                      _refreshPosts();
+                      refreshPosts();
                     }
                   });
                   _fabKey.currentState!.toggle();
@@ -194,7 +184,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     'mode': 'videos',
                   }).then((value) {
                     if (value == true) {
-                      _refreshPosts();
+                      refreshPosts();
                     }
                   });
                   _fabKey.currentState!.toggle();
@@ -205,78 +195,350 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        displacement: 40 + MediaQuery.of(context).padding.top,
-        onRefresh: () => _refreshPosts(),
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              leading: AutoAppBarLeading(),
-              title: Text('screenExplore').tr(),
-              floating: true,
-              snap: true,
-              actions: [
-                IconButton(
-                  icon: const Icon(Symbols.search),
-                  onPressed: () {
-                    GoRouter.of(context).pushNamed('postSearch');
-                  },
-                ),
-                const Gap(8),
-              ],
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(50),
-                child: SizedBox(
-                  height: 50,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.only(left: 8, right: 8, bottom: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: _categories.map((ele) {
-                        return StyledWidget(ChoiceChip(
-                          avatar: Icon(kCategoryIcons[ele.alias] ?? Symbols.question_mark),
-                          label: Text(
-                            'postCategory${ele.alias.capitalize()}'.trExists()
-                                ? 'postCategory${ele.alias.capitalize()}'.tr()
-                                : ele.name,
-                          ),
-                          selected: _selectedCategory == ele.alias,
-                          onSelected: (value) {
-                            _selectedCategory = value ? ele.alias : null;
-                            _refreshPosts();
-                          },
-                        )).padding(horizontal: 4);
-                      }).toList(),
-                    ),
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return [
+            SliverOverlapAbsorber(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+              sliver: SliverAppBar(
+                leading: AutoAppBarLeading(),
+                title: Text('screenExplore').tr(),
+                floating: true,
+                snap: true,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Symbols.category),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) => _PostCategoryPickerPopup(
+                          categories: _categories,
+                          selected: _selectedCategory,
+                        ),
+                      ).then((value) {
+                        if (value != null && context.mounted) {
+                          _selectedCategory = value == false ? null : value;
+                          refreshPosts();
+                        }
+                      });
+                    },
                   ),
+                  IconButton(
+                    icon: const Icon(Symbols.search),
+                    onPressed: () {
+                      GoRouter.of(context).pushNamed('postSearch');
+                    },
+                  ),
+                  const Gap(8),
+                ],
+                bottom: TabBar(
+                  controller: _tabController,
+                  tabs: [
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Symbols.globe, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
+                          const Gap(8),
+                          Text('postChannelGlobal').tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Symbols.group, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
+                          const Gap(8),
+                          Text('postChannelFriends').tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Symbols.subscriptions, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
+                          const Gap(8),
+                          Text('postChannelFollowing').tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Symbols.workspaces, size: 20, color: Theme.of(context).appBarTheme.foregroundColor),
+                          const Gap(8),
+                          Text('postChannelRealm').tr().textColor(Theme.of(context).appBarTheme.foregroundColor),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SliverGap(12),
-            SliverInfiniteList(
-              itemCount: _posts.length,
-              isLoading: _isBusy,
-              centerLoading: true,
-              hasReachedMax: _postCount != null && _posts.length >= _postCount!,
-              onFetchData: _fetchPosts,
-              itemBuilder: (context, idx) {
-                return OpenablePostItem(
-                  data: _posts[idx],
-                  maxWidth: 640,
-                  onChanged: (data) {
-                    setState(() => _posts[idx] = data);
-                  },
-                  onDeleted: () {
-                    _refreshPosts();
-                  },
-                );
-              },
-              separatorBuilder: (_, __) => const Gap(8),
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _PostListWidget(
+              key: _listKeys[0],
+              onClearFilter: _clearFilter,
+            ),
+            _PostListWidget(
+              key: _listKeys[1],
+              channel: 'friends',
+              onClearFilter: _clearFilter,
+            ),
+            _PostListWidget(
+              key: _listKeys[2],
+              channel: 'following',
+              onClearFilter: _clearFilter,
+            ),
+            _PostListWidget(
+              key: _listKeys[3],
+              withRealm: true,
+              onClearFilter: _clearFilter,
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PostListWidget extends StatefulWidget {
+  final String? channel;
+  final bool withRealm;
+  final Function onClearFilter;
+
+  const _PostListWidget({super.key, this.channel, this.withRealm = false, required this.onClearFilter});
+
+  @override
+  State<_PostListWidget> createState() => _PostListWidgetState();
+}
+
+class _PostListWidgetState extends State<_PostListWidget> {
+  bool _isBusy = false;
+
+  final List<SnPost> _posts = List.empty(growable: true);
+  final List<SnRealm> _realms = List.empty(growable: true);
+  SnRealm? _selectedRealm;
+  int? _postCount;
+
+  Future<void> _fetchRealms() async {
+    try {
+      final rels = context.read<SnRealmProvider>();
+      final out = await rels.listAvailableRealms();
+      setState(() {
+        _realms.addAll(out);
+        _selectedRealm = out.firstOrNull;
+      });
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+      rethrow;
+    }
+  }
+
+  Future<void> _fetchPosts() async {
+    if (_postCount != null && _posts.length >= _postCount!) return;
+
+    setState(() => _isBusy = true);
+
+    final pt = context.read<SnPostContentProvider>();
+    final result = await pt.listPosts(
+      take: 10,
+      offset: _posts.length,
+      categories: _selectedCategory != null ? [_selectedCategory!.alias] : null,
+      channel: widget.channel,
+      realm: _selectedRealm?.alias,
+    );
+    final out = result.$1;
+
+    if (!mounted) return;
+
+    _postCount = result.$2;
+    _posts.addAll(out);
+
+    if (mounted) setState(() => _isBusy = false);
+  }
+
+  Future<void> refreshPosts() {
+    _postCount = null;
+    _posts.clear();
+    return _fetchPosts();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.withRealm) {
+      _fetchRealms().then((_) {
+        _fetchPosts();
+      });
+    } else {
+      _fetchPosts();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (_selectedCategory != null)
+          MaterialBanner(
+            content: Text(
+              'postFilterWithCategory'.tr(args: [
+                'postCategory${_selectedCategory!.alias.capitalize()}'.trExists()
+                    ? 'postCategory${_selectedCategory!.alias.capitalize()}'.tr()
+                    : _selectedCategory!.name,
+              ]),
+            ),
+            leading: Icon(kCategoryIcons[_selectedCategory!.alias] ?? Symbols.question_mark),
+            actions: [
+              IconButton(
+                icon: const Icon(Symbols.clear),
+                onPressed: () {
+                  widget.onClearFilter.call();
+                  refreshPosts();
+                },
+              ),
+            ],
+            padding: const EdgeInsets.only(left: 20, right: 4),
+          ),
+        if (widget.withRealm)
+          DropdownButtonHideUnderline(
+            child: DropdownButton2<SnRealm>(
+              isExpanded: true,
+              items: _realms
+                  .map(
+                    (ele) => DropdownMenuItem<SnRealm>(
+                      value: ele,
+                      child: Row(
+                        children: [
+                          AccountImage(
+                            content: ele.avatar,
+                            fallbackWidget: const Icon(Symbols.group, size: 16),
+                            radius: 14,
+                          ),
+                          const Gap(8),
+                          Text(
+                            ele.name,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+              value: _selectedRealm,
+              onChanged: (SnRealm? value) {
+                setState(() => _selectedRealm = value);
+                refreshPosts();
+              },
+              buttonStyleData: const ButtonStyleData(
+                padding: EdgeInsets.only(left: 4, right: 12),
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                height: 48,
+              ),
+            ),
+          ),
+        if (widget.withRealm) const Divider(height: 1),
+        Expanded(
+          child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: RefreshIndicator(
+              displacement: 40 + MediaQuery.of(context).padding.top,
+              onRefresh: () => refreshPosts(),
+              child: InfiniteList(
+                itemCount: _posts.length,
+                isLoading: _isBusy,
+                centerLoading: true,
+                hasReachedMax: _postCount != null && _posts.length >= _postCount!,
+                onFetchData: _fetchPosts,
+                itemBuilder: (context, idx) {
+                  return OpenablePostItem(
+                    data: _posts[idx],
+                    maxWidth: 640,
+                    onChanged: (data) {
+                      setState(() => _posts[idx] = data);
+                    },
+                    onDeleted: () {
+                      refreshPosts();
+                    },
+                  );
+                },
+                separatorBuilder: (_, __) => const Gap(8),
+              ),
+            ),
+          ).padding(top: 8),
+        ),
+      ],
+    );
+  }
+}
+
+class _PostCategoryPickerPopup extends StatelessWidget {
+  final List<SnPostCategory> categories;
+  final SnPostCategory? selected;
+
+  const _PostCategoryPickerPopup({required this.categories, this.selected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(Symbols.category, size: 24),
+            const Gap(16),
+            Text('postCategory').tr().textStyle(Theme.of(context).textTheme.titleLarge!),
+          ],
+        ).padding(horizontal: 20, top: 16, bottom: 12),
+        ListTile(
+          leading: const Icon(Symbols.clear),
+          title: Text('postFilterReset').tr(),
+          subtitle: Text('postFilterResetDescription').tr(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+          onTap: () {
+            Navigator.pop(context, false);
+          },
+        ),
+        const Divider(height: 1),
+        Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: categories
+              .map(
+                (ele) => ChoiceChip(
+                  avatar: Icon(kCategoryIcons[ele.alias] ?? Symbols.question_mark),
+                  label: Text(
+                    'postCategory${ele.alias.capitalize()}'.trExists()
+                        ? 'postCategory${ele.alias.capitalize()}'.tr()
+                        : ele.name,
+                  ),
+                  selected: ele == selected,
+                  onSelected: (value) {
+                    if (value) {
+                      Navigator.pop(context, ele);
+                    }
+                  },
+                ),
+              )
+              .toList(),
+        ).padding(horizontal: 12),
+      ],
     );
   }
 }

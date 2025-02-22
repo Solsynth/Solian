@@ -584,6 +584,7 @@
   "colorSchemeBlack": "Black",
   "colorSchemeApplied": "Color scheme has been applied, may need restart the app to take effect.",
   "postFeaturedComment": "Featured Comment",
+  "postCategory": "Category",
   "postCategoryTechnology": "Technology",
   "postCategoryGaming": "Gaming",
   "postCategoryLife": "Life",
@@ -675,5 +676,12 @@
   "postThumbnail": "Post Thumbnail",
   "accountRealms": "Realms",
   "postInGlobal": "Global",
-  "postInGlobalDescription": "Do not link this post with any realm."
+  "postInGlobalDescription": "Do not link this post with any realm.",
+  "postChannelGlobal": "Global",
+  "postChannelFriends": "Friends",
+  "postChannelFollowing": "Following",
+  "postChannelRealm": "Realms",
+  "postFilterReset": "Reset Filter",
+  "postFilterResetDescription": "Clear filter and show all posts.",
+  "postFilterWithCategory": "Viewing posts in {}"
 }

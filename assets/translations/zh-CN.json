@@ -582,6 +582,7 @@
   "colorSchemeBlack": "黑色",
   "colorSchemeApplied": "主题色已应用，可能需要重启来生效。",
   "postFeaturedComment": "精选评论",
+  "postCategory": "分类",
   "postCategoryTechnology": "技术",
   "postCategoryGaming": "游戏",
   "postCategoryLife": "生活",
@@ -673,5 +674,12 @@
   "postThumbnail": "帖子缩略图",
   "accountRealms": "领域",
   "postInGlobal": "全站",
-  "postInGlobalDescription": "不关联此帖子与任何领域。"
+  "postInGlobalDescription": "不关联此帖子与任何领域。",
+  "postChannelGlobal": "全站",
+  "postChannelFriends": "好友",
+  "postChannelFollowing": "关注",
+  "postChannelRealm": "领域",
+  "postFilterReset": "重置过滤器",
+  "postFilterResetDescription": "清除过滤器并显示所有帖子。",
+  "postFilterWithCategory": "查看{}区中的帖子"
 }
