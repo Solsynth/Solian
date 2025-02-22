@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:surface/providers/post.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
@@ -16,6 +17,7 @@ import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/account/account_select.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
+import 'package:surface/widgets/post/post_item.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 
 class RealmDetailScreen extends StatefulWidget {
@@ -90,7 +92,7 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: AppScaffold(
         body: NestedScrollView(
           headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -102,6 +104,7 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
                   bottom: TabBar(
                     tabs: [
                       Tab(icon: Icon(Symbols.home, color: Theme.of(context).appBarTheme.foregroundColor)),
+                      Tab(icon: Icon(Symbols.explore, color: Theme.of(context).appBarTheme.foregroundColor)),
                       Tab(icon: Icon(Symbols.group, color: Theme.of(context).appBarTheme.foregroundColor)),
                       Tab(icon: Icon(Symbols.settings, color: Theme.of(context).appBarTheme.foregroundColor)),
                     ],
@@ -113,6 +116,7 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
           body: TabBarView(
             children: [
               _RealmDetailHomeWidget(realm: _realm, publishers: _publishers, channels: _channels),
+              _RealmPostListWidget(realm: _realm),
               _RealmMemberListWidget(realm: _realm),
               _RealmSettingsWidget(
                 realm: _realm,
@@ -229,6 +233,72 @@ class _RealmDetailHomeWidget extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _RealmPostListWidget extends StatefulWidget {
+  final SnRealm? realm;
+
+  const _RealmPostListWidget({this.realm});
+
+  @override
+  State<_RealmPostListWidget> createState() => _RealmPostListWidgetState();
+}
+
+class _RealmPostListWidgetState extends State<_RealmPostListWidget> {
+  bool _isBusy = false;
+  int? _totalCount;
+  final List<SnPost> _posts = List.empty(growable: true);
+
+  Future<void> _fetchPosts() async {
+    setState(() => _isBusy = true);
+
+    try {
+      final pt = context.read<SnPostContentProvider>();
+      final out = await pt.listPosts(
+        take: 10,
+        offset: _posts.length,
+        realm: widget.realm?.id.toString(),
+      );
+      _totalCount = out.$2;
+      _posts.addAll(out.$1);
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    } finally {
+      setState(() => _isBusy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      context: context,
+      removeTop: true,
+      child: RefreshIndicator(
+        onRefresh: _fetchPosts,
+        child: InfiniteList(
+          itemCount: _posts.length,
+          isLoading: _isBusy,
+          hasReachedMax: _totalCount != null && _posts.length >= _totalCount!,
+          onFetchData: _fetchPosts,
+          itemBuilder: (context, idx) {
+            final post = _posts[idx];
+            return OpenablePostItem(
+              data: post,
+              maxWidth: 640,
+              onChanged: (data) {
+                setState(() => _posts[idx] = data);
+              },
+              onDeleted: () {
+                setState(() => _posts.removeAt(idx));
+              },
+            );
+          },
+          separatorBuilder: (_, __) => const Gap(8),
+        ),
+      ),
+    ).padding(top: 8);
   }
 }
 

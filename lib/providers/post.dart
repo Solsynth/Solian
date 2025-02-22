@@ -126,6 +126,7 @@ class SnPostContentProvider {
     String? author,
     Iterable<String>? categories,
     Iterable<String>? tags,
+    String? realm,
   }) async {
     final resp = await _sn.client.get('/cgi/co/posts', queryParameters: {
       'take': take,
@@ -134,6 +135,7 @@ class SnPostContentProvider {
       if (author != null) 'author': author,
       if (tags?.isNotEmpty ?? false) 'tags': tags!.join(','),
       if (categories?.isNotEmpty ?? false) 'categories': categories!.join(','),
+      if (realm != null) 'realm': realm,
     });
     final List<SnPost> out = await _preloadRelatedDataInBatch(
       List.from(resp.data['data']?.map((e) => SnPost.fromJson(e)) ?? []),

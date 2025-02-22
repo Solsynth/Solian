@@ -368,14 +368,17 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                         'articles' => _PostArticleEditor(
                             controller: _writeController,
                             onTapPublisher: _showPublisherPopup,
+                            onTapRealm: _showRealmPopup,
                           ),
                         'questions' => _PostQuestionEditor(
                             controller: _writeController,
                             onTapPublisher: _showPublisherPopup,
+                            onTapRealm: _showRealmPopup,
                           ),
                         'videos' => _PostVideoEditor(
                             controller: _writeController,
                             onTapPublisher: _showPublisherPopup,
+                            onTapRealm: _showRealmPopup,
                           ),
                         _ => const Placeholder(),
                       })
@@ -494,7 +497,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                                     ),
                                   if (_writeController.mode == 'articles')
                                     IconButton(
-                                      icon: Icon(Symbols.image, color: Theme.of(context).colorScheme.primary),
+                                      icon: Icon(Symbols.full_coverage, color: Theme.of(context).colorScheme.primary),
                                       style: ButtonStyle(
                                         backgroundColor: _writeController.thumbnail == null
                                             ? null
@@ -686,7 +689,7 @@ class _PostStoryEditor extends StatelessWidget {
                   ),
                 ),
               ),
-              const Gap(10),
+              const Gap(11),
               Material(
                 elevation: 1,
                 borderRadius: const BorderRadius.all(Radius.circular(24)),
@@ -744,8 +747,9 @@ class _PostStoryEditor extends StatelessWidget {
 class _PostArticleEditor extends StatelessWidget {
   final PostWriteController controller;
   final Function? onTapPublisher;
+  final Function? onTapRealm;
 
-  const _PostArticleEditor({required this.controller, this.onTapPublisher});
+  const _PostArticleEditor({required this.controller, this.onTapPublisher, this.onTapRealm});
 
   @override
   Widget build(BuildContext context) {
@@ -766,6 +770,21 @@ class _PostArticleEditor extends StatelessWidget {
                   ],
                 ),
               ),
+              Material(
+                elevation: 1,
+                borderRadius: const BorderRadius.all(Radius.circular(24)),
+                child: GestureDetector(
+                  onTap: () {
+                    onTapRealm?.call();
+                  },
+                  child: AccountImage(
+                    content: controller.realm?.avatar,
+                    fallbackWidget: const Icon(Symbols.globe, size: 20),
+                    radius: 14,
+                  ),
+                ),
+              ),
+              const Gap(8),
             ],
           ).padding(horizontal: 12, vertical: 8),
           onTap: () {
@@ -885,8 +904,9 @@ class _PostArticleEditor extends StatelessWidget {
 class _PostQuestionEditor extends StatelessWidget {
   final PostWriteController controller;
   final Function? onTapPublisher;
+  final Function? onTapRealm;
 
-  const _PostQuestionEditor({required this.controller, this.onTapPublisher});
+  const _PostQuestionEditor({required this.controller, this.onTapPublisher, this.onTapRealm});
 
   @override
   Widget build(BuildContext context) {
@@ -896,17 +916,36 @@ class _PostQuestionEditor extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Material(
-            elevation: 1,
-            borderRadius: const BorderRadius.all(Radius.circular(24)),
-            child: GestureDetector(
-              onTap: () {
-                onTapPublisher?.call();
-              },
-              child: AccountImage(
-                content: controller.publisher?.avatar,
+          Column(
+            children: [
+              Material(
+                elevation: 2,
+                borderRadius: const BorderRadius.all(Radius.circular(24)),
+                child: GestureDetector(
+                  onTap: () {
+                    onTapPublisher?.call();
+                  },
+                  child: AccountImage(
+                    content: controller.publisher?.avatar,
+                  ),
+                ),
               ),
-            ),
+              const Gap(11),
+              Material(
+                elevation: 1,
+                borderRadius: const BorderRadius.all(Radius.circular(24)),
+                child: GestureDetector(
+                  onTap: () {
+                    onTapRealm?.call();
+                  },
+                  child: AccountImage(
+                    content: controller.realm?.avatar,
+                    fallbackWidget: const Icon(Symbols.globe, size: 20),
+                    radius: 14,
+                  ),
+                ),
+              ),
+            ],
           ),
           Expanded(
             child: Column(
@@ -960,8 +999,9 @@ class _PostQuestionEditor extends StatelessWidget {
 class _PostVideoEditor extends StatelessWidget {
   final PostWriteController controller;
   final Function? onTapPublisher;
+  final Function? onTapRealm;
 
-  const _PostVideoEditor({required this.controller, this.onTapPublisher});
+  const _PostVideoEditor({required this.controller, this.onTapPublisher, this.onTapRealm});
 
   void _selectVideo(BuildContext context) async {
     final video = await showDialog<SnAttachment?>(
@@ -1049,28 +1089,36 @@ class _PostVideoEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Material(
-          color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          child: InkWell(
-            child: Row(
-              children: [
-                AccountImage(content: controller.publisher?.avatar, radius: 20),
-                const Gap(8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(controller.publisher?.nick ?? 'loading'.tr()).bold(),
-                      Text('@${controller.publisher?.name}'),
-                    ],
-                  ),
+        Column(
+          children: [
+            Material(
+              elevation: 2,
+              borderRadius: const BorderRadius.all(Radius.circular(24)),
+              child: GestureDetector(
+                onTap: () {
+                  onTapPublisher?.call();
+                },
+                child: AccountImage(
+                  content: controller.publisher?.avatar,
                 ),
-              ],
-            ).padding(horizontal: 12, vertical: 8),
-            onTap: () {
-              onTapPublisher?.call();
-            },
-          ),
+              ),
+            ),
+            const Gap(11),
+            Material(
+              elevation: 1,
+              borderRadius: const BorderRadius.all(Radius.circular(24)),
+              child: GestureDetector(
+                onTap: () {
+                  onTapRealm?.call();
+                },
+                child: AccountImage(
+                  content: controller.realm?.avatar,
+                  fallbackWidget: const Icon(Symbols.globe, size: 20),
+                  radius: 14,
+                ),
+              ),
+            ),
+          ],
         ),
         const Gap(16),
         TextField(
