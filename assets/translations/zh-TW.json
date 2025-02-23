@@ -685,5 +685,15 @@
   "databaseSize": "數據庫大小",
   "databaseDelete": "刪除數據庫",
   "databaseDeleteDescription": "刪除本地數據庫，內容將從服務器重新獲取。",
-  "databaseDeleted": "本地數據庫已被刪除。"
+  "databaseDeleted": "本地數據庫已被刪除。",
+  "settingsEnablePushNotifications": "啟用推送數據",
+  "settingsEnablePushNotificationsDescription": "重新啟用並請求推送權限，以防自動激活失敗。",
+  "screenStickers": "貼圖",
+  "stickersDiscovery": "發現",
+  "stickersOwned": "由我擁有",
+  "stickersCreated": "由我發佈",
+  "stickersAdd": "添加貼圖包",
+  "stickersAdded": "貼圖包已添加。",
+  "add": "添加",
+  "stickersRemoved": "貼圖包已被移除，你可以隨時再次添加回來。"
 }

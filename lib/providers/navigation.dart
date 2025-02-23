@@ -64,6 +64,11 @@ class NavigationProvider extends ChangeNotifier {
       label: 'screenNews',
     ),
     AppNavDestination(
+      icon: Icon(Symbols.emoji_emotions, weight: 400, opticalSize: 20),
+      screen: 'stickers',
+      label: 'screenStickers',
+    ),
+    AppNavDestination(
       icon: Icon(Symbols.photo_library, weight: 400, opticalSize: 20),
       screen: 'album',
       label: 'screenAlbum',
@@ -88,7 +93,8 @@ class NavigationProvider extends ChangeNotifier {
 
   List<AppNavDestination> destinations = [];
 
-  int get pinnedDestinationCount => destinations.where((ele) => ele.isPinned).length;
+  int get pinnedDestinationCount =>
+      destinations.where((ele) => ele.isPinned).length;
 
   NavigationProvider() {
     buildDestinations(kDefaultPinnedDestination);
@@ -117,13 +123,17 @@ class NavigationProvider extends ChangeNotifier {
   }
 
   bool isIndexInRange(int min, int max) {
-    return _currentIndex != null && _currentIndex! >= min && _currentIndex! < max;
+    return _currentIndex != null &&
+        _currentIndex! >= min &&
+        _currentIndex! < max;
   }
 
   void autoDetectIndex(GoRouter? state) {
     if (state == null) return;
     final idx = destinations.indexWhere(
-      (ele) => ele.screen == state.routerDelegate.currentConfiguration.last.route.name,
+      (ele) =>
+          ele.screen ==
+          state.routerDelegate.currentConfiguration.last.route.name,
     );
     _currentIndex = idx == -1 ? null : idx;
     notifyListeners();

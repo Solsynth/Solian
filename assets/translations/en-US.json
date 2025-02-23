@@ -689,5 +689,13 @@
   "databaseDeleteDescription": "Remove the database on your local disk, the content will be fetched from server again.",
   "databaseDeleted": "The local database has been deleted.",
   "settingsEnablePushNotifications": "Enable Push Notifications",
-  "settingsEnablePushNotificationsDescription": "Re-enable and request permission to receive push notifications. Just in case it didn't run automatically."
+  "settingsEnablePushNotificationsDescription": "Re-enable and request permission to receive push notifications. Just in case it didn't run automatically.",
+  "screenStickers": "Stickers",
+  "stickersDiscovery": "Discovery",
+  "stickersOwned": "Owned",
+  "stickersCreated": "Created",
+  "stickersAdd": "Add Sticker Pack",
+  "stickersAdded": "Sticker pack has been added.",
+  "add": "Add",
+  "stickersRemoved": "Sticker pack has been removed, you can add it again anytime."
 }

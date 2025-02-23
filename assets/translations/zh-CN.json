@@ -687,5 +687,13 @@
   "databaseDeleteDescription": "删除本地数据库，内容将从服务器重新获取。",
   "databaseDeleted": "本地数据库已被删除。",
   "settingsEnablePushNotifications": "启用推送数据",
-  "settingsEnablePushNotificationsDescription": "重新启用并请求推送权限，以防自动激活失败。"
+  "settingsEnablePushNotificationsDescription": "重新启用并请求推送权限，以防自动激活失败。",
+  "screenStickers": "贴图",
+  "stickersDiscovery": "发现",
+  "stickersOwned": "由我拥有",
+  "stickersCreated": "由我发布",
+  "stickersAdd": "添加贴图包",
+  "stickersAdded": "贴图包已添加。",
+  "add": "添加",
+  "stickersRemoved": "贴图包已被移除，你可以随时再次添加回来。"
 }

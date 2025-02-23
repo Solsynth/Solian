@@ -11,7 +11,8 @@ class SnStickerProvider {
 
   final Map<int, List<SnSticker>> stickersByPack = {};
 
-  List<SnSticker> get stickers => _cache.values.where((ele) => ele != null).cast<SnSticker>().toList();
+  List<SnSticker> get stickers =>
+      _cache.values.where((ele) => ele != null).cast<SnSticker>().toList();
 
   SnStickerProvider(BuildContext context) {
     _sn = context.read<SnNetworkProvider>();
@@ -23,8 +24,18 @@ class SnStickerProvider {
 
   void _cacheSticker(SnSticker sticker) {
     _cache['${sticker.pack.prefix}:${sticker.alias}'] = sticker;
-    if (stickersByPack[sticker.pack.id] == null) stickersByPack[sticker.pack.id] = List.empty(growable: true);
-    if (!stickersByPack[sticker.pack.id]!.contains(sticker)) stickersByPack[sticker.pack.id]!.add(sticker);
+    if (stickersByPack[sticker.pack.id] == null) {
+      stickersByPack[sticker.pack.id] = List.empty(growable: true);
+    }
+    if (!stickersByPack[sticker.pack.id]!.contains(sticker)) {
+      stickersByPack[sticker.pack.id]!.add(sticker);
+    }
+  }
+
+  void putSticker(Iterable<SnSticker> sticker) {
+    for (final ele in sticker) {
+      _cacheSticker(ele);
+    }
   }
 
   Future<SnSticker?> lookupSticker(String alias) async {
@@ -61,7 +72,8 @@ class SnStickerProvider {
         'offset': page * 10,
       });
       final data = resp.data;
-      final stickers = List.from(data['data']).map((ele) => SnSticker.fromJson(ele));
+      final stickers =
+          List.from(data['data']).map((ele) => SnSticker.fromJson(ele));
       for (final sticker in stickers) {
         _cacheSticker(sticker);
       }

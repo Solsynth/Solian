@@ -572,7 +572,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   trailing: const Icon(Symbols.chevron_right),
                   onTap: () {
                     final nty = context.read<NotificationProvider>();
-                    nty.registerPushNotifications();
+                    try {
+                      nty.registerPushNotifications();
+                    } catch (err) {
+                      if (!mounted) return;
+                      context.showErrorDialog(err);
+                    }
                   },
                 ),
                 ListTile(
