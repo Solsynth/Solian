@@ -322,6 +322,7 @@ class ChatMessageController extends ChangeNotifier {
     notifyListeners();
 
     final mostRecentMessage = await (_dt.db.snLocalChatMessage.select()
+          ..where((e) => e.channelId.equals(channel!.id))
           ..limit(1)
           ..orderBy([
             (e) =>
