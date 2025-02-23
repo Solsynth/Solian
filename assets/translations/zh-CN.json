@@ -699,5 +699,20 @@
   "stickersRemoved": "贴图包已被移除，你可以随时再次添加回来。",
   "stickersReload": "重载贴图包",
   "stickersReloadDescription": "从服务器重新加载添加过的贴图，更新贴图选择器。",
-  "stickersReloaded": "贴图包已重载。"
+  "stickersReloaded": "贴图包已重载。",
+  "stickersPackDelete": "删除贴图包 {}",
+  "stickersPackDeleteDescription": "你确定要删除这个贴图包吗？这个操作不可撤销。",
+  "stickersPackDeleted": "贴图包已被删除。",
+  "stickersDelete": "删除贴图 {}",
+  "stickersDeleteDescription": "你确定要删除这个贴图吗？这个操作不可撤销。",
+  "stickersDeleted": "贴图已被删除。",
+  "fieldStickerName": "贴图名称",
+  "fieldStickerAlias": "贴图别名",
+  "fieldStickerAliasHint": "和贴图包前缀组合成为本贴图的唯一占位符。",
+  "fieldStickerPackName": "名称",
+  "fieldStickerPackDescription": "描述",
+  "fieldStickerPackPrefix": "贴图包前缀",
+  "fieldStickerAttachment": "附件",
+  "stickersNew": "新建贴图",
+  "stickersNewDescription": "创建一个新的贴图。"
 }

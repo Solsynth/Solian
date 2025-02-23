@@ -35,6 +35,7 @@ import 'package:surface/screens/realm/realm_discovery.dart';
 import 'package:surface/screens/settings.dart';
 import 'package:surface/screens/sharing.dart';
 import 'package:surface/screens/stickers.dart';
+import 'package:surface/screens/stickers/pack_detail.dart';
 import 'package:surface/screens/wallet.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/about.dart';
@@ -238,6 +239,15 @@ final _appRoutes = [
     path: '/stickers',
     name: 'stickers',
     builder: (context, state) => const StickerScreen(),
+    routes: [
+      GoRoute(
+        path: '/packs/:id',
+        name: 'stickerPack',
+        builder: (context, state) => StickerPackScreen(
+          id: int.tryParse(state.pathParameters['id']!)!,
+        ),
+      ),
+    ],
   ),
   GoRoute(
     path: '/album',

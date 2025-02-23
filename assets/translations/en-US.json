@@ -701,5 +701,20 @@
   "stickersRemoved": "Sticker pack has been removed, you can add it again anytime.",
   "stickersReload": "Reload Stickers",
   "stickersReloadDescription": "Reload stickers from the server, update the sticker picker.",
-  "stickersReloaded": "Sticker packs has been reloaded."
+  "stickersReloaded": "Sticker packs has been reloaded.",
+  "stickersPackDelete": "Delete Pack {}",
+  "stickersPackDeleteDescription": "Are you sure you want to delete this sticker pack? This operation is irreversible.",
+  "stickersPackDeleted": "Sticker pack has been deleted.",
+  "stickersDelete": "Delete Sticker {}",
+  "stickersDeleteDescription": "Are you sure you want to delete this sticker? This operation is irreversible.",
+  "stickersDeleted": "Sticker has been deleted.",
+  "fieldStickerName": "Sticker Name",
+  "fieldStickerAlias": "Sticker Alias",
+  "fieldStickerAliasHint": "The unique sticker placeholder with the pack prefix.",
+  "fieldStickerPackName": "Name",
+  "fieldStickerPackDescription": "Description",
+  "fieldStickerPackPrefix": "Prefix",
+  "fieldStickerAttachment": "Attachment",
+  "stickersNew": "New Sticker",
+  "stickersNewDescription": "Create a new sticker belongs to this pack."
 }

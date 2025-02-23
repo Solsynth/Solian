@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -74,6 +75,29 @@ class _StickerScreenState extends State<StickerScreen>
       await sn.client.delete('/cgi/uc/stickers/packs/${pack.id}/own');
       if (!mounted) return;
       context.showSnackbar('stickersRemoved'.tr());
+      _refreshPacks();
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    } finally {
+      setState(() => _isBusy = false);
+    }
+  }
+
+  Future<void> _deletePack(SnStickerPack pack) async {
+    final confirm = await context.showConfirmDialog(
+      'stickersPackDelete'.tr(args: [pack.name]),
+      'stickersPackDeleteDescription'.tr(),
+    );
+    if (!confirm) return;
+    if (!mounted) return;
+
+    try {
+      setState(() => _isBusy = true);
+      final sn = context.read<SnNetworkProvider>();
+      await sn.client.delete('/cgi/uc/stickers/packs/${pack.id}');
+      if (!mounted) return;
+      context.showSnackbar('stickersDeleted'.tr());
       _refreshPacks();
     } catch (err) {
       if (!mounted) return;
@@ -160,16 +184,32 @@ class _StickerScreenState extends State<StickerScreen>
                         },
                         icon: const Icon(Symbols.remove),
                       )
-                    : null,
+                    : _tabController.index == 2
+                        ? IconButton(
+                            onPressed: () {
+                              _deletePack(pack);
+                            },
+                            icon: const Icon(Symbols.delete),
+                          )
+                        : null,
                 onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) => _StickerPackAddPopup(pack: pack),
-                  ).then((value) {
-                    if (value == true && _tabController.index == 1) {
-                      _refreshPacks();
-                    }
-                  });
+                  if (_tabController.index == 0) {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => _StickerPackAddPopup(pack: pack),
+                    ).then((value) {
+                      if (value == true && _tabController.index == 1) {
+                        _refreshPacks();
+                      }
+                    });
+                  } else {
+                    GoRouter.of(context).pushNamed(
+                      'stickerPack',
+                      pathParameters: {
+                        'id': pack.id.toString(),
+                      },
+                    );
+                  }
                 },
               );
             },
