@@ -31,6 +31,7 @@ class AppScaffold extends StatelessWidget {
   final AppBar? appBar;
   final DrawerCallback? onDrawerChanged;
   final DrawerCallback? onEndDrawerChanged;
+  final bool noBackground;
 
   const AppScaffold({
     super.key,
@@ -45,6 +46,7 @@ class AppScaffold extends StatelessWidget {
     this.endDrawer,
     this.onDrawerChanged,
     this.onEndDrawerChanged,
+    this.noBackground = false,
   });
 
   @override
@@ -52,22 +54,23 @@ class AppScaffold extends StatelessWidget {
     final appBarHeight = appBar?.preferredSize.height ?? 0;
     final safeTop = MediaQuery.of(context).padding.top;
 
+    final content = Column(
+      children: [
+        IgnorePointer(
+          child: SizedBox(height: appBar != null ? appBarHeight + safeTop : 0),
+        ),
+        if (body != null) Expanded(child: body!),
+      ],
+    );
+
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SizedBox.expand(
-        child: AppBackground(
-          isRoot: true,
-          child: Column(
-            children: [
-              IgnorePointer(
-                  child: SizedBox(
-                      height: appBar != null ? appBarHeight + safeTop : 0)),
-              if (body != null) Expanded(child: body!),
-            ],
-          ),
-        ),
+        child: noBackground
+            ? content
+            : AppBackground(isRoot: true, child: content),
       ),
       appBar: appBar,
       bottomNavigationBar: bottomNavigationBar,

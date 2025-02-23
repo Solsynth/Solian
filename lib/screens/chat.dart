@@ -5,16 +5,19 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
+import 'package:surface/screens/chat/room.dart';
 import 'package:surface/types/chat.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/account/account_select.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
+import 'package:surface/widgets/navigation/app_background.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:surface/widgets/unauthorized_hint.dart';
 import 'package:uuid/uuid.dart';
@@ -123,6 +126,8 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  SnChannel? _focusChannel;
+
   @override
   void initState() {
     super.initState();
@@ -147,7 +152,10 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
 
-    return AppScaffold(
+    final doExpand = ResponsiveBreakpoints.of(context).largerOrEqualTo(DESKTOP);
+
+    final chatList = AppScaffold(
+      noBackground: doExpand,
       appBar: AppBar(
         leading: AutoAppBarLeading(),
         title: Text('screenChat').tr(),
@@ -275,6 +283,10 @@ class _ChatScreenState extends State<ChatScreen> {
                               ?.avatar,
                         ),
                         onTap: () {
+                          if (doExpand) {
+                            setState(() => _focusChannel = channel);
+                            return;
+                          }
                           GoRouter.of(context).pushNamed(
                             'chatRoom',
                             pathParameters: {
@@ -317,6 +329,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         fallbackWidget: const Icon(Symbols.chat, size: 20),
                       ),
                       onTap: () {
+                        if (doExpand) {
+                          setState(() => _focusChannel = channel);
+                          return;
+                        }
                         GoRouter.of(context).pushNamed(
                           'chatRoom',
                           pathParameters: {
@@ -324,7 +340,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             'alias': channel.alias,
                           },
                         ).then((value) {
-                          if (value == true) _refreshChannels();
+                          if (value == true) _refreshChannels(noRemote: true);
                         });
                       },
                     );
@@ -336,5 +352,27 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+
+    if (doExpand) {
+      return AppBackground(
+        isRoot: true,
+        child: Row(
+          children: [
+            SizedBox(width: 340, child: chatList),
+            const VerticalDivider(width: 1),
+            if (_focusChannel != null)
+              Expanded(
+                child: ChatRoomScreen(
+                  key: ValueKey(_focusChannel!.id),
+                  scope: _focusChannel!.realm?.alias ?? 'global',
+                  alias: _focusChannel!.alias,
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return chatList;
   }
 }
