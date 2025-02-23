@@ -514,23 +514,30 @@ class ChatMessageController extends ChangeNotifier {
     }
 
     _readEventDebounce = Timer(const Duration(milliseconds: 500), () {
-      _ws.conn?.sink.add(jsonEncode(
-        WebSocketPackage(
-          method: 'events.read',
-          endpoint: 'im',
-          payload: {
-            'channel_member_id': profile!.id,
-            'event_id': _readEventAnchor,
-          },
-        ).toJson(),
-      ));
-      log('[Messaging] Send read event request: $_readEventAnchor');
+      _sendReadEvent();
     });
+  }
+
+  void _sendReadEvent() {
+    _ws.conn?.sink.add(jsonEncode(
+      WebSocketPackage(
+        method: 'events.read',
+        endpoint: 'im',
+        payload: {
+          'channel_member_id': profile!.id,
+          'event_id': _readEventAnchor,
+        },
+      ).toJson(),
+    ));
+    log('[Messaging] Send read event request: $_readEventAnchor');
   }
 
   @override
   void dispose() {
     _wsSubscription?.cancel();
+    if (_readEventDebounce?.isActive ?? false) {
+      _sendReadEvent();
+    }
     _readEventDebounce?.cancel();
     super.dispose();
   }
