@@ -1,11 +1,13 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_udid/flutter_udid.dart';
+import 'package:local_notifier/local_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/sn_network.dart';
@@ -92,6 +94,20 @@ class NotificationProvider extends ChangeNotifier {
         updateTray();
         final doHaptic = _cfg.prefs.getBool(kAppNotifyWithHaptic) ?? true;
         if (doHaptic) HapticFeedback.mediumImpact();
+
+        if (!kIsWeb) {
+          if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+            LocalNotification notify = LocalNotification(
+              title: notification.title,
+              subtitle: notification.subtitle,
+              body: notification.body,
+            );
+            notify.onClick = () {
+              appWindow.show();
+            };
+            notify.show();
+          }
+        }
       }
     });
   }

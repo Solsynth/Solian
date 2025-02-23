@@ -715,5 +715,6 @@
   "fieldStickerAttachment": "附件",
   "stickersNew": "新建贴图",
   "stickersNewDescription": "创建一个新的贴图。",
-  "stickersPackNew": "新建贴图包"
+  "stickersPackNew": "新建贴图包",
+  "trayMenuShow": "显示"
 }

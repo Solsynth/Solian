@@ -48,6 +48,7 @@ import 'package:workmanager/workmanager.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
+import 'package:local_notifier/local_notifier.dart';
 
 @pragma('vm:entry-point')
 void appBackgroundDispatcher() {
@@ -351,12 +352,25 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
         ),
         MenuItem.separator(),
         MenuItem(
+          key: 'window_show',
+          label: 'trayMenuShow'.tr(),
+        ),
+        MenuItem(
           key: 'exit',
           label: 'trayMenuExit'.tr(),
         ),
       ],
     );
     await trayManager.setContextMenu(menu);
+  }
+
+  Future<void> _notifyInitialization() async {
+    if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
+
+    await localNotifier.setup(
+      appName: 'solian',
+      shortcutPolicy: ShortcutPolicy.requireCreate,
+    );
   }
 
   AppLifecycleListener? _appLifecycleListener;
@@ -373,6 +387,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
 
     _trayInitialization();
     _hotkeyInitialization();
+    _notifyInitialization();
     _initialize().then((_) {
       _postInitialization();
       _tryRequestRating();
@@ -408,6 +423,9 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
     switch (menuItem.key) {
+      case 'window_show':
+        appWindow.show();
+        break;
       case 'exit':
         _appLifecycleListener?.dispose();
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');

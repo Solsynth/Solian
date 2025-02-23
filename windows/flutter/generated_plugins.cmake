@@ -14,6 +14,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   gal
   hotkey_manager_windows
   livekit_client
+  local_notifier
   media_kit_libs_windows_video
   media_kit_video
   pasteboard
