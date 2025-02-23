@@ -716,5 +716,6 @@
   "fieldStickerPackPrefix": "Prefix",
   "fieldStickerAttachment": "Attachment",
   "stickersNew": "New Sticker",
-  "stickersNewDescription": "Create a new sticker belongs to this pack."
+  "stickersNewDescription": "Create a new sticker belongs to this pack.",
+  "stickersPackNew": "New Sticker Pack"
 }

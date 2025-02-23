@@ -136,6 +136,20 @@ class _StickerScreenState extends State<StickerScreen>
       appBar: AppBar(
         leading: AutoAppBarLeading(),
         title: Text('screenStickers').tr(),
+        actions: [
+          IconButton(
+            icon: const Icon(Symbols.add_circle),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => _StickerPackCreateDialog(),
+              ).then((value) {
+                if (value == true) _refreshPacks();
+              });
+            },
+          ),
+          const Gap(8),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -340,6 +354,110 @@ class _StickerPackAddPopupState extends State<_StickerPackAddPopup> {
                   .toList(),
             ),
           ),
+      ],
+    );
+  }
+}
+
+class _StickerPackCreateDialog extends StatefulWidget {
+  const _StickerPackCreateDialog();
+
+  @override
+  State<_StickerPackCreateDialog> createState() =>
+      _StickerPackCreateDialogState();
+}
+
+class _StickerPackCreateDialogState extends State<_StickerPackCreateDialog> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _prefixController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
+  bool _isBusy = false;
+
+  Future<void> _createPack() async {
+    if (_nameController.text.isEmpty ||
+        _prefixController.text.isEmpty ||
+        _descriptionController.text.isEmpty) {
+      return;
+    }
+
+    setState(() => _isBusy = true);
+
+    try {
+      final sn = context.read<SnNetworkProvider>();
+      await sn.client.post(
+        '/cgi/uc/stickers/packs',
+        data: {
+          'name': _nameController.text,
+          'prefix': _prefixController.text,
+          'description': _descriptionController.text,
+        },
+      );
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _prefixController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('stickersPackNew').tr(),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              border: const UnderlineInputBorder(),
+              labelText: 'fieldStickerPackName'.tr(),
+            ),
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          ),
+          const Gap(4),
+          TextField(
+            controller: _prefixController,
+            decoration: InputDecoration(
+              border: const UnderlineInputBorder(),
+              labelText: 'fieldStickerPackPrefix'.tr(),
+            ),
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          ),
+          const Gap(4),
+          TextField(
+            controller: _descriptionController,
+            decoration: InputDecoration(
+              border: const UnderlineInputBorder(),
+              labelText: 'fieldStickerPackDescription'.tr(),
+            ),
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isBusy
+              ? null
+              : () {
+                  Navigator.pop(context);
+                },
+          child: Text('dialogDismiss').tr(),
+        ),
+        TextButton(
+          onPressed: _isBusy ? null : () => _createPack(),
+          child: Text('dialogConfirm').tr(),
+        ),
       ],
     );
   }

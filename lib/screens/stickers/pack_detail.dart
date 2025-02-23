@@ -158,6 +158,14 @@ class _StickerCreateDialogState extends State<_StickerCreateDialog> {
 
   bool _isBusy = false;
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _aliasController.dispose();
+    _attachmentController.dispose();
+    super.dispose();
+  }
+
   Future<void> _createSticker() async {
     if (_nameController.text.isEmpty ||
         _aliasController.text.isEmpty ||

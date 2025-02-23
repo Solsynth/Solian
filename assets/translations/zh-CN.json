@@ -714,5 +714,6 @@
   "fieldStickerPackPrefix": "贴图包前缀",
   "fieldStickerAttachment": "附件",
   "stickersNew": "新建贴图",
-  "stickersNewDescription": "创建一个新的贴图。"
+  "stickersNewDescription": "创建一个新的贴图。",
+  "stickersPackNew": "新建贴图包"
 }
