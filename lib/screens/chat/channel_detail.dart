@@ -58,7 +58,8 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
 
     try {
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/im/channels/${_channel!.keyPath}/members/me');
+      final resp =
+          await sn.client.get('/cgi/im/channels/${_channel!.keyPath}/me');
       _profile = SnChannelMember.fromJson(resp.data);
       _notifyLevel = _profile!.notify;
       if (!mounted) return;
@@ -245,7 +246,11 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('channelDetailPersonalRegion').bold().fontSize(17).tr().padding(horizontal: 20, bottom: 4),
+                  Text('channelDetailPersonalRegion')
+                      .bold()
+                      .fontSize(17)
+                      .tr()
+                      .padding(horizontal: 20, bottom: 4),
                   ListTile(
                     leading: const Icon(Symbols.notifications),
                     trailing: DropdownButtonHideUnderline(
@@ -284,7 +289,8 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
                   ),
                   ListTile(
                     leading: AccountImage(
-                      content: ud.getAccountFromCache(_profile!.accountId)?.avatar,
+                      content:
+                          ud.getAccountFromCache(_profile!.accountId)?.avatar,
                       radius: 18,
                     ),
                     trailing: const Icon(Symbols.chevron_right),
@@ -303,7 +309,8 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
                       trailing: const Icon(Symbols.chevron_right),
                       title: Text('channelActionLeave').tr(),
                       subtitle: Text('channelActionLeaveDescription').tr(),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 24),
                       onTap: _leaveChannel,
                     ),
                 ],
@@ -311,7 +318,11 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('channelDetailMemberRegion').bold().fontSize(17).tr().padding(horizontal: 20, bottom: 4),
+                Text('channelDetailMemberRegion')
+                    .bold()
+                    .fontSize(17)
+                    .tr()
+                    .padding(horizontal: 20, bottom: 4),
                 ListTile(
                   leading: const Icon(Symbols.group),
                   trailing: const Icon(Symbols.chevron_right),
@@ -333,7 +344,11 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('channelDetailAdminRegion').bold().fontSize(17).tr().padding(horizontal: 20, bottom: 4),
+                Text('channelDetailAdminRegion')
+                    .bold()
+                    .fontSize(17)
+                    .tr()
+                    .padding(horizontal: 20, bottom: 4),
                 ListTile(
                   leading: const Icon(Symbols.edit),
                   trailing: const Icon(Symbols.chevron_right),
@@ -379,10 +394,12 @@ class _ChannelProfileDetailDialog extends StatefulWidget {
   });
 
   @override
-  State<_ChannelProfileDetailDialog> createState() => _ChannelProfileDetailDialogState();
+  State<_ChannelProfileDetailDialog> createState() =>
+      _ChannelProfileDetailDialogState();
 }
 
-class _ChannelProfileDetailDialogState extends State<_ChannelProfileDetailDialog> {
+class _ChannelProfileDetailDialogState
+    extends State<_ChannelProfileDetailDialog> {
   bool _isBusy = false;
 
   final TextEditingController _nickController = TextEditingController();
@@ -457,7 +474,8 @@ class _ChannelMemberListWidget extends StatefulWidget {
   const _ChannelMemberListWidget({required this.channel});
 
   @override
-  State<_ChannelMemberListWidget> createState() => _ChannelMemberListWidgetState();
+  State<_ChannelMemberListWidget> createState() =>
+      _ChannelMemberListWidgetState();
 }
 
 class _ChannelMemberListWidgetState extends State<_ChannelMemberListWidget> {
@@ -472,10 +490,12 @@ class _ChannelMemberListWidgetState extends State<_ChannelMemberListWidget> {
     try {
       final ud = context.read<UserDirectoryProvider>();
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/im/channels/${widget.channel.keyPath}/members', queryParameters: {
-        'take': 10,
-        'offset': _members.length,
-      });
+      final resp = await sn.client.get(
+          '/cgi/im/channels/${widget.channel.keyPath}/members',
+          queryParameters: {
+            'take': 10,
+            'offset': _members.length,
+          });
       final out = List<SnChannelMember>.from(
         resp.data['data']?.map((e) => SnChannelMember.fromJson(e)) ?? [],
       );
@@ -533,7 +553,9 @@ class _ChannelMemberListWidgetState extends State<_ChannelMemberListWidget> {
           children: [
             const Icon(Symbols.group, size: 24),
             const Gap(16),
-            Text('channelMemberManage').tr().textStyle(Theme.of(context).textTheme.titleLarge!),
+            Text('channelMemberManage')
+                .tr()
+                .textStyle(Theme.of(context).textTheme.titleLarge!),
           ],
         ).padding(horizontal: 20, top: 16, bottom: 12),
         Expanded(
@@ -544,7 +566,8 @@ class _ChannelMemberListWidgetState extends State<_ChannelMemberListWidget> {
             },
             child: InfiniteList(
               itemCount: _members.length,
-              hasReachedMax: _totalCount != null && _members.length >= _totalCount!,
+              hasReachedMax:
+                  _totalCount != null && _members.length >= _totalCount!,
               isLoading: _isBusy,
               onFetchData: _fetchMembers,
               itemBuilder: (context, index) {
@@ -555,7 +578,8 @@ class _ChannelMemberListWidgetState extends State<_ChannelMemberListWidget> {
                     content: ud.getAccountFromCache(member.accountId)?.avatar,
                   ),
                   title: Text(
-                    ud.getAccountFromCache(member.accountId)?.name ?? 'unknown'.tr(),
+                    ud.getAccountFromCache(member.accountId)?.name ??
+                        'unknown'.tr(),
                   ),
                   subtitle: Text(member.nick ?? 'unknown'.tr()),
                   trailing: SizedBox(
@@ -565,7 +589,8 @@ class _ChannelMemberListWidgetState extends State<_ChannelMemberListWidget> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         IconButton(
-                          onPressed: _isUpdating ? null : () => _deleteMember(member),
+                          onPressed:
+                              _isUpdating ? null : () => _deleteMember(member),
                           icon: const Icon(Symbols.person_remove),
                         ),
                       ],

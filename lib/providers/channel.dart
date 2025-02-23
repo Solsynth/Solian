@@ -65,7 +65,11 @@ class ChatChannelProvider extends ChangeNotifier {
         .getSingleOrNull();
     if (local != null) {
       final out = local.content;
-      return out.copyWith(realm: await _rels.getRealm(out.realmId!));
+      if (out.realmId != null) {
+        return out.copyWith(realm: await _rels.getRealm(out.realmId!));
+      } else {
+        return out;
+      }
     }
 
     var resp =
