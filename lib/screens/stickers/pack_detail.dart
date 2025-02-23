@@ -39,6 +39,29 @@ class _StickerPackScreenState extends State<StickerPackScreen> {
 
   bool _isBusy = false;
 
+  Future<void> _deleteSticker(SnSticker sticker) async {
+    final confirm = await context.showConfirmDialog(
+      'stickersDelete'.tr(args: [sticker.name]),
+      'stickersDeleteDescription'.tr(),
+    );
+    if (!confirm) return;
+    if (!mounted) return;
+
+    try {
+      setState(() => _isBusy = true);
+      final sn = context.read<SnNetworkProvider>();
+      await sn.client.delete('/cgi/uc/stickers/${sticker.id}');
+      if (!mounted) return;
+      context.showSnackbar('stickersDeleted'.tr());
+      _fetchPack();
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    } finally {
+      setState(() => _isBusy = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -92,18 +115,23 @@ class _StickerPackScreenState extends State<StickerPackScreen> {
                 crossAxisSpacing: 8,
                 children: _pack!.stickers!
                     .map(
-                      (ele) => ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHigh,
-                          child: AttachmentItem(
-                            data: ele.attachment,
-                            heroTag: 'sticker-pack-${ele.attachment.rid}',
-                            fit: BoxFit.contain,
+                      (ele) => GestureDetector(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHigh,
+                            child: AttachmentItem(
+                              data: ele.attachment,
+                              heroTag: 'sticker-pack-${ele.attachment.rid}',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
+                        onTap: () {
+                          _deleteSticker(ele);
+                        },
                       ),
                     )
                     .toList(),
