@@ -109,11 +109,13 @@ class ChatMessage extends StatelessWidget {
                       onTap: () {
                         if (user == null) return;
                         showPopover(
-                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
                           context: context,
                           transition: PopoverTransition.other,
                           bodyBuilder: (context) => SizedBox(
-                            width: math.min(400, MediaQuery.of(context).size.width - 10),
+                            width: math.min(
+                                400, MediaQuery.of(context).size.width - 10),
                             child: AccountPopoverCard(
                               data: user,
                             ),
@@ -144,11 +146,14 @@ class ChatMessage extends StatelessWidget {
                                     radius: 12,
                                   ).padding(right: 8),
                                 Text(
-                                  (data.sender.nick?.isNotEmpty ?? false) ? data.sender.nick! : user?.nick ?? 'unknown',
+                                  (data.sender.nick?.isNotEmpty ?? false)
+                                      ? data.sender.nick!
+                                      : user?.nick ?? 'unknown',
                                 ).bold(),
                                 const Gap(8),
                                 Text(
-                                  dateFormatter.format(data.createdAt.toLocal()),
+                                  dateFormatter
+                                      .format(data.createdAt.toLocal()),
                                 ).fontSize(13),
                               ],
                             ).height(21),
@@ -159,7 +164,8 @@ class ChatMessage extends StatelessWidget {
                                 maxWidth: 480,
                               ),
                               decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(8)),
                                 border: Border.all(
                                   color: Theme.of(context).dividerColor,
                                   width: 1,
@@ -207,9 +213,12 @@ class ChatMessage extends StatelessWidget {
                 maxHeight: 560,
                 maxWidth: 480,
                 minWidth: 480,
-                padding: padding.copyWith(top: 8),
+                padding: padding.copyWith(top: 8, left: 48 + padding.left),
               ),
-            if (!hasMerged && !isCompact) const Gap(12) else if (!isCompact) const Gap(8),
+            if (!hasMerged && !isCompact)
+              const Gap(12)
+            else if (!isCompact)
+              const Gap(8),
           ],
         ),
       ),
@@ -223,7 +232,8 @@ class _ChatMessageText extends StatelessWidget {
   final Function(SnChatMessage)? onEdit;
   final Function(SnChatMessage)? onDelete;
 
-  const _ChatMessageText({required this.data, this.onReply, this.onEdit, this.onDelete});
+  const _ChatMessageText(
+      {required this.data, this.onReply, this.onEdit, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +247,8 @@ class _ChatMessageText extends StatelessWidget {
         children: [
           SelectionArea(
             contextMenuBuilder: (context, editableTextState) {
-              final List<ContextMenuButtonItem> items = editableTextState.contextMenuButtonItems;
+              final List<ContextMenuButtonItem> items =
+                  editableTextState.contextMenuButtonItems;
 
               if (onReply != null) {
                 items.insert(
