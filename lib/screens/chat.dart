@@ -258,7 +258,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   channel.name),
                             ),
                             const Gap(8),
-                            if (_unreadCounts?[channel.id] != null)
+                            if (_unreadCounts?[channel.id] != null &&
+                                _unreadCounts![channel.id]! > 0)
                               Badge(
                                 label: Text('${_unreadCounts![channel.id]}'),
                               ),
@@ -294,7 +295,11 @@ class _ChatScreenState extends State<ChatScreen> {
                               'alias': channel.alias,
                             },
                           ).then((value) {
-                            if (mounted) _refreshChannels(noRemote: true);
+                            if (mounted) {
+                              _unreadCounts?[channel.id] = 0;
+                              setState(() => _unreadCounts?[channel.id] = 0);
+                              _refreshChannels(noRemote: true);
+                            }
                           });
                         },
                       );
@@ -305,7 +310,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         children: [
                           Expanded(child: Text(channel.name)),
                           const Gap(8),
-                          if (_unreadCounts?[channel.id] != null)
+                          if (_unreadCounts?[channel.id] != null &&
+                              _unreadCounts![channel.id]! > 0)
                             Badge(
                               label: Text('${_unreadCounts![channel.id]}'),
                             ),
@@ -330,6 +336,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       onTap: () {
                         if (doExpand) {
+                          _unreadCounts?[channel.id] = 0;
                           setState(() => _focusChannel = channel);
                           return;
                         }
@@ -340,7 +347,10 @@ class _ChatScreenState extends State<ChatScreen> {
                             'alias': channel.alias,
                           },
                         ).then((value) {
-                          if (value == true) _refreshChannels(noRemote: true);
+                          if (mounted) {
+                            setState(() => _unreadCounts?[channel.id] = 0);
+                            _refreshChannels(noRemote: true);
+                          }
                         });
                       },
                     );
