@@ -24,6 +24,7 @@ import 'package:surface/providers/theme.dart';
 import 'package:surface/theme.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
+import 'package:surface/widgets/updater.dart';
 
 const Map<String, Color> kColorSchemes = {
   'colorSchemeIndigo': Colors.indigo,
@@ -602,6 +603,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       if (!context.mounted) return;
                       context.showErrorDialog(err);
                     }
+                  },
+                ),
+                ListTile(
+                  title: Text('forceUpdate').tr(),
+                  subtitle: Text('forceUpdateDescription').tr(),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  leading: const Icon(Symbols.update),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () async {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => VersionUpdatePopup(),
+                    );
                   },
                 ),
                 ListTile(

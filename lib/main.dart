@@ -254,10 +254,9 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
           receiveTimeout: const Duration(seconds: 60),
         ),
       ).get(
-        'https://git.solsynth.dev/api/v1/repos/HyperNet/Surface/tags?page=1&limit=1',
+        'https://api.github.com/repos/Solsynth/HyperNet.Surface/releases/latest',
       );
-      final remoteVersionString =
-          (resp.data as List).firstOrNull?['name'] ?? '0.0.0+0';
+      final remoteVersionString = resp.data?['tag_name'] ?? '0.0.0+0';
       final remoteVersion = Version.parse(remoteVersionString.split('+').first);
       final localVersion = Version.parse(localVersionString.split('+').first);
       final remoteBuildNumber =
@@ -269,10 +268,12 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
               remoteBuildNumber > localBuildNumber) &&
           mounted) {
         final config = context.read<ConfigProvider>();
-        config.setUpdate(remoteVersionString);
+        config.setUpdate(
+            remoteVersionString, resp.data?['body'] ?? 'No changelog');
         log("[Update] Update available: $remoteVersionString");
       }
     } catch (e) {
+      log('[Error] Unable to check update: $e');
       if (mounted) context.showErrorDialog('Unable to check update: $e');
     }
   }

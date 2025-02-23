@@ -1,10 +1,8 @@
-import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_app_update/flutter_app_update.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -29,6 +27,7 @@ import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:surface/widgets/post/post_item.dart';
+import 'package:surface/widgets/updater.dart';
 
 class HomeScreenDashEntry {
   final String name;
@@ -83,14 +82,20 @@ class _HomeScreenState extends State<HomeScreen> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           return Align(
-            alignment: constraints.maxWidth > 640 ? Alignment.center : Alignment.topCenter,
+            alignment: constraints.maxWidth > 640
+                ? Alignment.center
+                : Alignment.topCenter,
             child: Container(
               constraints: const BoxConstraints(maxWidth: 640),
               child: SingleChildScrollView(
                 child: Column(
-                  mainAxisAlignment: constraints.maxWidth > 640 ? MainAxisAlignment.center : MainAxisAlignment.start,
+                  mainAxisAlignment: constraints.maxWidth > 640
+                      ? MainAxisAlignment.center
+                      : MainAxisAlignment.start,
                   children: [
-                    _HomeDashUpdateWidget(padding: const EdgeInsets.only(bottom: 8, left: 8, right: 8)),
+                    _HomeDashUpdateWidget(
+                        padding: const EdgeInsets.only(
+                            bottom: 8, left: 8, right: 8)),
                     _HomeDashSpecialDayWidget().padding(horizontal: 8),
                     StaggeredGrid.extent(
                       maxCrossAxisExtent: 280,
@@ -136,21 +141,15 @@ class _HomeDashUpdateWidget extends StatelessWidget {
                 leading: Icon(Symbols.update),
                 title: Text('updateAvailable').tr(),
                 subtitle: Text(config.updatableVersion!),
-                trailing: (kIsWeb || Platform.isWindows || Platform.isLinux)
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Symbols.arrow_right_alt),
-                        onPressed: () {
-                          final model = UpdateModel(
-                            'https://files.solsynth.dev/d/production01/solian/app-arm64-v8a-release.apk',
-                            'solian-app-release-${config.updatableVersion!}.apk',
-                            'ic_launcher',
-                            'https://apps.apple.com/us/app/solian/id6499032345',
-                          );
-                          AzhonAppUpdate.update(model);
-                          context.showSnackbar('updateOngoing'.tr());
-                        },
-                      ),
+                trailing: IconButton(
+                  icon: const Icon(Symbols.arrow_right_alt),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => VersionUpdatePopup(),
+                    );
+                  },
+                ),
               ),
             ),
           );
@@ -166,7 +165,8 @@ class _HomeDashSpecialDayWidget extends StatefulWidget {
   const _HomeDashSpecialDayWidget();
 
   @override
-  State<_HomeDashSpecialDayWidget> createState() => _HomeDashSpecialDayWidgetState();
+  State<_HomeDashSpecialDayWidget> createState() =>
+      _HomeDashSpecialDayWidgetState();
 }
 
 class _HomeDashSpecialDayWidgetState extends State<_HomeDashSpecialDayWidget> {
@@ -208,7 +208,9 @@ class _HomeDashSpecialDayWidgetState extends State<_HomeDashSpecialDayWidget> {
         margin: EdgeInsets.zero,
         child: ListTile(
           leading: Text(kSpecialDaysSymbol[name] ?? '🎉').fontSize(24),
-          title: Text('pending$name').tr(args: [RelativeTime(context).format(date).replaceFirst('in', '').trim()]),
+          title: Text('pending$name').tr(args: [
+            RelativeTime(context).format(date).replaceFirst('in', '').trim()
+          ]),
           subtitle: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -297,12 +299,19 @@ class _HomeDashTodayNewsState extends State<_HomeDashTodayNews> {
                   children: [
                     Text(
                       _article!.title,
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18),
-                      maxLines: MediaQuery.of(context).size.width >= 640 ? 2 : 1,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium!
+                          .copyWith(fontSize: 18),
+                      maxLines:
+                          MediaQuery.of(context).size.width >= 640 ? 2 : 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      parse(_article!.description).children.map((e) => e.text.trim()).join(),
+                      parse(_article!.description)
+                          .children
+                          .map((e) => e.text.trim())
+                          .join(),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodyMedium,
@@ -313,9 +322,13 @@ class _HomeDashTodayNewsState extends State<_HomeDashTodayNews> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         spacing: 2,
                         children: [
-                          Text(DateFormat().format(date)).textStyle(Theme.of(context).textTheme.bodySmall!),
-                          Text(' · ').textStyle(Theme.of(context).textTheme.bodySmall!).bold(),
-                          Text(RelativeTime(context).format(date)).textStyle(Theme.of(context).textTheme.bodySmall!),
+                          Text(DateFormat().format(date)).textStyle(
+                              Theme.of(context).textTheme.bodySmall!),
+                          Text(' · ')
+                              .textStyle(Theme.of(context).textTheme.bodySmall!)
+                              .bold(),
+                          Text(RelativeTime(context).format(date)).textStyle(
+                              Theme.of(context).textTheme.bodySmall!),
                         ],
                       ).opacity(0.75);
                     }),
@@ -386,15 +399,20 @@ class _HomeDashCheckInWidgetState extends State<_HomeDashCheckInWidget> {
   }
 
   Widget _buildDetailChunk(int index, bool positive) {
-    final prefix = positive ? 'dailyCheckPositiveHint' : 'dailyCheckNegativeHint';
-    final mod = positive ? kSuggestionPositiveHintCount : kSuggestionNegativeHintCount;
+    final prefix =
+        positive ? 'dailyCheckPositiveHint' : 'dailyCheckNegativeHint';
+    final mod =
+        positive ? kSuggestionPositiveHintCount : kSuggestionNegativeHintCount;
     final pos = math.max(1, _todayRecord!.resultModifiers[index] % mod);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           prefix.tr(args: ['$prefix$pos'.tr()]),
-          style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium!
+              .copyWith(fontWeight: FontWeight.bold),
         ),
         Text(
           '$prefix${pos}Description',
@@ -429,7 +447,10 @@ class _HomeDashCheckInWidgetState extends State<_HomeDashCheckInWidget> {
               else
                 Text(
                   'dailyCheckEverythingIsNegative',
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium!
+                      .copyWith(fontWeight: FontWeight.bold),
                 ).tr(),
               const Gap(8),
               if (_todayRecord?.resultTier != 4)
@@ -445,7 +466,10 @@ class _HomeDashCheckInWidgetState extends State<_HomeDashCheckInWidget> {
               else
                 Text(
                   'dailyCheckEverythingIsPositive',
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium!
+                      .copyWith(fontWeight: FontWeight.bold),
                 ).tr(),
             ],
           ),
@@ -571,10 +595,12 @@ class _HomeDashNotificationWidget extends StatefulWidget {
   const _HomeDashNotificationWidget();
 
   @override
-  State<_HomeDashNotificationWidget> createState() => _HomeDashNotificationWidgetState();
+  State<_HomeDashNotificationWidget> createState() =>
+      _HomeDashNotificationWidgetState();
 }
 
-class _HomeDashNotificationWidgetState extends State<_HomeDashNotificationWidget> {
+class _HomeDashNotificationWidgetState
+    extends State<_HomeDashNotificationWidget> {
   int? _count;
 
   Future<void> _fetchNotificationCount() async {
@@ -612,7 +638,9 @@ class _HomeDashNotificationWidgetState extends State<_HomeDashNotificationWidget
                   style: Theme.of(context).textTheme.titleLarge,
                 ).tr(),
                 Text(
-                  _count == null ? 'loading'.tr() : 'notificationUnreadCount'.plural(_count ?? 0),
+                  _count == null
+                      ? 'loading'.tr()
+                      : 'notificationUnreadCount'.plural(_count ?? 0),
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ],
@@ -643,10 +671,12 @@ class _HomeDashRecommendationPostWidget extends StatefulWidget {
   const _HomeDashRecommendationPostWidget();
 
   @override
-  State<_HomeDashRecommendationPostWidget> createState() => _HomeDashRecommendationPostWidgetState();
+  State<_HomeDashRecommendationPostWidget> createState() =>
+      _HomeDashRecommendationPostWidgetState();
 }
 
-class _HomeDashRecommendationPostWidgetState extends State<_HomeDashRecommendationPostWidget> {
+class _HomeDashRecommendationPostWidgetState
+    extends State<_HomeDashRecommendationPostWidget> {
   bool _isBusy = false;
   List<SnPost>? _posts;
 
@@ -710,13 +740,15 @@ class _HomeDashRecommendationPostWidgetState extends State<_HomeDashRecommendati
                   ).tr(),
                 ],
               ),
-              Text('${_currentPage + 1}/${_posts?.length ?? 0}', style: GoogleFonts.robotoMono())
+              Text('${_currentPage + 1}/${_posts?.length ?? 0}',
+                  style: GoogleFonts.robotoMono())
             ],
           ).padding(horizontal: 18, top: 12, bottom: 8),
           Expanded(
             child: PageView.builder(
               controller: _pageController,
-              scrollBehavior: ScrollConfiguration.of(context).copyWith(dragDevices: {
+              scrollBehavior:
+                  ScrollConfiguration.of(context).copyWith(dragDevices: {
                 PointerDeviceKind.mouse,
                 PointerDeviceKind.touch,
               }),
@@ -729,7 +761,8 @@ class _HomeDashRecommendationPostWidgetState extends State<_HomeDashRecommendati
                       showMenu: false,
                     ).padding(bottom: 8),
                     onTap: () {
-                      GoRouter.of(context).pushNamed('postDetail', pathParameters: {
+                      GoRouter.of(context)
+                          .pushNamed('postDetail', pathParameters: {
                         'slug': _posts![index].id.toString(),
                       });
                     },

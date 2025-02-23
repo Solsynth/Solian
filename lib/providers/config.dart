@@ -58,7 +58,8 @@ class ConfigProvider extends ChangeNotifier {
           : false;
     }
 
-    if (newDrawerIsExpanded != drawerIsExpanded || newDrawerIsCollapsed != drawerIsCollapsed) {
+    if (newDrawerIsExpanded != drawerIsExpanded ||
+        newDrawerIsCollapsed != drawerIsCollapsed) {
       drawerIsExpanded = newDrawerIsExpanded;
       drawerIsCollapsed = newDrawerIsCollapsed;
       notifyListeners();
@@ -66,7 +67,9 @@ class ConfigProvider extends ChangeNotifier {
   }
 
   FilterQuality get imageQuality {
-    return kImageQualityLevel.values.elementAtOrNull(prefs.getInt('app_image_quality') ?? 3) ?? FilterQuality.high;
+    return kImageQualityLevel.values
+            .elementAtOrNull(prefs.getInt('app_image_quality') ?? 3) ??
+        FilterQuality.high;
   }
 
   String get serverUrl {
@@ -76,6 +79,7 @@ class ConfigProvider extends ChangeNotifier {
   bool get realmCompactView {
     return prefs.getBool(kAppRealmCompactView) ?? false;
   }
+
   set realmCompactView(bool value) {
     prefs.setBool(kAppRealmCompactView, value);
   }
@@ -86,9 +90,11 @@ class ConfigProvider extends ChangeNotifier {
   }
 
   String? updatableVersion;
+  String? updatableChangelog;
 
-  void setUpdate(String newVersion) {
+  void setUpdate(String newVersion, String newChangelog) {
     updatableVersion = newVersion;
+    updatableChangelog = newChangelog;
     notifyListeners();
   }
 }

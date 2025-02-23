@@ -715,5 +715,9 @@
   "fieldStickerAttachment": "附件",
   "stickersNew": "新建貼圖",
   "stickersNewDescription": "創建一個新的貼圖。",
-  "stickersPackNew": "新建貼圖包"
+  "stickersPackNew": "新建貼圖包",
+  "trayMenuShow": "顯示",
+  "update": "更新",
+  "forceUpdate": "強制更新",
+  "forceUpdateDescription": "強制更新應用程序，即使有更新的版本可能不可用。"
 }
