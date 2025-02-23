@@ -78,10 +78,23 @@ class NotificationProvider extends ChangeNotifier {
   int showingTrayCount = 0;
   List<SnNotification> notifications = List.empty(growable: true);
 
+  int? skippableNotifyChannel;
+
   void listen() {
     _ws.pk.stream.listen((event) {
       if (event.method == 'notifications.new') {
         final notification = SnNotification.fromJson(event.payload!);
+
+        final doHaptic = _cfg.prefs.getBool(kAppNotifyWithHaptic) ?? true;
+        if (doHaptic) HapticFeedback.mediumImpact();
+
+        if (notification.topic == 'messaging.message') {
+          if (notification.metadata['channel_id'] != null &&
+              notification.metadata['channel_id'] == skippableNotifyChannel) {
+            return;
+          }
+        }
+
         if (showingCount < 0) showingCount = 0;
         showingCount++;
         showingTrayCount++;
@@ -92,8 +105,6 @@ class NotificationProvider extends ChangeNotifier {
         });
         notifyListeners();
         updateTray();
-        final doHaptic = _cfg.prefs.getBool(kAppNotifyWithHaptic) ?? true;
-        if (doHaptic) HapticFeedback.mediumImpact();
 
         if (!kIsWeb) {
           if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
