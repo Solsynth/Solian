@@ -13,6 +13,7 @@ import 'package:surface/controllers/chat_message_controller.dart';
 import 'package:surface/controllers/post_write_controller.dart';
 import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/chat_call.dart';
+import 'package:surface/providers/notification.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
@@ -84,6 +85,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               orElse: () => null,
             );
       }
+
+      if (!mounted) return;
+      final nty = context.read<NotificationProvider>();
+      nty.skippableNotifyChannel = _channel!.id;
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -232,6 +237,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   void dispose() {
     _wsSubscription?.cancel();
     _messageController.dispose();
+    final nty = context.read<NotificationProvider>();
+    nty.skippableNotifyChannel = null;
     super.dispose();
   }
 
