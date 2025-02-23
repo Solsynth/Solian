@@ -44,7 +44,9 @@ class MarkdownTextContent extends StatelessWidget {
         Theme.of(context),
       ).copyWith(
         textScaler: textScaler,
-        p: textColor != null ? Theme.of(context).textTheme.bodyMedium!.copyWith(color: textColor) : null,
+        p: textColor != null
+            ? Theme.of(context).textTheme.bodyMedium!.copyWith(color: textColor)
+            : null,
         blockquote: TextStyle(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
@@ -115,7 +117,7 @@ class MarkdownTextContent extends StatelessWidget {
               final alias = segments[1];
               final st = context.read<SnStickerProvider>();
               final sn = context.read<SnNetworkProvider>();
-              final double size = isEnlargeSticker ? 128 : 32;
+              final double size = isEnlargeSticker ? 96 : 32;
               return Container(
                 width: size,
                 height: size,
@@ -131,7 +133,8 @@ class MarkdownTextContent extends StatelessWidget {
                       if (snapshot.hasData) {
                         return GestureDetector(
                             child: UniversalImage(
-                              sn.getAttachmentUrl(snapshot.data!.attachment.rid),
+                              sn.getAttachmentUrl(
+                                  snapshot.data!.attachment.rid),
                               fit: BoxFit.contain,
                               width: size,
                               height: size,
@@ -177,7 +180,9 @@ class MarkdownTextContent extends StatelessWidget {
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
                       child: AspectRatio(
                         aspectRatio: attachment.metadata['ratio'] ??
-                            switch (attachment.mimetype.split('/').firstOrNull) {
+                            switch (attachment.mimetype
+                                    .split('/')
+                                    .firstOrNull) {
                               'audio' => 16 / 9,
                               'video' => 16 / 9,
                               _ => 1,

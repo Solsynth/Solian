@@ -297,6 +297,8 @@ class _ChatMessageText extends StatelessWidget {
               child: MarkdownTextContent(
                 content: data.body['text'],
                 isAutoWarp: true,
+                isEnlargeSticker:
+                    RegExp(r"^:([-\w]+):$").hasMatch(data.body['text'] ?? ''),
               ),
             ),
           ),
