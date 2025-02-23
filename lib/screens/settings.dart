@@ -19,6 +19,7 @@ import 'package:surface/providers/config.dart';
 import 'package:surface/providers/database.dart';
 import 'package:surface/providers/notification.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/sn_sticker.dart';
 import 'package:surface/providers/theme.dart';
 import 'package:surface/theme.dart';
 import 'package:surface/widgets/dialog.dart';
@@ -570,12 +571,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Text('settingsEnablePushNotificationsDescription').tr(),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                   trailing: const Icon(Symbols.chevron_right),
-                  onTap: () {
+                  onTap: () async {
                     final nty = context.read<NotificationProvider>();
                     try {
-                      nty.registerPushNotifications();
+                      await nty.registerPushNotifications();
+                      if (!context.mounted) return;
+                      HapticFeedback.heavyImpact();
+                      context.showSnackbar(
+                          'settingsEnabledPushNotifications'.tr());
                     } catch (err) {
                       if (!mounted) return;
+                      context.showErrorDialog(err);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Symbols.refresh),
+                  title: Text('stickersReload').tr(),
+                  subtitle: Text('stickersReloadDescription').tr(),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () async {
+                    final stickers = context.read<SnStickerProvider>();
+                    try {
+                      await stickers.listSticker();
+                      if (!context.mounted) return;
+                      HapticFeedback.heavyImpact();
+                      context.showSnackbar('stickersReloaded'.tr());
+                    } catch (err) {
+                      if (!context.mounted) return;
                       context.showErrorDialog(err);
                     }
                   },

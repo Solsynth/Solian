@@ -57,27 +57,14 @@ class SnStickerProvider {
     return null;
   }
 
-  Future<void> listStickerEagerly() async {
-    var count = await listSticker();
-    for (var page = 1; count > 0; count -= 10) {
-      await listSticker(page: page);
-      page++;
-    }
-  }
-
-  Future<int> listSticker({int page = 0}) async {
+  Future<void> listSticker() async {
     try {
-      final resp = await _sn.client.get('/cgi/uc/stickers', queryParameters: {
-        'take': 10,
-        'offset': page * 10,
-      });
+      final resp = await _sn.client.get('/cgi/uc/stickers');
       final data = resp.data;
-      final stickers =
-          List.from(data['data']).map((ele) => SnSticker.fromJson(ele));
+      final stickers = List.from(data).map((ele) => SnSticker.fromJson(ele));
       for (final sticker in stickers) {
         _cacheSticker(sticker);
       }
-      return data['count'] as int;
     } catch (err) {
       log('[Sticker] Failed to list stickers: $err');
       rethrow;

@@ -688,6 +688,7 @@
   "databaseDeleted": "本地数据库已被删除。",
   "settingsEnablePushNotifications": "启用推送数据",
   "settingsEnablePushNotificationsDescription": "重新启用并请求推送权限，以防自动激活失败。",
+  "settingsEnabledPushNotifications": "推送通知已经注册。",
   "screenStickers": "贴图",
   "stickersDiscovery": "发现",
   "stickersOwned": "由我拥有",
@@ -695,5 +696,8 @@
   "stickersAdd": "添加贴图包",
   "stickersAdded": "贴图包已添加。",
   "add": "添加",
-  "stickersRemoved": "贴图包已被移除，你可以随时再次添加回来。"
+  "stickersRemoved": "贴图包已被移除，你可以随时再次添加回来。",
+  "stickersReload": "重载贴图包",
+  "stickersReloadDescription": "从服务器重新加载添加过的贴图，更新贴图选择器。",
+  "stickersReloaded": "贴图包已重载。"
 }

@@ -8,6 +8,7 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/sn_sticker.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/attachment.dart';
+import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/attachment/attachment_item.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
@@ -109,6 +110,7 @@ class _StickerScreenState extends State<StickerScreen>
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppBar(
+        leading: AutoAppBarLeading(),
         title: Text('screenStickers').tr(),
         bottom: TabBar(
           controller: _tabController,

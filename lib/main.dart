@@ -303,7 +303,8 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       await notify.registerPushNotifications();
       if (!mounted) return;
       final sticker = context.read<SnStickerProvider>();
-      await sticker.listStickerEagerly();
+      await sticker.listSticker();
+      log('[Bootstrap] Everything initialized!');
     } catch (err) {
       if (!mounted) return;
       await context.showErrorDialog(err);
