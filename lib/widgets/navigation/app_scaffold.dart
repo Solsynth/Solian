@@ -188,6 +188,9 @@ class AppRootScaffold extends StatelessWidget {
                             child: Text(
                               'Solar Network',
                               style: GoogleFonts.spaceGrotesk(),
+                              textAlign: Platform.isMacOS
+                                  ? TextAlign.center
+                                  : TextAlign.start,
                             ).padding(horizontal: 12, vertical: 5),
                           ),
                           if (!Platform.isMacOS)
