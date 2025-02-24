@@ -93,8 +93,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       : MainAxisAlignment.start,
                   children: [
                     _HomeDashUpdateWidget(
-                        padding: const EdgeInsets.only(
-                            bottom: 8, left: 8, right: 8)),
+                      padding: const EdgeInsets.only(
+                        bottom: 8,
+                        left: 8,
+                        right: 8,
+                      ),
+                    ),
                     _HomeDashSpecialDayWidget().padding(horizontal: 8),
                     StaggeredGrid.extent(
                       maxCrossAxisExtent: 280,

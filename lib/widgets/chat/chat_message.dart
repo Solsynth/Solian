@@ -161,7 +161,7 @@ class ChatMessage extends StatelessWidget {
                           if (data.preload?.quoteEvent != null)
                             StyledWidget(Container(
                               constraints: BoxConstraints(
-                                maxWidth: 480,
+                                maxWidth: 360,
                               ),
                               decoration: BoxDecoration(
                                 borderRadius:
@@ -210,9 +210,8 @@ class ChatMessage extends StatelessWidget {
               AttachmentList(
                 data: data.preload!.attachments!,
                 bordered: true,
-                maxHeight: 560,
-                maxWidth: 480,
-                minWidth: 480,
+                maxHeight: 360,
+                maxWidth: 480 - 48 - padding.left,
                 padding: padding.copyWith(top: 8, left: 48 + padding.left),
               ),
             if (!hasMerged && !isCompact)
@@ -292,14 +291,11 @@ class _ChatMessageText extends StatelessWidget {
                 buttonItems: items,
               );
             },
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: MarkdownTextContent(
-                content: data.body['text'],
-                isAutoWarp: true,
-                isEnlargeSticker:
-                    RegExp(r"^:([-\w]+):$").hasMatch(data.body['text'] ?? ''),
-              ),
+            child: MarkdownTextContent(
+              content: data.body['text'],
+              isAutoWarp: true,
+              isEnlargeSticker:
+                  RegExp(r"^:([-\w]+):$").hasMatch(data.body['text'] ?? ''),
             ),
           ),
           if (data.updatedAt != data.createdAt)

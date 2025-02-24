@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -134,6 +135,28 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _refreshChannels();
     _fetchWhatsNew();
+  }
+
+  void _onTapChannel(SnChannel channel) {
+    final doExpand = ResponsiveBreakpoints.of(context).largerOrEqualTo(DESKTOP);
+
+    if (doExpand) {
+      setState(() => _focusChannel = channel);
+      return;
+    }
+    GoRouter.of(context).pushNamed(
+      'chatRoom',
+      pathParameters: {
+        'scope': channel.realm?.alias ?? 'global',
+        'alias': channel.alias,
+      },
+    ).then((value) {
+      if (mounted) {
+        _unreadCounts?[channel.id] = 0;
+        setState(() => _unreadCounts?[channel.id] = 0);
+        _refreshChannels(noRemote: true);
+      }
+    });
   }
 
   @override
@@ -285,23 +308,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               ?.avatar,
                         ),
                         onTap: () {
-                          if (doExpand) {
-                            setState(() => _focusChannel = channel);
-                            return;
-                          }
-                          GoRouter.of(context).pushNamed(
-                            'chatRoom',
-                            pathParameters: {
-                              'scope': channel.realm?.alias ?? 'global',
-                              'alias': channel.alias,
-                            },
-                          ).then((value) {
-                            if (mounted) {
-                              _unreadCounts?[channel.id] = 0;
-                              setState(() => _unreadCounts?[channel.id] = 0);
-                              _refreshChannels(noRemote: true);
-                            }
-                          });
+                          _onTapChannel(channel);
                         },
                       );
                     }
@@ -319,10 +326,43 @@ class _ChatScreenState extends State<ChatScreen> {
                         ],
                       ),
                       subtitle: lastMessage != null
-                          ? Text(
-                              '${ud.getAccountFromCache(lastMessage.sender.accountId)?.nick}: ${lastMessage.body['text'] ?? 'Unable preview'}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          ? Row(
+                              children: [
+                                Badge(
+                                  label: Text(ud
+                                          .getAccountFromCache(
+                                              lastMessage.sender.accountId)
+                                          ?.nick ??
+                                      'unknown'.tr()),
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                ),
+                                const Gap(6),
+                                Expanded(
+                                  child: Text(
+                                    lastMessage.body['text'] ??
+                                        'Unable preview',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Text(
+                                  DateFormat(
+                                    lastMessage.createdAt.toLocal().day ==
+                                            DateTime.now().day
+                                        ? 'HH:mm'
+                                        : lastMessage.createdAt
+                                                    .toLocal()
+                                                    .year ==
+                                                DateTime.now().year
+                                            ? 'MM/dd'
+                                            : 'yy/MM/dd',
+                                  ).format(lastMessage.createdAt.toLocal()),
+                                  style: GoogleFonts.robotoMono(
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             )
                           : Text(
                               channel.description,
@@ -332,7 +372,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 16),
                       leading: AccountImage(
-                        content: null,
+                        content: channel.realm?.avatar,
                         fallbackWidget: const Icon(Symbols.chat, size: 20),
                       ),
                       onTap: () {
@@ -341,18 +381,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           setState(() => _focusChannel = channel);
                           return;
                         }
-                        GoRouter.of(context).pushNamed(
-                          'chatRoom',
-                          pathParameters: {
-                            'scope': channel.realm?.alias ?? 'global',
-                            'alias': channel.alias,
-                          },
-                        ).then((value) {
-                          if (mounted) {
-                            setState(() => _unreadCounts?[channel.id] = 0);
-                            _refreshChannels(noRemote: true);
-                          }
-                        });
+                        _onTapChannel(channel);
                       },
                     );
                   },
