@@ -719,6 +719,7 @@
   "stickersNewDescription": "Create a new sticker belongs to this pack.",
   "stickersPackNew": "New Sticker Pack",
   "trayMenuShow": "Show",
+  "trayMenuMuteNotification": "Do Not Disturb",
   "update": "Update",
   "forceUpdate": "Force Update",
   "forceUpdateDescription": "Force to show the application update popup, even the new version is not available."

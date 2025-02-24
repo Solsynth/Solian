@@ -717,6 +717,7 @@
   "stickersNewDescription": "创建一个新的贴图。",
   "stickersPackNew": "新建贴图包",
   "trayMenuShow": "显示",
+  "trayMenuMuteNotification": "静音通知",
   "update": "更新",
   "forceUpdate": "强制更新",
   "forceUpdateDescription": "强制更新应用程序，即使有更新的版本可能不可用。"

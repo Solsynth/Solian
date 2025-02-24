@@ -79,6 +79,7 @@ class NotificationProvider extends ChangeNotifier {
   List<SnNotification> notifications = List.empty(growable: true);
 
   int? skippableNotifyChannel;
+  bool isMuted = false;
 
   void listen() {
     _ws.pk.stream.listen((event) {
@@ -107,7 +108,7 @@ class NotificationProvider extends ChangeNotifier {
         notifyListeners();
         updateTray();
 
-        if (!kIsWeb) {
+        if (!kIsWeb && !isMuted) {
           if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
             LocalNotification notify = LocalNotification(
               title: notification.title,

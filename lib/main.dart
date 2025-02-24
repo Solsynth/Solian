@@ -333,6 +333,31 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     }
   }
 
+  final Menu _appTrayMenu = Menu(
+    items: [
+      MenuItem(
+        key: 'version_label',
+        label: 'Solian',
+        disabled: true,
+      ),
+      MenuItem.separator(),
+      MenuItem.checkbox(
+        checked: false,
+        key: 'mute_notification',
+        label: 'trayMenuMuteNotification'.tr(),
+      ),
+      MenuItem.separator(),
+      MenuItem(
+        key: 'window_show',
+        label: 'trayMenuShow'.tr(),
+      ),
+      MenuItem(
+        key: 'exit',
+        label: 'trayMenuExit'.tr(),
+      ),
+    ],
+  );
+
   Future<void> _trayInitialization() async {
     if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
 
@@ -344,25 +369,13 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     trayManager.addListener(this);
     await trayManager.setIcon(icon);
 
-    Menu menu = Menu(
-      items: [
-        MenuItem(
-          key: 'version_label',
-          label: 'Solian ${appVersion.version}+${appVersion.buildNumber}',
-          disabled: true,
-        ),
-        MenuItem.separator(),
-        MenuItem(
-          key: 'window_show',
-          label: 'trayMenuShow'.tr(),
-        ),
-        MenuItem(
-          key: 'exit',
-          label: 'trayMenuExit'.tr(),
-        ),
-      ],
+    _appTrayMenu.items![0] = MenuItem(
+      key: 'version_label',
+      label: 'Solian ${appVersion.version}+${appVersion.buildNumber}',
+      disabled: true,
     );
-    await trayManager.setContextMenu(menu);
+
+    await trayManager.setContextMenu(_appTrayMenu);
   }
 
   Future<void> _notifyInitialization() async {
@@ -424,8 +437,15 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
     switch (menuItem.key) {
+      case 'mute_notification':
+        final nty = context.read<NotificationProvider>();
+        nty.isMuted = !nty.isMuted;
+        _appTrayMenu.items![2].checked = nty.isMuted;
+        trayManager.setContextMenu(_appTrayMenu);
+        break;
       case 'window_show':
-        appWindow.show();
+        // To prevent the window from being hide after just show on macOS
+        Timer(const Duration(milliseconds: 100), () => appWindow.show());
         break;
       case 'exit':
         _appLifecycleListener?.dispose();
