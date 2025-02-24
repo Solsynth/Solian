@@ -54,14 +54,20 @@ class AccountSettingsScreen extends StatelessWidget {
                 child: DropdownButton2<Locale?>(
                   isExpanded: true,
                   items: [
-                    ...EasyLocalization.of(context)!.supportedLocales.mapIndexed((idx, ele) {
+                    ...EasyLocalization.of(context)!
+                        .supportedLocales
+                        .mapIndexed((idx, ele) {
                       return DropdownMenuItem<Locale?>(
                         value: Locale.parse(ele.toString()),
-                        child: Text('${ele.languageCode}-${ele.countryCode}').fontSize(14),
+                        child: Text('${ele.languageCode}-${ele.countryCode}')
+                            .fontSize(14),
                       );
                     }),
                   ],
-                  value: ua.user?.language != null ? Locale.parse(ua.user!.language) : Locale.parse('en-US'),
+                  value: ua.user?.language != null
+                      ? (Locale.tryParse(ua.user!.language) ??
+                          Locale.parse('en-US'))
+                      : Locale.parse('en-US'),
                   onChanged: (Locale? value) {
                     if (value == null) return;
                     _setAccountLanguage(context, value);
