@@ -41,6 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchWhatsNew() async {
     final sn = context.read<SnNetworkProvider>();
     final resp = await sn.client.get('/cgi/im/whats-new');
+    if (resp.data == null) return;
     final List<dynamic> out = resp.data;
     setState(() {
       _unreadCounts = {for (var v in out) v['channel_id']: v['count']};

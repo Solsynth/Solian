@@ -214,7 +214,7 @@ class ChatMessageController extends ChangeNotifier {
           final idx =
               messages.indexWhere((x) => x.id == message.relatedEventId);
           if (idx != -1) {
-            final newBody = message.body;
+            final newBody = Map<String, dynamic>.from(message.body);
             newBody.remove('related_event');
             messages[idx] = messages[idx].copyWith(
               body: newBody,
