@@ -88,7 +88,8 @@ class NotificationProvider extends ChangeNotifier {
         final doHaptic = _cfg.prefs.getBool(kAppNotifyWithHaptic) ?? true;
         if (doHaptic) HapticFeedback.mediumImpact();
 
-        if (notification.topic == 'messaging.message') {
+        if (notification.topic == 'messaging.message' &&
+            skippableNotifyChannel != null) {
           if (notification.metadata['channel_id'] != null &&
               notification.metadata['channel_id'] == skippableNotifyChannel) {
             return;

@@ -194,9 +194,11 @@ class ChatMessageController extends ChangeNotifier {
           channelId: channel!.id,
           createdAt: Value(message.createdAt),
         ),
-        onConflict: DoUpdate((_) => SnLocalChatMessageCompanion.custom(
-              content: Constant(jsonEncode(message.toJson())),
-            )),
+        onConflict: DoUpdate(
+          (_) => SnLocalChatMessageCompanion.custom(
+            content: Constant(jsonEncode(message.toJson())),
+          ),
+        ),
       );
     } else {
       incomeStrandedQueue.add(message);
@@ -218,15 +220,15 @@ class ChatMessageController extends ChangeNotifier {
               body: newBody,
               updatedAt: message.updatedAt,
             );
-            if (message.relatedEventId != null) {
-              await (_dt.db.snLocalChatMessage.update()
-                    ..where((e) => e.id.equals(message.relatedEventId!)))
-                  .write(
-                SnLocalChatMessageCompanion.custom(
-                  content: Constant(jsonEncode(messages[idx].toJson())),
-                ),
-              );
-            }
+          }
+          if (message.relatedEventId != null) {
+            await (_dt.db.snLocalChatMessage.update()
+                  ..where((e) => e.id.equals(message.relatedEventId!)))
+                .write(
+              SnLocalChatMessageCompanion.custom(
+                content: Constant(jsonEncode(messages[idx].toJson())),
+              ),
+            );
           }
         }
       case 'messages.delete':
