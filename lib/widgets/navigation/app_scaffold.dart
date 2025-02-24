@@ -188,29 +188,16 @@ class AppRootScaffold extends StatelessWidget {
                             child: Text(
                               'Solar Network',
                               style: GoogleFonts.spaceGrotesk(),
-                              textAlign: !kIsWeb
-                                  ? Platform.isMacOS
-                                      ? TextAlign.center
-                                      : null
-                                  : null,
                             ).padding(horizontal: 12, vertical: 5),
                           ),
                           if (!Platform.isMacOS)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Expanded(child: MoveWindow()),
-                                Row(
-                                  children: [
-                                    MinimizeWindowButton(
-                                        colors: windowButtonColor),
-                                    MaximizeWindowButton(
-                                        colors: windowButtonColor),
-                                    CloseWindowButton(
-                                        colors: windowButtonColor),
-                                  ],
-                                ),
-                              ],
+                            MinimizeWindowButton(colors: windowButtonColor),
+                          if (!Platform.isMacOS)
+                            MaximizeWindowButton(colors: windowButtonColor),
+                          if (!Platform.isMacOS)
+                            CloseWindowButton(
+                              colors: windowButtonColor,
+                              onPressed: () => appWindow.hide(),
                             ),
                         ],
                       ),
@@ -226,16 +213,18 @@ class AppRootScaffold extends StatelessWidget {
               child: NotifyIndicator()),
           if (ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE))
             Positioned(
-                bottom: safeBottom > 0 ? safeBottom : 16,
-                left: 0,
-                right: 0,
-                child: ConnectionIndicator())
+              bottom: safeBottom > 0 ? safeBottom : 16,
+              left: 0,
+              right: 0,
+              child: ConnectionIndicator(),
+            )
           else
             Positioned(
-                top: safeTop > 0 ? safeTop : 16,
-                left: 0,
-                right: 0,
-                child: ConnectionIndicator()),
+              top: safeTop > 0 ? safeTop : 16,
+              left: 0,
+              right: 0,
+              child: ConnectionIndicator(),
+            ),
         ],
       ),
       drawer: !isExpandedDrawer ? AppNavigationDrawer() : null,

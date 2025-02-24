@@ -369,7 +369,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
 
     await localNotifier.setup(
-      appName: 'solian',
+      appName: 'Solian',
       shortcutPolicy: ShortcutPolicy.requireCreate,
     );
   }
@@ -429,7 +429,11 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
         break;
       case 'exit':
         _appLifecycleListener?.dispose();
-        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+        if (Platform.isWindows) {
+          appWindow.close();
+        } else {
+          SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+        }
         break;
     }
   }
