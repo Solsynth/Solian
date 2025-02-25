@@ -1,6 +1,7 @@
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_latex/flutter_markdown_latex.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:markdown/markdown.dart' as markdown;
@@ -72,11 +73,14 @@ class MarkdownTextContent extends StatelessWidget {
         ),
         code: GoogleFonts.robotoMono(height: 1),
       ),
-      builders: {},
+      builders: {
+        'latex': LatexElementBuilder(),
+      },
       softLineBreak: true,
       extensionSet: markdown.ExtensionSet(
         <markdown.BlockSyntax>[
           markdown.CodeBlockSyntax(),
+          LatexBlockSyntax(),
           ...markdown.ExtensionSet.gitHubFlavored.blockSyntaxes,
         ],
         <markdown.InlineSyntax>[
@@ -86,6 +90,7 @@ class MarkdownTextContent extends StatelessWidget {
           markdown.AutolinkSyntax(),
           markdown.AutolinkExtensionSyntax(),
           markdown.CodeSyntax(),
+          LatexInlineSyntax(),
           ...markdown.ExtensionSet.gitHubFlavored.inlineSyntaxes
         ],
       ),
