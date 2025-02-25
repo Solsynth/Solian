@@ -290,10 +290,34 @@ class _ChatScreenState extends State<ChatScreen> {
                           ],
                         ),
                         subtitle: lastMessage != null
-                            ? Text(
-                                '${ud.getAccountFromCache(lastMessage.sender.accountId)?.nick}: ${lastMessage.body['text'] ?? 'Unable preview'}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                            ? Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      lastMessage.body['text'] ??
+                                          'Unable preview',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const Gap(4),
+                                  Text(
+                                    DateFormat(
+                                      lastMessage.createdAt.toLocal().day ==
+                                              DateTime.now().day
+                                          ? 'HH:mm'
+                                          : lastMessage.createdAt
+                                                      .toLocal()
+                                                      .year ==
+                                                  DateTime.now().year
+                                              ? 'MM/dd'
+                                              : 'yy/MM/dd',
+                                    ).format(lastMessage.createdAt.toLocal()),
+                                    style: GoogleFonts.robotoMono(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
                               )
                             : Text(
                                 channel.description,
@@ -336,6 +360,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'unknown'.tr()),
                                   backgroundColor:
                                       Theme.of(context).colorScheme.primary,
+                                  textColor:
+                                      Theme.of(context).colorScheme.onPrimary,
                                 ),
                                 const Gap(6),
                                 Expanded(
@@ -346,6 +372,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
+                                const Gap(4),
                                 Text(
                                   DateFormat(
                                     lastMessage.createdAt.toLocal().day ==
