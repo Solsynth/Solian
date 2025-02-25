@@ -29,6 +29,7 @@ const Map<String, IconData> kNotificationTopicIcons = {
   'passport.security.otp': Symbols.password,
   'interactive.subscription': Symbols.subscriptions,
   'interactive.feedback': Symbols.add_reaction,
+  'interactive.reply': Symbols.reply,
   'messaging.callStart': Symbols.call_received,
   'wallet.transaction.new': Symbols.receipt,
 };
@@ -57,10 +58,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
     try {
       final sn = context.read<SnNetworkProvider>();
       final nty = context.read<NotificationProvider>();
-      final resp = await sn.client.get('/cgi/id/notifications?take=10');
+      final resp =
+          await sn.client.get('/cgi/id/notifications', queryParameters: {
+        'take': 10,
+        'offset': _notifications.length,
+      });
       _totalCount = resp.data['count'];
       _notifications.addAll(
-        resp.data['data']?.map((e) => SnNotification.fromJson(e)).cast<SnNotification>() ?? [],
+        resp.data['data']
+                ?.map((e) => SnNotification.fromJson(e))
+                .cast<SnNotification>() ??
+            [],
       );
       nty.updateTray();
     } catch (err) {
@@ -186,7 +194,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   _fetchNotifications();
                 },
                 isLoading: _isBusy,
-                hasReachedMax: _totalCount != null && _notifications.length >= _totalCount!,
+                hasReachedMax: _totalCount != null &&
+                    _notifications.length >= _totalCount!,
                 itemBuilder: (context, idx) {
                   final nty = _notifications[idx];
                   return Row(
@@ -218,13 +227,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 isAutoWarp: true,
                               ),
                             ),
-                            if (['interactive.reply', 'interactive.feedback', 'interactive.subscription']
-                                    .contains(nty.topic) &&
+                            if ([
+                                  'interactive.reply',
+                                  'interactive.feedback',
+                                  'interactive.subscription'
+                                ].contains(nty.topic) &&
                                 nty.metadata['related_post'] != null)
                               GestureDetector(
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(8)),
                                     border: Border.all(
                                       color: Theme.of(context).dividerColor,
                                       width: 1,
@@ -243,7 +256,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                   GoRouter.of(context).pushNamed(
                                     'postDetail',
                                     pathParameters: {
-                                      'slug': nty.metadata['related_post']!['id'].toString(),
+                                      'slug': nty
+                                          .metadata['related_post']!['id']
+                                          .toString(),
                                     },
                                   );
                                 },
@@ -272,8 +287,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       IconButton(
                         icon: const Icon(Symbols.check),
                         padding: EdgeInsets.all(0),
-                        visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-                        onPressed: _isSubmitting ? null : () => _markOneAsRead(nty),
+                        visualDensity:
+                            const VisualDensity(horizontal: -4, vertical: -4),
+                        onPressed:
+                            _isSubmitting ? null : () => _markOneAsRead(nty),
                       ),
                     ],
                   ).padding(horizontal: 16);
