@@ -179,7 +179,9 @@ class _StickerScreenState extends State<StickerScreen>
           child: InfiniteList(
             itemCount: _packs.length,
             onFetchData: _fetchPacks,
-            hasReachedMax: _totalCount != null && _packs.length >= _totalCount!,
+            hasReachedMax:
+                (_totalCount != null && _packs.length >= _totalCount!) ||
+                    _tabController.index == 2,
             isLoading: _isBusy,
             itemBuilder: (context, idx) {
               final pack = _packs[idx];
