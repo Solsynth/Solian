@@ -11,6 +11,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
+import 'package:surface/screens/account/profile_page.dart';
 import 'package:surface/types/chat.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/account/account_popover.dart';
@@ -105,6 +106,22 @@ class ChatMessage extends StatelessWidget {
                     GestureDetector(
                       child: AccountImage(
                         content: user?.avatar,
+                        badge: (user?.badges.isNotEmpty ?? false)
+                            ? Icon(
+                                kBadgesMeta[user!.badges.first.type]?.$2 ??
+                                    Symbols.question_mark,
+                                color: kBadgesMeta[user!.badges.first.type]?.$3,
+                                fill: 1,
+                                size: 18,
+                                shadows: [
+                                  Shadow(
+                                    offset: Offset(1, 1),
+                                    blurRadius: 5.0,
+                                    color: Color.fromARGB(150, 0, 0, 0),
+                                  ),
+                                ],
+                              )
+                            : null,
                       ),
                       onTap: () {
                         if (user == null) return;

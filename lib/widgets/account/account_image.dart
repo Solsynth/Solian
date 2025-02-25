@@ -10,6 +10,7 @@ class AccountImage extends StatelessWidget {
   final Color? foregroundColor;
   final double? radius;
   final Widget? fallbackWidget;
+  final Widget? badge;
 
   const AccountImage({
     super.key,
@@ -18,6 +19,7 @@ class AccountImage extends StatelessWidget {
     this.foregroundColor,
     this.radius,
     this.fallbackWidget,
+    this.badge,
   });
 
   @override
@@ -26,26 +28,36 @@ class AccountImage extends StatelessWidget {
     final url = sn.getAttachmentUrl(content ?? '');
 
     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-    return CircleAvatar(
-      key: Key('attachment-${content.hashCode}'),
-      radius: radius,
-      backgroundColor: backgroundColor,
-      backgroundImage: (content?.isNotEmpty ?? false)
-          ? ResizeImage(
-              UniversalImage.provider(url),
-              width: ((radius ?? 20) * devicePixelRatio * 2).round(),
-              height: ((radius ?? 20) * devicePixelRatio * 2).round(),
-              policy: ResizeImagePolicy.fit,
-            )
-          : null,
-      child: (content?.isEmpty ?? true)
-          ? (fallbackWidget ??
-              Icon(
-                Symbols.account_circle,
-                size: radius != null ? radius! * 1.2 : 24,
-                color: foregroundColor,
-              ))
-          : null,
+    return Stack(
+      children: [
+        CircleAvatar(
+          key: Key('attachment-${content.hashCode}'),
+          radius: radius,
+          backgroundColor: backgroundColor,
+          backgroundImage: (content?.isNotEmpty ?? false)
+              ? ResizeImage(
+                  UniversalImage.provider(url),
+                  width: ((radius ?? 20) * devicePixelRatio * 2).round(),
+                  height: ((radius ?? 20) * devicePixelRatio * 2).round(),
+                  policy: ResizeImagePolicy.fit,
+                )
+              : null,
+          child: (content?.isEmpty ?? true)
+              ? (fallbackWidget ??
+                  Icon(
+                    Symbols.account_circle,
+                    size: radius != null ? radius! * 1.2 : 24,
+                    color: foregroundColor,
+                  ))
+              : null,
+        ),
+        if (badge != null)
+          Positioned(
+            right: -4,
+            bottom: -4,
+            child: badge!,
+          ),
+      ],
     );
   }
 }
