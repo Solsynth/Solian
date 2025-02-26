@@ -129,6 +129,7 @@ dependencies:
   drift_flutter: ^0.2.4
   local_notifier: ^0.1.6
   flutter_markdown_latex: ^0.3.4
+  flutter_highlight: ^0.7.0
 
 dev_dependencies:
   flutter_test:

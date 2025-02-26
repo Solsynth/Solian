@@ -1,5 +1,7 @@
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/theme_map.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_markdown_latex/flutter_markdown_latex.dart';
 import 'package:go_router/go_router.dart';
@@ -75,15 +77,18 @@ class MarkdownTextContent extends StatelessWidget {
       ),
       builders: {
         'latex': LatexElementBuilder(),
+        'code': HighlightBuilder(),
       },
       softLineBreak: true,
       extensionSet: markdown.ExtensionSet(
         <markdown.BlockSyntax>[
-          markdown.CodeBlockSyntax(),
-          LatexBlockSyntax(),
           ...markdown.ExtensionSet.gitHubFlavored.blockSyntaxes,
+          markdown.CodeBlockSyntax(),
+          markdown.FencedCodeBlockSyntax(),
+          LatexBlockSyntax(),
         ],
         <markdown.InlineSyntax>[
+          ...markdown.ExtensionSet.gitHubFlavored.inlineSyntaxes,
           if (isAutoWarp) markdown.LineBreakSyntax(),
           _UserNameCardInlineSyntax(),
           _CustomEmoteInlineSyntax(context),
@@ -91,7 +96,6 @@ class MarkdownTextContent extends StatelessWidget {
           markdown.AutolinkExtensionSyntax(),
           markdown.CodeSyntax(),
           LatexInlineSyntax(),
-          ...markdown.ExtensionSet.gitHubFlavored.inlineSyntaxes
         ],
       ),
       onTapLink: (text, href, title) async {
@@ -263,5 +267,58 @@ class _CustomEmoteInlineSyntax extends markdown.InlineSyntax {
     parser.addNode(element);
 
     return true;
+  }
+}
+
+class HighlightBuilder extends MarkdownElementBuilder {
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    markdown.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (element.attributes['class'] == null &&
+        !element.textContent.trim().contains('\n')) {
+      return Container(
+          padding:
+              EdgeInsets.only(top: 0.0, right: 4.0, bottom: 1.75, left: 4.0),
+          margin: EdgeInsets.symmetric(horizontal: 2.0),
+          color: Colors.black12,
+          child: Text(
+            element.textContent,
+            style: GoogleFonts.robotoMono(textStyle: preferredStyle),
+          ));
+    } else {
+      var language = 'plaintext';
+      final pattern = RegExp(r'^language-(.+)$');
+      if (element.attributes['class'] != null &&
+          pattern.hasMatch(element.attributes['class'] ?? '')) {
+        language =
+            pattern.firstMatch(element.attributes['class'] ?? '')?.group(1) ??
+                'plaintext';
+      }
+      return ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: HighlightView(
+          element.textContent.trim(),
+          language: language,
+          theme: {
+            ...(isDark ? themeMap['a11y-dark']! : themeMap['a11y-light']!),
+            'root': (isDark
+                ? TextStyle(
+                    backgroundColor: Colors.transparent,
+                    color: Color(0xfff8f8f2))
+                : TextStyle(
+                    backgroundColor: Colors.transparent,
+                    color: Color(0xff545454)))
+          },
+          padding: EdgeInsets.all(12),
+          textStyle: GoogleFonts.robotoMono(textStyle: preferredStyle),
+        ),
+      );
+    }
   }
 }

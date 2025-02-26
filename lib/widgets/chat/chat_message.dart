@@ -110,7 +110,7 @@ class ChatMessage extends StatelessWidget {
                             ? Icon(
                                 kBadgesMeta[user!.badges.first.type]?.$2 ??
                                     Symbols.question_mark,
-                                color: kBadgesMeta[user!.badges.first.type]?.$3,
+                                color: kBadgesMeta[user.badges.first.type]?.$3,
                                 fill: 1,
                                 size: 18,
                                 shadows: [
