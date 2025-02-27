@@ -133,7 +133,8 @@ extension AppPromptExtension on BuildContext {
                     ),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
-                        launchUrlString('https://kb.solsynth.dev/solar-network');
+                        launchUrlString(
+                            'https://kb.solsynth.dev/solar-network');
                       },
                   ),
                 ],
@@ -157,7 +158,17 @@ extension ByteFormatter on int {
     if (this == 0) return '0 Bytes';
     const k = 1024;
     final dm = decimals < 0 ? 0 : decimals;
-    final sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+    final sizes = [
+      'Bytes',
+      'KiB',
+      'MiB',
+      'GiB',
+      'TiB',
+      'PiB',
+      'EiB',
+      'ZiB',
+      'YiB'
+    ];
     final i = (math.log(this) / math.log(k)).floor().toInt();
     return '${(this / math.pow(k, i)).toStringAsFixed(dm)} ${sizes[i]}';
   }
@@ -166,5 +177,16 @@ extension ByteFormatter on int {
 extension StringFormatter on String {
   String capitalize() {
     return "${this[0].toUpperCase()}${substring(1)}";
+  }
+
+  String capitalizeEachWord() {
+    if (isEmpty) {
+      return this;
+    }
+    return split(' ')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1)}'
+            : '')
+        .join(' ');
   }
 }

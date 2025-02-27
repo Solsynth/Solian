@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/link.dart';
 
@@ -20,7 +20,7 @@ class SnLinkPreviewProvider {
     final target = b64.encode(url);
     if (_cache.containsKey(target)) return _cache[target];
 
-    log('[LinkPreview] Fetching $url ($target)');
+    logging.debug('[LinkPreview] Fetching $url ($target)');
 
     try {
       final resp = await _sn.client.get('/cgi/re/link/$target');
@@ -28,7 +28,7 @@ class SnLinkPreviewProvider {
       _cache[url] = meta;
       return meta;
     } catch (err) {
-      log('[LinkPreview] Failed to fetch $url ($target)...');
+      logging.warning('[LinkPreview] Failed to fetch $url ($target)...', err);
       return null;
     }
   }

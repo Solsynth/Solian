@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/websocket.dart';
@@ -30,7 +30,7 @@ class WebSocketProvider extends ChangeNotifier {
     if (isConnected) return;
     if (!_ua.isAuthorized) return;
 
-    log('[WebSocket] Connecting to the server...');
+    logging.debug('[WebSocket] Connecting to the server...');
     await connect();
   }
 
@@ -62,17 +62,14 @@ class WebSocketProvider extends ChangeNotifier {
       await conn!.ready;
       _wsStream = conn!.stream.asBroadcastStream();
       listen();
-      log('[WebSocket] Connected to server!');
+      logging.info('[WebSocket] Connected to server!');
       isConnected = true;
     } catch (err) {
-      if (err is WebSocketChannelException) {
-        log('Failed to connect to websocket: ${(err.inner as dynamic).message}');
-      } else {
-        log('Failed to connect to websocket: $err');
-      }
+      logging.error('[WebSocket] Failed to connect to websocket...', err);
 
       if (!noRetry) {
-        log('Retry connecting to websocket in 3 seconds...');
+        logging.warning(
+            '[WebSocket] Retry connecting to websocket in 3 seconds...');
         return Future.delayed(
           const Duration(seconds: 3),
           () => connect(noRetry: true),
@@ -100,7 +97,8 @@ class WebSocketProvider extends ChangeNotifier {
     _wsStream!.listen(
       (event) {
         final packet = WebSocketPackage.fromJson(jsonDecode(event));
-        log('Websocket incoming message: ${packet.method} ${packet.message}');
+        logging.debug(
+            '[Websocket] Incoming message: ${packet.method} ${packet.message}');
         pk.sink.add(packet);
       },
       onDone: () {

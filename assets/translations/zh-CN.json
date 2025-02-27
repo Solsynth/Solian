@@ -728,5 +728,6 @@
   "forceUpdateDescription": "强制更新应用程序，即使有更新的版本可能不可用。",
   "runtimeLogs": "运行时日志",
   "runtimeLogsOpen": "打开日志文件",
-  "runtimeLogsDescription": "显示运行时的日志记录。"
+  "runtimeLogsDescription": "显示运行时的日志记录。",
+  "signinResetPasswordHint": "请输入用户名/电子邮箱地址以帮助我们找到您的帐户并重置密码。"
 }

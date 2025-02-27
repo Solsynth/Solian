@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:cross_file/cross_file.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -8,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/controllers/post_write_controller.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:video_compress/video_compress.dart';
 
@@ -17,10 +17,12 @@ class PendingVideoCompressDialog extends StatefulWidget {
   const PendingVideoCompressDialog({super.key, required this.media});
 
   @override
-  State<PendingVideoCompressDialog> createState() => _PendingVideoCompressDialogState();
+  State<PendingVideoCompressDialog> createState() =>
+      _PendingVideoCompressDialogState();
 }
 
-class _PendingVideoCompressDialogState extends State<PendingVideoCompressDialog> {
+class _PendingVideoCompressDialogState
+    extends State<PendingVideoCompressDialog> {
   VideoQuality _quality = VideoQuality.DefaultQuality;
 
   bool _isBusy = false;
@@ -50,7 +52,7 @@ class _PendingVideoCompressDialogState extends State<PendingVideoCompressDialog>
   void initState() {
     super.initState();
     _progressSubscription = VideoCompress.compressProgress$.subscribe((event) {
-      log('[Compress] Progress: $event');
+      logging.debug('[Paperclip.VideoCompress] Progress: $event');
       setState(() {
         _progress = event / 100;
         _isBusy = event < 100;
@@ -132,7 +134,9 @@ class _PendingVideoCompressDialogState extends State<PendingVideoCompressDialog>
             ),
           ),
           const Gap(8),
-          Text('attachmentCompressQualityHint', style: Theme.of(context).textTheme.bodySmall!).tr(),
+          Text('attachmentCompressQualityHint',
+                  style: Theme.of(context).textTheme.bodySmall!)
+              .tr(),
           if (_isBusy)
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: _progress ?? 0),

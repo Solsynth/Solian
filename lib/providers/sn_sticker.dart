@@ -1,7 +1,6 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/attachment.dart';
 
@@ -51,7 +50,7 @@ class SnStickerProvider {
       return sticker;
     } catch (err) {
       _cache[alias] = null;
-      log('[Sticker] Failed to lookup sticker $alias: $err');
+      logging.warning('[Sticker] Failed to lookup sticker $alias', err);
     }
 
     return null;
@@ -66,7 +65,7 @@ class SnStickerProvider {
         _cacheSticker(sticker);
       }
     } catch (err) {
-      log('[Sticker] Failed to list stickers: $err');
+      logging.error('[Sticker] Failed to list stickers...', err);
       rethrow;
     }
   }

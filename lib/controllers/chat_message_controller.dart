@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
@@ -8,6 +7,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:surface/database/database.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/providers/database.dart';
 import 'package:surface/providers/sn_attachment.dart';
 import 'package:surface/providers/sn_network.dart';
@@ -532,7 +532,7 @@ class ChatMessageController extends ChangeNotifier {
         },
       ).toJson(),
     ));
-    log('[Messaging] Send read event request: $_readEventAnchor');
+    logging.debug('[Messaging] Send read event request: $_readEventAnchor');
   }
 
   @override

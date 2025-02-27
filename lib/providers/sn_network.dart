@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -11,9 +10,12 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/widget.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
+import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 
 const kNetworkServerDirectory = [
   ('Solar Network', 'https://api.sn.solsynth.dev'),
@@ -35,6 +37,17 @@ class SnNetworkProvider {
     _home = context.read<HomeWidgetProvider>();
 
     client = Dio();
+
+    client.interceptors.add(
+      TalkerDioLogger(
+        talker: logging,
+        settings: const TalkerDioLoggerSettings(
+          printRequestHeaders: false,
+          printResponseHeaders: false,
+          printResponseMessage: true,
+        ),
+      ),
+    );
 
     client.interceptors.add(RetryInterceptor(
       dio: client,
@@ -69,7 +82,6 @@ class SnNetworkProvider {
       _prefs = _config.prefs;
       client.options.baseUrl = _config.serverUrl;
     });
-
   }
 
   static Future<Dio> createOffContextClient() async {
@@ -91,7 +103,8 @@ class SnNetworkProvider {
           RequestOptions options,
           RequestInterceptorHandler handler,
         ) async {
-          final atk = await _getFreshAtk(client, prefs.getString(kAtkStoreKey), prefs.getString(kRtkStoreKey), (atk, rtk) {
+          final atk = await _getFreshAtk(client, prefs.getString(kAtkStoreKey),
+              prefs.getString(kRtkStoreKey), (atk, rtk) {
             prefs.setString(kAtkStoreKey, atk);
             prefs.setString(kRtkStoreKey, rtk);
           });
@@ -103,7 +116,8 @@ class SnNetworkProvider {
         },
       ),
     );
-    client.options.baseUrl = prefs.getString(kNetworkServerStoreKey) ?? kNetworkServerDefault;
+    client.options.baseUrl =
+        prefs.getString(kNetworkServerStoreKey) ?? kNetworkServerDefault;
 
     return client;
   }
@@ -119,7 +133,8 @@ class SnNetworkProvider {
       platformInfo = 'Web; ${deviceInfo.vendor}';
     } else if (Platform.isAndroid) {
       final deviceInfo = await DeviceInfoPlugin().androidInfo;
-      platformInfo = 'Android; ${deviceInfo.brand} ${deviceInfo.model}; ${deviceInfo.id}';
+      platformInfo =
+          'Android; ${deviceInfo.brand} ${deviceInfo.model}; ${deviceInfo.id}';
     } else if (Platform.isIOS) {
       final deviceInfo = await DeviceInfoPlugin().iosInfo;
       platformInfo = 'iOS; ${deviceInfo.model}; ${deviceInfo.name}';
@@ -128,7 +143,8 @@ class SnNetworkProvider {
       platformInfo = 'MacOS; ${deviceInfo.model}; ${deviceInfo.hostName}';
     } else if (Platform.isWindows) {
       final deviceInfo = await DeviceInfoPlugin().windowsInfo;
-      platformInfo = 'Windows NT; ${deviceInfo.productName}; ${deviceInfo.computerName}';
+      platformInfo =
+          'Windows NT; ${deviceInfo.productName}; ${deviceInfo.computerName}';
     } else if (Platform.isLinux) {
       final deviceInfo = await DeviceInfoPlugin().linuxInfo;
       platformInfo = 'Linux; ${deviceInfo.prettyName}';
@@ -148,12 +164,15 @@ class SnNetworkProvider {
   final tkLock = Lock();
 
   Future<String?> getFreshAtk() async {
-    return await _getFreshAtk(client, _prefs.getString(kAtkStoreKey), _prefs.getString(kRtkStoreKey), (atk, rtk) {
+    return await _getFreshAtk(
+        client, _prefs.getString(kAtkStoreKey), _prefs.getString(kRtkStoreKey),
+        (atk, rtk) {
       setTokenPair(atk, rtk);
     });
   }
 
-  static Future<String?> _getFreshAtk(Dio client, String? atk, String? rtk, Function(String atk, String rtk)? onRefresh) async {
+  static Future<String?> _getFreshAtk(Dio client, String? atk, String? rtk,
+      Function(String atk, String rtk)? onRefresh) async {
     if (_refreshCompleter != null) {
       return await _refreshCompleter!.future;
     } else {
@@ -185,7 +204,8 @@ class SnNetworkProvider {
         final payload = b64.decode(rawPayload);
         final exp = jsonDecode(payload)['exp'];
         if (exp <= DateTime.now().millisecondsSinceEpoch ~/ 1000) {
-          log('Access token need refresh, doing it at ${DateTime.now()}');
+          logging.debug(
+              '[Auth] Access token need refresh, doing it at ${DateTime.now()}');
           final result = await _refreshToken(client.options.baseUrl, rtk);
           if (result == null) {
             atk = null;
@@ -199,12 +219,12 @@ class SnNetworkProvider {
           _refreshCompleter!.complete(atk);
           return atk;
         } else {
-          log('Access token refresh failed...');
+          logging.error('[Auth] Access token refresh failed...');
           _refreshCompleter!.complete(null);
         }
       }
     } catch (err) {
-      log('Failed to authenticate user: $err');
+      logging.error('[Auth] Failed to authenticate user...', err);
       _refreshCompleter!.completeError(err);
     } finally {
       _refreshCompleter = null;
@@ -237,7 +257,8 @@ class SnNetworkProvider {
     return result.$1;
   }
 
-  static Future<(String, String)?> _refreshToken(String baseUrl, String? rtk) async {
+  static Future<(String, String)?> _refreshToken(
+      String baseUrl, String? rtk) async {
     if (rtk == null) return null;
 
     final dio = Dio();

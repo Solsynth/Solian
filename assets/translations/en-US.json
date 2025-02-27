@@ -730,5 +730,6 @@
   "forceUpdateDescription": "Force to show the application update popup, even the new version is not available.",
   "debugLogging": "Runtime Logs",
   "runtimeLogsOpen": "Open Logs",
-  "runtimeLogsDescription": "Show the runtime logs to help debugging."
+  "runtimeLogsDescription": "Show the runtime logs to help debugging.",
+  "signinResetPasswordHint": "Please enter the username / email address to help us to find your account and reset your password."
 }

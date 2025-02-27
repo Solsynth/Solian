@@ -1,8 +1,7 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/account.dart';
@@ -30,8 +29,8 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
     refreshUser().then((value) async {
       if (value != null) {
-        log('Logged in as @${value.name}');
-        log('Atk: ${await atk}');
+        logging.info('[Auth] Logged in as @${value.name}');
+        logging.debug('[Auth] Access token: ${await atk}');
       }
     });
   }

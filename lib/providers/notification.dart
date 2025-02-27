@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
@@ -9,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_udid/flutter_udid.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:provider/provider.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/userinfo.dart';
@@ -48,11 +48,13 @@ class NotificationProvider extends ChangeNotifier {
     var deviceUuid = await FlutterUdid.consistentUdid;
 
     if (deviceUuid.isEmpty) {
-      log("Unable to active push notifications, couldn't get device uuid");
+      logging.warning(
+          '[Push Notification] Unable to active push notifications, couldn\'t get device uuid');
       return;
     } else {
-      log('Device UUID is $deviceUuid');
-      log('Registering device push notifications...');
+      logging.info('[Push Notification] Device UUID is $deviceUuid');
+      logging
+          .info('[Push Notification] Registering device push notifications...');
     }
 
     if (Platform.isIOS || Platform.isMacOS) {
@@ -62,7 +64,7 @@ class NotificationProvider extends ChangeNotifier {
       provider = 'fcm';
       token = await FirebaseMessaging.instance.getToken();
     }
-    log('Device Push Token is $token');
+    logging.info('[Push Notification] Device Push Token is $token');
 
     await _sn.client.post(
       '/cgi/id/notifications/subscription',
