@@ -201,6 +201,11 @@
     "other": "{} 条评论"
   },
   "settingsAppearance": "外观",
+  "settingsCustomFonts": "自定义字体",
+  "settingsCustomFontsDescription": "设置应用程序使用的字体。",
+  "settingsCustomFontFamily": "应用字体",
+  "settingsCustomFontFamilyHint": "使用英文逗号分割每一种字体，越前优先级越高",
+  "settingsCustomFontApplied": "自定义字体已经应用。",
   "settingsDisplayLanguage": "显示语言",
   "settingsDisplayLanguageDescription": "设置应用程序使用的语言",
   "settingsDisplayLanguageSystem": "跟随系统",

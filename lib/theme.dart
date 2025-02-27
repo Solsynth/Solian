@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surface/providers/config.dart';
 
@@ -13,10 +12,18 @@ class ThemeSet {
 }
 
 Future<ThemeSet> createAppThemeSet(
-    {Color? seedColorOverride, bool? useMaterial3}) async {
+    {Color? seedColorOverride, bool? useMaterial3, String? customFonts}) async {
   return ThemeSet(
-    light: await createAppTheme(Brightness.light, useMaterial3: useMaterial3),
-    dark: await createAppTheme(Brightness.dark, useMaterial3: useMaterial3),
+    light: await createAppTheme(
+      Brightness.light,
+      useMaterial3: useMaterial3,
+      customFonts: customFonts,
+    ),
+    dark: await createAppTheme(
+      Brightness.dark,
+      useMaterial3: useMaterial3,
+      customFonts: customFonts,
+    ),
   );
 }
 
@@ -24,6 +31,7 @@ Future<ThemeData> createAppTheme(
   Brightness brightness, {
   Color? seedColorOverride,
   bool? useMaterial3,
+  String? customFonts,
 }) async {
   final prefs = await SharedPreferences.getInstance();
 
@@ -41,11 +49,17 @@ Future<ThemeData> createAppTheme(
   final useM3 =
       useMaterial3 ?? (prefs.getBool(kMaterialYouToggleStoreKey) ?? true);
 
+  final inUseFonts = (customFonts ?? prefs.getString(kAppCustomFonts))
+      ?.split(',')
+      .map((ele) => ele.trim())
+      .toList();
+
   return ThemeData(
     useMaterial3: useM3,
     colorScheme: colorScheme,
     brightness: brightness,
-    // textTheme: GoogleFonts.rubikTextTheme(),
+    fontFamily: inUseFonts?.firstOrNull,
+    fontFamilyFallback: inUseFonts?.sublist(1),
     iconTheme: IconThemeData(
       fill: 0,
       weight: 400,

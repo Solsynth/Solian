@@ -203,6 +203,11 @@
     "other": "{} comments"
   },
   "settingsAppearance": "Appearance",
+  "settingsCustomFonts": "Custom Fonts",
+  "settingsCustomFontsDescription": "Set custom fonts for the application.",
+  "settingsCustomFontFamily": "Custom Font Family",
+  "settingsCustomFontFamilyHint": "Use comma to separate fonts, higher priority comes first",
+  "settingsCustomFontApplied": "Custom font has been applied.",
   "settingsDisplayLanguage": "Display Language",
   "settingsDisplayLanguageDescription": "Set the application language.",
   "settingsDisplayLanguageSystem": "Follow System",

@@ -48,6 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final SharedPreferences _prefs;
   String _docBasepath = '/';
 
+  final TextEditingController _customFontController = TextEditingController();
   final TextEditingController _serverUrlController = TextEditingController();
 
   @override
@@ -62,11 +63,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final config = context.read<ConfigProvider>();
     _prefs = config.prefs;
     _serverUrlController.text = config.serverUrl;
+    if (_prefs.getString(kAppCustomFonts) != null) {
+      _customFontController.text = _prefs.getString(kAppCustomFonts) ?? '';
+    }
   }
 
   @override
   void dispose() {
     _serverUrlController.dispose();
+    _customFontController.dispose();
     super.dispose();
   }
 
@@ -330,6 +335,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() {});
                   },
                 ),
+                ListTile(
+                  leading: const Icon(Symbols.font_download),
+                  title: Text('settingsCustomFonts').tr(),
+                  subtitle: Text('settingsCustomFontsDescription').tr(),
+                  contentPadding: const EdgeInsets.only(left: 24, right: 14),
+                  trailing: IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _prefs.remove(kAppCustomFonts);
+                      context.showSnackbar('settingsCustomFontApplied'.tr());
+                      final theme = context.read<ThemeProvider>();
+                      _customFontController.clear();
+                      theme.reloadTheme();
+                    },
+                  ),
+                ),
+                TextField(
+                  controller: _customFontController,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    labelText: 'settingsCustomFontFamily'.tr(),
+                    helperText: 'settingsCustomFontFamilyHint'.tr(),
+                    prefixIcon: const Icon(Symbols.format_paint),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Symbols.save),
+                      onPressed: () {
+                        _prefs.setString(
+                          kAppCustomFonts,
+                          _customFontController.text,
+                        );
+                        context.showSnackbar('settingsCustomFontApplied'.tr());
+                        final theme = context.read<ThemeProvider>();
+                        theme.reloadTheme();
+                      },
+                    ),
+                  ),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                ).padding(horizontal: 16, top: 8, bottom: 4),
               ],
             ),
             Column(

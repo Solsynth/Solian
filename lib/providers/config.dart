@@ -18,6 +18,7 @@ const kAppNotifyWithHaptic = 'app_notify_with_haptic';
 const kAppExpandPostLink = 'app_expand_post_link';
 const kAppExpandChatLink = 'app_expand_chat_link';
 const kAppRealmCompactView = 'app_realm_compact_view';
+const kAppCustomFonts = 'app_custom_fonts';
 
 const Map<String, FilterQuality> kImageQualityLevel = {
   'settingsImageQualityLowest': FilterQuality.none,

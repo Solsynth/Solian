@@ -13,8 +13,16 @@ class ThemeProvider extends ChangeNotifier {
     });
   }
 
-  void reloadTheme({Color? seedColorOverride, bool? useMaterial3}) {
-    createAppThemeSet(seedColorOverride: seedColorOverride, useMaterial3: useMaterial3).then((value) {
+  void reloadTheme({
+    Color? seedColorOverride,
+    bool? useMaterial3,
+    String? customFonts,
+  }) {
+    createAppThemeSet(
+      seedColorOverride: seedColorOverride,
+      useMaterial3: useMaterial3,
+      customFonts: customFonts,
+    ).then((value) {
       theme = value;
       notifyListeners();
     });
