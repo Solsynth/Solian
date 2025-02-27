@@ -44,7 +44,9 @@ class SnNetworkProvider {
         settings: const TalkerDioLoggerSettings(
           printRequestHeaders: false,
           printResponseHeaders: false,
-          printResponseMessage: true,
+          printResponseMessage: false,
+          printResponseData: false,
+          printRequestData: false,
         ),
       ),
     );

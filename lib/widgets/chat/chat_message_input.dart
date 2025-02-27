@@ -28,7 +28,8 @@ class ChatMessageInput extends StatefulWidget {
   final ChatMessageController controller;
   final SnChannelMember? otherMember;
 
-  const ChatMessageInput({super.key, required this.controller, this.otherMember});
+  const ChatMessageInput(
+      {super.key, required this.controller, this.otherMember});
 
   @override
   State<ChatMessageInput> createState() => ChatMessageInputState();
@@ -45,12 +46,20 @@ class ChatMessageInputState extends State<ChatMessageInput> {
 
   final HotKey _pasteHotKey = HotKey(
     key: PhysicalKeyboardKey.keyV,
-    modifiers: [(!kIsWeb && Platform.isMacOS) ? HotKeyModifier.meta : HotKeyModifier.control],
+    modifiers: [
+      (!kIsWeb && Platform.isMacOS)
+          ? HotKeyModifier.meta
+          : HotKeyModifier.control
+    ],
     scope: HotKeyScope.inapp,
   );
   final HotKey _newLineHotKey = HotKey(
     key: PhysicalKeyboardKey.enter,
-    modifiers: [(!kIsWeb && Platform.isMacOS) ? HotKeyModifier.meta : HotKeyModifier.control],
+    modifiers: [
+      (!kIsWeb && Platform.isMacOS)
+          ? HotKeyModifier.meta
+          : HotKeyModifier.control
+    ],
     scope: HotKeyScope.inapp,
   );
 
@@ -100,7 +109,8 @@ class ChatMessageInputState extends State<ChatMessageInput> {
   void setEdit(SnChatMessage? value) {
     _contentController.text = value?.body['text'] ?? '';
     _attachments.clear();
-    _attachments.addAll(value?.preload?.attachments?.map((e) => PostWriteMedia(e)) ?? []);
+    _attachments.addAll(
+        value?.preload?.attachments?.map((e) => PostWriteMedia(e)) ?? []);
     setState(() => _editingMessage = value);
   }
 
@@ -139,7 +149,9 @@ class ChatMessageInputState extends State<ChatMessageInput> {
           media.name,
           'messaging',
           null,
-          mimetype: media.raw != null && media.type == SnMediaType.image ? 'image/png' : null,
+          mimetype: media.raw != null && media.type == SnMediaType.image
+              ? 'image/png'
+              : null,
         );
 
         final item = await attach.chunkedUploadParts(
@@ -171,7 +183,10 @@ class ChatMessageInputState extends State<ChatMessageInput> {
     widget.controller.sendMessage(
       _editingMessage != null ? 'messages.edit' : 'messages.new',
       _contentController.text,
-      attachments: _attachments.where((e) => e.attachment != null).map((e) => e.attachment!.rid).toList(),
+      attachments: _attachments
+          .where((e) => e.attachment != null)
+          .map((e) => e.attachment!.rid)
+          .toList(),
       relatedId: _editingMessage?.id,
       quoteId: _replyingMessage?.id,
       editingMessage: _editingMessage,
@@ -232,12 +247,15 @@ class ChatMessageInputState extends State<ChatMessageInput> {
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: _progress),
             duration: Duration(milliseconds: 300),
-            builder: (context, value, _) => LinearProgressIndicator(value: value, minHeight: 2),
+            builder: (context, value, _) =>
+                LinearProgressIndicator(value: value, minHeight: 2),
           )
         else if (_isBusy)
           const LinearProgressIndicator(value: null, minHeight: 2),
         Padding(
-          padding: _attachments.isNotEmpty ? const EdgeInsets.only(top: 8) : EdgeInsets.zero,
+          padding: _attachments.isNotEmpty
+              ? const EdgeInsets.only(top: 8)
+              : EdgeInsets.zero,
           child: PostMediaPendingList(
             attachments: _attachments,
             isBusy: _isBusy,
@@ -249,9 +267,8 @@ class ChatMessageInputState extends State<ChatMessageInput> {
             },
             onUpdateBusy: (state) => setState(() => _isBusy = state),
           ),
-        )
-            .height(_attachments.isNotEmpty ? 80 + 8 : 0, animate: true)
-            .animate(const Duration(milliseconds: 300), Curves.fastEaseInToSlowEaseOut),
+        ).height(_attachments.isNotEmpty ? 80 + 8 : 0, animate: true).animate(
+            const Duration(milliseconds: 300), Curves.fastEaseInToSlowEaseOut),
         SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: _replyingMessage != null
@@ -272,7 +289,8 @@ class ChatMessageInputState extends State<ChatMessageInput> {
                       const Gap(8),
                       Expanded(
                         child: Text(
-                          _replyingMessage?.body['text'] ?? '${_replyingMessage?.sender.nick}',
+                          _replyingMessage?.body['text'] ??
+                              '${_replyingMessage?.sender.nick}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -289,9 +307,8 @@ class ChatMessageInputState extends State<ChatMessageInput> {
                   ).padding(vertical: 8),
                 )
               : const SizedBox.shrink(),
-        )
-            .height(_replyingMessage != null ? 38 : 0, animate: true)
-            .animate(const Duration(milliseconds: 300), Curves.fastEaseInToSlowEaseOut),
+        ).height(_replyingMessage != null ? 38 : 0, animate: true).animate(
+            const Duration(milliseconds: 300), Curves.fastEaseInToSlowEaseOut),
         SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: _editingMessage != null
@@ -312,7 +329,8 @@ class ChatMessageInputState extends State<ChatMessageInput> {
                       const Gap(8),
                       Expanded(
                         child: Text(
-                          _editingMessage?.body['text'] ?? '${_editingMessage?.sender.nick}',
+                          _editingMessage?.body['text'] ??
+                              '${_editingMessage?.sender.nick}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -330,12 +348,13 @@ class ChatMessageInputState extends State<ChatMessageInput> {
                   ).padding(vertical: 8),
                 )
               : const SizedBox.shrink(),
-        )
-            .height(_editingMessage != null ? 38 : 0, animate: true)
-            .animate(const Duration(milliseconds: 300), Curves.fastEaseInToSlowEaseOut),
-        SizedBox(
-          height: 56,
+        ).height(_editingMessage != null ? 38 : 0, animate: true).animate(
+            const Duration(milliseconds: 300), Curves.fastEaseInToSlowEaseOut),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          constraints: BoxConstraints(minHeight: 56, maxHeight: 240),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: TextField(
@@ -347,11 +366,14 @@ class ChatMessageInputState extends State<ChatMessageInput> {
                         ? 'fieldChatMessageDirect'.tr(args: [
                             '@${ud.getAccountFromCache(widget.otherMember?.accountId)?.name}',
                           ])
-                        : 'fieldChatMessage'.tr(args: [widget.controller.channel?.name ?? 'loading'.tr()]),
+                        : 'fieldChatMessage'.tr(args: [
+                            widget.controller.channel?.name ?? 'loading'.tr()
+                          ]),
                     border: InputBorder.none,
                   ),
                   textInputAction: TextInputAction.send,
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                   onSubmitted: (_) {
                     if (_isBusy) return;
                     _sendMessage();
@@ -366,7 +388,8 @@ class ChatMessageInputState extends State<ChatMessageInput> {
                   Symbols.mood,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+                visualDensity:
+                    const VisualDensity(horizontal: -4, vertical: -4),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () {
@@ -386,13 +409,14 @@ class ChatMessageInputState extends State<ChatMessageInput> {
                   Symbols.send,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+                visualDensity:
+                    const VisualDensity(horizontal: -4, vertical: -4),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
             ],
           ),
-        ).padding(horizontal: 16),
+        ),
       ],
     );
   }
@@ -403,7 +427,8 @@ class _StickerPicker extends StatelessWidget {
   final Function? onDismiss;
   final Function(String)? onInsert;
 
-  const _StickerPicker({this.onDismiss, required this.originalText, this.onInsert});
+  const _StickerPicker(
+      {this.onDismiss, required this.originalText, this.onInsert});
 
   @override
   Widget build(BuildContext context) {
@@ -413,7 +438,9 @@ class _StickerPicker extends StatelessWidget {
         onDismiss?.call();
       },
       child: Container(
-        constraints: BoxConstraints(maxWidth: min(360, MediaQuery.of(context).size.width), maxHeight: 240),
+        constraints: BoxConstraints(
+            maxWidth: min(360, MediaQuery.of(context).size.width),
+            maxHeight: 240),
         child: Material(
           elevation: 8,
           borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -426,8 +453,10 @@ class _StickerPicker extends StatelessWidget {
                     return <Widget>[
                       Container(
                         margin: EdgeInsets.only(bottom: 8),
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        color:
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +468,8 @@ class _StickerPicker extends StatelessWidget {
                       ),
                       GridView.builder(
                         physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+                        padding:
+                            const EdgeInsets.only(left: 8, right: 8, bottom: 8),
                         shrinkWrap: true,
                         gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                           maxCrossAxisExtent: 48,
@@ -462,7 +492,8 @@ class _StickerPicker extends StatelessWidget {
                               richMessage: TextSpan(
                                 children: [
                                   TextSpan(
-                                      text: ':${element.pack.prefix}${element.alias}:\n',
+                                      text:
+                                          ':${element.pack.prefix}${element.alias}:\n',
                                       style: GoogleFonts.robotoMono()),
                                   TextSpan(text: element.name).bold(),
                                 ],
@@ -471,11 +502,15 @@ class _StickerPicker extends StatelessWidget {
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHigh,
                                 ),
                                 child: ClipRRect(
-                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)),
                                   child: UniversalImage(
                                     sn.getAttachmentUrl(element.attachment.rid),
                                     width: 48,

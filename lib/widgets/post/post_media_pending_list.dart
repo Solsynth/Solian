@@ -67,7 +67,10 @@ class PostMediaPendingList extends StatelessWidget {
 
     if (result == null) return;
 
-    final rawBytes = (await result.uiImage.toByteData(format: ImageByteFormat.png))!.buffer.asUint8List();
+    final rawBytes =
+        (await result.uiImage.toByteData(format: ImageByteFormat.png))!
+            .buffer
+            .asUint8List();
 
     if (onUpdate != null) {
       final updatedMedia = PostWriteMedia.fromBytes(
@@ -133,7 +136,8 @@ class PostMediaPendingList extends StatelessWidget {
 
     final result = await showDialog<SnAttachmentBoost?>(
       context: context,
-      builder: (context) => PendingAttachmentBoostDialog(media: attachments[idx]),
+      builder: (context) =>
+          PendingAttachmentBoostDialog(media: attachments[idx]),
     );
     if (result == null) return;
 
@@ -165,11 +169,15 @@ class PostMediaPendingList extends StatelessWidget {
     onUpdate!(idx, PostWriteMedia(result));
   }
 
-  ContextMenu _createContextMenu(BuildContext context, int idx, PostWriteMedia media) {
-    final canCompressVideo = !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
+  ContextMenu _createContextMenu(
+      BuildContext context, int idx, PostWriteMedia media) {
+    final canCompressVideo =
+        !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
     return ContextMenu(
       entries: [
-        if (media.attachment == null && media.type == SnMediaType.video && canCompressVideo)
+        if (media.attachment == null &&
+            media.type == SnMediaType.video &&
+            canCompressVideo)
           MenuItem(
             label: 'attachmentCompressVideo'.tr(),
             icon: Symbols.compress,
@@ -312,12 +320,15 @@ class _PostMediaPendingItem extends StatelessWidget {
             AspectRatio(
               aspectRatio: 1,
               child: switch (media.type) {
-                SnMediaType.image => LayoutBuilder(builder: (context, constraints) {
+                SnMediaType.image =>
+                  LayoutBuilder(builder: (context, constraints) {
                     return Image(
                       image: media.getImageProvider(
                         context,
-                        width: (constraints.maxWidth * devicePixelRatio).round(),
-                        height: (constraints.maxHeight * devicePixelRatio).round(),
+                        width:
+                            (constraints.maxWidth * devicePixelRatio).round(),
+                        height:
+                            (constraints.maxHeight * devicePixelRatio).round(),
                       )!,
                       fit: BoxFit.contain,
                     );
@@ -326,28 +337,34 @@ class _PostMediaPendingItem extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       if (media.attachment?.thumbnail != null)
-                        AutoResizeUniversalImage(sn.getAttachmentUrl(media.attachment!.thumbnail!.rid)),
-                      const Icon(Symbols.videocam, color: Colors.white, shadows: [
-                        Shadow(
-                          offset: Offset(1, 1),
-                          blurRadius: 8.0,
-                          color: Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ]),
+                        AutoResizeUniversalImage(sn.getAttachmentUrl(
+                            media.attachment!.thumbnail!.rid)),
+                      const Icon(Symbols.videocam,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(1, 1),
+                              blurRadius: 8.0,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),
+                          ]),
                     ],
                   ),
                 SnMediaType.audio => Stack(
                     fit: StackFit.expand,
                     children: [
                       if (media.attachment?.thumbnail != null)
-                        AutoResizeUniversalImage(sn.getAttachmentUrl(media.attachment!.thumbnail!.rid)),
-                      const Icon(Symbols.audio_file, color: Colors.white, shadows: [
-                        Shadow(
-                          offset: Offset(1, 1),
-                          blurRadius: 8.0,
-                          color: Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ]),
+                        AutoResizeUniversalImage(sn.getAttachmentUrl(
+                            media.attachment!.thumbnail!.rid)),
+                      const Icon(Symbols.audio_file,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(1, 1),
+                              blurRadius: 8.0,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),
+                          ]),
                     ],
                   ),
                 _ => Container(
@@ -356,7 +373,8 @@ class _PostMediaPendingItem extends StatelessWidget {
                   ),
               },
             ),
-            if (media.type != SnMediaType.image) const VerticalDivider(width: 1, thickness: 1),
+            if (media.type != SnMediaType.image)
+              const VerticalDivider(width: 1, thickness: 1),
             if (media.type != SnMediaType.image)
               SizedBox(
                 width: 160,
@@ -374,7 +392,8 @@ class _PostMediaPendingItem extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             )
                           else if (media.file != null)
-                            Text(media.file!.name, maxLines: 1, overflow: TextOverflow.ellipsis)
+                            Text(media.file!.name,
+                                maxLines: 1, overflow: TextOverflow.ellipsis)
                           else
                             Text('unknown'.tr()),
                           if (media.attachment != null)
@@ -387,7 +406,8 @@ class _PostMediaPendingItem extends StatelessWidget {
                             FutureBuilder<int?>(
                               future: media.length(),
                               builder: (context, snapshot) {
-                                if (!snapshot.hasData) return const SizedBox.shrink();
+                                if (!snapshot.hasData)
+                                  return const SizedBox.shrink();
                                 return Text(
                                   snapshot.data!.formatBytes(),
                                   style: GoogleFonts.robotoMono(fontSize: 13),
@@ -398,7 +418,8 @@ class _PostMediaPendingItem extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (media.attachment != null && media.attachment!.boosts.isNotEmpty)
+                    if (media.attachment != null &&
+                        media.attachment!.boosts.isNotEmpty)
                       Row(
                         children: [
                           Icon(Symbols.bolt, size: 16),
@@ -406,7 +427,8 @@ class _PostMediaPendingItem extends StatelessWidget {
                           Text('attachmentGotBoosted').tr().fontSize(13),
                         ],
                       ),
-                    if (media.attachment != null && media.attachment!.compressedId != null)
+                    if (media.attachment != null &&
+                        media.attachment!.compressedId != null)
                       Row(
                         children: [
                           Icon(Symbols.compress, size: 16),
@@ -527,12 +549,20 @@ class AddPostMediaButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton(
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      style: ButtonStyle(
+        visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+      ),
       icon: Icon(
         Symbols.add_photo_alternate,
         color: Theme.of(context).colorScheme.primary,
       ),
       itemBuilder: (context) => [
-        if (!kIsWeb && !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows)
+        if (!kIsWeb &&
+            !Platform.isLinux &&
+            !Platform.isMacOS &&
+            !Platform.isWindows)
           PopupMenuItem(
             child: Row(
               children: [
@@ -545,7 +575,10 @@ class AddPostMediaButton extends StatelessWidget {
               _takeMedia(false);
             },
           ),
-        if (!kIsWeb && !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows)
+        if (!kIsWeb &&
+            !Platform.isLinux &&
+            !Platform.isMacOS &&
+            !Platform.isWindows)
           PopupMenuItem(
             child: Row(
               children: [
