@@ -77,23 +77,25 @@ class DebugLoggingScreen extends StatelessWidget {
                         '${log.requestOptions.method} ${log.displayMessage}',
                         style: GoogleFonts.robotoMono(fontSize: 13),
                       ),
-                      Theme(
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent,
+                      if (log.requestOptions.data != null)
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            dividerColor: Colors.transparent,
+                          ),
+                          child: ExpansionTile(
+                            title: Text('Payload').fontSize(13),
+                            minTileHeight: 0,
+                            tilePadding: EdgeInsets.zero,
+                            expandedCrossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                log.requestOptions.data.toString(),
+                                style: GoogleFonts.robotoMono(fontSize: 13),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: ExpansionTile(
-                          title: Text('Payload').fontSize(13),
-                          minTileHeight: 0,
-                          tilePadding: EdgeInsets.zero,
-                          expandedCrossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              log.requestOptions.data.toString(),
-                              style: GoogleFonts.robotoMono(fontSize: 13),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   )
                 else if (log is DioResponseLog)
@@ -104,23 +106,25 @@ class DebugLoggingScreen extends StatelessWidget {
                         '${log.response.statusCode} ${log.displayMessage}',
                         style: GoogleFonts.robotoMono(fontSize: 13),
                       ),
-                      Theme(
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent,
+                      if (log.response.data != null)
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            dividerColor: Colors.transparent,
+                          ),
+                          child: ExpansionTile(
+                            title: Text('Payload').fontSize(13),
+                            minTileHeight: 0,
+                            tilePadding: EdgeInsets.zero,
+                            expandedCrossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                log.response.data.toString(),
+                                style: GoogleFonts.robotoMono(fontSize: 13),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: ExpansionTile(
-                          title: Text('Payload').fontSize(13),
-                          minTileHeight: 0,
-                          tilePadding: EdgeInsets.zero,
-                          expandedCrossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              log.response.data.toString(),
-                              style: GoogleFonts.robotoMono(fontSize: 13),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   )
                 else
@@ -151,9 +155,7 @@ class DebugLoggingScreen extends StatelessWidget {
             onTap: () {
               Clipboard.setData(
                 ClipboardData(
-                  text: ['[${log.time}]', log.message, log.error?.toString()]
-                      .where((ele) => ele != null)
-                      .join('\n'),
+                  text: log.generateTextMessage(),
                 ),
               );
             },
