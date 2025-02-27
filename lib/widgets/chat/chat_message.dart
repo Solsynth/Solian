@@ -229,7 +229,10 @@ class ChatMessage extends StatelessWidget {
                 bordered: true,
                 maxHeight: 360,
                 maxWidth: 480 - 48 - padding.left,
-                padding: padding.copyWith(top: 8, left: 48 + padding.left),
+                padding: padding.copyWith(
+                  top: 8,
+                  left: isCompact ? padding.left : 48 + padding.left,
+                ),
               ),
             if (!hasMerged && !isCompact)
               const Gap(12)
