@@ -65,14 +65,18 @@ class _UserScreenState extends State<UserScreen>
     }
   }
 
-  Future<List<SnCheckInRecord>> _getCheckInRecords() async {
+  List<SnCheckInRecord>? _records;
+
+  Future<void> _getCheckInRecords() async {
     try {
       final sn = context.read<SnNetworkProvider>();
       final resp =
           await sn.client.get('/cgi/id/users/${widget.name}/check-in?take=14');
-      return List.from(
-        resp.data['data']?.map((x) => SnCheckInRecord.fromJson(x)) ?? [],
-      );
+      setState(() {
+        _records = List.from(
+          resp.data['data']?.map((x) => SnCheckInRecord.fromJson(x)) ?? [],
+        );
+      });
     } catch (err) {
       if (mounted) context.showErrorDialog(err);
       rethrow;
@@ -213,6 +217,7 @@ class _UserScreenState extends State<UserScreen>
 
       _fetchStatus();
       _fetchPublishers();
+      _getCheckInRecords();
 
       try {
         final rel = context.read<SnRelationshipProvider>();
@@ -542,12 +547,10 @@ class _UserScreenState extends State<UserScreen>
           SliverToBoxAdapter(child: const Divider()),
           const SliverGap(12),
           SliverToBoxAdapter(
-            child: FutureBuilder<List<SnCheckInRecord>>(
-              key: GlobalKey(),
-              future: _getCheckInRecords(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const SizedBox.shrink();
-                if (snapshot.data!.length <= 1) {
+            child: Builder(
+              builder: (context) {
+                if (_records == null) return const SizedBox.shrink();
+                if (_records!.length <= 1) {
                   return Text(
                     'accountCheckInNoRecords',
                     textAlign: TextAlign.center,
@@ -557,11 +560,10 @@ class _UserScreenState extends State<UserScreen>
                       .center()
                       .padding(horizontal: 20, vertical: 8);
                 }
-                final records = snapshot.data!;
                 return SizedBox(
                   width: double.infinity,
                   height: 240,
-                  child: CheckInRecordChart(records: records),
+                  child: CheckInRecordChart(records: _records!),
                 ).padding(
                   right: 24,
                   left: 16,

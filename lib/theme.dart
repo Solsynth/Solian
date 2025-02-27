@@ -45,7 +45,7 @@ Future<ThemeData> createAppTheme(
     useMaterial3: useM3,
     colorScheme: colorScheme,
     brightness: brightness,
-    textTheme: GoogleFonts.rubikTextTheme(),
+    // textTheme: GoogleFonts.rubikTextTheme(),
     iconTheme: IconThemeData(
       fill: 0,
       weight: 400,

@@ -1,0 +1,18 @@
+meta {
+  name: Deal Abuse Report
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{endpoint}}/cgi/id/reports/abuse/3/status
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "status": "processed",
+    "message": "相关附件已经进行评级处理，未来会将该项权限下放到帖主以及社区成员。"
+  }
+}
