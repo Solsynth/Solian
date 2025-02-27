@@ -95,8 +95,9 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
         resp.data?.map((e) => SnPublisher.fromJson(e)) ?? [],
       );
       final beforeId = config.prefs.getInt('int_last_publisher_id');
-      _writeController
-          .setPublisher(_publishers?.where((ele) => ele.id == beforeId).firstOrNull ?? _publishers?.firstOrNull);
+      _writeController.setPublisher(
+          _publishers?.where((ele) => ele.id == beforeId).firstOrNull ??
+              _publishers?.firstOrNull);
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -125,7 +126,11 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
 
   final HotKey _pasteHotKey = HotKey(
     key: PhysicalKeyboardKey.keyV,
-    modifiers: [(!kIsWeb && Platform.isMacOS) ? HotKeyModifier.meta : HotKeyModifier.control],
+    modifiers: [
+      (!kIsWeb && Platform.isMacOS)
+          ? HotKeyModifier.meta
+          : HotKeyModifier.control
+    ],
     scope: HotKeyScope.inapp,
   );
 
@@ -232,7 +237,8 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     if (widget.extraProps != null) {
       _writeController.contentController.text = widget.extraProps!.text ?? '';
       _writeController.titleController.text = widget.extraProps!.title ?? '';
-      _writeController.descriptionController.text = widget.extraProps!.description ?? '';
+      _writeController.descriptionController.text =
+          widget.extraProps!.description ?? '';
       _writeController.addAttachments(widget.extraProps!.attachments ?? []);
     }
   }
@@ -253,7 +259,9 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
               textAlign: TextAlign.center,
               text: TextSpan(children: [
                 TextSpan(
-                  text: _writeController.title.isNotEmpty ? _writeController.title : 'untitled'.tr(),
+                  text: _writeController.title.isNotEmpty
+                      ? _writeController.title
+                      : 'untitled'.tr(),
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
                         color: Theme.of(context).appBarTheme.foregroundColor!,
                       ),
@@ -280,7 +288,8 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
             children: [
               if (_writeController.editingPost != null)
                 Container(
-                  padding: const EdgeInsets.only(top: 4, bottom: 4, left: 20, right: 20),
+                  padding: const EdgeInsets.only(
+                      top: 4, bottom: 4, left: 20, right: 20),
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
@@ -294,13 +303,16 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                     children: [
                       const Icon(Icons.edit, size: 16),
                       const Gap(10),
-                      Text('postEditingNotice').tr(args: ['@${_writeController.editingPost!.publisher.name}']),
+                      Text('postEditingNotice').tr(args: [
+                        '@${_writeController.editingPost!.publisher.name}'
+                      ]),
                     ],
                   ),
                 ),
               if (_writeController.replyingPost != null)
                 Container(
-                  padding: const EdgeInsets.only(top: 4, bottom: 4, left: 20, right: 20),
+                  padding: const EdgeInsets.only(
+                      top: 4, bottom: 4, left: 20, right: 20),
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
@@ -314,7 +326,8 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                     children: [
                       const Icon(Symbols.reply, size: 16),
                       const Gap(10),
-                      Text('@${_writeController.replyingPost!.publisher.name}').bold(),
+                      Text('@${_writeController.replyingPost!.publisher.name}')
+                          .bold(),
                       const Gap(4),
                       Expanded(
                         child: Text(
@@ -328,7 +341,8 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                 ),
               if (_writeController.repostingPost != null)
                 Container(
-                  padding: const EdgeInsets.only(top: 4, bottom: 4, left: 20, right: 20),
+                  padding: const EdgeInsets.only(
+                      top: 4, bottom: 4, left: 20, right: 20),
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
@@ -342,7 +356,8 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                     children: [
                       const Icon(Symbols.forward, size: 16),
                       const Gap(10),
-                      Text('@${_writeController.repostingPost!.publisher.name}').bold(),
+                      Text('@${_writeController.repostingPost!.publisher.name}')
+                          .bold(),
                       const Gap(4),
                       Expanded(
                         child: Text(
@@ -384,7 +399,8 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                       })
                           .padding(top: 8),
                     ),
-                    if (_writeController.attachments.isNotEmpty || _writeController.thumbnail != null)
+                    if (_writeController.attachments.isNotEmpty ||
+                        _writeController.thumbnail != null)
                       Positioned(
                         bottom: 0,
                         left: 0,
@@ -393,16 +409,19 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                           attachments: _writeController.attachments,
                           isBusy: _writeController.isBusy,
                           onUpload: (int idx) async {
-                            await _writeController.uploadSingleAttachment(context, idx);
+                            await _writeController.uploadSingleAttachment(
+                                context, idx);
                           },
                           onInsertLink: (int idx) async {
                             _writeController.contentController.text +=
                                 '\n![](solink://attachments/${_writeController.attachments[idx].attachment!.rid})';
                           },
-                          onUpdate: (int idx, PostWriteMedia updatedMedia) async {
+                          onUpdate:
+                              (int idx, PostWriteMedia updatedMedia) async {
                             _writeController.setIsBusy(true);
                             try {
-                              _writeController.setAttachmentAt(idx, updatedMedia);
+                              _writeController.setAttachmentAt(
+                                  idx, updatedMedia);
                             } finally {
                               _writeController.setIsBusy(false);
                             }
@@ -415,7 +434,8 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                               _writeController.setIsBusy(false);
                             }
                           },
-                          onUpdateBusy: (state) => _writeController.setIsBusy(state),
+                          onUpdateBusy: (state) =>
+                              _writeController.setIsBusy(state),
                         ).padding(bottom: 8),
                       ),
                   ],
@@ -426,11 +446,13 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (_writeController.isBusy && _writeController.progress != null)
+                    if (_writeController.isBusy &&
+                        _writeController.progress != null)
                       TweenAnimationBuilder<double>(
                         tween: Tween(begin: 0, end: _writeController.progress),
                         duration: Duration(milliseconds: 300),
-                        builder: (context, value, _) => LinearProgressIndicator(value: value, minHeight: 2),
+                        builder: (context, value, _) =>
+                            LinearProgressIndicator(value: value, minHeight: 2),
                       )
                     else if (_writeController.isBusy)
                       const LinearProgressIndicator(value: null, minHeight: 2),
@@ -439,12 +461,14 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                     Container(
                       child: _writeController.temporaryRestored
                           ? Container(
-                              padding: const EdgeInsets.only(top: 4, bottom: 4, left: 28, right: 22),
+                              padding: const EdgeInsets.only(
+                                  top: 4, bottom: 4, left: 28, right: 22),
                               decoration: BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(
                                     color: Theme.of(context).dividerColor,
-                                    width: 1 / MediaQuery.of(context).devicePixelRatio,
+                                    width: 1 /
+                                        MediaQuery.of(context).devicePixelRatio,
                                   ),
                                 ),
                               ),
@@ -453,7 +477,9 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                                 children: [
                                   const Icon(Icons.restore, size: 20),
                                   const Gap(8),
-                                  Expanded(child: Text('postLocalDraftRestored').tr()),
+                                  Expanded(
+                                      child:
+                                          Text('postLocalDraftRestored').tr()),
                                   InkWell(
                                     child: Text('dialogDismiss').tr(),
                                     onTap: () {
@@ -464,8 +490,10 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                               ))
                           : const SizedBox.shrink(),
                     )
-                        .height(_writeController.temporaryRestored ? 32 : 0, animate: true)
-                        .animate(const Duration(milliseconds: 300), Curves.fastLinearToSlowEaseIn),
+                        .height(_writeController.temporaryRestored ? 32 : 0,
+                            animate: true)
+                        .animate(const Duration(milliseconds: 300),
+                            Curves.fastLinearToSlowEaseIn),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -485,11 +513,18 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                                   ),
                                   if (_writeController.mode == 'stories')
                                     IconButton(
-                                      icon: Icon(Symbols.poll, color: Theme.of(context).colorScheme.primary),
+                                      icon: Icon(Symbols.poll,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
                                       style: ButtonStyle(
-                                        backgroundColor: _writeController.poll == null
-                                            ? null
-                                            : WidgetStatePropertyAll(Theme.of(context).colorScheme.surfaceContainer),
+                                        backgroundColor:
+                                            _writeController.poll == null
+                                                ? null
+                                                : WidgetStatePropertyAll(
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .surfaceContainer),
                                       ),
                                       onPressed: () {
                                         _showPollEditorDialog();
@@ -497,14 +532,22 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                                     ),
                                   if (_writeController.mode == 'articles')
                                     IconButton(
-                                      icon: Icon(Symbols.full_coverage, color: Theme.of(context).colorScheme.primary),
+                                      icon: Icon(Symbols.full_coverage,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
                                       style: ButtonStyle(
-                                        backgroundColor: _writeController.thumbnail == null
-                                            ? null
-                                            : WidgetStatePropertyAll(Theme.of(context).colorScheme.surfaceContainer),
+                                        backgroundColor:
+                                            _writeController.thumbnail == null
+                                                ? null
+                                                : WidgetStatePropertyAll(
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .surfaceContainer),
                                       ),
                                       onPressed: () {
-                                        if (_writeController.thumbnail != null) {
+                                        if (_writeController.thumbnail !=
+                                            null) {
                                           _writeController.setThumbnail(null);
                                           return;
                                         }
@@ -517,7 +560,8 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                           ),
                         ),
                         TextButton.icon(
-                          onPressed: (_writeController.isBusy || _writeController.publisher == null)
+                          onPressed: (_writeController.isBusy ||
+                                  _writeController.publisher == null)
                               ? null
                               : () {
                                   _writeController.sendPost(context).then((_) {
@@ -556,7 +600,8 @@ class _PostPublisherPopup extends StatelessWidget {
   final List<SnPublisher>? publishers;
   final Function onUpdate;
 
-  const _PostPublisherPopup({required this.controller, this.publishers, required this.onUpdate});
+  const _PostPublisherPopup(
+      {required this.controller, this.publishers, required this.onUpdate});
 
   @override
   Widget build(BuildContext context) {
@@ -568,7 +613,9 @@ class _PostPublisherPopup extends StatelessWidget {
           children: [
             const Icon(Symbols.face, size: 24),
             const Gap(16),
-            Text('accountPublishers', style: Theme.of(context).textTheme.titleLarge).tr(),
+            Text('accountPublishers',
+                    style: Theme.of(context).textTheme.titleLarge)
+                .tr(),
           ],
         ).padding(horizontal: 20, top: 16, bottom: 12),
         ListTile(
@@ -612,7 +659,8 @@ class _PostRealmPopup extends StatelessWidget {
   final List<SnRealm>? realms;
   final Function onUpdate;
 
-  const _PostRealmPopup({required this.controller, this.realms, required this.onUpdate});
+  const _PostRealmPopup(
+      {required this.controller, this.realms, required this.onUpdate});
 
   @override
   Widget build(BuildContext context) {
@@ -624,7 +672,8 @@ class _PostRealmPopup extends StatelessWidget {
           children: [
             const Icon(Symbols.face, size: 24),
             const Gap(16),
-            Text('accountRealms', style: Theme.of(context).textTheme.titleLarge).tr(),
+            Text('accountRealms', style: Theme.of(context).textTheme.titleLarge)
+                .tr(),
           ],
         ).padding(horizontal: 20, top: 16, bottom: 12),
         ListTile(
@@ -665,7 +714,8 @@ class _PostStoryEditor extends StatelessWidget {
   final Function? onTapPublisher;
   final Function? onTapRealm;
 
-  const _PostStoryEditor({required this.controller, this.onTapPublisher, this.onTapRealm});
+  const _PostStoryEditor(
+      {required this.controller, this.onTapPublisher, this.onTapRealm});
 
   @override
   Widget build(BuildContext context) {
@@ -717,7 +767,8 @@ class _PostStoryEditor extends StatelessWidget {
                     border: InputBorder.none,
                   ),
                   style: Theme.of(context).textTheme.titleLarge,
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ).padding(horizontal: 16),
                 const Gap(8),
                 TextField(
@@ -732,8 +783,10 @@ class _PostStoryEditor extends StatelessWidget {
                     ),
                     border: InputBorder.none,
                   ),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                  contentInsertionConfiguration: controller.contentInsertionConfiguration,
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                  contentInsertionConfiguration:
+                      controller.contentInsertionConfiguration,
                 ),
               ],
             ),
@@ -749,7 +802,8 @@ class _PostArticleEditor extends StatelessWidget {
   final Function? onTapPublisher;
   final Function? onTapRealm;
 
-  const _PostArticleEditor({required this.controller, this.onTapPublisher, this.onTapRealm});
+  const _PostArticleEditor(
+      {required this.controller, this.onTapPublisher, this.onTapRealm});
 
   @override
   Widget build(BuildContext context) {
@@ -857,8 +911,10 @@ class _PostArticleEditor extends StatelessWidget {
                       ),
                       border: InputBorder.none,
                     ),
-                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    contentInsertionConfiguration: controller.contentInsertionConfiguration,
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    contentInsertionConfiguration:
+                        controller.contentInsertionConfiguration,
                   ),
                 ),
                 const Gap(8),
@@ -893,7 +949,8 @@ class _PostArticleEditor extends StatelessWidget {
               border: InputBorder.none,
             ),
             onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-            contentInsertionConfiguration: controller.contentInsertionConfiguration,
+            contentInsertionConfiguration:
+                controller.contentInsertionConfiguration,
           ),
         ),
       ],
@@ -906,7 +963,8 @@ class _PostQuestionEditor extends StatelessWidget {
   final Function? onTapPublisher;
   final Function? onTapRealm;
 
-  const _PostQuestionEditor({required this.controller, this.onTapPublisher, this.onTapRealm});
+  const _PostQuestionEditor(
+      {required this.controller, this.onTapPublisher, this.onTapRealm});
 
   @override
   Widget build(BuildContext context) {
@@ -958,7 +1016,8 @@ class _PostQuestionEditor extends StatelessWidget {
                     border: InputBorder.none,
                   ),
                   style: Theme.of(context).textTheme.titleLarge,
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ).padding(horizontal: 16),
                 const Gap(8),
                 TextField(
@@ -969,7 +1028,8 @@ class _PostQuestionEditor extends StatelessWidget {
                     border: InputBorder.none,
                     isCollapsed: true,
                   ),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ).padding(horizontal: 16),
                 const Gap(8),
                 TextField(
@@ -984,8 +1044,10 @@ class _PostQuestionEditor extends StatelessWidget {
                     ),
                     border: InputBorder.none,
                   ),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                  contentInsertionConfiguration: controller.contentInsertionConfiguration,
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                  contentInsertionConfiguration:
+                      controller.contentInsertionConfiguration,
                 ),
               ],
             ),
@@ -1001,7 +1063,8 @@ class _PostVideoEditor extends StatelessWidget {
   final Function? onTapPublisher;
   final Function? onTapRealm;
 
-  const _PostVideoEditor({required this.controller, this.onTapPublisher, this.onTapRealm});
+  const _PostVideoEditor(
+      {required this.controller, this.onTapPublisher, this.onTapRealm});
 
   void _selectVideo(BuildContext context) async {
     final video = await showDialog<SnAttachment?>(
@@ -1022,7 +1085,8 @@ class _PostVideoEditor extends StatelessWidget {
 
     final result = await showDialog<SnAttachment?>(
       context: context,
-      builder: (context) => PendingAttachmentAltDialog(media: PostWriteMedia(controller.videoAttachment)),
+      builder: (context) => PendingAttachmentAltDialog(
+          media: PostWriteMedia(controller.videoAttachment)),
     );
     if (result == null) return;
 
@@ -1034,7 +1098,8 @@ class _PostVideoEditor extends StatelessWidget {
 
     final result = await showDialog<SnAttachmentBoost?>(
       context: context,
-      builder: (context) => PendingAttachmentBoostDialog(media: PostWriteMedia(controller.videoAttachment)),
+      builder: (context) => PendingAttachmentBoostDialog(
+          media: PostWriteMedia(controller.videoAttachment)),
     );
     if (result == null) return;
 
@@ -1077,7 +1142,8 @@ class _PostVideoEditor extends StatelessWidget {
 
     try {
       final sn = context.read<SnNetworkProvider>();
-      await sn.client.delete('/cgi/uc/attachments/${controller.videoAttachment!.id}');
+      await sn.client
+          .delete('/cgi/uc/attachments/${controller.videoAttachment!.id}');
       controller.setVideoAttachment(null);
     } catch (err) {
       if (!context.mounted) return;
@@ -1087,143 +1153,159 @@ class _PostVideoEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Column(
-          children: [
-            Material(
-              elevation: 2,
-              borderRadius: const BorderRadius.all(Radius.circular(24)),
-              child: GestureDetector(
-                onTap: () {
-                  onTapPublisher?.call();
-                },
-                child: AccountImage(
-                  content: controller.publisher?.avatar,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      constraints: const BoxConstraints(maxWidth: 640),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Material(
+                elevation: 2,
+                borderRadius: const BorderRadius.all(Radius.circular(24)),
+                child: GestureDetector(
+                  onTap: () {
+                    onTapPublisher?.call();
+                  },
+                  child: AccountImage(
+                    content: controller.publisher?.avatar,
+                  ),
                 ),
               ),
-            ),
-            const Gap(11),
-            Material(
-              elevation: 1,
-              borderRadius: const BorderRadius.all(Radius.circular(24)),
-              child: GestureDetector(
-                onTap: () {
-                  onTapRealm?.call();
-                },
-                child: AccountImage(
-                  content: controller.realm?.avatar,
-                  fallbackWidget: const Icon(Symbols.globe, size: 20),
-                  radius: 14,
+              const Gap(11),
+              Material(
+                elevation: 1,
+                borderRadius: const BorderRadius.all(Radius.circular(24)),
+                child: GestureDetector(
+                  onTap: () {
+                    onTapRealm?.call();
+                  },
+                  child: AccountImage(
+                    content: controller.realm?.avatar,
+                    fallbackWidget: const Icon(Symbols.globe, size: 20),
+                    radius: 14,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        const Gap(16),
-        TextField(
-          controller: controller.titleController,
-          decoration: InputDecoration.collapsed(
-            hintText: 'fieldPostTitle'.tr(),
-            border: InputBorder.none,
+            ],
           ),
-          style: Theme.of(context).textTheme.titleLarge,
-          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-        ).padding(horizontal: 16),
-        const Gap(8),
-        TextField(
-          controller: controller.descriptionController,
-          decoration: InputDecoration.collapsed(
-            hintText: 'fieldPostDescription'.tr(),
-            border: InputBorder.none,
-          ),
-          maxLines: null,
-          keyboardType: TextInputType.multiline,
-          style: Theme.of(context).textTheme.bodyLarge,
-          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-        ).padding(horizontal: 16),
-        const Gap(12),
-        Container(
-          margin: const EdgeInsets.only(left: 16, right: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).dividerColor),
-          ),
-          child: ContextMenuRegion(
-            contextMenu: ContextMenu(
-              entries: [
-                MenuItem(
-                  label: 'attachmentSetAlt'.tr(),
-                  icon: Symbols.description,
-                  onSelected: () {
-                    _setAlt(context);
-                  },
-                ),
-                MenuItem(
-                  label: 'attachmentBoost'.tr(),
-                  icon: Symbols.bolt,
-                  onSelected: () {
-                    _createBoost(context);
-                  },
-                ),
-                MenuItem(
-                  label: 'attachmentSetThumbnail'.tr(),
-                  icon: Symbols.image,
-                  onSelected: () {
-                    _setThumbnail(context);
-                  },
-                ),
-                MenuItem(
-                  label: 'attachmentCopyRandomId'.tr(),
-                  icon: Symbols.content_copy,
-                  onSelected: () {
-                    Clipboard.setData(ClipboardData(text: controller.videoAttachment!.rid));
-                  },
-                ),
-                MenuItem(
-                  label: 'delete'.tr(),
-                  icon: Symbols.delete,
-                  onSelected: () => _deleteAttachment(context),
-                ),
-                MenuItem(
-                  label: 'unlink'.tr(),
-                  icon: Symbols.link_off,
-                  onSelected: () {
-                    controller.setVideoAttachment(null);
-                  },
+          Expanded(
+            child: Column(
+              children: [
+                const Gap(6),
+                TextField(
+                  controller: controller.titleController,
+                  decoration: InputDecoration.collapsed(
+                    hintText: 'fieldPostTitle'.tr(),
+                    border: InputBorder.none,
+                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                ).padding(horizontal: 16),
+                const Gap(8),
+                TextField(
+                  controller: controller.descriptionController,
+                  decoration: InputDecoration.collapsed(
+                    hintText: 'fieldPostDescription'.tr(),
+                    border: InputBorder.none,
+                  ),
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                ).padding(horizontal: 16),
+                const Gap(12),
+                Container(
+                  margin: const EdgeInsets.only(left: 16, right: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Theme.of(context).dividerColor),
+                  ),
+                  child: ContextMenuRegion(
+                    contextMenu: ContextMenu(
+                      entries: [
+                        MenuItem(
+                          label: 'attachmentSetAlt'.tr(),
+                          icon: Symbols.description,
+                          onSelected: () {
+                            _setAlt(context);
+                          },
+                        ),
+                        MenuItem(
+                          label: 'attachmentBoost'.tr(),
+                          icon: Symbols.bolt,
+                          onSelected: () {
+                            _createBoost(context);
+                          },
+                        ),
+                        MenuItem(
+                          label: 'attachmentSetThumbnail'.tr(),
+                          icon: Symbols.image,
+                          onSelected: () {
+                            _setThumbnail(context);
+                          },
+                        ),
+                        MenuItem(
+                          label: 'attachmentCopyRandomId'.tr(),
+                          icon: Symbols.content_copy,
+                          onSelected: () {
+                            Clipboard.setData(ClipboardData(
+                                text: controller.videoAttachment!.rid));
+                          },
+                        ),
+                        MenuItem(
+                          label: 'delete'.tr(),
+                          icon: Symbols.delete,
+                          onSelected: () => _deleteAttachment(context),
+                        ),
+                        MenuItem(
+                          label: 'unlink'.tr(),
+                          icon: Symbols.link_off,
+                          onSelected: () {
+                            controller.setVideoAttachment(null);
+                          },
+                        ),
+                      ],
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: controller.videoAttachment == null
+                          ? () => _selectVideo(context)
+                          : null,
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: controller.videoAttachment == null
+                            ? Center(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.add),
+                                    const Gap(4),
+                                    Text('postVideoUpload'.tr()),
+                                  ],
+                                ),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: AttachmentItem(
+                                  data: controller.videoAttachment!,
+                                  heroTag: const Uuid().v4(),
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: controller.videoAttachment == null ? () => _selectVideo(context) : null,
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: controller.videoAttachment == null
-                    ? Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.add),
-                            const Gap(4),
-                            Text('postVideoUpload'.tr()),
-                          ],
-                        ),
-                      )
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: AttachmentItem(
-                          data: controller.videoAttachment!,
-                          heroTag: const Uuid().v4(),
-                        ),
-                      ),
-              ),
-            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
