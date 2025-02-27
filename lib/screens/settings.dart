@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -580,6 +581,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     .fontSize(17)
                     .tr()
                     .padding(horizontal: 20, bottom: 4),
+                ListTile(
+                  leading: const Icon(Symbols.home_storage),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  title: Text('cacheSize').tr(),
+                  subtitle: FutureBuilder(
+                    future: DefaultCacheManager().store.getCacheSize(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData || kIsWeb) {
+                        return Text('unknown').tr();
+                      }
+                      return Text(
+                        snapshot.data!.formatBytes(),
+                        style: GoogleFonts.robotoMono(),
+                      );
+                    },
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Symbols.cleaning_services),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  title: Text('cacheDelete').tr(),
+                  subtitle: Text('cacheDeleteDescription').tr(),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () async {
+                    await DefaultCacheManager().emptyCache();
+                    if (!context.mounted) return;
+                    HapticFeedback.heavyImpact();
+                    context.showSnackbar('cacheDeleted'.tr());
+                    setState(() {});
+                  },
+                ),
                 ListTile(
                   leading: const Icon(Symbols.database),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 24),

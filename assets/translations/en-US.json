@@ -731,5 +731,9 @@
   "debugLogging": "Runtime Logs",
   "runtimeLogsOpen": "Open Logs",
   "runtimeLogsDescription": "Show the runtime logs to help debugging.",
-  "signinResetPasswordHint": "Please enter the username / email address to help us to find your account and reset your password."
+  "signinResetPasswordHint": "Please enter the username / email address to help us to find your account and reset your password.",
+  "cacheSize": "Cache Size",
+  "cacheDelete": "Clean Cache",
+  "cacheDeleteDescription": "Remove the cached images and other resources from your disk, the content will be downloaded from server again.",
+  "cacheDeleted": "All cache has been cleaned up."
 }

@@ -133,6 +133,7 @@ dependencies:
   talker_flutter: ^4.6.14
   talker_dio_logger: ^4.6.14
   talker: ^4.6.14
+  flutter_cache_manager: ^3.4.1
 
 dev_dependencies:
   flutter_test:

@@ -729,5 +729,9 @@
   "runtimeLogs": "運行時日誌",
   "runtimeLogsOpen": "打開日誌文件",
   "runtimeLogsDescription": "顯示運行時的日誌記錄。",
-  "signinResetPasswordHint": "請輸入用户名/電子郵箱地址以幫助我們找到您的帳户並重置密碼。"
+  "signinResetPasswordHint": "請輸入用户名/電子郵箱地址以幫助我們找到您的帳户並重置密碼。",
+  "cacheSize": "緩存資源大小",
+  "cacheDelete": "清除緩存",
+  "cacheDeleteDescription": "從磁盤中移除緩存的圖片和其他資源，內容將從服務器重新下載。",
+  "cacheDeleted": "所有緩存已被清除。"
 }
