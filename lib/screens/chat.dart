@@ -74,18 +74,20 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (!mounted) return;
       final ud = context.read<UserDirectoryProvider>();
+      final idSet = <int>{};
       for (final channel in channels) {
         if (channel.type == 1) {
-          await ud.listAccount(
+          idSet.addAll(
             channel.members
                     ?.cast<SnChannelMember?>()
                     .map((ele) => ele?.accountId)
                     .where((ele) => ele != null)
-                    .toSet() ??
-                {},
+                    .cast<int>() ??
+                [],
           );
         }
       }
+      if (idSet.isNotEmpty) await ud.listAccount(idSet);
 
       if (mounted) setState(() => _channels = channels);
     })

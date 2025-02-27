@@ -27,8 +27,11 @@ class UserDirectoryProvider {
         plannedQuery.add(item);
       }
     }
-    final resp = await _sn.client.get('/cgi/id/users', queryParameters: {'id': plannedQuery.join(',')});
-    final respDecoded = resp.data.map((e) => SnAccount.fromJson(e)).cast<SnAccount>().toList();
+    if (plannedQuery.isEmpty) return out;
+    final resp = await _sn.client
+        .get('/cgi/id/users', queryParameters: {'id': plannedQuery.join(',')});
+    final respDecoded =
+        resp.data.map((e) => SnAccount.fromJson(e)).cast<SnAccount>().toList();
     var sideIdx = 0;
     for (var idx = 0; idx < out.length; idx++) {
       if (out[idx] != null) continue;
