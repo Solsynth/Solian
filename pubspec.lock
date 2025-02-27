@@ -897,18 +897,18 @@ packages:
     dependency: "direct dev"
     description:
       name: freezed
-      sha256: "59a584c24b3acdc5250bb856d0d3e9c0b798ed14a4af1ddb7dc1c7b41df91c9c"
+      sha256: "532008570b7fd20310db8cb9c8ebc5bafd5aa4e52c4358db4e5ddc29f74f4be3"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.8"
+    version: "3.0.1"
   freezed_annotation:
     dependency: "direct main"
     description:
       name: freezed_annotation
-      sha256: c2e2d632dd9b8a2b7751117abcfc2b4888ecfe181bd9fca7170d9ef02e595fe2
+      sha256: c87ff004c8aa6af2d531668b46a4ea379f7191dc6dfa066acd53d506da6e044b
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.4"
+    version: "3.0.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -965,6 +965,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  group_button:
+    dependency: transitive
+    description:
+      name: group_button
+      sha256: "0610fcf28ed122bfb4b410fce161a390f7f2531d55d1d65c5375982001415940"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.3.4"
   highlight:
     dependency: transitive
     description:
@@ -2050,6 +2058,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  talker:
+    dependency: "direct main"
+    description:
+      name: talker
+      sha256: "5ab7d974ad92042b3e2382441c41ec4c6e5b3fa2b4b024d8ccbfc4bc2244b7bb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.6.14"
+  talker_dio_logger:
+    dependency: "direct main"
+    description:
+      name: talker_dio_logger
+      sha256: "71780c52951d36e94964ca06158d827dfc67aa2fb75c8b880603cfefa4377b39"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.6.14"
+  talker_flutter:
+    dependency: "direct main"
+    description:
+      name: talker_flutter
+      sha256: "0cc816260b226c0ff930909c9f22984316b652b140f5eabb97ae9813ee0de135"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.6.14"
+  talker_logger:
+    dependency: transitive
+    description:
+      name: talker_logger
+      sha256: "16ff0cfdf011f65b37957c9ff7ef7043dd9f1c8af3ccb4a44ac4a448defb9eb5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.6.14"
   term_glyph:
     dependency: transitive
     description:

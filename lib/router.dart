@@ -21,6 +21,7 @@ import 'package:surface/screens/chat/room.dart';
 import 'package:surface/screens/explore.dart';
 import 'package:surface/screens/friend.dart';
 import 'package:surface/screens/home.dart';
+import 'package:surface/screens/logging.dart';
 import 'package:surface/screens/news/news_detail.dart';
 import 'package:surface/screens/news/news_list.dart';
 import 'package:surface/screens/notification.dart';
@@ -248,6 +249,11 @@ final _appRoutes = [
         ),
       ),
     ],
+  ),
+  GoRoute(
+    path: '/debug/logging',
+    name: 'debugLogging',
+    builder: (context, state) => const DebugLoggingScreen(),
   ),
   GoRoute(
     path: '/album',

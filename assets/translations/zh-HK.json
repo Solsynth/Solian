@@ -725,5 +725,8 @@
   "trayMenuMuteNotification": "靜音通知",
   "update": "更新",
   "forceUpdate": "強制更新",
-  "forceUpdateDescription": "強制更新應用程序，即使有更新的版本可能不可用。"
+  "forceUpdateDescription": "強制更新應用程序，即使有更新的版本可能不可用。",
+  "runtimeLogs": "運行時日誌",
+  "runtimeLogsOpen": "打開日誌文件",
+  "runtimeLogsDescription": "顯示運行時的日誌記錄。"
 }

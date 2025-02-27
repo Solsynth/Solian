@@ -47,7 +47,7 @@ dependencies:
   dio: ^5.7.0
   dio_smart_retry: ^7.0.1
   very_good_infinite_list: ^0.9.0
-  freezed_annotation: ^2.4.4
+  freezed_annotation: ^3.0.0
   json_annotation: ^4.9.0
   gap: ^3.0.1
   markdown: ^7.2.2
@@ -130,6 +130,9 @@ dependencies:
   local_notifier: ^0.1.6
   flutter_markdown_latex: ^0.3.4
   flutter_highlight: ^0.7.0
+  talker_flutter: ^4.6.14
+  talker_dio_logger: ^4.6.14
+  talker: ^4.6.14
 
 dev_dependencies:
   flutter_test:
@@ -142,7 +145,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   build_runner: ^2.4.15
-  freezed: ^2.5.7
+  freezed: ^3.0.1
   json_serializable: ^6.8.0
   icons_launcher: ^3.0.0
   flutter_native_splash: ^2.4.2

@@ -727,5 +727,8 @@
   "trayMenuMuteNotification": "Do Not Disturb",
   "update": "Update",
   "forceUpdate": "Force Update",
-  "forceUpdateDescription": "Force to show the application update popup, even the new version is not available."
+  "forceUpdateDescription": "Force to show the application update popup, even the new version is not available.",
+  "debugLogging": "Runtime Logs",
+  "runtimeLogsOpen": "Open Logs",
+  "runtimeLogsDescription": "Show the runtime logs to help debugging."
 }

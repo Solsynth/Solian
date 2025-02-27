@@ -20,6 +20,7 @@ import 'package:relative_time/relative_time.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surface/firebase_options.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/chat_call.dart';
 import 'package:surface/providers/config.dart';
@@ -235,7 +236,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
           await inAppReview.requestReview();
           prefs.setBool('rating_requested', true);
         } else {
-          log('Unable request app review, unavailable');
+          logging.error('Unable request app review, unavailable');
         }
       }
     } else {
@@ -263,17 +264,18 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
           int.tryParse(remoteVersionString.split('+').last) ?? 0;
       final localBuildNumber =
           int.tryParse(localVersionString.split('+').last) ?? 0;
-      log("[Update] Local: $localVersionString, Remote: $remoteVersionString");
+      logging.info(
+          "[Update] Local: $localVersionString, Remote: $remoteVersionString");
       if ((remoteVersion > localVersion ||
               remoteBuildNumber > localBuildNumber) &&
           mounted) {
         final config = context.read<ConfigProvider>();
         config.setUpdate(
             remoteVersionString, resp.data?['body'] ?? 'No changelog');
-        log("[Update] Update available: $remoteVersionString");
+        logging.info("[Update] Update available: $remoteVersionString");
       }
     } catch (e) {
-      log('[Error] Unable to check update: $e');
+      logging.error('[Error] Unable to check update...', e);
       if (mounted) context.showErrorDialog('Unable to check update: $e');
     }
   }
@@ -306,7 +308,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       if (!mounted) return;
       final sticker = context.read<SnStickerProvider>();
       await sticker.listSticker();
-      log('[Bootstrap] Everything initialized!');
+      logging.info('[Bootstrap] Everything initialized!');
     } catch (err) {
       if (!mounted) return;
       await context.showErrorDialog(err);

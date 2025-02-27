@@ -665,6 +665,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 ListTile(
+                  title: Text('runtimeLogsOpen').tr(),
+                  subtitle: Text('runtimeLogsDescription').tr(),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  leading: const Icon(Symbols.receipt_long),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () async {
+                    GoRouter.of(context).pushNamed('debugLogging');
+                  },
+                ),
+                ListTile(
                   title: Text('settingsMiscAbout').tr(),
                   subtitle: Text('settingsMiscAboutDescription').tr(),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 24),
