@@ -89,6 +89,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       if (!mounted) return;
       final nty = context.read<NotificationProvider>();
       nty.skippableNotifyChannel = _channel!.id;
+      final ws = context.read<WebSocketProvider>();
+      if (_channel != null) {
+        ws.conn?.sink.add({
+          'channel_id': _channel?.id,
+        });
+      }
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -239,6 +245,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     _messageController.dispose();
     final nty = context.read<NotificationProvider>();
     nty.skippableNotifyChannel = null;
+    final ws = context.read<WebSocketProvider>();
+    if (_channel != null) {
+      ws.conn?.sink.add({
+        'channel_id': _channel?.id,
+      });
+    }
     super.dispose();
   }
 
@@ -289,7 +301,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         builder: (context, _) {
           return Column(
             children: [
-              LoadingIndicator(isActive: _isBusy),
+              LoadingIndicator(
+                isActive: _isBusy || _messageController.isAggressiveLoading,
+              ),
               SingleChildScrollView(
                 physics: const NeverScrollableScrollPhysics(),
                 child: MaterialBanner(
@@ -315,8 +329,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               if (_messageController.isPending)
                 Expanded(
                   child: const CircularProgressIndicator().center(),
-                ),
-              if (!_messageController.isPending)
+                )
+              else
                 Expanded(
                   child: InfiniteList(
                     reverse: true,

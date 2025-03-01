@@ -39,7 +39,7 @@ class WebSocketProvider extends ChangeNotifier {
   Future<void> connect({noRetry = false}) async {
     if (_connectCompleter != null) {
       await _connectCompleter!.future;
-      _connectCompleter = null;
+      return;
     }
 
     if (!_ua.isAuthorized) return;

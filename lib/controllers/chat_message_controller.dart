@@ -38,6 +38,7 @@ class ChatMessageController extends ChangeNotifier {
 
   bool isPending = true;
   bool isLoading = false;
+  bool isAggressiveLoading = false;
 
   int? messageTotal;
 
@@ -320,7 +321,7 @@ class ChatMessageController extends ChangeNotifier {
   /// Check the local storage is up to date with the server.
   /// If the local storage is not up to date, it will be updated.
   Future<void> checkUpdate() async {
-    isLoading = true;
+    isAggressiveLoading = true;
     notifyListeners();
 
     final mostRecentMessage = await (_dt.db.snLocalChatMessage.select()
@@ -357,7 +358,7 @@ class ChatMessageController extends ChangeNotifier {
       rethrow;
     } finally {
       await loadMessages();
-      isLoading = false;
+      isAggressiveLoading = false;
 
       isCheckedUpdate = true;
       _saveMessageToLocal(incomeStrandedQueue).then((_) {
