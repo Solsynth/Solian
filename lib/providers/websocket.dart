@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_udid/flutter_udid.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import 'package:surface/logger.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/websocket.dart';
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class WebSocketProvider extends ChangeNotifier {
@@ -54,24 +56,37 @@ class WebSocketProvider extends ChangeNotifier {
       final clientId = await FlutterUdid.consistentUdid;
       final atk = await _sn.getFreshAtk();
       final uri = Uri.parse(
-        '${_sn.client.options.baseUrl.replaceFirst('http', 'ws')}/ws?clientId=${clientId}tk=$atk',
+        kIsWeb
+            ? '${_sn.client.options.baseUrl.replaceFirst('http', 'ws')}/ws?tk=$atk'
+            : '${_sn.client.options.baseUrl.replaceFirst('http', 'ws')}/ws?clientId=${clientId}tk=$atk',
       );
 
       isBusy = true;
       notifyListeners();
 
-      conn = WebSocketChannel.connect(uri);
+      conn = kIsWeb
+          ? WebSocketChannel.connect(uri)
+          : IOWebSocketChannel.connect(
+              uri,
+              headers: {'Authorization': 'Bearer $atk'},
+            );
       await conn!.ready;
       _wsStream = conn!.stream.asBroadcastStream();
       listen();
       logging.info('[WebSocket] Connected to server!');
       isConnected = true;
     } catch (err) {
-      logging.error('[WebSocket] Failed to connect to websocket...', err);
+      if (err is WebSocketChannelException) {
+        logging.error(
+            '[WebSocket] Failed to connect to websocket...', err.inner);
+      } else {
+        logging.error('[WebSocket] Failed to connect to websocket...', err);
+      }
 
       if (!noRetry) {
         logging.warning(
-            '[WebSocket] Retry connecting to websocket in 3 seconds...');
+          '[WebSocket] Retry connecting to websocket in 3 seconds...',
+        );
         return Future.delayed(
           const Duration(seconds: 3),
           () => connect(noRetry: true),
