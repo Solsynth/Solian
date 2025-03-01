@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_udid/flutter_udid.dart';
 import 'package:provider/provider.dart';
 import 'package:surface/logger.dart';
 import 'package:surface/providers/sn_network.dart';
@@ -50,9 +51,10 @@ class WebSocketProvider extends ChangeNotifier {
     try {
       _connectCompleter = Completer<void>();
 
+      final clientId = await FlutterUdid.consistentUdid;
       final atk = await _sn.getFreshAtk();
       final uri = Uri.parse(
-        '${_sn.client.options.baseUrl.replaceFirst('http', 'ws')}/ws?tk=$atk',
+        '${_sn.client.options.baseUrl.replaceFirst('http', 'ws')}/ws?clientId=${clientId}tk=$atk',
       );
 
       isBusy = true;
