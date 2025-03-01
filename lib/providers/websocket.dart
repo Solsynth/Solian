@@ -78,7 +78,9 @@ class WebSocketProvider extends ChangeNotifier {
     } catch (err) {
       if (err is WebSocketChannelException) {
         logging.error(
-            '[WebSocket] Failed to connect to websocket...', err.inner);
+          '[WebSocket] Failed to connect to websocket...',
+          err.inner,
+        );
       } else {
         logging.error('[WebSocket] Failed to connect to websocket...', err);
       }

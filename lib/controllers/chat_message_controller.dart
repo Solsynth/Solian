@@ -352,7 +352,13 @@ class ChatMessageController extends ChangeNotifier {
       final countToFetch = math.min(resp.data['count'] as int, 100);
 
       for (int idx = 0; idx < countToFetch; idx += kSingleBatchLoadLimit) {
-        await getMessages(kSingleBatchLoadLimit, idx, forceRemote: true);
+        final out = await getMessages(
+          kSingleBatchLoadLimit,
+          idx,
+          forceRemote: true,
+        );
+        messages.insertAll(0, out);
+        notifyListeners();
       }
     } catch (err) {
       rethrow;
