@@ -31,6 +31,7 @@ class AccountImage extends StatelessWidget {
     final url = sn.getAttachmentUrl(content ?? '');
 
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         SizedBox(
           width: (radius != null ? radius! : 20) * 2,
@@ -58,7 +59,7 @@ class AccountImage extends StatelessWidget {
         if (badge != null)
           Positioned(
             right: -4,
-            bottom: -4,
+            bottom: -2,
             child: badge!,
           ),
       ],

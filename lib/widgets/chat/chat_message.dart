@@ -117,7 +117,7 @@ class ChatMessage extends StatelessWidget {
                                   Shadow(
                                     offset: Offset(1, 1),
                                     blurRadius: 5.0,
-                                    color: Color.fromARGB(255, 0, 0, 0),
+                                    color: Color.fromARGB(200, 0, 0, 0),
                                   ),
                                 ],
                               )

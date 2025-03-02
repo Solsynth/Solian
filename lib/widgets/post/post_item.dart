@@ -879,6 +879,7 @@ class _PostContentHeader extends StatelessWidget {
           child: AccountImage(
             content: data.publisher.avatar,
             radius: isCompact ? 12 : 20,
+            borderRadius: data.publisher.type == 1 ? (isCompact ? 4 : 8) : 20,
             badge: (user?.badges.isNotEmpty ?? false)
                 ? Icon(
                     kBadgesMeta[user!.badges.first.type]?.$2 ?? Symbols.question_mark,
@@ -889,7 +890,7 @@ class _PostContentHeader extends StatelessWidget {
                       Shadow(
                         offset: Offset(1, 1),
                         blurRadius: 5.0,
-                        color: Color.fromARGB(255, 0, 0, 0),
+                        color: Color.fromARGB(200, 0, 0, 0),
                       ),
                     ],
                   )
