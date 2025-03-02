@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,156 +10,92 @@ part of 'notification.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-SnNotification _$SnNotificationFromJson(Map<String, dynamic> json) {
-  return _SnNotification.fromJson(json);
-}
 
 /// @nodoc
 mixin _$SnNotification {
-  int get id => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
-  DateTime? get deletedAt => throw _privateConstructorUsedError;
-  String get topic => throw _privateConstructorUsedError;
-  String get title => throw _privateConstructorUsedError;
-  String? get subtitle => throw _privateConstructorUsedError;
-  String get body => throw _privateConstructorUsedError;
-  Map<String, dynamic> get metadata => throw _privateConstructorUsedError;
-  int get priority => throw _privateConstructorUsedError;
-  int? get senderId => throw _privateConstructorUsedError;
-  int get accountId => throw _privateConstructorUsedError;
-  DateTime? get readAt => throw _privateConstructorUsedError;
-
-  /// Serializes this SnNotification to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  String get topic;
+  String get title;
+  String? get subtitle;
+  String get body;
+  Map<String, dynamic> get metadata;
+  int get priority;
+  int? get senderId;
+  int get accountId;
+  DateTime? get readAt;
 
   /// Create a copy of SnNotification
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $SnNotificationCopyWith<SnNotification> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $SnNotificationCopyWith<$Res> {
-  factory $SnNotificationCopyWith(
-          SnNotification value, $Res Function(SnNotification) then) =
-      _$SnNotificationCopyWithImpl<$Res, SnNotification>;
-  @useResult
-  $Res call(
-      {int id,
-      DateTime createdAt,
-      DateTime updatedAt,
-      DateTime? deletedAt,
-      String topic,
-      String title,
-      String? subtitle,
-      String body,
-      Map<String, dynamic> metadata,
-      int priority,
-      int? senderId,
-      int accountId,
-      DateTime? readAt});
-}
-
-/// @nodoc
-class _$SnNotificationCopyWithImpl<$Res, $Val extends SnNotification>
-    implements $SnNotificationCopyWith<$Res> {
-  _$SnNotificationCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of SnNotification
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $SnNotificationCopyWith<SnNotification> get copyWith =>
+      _$SnNotificationCopyWithImpl<SnNotification>(
+          this as SnNotification, _$identity);
+
+  /// Serializes this SnNotification to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
-    Object? deletedAt = freezed,
-    Object? topic = null,
-    Object? title = null,
-    Object? subtitle = freezed,
-    Object? body = null,
-    Object? metadata = null,
-    Object? priority = null,
-    Object? senderId = freezed,
-    Object? accountId = null,
-    Object? readAt = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      topic: null == topic
-          ? _value.topic
-          : topic // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      subtitle: freezed == subtitle
-          ? _value.subtitle
-          : subtitle // ignore: cast_nullable_to_non_nullable
-              as String?,
-      body: null == body
-          ? _value.body
-          : body // ignore: cast_nullable_to_non_nullable
-              as String,
-      metadata: null == metadata
-          ? _value.metadata
-          : metadata // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
-      priority: null == priority
-          ? _value.priority
-          : priority // ignore: cast_nullable_to_non_nullable
-              as int,
-      senderId: freezed == senderId
-          ? _value.senderId
-          : senderId // ignore: cast_nullable_to_non_nullable
-              as int?,
-      accountId: null == accountId
-          ? _value.accountId
-          : accountId // ignore: cast_nullable_to_non_nullable
-              as int,
-      readAt: freezed == readAt
-          ? _value.readAt
-          : readAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnNotification &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.topic, topic) || other.topic == topic) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.subtitle, subtitle) ||
+                other.subtitle == subtitle) &&
+            (identical(other.body, body) || other.body == body) &&
+            const DeepCollectionEquality().equals(other.metadata, metadata) &&
+            (identical(other.priority, priority) ||
+                other.priority == priority) &&
+            (identical(other.senderId, senderId) ||
+                other.senderId == senderId) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.readAt, readAt) || other.readAt == readAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      topic,
+      title,
+      subtitle,
+      body,
+      const DeepCollectionEquality().hash(metadata),
+      priority,
+      senderId,
+      accountId,
+      readAt);
+
+  @override
+  String toString() {
+    return 'SnNotification(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, topic: $topic, title: $title, subtitle: $subtitle, body: $body, metadata: $metadata, priority: $priority, senderId: $senderId, accountId: $accountId, readAt: $readAt)';
   }
 }
 
 /// @nodoc
-abstract class _$$SnNotificationImplCopyWith<$Res>
-    implements $SnNotificationCopyWith<$Res> {
-  factory _$$SnNotificationImplCopyWith(_$SnNotificationImpl value,
-          $Res Function(_$SnNotificationImpl) then) =
-      __$$SnNotificationImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $SnNotificationCopyWith<$Res> {
+  factory $SnNotificationCopyWith(
+          SnNotification value, $Res Function(SnNotification) _then) =
+      _$SnNotificationCopyWithImpl;
   @useResult
   $Res call(
       {int id,
@@ -177,12 +114,12 @@ abstract class _$$SnNotificationImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$SnNotificationImplCopyWithImpl<$Res>
-    extends _$SnNotificationCopyWithImpl<$Res, _$SnNotificationImpl>
-    implements _$$SnNotificationImplCopyWith<$Res> {
-  __$$SnNotificationImplCopyWithImpl(
-      _$SnNotificationImpl _value, $Res Function(_$SnNotificationImpl) _then)
-      : super(_value, _then);
+class _$SnNotificationCopyWithImpl<$Res>
+    implements $SnNotificationCopyWith<$Res> {
+  _$SnNotificationCopyWithImpl(this._self, this._then);
+
+  final SnNotification _self;
+  final $Res Function(SnNotification) _then;
 
   /// Create a copy of SnNotification
   /// with the given fields replaced by the non-null parameter values.
@@ -203,57 +140,57 @@ class __$$SnNotificationImplCopyWithImpl<$Res>
     Object? accountId = null,
     Object? readAt = freezed,
   }) {
-    return _then(_$SnNotificationImpl(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
       createdAt: null == createdAt
-          ? _value.createdAt
+          ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       updatedAt: null == updatedAt
-          ? _value.updatedAt
+          ? _self.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       deletedAt: freezed == deletedAt
-          ? _value.deletedAt
+          ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       topic: null == topic
-          ? _value.topic
+          ? _self.topic
           : topic // ignore: cast_nullable_to_non_nullable
               as String,
       title: null == title
-          ? _value.title
+          ? _self.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
       subtitle: freezed == subtitle
-          ? _value.subtitle
+          ? _self.subtitle
           : subtitle // ignore: cast_nullable_to_non_nullable
               as String?,
       body: null == body
-          ? _value.body
+          ? _self.body
           : body // ignore: cast_nullable_to_non_nullable
               as String,
       metadata: null == metadata
-          ? _value._metadata
+          ? _self.metadata
           : metadata // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>,
       priority: null == priority
-          ? _value.priority
+          ? _self.priority
           : priority // ignore: cast_nullable_to_non_nullable
               as int,
       senderId: freezed == senderId
-          ? _value.senderId
+          ? _self.senderId
           : senderId // ignore: cast_nullable_to_non_nullable
               as int?,
       accountId: null == accountId
-          ? _value.accountId
+          ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
               as int,
       readAt: freezed == readAt
-          ? _value.readAt
+          ? _self.readAt
           : readAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
     ));
@@ -262,8 +199,8 @@ class __$$SnNotificationImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$SnNotificationImpl implements _SnNotification {
-  const _$SnNotificationImpl(
+class _SnNotification implements SnNotification {
+  const _SnNotification(
       {required this.id,
       required this.createdAt,
       required this.updatedAt,
@@ -278,9 +215,8 @@ class _$SnNotificationImpl implements _SnNotification {
       required this.accountId,
       required this.readAt})
       : _metadata = metadata;
-
-  factory _$SnNotificationImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SnNotificationImplFromJson(json);
+  factory _SnNotification.fromJson(Map<String, dynamic> json) =>
+      _$SnNotificationFromJson(json);
 
   @override
   final int id;
@@ -316,16 +252,26 @@ class _$SnNotificationImpl implements _SnNotification {
   @override
   final DateTime? readAt;
 
+  /// Create a copy of SnNotification
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'SnNotification(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, topic: $topic, title: $title, subtitle: $subtitle, body: $body, metadata: $metadata, priority: $priority, senderId: $senderId, accountId: $accountId, readAt: $readAt)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnNotificationCopyWith<_SnNotification> get copyWith =>
+      __$SnNotificationCopyWithImpl<_SnNotification>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnNotificationToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SnNotificationImpl &&
+            other is _SnNotification &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -366,73 +312,118 @@ class _$SnNotificationImpl implements _SnNotification {
       accountId,
       readAt);
 
-  /// Create a copy of SnNotification
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SnNotificationImplCopyWith<_$SnNotificationImpl> get copyWith =>
-      __$$SnNotificationImplCopyWithImpl<_$SnNotificationImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SnNotificationImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SnNotification(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, topic: $topic, title: $title, subtitle: $subtitle, body: $body, metadata: $metadata, priority: $priority, senderId: $senderId, accountId: $accountId, readAt: $readAt)';
   }
 }
 
-abstract class _SnNotification implements SnNotification {
-  const factory _SnNotification(
-      {required final int id,
-      required final DateTime createdAt,
-      required final DateTime updatedAt,
-      required final DateTime? deletedAt,
-      required final String topic,
-      required final String title,
-      required final String? subtitle,
-      required final String body,
-      final Map<String, dynamic> metadata,
-      required final int priority,
-      required final int? senderId,
-      required final int accountId,
-      required final DateTime? readAt}) = _$SnNotificationImpl;
+/// @nodoc
+abstract mixin class _$SnNotificationCopyWith<$Res>
+    implements $SnNotificationCopyWith<$Res> {
+  factory _$SnNotificationCopyWith(
+          _SnNotification value, $Res Function(_SnNotification) _then) =
+      __$SnNotificationCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String topic,
+      String title,
+      String? subtitle,
+      String body,
+      Map<String, dynamic> metadata,
+      int priority,
+      int? senderId,
+      int accountId,
+      DateTime? readAt});
+}
 
-  factory _SnNotification.fromJson(Map<String, dynamic> json) =
-      _$SnNotificationImpl.fromJson;
+/// @nodoc
+class __$SnNotificationCopyWithImpl<$Res>
+    implements _$SnNotificationCopyWith<$Res> {
+  __$SnNotificationCopyWithImpl(this._self, this._then);
 
-  @override
-  int get id;
-  @override
-  DateTime get createdAt;
-  @override
-  DateTime get updatedAt;
-  @override
-  DateTime? get deletedAt;
-  @override
-  String get topic;
-  @override
-  String get title;
-  @override
-  String? get subtitle;
-  @override
-  String get body;
-  @override
-  Map<String, dynamic> get metadata;
-  @override
-  int get priority;
-  @override
-  int? get senderId;
-  @override
-  int get accountId;
-  @override
-  DateTime? get readAt;
+  final _SnNotification _self;
+  final $Res Function(_SnNotification) _then;
 
   /// Create a copy of SnNotification
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SnNotificationImplCopyWith<_$SnNotificationImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? topic = null,
+    Object? title = null,
+    Object? subtitle = freezed,
+    Object? body = null,
+    Object? metadata = null,
+    Object? priority = null,
+    Object? senderId = freezed,
+    Object? accountId = null,
+    Object? readAt = freezed,
+  }) {
+    return _then(_SnNotification(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      topic: null == topic
+          ? _self.topic
+          : topic // ignore: cast_nullable_to_non_nullable
+              as String,
+      title: null == title
+          ? _self.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      subtitle: freezed == subtitle
+          ? _self.subtitle
+          : subtitle // ignore: cast_nullable_to_non_nullable
+              as String?,
+      body: null == body
+          ? _self.body
+          : body // ignore: cast_nullable_to_non_nullable
+              as String,
+      metadata: null == metadata
+          ? _self._metadata
+          : metadata // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      priority: null == priority
+          ? _self.priority
+          : priority // ignore: cast_nullable_to_non_nullable
+              as int,
+      senderId: freezed == senderId
+          ? _self.senderId
+          : senderId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
+      readAt: freezed == readAt
+          ? _self.readAt
+          : readAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+    ));
+  }
 }
+
+// dart format on

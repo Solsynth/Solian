@@ -6,8 +6,8 @@ part of 'notification.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnNotificationImpl _$$SnNotificationImplFromJson(Map<String, dynamic> json) =>
-    _$SnNotificationImpl(
+_SnNotification _$SnNotificationFromJson(Map<String, dynamic> json) =>
+    _SnNotification(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -27,8 +27,7 @@ _$SnNotificationImpl _$$SnNotificationImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['read_at'] as String),
     );
 
-Map<String, dynamic> _$$SnNotificationImplToJson(
-        _$SnNotificationImpl instance) =>
+Map<String, dynamic> _$SnNotificationToJson(_SnNotification instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),

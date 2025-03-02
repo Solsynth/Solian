@@ -406,8 +406,9 @@ class _PostMediaPendingItem extends StatelessWidget {
                             FutureBuilder<int?>(
                               future: media.length(),
                               builder: (context, snapshot) {
-                                if (!snapshot.hasData)
+                                if (!snapshot.hasData) {
                                   return const SizedBox.shrink();
+                                }
                                 return Text(
                                   snapshot.data!.formatBytes(),
                                   style: GoogleFonts.robotoMono(fontSize: 13),

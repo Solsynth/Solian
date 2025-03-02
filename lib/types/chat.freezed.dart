@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,47 +10,95 @@ part of 'chat.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-SnChannel _$SnChannelFromJson(Map<String, dynamic> json) {
-  return _SnChannel.fromJson(json);
-}
 
 /// @nodoc
 mixin _$SnChannel {
-  int get id => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
-  dynamic get deletedAt => throw _privateConstructorUsedError;
-  String get alias => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
-  String get description => throw _privateConstructorUsedError;
-  List<SnChannelMember>? get members => throw _privateConstructorUsedError;
-  List<SnChatMessage>? get messages => throw _privateConstructorUsedError;
-  int get type => throw _privateConstructorUsedError;
-  int get accountId => throw _privateConstructorUsedError;
-  SnRealm? get realm => throw _privateConstructorUsedError;
-  int? get realmId => throw _privateConstructorUsedError;
-  bool get isPublic => throw _privateConstructorUsedError;
-  bool get isCommunity => throw _privateConstructorUsedError;
-
-  /// Serializes this SnChannel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  dynamic get deletedAt;
+  String get alias;
+  String get name;
+  String get description;
+  List<SnChannelMember>? get members;
+  List<SnChatMessage>? get messages;
+  int get type;
+  int get accountId;
+  SnRealm? get realm;
+  int? get realmId;
+  bool get isPublic;
+  bool get isCommunity;
 
   /// Create a copy of SnChannel
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $SnChannelCopyWith<SnChannel> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$SnChannelCopyWithImpl<SnChannel>(this as SnChannel, _$identity);
+
+  /// Serializes this SnChannel to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnChannel &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            const DeepCollectionEquality().equals(other.deletedAt, deletedAt) &&
+            (identical(other.alias, alias) || other.alias == alias) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            const DeepCollectionEquality().equals(other.members, members) &&
+            const DeepCollectionEquality().equals(other.messages, messages) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.realm, realm) || other.realm == realm) &&
+            (identical(other.realmId, realmId) || other.realmId == realmId) &&
+            (identical(other.isPublic, isPublic) ||
+                other.isPublic == isPublic) &&
+            (identical(other.isCommunity, isCommunity) ||
+                other.isCommunity == isCommunity));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      const DeepCollectionEquality().hash(deletedAt),
+      alias,
+      name,
+      description,
+      const DeepCollectionEquality().hash(members),
+      const DeepCollectionEquality().hash(messages),
+      type,
+      accountId,
+      realm,
+      realmId,
+      isPublic,
+      isCommunity);
+
+  @override
+  String toString() {
+    return 'SnChannel(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, alias: $alias, name: $name, description: $description, members: $members, messages: $messages, type: $type, accountId: $accountId, realm: $realm, realmId: $realmId, isPublic: $isPublic, isCommunity: $isCommunity)';
+  }
 }
 
 /// @nodoc
-abstract class $SnChannelCopyWith<$Res> {
-  factory $SnChannelCopyWith(SnChannel value, $Res Function(SnChannel) then) =
-      _$SnChannelCopyWithImpl<$Res, SnChannel>;
+abstract mixin class $SnChannelCopyWith<$Res> {
+  factory $SnChannelCopyWith(SnChannel value, $Res Function(SnChannel) _then) =
+      _$SnChannelCopyWithImpl;
   @useResult
   $Res call(
       {int id,
@@ -72,14 +121,11 @@ abstract class $SnChannelCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$SnChannelCopyWithImpl<$Res, $Val extends SnChannel>
-    implements $SnChannelCopyWith<$Res> {
-  _$SnChannelCopyWithImpl(this._value, this._then);
+class _$SnChannelCopyWithImpl<$Res> implements $SnChannelCopyWith<$Res> {
+  _$SnChannelCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final SnChannel _self;
+  final $Res Function(SnChannel) _then;
 
   /// Create a copy of SnChannel
   /// with the given fields replaced by the non-null parameter values.
@@ -102,68 +148,68 @@ class _$SnChannelCopyWithImpl<$Res, $Val extends SnChannel>
     Object? isPublic = null,
     Object? isCommunity = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
       createdAt: null == createdAt
-          ? _value.createdAt
+          ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       updatedAt: null == updatedAt
-          ? _value.updatedAt
+          ? _self.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       deletedAt: freezed == deletedAt
-          ? _value.deletedAt
+          ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
               as dynamic,
       alias: null == alias
-          ? _value.alias
+          ? _self.alias
           : alias // ignore: cast_nullable_to_non_nullable
               as String,
       name: null == name
-          ? _value.name
+          ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
       description: null == description
-          ? _value.description
+          ? _self.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
       members: freezed == members
-          ? _value.members
+          ? _self.members
           : members // ignore: cast_nullable_to_non_nullable
               as List<SnChannelMember>?,
       messages: freezed == messages
-          ? _value.messages
+          ? _self.messages
           : messages // ignore: cast_nullable_to_non_nullable
               as List<SnChatMessage>?,
       type: null == type
-          ? _value.type
+          ? _self.type
           : type // ignore: cast_nullable_to_non_nullable
               as int,
       accountId: null == accountId
-          ? _value.accountId
+          ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
               as int,
       realm: freezed == realm
-          ? _value.realm
+          ? _self.realm
           : realm // ignore: cast_nullable_to_non_nullable
               as SnRealm?,
       realmId: freezed == realmId
-          ? _value.realmId
+          ? _self.realmId
           : realmId // ignore: cast_nullable_to_non_nullable
               as int?,
       isPublic: null == isPublic
-          ? _value.isPublic
+          ? _self.isPublic
           : isPublic // ignore: cast_nullable_to_non_nullable
               as bool,
       isCommunity: null == isCommunity
-          ? _value.isCommunity
+          ? _self.isCommunity
           : isCommunity // ignore: cast_nullable_to_non_nullable
               as bool,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of SnChannel
@@ -171,143 +217,20 @@ class _$SnChannelCopyWithImpl<$Res, $Val extends SnChannel>
   @override
   @pragma('vm:prefer-inline')
   $SnRealmCopyWith<$Res>? get realm {
-    if (_value.realm == null) {
+    if (_self.realm == null) {
       return null;
     }
 
-    return $SnRealmCopyWith<$Res>(_value.realm!, (value) {
-      return _then(_value.copyWith(realm: value) as $Val);
+    return $SnRealmCopyWith<$Res>(_self.realm!, (value) {
+      return _then(_self.copyWith(realm: value));
     });
   }
 }
 
 /// @nodoc
-abstract class _$$SnChannelImplCopyWith<$Res>
-    implements $SnChannelCopyWith<$Res> {
-  factory _$$SnChannelImplCopyWith(
-          _$SnChannelImpl value, $Res Function(_$SnChannelImpl) then) =
-      __$$SnChannelImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {int id,
-      DateTime createdAt,
-      DateTime updatedAt,
-      dynamic deletedAt,
-      String alias,
-      String name,
-      String description,
-      List<SnChannelMember>? members,
-      List<SnChatMessage>? messages,
-      int type,
-      int accountId,
-      SnRealm? realm,
-      int? realmId,
-      bool isPublic,
-      bool isCommunity});
-
-  @override
-  $SnRealmCopyWith<$Res>? get realm;
-}
-
-/// @nodoc
-class __$$SnChannelImplCopyWithImpl<$Res>
-    extends _$SnChannelCopyWithImpl<$Res, _$SnChannelImpl>
-    implements _$$SnChannelImplCopyWith<$Res> {
-  __$$SnChannelImplCopyWithImpl(
-      _$SnChannelImpl _value, $Res Function(_$SnChannelImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of SnChannel
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
-    Object? deletedAt = freezed,
-    Object? alias = null,
-    Object? name = null,
-    Object? description = null,
-    Object? members = freezed,
-    Object? messages = freezed,
-    Object? type = null,
-    Object? accountId = null,
-    Object? realm = freezed,
-    Object? realmId = freezed,
-    Object? isPublic = null,
-    Object? isCommunity = null,
-  }) {
-    return _then(_$SnChannelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-      alias: null == alias
-          ? _value.alias
-          : alias // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      description: null == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String,
-      members: freezed == members
-          ? _value._members
-          : members // ignore: cast_nullable_to_non_nullable
-              as List<SnChannelMember>?,
-      messages: freezed == messages
-          ? _value._messages
-          : messages // ignore: cast_nullable_to_non_nullable
-              as List<SnChatMessage>?,
-      type: null == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as int,
-      accountId: null == accountId
-          ? _value.accountId
-          : accountId // ignore: cast_nullable_to_non_nullable
-              as int,
-      realm: freezed == realm
-          ? _value.realm
-          : realm // ignore: cast_nullable_to_non_nullable
-              as SnRealm?,
-      realmId: freezed == realmId
-          ? _value.realmId
-          : realmId // ignore: cast_nullable_to_non_nullable
-              as int?,
-      isPublic: null == isPublic
-          ? _value.isPublic
-          : isPublic // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isCommunity: null == isCommunity
-          ? _value.isCommunity
-          : isCommunity // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ));
-  }
-}
-
-/// @nodoc
 @JsonSerializable()
-class _$SnChannelImpl extends _SnChannel {
-  const _$SnChannelImpl(
+class _SnChannel extends SnChannel {
+  const _SnChannel(
       {required this.id,
       required this.createdAt,
       required this.updatedAt,
@@ -326,9 +249,8 @@ class _$SnChannelImpl extends _SnChannel {
       : _members = members,
         _messages = messages,
         super._();
-
-  factory _$SnChannelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SnChannelImplFromJson(json);
+  factory _SnChannel.fromJson(Map<String, dynamic> json) =>
+      _$SnChannelFromJson(json);
 
   @override
   final int id;
@@ -377,16 +299,26 @@ class _$SnChannelImpl extends _SnChannel {
   @override
   final bool isCommunity;
 
+  /// Create a copy of SnChannel
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'SnChannel(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, alias: $alias, name: $name, description: $description, members: $members, messages: $messages, type: $type, accountId: $accountId, realm: $realm, realmId: $realmId, isPublic: $isPublic, isCommunity: $isCommunity)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnChannelCopyWith<_SnChannel> get copyWith =>
+      __$SnChannelCopyWithImpl<_SnChannel>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnChannelToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SnChannelImpl &&
+            other is _SnChannel &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -430,425 +362,180 @@ class _$SnChannelImpl extends _SnChannel {
       isPublic,
       isCommunity);
 
-  /// Create a copy of SnChannel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SnChannelImplCopyWith<_$SnChannelImpl> get copyWith =>
-      __$$SnChannelImplCopyWithImpl<_$SnChannelImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SnChannelImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SnChannel(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, alias: $alias, name: $name, description: $description, members: $members, messages: $messages, type: $type, accountId: $accountId, realm: $realm, realmId: $realmId, isPublic: $isPublic, isCommunity: $isCommunity)';
   }
 }
 
-abstract class _SnChannel extends SnChannel {
-  const factory _SnChannel(
-      {required final int id,
-      required final DateTime createdAt,
-      required final DateTime updatedAt,
-      required final dynamic deletedAt,
-      required final String alias,
-      required final String name,
-      required final String description,
-      required final List<SnChannelMember>? members,
-      final List<SnChatMessage>? messages,
-      required final int type,
-      required final int accountId,
-      required final SnRealm? realm,
-      required final int? realmId,
-      required final bool isPublic,
-      required final bool isCommunity}) = _$SnChannelImpl;
-  const _SnChannel._() : super._();
+/// @nodoc
+abstract mixin class _$SnChannelCopyWith<$Res>
+    implements $SnChannelCopyWith<$Res> {
+  factory _$SnChannelCopyWith(
+          _SnChannel value, $Res Function(_SnChannel) _then) =
+      __$SnChannelCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      dynamic deletedAt,
+      String alias,
+      String name,
+      String description,
+      List<SnChannelMember>? members,
+      List<SnChatMessage>? messages,
+      int type,
+      int accountId,
+      SnRealm? realm,
+      int? realmId,
+      bool isPublic,
+      bool isCommunity});
 
-  factory _SnChannel.fromJson(Map<String, dynamic> json) =
-      _$SnChannelImpl.fromJson;
+  @override
+  $SnRealmCopyWith<$Res>? get realm;
+}
 
-  @override
-  int get id;
-  @override
-  DateTime get createdAt;
-  @override
-  DateTime get updatedAt;
-  @override
-  dynamic get deletedAt;
-  @override
-  String get alias;
-  @override
-  String get name;
-  @override
-  String get description;
-  @override
-  List<SnChannelMember>? get members;
-  @override
-  List<SnChatMessage>? get messages;
-  @override
-  int get type;
-  @override
-  int get accountId;
-  @override
-  SnRealm? get realm;
-  @override
-  int? get realmId;
-  @override
-  bool get isPublic;
-  @override
-  bool get isCommunity;
+/// @nodoc
+class __$SnChannelCopyWithImpl<$Res> implements _$SnChannelCopyWith<$Res> {
+  __$SnChannelCopyWithImpl(this._self, this._then);
+
+  final _SnChannel _self;
+  final $Res Function(_SnChannel) _then;
 
   /// Create a copy of SnChannel
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SnChannelImplCopyWith<_$SnChannelImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? alias = null,
+    Object? name = null,
+    Object? description = null,
+    Object? members = freezed,
+    Object? messages = freezed,
+    Object? type = null,
+    Object? accountId = null,
+    Object? realm = freezed,
+    Object? realmId = freezed,
+    Object? isPublic = null,
+    Object? isCommunity = null,
+  }) {
+    return _then(_SnChannel(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      alias: null == alias
+          ? _self.alias
+          : alias // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      members: freezed == members
+          ? _self._members
+          : members // ignore: cast_nullable_to_non_nullable
+              as List<SnChannelMember>?,
+      messages: freezed == messages
+          ? _self._messages
+          : messages // ignore: cast_nullable_to_non_nullable
+              as List<SnChatMessage>?,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as int,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
+      realm: freezed == realm
+          ? _self.realm
+          : realm // ignore: cast_nullable_to_non_nullable
+              as SnRealm?,
+      realmId: freezed == realmId
+          ? _self.realmId
+          : realmId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      isPublic: null == isPublic
+          ? _self.isPublic
+          : isPublic // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isCommunity: null == isCommunity
+          ? _self.isCommunity
+          : isCommunity // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
 
-SnChannelMember _$SnChannelMemberFromJson(Map<String, dynamic> json) {
-  return _SnChannelMember.fromJson(json);
+  /// Create a copy of SnChannel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnRealmCopyWith<$Res>? get realm {
+    if (_self.realm == null) {
+      return null;
+    }
+
+    return $SnRealmCopyWith<$Res>(_self.realm!, (value) {
+      return _then(_self.copyWith(realm: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$SnChannelMember {
-  int get id => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
-  DateTime? get deletedAt => throw _privateConstructorUsedError;
-  int get channelId => throw _privateConstructorUsedError;
-  int get accountId => throw _privateConstructorUsedError;
-  String? get nick => throw _privateConstructorUsedError;
-  SnChannel? get channel => throw _privateConstructorUsedError;
-  SnAccount? get account => throw _privateConstructorUsedError;
-  int get notify => throw _privateConstructorUsedError;
-  int get powerLevel => throw _privateConstructorUsedError;
-  dynamic get calls => throw _privateConstructorUsedError;
-  dynamic get events => throw _privateConstructorUsedError;
-
-  /// Serializes this SnChannelMember to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  int get channelId;
+  int get accountId;
+  String? get nick;
+  SnChannel? get channel;
+  SnAccount? get account;
+  int get notify;
+  int get powerLevel;
+  dynamic get calls;
+  dynamic get events;
 
   /// Create a copy of SnChannelMember
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $SnChannelMemberCopyWith<SnChannelMember> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+      _$SnChannelMemberCopyWithImpl<SnChannelMember>(
+          this as SnChannelMember, _$identity);
 
-/// @nodoc
-abstract class $SnChannelMemberCopyWith<$Res> {
-  factory $SnChannelMemberCopyWith(
-          SnChannelMember value, $Res Function(SnChannelMember) then) =
-      _$SnChannelMemberCopyWithImpl<$Res, SnChannelMember>;
-  @useResult
-  $Res call(
-      {int id,
-      DateTime createdAt,
-      DateTime updatedAt,
-      DateTime? deletedAt,
-      int channelId,
-      int accountId,
-      String? nick,
-      SnChannel? channel,
-      SnAccount? account,
-      int notify,
-      int powerLevel,
-      dynamic calls,
-      dynamic events});
-
-  $SnChannelCopyWith<$Res>? get channel;
-  $SnAccountCopyWith<$Res>? get account;
-}
-
-/// @nodoc
-class _$SnChannelMemberCopyWithImpl<$Res, $Val extends SnChannelMember>
-    implements $SnChannelMemberCopyWith<$Res> {
-  _$SnChannelMemberCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of SnChannelMember
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
-    Object? deletedAt = freezed,
-    Object? channelId = null,
-    Object? accountId = null,
-    Object? nick = freezed,
-    Object? channel = freezed,
-    Object? account = freezed,
-    Object? notify = null,
-    Object? powerLevel = null,
-    Object? calls = freezed,
-    Object? events = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      channelId: null == channelId
-          ? _value.channelId
-          : channelId // ignore: cast_nullable_to_non_nullable
-              as int,
-      accountId: null == accountId
-          ? _value.accountId
-          : accountId // ignore: cast_nullable_to_non_nullable
-              as int,
-      nick: freezed == nick
-          ? _value.nick
-          : nick // ignore: cast_nullable_to_non_nullable
-              as String?,
-      channel: freezed == channel
-          ? _value.channel
-          : channel // ignore: cast_nullable_to_non_nullable
-              as SnChannel?,
-      account: freezed == account
-          ? _value.account
-          : account // ignore: cast_nullable_to_non_nullable
-              as SnAccount?,
-      notify: null == notify
-          ? _value.notify
-          : notify // ignore: cast_nullable_to_non_nullable
-              as int,
-      powerLevel: null == powerLevel
-          ? _value.powerLevel
-          : powerLevel // ignore: cast_nullable_to_non_nullable
-              as int,
-      calls: freezed == calls
-          ? _value.calls
-          : calls // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-      events: freezed == events
-          ? _value.events
-          : events // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-    ) as $Val);
-  }
-
-  /// Create a copy of SnChannelMember
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $SnChannelCopyWith<$Res>? get channel {
-    if (_value.channel == null) {
-      return null;
-    }
-
-    return $SnChannelCopyWith<$Res>(_value.channel!, (value) {
-      return _then(_value.copyWith(channel: value) as $Val);
-    });
-  }
-
-  /// Create a copy of SnChannelMember
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $SnAccountCopyWith<$Res>? get account {
-    if (_value.account == null) {
-      return null;
-    }
-
-    return $SnAccountCopyWith<$Res>(_value.account!, (value) {
-      return _then(_value.copyWith(account: value) as $Val);
-    });
-  }
-}
-
-/// @nodoc
-abstract class _$$SnChannelMemberImplCopyWith<$Res>
-    implements $SnChannelMemberCopyWith<$Res> {
-  factory _$$SnChannelMemberImplCopyWith(_$SnChannelMemberImpl value,
-          $Res Function(_$SnChannelMemberImpl) then) =
-      __$$SnChannelMemberImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {int id,
-      DateTime createdAt,
-      DateTime updatedAt,
-      DateTime? deletedAt,
-      int channelId,
-      int accountId,
-      String? nick,
-      SnChannel? channel,
-      SnAccount? account,
-      int notify,
-      int powerLevel,
-      dynamic calls,
-      dynamic events});
-
-  @override
-  $SnChannelCopyWith<$Res>? get channel;
-  @override
-  $SnAccountCopyWith<$Res>? get account;
-}
-
-/// @nodoc
-class __$$SnChannelMemberImplCopyWithImpl<$Res>
-    extends _$SnChannelMemberCopyWithImpl<$Res, _$SnChannelMemberImpl>
-    implements _$$SnChannelMemberImplCopyWith<$Res> {
-  __$$SnChannelMemberImplCopyWithImpl(
-      _$SnChannelMemberImpl _value, $Res Function(_$SnChannelMemberImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of SnChannelMember
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
-    Object? deletedAt = freezed,
-    Object? channelId = null,
-    Object? accountId = null,
-    Object? nick = freezed,
-    Object? channel = freezed,
-    Object? account = freezed,
-    Object? notify = null,
-    Object? powerLevel = null,
-    Object? calls = freezed,
-    Object? events = freezed,
-  }) {
-    return _then(_$SnChannelMemberImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      channelId: null == channelId
-          ? _value.channelId
-          : channelId // ignore: cast_nullable_to_non_nullable
-              as int,
-      accountId: null == accountId
-          ? _value.accountId
-          : accountId // ignore: cast_nullable_to_non_nullable
-              as int,
-      nick: freezed == nick
-          ? _value.nick
-          : nick // ignore: cast_nullable_to_non_nullable
-              as String?,
-      channel: freezed == channel
-          ? _value.channel
-          : channel // ignore: cast_nullable_to_non_nullable
-              as SnChannel?,
-      account: freezed == account
-          ? _value.account
-          : account // ignore: cast_nullable_to_non_nullable
-              as SnAccount?,
-      notify: null == notify
-          ? _value.notify
-          : notify // ignore: cast_nullable_to_non_nullable
-              as int,
-      powerLevel: null == powerLevel
-          ? _value.powerLevel
-          : powerLevel // ignore: cast_nullable_to_non_nullable
-              as int,
-      calls: freezed == calls
-          ? _value.calls
-          : calls // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-      events: freezed == events
-          ? _value.events
-          : events // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-    ));
-  }
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$SnChannelMemberImpl extends _SnChannelMember {
-  const _$SnChannelMemberImpl(
-      {required this.id,
-      required this.createdAt,
-      required this.updatedAt,
-      required this.deletedAt,
-      required this.channelId,
-      required this.accountId,
-      required this.nick,
-      required this.channel,
-      required this.account,
-      this.notify = 0,
-      required this.powerLevel,
-      this.calls,
-      this.events})
-      : super._();
-
-  factory _$SnChannelMemberImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SnChannelMemberImplFromJson(json);
-
-  @override
-  final int id;
-  @override
-  final DateTime createdAt;
-  @override
-  final DateTime updatedAt;
-  @override
-  final DateTime? deletedAt;
-  @override
-  final int channelId;
-  @override
-  final int accountId;
-  @override
-  final String? nick;
-  @override
-  final SnChannel? channel;
-  @override
-  final SnAccount? account;
-  @override
-  @JsonKey()
-  final int notify;
-  @override
-  final int powerLevel;
-  @override
-  final dynamic calls;
-  @override
-  final dynamic events;
-
-  @override
-  String toString() {
-    return 'SnChannelMember(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, channelId: $channelId, accountId: $accountId, nick: $nick, channel: $channel, account: $account, notify: $notify, powerLevel: $powerLevel, calls: $calls, events: $events)';
-  }
+  /// Serializes this SnChannelMember to a JSON map.
+  Map<String, dynamic> toJson();
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SnChannelMemberImpl &&
+            other is SnChannelMember &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -888,114 +575,490 @@ class _$SnChannelMemberImpl extends _SnChannelMember {
       const DeepCollectionEquality().hash(calls),
       const DeepCollectionEquality().hash(events));
 
-  /// Create a copy of SnChannelMember
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SnChannelMemberImplCopyWith<_$SnChannelMemberImpl> get copyWith =>
-      __$$SnChannelMemberImplCopyWithImpl<_$SnChannelMemberImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SnChannelMemberImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SnChannelMember(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, channelId: $channelId, accountId: $accountId, nick: $nick, channel: $channel, account: $account, notify: $notify, powerLevel: $powerLevel, calls: $calls, events: $events)';
   }
 }
 
-abstract class _SnChannelMember extends SnChannelMember {
-  const factory _SnChannelMember(
-      {required final int id,
-      required final DateTime createdAt,
-      required final DateTime updatedAt,
-      required final DateTime? deletedAt,
-      required final int channelId,
-      required final int accountId,
-      required final String? nick,
-      required final SnChannel? channel,
-      required final SnAccount? account,
-      final int notify,
-      required final int powerLevel,
-      final dynamic calls,
-      final dynamic events}) = _$SnChannelMemberImpl;
-  const _SnChannelMember._() : super._();
+/// @nodoc
+abstract mixin class $SnChannelMemberCopyWith<$Res> {
+  factory $SnChannelMemberCopyWith(
+          SnChannelMember value, $Res Function(SnChannelMember) _then) =
+      _$SnChannelMemberCopyWithImpl;
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      int channelId,
+      int accountId,
+      String? nick,
+      SnChannel? channel,
+      SnAccount? account,
+      int notify,
+      int powerLevel,
+      dynamic calls,
+      dynamic events});
 
-  factory _SnChannelMember.fromJson(Map<String, dynamic> json) =
-      _$SnChannelMemberImpl.fromJson;
+  $SnChannelCopyWith<$Res>? get channel;
+  $SnAccountCopyWith<$Res>? get account;
+}
+
+/// @nodoc
+class _$SnChannelMemberCopyWithImpl<$Res>
+    implements $SnChannelMemberCopyWith<$Res> {
+  _$SnChannelMemberCopyWithImpl(this._self, this._then);
+
+  final SnChannelMember _self;
+  final $Res Function(SnChannelMember) _then;
+
+  /// Create a copy of SnChannelMember
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? channelId = null,
+    Object? accountId = null,
+    Object? nick = freezed,
+    Object? channel = freezed,
+    Object? account = freezed,
+    Object? notify = null,
+    Object? powerLevel = null,
+    Object? calls = freezed,
+    Object? events = freezed,
+  }) {
+    return _then(_self.copyWith(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      channelId: null == channelId
+          ? _self.channelId
+          : channelId // ignore: cast_nullable_to_non_nullable
+              as int,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
+      nick: freezed == nick
+          ? _self.nick
+          : nick // ignore: cast_nullable_to_non_nullable
+              as String?,
+      channel: freezed == channel
+          ? _self.channel
+          : channel // ignore: cast_nullable_to_non_nullable
+              as SnChannel?,
+      account: freezed == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
+      notify: null == notify
+          ? _self.notify
+          : notify // ignore: cast_nullable_to_non_nullable
+              as int,
+      powerLevel: null == powerLevel
+          ? _self.powerLevel
+          : powerLevel // ignore: cast_nullable_to_non_nullable
+              as int,
+      calls: freezed == calls
+          ? _self.calls
+          : calls // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      events: freezed == events
+          ? _self.events
+          : events // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+    ));
+  }
+
+  /// Create a copy of SnChannelMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnChannelCopyWith<$Res>? get channel {
+    if (_self.channel == null) {
+      return null;
+    }
+
+    return $SnChannelCopyWith<$Res>(_self.channel!, (value) {
+      return _then(_self.copyWith(channel: value));
+    });
+  }
+
+  /// Create a copy of SnChannelMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _SnChannelMember extends SnChannelMember {
+  const _SnChannelMember(
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.channelId,
+      required this.accountId,
+      required this.nick,
+      required this.channel,
+      required this.account,
+      this.notify = 0,
+      required this.powerLevel,
+      this.calls,
+      this.events})
+      : super._();
+  factory _SnChannelMember.fromJson(Map<String, dynamic> json) =>
+      _$SnChannelMemberFromJson(json);
 
   @override
-  int get id;
+  final int id;
   @override
-  DateTime get createdAt;
+  final DateTime createdAt;
   @override
-  DateTime get updatedAt;
+  final DateTime updatedAt;
   @override
-  DateTime? get deletedAt;
+  final DateTime? deletedAt;
   @override
-  int get channelId;
+  final int channelId;
   @override
-  int get accountId;
+  final int accountId;
   @override
-  String? get nick;
+  final String? nick;
   @override
-  SnChannel? get channel;
+  final SnChannel? channel;
   @override
-  SnAccount? get account;
+  final SnAccount? account;
   @override
-  int get notify;
+  @JsonKey()
+  final int notify;
   @override
-  int get powerLevel;
+  final int powerLevel;
   @override
-  dynamic get calls;
+  final dynamic calls;
   @override
-  dynamic get events;
+  final dynamic events;
 
   /// Create a copy of SnChannelMember
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SnChannelMemberImplCopyWith<_$SnChannelMemberImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  _$SnChannelMemberCopyWith<_SnChannelMember> get copyWith =>
+      __$SnChannelMemberCopyWithImpl<_SnChannelMember>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnChannelMemberToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _SnChannelMember &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.channelId, channelId) ||
+                other.channelId == channelId) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.nick, nick) || other.nick == nick) &&
+            (identical(other.channel, channel) || other.channel == channel) &&
+            (identical(other.account, account) || other.account == account) &&
+            (identical(other.notify, notify) || other.notify == notify) &&
+            (identical(other.powerLevel, powerLevel) ||
+                other.powerLevel == powerLevel) &&
+            const DeepCollectionEquality().equals(other.calls, calls) &&
+            const DeepCollectionEquality().equals(other.events, events));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      channelId,
+      accountId,
+      nick,
+      channel,
+      account,
+      notify,
+      powerLevel,
+      const DeepCollectionEquality().hash(calls),
+      const DeepCollectionEquality().hash(events));
+
+  @override
+  String toString() {
+    return 'SnChannelMember(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, channelId: $channelId, accountId: $accountId, nick: $nick, channel: $channel, account: $account, notify: $notify, powerLevel: $powerLevel, calls: $calls, events: $events)';
+  }
 }
 
-SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) {
-  return _SnChatMessage.fromJson(json);
+/// @nodoc
+abstract mixin class _$SnChannelMemberCopyWith<$Res>
+    implements $SnChannelMemberCopyWith<$Res> {
+  factory _$SnChannelMemberCopyWith(
+          _SnChannelMember value, $Res Function(_SnChannelMember) _then) =
+      __$SnChannelMemberCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      int channelId,
+      int accountId,
+      String? nick,
+      SnChannel? channel,
+      SnAccount? account,
+      int notify,
+      int powerLevel,
+      dynamic calls,
+      dynamic events});
+
+  @override
+  $SnChannelCopyWith<$Res>? get channel;
+  @override
+  $SnAccountCopyWith<$Res>? get account;
+}
+
+/// @nodoc
+class __$SnChannelMemberCopyWithImpl<$Res>
+    implements _$SnChannelMemberCopyWith<$Res> {
+  __$SnChannelMemberCopyWithImpl(this._self, this._then);
+
+  final _SnChannelMember _self;
+  final $Res Function(_SnChannelMember) _then;
+
+  /// Create a copy of SnChannelMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? channelId = null,
+    Object? accountId = null,
+    Object? nick = freezed,
+    Object? channel = freezed,
+    Object? account = freezed,
+    Object? notify = null,
+    Object? powerLevel = null,
+    Object? calls = freezed,
+    Object? events = freezed,
+  }) {
+    return _then(_SnChannelMember(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      channelId: null == channelId
+          ? _self.channelId
+          : channelId // ignore: cast_nullable_to_non_nullable
+              as int,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
+      nick: freezed == nick
+          ? _self.nick
+          : nick // ignore: cast_nullable_to_non_nullable
+              as String?,
+      channel: freezed == channel
+          ? _self.channel
+          : channel // ignore: cast_nullable_to_non_nullable
+              as SnChannel?,
+      account: freezed == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
+      notify: null == notify
+          ? _self.notify
+          : notify // ignore: cast_nullable_to_non_nullable
+              as int,
+      powerLevel: null == powerLevel
+          ? _self.powerLevel
+          : powerLevel // ignore: cast_nullable_to_non_nullable
+              as int,
+      calls: freezed == calls
+          ? _self.calls
+          : calls // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      events: freezed == events
+          ? _self.events
+          : events // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+    ));
+  }
+
+  /// Create a copy of SnChannelMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnChannelCopyWith<$Res>? get channel {
+    if (_self.channel == null) {
+      return null;
+    }
+
+    return $SnChannelCopyWith<$Res>(_self.channel!, (value) {
+      return _then(_self.copyWith(channel: value));
+    });
+  }
+
+  /// Create a copy of SnChannelMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$SnChatMessage {
-  int get id => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
-  DateTime? get deletedAt => throw _privateConstructorUsedError;
-  String get uuid => throw _privateConstructorUsedError;
-  Map<String, dynamic> get body => throw _privateConstructorUsedError;
-  String get type => throw _privateConstructorUsedError;
-  SnChannel get channel => throw _privateConstructorUsedError;
-  SnChannelMember get sender => throw _privateConstructorUsedError;
-  int get channelId => throw _privateConstructorUsedError;
-  int get senderId => throw _privateConstructorUsedError;
-  int? get quoteEventId => throw _privateConstructorUsedError;
-  int? get relatedEventId => throw _privateConstructorUsedError;
-  SnChatMessagePreload? get preload => throw _privateConstructorUsedError;
-
-  /// Serializes this SnChatMessage to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  String get uuid;
+  Map<String, dynamic> get body;
+  String get type;
+  SnChannel get channel;
+  SnChannelMember get sender;
+  int get channelId;
+  int get senderId;
+  int? get quoteEventId;
+  int? get relatedEventId;
+  SnChatMessagePreload? get preload;
 
   /// Create a copy of SnChatMessage
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $SnChatMessageCopyWith<SnChatMessage> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$SnChatMessageCopyWithImpl<SnChatMessage>(
+          this as SnChatMessage, _$identity);
+
+  /// Serializes this SnChatMessage to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnChatMessage &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.uuid, uuid) || other.uuid == uuid) &&
+            const DeepCollectionEquality().equals(other.body, body) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.channel, channel) || other.channel == channel) &&
+            (identical(other.sender, sender) || other.sender == sender) &&
+            (identical(other.channelId, channelId) ||
+                other.channelId == channelId) &&
+            (identical(other.senderId, senderId) ||
+                other.senderId == senderId) &&
+            (identical(other.quoteEventId, quoteEventId) ||
+                other.quoteEventId == quoteEventId) &&
+            (identical(other.relatedEventId, relatedEventId) ||
+                other.relatedEventId == relatedEventId) &&
+            (identical(other.preload, preload) || other.preload == preload));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      uuid,
+      const DeepCollectionEquality().hash(body),
+      type,
+      channel,
+      sender,
+      channelId,
+      senderId,
+      quoteEventId,
+      relatedEventId,
+      preload);
+
+  @override
+  String toString() {
+    return 'SnChatMessage(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uuid: $uuid, body: $body, type: $type, channel: $channel, sender: $sender, channelId: $channelId, senderId: $senderId, quoteEventId: $quoteEventId, relatedEventId: $relatedEventId, preload: $preload)';
+  }
 }
 
 /// @nodoc
-abstract class $SnChatMessageCopyWith<$Res> {
+abstract mixin class $SnChatMessageCopyWith<$Res> {
   factory $SnChatMessageCopyWith(
-          SnChatMessage value, $Res Function(SnChatMessage) then) =
-      _$SnChatMessageCopyWithImpl<$Res, SnChatMessage>;
+          SnChatMessage value, $Res Function(SnChatMessage) _then) =
+      _$SnChatMessageCopyWithImpl;
   @useResult
   $Res call(
       {int id,
@@ -1019,14 +1082,12 @@ abstract class $SnChatMessageCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$SnChatMessageCopyWithImpl<$Res, $Val extends SnChatMessage>
+class _$SnChatMessageCopyWithImpl<$Res>
     implements $SnChatMessageCopyWith<$Res> {
-  _$SnChatMessageCopyWithImpl(this._value, this._then);
+  _$SnChatMessageCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final SnChatMessage _self;
+  final $Res Function(SnChatMessage) _then;
 
   /// Create a copy of SnChatMessage
   /// with the given fields replaced by the non-null parameter values.
@@ -1048,64 +1109,64 @@ class _$SnChatMessageCopyWithImpl<$Res, $Val extends SnChatMessage>
     Object? relatedEventId = freezed,
     Object? preload = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
       createdAt: null == createdAt
-          ? _value.createdAt
+          ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       updatedAt: null == updatedAt
-          ? _value.updatedAt
+          ? _self.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       deletedAt: freezed == deletedAt
-          ? _value.deletedAt
+          ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       uuid: null == uuid
-          ? _value.uuid
+          ? _self.uuid
           : uuid // ignore: cast_nullable_to_non_nullable
               as String,
       body: null == body
-          ? _value.body
+          ? _self.body
           : body // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>,
       type: null == type
-          ? _value.type
+          ? _self.type
           : type // ignore: cast_nullable_to_non_nullable
               as String,
       channel: null == channel
-          ? _value.channel
+          ? _self.channel
           : channel // ignore: cast_nullable_to_non_nullable
               as SnChannel,
       sender: null == sender
-          ? _value.sender
+          ? _self.sender
           : sender // ignore: cast_nullable_to_non_nullable
               as SnChannelMember,
       channelId: null == channelId
-          ? _value.channelId
+          ? _self.channelId
           : channelId // ignore: cast_nullable_to_non_nullable
               as int,
       senderId: null == senderId
-          ? _value.senderId
+          ? _self.senderId
           : senderId // ignore: cast_nullable_to_non_nullable
               as int,
       quoteEventId: freezed == quoteEventId
-          ? _value.quoteEventId
+          ? _self.quoteEventId
           : quoteEventId // ignore: cast_nullable_to_non_nullable
               as int?,
       relatedEventId: freezed == relatedEventId
-          ? _value.relatedEventId
+          ? _self.relatedEventId
           : relatedEventId // ignore: cast_nullable_to_non_nullable
               as int?,
       preload: freezed == preload
-          ? _value.preload
+          ? _self.preload
           : preload // ignore: cast_nullable_to_non_nullable
               as SnChatMessagePreload?,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of SnChatMessage
@@ -1113,8 +1174,8 @@ class _$SnChatMessageCopyWithImpl<$Res, $Val extends SnChatMessage>
   @override
   @pragma('vm:prefer-inline')
   $SnChannelCopyWith<$Res> get channel {
-    return $SnChannelCopyWith<$Res>(_value.channel, (value) {
-      return _then(_value.copyWith(channel: value) as $Val);
+    return $SnChannelCopyWith<$Res>(_self.channel, (value) {
+      return _then(_self.copyWith(channel: value));
     });
   }
 
@@ -1123,8 +1184,8 @@ class _$SnChatMessageCopyWithImpl<$Res, $Val extends SnChatMessage>
   @override
   @pragma('vm:prefer-inline')
   $SnChannelMemberCopyWith<$Res> get sender {
-    return $SnChannelMemberCopyWith<$Res>(_value.sender, (value) {
-      return _then(_value.copyWith(sender: value) as $Val);
+    return $SnChannelMemberCopyWith<$Res>(_self.sender, (value) {
+      return _then(_self.copyWith(sender: value));
     });
   }
 
@@ -1133,141 +1194,20 @@ class _$SnChatMessageCopyWithImpl<$Res, $Val extends SnChatMessage>
   @override
   @pragma('vm:prefer-inline')
   $SnChatMessagePreloadCopyWith<$Res>? get preload {
-    if (_value.preload == null) {
+    if (_self.preload == null) {
       return null;
     }
 
-    return $SnChatMessagePreloadCopyWith<$Res>(_value.preload!, (value) {
-      return _then(_value.copyWith(preload: value) as $Val);
+    return $SnChatMessagePreloadCopyWith<$Res>(_self.preload!, (value) {
+      return _then(_self.copyWith(preload: value));
     });
   }
 }
 
 /// @nodoc
-abstract class _$$SnChatMessageImplCopyWith<$Res>
-    implements $SnChatMessageCopyWith<$Res> {
-  factory _$$SnChatMessageImplCopyWith(
-          _$SnChatMessageImpl value, $Res Function(_$SnChatMessageImpl) then) =
-      __$$SnChatMessageImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {int id,
-      DateTime createdAt,
-      DateTime updatedAt,
-      DateTime? deletedAt,
-      String uuid,
-      Map<String, dynamic> body,
-      String type,
-      SnChannel channel,
-      SnChannelMember sender,
-      int channelId,
-      int senderId,
-      int? quoteEventId,
-      int? relatedEventId,
-      SnChatMessagePreload? preload});
-
-  @override
-  $SnChannelCopyWith<$Res> get channel;
-  @override
-  $SnChannelMemberCopyWith<$Res> get sender;
-  @override
-  $SnChatMessagePreloadCopyWith<$Res>? get preload;
-}
-
-/// @nodoc
-class __$$SnChatMessageImplCopyWithImpl<$Res>
-    extends _$SnChatMessageCopyWithImpl<$Res, _$SnChatMessageImpl>
-    implements _$$SnChatMessageImplCopyWith<$Res> {
-  __$$SnChatMessageImplCopyWithImpl(
-      _$SnChatMessageImpl _value, $Res Function(_$SnChatMessageImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of SnChatMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
-    Object? deletedAt = freezed,
-    Object? uuid = null,
-    Object? body = null,
-    Object? type = null,
-    Object? channel = null,
-    Object? sender = null,
-    Object? channelId = null,
-    Object? senderId = null,
-    Object? quoteEventId = freezed,
-    Object? relatedEventId = freezed,
-    Object? preload = freezed,
-  }) {
-    return _then(_$SnChatMessageImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      uuid: null == uuid
-          ? _value.uuid
-          : uuid // ignore: cast_nullable_to_non_nullable
-              as String,
-      body: null == body
-          ? _value._body
-          : body // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
-      type: null == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
-      channel: null == channel
-          ? _value.channel
-          : channel // ignore: cast_nullable_to_non_nullable
-              as SnChannel,
-      sender: null == sender
-          ? _value.sender
-          : sender // ignore: cast_nullable_to_non_nullable
-              as SnChannelMember,
-      channelId: null == channelId
-          ? _value.channelId
-          : channelId // ignore: cast_nullable_to_non_nullable
-              as int,
-      senderId: null == senderId
-          ? _value.senderId
-          : senderId // ignore: cast_nullable_to_non_nullable
-              as int,
-      quoteEventId: freezed == quoteEventId
-          ? _value.quoteEventId
-          : quoteEventId // ignore: cast_nullable_to_non_nullable
-              as int?,
-      relatedEventId: freezed == relatedEventId
-          ? _value.relatedEventId
-          : relatedEventId // ignore: cast_nullable_to_non_nullable
-              as int?,
-      preload: freezed == preload
-          ? _value.preload
-          : preload // ignore: cast_nullable_to_non_nullable
-              as SnChatMessagePreload?,
-    ));
-  }
-}
-
-/// @nodoc
 @JsonSerializable()
-class _$SnChatMessageImpl extends _SnChatMessage {
-  const _$SnChatMessageImpl(
+class _SnChatMessage extends SnChatMessage {
+  const _SnChatMessage(
       {required this.id,
       required this.createdAt,
       required this.updatedAt,
@@ -1284,9 +1224,8 @@ class _$SnChatMessageImpl extends _SnChatMessage {
       this.preload})
       : _body = body,
         super._();
-
-  factory _$SnChatMessageImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SnChatMessageImplFromJson(json);
+  factory _SnChatMessage.fromJson(Map<String, dynamic> json) =>
+      _$SnChatMessageFromJson(json);
 
   @override
   final int id;
@@ -1324,16 +1263,26 @@ class _$SnChatMessageImpl extends _SnChatMessage {
   @override
   final SnChatMessagePreload? preload;
 
+  /// Create a copy of SnChatMessage
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'SnChatMessage(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uuid: $uuid, body: $body, type: $type, channel: $channel, sender: $sender, channelId: $channelId, senderId: $senderId, quoteEventId: $quoteEventId, relatedEventId: $relatedEventId, preload: $preload)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnChatMessageCopyWith<_SnChatMessage> get copyWith =>
+      __$SnChatMessageCopyWithImpl<_SnChatMessage>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnChatMessageToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SnChatMessageImpl &&
+            other is _SnChatMessage &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -1376,104 +1325,210 @@ class _$SnChatMessageImpl extends _SnChatMessage {
       relatedEventId,
       preload);
 
-  /// Create a copy of SnChatMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SnChatMessageImplCopyWith<_$SnChatMessageImpl> get copyWith =>
-      __$$SnChatMessageImplCopyWithImpl<_$SnChatMessageImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SnChatMessageImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SnChatMessage(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uuid: $uuid, body: $body, type: $type, channel: $channel, sender: $sender, channelId: $channelId, senderId: $senderId, quoteEventId: $quoteEventId, relatedEventId: $relatedEventId, preload: $preload)';
   }
 }
 
-abstract class _SnChatMessage extends SnChatMessage {
-  const factory _SnChatMessage(
-      {required final int id,
-      required final DateTime createdAt,
-      required final DateTime updatedAt,
-      required final DateTime? deletedAt,
-      required final String uuid,
-      final Map<String, dynamic> body,
-      required final String type,
-      required final SnChannel channel,
-      required final SnChannelMember sender,
-      required final int channelId,
-      required final int senderId,
-      required final int? quoteEventId,
-      required final int? relatedEventId,
-      final SnChatMessagePreload? preload}) = _$SnChatMessageImpl;
-  const _SnChatMessage._() : super._();
+/// @nodoc
+abstract mixin class _$SnChatMessageCopyWith<$Res>
+    implements $SnChatMessageCopyWith<$Res> {
+  factory _$SnChatMessageCopyWith(
+          _SnChatMessage value, $Res Function(_SnChatMessage) _then) =
+      __$SnChatMessageCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String uuid,
+      Map<String, dynamic> body,
+      String type,
+      SnChannel channel,
+      SnChannelMember sender,
+      int channelId,
+      int senderId,
+      int? quoteEventId,
+      int? relatedEventId,
+      SnChatMessagePreload? preload});
 
-  factory _SnChatMessage.fromJson(Map<String, dynamic> json) =
-      _$SnChatMessageImpl.fromJson;
+  @override
+  $SnChannelCopyWith<$Res> get channel;
+  @override
+  $SnChannelMemberCopyWith<$Res> get sender;
+  @override
+  $SnChatMessagePreloadCopyWith<$Res>? get preload;
+}
 
-  @override
-  int get id;
-  @override
-  DateTime get createdAt;
-  @override
-  DateTime get updatedAt;
-  @override
-  DateTime? get deletedAt;
-  @override
-  String get uuid;
-  @override
-  Map<String, dynamic> get body;
-  @override
-  String get type;
-  @override
-  SnChannel get channel;
-  @override
-  SnChannelMember get sender;
-  @override
-  int get channelId;
-  @override
-  int get senderId;
-  @override
-  int? get quoteEventId;
-  @override
-  int? get relatedEventId;
-  @override
-  SnChatMessagePreload? get preload;
+/// @nodoc
+class __$SnChatMessageCopyWithImpl<$Res>
+    implements _$SnChatMessageCopyWith<$Res> {
+  __$SnChatMessageCopyWithImpl(this._self, this._then);
+
+  final _SnChatMessage _self;
+  final $Res Function(_SnChatMessage) _then;
 
   /// Create a copy of SnChatMessage
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SnChatMessageImplCopyWith<_$SnChatMessageImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? uuid = null,
+    Object? body = null,
+    Object? type = null,
+    Object? channel = null,
+    Object? sender = null,
+    Object? channelId = null,
+    Object? senderId = null,
+    Object? quoteEventId = freezed,
+    Object? relatedEventId = freezed,
+    Object? preload = freezed,
+  }) {
+    return _then(_SnChatMessage(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      uuid: null == uuid
+          ? _self.uuid
+          : uuid // ignore: cast_nullable_to_non_nullable
+              as String,
+      body: null == body
+          ? _self._body
+          : body // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
+      channel: null == channel
+          ? _self.channel
+          : channel // ignore: cast_nullable_to_non_nullable
+              as SnChannel,
+      sender: null == sender
+          ? _self.sender
+          : sender // ignore: cast_nullable_to_non_nullable
+              as SnChannelMember,
+      channelId: null == channelId
+          ? _self.channelId
+          : channelId // ignore: cast_nullable_to_non_nullable
+              as int,
+      senderId: null == senderId
+          ? _self.senderId
+          : senderId // ignore: cast_nullable_to_non_nullable
+              as int,
+      quoteEventId: freezed == quoteEventId
+          ? _self.quoteEventId
+          : quoteEventId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      relatedEventId: freezed == relatedEventId
+          ? _self.relatedEventId
+          : relatedEventId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      preload: freezed == preload
+          ? _self.preload
+          : preload // ignore: cast_nullable_to_non_nullable
+              as SnChatMessagePreload?,
+    ));
+  }
 
-SnChatMessagePreload _$SnChatMessagePreloadFromJson(Map<String, dynamic> json) {
-  return _SnChatMessagePreload.fromJson(json);
+  /// Create a copy of SnChatMessage
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnChannelCopyWith<$Res> get channel {
+    return $SnChannelCopyWith<$Res>(_self.channel, (value) {
+      return _then(_self.copyWith(channel: value));
+    });
+  }
+
+  /// Create a copy of SnChatMessage
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnChannelMemberCopyWith<$Res> get sender {
+    return $SnChannelMemberCopyWith<$Res>(_self.sender, (value) {
+      return _then(_self.copyWith(sender: value));
+    });
+  }
+
+  /// Create a copy of SnChatMessage
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnChatMessagePreloadCopyWith<$Res>? get preload {
+    if (_self.preload == null) {
+      return null;
+    }
+
+    return $SnChatMessagePreloadCopyWith<$Res>(_self.preload!, (value) {
+      return _then(_self.copyWith(preload: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$SnChatMessagePreload {
-  List<SnAttachment?>? get attachments => throw _privateConstructorUsedError;
-  SnChatMessage? get quoteEvent => throw _privateConstructorUsedError;
-
-  /// Serializes this SnChatMessagePreload to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  List<SnAttachment?>? get attachments;
+  SnChatMessage? get quoteEvent;
 
   /// Create a copy of SnChatMessagePreload
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $SnChatMessagePreloadCopyWith<SnChatMessagePreload> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$SnChatMessagePreloadCopyWithImpl<SnChatMessagePreload>(
+          this as SnChatMessagePreload, _$identity);
+
+  /// Serializes this SnChatMessagePreload to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnChatMessagePreload &&
+            const DeepCollectionEquality()
+                .equals(other.attachments, attachments) &&
+            (identical(other.quoteEvent, quoteEvent) ||
+                other.quoteEvent == quoteEvent));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType,
+      const DeepCollectionEquality().hash(attachments), quoteEvent);
+
+  @override
+  String toString() {
+    return 'SnChatMessagePreload(attachments: $attachments, quoteEvent: $quoteEvent)';
+  }
 }
 
 /// @nodoc
-abstract class $SnChatMessagePreloadCopyWith<$Res> {
+abstract mixin class $SnChatMessagePreloadCopyWith<$Res> {
   factory $SnChatMessagePreloadCopyWith(SnChatMessagePreload value,
-          $Res Function(SnChatMessagePreload) then) =
-      _$SnChatMessagePreloadCopyWithImpl<$Res, SnChatMessagePreload>;
+          $Res Function(SnChatMessagePreload) _then) =
+      _$SnChatMessagePreloadCopyWithImpl;
   @useResult
   $Res call({List<SnAttachment?>? attachments, SnChatMessage? quoteEvent});
 
@@ -1481,15 +1536,12 @@ abstract class $SnChatMessagePreloadCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$SnChatMessagePreloadCopyWithImpl<$Res,
-        $Val extends SnChatMessagePreload>
+class _$SnChatMessagePreloadCopyWithImpl<$Res>
     implements $SnChatMessagePreloadCopyWith<$Res> {
-  _$SnChatMessagePreloadCopyWithImpl(this._value, this._then);
+  _$SnChatMessagePreloadCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final SnChatMessagePreload _self;
+  final $Res Function(SnChatMessagePreload) _then;
 
   /// Create a copy of SnChatMessagePreload
   /// with the given fields replaced by the non-null parameter values.
@@ -1499,16 +1551,16 @@ class _$SnChatMessagePreloadCopyWithImpl<$Res,
     Object? attachments = freezed,
     Object? quoteEvent = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       attachments: freezed == attachments
-          ? _value.attachments
+          ? _self.attachments
           : attachments // ignore: cast_nullable_to_non_nullable
               as List<SnAttachment?>?,
       quoteEvent: freezed == quoteEvent
-          ? _value.quoteEvent
+          ? _self.quoteEvent
           : quoteEvent // ignore: cast_nullable_to_non_nullable
               as SnChatMessage?,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of SnChatMessagePreload
@@ -1516,69 +1568,25 @@ class _$SnChatMessagePreloadCopyWithImpl<$Res,
   @override
   @pragma('vm:prefer-inline')
   $SnChatMessageCopyWith<$Res>? get quoteEvent {
-    if (_value.quoteEvent == null) {
+    if (_self.quoteEvent == null) {
       return null;
     }
 
-    return $SnChatMessageCopyWith<$Res>(_value.quoteEvent!, (value) {
-      return _then(_value.copyWith(quoteEvent: value) as $Val);
+    return $SnChatMessageCopyWith<$Res>(_self.quoteEvent!, (value) {
+      return _then(_self.copyWith(quoteEvent: value));
     });
   }
 }
 
 /// @nodoc
-abstract class _$$SnChatMessagePreloadImplCopyWith<$Res>
-    implements $SnChatMessagePreloadCopyWith<$Res> {
-  factory _$$SnChatMessagePreloadImplCopyWith(_$SnChatMessagePreloadImpl value,
-          $Res Function(_$SnChatMessagePreloadImpl) then) =
-      __$$SnChatMessagePreloadImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({List<SnAttachment?>? attachments, SnChatMessage? quoteEvent});
-
-  @override
-  $SnChatMessageCopyWith<$Res>? get quoteEvent;
-}
-
-/// @nodoc
-class __$$SnChatMessagePreloadImplCopyWithImpl<$Res>
-    extends _$SnChatMessagePreloadCopyWithImpl<$Res, _$SnChatMessagePreloadImpl>
-    implements _$$SnChatMessagePreloadImplCopyWith<$Res> {
-  __$$SnChatMessagePreloadImplCopyWithImpl(_$SnChatMessagePreloadImpl _value,
-      $Res Function(_$SnChatMessagePreloadImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of SnChatMessagePreload
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? attachments = freezed,
-    Object? quoteEvent = freezed,
-  }) {
-    return _then(_$SnChatMessagePreloadImpl(
-      attachments: freezed == attachments
-          ? _value._attachments
-          : attachments // ignore: cast_nullable_to_non_nullable
-              as List<SnAttachment?>?,
-      quoteEvent: freezed == quoteEvent
-          ? _value.quoteEvent
-          : quoteEvent // ignore: cast_nullable_to_non_nullable
-              as SnChatMessage?,
-    ));
-  }
-}
-
-/// @nodoc
 @JsonSerializable()
-class _$SnChatMessagePreloadImpl extends _SnChatMessagePreload {
-  const _$SnChatMessagePreloadImpl(
+class _SnChatMessagePreload extends SnChatMessagePreload {
+  const _SnChatMessagePreload(
       {final List<SnAttachment?>? attachments, this.quoteEvent})
       : _attachments = attachments,
         super._();
-
-  factory _$SnChatMessagePreloadImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SnChatMessagePreloadImplFromJson(json);
+  factory _SnChatMessagePreload.fromJson(Map<String, dynamic> json) =>
+      _$SnChatMessagePreloadFromJson(json);
 
   final List<SnAttachment?>? _attachments;
   @override
@@ -1593,16 +1601,27 @@ class _$SnChatMessagePreloadImpl extends _SnChatMessagePreload {
   @override
   final SnChatMessage? quoteEvent;
 
+  /// Create a copy of SnChatMessagePreload
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'SnChatMessagePreload(attachments: $attachments, quoteEvent: $quoteEvent)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnChatMessagePreloadCopyWith<_SnChatMessagePreload> get copyWith =>
+      __$SnChatMessagePreloadCopyWithImpl<_SnChatMessagePreload>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnChatMessagePreloadToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SnChatMessagePreloadImpl &&
+            other is _SnChatMessagePreload &&
             const DeepCollectionEquality()
                 .equals(other._attachments, _attachments) &&
             (identical(other.quoteEvent, quoteEvent) ||
@@ -1614,78 +1633,142 @@ class _$SnChatMessagePreloadImpl extends _SnChatMessagePreload {
   int get hashCode => Object.hash(runtimeType,
       const DeepCollectionEquality().hash(_attachments), quoteEvent);
 
-  /// Create a copy of SnChatMessagePreload
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SnChatMessagePreloadImplCopyWith<_$SnChatMessagePreloadImpl>
-      get copyWith =>
-          __$$SnChatMessagePreloadImplCopyWithImpl<_$SnChatMessagePreloadImpl>(
-              this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SnChatMessagePreloadImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SnChatMessagePreload(attachments: $attachments, quoteEvent: $quoteEvent)';
   }
 }
 
-abstract class _SnChatMessagePreload extends SnChatMessagePreload {
-  const factory _SnChatMessagePreload(
-      {final List<SnAttachment?>? attachments,
-      final SnChatMessage? quoteEvent}) = _$SnChatMessagePreloadImpl;
-  const _SnChatMessagePreload._() : super._();
-
-  factory _SnChatMessagePreload.fromJson(Map<String, dynamic> json) =
-      _$SnChatMessagePreloadImpl.fromJson;
+/// @nodoc
+abstract mixin class _$SnChatMessagePreloadCopyWith<$Res>
+    implements $SnChatMessagePreloadCopyWith<$Res> {
+  factory _$SnChatMessagePreloadCopyWith(_SnChatMessagePreload value,
+          $Res Function(_SnChatMessagePreload) _then) =
+      __$SnChatMessagePreloadCopyWithImpl;
+  @override
+  @useResult
+  $Res call({List<SnAttachment?>? attachments, SnChatMessage? quoteEvent});
 
   @override
-  List<SnAttachment?>? get attachments;
-  @override
-  SnChatMessage? get quoteEvent;
+  $SnChatMessageCopyWith<$Res>? get quoteEvent;
+}
+
+/// @nodoc
+class __$SnChatMessagePreloadCopyWithImpl<$Res>
+    implements _$SnChatMessagePreloadCopyWith<$Res> {
+  __$SnChatMessagePreloadCopyWithImpl(this._self, this._then);
+
+  final _SnChatMessagePreload _self;
+  final $Res Function(_SnChatMessagePreload) _then;
 
   /// Create a copy of SnChatMessagePreload
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SnChatMessagePreloadImplCopyWith<_$SnChatMessagePreloadImpl>
-      get copyWith => throw _privateConstructorUsedError;
-}
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? attachments = freezed,
+    Object? quoteEvent = freezed,
+  }) {
+    return _then(_SnChatMessagePreload(
+      attachments: freezed == attachments
+          ? _self._attachments
+          : attachments // ignore: cast_nullable_to_non_nullable
+              as List<SnAttachment?>?,
+      quoteEvent: freezed == quoteEvent
+          ? _self.quoteEvent
+          : quoteEvent // ignore: cast_nullable_to_non_nullable
+              as SnChatMessage?,
+    ));
+  }
 
-SnChatCall _$SnChatCallFromJson(Map<String, dynamic> json) {
-  return _SnChatCall.fromJson(json);
+  /// Create a copy of SnChatMessagePreload
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnChatMessageCopyWith<$Res>? get quoteEvent {
+    if (_self.quoteEvent == null) {
+      return null;
+    }
+
+    return $SnChatMessageCopyWith<$Res>(_self.quoteEvent!, (value) {
+      return _then(_self.copyWith(quoteEvent: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$SnChatCall {
-  int get id => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
-  DateTime? get deletedAt => throw _privateConstructorUsedError;
-  DateTime? get endedAt => throw _privateConstructorUsedError;
-  String get externalId => throw _privateConstructorUsedError;
-  int get founderId => throw _privateConstructorUsedError;
-  int get channelId => throw _privateConstructorUsedError;
-  SnChannelMember get founder => throw _privateConstructorUsedError;
-  List<dynamic> get participants => throw _privateConstructorUsedError;
-
-  /// Serializes this SnChatCall to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  DateTime? get endedAt;
+  String get externalId;
+  int get founderId;
+  int get channelId;
+  SnChannelMember get founder;
+  List<dynamic> get participants;
 
   /// Create a copy of SnChatCall
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $SnChatCallCopyWith<SnChatCall> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$SnChatCallCopyWithImpl<SnChatCall>(this as SnChatCall, _$identity);
+
+  /// Serializes this SnChatCall to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnChatCall &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.endedAt, endedAt) || other.endedAt == endedAt) &&
+            (identical(other.externalId, externalId) ||
+                other.externalId == externalId) &&
+            (identical(other.founderId, founderId) ||
+                other.founderId == founderId) &&
+            (identical(other.channelId, channelId) ||
+                other.channelId == channelId) &&
+            (identical(other.founder, founder) || other.founder == founder) &&
+            const DeepCollectionEquality()
+                .equals(other.participants, participants));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      endedAt,
+      externalId,
+      founderId,
+      channelId,
+      founder,
+      const DeepCollectionEquality().hash(participants));
+
+  @override
+  String toString() {
+    return 'SnChatCall(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, endedAt: $endedAt, externalId: $externalId, founderId: $founderId, channelId: $channelId, founder: $founder, participants: $participants)';
+  }
 }
 
 /// @nodoc
-abstract class $SnChatCallCopyWith<$Res> {
+abstract mixin class $SnChatCallCopyWith<$Res> {
   factory $SnChatCallCopyWith(
-          SnChatCall value, $Res Function(SnChatCall) then) =
-      _$SnChatCallCopyWithImpl<$Res, SnChatCall>;
+          SnChatCall value, $Res Function(SnChatCall) _then) =
+      _$SnChatCallCopyWithImpl;
   @useResult
   $Res call(
       {int id,
@@ -1703,14 +1786,11 @@ abstract class $SnChatCallCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$SnChatCallCopyWithImpl<$Res, $Val extends SnChatCall>
-    implements $SnChatCallCopyWith<$Res> {
-  _$SnChatCallCopyWithImpl(this._value, this._then);
+class _$SnChatCallCopyWithImpl<$Res> implements $SnChatCallCopyWith<$Res> {
+  _$SnChatCallCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final SnChatCall _self;
+  final $Res Function(SnChatCall) _then;
 
   /// Create a copy of SnChatCall
   /// with the given fields replaced by the non-null parameter values.
@@ -1728,48 +1808,48 @@ class _$SnChatCallCopyWithImpl<$Res, $Val extends SnChatCall>
     Object? founder = null,
     Object? participants = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
       createdAt: null == createdAt
-          ? _value.createdAt
+          ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       updatedAt: null == updatedAt
-          ? _value.updatedAt
+          ? _self.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       deletedAt: freezed == deletedAt
-          ? _value.deletedAt
+          ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       endedAt: freezed == endedAt
-          ? _value.endedAt
+          ? _self.endedAt
           : endedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       externalId: null == externalId
-          ? _value.externalId
+          ? _self.externalId
           : externalId // ignore: cast_nullable_to_non_nullable
               as String,
       founderId: null == founderId
-          ? _value.founderId
+          ? _self.founderId
           : founderId // ignore: cast_nullable_to_non_nullable
               as int,
       channelId: null == channelId
-          ? _value.channelId
+          ? _self.channelId
           : channelId // ignore: cast_nullable_to_non_nullable
               as int,
       founder: null == founder
-          ? _value.founder
+          ? _self.founder
           : founder // ignore: cast_nullable_to_non_nullable
               as SnChannelMember,
       participants: null == participants
-          ? _value.participants
+          ? _self.participants
           : participants // ignore: cast_nullable_to_non_nullable
               as List<dynamic>,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of SnChatCall
@@ -1777,109 +1857,16 @@ class _$SnChatCallCopyWithImpl<$Res, $Val extends SnChatCall>
   @override
   @pragma('vm:prefer-inline')
   $SnChannelMemberCopyWith<$Res> get founder {
-    return $SnChannelMemberCopyWith<$Res>(_value.founder, (value) {
-      return _then(_value.copyWith(founder: value) as $Val);
+    return $SnChannelMemberCopyWith<$Res>(_self.founder, (value) {
+      return _then(_self.copyWith(founder: value));
     });
   }
 }
 
 /// @nodoc
-abstract class _$$SnChatCallImplCopyWith<$Res>
-    implements $SnChatCallCopyWith<$Res> {
-  factory _$$SnChatCallImplCopyWith(
-          _$SnChatCallImpl value, $Res Function(_$SnChatCallImpl) then) =
-      __$$SnChatCallImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {int id,
-      DateTime createdAt,
-      DateTime updatedAt,
-      DateTime? deletedAt,
-      DateTime? endedAt,
-      String externalId,
-      int founderId,
-      int channelId,
-      SnChannelMember founder,
-      List<dynamic> participants});
-
-  @override
-  $SnChannelMemberCopyWith<$Res> get founder;
-}
-
-/// @nodoc
-class __$$SnChatCallImplCopyWithImpl<$Res>
-    extends _$SnChatCallCopyWithImpl<$Res, _$SnChatCallImpl>
-    implements _$$SnChatCallImplCopyWith<$Res> {
-  __$$SnChatCallImplCopyWithImpl(
-      _$SnChatCallImpl _value, $Res Function(_$SnChatCallImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of SnChatCall
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
-    Object? deletedAt = freezed,
-    Object? endedAt = freezed,
-    Object? externalId = null,
-    Object? founderId = null,
-    Object? channelId = null,
-    Object? founder = null,
-    Object? participants = null,
-  }) {
-    return _then(_$SnChatCallImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      endedAt: freezed == endedAt
-          ? _value.endedAt
-          : endedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      externalId: null == externalId
-          ? _value.externalId
-          : externalId // ignore: cast_nullable_to_non_nullable
-              as String,
-      founderId: null == founderId
-          ? _value.founderId
-          : founderId // ignore: cast_nullable_to_non_nullable
-              as int,
-      channelId: null == channelId
-          ? _value.channelId
-          : channelId // ignore: cast_nullable_to_non_nullable
-              as int,
-      founder: null == founder
-          ? _value.founder
-          : founder // ignore: cast_nullable_to_non_nullable
-              as SnChannelMember,
-      participants: null == participants
-          ? _value._participants
-          : participants // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
-    ));
-  }
-}
-
-/// @nodoc
 @JsonSerializable()
-class _$SnChatCallImpl implements _SnChatCall {
-  const _$SnChatCallImpl(
+class _SnChatCall implements SnChatCall {
+  const _SnChatCall(
       {required this.id,
       required this.createdAt,
       required this.updatedAt,
@@ -1891,9 +1878,8 @@ class _$SnChatCallImpl implements _SnChatCall {
       required this.founder,
       final List<dynamic> participants = const []})
       : _participants = participants;
-
-  factory _$SnChatCallImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SnChatCallImplFromJson(json);
+  factory _SnChatCall.fromJson(Map<String, dynamic> json) =>
+      _$SnChatCallFromJson(json);
 
   @override
   final int id;
@@ -1922,16 +1908,26 @@ class _$SnChatCallImpl implements _SnChatCall {
     return EqualUnmodifiableListView(_participants);
   }
 
+  /// Create a copy of SnChatCall
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'SnChatCall(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, endedAt: $endedAt, externalId: $externalId, founderId: $founderId, channelId: $channelId, founder: $founder, participants: $participants)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnChatCallCopyWith<_SnChatCall> get copyWith =>
+      __$SnChatCallCopyWithImpl<_SnChatCall>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnChatCallToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SnChatCallImpl &&
+            other is _SnChatCall &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -1966,63 +1962,112 @@ class _$SnChatCallImpl implements _SnChatCall {
       founder,
       const DeepCollectionEquality().hash(_participants));
 
-  /// Create a copy of SnChatCall
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SnChatCallImplCopyWith<_$SnChatCallImpl> get copyWith =>
-      __$$SnChatCallImplCopyWithImpl<_$SnChatCallImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SnChatCallImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SnChatCall(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, endedAt: $endedAt, externalId: $externalId, founderId: $founderId, channelId: $channelId, founder: $founder, participants: $participants)';
   }
 }
 
-abstract class _SnChatCall implements SnChatCall {
-  const factory _SnChatCall(
-      {required final int id,
-      required final DateTime createdAt,
-      required final DateTime updatedAt,
-      required final DateTime? deletedAt,
-      required final DateTime? endedAt,
-      required final String externalId,
-      required final int founderId,
-      required final int channelId,
-      required final SnChannelMember founder,
-      final List<dynamic> participants}) = _$SnChatCallImpl;
+/// @nodoc
+abstract mixin class _$SnChatCallCopyWith<$Res>
+    implements $SnChatCallCopyWith<$Res> {
+  factory _$SnChatCallCopyWith(
+          _SnChatCall value, $Res Function(_SnChatCall) _then) =
+      __$SnChatCallCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      DateTime? endedAt,
+      String externalId,
+      int founderId,
+      int channelId,
+      SnChannelMember founder,
+      List<dynamic> participants});
 
-  factory _SnChatCall.fromJson(Map<String, dynamic> json) =
-      _$SnChatCallImpl.fromJson;
+  @override
+  $SnChannelMemberCopyWith<$Res> get founder;
+}
 
-  @override
-  int get id;
-  @override
-  DateTime get createdAt;
-  @override
-  DateTime get updatedAt;
-  @override
-  DateTime? get deletedAt;
-  @override
-  DateTime? get endedAt;
-  @override
-  String get externalId;
-  @override
-  int get founderId;
-  @override
-  int get channelId;
-  @override
-  SnChannelMember get founder;
-  @override
-  List<dynamic> get participants;
+/// @nodoc
+class __$SnChatCallCopyWithImpl<$Res> implements _$SnChatCallCopyWith<$Res> {
+  __$SnChatCallCopyWithImpl(this._self, this._then);
+
+  final _SnChatCall _self;
+  final $Res Function(_SnChatCall) _then;
 
   /// Create a copy of SnChatCall
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SnChatCallImplCopyWith<_$SnChatCallImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? endedAt = freezed,
+    Object? externalId = null,
+    Object? founderId = null,
+    Object? channelId = null,
+    Object? founder = null,
+    Object? participants = null,
+  }) {
+    return _then(_SnChatCall(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      endedAt: freezed == endedAt
+          ? _self.endedAt
+          : endedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      externalId: null == externalId
+          ? _self.externalId
+          : externalId // ignore: cast_nullable_to_non_nullable
+              as String,
+      founderId: null == founderId
+          ? _self.founderId
+          : founderId // ignore: cast_nullable_to_non_nullable
+              as int,
+      channelId: null == channelId
+          ? _self.channelId
+          : channelId // ignore: cast_nullable_to_non_nullable
+              as int,
+      founder: null == founder
+          ? _self.founder
+          : founder // ignore: cast_nullable_to_non_nullable
+              as SnChannelMember,
+      participants: null == participants
+          ? _self._participants
+          : participants // ignore: cast_nullable_to_non_nullable
+              as List<dynamic>,
+    ));
+  }
+
+  /// Create a copy of SnChatCall
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnChannelMemberCopyWith<$Res> get founder {
+    return $SnChannelMemberCopyWith<$Res>(_self.founder, (value) {
+      return _then(_self.copyWith(founder: value));
+    });
+  }
 }
+
+// dart format on

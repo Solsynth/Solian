@@ -735,5 +735,6 @@
   "cacheSize": "Cache Size",
   "cacheDelete": "Clean Cache",
   "cacheDeleteDescription": "Remove the cached images and other resources from your disk, the content will be downloaded from server again.",
-  "cacheDeleted": "All cache has been cleaned up."
+  "cacheDeleted": "All cache has been cleaned up.",
+  "userNoDescription": "No description."
 }

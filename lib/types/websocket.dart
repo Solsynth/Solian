@@ -4,7 +4,7 @@ part 'websocket.freezed.dart';
 part 'websocket.g.dart';
 
 @freezed
-class WebSocketPackage with _$WebSocketPackage {
+abstract class WebSocketPackage with _$WebSocketPackage {
   const factory WebSocketPackage({
     @JsonKey(name: 'w') @Default('unknown') String method,
     @JsonKey(name: 'e') String? endpoint,

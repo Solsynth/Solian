@@ -6,9 +6,8 @@ part of 'check_in.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnCheckInRecordImpl _$$SnCheckInRecordImplFromJson(
-        Map<String, dynamic> json) =>
-    _$SnCheckInRecordImpl(
+_SnCheckInRecord _$SnCheckInRecordFromJson(Map<String, dynamic> json) =>
+    _SnCheckInRecord(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -24,8 +23,7 @@ _$SnCheckInRecordImpl _$$SnCheckInRecordImplFromJson(
       accountId: (json['account_id'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SnCheckInRecordImplToJson(
-        _$SnCheckInRecordImpl instance) =>
+Map<String, dynamic> _$SnCheckInRecordToJson(_SnCheckInRecord instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),

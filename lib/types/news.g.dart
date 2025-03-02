@@ -6,8 +6,8 @@ part of 'news.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnNewsSourceImpl _$$SnNewsSourceImplFromJson(Map<String, dynamic> json) =>
-    _$SnNewsSourceImpl(
+_SnNewsSource _$SnNewsSourceFromJson(Map<String, dynamic> json) =>
+    _SnNewsSource(
       id: json['id'] as String,
       label: json['label'] as String,
       type: json['type'] as String,
@@ -16,7 +16,7 @@ _$SnNewsSourceImpl _$$SnNewsSourceImplFromJson(Map<String, dynamic> json) =>
       enabled: json['enabled'] as bool,
     );
 
-Map<String, dynamic> _$$SnNewsSourceImplToJson(_$SnNewsSourceImpl instance) =>
+Map<String, dynamic> _$SnNewsSourceToJson(_SnNewsSource instance) =>
     <String, dynamic>{
       'id': instance.id,
       'label': instance.label,
@@ -26,8 +26,8 @@ Map<String, dynamic> _$$SnNewsSourceImplToJson(_$SnNewsSourceImpl instance) =>
       'enabled': instance.enabled,
     };
 
-_$SnNewsArticleImpl _$$SnNewsArticleImplFromJson(Map<String, dynamic> json) =>
-    _$SnNewsArticleImpl(
+_SnNewsArticle _$SnNewsArticleFromJson(Map<String, dynamic> json) =>
+    _SnNewsArticle(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -44,7 +44,7 @@ _$SnNewsArticleImpl _$$SnNewsArticleImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['published_at'] as String),
     );
 
-Map<String, dynamic> _$$SnNewsArticleImplToJson(_$SnNewsArticleImpl instance) =>
+Map<String, dynamic> _$SnNewsArticleToJson(_SnNewsArticle instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),

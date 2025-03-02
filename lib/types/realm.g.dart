@@ -6,8 +6,8 @@ part of 'realm.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnRealmMemberImpl _$$SnRealmMemberImplFromJson(Map<String, dynamic> json) =>
-    _$SnRealmMemberImpl(
+_SnRealmMember _$SnRealmMemberFromJson(Map<String, dynamic> json) =>
+    _SnRealmMember(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -21,7 +21,7 @@ _$SnRealmMemberImpl _$$SnRealmMemberImplFromJson(Map<String, dynamic> json) =>
       powerLevel: (json['power_level'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SnRealmMemberImplToJson(_$SnRealmMemberImpl instance) =>
+Map<String, dynamic> _$SnRealmMemberToJson(_SnRealmMember instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -34,8 +34,7 @@ Map<String, dynamic> _$$SnRealmMemberImplToJson(_$SnRealmMemberImpl instance) =>
       'power_level': instance.powerLevel,
     };
 
-_$SnRealmImpl _$$SnRealmImplFromJson(Map<String, dynamic> json) =>
-    _$SnRealmImpl(
+_SnRealm _$SnRealmFromJson(Map<String, dynamic> json) => _SnRealm(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -57,8 +56,7 @@ _$SnRealmImpl _$$SnRealmImplFromJson(Map<String, dynamic> json) =>
       popularity: (json['popularity'] as num?)?.toInt() ?? 0,
     );
 
-Map<String, dynamic> _$$SnRealmImplToJson(_$SnRealmImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$SnRealmToJson(_SnRealm instance) => <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),

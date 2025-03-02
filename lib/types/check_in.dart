@@ -14,7 +14,7 @@ final List<String> kCheckInResultTierSymbols = [
 ].map((e) => e.tr()).toList();
 
 @freezed
-class SnCheckInRecord with _$SnCheckInRecord {
+abstract class SnCheckInRecord with _$SnCheckInRecord {
   const SnCheckInRecord._();
 
   const factory SnCheckInRecord({

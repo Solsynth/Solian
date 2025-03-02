@@ -6,7 +6,7 @@ part of 'post.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnPostImpl _$$SnPostImplFromJson(Map<String, dynamic> json) => _$SnPostImpl(
+_SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -76,8 +76,7 @@ _$SnPostImpl _$$SnPostImplFromJson(Map<String, dynamic> json) => _$SnPostImpl(
           : SnPostPreload.fromJson(json['preload'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$SnPostImplToJson(_$SnPostImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
@@ -115,8 +114,7 @@ Map<String, dynamic> _$$SnPostImplToJson(_$SnPostImpl instance) =>
       'preload': instance.preload?.toJson(),
     };
 
-_$SnPostTagImpl _$$SnPostTagImplFromJson(Map<String, dynamic> json) =>
-    _$SnPostTagImpl(
+_SnPostTag _$SnPostTagFromJson(Map<String, dynamic> json) => _SnPostTag(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -127,7 +125,7 @@ _$SnPostTagImpl _$$SnPostTagImplFromJson(Map<String, dynamic> json) =>
       posts: json['posts'],
     );
 
-Map<String, dynamic> _$$SnPostTagImplToJson(_$SnPostTagImpl instance) =>
+Map<String, dynamic> _$SnPostTagToJson(_SnPostTag instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -139,8 +137,8 @@ Map<String, dynamic> _$$SnPostTagImplToJson(_$SnPostTagImpl instance) =>
       'posts': instance.posts,
     };
 
-_$SnPostCategoryImpl _$$SnPostCategoryImplFromJson(Map<String, dynamic> json) =>
-    _$SnPostCategoryImpl(
+_SnPostCategory _$SnPostCategoryFromJson(Map<String, dynamic> json) =>
+    _SnPostCategory(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -151,8 +149,7 @@ _$SnPostCategoryImpl _$$SnPostCategoryImplFromJson(Map<String, dynamic> json) =>
       posts: json['posts'],
     );
 
-Map<String, dynamic> _$$SnPostCategoryImplToJson(
-        _$SnPostCategoryImpl instance) =>
+Map<String, dynamic> _$SnPostCategoryToJson(_SnPostCategory instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -164,8 +161,8 @@ Map<String, dynamic> _$$SnPostCategoryImplToJson(
       'posts': instance.posts,
     };
 
-_$SnPostPreloadImpl _$$SnPostPreloadImplFromJson(Map<String, dynamic> json) =>
-    _$SnPostPreloadImpl(
+_SnPostPreload _$SnPostPreloadFromJson(Map<String, dynamic> json) =>
+    _SnPostPreload(
       thumbnail: json['thumbnail'] == null
           ? null
           : SnAttachment.fromJson(json['thumbnail'] as Map<String, dynamic>),
@@ -185,7 +182,7 @@ _$SnPostPreloadImpl _$$SnPostPreloadImplFromJson(Map<String, dynamic> json) =>
           : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$SnPostPreloadImplToJson(_$SnPostPreloadImpl instance) =>
+Map<String, dynamic> _$SnPostPreloadToJson(_SnPostPreload instance) =>
     <String, dynamic>{
       'thumbnail': instance.thumbnail?.toJson(),
       'attachments': instance.attachments?.map((e) => e?.toJson()).toList(),
@@ -194,7 +191,7 @@ Map<String, dynamic> _$$SnPostPreloadImplToJson(_$SnPostPreloadImpl instance) =>
       'realm': instance.realm?.toJson(),
     };
 
-_$SnBodyImpl _$$SnBodyImplFromJson(Map<String, dynamic> json) => _$SnBodyImpl(
+_SnBody _$SnBodyFromJson(Map<String, dynamic> json) => _SnBody(
       attachments: (json['attachments'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -204,8 +201,7 @@ _$SnBodyImpl _$$SnBodyImplFromJson(Map<String, dynamic> json) => _$SnBodyImpl(
       title: json['title'],
     );
 
-Map<String, dynamic> _$$SnBodyImplToJson(_$SnBodyImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$SnBodyToJson(_SnBody instance) => <String, dynamic>{
       'attachments': instance.attachments,
       'content': instance.content,
       'location': instance.location,
@@ -213,8 +209,7 @@ Map<String, dynamic> _$$SnBodyImplToJson(_$SnBodyImpl instance) =>
       'title': instance.title,
     };
 
-_$SnMetricImpl _$$SnMetricImplFromJson(Map<String, dynamic> json) =>
-    _$SnMetricImpl(
+_SnMetric _$SnMetricFromJson(Map<String, dynamic> json) => _SnMetric(
       replyCount: (json['reply_count'] as num).toInt(),
       reactionCount: (json['reaction_count'] as num).toInt(),
       reactionList: (json['reaction_list'] as Map<String, dynamic>?)?.map(
@@ -223,15 +218,13 @@ _$SnMetricImpl _$$SnMetricImplFromJson(Map<String, dynamic> json) =>
           const {},
     );
 
-Map<String, dynamic> _$$SnMetricImplToJson(_$SnMetricImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$SnMetricToJson(_SnMetric instance) => <String, dynamic>{
       'reply_count': instance.replyCount,
       'reaction_count': instance.reactionCount,
       'reaction_list': instance.reactionList,
     };
 
-_$SnPublisherImpl _$$SnPublisherImplFromJson(Map<String, dynamic> json) =>
-    _$SnPublisherImpl(
+_SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -250,7 +243,7 @@ _$SnPublisherImpl _$$SnPublisherImplFromJson(Map<String, dynamic> json) =>
       accountId: (json['account_id'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SnPublisherImplToJson(_$SnPublisherImpl instance) =>
+Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -268,8 +261,8 @@ Map<String, dynamic> _$$SnPublisherImplToJson(_$SnPublisherImpl instance) =>
       'account_id': instance.accountId,
     };
 
-_$SnSubscriptionImpl _$$SnSubscriptionImplFromJson(Map<String, dynamic> json) =>
-    _$SnSubscriptionImpl(
+_SnSubscription _$SnSubscriptionFromJson(Map<String, dynamic> json) =>
+    _SnSubscription(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -280,8 +273,7 @@ _$SnSubscriptionImpl _$$SnSubscriptionImplFromJson(Map<String, dynamic> json) =>
       accountId: (json['account_id'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SnSubscriptionImplToJson(
-        _$SnSubscriptionImpl instance) =>
+Map<String, dynamic> _$SnSubscriptionToJson(_SnSubscription instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),

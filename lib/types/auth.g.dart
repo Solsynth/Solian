@@ -6,22 +6,22 @@ part of 'auth.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnAuthResultImpl _$$SnAuthResultImplFromJson(Map<String, dynamic> json) =>
-    _$SnAuthResultImpl(
+_SnAuthResult _$SnAuthResultFromJson(Map<String, dynamic> json) =>
+    _SnAuthResult(
       isFinished: json['is_finished'] as bool,
       ticket: json['ticket'] == null
           ? null
           : SnAuthTicket.fromJson(json['ticket'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$SnAuthResultImplToJson(_$SnAuthResultImpl instance) =>
+Map<String, dynamic> _$SnAuthResultToJson(_SnAuthResult instance) =>
     <String, dynamic>{
       'is_finished': instance.isFinished,
       'ticket': instance.ticket?.toJson(),
     };
 
-_$SnAuthTicketImpl _$$SnAuthTicketImplFromJson(Map<String, dynamic> json) =>
-    _$SnAuthTicketImpl(
+_SnAuthTicket _$SnAuthTicketFromJson(Map<String, dynamic> json) =>
+    _SnAuthTicket(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -52,7 +52,7 @@ _$SnAuthTicketImpl _$$SnAuthTicketImplFromJson(Map<String, dynamic> json) =>
           const [],
     );
 
-Map<String, dynamic> _$$SnAuthTicketImplToJson(_$SnAuthTicketImpl instance) =>
+Map<String, dynamic> _$SnAuthTicketToJson(_SnAuthTicket instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -73,8 +73,8 @@ Map<String, dynamic> _$$SnAuthTicketImplToJson(_$SnAuthTicketImpl instance) =>
       'factor_trail': instance.factorTrail,
     };
 
-_$SnAuthFactorImpl _$$SnAuthFactorImplFromJson(Map<String, dynamic> json) =>
-    _$SnAuthFactorImpl(
+_SnAuthFactor _$SnAuthFactorFromJson(Map<String, dynamic> json) =>
+    _SnAuthFactor(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -86,7 +86,7 @@ _$SnAuthFactorImpl _$$SnAuthFactorImplFromJson(Map<String, dynamic> json) =>
       accountId: (json['account_id'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$$SnAuthFactorImplToJson(_$SnAuthFactorImpl instance) =>
+Map<String, dynamic> _$SnAuthFactorToJson(_SnAuthFactor instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),

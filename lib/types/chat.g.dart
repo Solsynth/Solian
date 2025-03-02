@@ -6,8 +6,7 @@ part of 'chat.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnChannelImpl _$$SnChannelImplFromJson(Map<String, dynamic> json) =>
-    _$SnChannelImpl(
+_SnChannel _$SnChannelFromJson(Map<String, dynamic> json) => _SnChannel(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -31,7 +30,7 @@ _$SnChannelImpl _$$SnChannelImplFromJson(Map<String, dynamic> json) =>
       isCommunity: json['is_community'] as bool,
     );
 
-Map<String, dynamic> _$$SnChannelImplToJson(_$SnChannelImpl instance) =>
+Map<String, dynamic> _$SnChannelToJson(_SnChannel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -50,9 +49,8 @@ Map<String, dynamic> _$$SnChannelImplToJson(_$SnChannelImpl instance) =>
       'is_community': instance.isCommunity,
     };
 
-_$SnChannelMemberImpl _$$SnChannelMemberImplFromJson(
-        Map<String, dynamic> json) =>
-    _$SnChannelMemberImpl(
+_SnChannelMember _$SnChannelMemberFromJson(Map<String, dynamic> json) =>
+    _SnChannelMember(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -74,8 +72,7 @@ _$SnChannelMemberImpl _$$SnChannelMemberImplFromJson(
       events: json['events'],
     );
 
-Map<String, dynamic> _$$SnChannelMemberImplToJson(
-        _$SnChannelMemberImpl instance) =>
+Map<String, dynamic> _$SnChannelMemberToJson(_SnChannelMember instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -92,8 +89,8 @@ Map<String, dynamic> _$$SnChannelMemberImplToJson(
       'events': instance.events,
     };
 
-_$SnChatMessageImpl _$$SnChatMessageImplFromJson(Map<String, dynamic> json) =>
-    _$SnChatMessageImpl(
+_SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
+    _SnChatMessage(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -115,7 +112,7 @@ _$SnChatMessageImpl _$$SnChatMessageImplFromJson(Map<String, dynamic> json) =>
               json['preload'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$SnChatMessageImplToJson(_$SnChatMessageImpl instance) =>
+Map<String, dynamic> _$SnChatMessageToJson(_SnChatMessage instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -133,9 +130,9 @@ Map<String, dynamic> _$$SnChatMessageImplToJson(_$SnChatMessageImpl instance) =>
       'preload': instance.preload?.toJson(),
     };
 
-_$SnChatMessagePreloadImpl _$$SnChatMessagePreloadImplFromJson(
+_SnChatMessagePreload _$SnChatMessagePreloadFromJson(
         Map<String, dynamic> json) =>
-    _$SnChatMessagePreloadImpl(
+    _SnChatMessagePreload(
       attachments: (json['attachments'] as List<dynamic>?)
           ?.map((e) => e == null
               ? null
@@ -146,15 +143,14 @@ _$SnChatMessagePreloadImpl _$$SnChatMessagePreloadImplFromJson(
           : SnChatMessage.fromJson(json['quote_event'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$SnChatMessagePreloadImplToJson(
-        _$SnChatMessagePreloadImpl instance) =>
+Map<String, dynamic> _$SnChatMessagePreloadToJson(
+        _SnChatMessagePreload instance) =>
     <String, dynamic>{
       'attachments': instance.attachments?.map((e) => e?.toJson()).toList(),
       'quote_event': instance.quoteEvent?.toJson(),
     };
 
-_$SnChatCallImpl _$$SnChatCallImplFromJson(Map<String, dynamic> json) =>
-    _$SnChatCallImpl(
+_SnChatCall _$SnChatCallFromJson(Map<String, dynamic> json) => _SnChatCall(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -172,7 +168,7 @@ _$SnChatCallImpl _$$SnChatCallImplFromJson(Map<String, dynamic> json) =>
       participants: json['participants'] as List<dynamic>? ?? const [],
     );
 
-Map<String, dynamic> _$$SnChatCallImplToJson(_$SnChatCallImpl instance) =>
+Map<String, dynamic> _$SnChatCallToJson(_SnChatCall instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),

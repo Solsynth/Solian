@@ -6,7 +6,7 @@ part of 'poll.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnPollImpl _$$SnPollImplFromJson(Map<String, dynamic> json) => _$SnPollImpl(
+_SnPoll _$SnPollFromJson(Map<String, dynamic> json) => _SnPoll(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -19,8 +19,7 @@ _$SnPollImpl _$$SnPollImplFromJson(Map<String, dynamic> json) => _$SnPollImpl(
       metric: SnPollMetric.fromJson(json['metric'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$SnPollImplToJson(_$SnPollImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$SnPollToJson(_SnPoll instance) => <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
@@ -31,8 +30,8 @@ Map<String, dynamic> _$$SnPollImplToJson(_$SnPollImpl instance) =>
       'metric': instance.metric.toJson(),
     };
 
-_$SnPollMetricImpl _$$SnPollMetricImplFromJson(Map<String, dynamic> json) =>
-    _$SnPollMetricImpl(
+_SnPollMetric _$SnPollMetricFromJson(Map<String, dynamic> json) =>
+    _SnPollMetric(
       totalAnswer: (json['total_answer'] as num).toInt(),
       byOptions: (json['by_options'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, (e as num).toInt()),
@@ -45,22 +44,22 @@ _$SnPollMetricImpl _$$SnPollMetricImplFromJson(Map<String, dynamic> json) =>
               const {},
     );
 
-Map<String, dynamic> _$$SnPollMetricImplToJson(_$SnPollMetricImpl instance) =>
+Map<String, dynamic> _$SnPollMetricToJson(_SnPollMetric instance) =>
     <String, dynamic>{
       'total_answer': instance.totalAnswer,
       'by_options': instance.byOptions,
       'by_options_percentage': instance.byOptionsPercentage,
     };
 
-_$SnPollOptionImpl _$$SnPollOptionImplFromJson(Map<String, dynamic> json) =>
-    _$SnPollOptionImpl(
+_SnPollOption _$SnPollOptionFromJson(Map<String, dynamic> json) =>
+    _SnPollOption(
       id: json['id'] as String,
       icon: json['icon'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
     );
 
-Map<String, dynamic> _$$SnPollOptionImplToJson(_$SnPollOptionImpl instance) =>
+Map<String, dynamic> _$SnPollOptionToJson(_SnPollOption instance) =>
     <String, dynamic>{
       'id': instance.id,
       'icon': instance.icon,

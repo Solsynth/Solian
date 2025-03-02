@@ -7,7 +7,7 @@ part 'post.freezed.dart';
 part 'post.g.dart';
 
 @freezed
-class SnPost with _$SnPost {
+abstract class SnPost with _$SnPost {
   const SnPost._();
 
   const factory SnPost({
@@ -57,7 +57,7 @@ class SnPost with _$SnPost {
 }
 
 @freezed
-class SnPostTag with _$SnPostTag {
+abstract class SnPostTag with _$SnPostTag {
   const factory SnPostTag({
     required int id,
     required DateTime createdAt,
@@ -74,7 +74,7 @@ class SnPostTag with _$SnPostTag {
 }
 
 @freezed
-class SnPostCategory with _$SnPostCategory {
+abstract class SnPostCategory with _$SnPostCategory {
   const factory SnPostCategory({
     required int id,
     required DateTime createdAt,
@@ -91,7 +91,7 @@ class SnPostCategory with _$SnPostCategory {
 }
 
 @freezed
-class SnPostPreload with _$SnPostPreload {
+abstract class SnPostPreload with _$SnPostPreload {
   const factory SnPostPreload({
     required SnAttachment? thumbnail,
     required List<SnAttachment?>? attachments,
@@ -105,7 +105,7 @@ class SnPostPreload with _$SnPostPreload {
 }
 
 @freezed
-class SnBody with _$SnBody {
+abstract class SnBody with _$SnBody {
   const factory SnBody({
     required List<String> attachments,
     required String content,
@@ -118,7 +118,7 @@ class SnBody with _$SnBody {
 }
 
 @freezed
-class SnMetric with _$SnMetric {
+abstract class SnMetric with _$SnMetric {
   const factory SnMetric({
     required int replyCount,
     required int reactionCount,
@@ -130,7 +130,7 @@ class SnMetric with _$SnMetric {
 }
 
 @freezed
-class SnPublisher with _$SnPublisher {
+abstract class SnPublisher with _$SnPublisher {
   const factory SnPublisher({
     required int id,
     required DateTime createdAt,
@@ -153,7 +153,7 @@ class SnPublisher with _$SnPublisher {
 }
 
 @freezed
-class SnSubscription with _$SnSubscription {
+abstract class SnSubscription with _$SnSubscription {
   const factory SnSubscription({
     required int id,
     required DateTime createdAt,

@@ -4,7 +4,7 @@ part 'notification.freezed.dart';
 part 'notification.g.dart';
 
 @freezed
-class SnNotification with _$SnNotification {
+abstract class SnNotification with _$SnNotification {
   const factory SnNotification({
     required int id,
     required DateTime createdAt,

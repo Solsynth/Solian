@@ -8,7 +8,7 @@ part 'chat.freezed.dart';
 part 'chat.g.dart';
 
 @freezed
-class SnChannel with _$SnChannel {
+abstract class SnChannel with _$SnChannel {
   const SnChannel._();
 
   const factory SnChannel({
@@ -37,7 +37,7 @@ class SnChannel with _$SnChannel {
 }
 
 @freezed
-class SnChannelMember with _$SnChannelMember {
+abstract class SnChannelMember with _$SnChannelMember {
   const SnChannelMember._();
 
   const factory SnChannelMember({
@@ -61,7 +61,7 @@ class SnChannelMember with _$SnChannelMember {
 }
 
 @freezed
-class SnChatMessage with _$SnChatMessage {
+abstract class SnChatMessage with _$SnChatMessage {
   const SnChatMessage._();
 
   const factory SnChatMessage({
@@ -86,7 +86,7 @@ class SnChatMessage with _$SnChatMessage {
 }
 
 @freezed
-class SnChatMessagePreload with _$SnChatMessagePreload {
+abstract class SnChatMessagePreload with _$SnChatMessagePreload {
   const SnChatMessagePreload._();
 
   const factory SnChatMessagePreload({
@@ -99,7 +99,7 @@ class SnChatMessagePreload with _$SnChatMessagePreload {
 }
 
 @freezed
-class SnChatCall with _$SnChatCall {
+abstract class SnChatCall with _$SnChatCall {
   const factory SnChatCall({
     required int id,
     required DateTime createdAt,

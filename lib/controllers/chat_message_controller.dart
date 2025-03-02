@@ -184,6 +184,7 @@ class ChatMessageController extends ChangeNotifier {
     } else {
       messages.insert(0, message);
     }
+    notifyListeners();
     await _applyMessage(message);
     notifyListeners();
 

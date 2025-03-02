@@ -733,5 +733,6 @@
   "cacheSize": "缓存资源大小",
   "cacheDelete": "清除缓存",
   "cacheDeleteDescription": "从磁盘中移除缓存的图片和其他资源，内容将从服务器重新下载。",
-  "cacheDeleted": "所有缓存已被清除。"
+  "cacheDeleted": "所有缓存已被清除。",
+  "userNoDescription": "这个人很懒，没有留下什么……"
 }

@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,97 +10,59 @@ part of 'websocket.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-WebSocketPackage _$WebSocketPackageFromJson(Map<String, dynamic> json) {
-  return _WebSocketPackage.fromJson(json);
-}
 
 /// @nodoc
 mixin _$WebSocketPackage {
   @JsonKey(name: 'w')
-  String get method => throw _privateConstructorUsedError;
+  String get method;
   @JsonKey(name: 'e')
-  String? get endpoint => throw _privateConstructorUsedError;
+  String? get endpoint;
   @JsonKey(name: 'm')
-  String? get message => throw _privateConstructorUsedError;
+  String? get message;
   @JsonKey(name: 'p')
-  Map<String, dynamic>? get payload => throw _privateConstructorUsedError;
-
-  /// Serializes this WebSocketPackage to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get payload;
 
   /// Create a copy of WebSocketPackage
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $WebSocketPackageCopyWith<WebSocketPackage> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $WebSocketPackageCopyWith<$Res> {
-  factory $WebSocketPackageCopyWith(
-          WebSocketPackage value, $Res Function(WebSocketPackage) then) =
-      _$WebSocketPackageCopyWithImpl<$Res, WebSocketPackage>;
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'w') String method,
-      @JsonKey(name: 'e') String? endpoint,
-      @JsonKey(name: 'm') String? message,
-      @JsonKey(name: 'p') Map<String, dynamic>? payload});
-}
-
-/// @nodoc
-class _$WebSocketPackageCopyWithImpl<$Res, $Val extends WebSocketPackage>
-    implements $WebSocketPackageCopyWith<$Res> {
-  _$WebSocketPackageCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of WebSocketPackage
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $WebSocketPackageCopyWith<WebSocketPackage> get copyWith =>
+      _$WebSocketPackageCopyWithImpl<WebSocketPackage>(
+          this as WebSocketPackage, _$identity);
+
+  /// Serializes this WebSocketPackage to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? method = null,
-    Object? endpoint = freezed,
-    Object? message = freezed,
-    Object? payload = freezed,
-  }) {
-    return _then(_value.copyWith(
-      method: null == method
-          ? _value.method
-          : method // ignore: cast_nullable_to_non_nullable
-              as String,
-      endpoint: freezed == endpoint
-          ? _value.endpoint
-          : endpoint // ignore: cast_nullable_to_non_nullable
-              as String?,
-      message: freezed == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String?,
-      payload: freezed == payload
-          ? _value.payload
-          : payload // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is WebSocketPackage &&
+            (identical(other.method, method) || other.method == method) &&
+            (identical(other.endpoint, endpoint) ||
+                other.endpoint == endpoint) &&
+            (identical(other.message, message) || other.message == message) &&
+            const DeepCollectionEquality().equals(other.payload, payload));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, method, endpoint, message,
+      const DeepCollectionEquality().hash(payload));
+
+  @override
+  String toString() {
+    return 'WebSocketPackage(method: $method, endpoint: $endpoint, message: $message, payload: $payload)';
   }
 }
 
 /// @nodoc
-abstract class _$$WebSocketPackageImplCopyWith<$Res>
-    implements $WebSocketPackageCopyWith<$Res> {
-  factory _$$WebSocketPackageImplCopyWith(_$WebSocketPackageImpl value,
-          $Res Function(_$WebSocketPackageImpl) then) =
-      __$$WebSocketPackageImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $WebSocketPackageCopyWith<$Res> {
+  factory $WebSocketPackageCopyWith(
+          WebSocketPackage value, $Res Function(WebSocketPackage) _then) =
+      _$WebSocketPackageCopyWithImpl;
   @useResult
   $Res call(
       {@JsonKey(name: 'w') String method,
@@ -109,12 +72,12 @@ abstract class _$$WebSocketPackageImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$WebSocketPackageImplCopyWithImpl<$Res>
-    extends _$WebSocketPackageCopyWithImpl<$Res, _$WebSocketPackageImpl>
-    implements _$$WebSocketPackageImplCopyWith<$Res> {
-  __$$WebSocketPackageImplCopyWithImpl(_$WebSocketPackageImpl _value,
-      $Res Function(_$WebSocketPackageImpl) _then)
-      : super(_value, _then);
+class _$WebSocketPackageCopyWithImpl<$Res>
+    implements $WebSocketPackageCopyWith<$Res> {
+  _$WebSocketPackageCopyWithImpl(this._self, this._then);
+
+  final WebSocketPackage _self;
+  final $Res Function(WebSocketPackage) _then;
 
   /// Create a copy of WebSocketPackage
   /// with the given fields replaced by the non-null parameter values.
@@ -126,21 +89,21 @@ class __$$WebSocketPackageImplCopyWithImpl<$Res>
     Object? message = freezed,
     Object? payload = freezed,
   }) {
-    return _then(_$WebSocketPackageImpl(
+    return _then(_self.copyWith(
       method: null == method
-          ? _value.method
+          ? _self.method
           : method // ignore: cast_nullable_to_non_nullable
               as String,
       endpoint: freezed == endpoint
-          ? _value.endpoint
+          ? _self.endpoint
           : endpoint // ignore: cast_nullable_to_non_nullable
               as String?,
       message: freezed == message
-          ? _value.message
+          ? _self.message
           : message // ignore: cast_nullable_to_non_nullable
               as String?,
       payload: freezed == payload
-          ? _value._payload
+          ? _self.payload
           : payload // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
     ));
@@ -149,16 +112,15 @@ class __$$WebSocketPackageImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$WebSocketPackageImpl implements _WebSocketPackage {
-  const _$WebSocketPackageImpl(
+class _WebSocketPackage implements WebSocketPackage {
+  const _WebSocketPackage(
       {@JsonKey(name: 'w') this.method = 'unknown',
       @JsonKey(name: 'e') this.endpoint,
       @JsonKey(name: 'm') this.message,
       @JsonKey(name: 'p') final Map<String, dynamic>? payload = const {}})
       : _payload = payload;
-
-  factory _$WebSocketPackageImpl.fromJson(Map<String, dynamic> json) =>
-      _$$WebSocketPackageImplFromJson(json);
+  factory _WebSocketPackage.fromJson(Map<String, dynamic> json) =>
+      _$WebSocketPackageFromJson(json);
 
   @override
   @JsonKey(name: 'w')
@@ -180,16 +142,26 @@ class _$WebSocketPackageImpl implements _WebSocketPackage {
     return EqualUnmodifiableMapView(value);
   }
 
+  /// Create a copy of WebSocketPackage
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'WebSocketPackage(method: $method, endpoint: $endpoint, message: $message, payload: $payload)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$WebSocketPackageCopyWith<_WebSocketPackage> get copyWith =>
+      __$WebSocketPackageCopyWithImpl<_WebSocketPackage>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$WebSocketPackageToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$WebSocketPackageImpl &&
+            other is _WebSocketPackage &&
             (identical(other.method, method) || other.method == method) &&
             (identical(other.endpoint, endpoint) ||
                 other.endpoint == endpoint) &&
@@ -202,51 +174,64 @@ class _$WebSocketPackageImpl implements _WebSocketPackage {
   int get hashCode => Object.hash(runtimeType, method, endpoint, message,
       const DeepCollectionEquality().hash(_payload));
 
-  /// Create a copy of WebSocketPackage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$WebSocketPackageImplCopyWith<_$WebSocketPackageImpl> get copyWith =>
-      __$$WebSocketPackageImplCopyWithImpl<_$WebSocketPackageImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$WebSocketPackageImplToJson(
-      this,
-    );
+  String toString() {
+    return 'WebSocketPackage(method: $method, endpoint: $endpoint, message: $message, payload: $payload)';
   }
 }
 
-abstract class _WebSocketPackage implements WebSocketPackage {
-  const factory _WebSocketPackage(
-          {@JsonKey(name: 'w') final String method,
-          @JsonKey(name: 'e') final String? endpoint,
-          @JsonKey(name: 'm') final String? message,
-          @JsonKey(name: 'p') final Map<String, dynamic>? payload}) =
-      _$WebSocketPackageImpl;
+/// @nodoc
+abstract mixin class _$WebSocketPackageCopyWith<$Res>
+    implements $WebSocketPackageCopyWith<$Res> {
+  factory _$WebSocketPackageCopyWith(
+          _WebSocketPackage value, $Res Function(_WebSocketPackage) _then) =
+      __$WebSocketPackageCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'w') String method,
+      @JsonKey(name: 'e') String? endpoint,
+      @JsonKey(name: 'm') String? message,
+      @JsonKey(name: 'p') Map<String, dynamic>? payload});
+}
 
-  factory _WebSocketPackage.fromJson(Map<String, dynamic> json) =
-      _$WebSocketPackageImpl.fromJson;
+/// @nodoc
+class __$WebSocketPackageCopyWithImpl<$Res>
+    implements _$WebSocketPackageCopyWith<$Res> {
+  __$WebSocketPackageCopyWithImpl(this._self, this._then);
 
-  @override
-  @JsonKey(name: 'w')
-  String get method;
-  @override
-  @JsonKey(name: 'e')
-  String? get endpoint;
-  @override
-  @JsonKey(name: 'm')
-  String? get message;
-  @override
-  @JsonKey(name: 'p')
-  Map<String, dynamic>? get payload;
+  final _WebSocketPackage _self;
+  final $Res Function(_WebSocketPackage) _then;
 
   /// Create a copy of WebSocketPackage
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$WebSocketPackageImplCopyWith<_$WebSocketPackageImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? method = null,
+    Object? endpoint = freezed,
+    Object? message = freezed,
+    Object? payload = freezed,
+  }) {
+    return _then(_WebSocketPackage(
+      method: null == method
+          ? _self.method
+          : method // ignore: cast_nullable_to_non_nullable
+              as String,
+      endpoint: freezed == endpoint
+          ? _self.endpoint
+          : endpoint // ignore: cast_nullable_to_non_nullable
+              as String?,
+      message: freezed == message
+          ? _self.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String?,
+      payload: freezed == payload
+          ? _self._payload
+          : payload // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+    ));
+  }
 }
+
+// dart format on

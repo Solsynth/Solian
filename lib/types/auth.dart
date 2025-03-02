@@ -4,7 +4,7 @@ part 'auth.freezed.dart';
 part 'auth.g.dart';
 
 @freezed
-class SnAuthResult with _$SnAuthResult {
+abstract class SnAuthResult with _$SnAuthResult {
   const factory SnAuthResult({
     required bool isFinished,
     required SnAuthTicket? ticket,
@@ -15,7 +15,7 @@ class SnAuthResult with _$SnAuthResult {
 }
 
 @freezed
-class SnAuthTicket with _$SnAuthTicket {
+abstract class SnAuthTicket with _$SnAuthTicket {
   const factory SnAuthTicket({
     required int id,
     required DateTime createdAt,
@@ -41,7 +41,7 @@ class SnAuthTicket with _$SnAuthTicket {
 }
 
 @freezed
-class SnAuthFactor with _$SnAuthFactor {
+abstract class SnAuthFactor with _$SnAuthFactor {
   const factory SnAuthFactor({
     required int id,
     required DateTime createdAt,

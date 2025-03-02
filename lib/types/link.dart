@@ -4,7 +4,7 @@ part 'link.g.dart';
 part 'link.freezed.dart';
 
 @freezed
-class SnLinkMeta with _$SnLinkMeta {
+abstract class SnLinkMeta with _$SnLinkMeta {
   const SnLinkMeta._();
 
   const factory SnLinkMeta({

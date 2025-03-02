@@ -6,8 +6,7 @@ part of 'link.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnLinkMetaImpl _$$SnLinkMetaImplFromJson(Map<String, dynamic> json) =>
-    _$SnLinkMetaImpl(
+_SnLinkMeta _$SnLinkMetaFromJson(Map<String, dynamic> json) => _SnLinkMeta(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -26,7 +25,7 @@ _$SnLinkMetaImpl _$$SnLinkMetaImplFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String?,
     );
 
-Map<String, dynamic> _$$SnLinkMetaImplToJson(_$SnLinkMetaImpl instance) =>
+Map<String, dynamic> _$SnLinkMetaToJson(_SnLinkMeta instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),

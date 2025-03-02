@@ -6,8 +6,7 @@ part of 'account.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnAccountImpl _$$SnAccountImplFromJson(Map<String, dynamic> json) =>
-    _$SnAccountImpl(
+_SnAccount _$SnAccountFromJson(Map<String, dynamic> json) => _SnAccount(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -43,7 +42,7 @@ _$SnAccountImpl _$$SnAccountImplFromJson(Map<String, dynamic> json) =>
       automatedId: (json['automated_id'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$$SnAccountImplToJson(_$SnAccountImpl instance) =>
+Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -67,9 +66,8 @@ Map<String, dynamic> _$$SnAccountImplToJson(_$SnAccountImpl instance) =>
       'automated_id': instance.automatedId,
     };
 
-_$SnAccountContactImpl _$$SnAccountContactImplFromJson(
-        Map<String, dynamic> json) =>
-    _$SnAccountContactImpl(
+_SnAccountContact _$SnAccountContactFromJson(Map<String, dynamic> json) =>
+    _SnAccountContact(
       accountId: (json['account_id'] as num).toInt(),
       content: json['content'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -86,8 +84,7 @@ _$SnAccountContactImpl _$$SnAccountContactImplFromJson(
           : DateTime.parse(json['verified_at'] as String),
     );
 
-Map<String, dynamic> _$$SnAccountContactImplToJson(
-        _$SnAccountContactImpl instance) =>
+Map<String, dynamic> _$SnAccountContactToJson(_SnAccountContact instance) =>
     <String, dynamic>{
       'account_id': instance.accountId,
       'content': instance.content,
@@ -101,9 +98,8 @@ Map<String, dynamic> _$$SnAccountContactImplToJson(
       'verified_at': instance.verifiedAt?.toIso8601String(),
     };
 
-_$SnAccountProfileImpl _$$SnAccountProfileImplFromJson(
-        Map<String, dynamic> json) =>
-    _$SnAccountProfileImpl(
+_SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
+    _SnAccountProfile(
       id: (json['id'] as num).toInt(),
       accountId: (json['account_id'] as num).toInt(),
       birthday: json['birthday'] == null
@@ -122,8 +118,7 @@ _$SnAccountProfileImpl _$$SnAccountProfileImplFromJson(
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
 
-Map<String, dynamic> _$$SnAccountProfileImplToJson(
-        _$SnAccountProfileImpl instance) =>
+Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
     <String, dynamic>{
       'id': instance.id,
       'account_id': instance.accountId,
@@ -137,8 +132,8 @@ Map<String, dynamic> _$$SnAccountProfileImplToJson(
       'updated_at': instance.updatedAt.toIso8601String(),
     };
 
-_$SnRelationshipImpl _$$SnRelationshipImplFromJson(Map<String, dynamic> json) =>
-    _$SnRelationshipImpl(
+_SnRelationship _$SnRelationshipFromJson(Map<String, dynamic> json) =>
+    _SnRelationship(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -157,8 +152,7 @@ _$SnRelationshipImpl _$$SnRelationshipImplFromJson(Map<String, dynamic> json) =>
       permNodes: json['perm_nodes'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$SnRelationshipImplToJson(
-        _$SnRelationshipImpl instance) =>
+Map<String, dynamic> _$SnRelationshipToJson(_SnRelationship instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -172,8 +166,8 @@ Map<String, dynamic> _$$SnRelationshipImplToJson(
       'perm_nodes': instance.permNodes,
     };
 
-_$SnAccountBadgeImpl _$$SnAccountBadgeImplFromJson(Map<String, dynamic> json) =>
-    _$SnAccountBadgeImpl(
+_SnAccountBadge _$SnAccountBadgeFromJson(Map<String, dynamic> json) =>
+    _SnAccountBadge(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -183,8 +177,7 @@ _$SnAccountBadgeImpl _$$SnAccountBadgeImplFromJson(Map<String, dynamic> json) =>
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$SnAccountBadgeImplToJson(
-        _$SnAccountBadgeImpl instance) =>
+Map<String, dynamic> _$SnAccountBadgeToJson(_SnAccountBadge instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -195,9 +188,8 @@ Map<String, dynamic> _$$SnAccountBadgeImplToJson(
       'metadata': instance.metadata,
     };
 
-_$SnAccountStatusInfoImpl _$$SnAccountStatusInfoImplFromJson(
-        Map<String, dynamic> json) =>
-    _$SnAccountStatusInfoImpl(
+_SnAccountStatusInfo _$SnAccountStatusInfoFromJson(Map<String, dynamic> json) =>
+    _SnAccountStatusInfo(
       isDisturbable: json['is_disturbable'] as bool,
       isOnline: json['is_online'] as bool,
       lastSeenAt: json['last_seen_at'] == null
@@ -206,8 +198,8 @@ _$SnAccountStatusInfoImpl _$$SnAccountStatusInfoImplFromJson(
       status: json['status'],
     );
 
-Map<String, dynamic> _$$SnAccountStatusInfoImplToJson(
-        _$SnAccountStatusInfoImpl instance) =>
+Map<String, dynamic> _$SnAccountStatusInfoToJson(
+        _SnAccountStatusInfo instance) =>
     <String, dynamic>{
       'is_disturbable': instance.isDisturbable,
       'is_online': instance.isOnline,
@@ -215,8 +207,8 @@ Map<String, dynamic> _$$SnAccountStatusInfoImplToJson(
       'status': instance.status,
     };
 
-_$SnAbuseReportImpl _$$SnAbuseReportImplFromJson(Map<String, dynamic> json) =>
-    _$SnAbuseReportImpl(
+_SnAbuseReport _$SnAbuseReportFromJson(Map<String, dynamic> json) =>
+    _SnAbuseReport(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -229,7 +221,7 @@ _$SnAbuseReportImpl _$$SnAbuseReportImplFromJson(Map<String, dynamic> json) =>
       accountId: (json['account_id'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SnAbuseReportImplToJson(_$SnAbuseReportImpl instance) =>
+Map<String, dynamic> _$SnAbuseReportToJson(_SnAbuseReport instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),

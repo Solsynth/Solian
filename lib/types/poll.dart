@@ -4,7 +4,7 @@ part 'poll.freezed.dart';
 part 'poll.g.dart';
 
 @freezed
-class SnPoll with _$SnPoll {
+abstract class SnPoll with _$SnPoll {
   const factory SnPoll({
     required int id,
     required DateTime createdAt,
@@ -20,7 +20,7 @@ class SnPoll with _$SnPoll {
 }
 
 @freezed
-class SnPollMetric with _$SnPollMetric {
+abstract class SnPollMetric with _$SnPollMetric {
   const factory SnPollMetric({
     required int totalAnswer,
     @Default({}) Map<String, int> byOptions,
@@ -32,7 +32,7 @@ class SnPollMetric with _$SnPollMetric {
 }
 
 @freezed
-class SnPollOption with _$SnPollOption {
+abstract class SnPollOption with _$SnPollOption {
   const factory SnPollOption({
     required String id,
     required String icon,

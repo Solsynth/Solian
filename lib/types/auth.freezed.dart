@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,152 +10,30 @@ part of 'auth.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-SnAuthResult _$SnAuthResultFromJson(Map<String, dynamic> json) {
-  return _SnAuthResult.fromJson(json);
-}
 
 /// @nodoc
 mixin _$SnAuthResult {
-  bool get isFinished => throw _privateConstructorUsedError;
-  SnAuthTicket? get ticket => throw _privateConstructorUsedError;
-
-  /// Serializes this SnAuthResult to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  bool get isFinished;
+  SnAuthTicket? get ticket;
 
   /// Create a copy of SnAuthResult
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $SnAuthResultCopyWith<SnAuthResult> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+      _$SnAuthResultCopyWithImpl<SnAuthResult>(
+          this as SnAuthResult, _$identity);
 
-/// @nodoc
-abstract class $SnAuthResultCopyWith<$Res> {
-  factory $SnAuthResultCopyWith(
-          SnAuthResult value, $Res Function(SnAuthResult) then) =
-      _$SnAuthResultCopyWithImpl<$Res, SnAuthResult>;
-  @useResult
-  $Res call({bool isFinished, SnAuthTicket? ticket});
-
-  $SnAuthTicketCopyWith<$Res>? get ticket;
-}
-
-/// @nodoc
-class _$SnAuthResultCopyWithImpl<$Res, $Val extends SnAuthResult>
-    implements $SnAuthResultCopyWith<$Res> {
-  _$SnAuthResultCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of SnAuthResult
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? isFinished = null,
-    Object? ticket = freezed,
-  }) {
-    return _then(_value.copyWith(
-      isFinished: null == isFinished
-          ? _value.isFinished
-          : isFinished // ignore: cast_nullable_to_non_nullable
-              as bool,
-      ticket: freezed == ticket
-          ? _value.ticket
-          : ticket // ignore: cast_nullable_to_non_nullable
-              as SnAuthTicket?,
-    ) as $Val);
-  }
-
-  /// Create a copy of SnAuthResult
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $SnAuthTicketCopyWith<$Res>? get ticket {
-    if (_value.ticket == null) {
-      return null;
-    }
-
-    return $SnAuthTicketCopyWith<$Res>(_value.ticket!, (value) {
-      return _then(_value.copyWith(ticket: value) as $Val);
-    });
-  }
-}
-
-/// @nodoc
-abstract class _$$SnAuthResultImplCopyWith<$Res>
-    implements $SnAuthResultCopyWith<$Res> {
-  factory _$$SnAuthResultImplCopyWith(
-          _$SnAuthResultImpl value, $Res Function(_$SnAuthResultImpl) then) =
-      __$$SnAuthResultImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({bool isFinished, SnAuthTicket? ticket});
-
-  @override
-  $SnAuthTicketCopyWith<$Res>? get ticket;
-}
-
-/// @nodoc
-class __$$SnAuthResultImplCopyWithImpl<$Res>
-    extends _$SnAuthResultCopyWithImpl<$Res, _$SnAuthResultImpl>
-    implements _$$SnAuthResultImplCopyWith<$Res> {
-  __$$SnAuthResultImplCopyWithImpl(
-      _$SnAuthResultImpl _value, $Res Function(_$SnAuthResultImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of SnAuthResult
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? isFinished = null,
-    Object? ticket = freezed,
-  }) {
-    return _then(_$SnAuthResultImpl(
-      isFinished: null == isFinished
-          ? _value.isFinished
-          : isFinished // ignore: cast_nullable_to_non_nullable
-              as bool,
-      ticket: freezed == ticket
-          ? _value.ticket
-          : ticket // ignore: cast_nullable_to_non_nullable
-              as SnAuthTicket?,
-    ));
-  }
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$SnAuthResultImpl implements _SnAuthResult {
-  const _$SnAuthResultImpl({required this.isFinished, required this.ticket});
-
-  factory _$SnAuthResultImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SnAuthResultImplFromJson(json);
-
-  @override
-  final bool isFinished;
-  @override
-  final SnAuthTicket? ticket;
-
-  @override
-  String toString() {
-    return 'SnAuthResult(isFinished: $isFinished, ticket: $ticket)';
-  }
+  /// Serializes this SnAuthResult to a JSON map.
+  Map<String, dynamic> toJson();
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SnAuthResultImpl &&
+            other is SnAuthResult &&
             (identical(other.isFinished, isFinished) ||
                 other.isFinished == isFinished) &&
             (identical(other.ticket, ticket) || other.ticket == ticket));
@@ -164,216 +43,272 @@ class _$SnAuthResultImpl implements _SnAuthResult {
   @override
   int get hashCode => Object.hash(runtimeType, isFinished, ticket);
 
-  /// Create a copy of SnAuthResult
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SnAuthResultImplCopyWith<_$SnAuthResultImpl> get copyWith =>
-      __$$SnAuthResultImplCopyWithImpl<_$SnAuthResultImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SnAuthResultImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SnAuthResult(isFinished: $isFinished, ticket: $ticket)';
   }
 }
 
-abstract class _SnAuthResult implements SnAuthResult {
-  const factory _SnAuthResult(
-      {required final bool isFinished,
-      required final SnAuthTicket? ticket}) = _$SnAuthResultImpl;
+/// @nodoc
+abstract mixin class $SnAuthResultCopyWith<$Res> {
+  factory $SnAuthResultCopyWith(
+          SnAuthResult value, $Res Function(SnAuthResult) _then) =
+      _$SnAuthResultCopyWithImpl;
+  @useResult
+  $Res call({bool isFinished, SnAuthTicket? ticket});
 
-  factory _SnAuthResult.fromJson(Map<String, dynamic> json) =
-      _$SnAuthResultImpl.fromJson;
+  $SnAuthTicketCopyWith<$Res>? get ticket;
+}
+
+/// @nodoc
+class _$SnAuthResultCopyWithImpl<$Res> implements $SnAuthResultCopyWith<$Res> {
+  _$SnAuthResultCopyWithImpl(this._self, this._then);
+
+  final SnAuthResult _self;
+  final $Res Function(SnAuthResult) _then;
+
+  /// Create a copy of SnAuthResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? isFinished = null,
+    Object? ticket = freezed,
+  }) {
+    return _then(_self.copyWith(
+      isFinished: null == isFinished
+          ? _self.isFinished
+          : isFinished // ignore: cast_nullable_to_non_nullable
+              as bool,
+      ticket: freezed == ticket
+          ? _self.ticket
+          : ticket // ignore: cast_nullable_to_non_nullable
+              as SnAuthTicket?,
+    ));
+  }
+
+  /// Create a copy of SnAuthResult
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAuthTicketCopyWith<$Res>? get ticket {
+    if (_self.ticket == null) {
+      return null;
+    }
+
+    return $SnAuthTicketCopyWith<$Res>(_self.ticket!, (value) {
+      return _then(_self.copyWith(ticket: value));
+    });
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _SnAuthResult implements SnAuthResult {
+  const _SnAuthResult({required this.isFinished, required this.ticket});
+  factory _SnAuthResult.fromJson(Map<String, dynamic> json) =>
+      _$SnAuthResultFromJson(json);
 
   @override
-  bool get isFinished;
+  final bool isFinished;
   @override
-  SnAuthTicket? get ticket;
+  final SnAuthTicket? ticket;
 
   /// Create a copy of SnAuthResult
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SnAuthResultImplCopyWith<_$SnAuthResultImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  _$SnAuthResultCopyWith<_SnAuthResult> get copyWith =>
+      __$SnAuthResultCopyWithImpl<_SnAuthResult>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnAuthResultToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _SnAuthResult &&
+            (identical(other.isFinished, isFinished) ||
+                other.isFinished == isFinished) &&
+            (identical(other.ticket, ticket) || other.ticket == ticket));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, isFinished, ticket);
+
+  @override
+  String toString() {
+    return 'SnAuthResult(isFinished: $isFinished, ticket: $ticket)';
+  }
 }
 
-SnAuthTicket _$SnAuthTicketFromJson(Map<String, dynamic> json) {
-  return _SnAuthTicket.fromJson(json);
+/// @nodoc
+abstract mixin class _$SnAuthResultCopyWith<$Res>
+    implements $SnAuthResultCopyWith<$Res> {
+  factory _$SnAuthResultCopyWith(
+          _SnAuthResult value, $Res Function(_SnAuthResult) _then) =
+      __$SnAuthResultCopyWithImpl;
+  @override
+  @useResult
+  $Res call({bool isFinished, SnAuthTicket? ticket});
+
+  @override
+  $SnAuthTicketCopyWith<$Res>? get ticket;
+}
+
+/// @nodoc
+class __$SnAuthResultCopyWithImpl<$Res>
+    implements _$SnAuthResultCopyWith<$Res> {
+  __$SnAuthResultCopyWithImpl(this._self, this._then);
+
+  final _SnAuthResult _self;
+  final $Res Function(_SnAuthResult) _then;
+
+  /// Create a copy of SnAuthResult
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? isFinished = null,
+    Object? ticket = freezed,
+  }) {
+    return _then(_SnAuthResult(
+      isFinished: null == isFinished
+          ? _self.isFinished
+          : isFinished // ignore: cast_nullable_to_non_nullable
+              as bool,
+      ticket: freezed == ticket
+          ? _self.ticket
+          : ticket // ignore: cast_nullable_to_non_nullable
+              as SnAuthTicket?,
+    ));
+  }
+
+  /// Create a copy of SnAuthResult
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAuthTicketCopyWith<$Res>? get ticket {
+    if (_self.ticket == null) {
+      return null;
+    }
+
+    return $SnAuthTicketCopyWith<$Res>(_self.ticket!, (value) {
+      return _then(_self.copyWith(ticket: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$SnAuthTicket {
-  int get id => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
-  DateTime? get deletedAt => throw _privateConstructorUsedError;
-  int get stepRemain => throw _privateConstructorUsedError;
-  String? get grantToken => throw _privateConstructorUsedError;
-  String? get accessToken => throw _privateConstructorUsedError;
-  String? get refreshToken => throw _privateConstructorUsedError;
-  String get ipAddress => throw _privateConstructorUsedError;
-  String get location => throw _privateConstructorUsedError;
-  String get userAgent => throw _privateConstructorUsedError;
-  DateTime? get expiredAt => throw _privateConstructorUsedError;
-  DateTime? get lastGrantAt => throw _privateConstructorUsedError;
-  DateTime? get availableAt => throw _privateConstructorUsedError;
-  String? get nonce => throw _privateConstructorUsedError;
-  int? get accountId => throw _privateConstructorUsedError;
-  List<int> get factorTrail => throw _privateConstructorUsedError;
-
-  /// Serializes this SnAuthTicket to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  int get stepRemain;
+  String? get grantToken;
+  String? get accessToken;
+  String? get refreshToken;
+  String get ipAddress;
+  String get location;
+  String get userAgent;
+  DateTime? get expiredAt;
+  DateTime? get lastGrantAt;
+  DateTime? get availableAt;
+  String? get nonce;
+  int? get accountId;
+  List<int> get factorTrail;
 
   /// Create a copy of SnAuthTicket
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $SnAuthTicketCopyWith<SnAuthTicket> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $SnAuthTicketCopyWith<$Res> {
-  factory $SnAuthTicketCopyWith(
-          SnAuthTicket value, $Res Function(SnAuthTicket) then) =
-      _$SnAuthTicketCopyWithImpl<$Res, SnAuthTicket>;
-  @useResult
-  $Res call(
-      {int id,
-      DateTime createdAt,
-      DateTime updatedAt,
-      DateTime? deletedAt,
-      int stepRemain,
-      String? grantToken,
-      String? accessToken,
-      String? refreshToken,
-      String ipAddress,
-      String location,
-      String userAgent,
-      DateTime? expiredAt,
-      DateTime? lastGrantAt,
-      DateTime? availableAt,
-      String? nonce,
-      int? accountId,
-      List<int> factorTrail});
-}
-
-/// @nodoc
-class _$SnAuthTicketCopyWithImpl<$Res, $Val extends SnAuthTicket>
-    implements $SnAuthTicketCopyWith<$Res> {
-  _$SnAuthTicketCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of SnAuthTicket
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $SnAuthTicketCopyWith<SnAuthTicket> get copyWith =>
+      _$SnAuthTicketCopyWithImpl<SnAuthTicket>(
+          this as SnAuthTicket, _$identity);
+
+  /// Serializes this SnAuthTicket to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
-    Object? deletedAt = freezed,
-    Object? stepRemain = null,
-    Object? grantToken = freezed,
-    Object? accessToken = freezed,
-    Object? refreshToken = freezed,
-    Object? ipAddress = null,
-    Object? location = null,
-    Object? userAgent = null,
-    Object? expiredAt = freezed,
-    Object? lastGrantAt = freezed,
-    Object? availableAt = freezed,
-    Object? nonce = freezed,
-    Object? accountId = freezed,
-    Object? factorTrail = null,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      stepRemain: null == stepRemain
-          ? _value.stepRemain
-          : stepRemain // ignore: cast_nullable_to_non_nullable
-              as int,
-      grantToken: freezed == grantToken
-          ? _value.grantToken
-          : grantToken // ignore: cast_nullable_to_non_nullable
-              as String?,
-      accessToken: freezed == accessToken
-          ? _value.accessToken
-          : accessToken // ignore: cast_nullable_to_non_nullable
-              as String?,
-      refreshToken: freezed == refreshToken
-          ? _value.refreshToken
-          : refreshToken // ignore: cast_nullable_to_non_nullable
-              as String?,
-      ipAddress: null == ipAddress
-          ? _value.ipAddress
-          : ipAddress // ignore: cast_nullable_to_non_nullable
-              as String,
-      location: null == location
-          ? _value.location
-          : location // ignore: cast_nullable_to_non_nullable
-              as String,
-      userAgent: null == userAgent
-          ? _value.userAgent
-          : userAgent // ignore: cast_nullable_to_non_nullable
-              as String,
-      expiredAt: freezed == expiredAt
-          ? _value.expiredAt
-          : expiredAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      lastGrantAt: freezed == lastGrantAt
-          ? _value.lastGrantAt
-          : lastGrantAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      availableAt: freezed == availableAt
-          ? _value.availableAt
-          : availableAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      nonce: freezed == nonce
-          ? _value.nonce
-          : nonce // ignore: cast_nullable_to_non_nullable
-              as String?,
-      accountId: freezed == accountId
-          ? _value.accountId
-          : accountId // ignore: cast_nullable_to_non_nullable
-              as int?,
-      factorTrail: null == factorTrail
-          ? _value.factorTrail
-          : factorTrail // ignore: cast_nullable_to_non_nullable
-              as List<int>,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnAuthTicket &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.stepRemain, stepRemain) ||
+                other.stepRemain == stepRemain) &&
+            (identical(other.grantToken, grantToken) ||
+                other.grantToken == grantToken) &&
+            (identical(other.accessToken, accessToken) ||
+                other.accessToken == accessToken) &&
+            (identical(other.refreshToken, refreshToken) ||
+                other.refreshToken == refreshToken) &&
+            (identical(other.ipAddress, ipAddress) ||
+                other.ipAddress == ipAddress) &&
+            (identical(other.location, location) ||
+                other.location == location) &&
+            (identical(other.userAgent, userAgent) ||
+                other.userAgent == userAgent) &&
+            (identical(other.expiredAt, expiredAt) ||
+                other.expiredAt == expiredAt) &&
+            (identical(other.lastGrantAt, lastGrantAt) ||
+                other.lastGrantAt == lastGrantAt) &&
+            (identical(other.availableAt, availableAt) ||
+                other.availableAt == availableAt) &&
+            (identical(other.nonce, nonce) || other.nonce == nonce) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            const DeepCollectionEquality()
+                .equals(other.factorTrail, factorTrail));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      stepRemain,
+      grantToken,
+      accessToken,
+      refreshToken,
+      ipAddress,
+      location,
+      userAgent,
+      expiredAt,
+      lastGrantAt,
+      availableAt,
+      nonce,
+      accountId,
+      const DeepCollectionEquality().hash(factorTrail));
+
+  @override
+  String toString() {
+    return 'SnAuthTicket(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stepRemain: $stepRemain, grantToken: $grantToken, accessToken: $accessToken, refreshToken: $refreshToken, ipAddress: $ipAddress, location: $location, userAgent: $userAgent, expiredAt: $expiredAt, lastGrantAt: $lastGrantAt, availableAt: $availableAt, nonce: $nonce, accountId: $accountId, factorTrail: $factorTrail)';
   }
 }
 
 /// @nodoc
-abstract class _$$SnAuthTicketImplCopyWith<$Res>
-    implements $SnAuthTicketCopyWith<$Res> {
-  factory _$$SnAuthTicketImplCopyWith(
-          _$SnAuthTicketImpl value, $Res Function(_$SnAuthTicketImpl) then) =
-      __$$SnAuthTicketImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $SnAuthTicketCopyWith<$Res> {
+  factory $SnAuthTicketCopyWith(
+          SnAuthTicket value, $Res Function(SnAuthTicket) _then) =
+      _$SnAuthTicketCopyWithImpl;
   @useResult
   $Res call(
       {int id,
@@ -396,12 +331,11 @@ abstract class _$$SnAuthTicketImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$SnAuthTicketImplCopyWithImpl<$Res>
-    extends _$SnAuthTicketCopyWithImpl<$Res, _$SnAuthTicketImpl>
-    implements _$$SnAuthTicketImplCopyWith<$Res> {
-  __$$SnAuthTicketImplCopyWithImpl(
-      _$SnAuthTicketImpl _value, $Res Function(_$SnAuthTicketImpl) _then)
-      : super(_value, _then);
+class _$SnAuthTicketCopyWithImpl<$Res> implements $SnAuthTicketCopyWith<$Res> {
+  _$SnAuthTicketCopyWithImpl(this._self, this._then);
+
+  final SnAuthTicket _self;
+  final $Res Function(SnAuthTicket) _then;
 
   /// Create a copy of SnAuthTicket
   /// with the given fields replaced by the non-null parameter values.
@@ -426,73 +360,73 @@ class __$$SnAuthTicketImplCopyWithImpl<$Res>
     Object? accountId = freezed,
     Object? factorTrail = null,
   }) {
-    return _then(_$SnAuthTicketImpl(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
       createdAt: null == createdAt
-          ? _value.createdAt
+          ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       updatedAt: null == updatedAt
-          ? _value.updatedAt
+          ? _self.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       deletedAt: freezed == deletedAt
-          ? _value.deletedAt
+          ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       stepRemain: null == stepRemain
-          ? _value.stepRemain
+          ? _self.stepRemain
           : stepRemain // ignore: cast_nullable_to_non_nullable
               as int,
       grantToken: freezed == grantToken
-          ? _value.grantToken
+          ? _self.grantToken
           : grantToken // ignore: cast_nullable_to_non_nullable
               as String?,
       accessToken: freezed == accessToken
-          ? _value.accessToken
+          ? _self.accessToken
           : accessToken // ignore: cast_nullable_to_non_nullable
               as String?,
       refreshToken: freezed == refreshToken
-          ? _value.refreshToken
+          ? _self.refreshToken
           : refreshToken // ignore: cast_nullable_to_non_nullable
               as String?,
       ipAddress: null == ipAddress
-          ? _value.ipAddress
+          ? _self.ipAddress
           : ipAddress // ignore: cast_nullable_to_non_nullable
               as String,
       location: null == location
-          ? _value.location
+          ? _self.location
           : location // ignore: cast_nullable_to_non_nullable
               as String,
       userAgent: null == userAgent
-          ? _value.userAgent
+          ? _self.userAgent
           : userAgent // ignore: cast_nullable_to_non_nullable
               as String,
       expiredAt: freezed == expiredAt
-          ? _value.expiredAt
+          ? _self.expiredAt
           : expiredAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       lastGrantAt: freezed == lastGrantAt
-          ? _value.lastGrantAt
+          ? _self.lastGrantAt
           : lastGrantAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       availableAt: freezed == availableAt
-          ? _value.availableAt
+          ? _self.availableAt
           : availableAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       nonce: freezed == nonce
-          ? _value.nonce
+          ? _self.nonce
           : nonce // ignore: cast_nullable_to_non_nullable
               as String?,
       accountId: freezed == accountId
-          ? _value.accountId
+          ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
               as int?,
       factorTrail: null == factorTrail
-          ? _value._factorTrail
+          ? _self.factorTrail
           : factorTrail // ignore: cast_nullable_to_non_nullable
               as List<int>,
     ));
@@ -501,8 +435,8 @@ class __$$SnAuthTicketImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$SnAuthTicketImpl implements _SnAuthTicket {
-  const _$SnAuthTicketImpl(
+class _SnAuthTicket implements SnAuthTicket {
+  const _SnAuthTicket(
       {required this.id,
       required this.createdAt,
       required this.updatedAt,
@@ -521,9 +455,8 @@ class _$SnAuthTicketImpl implements _SnAuthTicket {
       required this.accountId,
       final List<int> factorTrail = const []})
       : _factorTrail = factorTrail;
-
-  factory _$SnAuthTicketImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SnAuthTicketImplFromJson(json);
+  factory _SnAuthTicket.fromJson(Map<String, dynamic> json) =>
+      _$SnAuthTicketFromJson(json);
 
   @override
   final int id;
@@ -566,16 +499,26 @@ class _$SnAuthTicketImpl implements _SnAuthTicket {
     return EqualUnmodifiableListView(_factorTrail);
   }
 
+  /// Create a copy of SnAuthTicket
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'SnAuthTicket(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stepRemain: $stepRemain, grantToken: $grantToken, accessToken: $accessToken, refreshToken: $refreshToken, ipAddress: $ipAddress, location: $location, userAgent: $userAgent, expiredAt: $expiredAt, lastGrantAt: $lastGrantAt, availableAt: $availableAt, nonce: $nonce, accountId: $accountId, factorTrail: $factorTrail)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnAuthTicketCopyWith<_SnAuthTicket> get copyWith =>
+      __$SnAuthTicketCopyWithImpl<_SnAuthTicket>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnAuthTicketToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SnAuthTicketImpl &&
+            other is _SnAuthTicket &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -632,191 +575,199 @@ class _$SnAuthTicketImpl implements _SnAuthTicket {
       accountId,
       const DeepCollectionEquality().hash(_factorTrail));
 
-  /// Create a copy of SnAuthTicket
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SnAuthTicketImplCopyWith<_$SnAuthTicketImpl> get copyWith =>
-      __$$SnAuthTicketImplCopyWithImpl<_$SnAuthTicketImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SnAuthTicketImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SnAuthTicket(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stepRemain: $stepRemain, grantToken: $grantToken, accessToken: $accessToken, refreshToken: $refreshToken, ipAddress: $ipAddress, location: $location, userAgent: $userAgent, expiredAt: $expiredAt, lastGrantAt: $lastGrantAt, availableAt: $availableAt, nonce: $nonce, accountId: $accountId, factorTrail: $factorTrail)';
   }
 }
 
-abstract class _SnAuthTicket implements SnAuthTicket {
-  const factory _SnAuthTicket(
-      {required final int id,
-      required final DateTime createdAt,
-      required final DateTime updatedAt,
-      required final DateTime? deletedAt,
-      required final int stepRemain,
-      required final String? grantToken,
-      required final String? accessToken,
-      required final String? refreshToken,
-      required final String ipAddress,
-      required final String location,
-      required final String userAgent,
-      required final DateTime? expiredAt,
-      required final DateTime? lastGrantAt,
-      required final DateTime? availableAt,
-      required final String? nonce,
-      required final int? accountId,
-      final List<int> factorTrail}) = _$SnAuthTicketImpl;
+/// @nodoc
+abstract mixin class _$SnAuthTicketCopyWith<$Res>
+    implements $SnAuthTicketCopyWith<$Res> {
+  factory _$SnAuthTicketCopyWith(
+          _SnAuthTicket value, $Res Function(_SnAuthTicket) _then) =
+      __$SnAuthTicketCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      int stepRemain,
+      String? grantToken,
+      String? accessToken,
+      String? refreshToken,
+      String ipAddress,
+      String location,
+      String userAgent,
+      DateTime? expiredAt,
+      DateTime? lastGrantAt,
+      DateTime? availableAt,
+      String? nonce,
+      int? accountId,
+      List<int> factorTrail});
+}
 
-  factory _SnAuthTicket.fromJson(Map<String, dynamic> json) =
-      _$SnAuthTicketImpl.fromJson;
+/// @nodoc
+class __$SnAuthTicketCopyWithImpl<$Res>
+    implements _$SnAuthTicketCopyWith<$Res> {
+  __$SnAuthTicketCopyWithImpl(this._self, this._then);
 
-  @override
-  int get id;
-  @override
-  DateTime get createdAt;
-  @override
-  DateTime get updatedAt;
-  @override
-  DateTime? get deletedAt;
-  @override
-  int get stepRemain;
-  @override
-  String? get grantToken;
-  @override
-  String? get accessToken;
-  @override
-  String? get refreshToken;
-  @override
-  String get ipAddress;
-  @override
-  String get location;
-  @override
-  String get userAgent;
-  @override
-  DateTime? get expiredAt;
-  @override
-  DateTime? get lastGrantAt;
-  @override
-  DateTime? get availableAt;
-  @override
-  String? get nonce;
-  @override
-  int? get accountId;
-  @override
-  List<int> get factorTrail;
+  final _SnAuthTicket _self;
+  final $Res Function(_SnAuthTicket) _then;
 
   /// Create a copy of SnAuthTicket
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SnAuthTicketImplCopyWith<_$SnAuthTicketImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-SnAuthFactor _$SnAuthFactorFromJson(Map<String, dynamic> json) {
-  return _SnAuthFactor.fromJson(json);
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? stepRemain = null,
+    Object? grantToken = freezed,
+    Object? accessToken = freezed,
+    Object? refreshToken = freezed,
+    Object? ipAddress = null,
+    Object? location = null,
+    Object? userAgent = null,
+    Object? expiredAt = freezed,
+    Object? lastGrantAt = freezed,
+    Object? availableAt = freezed,
+    Object? nonce = freezed,
+    Object? accountId = freezed,
+    Object? factorTrail = null,
+  }) {
+    return _then(_SnAuthTicket(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      stepRemain: null == stepRemain
+          ? _self.stepRemain
+          : stepRemain // ignore: cast_nullable_to_non_nullable
+              as int,
+      grantToken: freezed == grantToken
+          ? _self.grantToken
+          : grantToken // ignore: cast_nullable_to_non_nullable
+              as String?,
+      accessToken: freezed == accessToken
+          ? _self.accessToken
+          : accessToken // ignore: cast_nullable_to_non_nullable
+              as String?,
+      refreshToken: freezed == refreshToken
+          ? _self.refreshToken
+          : refreshToken // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ipAddress: null == ipAddress
+          ? _self.ipAddress
+          : ipAddress // ignore: cast_nullable_to_non_nullable
+              as String,
+      location: null == location
+          ? _self.location
+          : location // ignore: cast_nullable_to_non_nullable
+              as String,
+      userAgent: null == userAgent
+          ? _self.userAgent
+          : userAgent // ignore: cast_nullable_to_non_nullable
+              as String,
+      expiredAt: freezed == expiredAt
+          ? _self.expiredAt
+          : expiredAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      lastGrantAt: freezed == lastGrantAt
+          ? _self.lastGrantAt
+          : lastGrantAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      availableAt: freezed == availableAt
+          ? _self.availableAt
+          : availableAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      nonce: freezed == nonce
+          ? _self.nonce
+          : nonce // ignore: cast_nullable_to_non_nullable
+              as String?,
+      accountId: freezed == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      factorTrail: null == factorTrail
+          ? _self._factorTrail
+          : factorTrail // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+    ));
+  }
 }
 
 /// @nodoc
 mixin _$SnAuthFactor {
-  int get id => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
-  DateTime? get deletedAt => throw _privateConstructorUsedError;
-  int get type => throw _privateConstructorUsedError;
-  Map<String, dynamic>? get config => throw _privateConstructorUsedError;
-  int? get accountId => throw _privateConstructorUsedError;
-
-  /// Serializes this SnAuthFactor to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  int get type;
+  Map<String, dynamic>? get config;
+  int? get accountId;
 
   /// Create a copy of SnAuthFactor
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $SnAuthFactorCopyWith<SnAuthFactor> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $SnAuthFactorCopyWith<$Res> {
-  factory $SnAuthFactorCopyWith(
-          SnAuthFactor value, $Res Function(SnAuthFactor) then) =
-      _$SnAuthFactorCopyWithImpl<$Res, SnAuthFactor>;
-  @useResult
-  $Res call(
-      {int id,
-      DateTime createdAt,
-      DateTime updatedAt,
-      DateTime? deletedAt,
-      int type,
-      Map<String, dynamic>? config,
-      int? accountId});
-}
-
-/// @nodoc
-class _$SnAuthFactorCopyWithImpl<$Res, $Val extends SnAuthFactor>
-    implements $SnAuthFactorCopyWith<$Res> {
-  _$SnAuthFactorCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of SnAuthFactor
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $SnAuthFactorCopyWith<SnAuthFactor> get copyWith =>
+      _$SnAuthFactorCopyWithImpl<SnAuthFactor>(
+          this as SnAuthFactor, _$identity);
+
+  /// Serializes this SnAuthFactor to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
-    Object? deletedAt = freezed,
-    Object? type = null,
-    Object? config = freezed,
-    Object? accountId = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      type: null == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as int,
-      config: freezed == config
-          ? _value.config
-          : config // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>?,
-      accountId: freezed == accountId
-          ? _value.accountId
-          : accountId // ignore: cast_nullable_to_non_nullable
-              as int?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnAuthFactor &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.type, type) || other.type == type) &&
+            const DeepCollectionEquality().equals(other.config, config) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, createdAt, updatedAt,
+      deletedAt, type, const DeepCollectionEquality().hash(config), accountId);
+
+  @override
+  String toString() {
+    return 'SnAuthFactor(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, config: $config, accountId: $accountId)';
   }
 }
 
 /// @nodoc
-abstract class _$$SnAuthFactorImplCopyWith<$Res>
-    implements $SnAuthFactorCopyWith<$Res> {
-  factory _$$SnAuthFactorImplCopyWith(
-          _$SnAuthFactorImpl value, $Res Function(_$SnAuthFactorImpl) then) =
-      __$$SnAuthFactorImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $SnAuthFactorCopyWith<$Res> {
+  factory $SnAuthFactorCopyWith(
+          SnAuthFactor value, $Res Function(SnAuthFactor) _then) =
+      _$SnAuthFactorCopyWithImpl;
   @useResult
   $Res call(
       {int id,
@@ -829,12 +780,11 @@ abstract class _$$SnAuthFactorImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$SnAuthFactorImplCopyWithImpl<$Res>
-    extends _$SnAuthFactorCopyWithImpl<$Res, _$SnAuthFactorImpl>
-    implements _$$SnAuthFactorImplCopyWith<$Res> {
-  __$$SnAuthFactorImplCopyWithImpl(
-      _$SnAuthFactorImpl _value, $Res Function(_$SnAuthFactorImpl) _then)
-      : super(_value, _then);
+class _$SnAuthFactorCopyWithImpl<$Res> implements $SnAuthFactorCopyWith<$Res> {
+  _$SnAuthFactorCopyWithImpl(this._self, this._then);
+
+  final SnAuthFactor _self;
+  final $Res Function(SnAuthFactor) _then;
 
   /// Create a copy of SnAuthFactor
   /// with the given fields replaced by the non-null parameter values.
@@ -849,33 +799,33 @@ class __$$SnAuthFactorImplCopyWithImpl<$Res>
     Object? config = freezed,
     Object? accountId = freezed,
   }) {
-    return _then(_$SnAuthFactorImpl(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
       createdAt: null == createdAt
-          ? _value.createdAt
+          ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       updatedAt: null == updatedAt
-          ? _value.updatedAt
+          ? _self.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       deletedAt: freezed == deletedAt
-          ? _value.deletedAt
+          ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       type: null == type
-          ? _value.type
+          ? _self.type
           : type // ignore: cast_nullable_to_non_nullable
               as int,
       config: freezed == config
-          ? _value._config
+          ? _self.config
           : config // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
       accountId: freezed == accountId
-          ? _value.accountId
+          ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
               as int?,
     ));
@@ -884,8 +834,8 @@ class __$$SnAuthFactorImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$SnAuthFactorImpl implements _SnAuthFactor {
-  const _$SnAuthFactorImpl(
+class _SnAuthFactor implements SnAuthFactor {
+  const _SnAuthFactor(
       {required this.id,
       required this.createdAt,
       required this.updatedAt,
@@ -894,9 +844,8 @@ class _$SnAuthFactorImpl implements _SnAuthFactor {
       required final Map<String, dynamic>? config,
       required this.accountId})
       : _config = config;
-
-  factory _$SnAuthFactorImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SnAuthFactorImplFromJson(json);
+  factory _SnAuthFactor.fromJson(Map<String, dynamic> json) =>
+      _$SnAuthFactorFromJson(json);
 
   @override
   final int id;
@@ -921,16 +870,26 @@ class _$SnAuthFactorImpl implements _SnAuthFactor {
   @override
   final int? accountId;
 
+  /// Create a copy of SnAuthFactor
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'SnAuthFactor(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, config: $config, accountId: $accountId)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnAuthFactorCopyWith<_SnAuthFactor> get copyWith =>
+      __$SnAuthFactorCopyWithImpl<_SnAuthFactor>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnAuthFactorToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SnAuthFactorImpl &&
+            other is _SnAuthFactor &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -949,54 +908,82 @@ class _$SnAuthFactorImpl implements _SnAuthFactor {
   int get hashCode => Object.hash(runtimeType, id, createdAt, updatedAt,
       deletedAt, type, const DeepCollectionEquality().hash(_config), accountId);
 
-  /// Create a copy of SnAuthFactor
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SnAuthFactorImplCopyWith<_$SnAuthFactorImpl> get copyWith =>
-      __$$SnAuthFactorImplCopyWithImpl<_$SnAuthFactorImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SnAuthFactorImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SnAuthFactor(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, config: $config, accountId: $accountId)';
   }
 }
 
-abstract class _SnAuthFactor implements SnAuthFactor {
-  const factory _SnAuthFactor(
-      {required final int id,
-      required final DateTime createdAt,
-      required final DateTime updatedAt,
-      required final DateTime? deletedAt,
-      required final int type,
-      required final Map<String, dynamic>? config,
-      required final int? accountId}) = _$SnAuthFactorImpl;
+/// @nodoc
+abstract mixin class _$SnAuthFactorCopyWith<$Res>
+    implements $SnAuthFactorCopyWith<$Res> {
+  factory _$SnAuthFactorCopyWith(
+          _SnAuthFactor value, $Res Function(_SnAuthFactor) _then) =
+      __$SnAuthFactorCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      int type,
+      Map<String, dynamic>? config,
+      int? accountId});
+}
 
-  factory _SnAuthFactor.fromJson(Map<String, dynamic> json) =
-      _$SnAuthFactorImpl.fromJson;
+/// @nodoc
+class __$SnAuthFactorCopyWithImpl<$Res>
+    implements _$SnAuthFactorCopyWith<$Res> {
+  __$SnAuthFactorCopyWithImpl(this._self, this._then);
 
-  @override
-  int get id;
-  @override
-  DateTime get createdAt;
-  @override
-  DateTime get updatedAt;
-  @override
-  DateTime? get deletedAt;
-  @override
-  int get type;
-  @override
-  Map<String, dynamic>? get config;
-  @override
-  int? get accountId;
+  final _SnAuthFactor _self;
+  final $Res Function(_SnAuthFactor) _then;
 
   /// Create a copy of SnAuthFactor
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SnAuthFactorImplCopyWith<_$SnAuthFactorImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? type = null,
+    Object? config = freezed,
+    Object? accountId = freezed,
+  }) {
+    return _then(_SnAuthFactor(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as int,
+      config: freezed == config
+          ? _self._config
+          : config // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      accountId: freezed == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
+  }
 }
+
+// dart format on

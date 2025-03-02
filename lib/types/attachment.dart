@@ -12,7 +12,7 @@ enum SnMediaType {
 }
 
 @freezed
-class SnAttachment with _$SnAttachment {
+abstract class SnAttachment with _$SnAttachment {
   const SnAttachment._();
 
   const factory SnAttachment({
@@ -65,7 +65,7 @@ class SnAttachment with _$SnAttachment {
 }
 
 @freezed
-class SnAttachmentFragment with _$SnAttachmentFragment {
+abstract class SnAttachmentFragment with _$SnAttachmentFragment {
   const SnAttachmentFragment._();
 
   const factory SnAttachmentFragment({
@@ -96,7 +96,7 @@ class SnAttachmentFragment with _$SnAttachmentFragment {
 }
 
 @freezed
-class SnAttachmentPool with _$SnAttachmentPool {
+abstract class SnAttachmentPool with _$SnAttachmentPool {
   const factory SnAttachmentPool({
     required int id,
     required DateTime createdAt,
@@ -113,7 +113,7 @@ class SnAttachmentPool with _$SnAttachmentPool {
 }
 
 @freezed
-class SnAttachmentDestination with _$SnAttachmentDestination {
+abstract class SnAttachmentDestination with _$SnAttachmentDestination {
   const factory SnAttachmentDestination({
     @Default(0) int id,
     required String type,
@@ -126,7 +126,7 @@ class SnAttachmentDestination with _$SnAttachmentDestination {
 }
 
 @freezed
-class SnAttachmentBoost with _$SnAttachmentBoost {
+abstract class SnAttachmentBoost with _$SnAttachmentBoost {
   const factory SnAttachmentBoost({
     required int id,
     required DateTime createdAt,
@@ -143,7 +143,7 @@ class SnAttachmentBoost with _$SnAttachmentBoost {
 }
 
 @freezed
-class SnSticker with _$SnSticker {
+abstract class SnSticker with _$SnSticker {
   const factory SnSticker({
     required int id,
     required DateTime createdAt,
@@ -162,7 +162,7 @@ class SnSticker with _$SnSticker {
 }
 
 @freezed
-class SnStickerPack with _$SnStickerPack {
+abstract class SnStickerPack with _$SnStickerPack {
   const factory SnStickerPack({
     required int id,
     required DateTime createdAt,
@@ -179,7 +179,7 @@ class SnStickerPack with _$SnStickerPack {
 }
 
 @freezed
-class SnAttachmentBilling with _$SnAttachmentBilling {
+abstract class SnAttachmentBilling with _$SnAttachmentBilling {
   const factory SnAttachmentBilling({
     required int currentBytes,
     required int discountFileSize,

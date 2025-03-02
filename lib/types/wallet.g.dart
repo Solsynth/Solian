@@ -6,8 +6,7 @@ part of 'wallet.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnWalletImpl _$$SnWalletImplFromJson(Map<String, dynamic> json) =>
-    _$SnWalletImpl(
+_SnWallet _$SnWalletFromJson(Map<String, dynamic> json) => _SnWallet(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -19,8 +18,7 @@ _$SnWalletImpl _$$SnWalletImplFromJson(Map<String, dynamic> json) =>
       accountId: (json['account_id'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SnWalletImplToJson(_$SnWalletImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$SnWalletToJson(_SnWallet instance) => <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
@@ -30,8 +28,8 @@ Map<String, dynamic> _$$SnWalletImplToJson(_$SnWalletImpl instance) =>
       'account_id': instance.accountId,
     };
 
-_$SnTransactionImpl _$$SnTransactionImplFromJson(Map<String, dynamic> json) =>
-    _$SnTransactionImpl(
+_SnTransaction _$SnTransactionFromJson(Map<String, dynamic> json) =>
+    _SnTransaction(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -50,7 +48,7 @@ _$SnTransactionImpl _$$SnTransactionImplFromJson(Map<String, dynamic> json) =>
       payeeId: (json['payee_id'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$$SnTransactionImplToJson(_$SnTransactionImpl instance) =>
+Map<String, dynamic> _$SnTransactionToJson(_SnTransaction instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),

@@ -6,17 +6,15 @@ part of 'websocket.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$WebSocketPackageImpl _$$WebSocketPackageImplFromJson(
-        Map<String, dynamic> json) =>
-    _$WebSocketPackageImpl(
+_WebSocketPackage _$WebSocketPackageFromJson(Map<String, dynamic> json) =>
+    _WebSocketPackage(
       method: json['w'] as String? ?? 'unknown',
       endpoint: json['e'] as String?,
       message: json['m'] as String?,
       payload: json['p'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$WebSocketPackageImplToJson(
-        _$WebSocketPackageImpl instance) =>
+Map<String, dynamic> _$WebSocketPackageToJson(_WebSocketPackage instance) =>
     <String, dynamic>{
       'w': instance.method,
       'e': instance.endpoint,

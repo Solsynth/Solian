@@ -4,7 +4,7 @@ part 'wallet.freezed.dart';
 part 'wallet.g.dart';
 
 @freezed
-class SnWallet with _$SnWallet {
+abstract class SnWallet with _$SnWallet {
   const factory SnWallet({
     required int id,
     required DateTime createdAt,
@@ -19,7 +19,7 @@ class SnWallet with _$SnWallet {
 }
 
 @freezed
-class SnTransaction with _$SnTransaction {
+abstract class SnTransaction with _$SnTransaction {
   const factory SnTransaction({
     required int id,
     required DateTime createdAt,

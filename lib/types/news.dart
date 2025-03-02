@@ -4,7 +4,7 @@ part 'news.freezed.dart';
 part 'news.g.dart';
 
 @freezed
-class SnNewsSource with _$SnNewsSource {
+abstract class SnNewsSource with _$SnNewsSource {
   const factory SnNewsSource({
     required String id,
     required String label,
@@ -18,7 +18,7 @@ class SnNewsSource with _$SnNewsSource {
 }
 
 @freezed
-class SnNewsArticle with _$SnNewsArticle {
+abstract class SnNewsArticle with _$SnNewsArticle {
   const factory SnNewsArticle({
     required int id,
     required DateTime createdAt,

@@ -5,7 +5,7 @@ part 'realm.freezed.dart';
 part 'realm.g.dart';
 
 @freezed
-class SnRealmMember with _$SnRealmMember {
+abstract class SnRealmMember with _$SnRealmMember {
   const factory SnRealmMember({
     required int id,
     required DateTime createdAt,
@@ -23,7 +23,7 @@ class SnRealmMember with _$SnRealmMember {
 }
 
 @freezed
-class SnRealm with _$SnRealm {
+abstract class SnRealm with _$SnRealm {
   const SnRealm._();
 
   const factory SnRealm({

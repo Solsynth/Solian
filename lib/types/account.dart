@@ -4,7 +4,7 @@ part 'account.freezed.dart';
 part 'account.g.dart';
 
 @freezed
-class SnAccount with _$SnAccount {
+abstract class SnAccount with _$SnAccount {
   const SnAccount._();
 
   const factory SnAccount({
@@ -35,7 +35,7 @@ class SnAccount with _$SnAccount {
 }
 
 @freezed
-class SnAccountContact with _$SnAccountContact {
+abstract class SnAccountContact with _$SnAccountContact {
   const factory SnAccountContact({
     required int accountId,
     required String content,
@@ -54,7 +54,7 @@ class SnAccountContact with _$SnAccountContact {
 }
 
 @freezed
-class SnAccountProfile with _$SnAccountProfile {
+abstract class SnAccountProfile with _$SnAccountProfile {
   const factory SnAccountProfile({
     required int id,
     required int accountId,
@@ -73,7 +73,7 @@ class SnAccountProfile with _$SnAccountProfile {
 }
 
 @freezed
-class SnRelationship with _$SnRelationship {
+abstract class SnRelationship with _$SnRelationship {
   const factory SnRelationship({
     required int id,
     required DateTime createdAt,
@@ -92,7 +92,7 @@ class SnRelationship with _$SnRelationship {
 }
 
 @freezed
-class SnAccountBadge with _$SnAccountBadge {
+abstract class SnAccountBadge with _$SnAccountBadge {
   const factory SnAccountBadge({
     required int id,
     required DateTime createdAt,
@@ -108,7 +108,7 @@ class SnAccountBadge with _$SnAccountBadge {
 }
 
 @freezed
-class SnAccountStatusInfo with _$SnAccountStatusInfo {
+abstract class SnAccountStatusInfo with _$SnAccountStatusInfo {
   const factory SnAccountStatusInfo({
     required bool isDisturbable,
     required bool isOnline,
@@ -121,7 +121,7 @@ class SnAccountStatusInfo with _$SnAccountStatusInfo {
 }
 
 @freezed
-class SnAbuseReport with _$SnAbuseReport {
+abstract class SnAbuseReport with _$SnAbuseReport {
   const factory SnAbuseReport({
     required int id,
     required DateTime createdAt,

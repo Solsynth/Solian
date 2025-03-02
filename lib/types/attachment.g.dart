@@ -6,8 +6,8 @@ part of 'attachment.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SnAttachmentImpl _$$SnAttachmentImplFromJson(Map<String, dynamic> json) =>
-    _$SnAttachmentImpl(
+_SnAttachment _$SnAttachmentFromJson(Map<String, dynamic> json) =>
+    _SnAttachment(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -57,7 +57,7 @@ _$SnAttachmentImpl _$$SnAttachmentImplFromJson(Map<String, dynamic> json) =>
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$SnAttachmentImplToJson(_$SnAttachmentImpl instance) =>
+Map<String, dynamic> _$SnAttachmentToJson(_SnAttachment instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -92,9 +92,9 @@ Map<String, dynamic> _$$SnAttachmentImplToJson(_$SnAttachmentImpl instance) =>
       'metadata': instance.metadata,
     };
 
-_$SnAttachmentFragmentImpl _$$SnAttachmentFragmentImplFromJson(
+_SnAttachmentFragment _$SnAttachmentFragmentFromJson(
         Map<String, dynamic> json) =>
-    _$SnAttachmentFragmentImpl(
+    _SnAttachmentFragment(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -119,8 +119,8 @@ _$SnAttachmentFragmentImpl _$$SnAttachmentFragmentImplFromJson(
           const [],
     );
 
-Map<String, dynamic> _$$SnAttachmentFragmentImplToJson(
-        _$SnAttachmentFragmentImpl instance) =>
+Map<String, dynamic> _$SnAttachmentFragmentToJson(
+        _SnAttachmentFragment instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -138,9 +138,8 @@ Map<String, dynamic> _$$SnAttachmentFragmentImplToJson(
       'file_chunks_missing': instance.fileChunksMissing,
     };
 
-_$SnAttachmentPoolImpl _$$SnAttachmentPoolImplFromJson(
-        Map<String, dynamic> json) =>
-    _$SnAttachmentPoolImpl(
+_SnAttachmentPool _$SnAttachmentPoolFromJson(Map<String, dynamic> json) =>
+    _SnAttachmentPool(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -154,8 +153,7 @@ _$SnAttachmentPoolImpl _$$SnAttachmentPoolImplFromJson(
       accountId: (json['account_id'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$$SnAttachmentPoolImplToJson(
-        _$SnAttachmentPoolImpl instance) =>
+Map<String, dynamic> _$SnAttachmentPoolToJson(_SnAttachmentPool instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -168,9 +166,9 @@ Map<String, dynamic> _$$SnAttachmentPoolImplToJson(
       'account_id': instance.accountId,
     };
 
-_$SnAttachmentDestinationImpl _$$SnAttachmentDestinationImplFromJson(
+_SnAttachmentDestination _$SnAttachmentDestinationFromJson(
         Map<String, dynamic> json) =>
-    _$SnAttachmentDestinationImpl(
+    _SnAttachmentDestination(
       id: (json['id'] as num?)?.toInt() ?? 0,
       type: json['type'] as String,
       label: json['label'] as String,
@@ -178,8 +176,8 @@ _$SnAttachmentDestinationImpl _$$SnAttachmentDestinationImplFromJson(
       isBoost: json['is_boost'] as bool,
     );
 
-Map<String, dynamic> _$$SnAttachmentDestinationImplToJson(
-        _$SnAttachmentDestinationImpl instance) =>
+Map<String, dynamic> _$SnAttachmentDestinationToJson(
+        _SnAttachmentDestination instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
@@ -188,9 +186,8 @@ Map<String, dynamic> _$$SnAttachmentDestinationImplToJson(
       'is_boost': instance.isBoost,
     };
 
-_$SnAttachmentBoostImpl _$$SnAttachmentBoostImplFromJson(
-        Map<String, dynamic> json) =>
-    _$SnAttachmentBoostImpl(
+_SnAttachmentBoost _$SnAttachmentBoostFromJson(Map<String, dynamic> json) =>
+    _SnAttachmentBoost(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -205,8 +202,7 @@ _$SnAttachmentBoostImpl _$$SnAttachmentBoostImplFromJson(
       account: (json['account'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SnAttachmentBoostImplToJson(
-        _$SnAttachmentBoostImpl instance) =>
+Map<String, dynamic> _$SnAttachmentBoostToJson(_SnAttachmentBoost instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -219,8 +215,7 @@ Map<String, dynamic> _$$SnAttachmentBoostImplToJson(
       'account': instance.account,
     };
 
-_$SnStickerImpl _$$SnStickerImplFromJson(Map<String, dynamic> json) =>
-    _$SnStickerImpl(
+_SnSticker _$SnStickerFromJson(Map<String, dynamic> json) => _SnSticker(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -237,7 +232,7 @@ _$SnStickerImpl _$$SnStickerImplFromJson(Map<String, dynamic> json) =>
       accountId: (json['account_id'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SnStickerImplToJson(_$SnStickerImpl instance) =>
+Map<String, dynamic> _$SnStickerToJson(_SnSticker instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -252,8 +247,8 @@ Map<String, dynamic> _$$SnStickerImplToJson(_$SnStickerImpl instance) =>
       'account_id': instance.accountId,
     };
 
-_$SnStickerPackImpl _$$SnStickerPackImplFromJson(Map<String, dynamic> json) =>
-    _$SnStickerPackImpl(
+_SnStickerPack _$SnStickerPackFromJson(Map<String, dynamic> json) =>
+    _SnStickerPack(
       id: (json['id'] as num).toInt(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -269,7 +264,7 @@ _$SnStickerPackImpl _$$SnStickerPackImplFromJson(Map<String, dynamic> json) =>
       accountId: (json['account_id'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$SnStickerPackImplToJson(_$SnStickerPackImpl instance) =>
+Map<String, dynamic> _$SnStickerPackToJson(_SnStickerPack instance) =>
     <String, dynamic>{
       'id': instance.id,
       'created_at': instance.createdAt.toIso8601String(),
@@ -282,16 +277,15 @@ Map<String, dynamic> _$$SnStickerPackImplToJson(_$SnStickerPackImpl instance) =>
       'account_id': instance.accountId,
     };
 
-_$SnAttachmentBillingImpl _$$SnAttachmentBillingImplFromJson(
-        Map<String, dynamic> json) =>
-    _$SnAttachmentBillingImpl(
+_SnAttachmentBilling _$SnAttachmentBillingFromJson(Map<String, dynamic> json) =>
+    _SnAttachmentBilling(
       currentBytes: (json['current_bytes'] as num).toInt(),
       discountFileSize: (json['discount_file_size'] as num).toInt(),
       includedRatio: (json['included_ratio'] as num).toDouble(),
     );
 
-Map<String, dynamic> _$$SnAttachmentBillingImplToJson(
-        _$SnAttachmentBillingImpl instance) =>
+Map<String, dynamic> _$SnAttachmentBillingToJson(
+        _SnAttachmentBilling instance) =>
     <String, dynamic>{
       'current_bytes': instance.currentBytes,
       'discount_file_size': instance.discountFileSize,
