@@ -743,5 +743,9 @@
   "fieldLocation": "Location",
   "fieldLinks": "Links",
   "fieldLinkName": "Name",
-  "fieldLinkUrl": "URL"
+  "fieldLinkUrl": "URL",
+  "screenAccountBadges": "Badges",
+  "accountBadges": "Badges",
+  "accountBadgesDescription": "View and manage your badges.",
+  "badgeActivated": "Activated badge {}."
 }

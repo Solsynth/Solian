@@ -1835,6 +1835,7 @@ mixin _$SnAccountBadge {
   dynamic get deletedAt;
   String get type;
   int get accountId;
+  bool get isActive;
   Map<String, dynamic> get metadata;
 
   /// Create a copy of SnAccountBadge
@@ -1862,6 +1863,8 @@ mixin _$SnAccountBadge {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.accountId, accountId) ||
                 other.accountId == accountId) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
             const DeepCollectionEquality().equals(other.metadata, metadata));
   }
 
@@ -1875,11 +1878,12 @@ mixin _$SnAccountBadge {
       const DeepCollectionEquality().hash(deletedAt),
       type,
       accountId,
+      isActive,
       const DeepCollectionEquality().hash(metadata));
 
   @override
   String toString() {
-    return 'SnAccountBadge(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, accountId: $accountId, metadata: $metadata)';
+    return 'SnAccountBadge(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, accountId: $accountId, isActive: $isActive, metadata: $metadata)';
   }
 }
 
@@ -1896,6 +1900,7 @@ abstract mixin class $SnAccountBadgeCopyWith<$Res> {
       dynamic deletedAt,
       String type,
       int accountId,
+      bool isActive,
       Map<String, dynamic> metadata});
 }
 
@@ -1918,6 +1923,7 @@ class _$SnAccountBadgeCopyWithImpl<$Res>
     Object? deletedAt = freezed,
     Object? type = null,
     Object? accountId = null,
+    Object? isActive = null,
     Object? metadata = null,
   }) {
     return _then(_self.copyWith(
@@ -1945,6 +1951,10 @@ class _$SnAccountBadgeCopyWithImpl<$Res>
           ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
               as int,
+      isActive: null == isActive
+          ? _self.isActive
+          : isActive // ignore: cast_nullable_to_non_nullable
+              as bool,
       metadata: null == metadata
           ? _self.metadata
           : metadata // ignore: cast_nullable_to_non_nullable
@@ -1963,6 +1973,7 @@ class _SnAccountBadge implements SnAccountBadge {
       required this.deletedAt,
       required this.type,
       required this.accountId,
+      this.isActive = false,
       final Map<String, dynamic> metadata = const {}})
       : _metadata = metadata;
   factory _SnAccountBadge.fromJson(Map<String, dynamic> json) =>
@@ -1980,6 +1991,9 @@ class _SnAccountBadge implements SnAccountBadge {
   final String type;
   @override
   final int accountId;
+  @override
+  @JsonKey()
+  final bool isActive;
   final Map<String, dynamic> _metadata;
   @override
   @JsonKey()
@@ -2018,6 +2032,8 @@ class _SnAccountBadge implements SnAccountBadge {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.accountId, accountId) ||
                 other.accountId == accountId) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
             const DeepCollectionEquality().equals(other._metadata, _metadata));
   }
 
@@ -2031,11 +2047,12 @@ class _SnAccountBadge implements SnAccountBadge {
       const DeepCollectionEquality().hash(deletedAt),
       type,
       accountId,
+      isActive,
       const DeepCollectionEquality().hash(_metadata));
 
   @override
   String toString() {
-    return 'SnAccountBadge(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, accountId: $accountId, metadata: $metadata)';
+    return 'SnAccountBadge(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, accountId: $accountId, isActive: $isActive, metadata: $metadata)';
   }
 }
 
@@ -2054,6 +2071,7 @@ abstract mixin class _$SnAccountBadgeCopyWith<$Res>
       dynamic deletedAt,
       String type,
       int accountId,
+      bool isActive,
       Map<String, dynamic> metadata});
 }
 
@@ -2076,6 +2094,7 @@ class __$SnAccountBadgeCopyWithImpl<$Res>
     Object? deletedAt = freezed,
     Object? type = null,
     Object? accountId = null,
+    Object? isActive = null,
     Object? metadata = null,
   }) {
     return _then(_SnAccountBadge(
@@ -2103,6 +2122,10 @@ class __$SnAccountBadgeCopyWithImpl<$Res>
           ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
               as int,
+      isActive: null == isActive
+          ? _self.isActive
+          : isActive // ignore: cast_nullable_to_non_nullable
+              as bool,
       metadata: null == metadata
           ? _self._metadata
           : metadata // ignore: cast_nullable_to_non_nullable

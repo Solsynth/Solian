@@ -187,6 +187,7 @@ _SnAccountBadge _$SnAccountBadgeFromJson(Map<String, dynamic> json) =>
       deletedAt: json['deleted_at'],
       type: json['type'] as String,
       accountId: (json['account_id'] as num).toInt(),
+      isActive: json['is_active'] as bool? ?? false,
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
     );
 
@@ -198,6 +199,7 @@ Map<String, dynamic> _$SnAccountBadgeToJson(_SnAccountBadge instance) =>
       'deleted_at': instance.deletedAt,
       'type': instance.type,
       'account_id': instance.accountId,
+      'is_active': instance.isActive,
       'metadata': instance.metadata,
     };
 

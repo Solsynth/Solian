@@ -174,6 +174,16 @@ class _AuthorizedAccountScreen extends StatelessWidget {
           },
         ),
         ListTile(
+          title: Text('accountBadges').tr(),
+          subtitle: Text('accountBadgesDescription').tr(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          leading: const Icon(Symbols.award_star),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {
+            GoRouter.of(context).pushNamed('accountBadges');
+          },
+        ),
+        ListTile(
           title: Text('accountSettings').tr(),
           subtitle: Text('accountSettingsSubtitle').tr(),
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),

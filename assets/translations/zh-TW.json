@@ -515,7 +515,7 @@
   "accountBirthday": "出生於 {}",
   "accountBadge": "徽章",
   "accountCheckInNoRecords": "暫無運勢記錄",
-  "badgeCompanyStaff": "索爾辛茨士大夫 · 員工",
+  "badgeCompanyStaff": "工作人員",
   "badgeSiteMigration": "Solar Network 原住民",
   "accountStatus": "狀態",
   "accountStatusOnline": "在線",
@@ -741,5 +741,9 @@
   "fieldLocation": "位置",
   "fieldLinks": "鏈接",
   "fieldLinkName": "名稱",
-  "fieldLinkUrl": "鏈接"
+  "fieldLinkUrl": "鏈接",
+  "screenAccountBadges": "徽章",
+  "accountBadges": "徽章",
+  "accountBadgesDescription": "查看並管理你的徽章。",
+  "badgeActivated": "已佩戴徽章 {}。"
 }

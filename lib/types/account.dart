@@ -105,6 +105,7 @@ abstract class SnAccountBadge with _$SnAccountBadge {
     required dynamic deletedAt,
     required String type,
     required int accountId,
+    @Default(false) bool isActive,
     @Default({}) Map<String, dynamic> metadata,
   }) = _SnAccountBadge;
 

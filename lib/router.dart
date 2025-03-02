@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:surface/screens/abuse_report.dart';
 import 'package:surface/screens/account.dart';
 import 'package:surface/screens/account/account_settings.dart';
+import 'package:surface/screens/account/badges.dart';
 import 'package:surface/screens/account/factor_settings.dart';
 import 'package:surface/screens/account/profile_page.dart';
 import 'package:surface/screens/account/profile_edit.dart';
@@ -42,8 +43,8 @@ import 'package:surface/types/post.dart';
 import 'package:surface/widgets/about.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 
-Widget _fadeThroughTransition(BuildContext context, Animation<double> animation,
-    Animation<double> secondaryAnimation, Widget child) {
+Widget _fadeThroughTransition(
+    BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
   return FadeThroughTransition(
     animation: animation,
     secondaryAnimation: secondaryAnimation,
@@ -85,15 +86,13 @@ final _appRoutes = [
         name: 'postSearch',
         builder: (context, state) => PostSearchScreen(
           initialTags: state.uri.queryParameters['tags']?.split(','),
-          initialCategories:
-              state.uri.queryParameters['categories']?.split(','),
+          initialCategories: state.uri.queryParameters['categories']?.split(','),
         ),
       ),
       GoRoute(
         path: '/publishers/:name',
         name: 'postPublisher',
-        builder: (context, state) =>
-            PostPublisherScreen(name: state.pathParameters['name']!),
+        builder: (context, state) => PostPublisherScreen(name: state.pathParameters['name']!),
       ),
       GoRoute(
         path: '/:slug',
@@ -106,55 +105,61 @@ final _appRoutes = [
     ],
   ),
   GoRoute(
-      path: '/account',
-      name: 'account',
-      builder: (context, state) => const AccountScreen(),
-      routes: [
-        GoRoute(
-          path: '/wallet',
-          name: 'accountWallet',
-          builder: (context, state) => const WalletScreen(),
+    path: '/account',
+    name: 'account',
+    builder: (context, state) => const AccountScreen(),
+    routes: [
+      GoRoute(
+        path: '/badges',
+        name: 'accountBadges',
+        builder: (context, state) => const AccountBadgesScreen(),
+      ),
+      GoRoute(
+        path: '/wallet',
+        name: 'accountWallet',
+        builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'accountSettings',
+        builder: (context, state) => AccountSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/factors',
+        name: 'factorSettings',
+        builder: (context, state) => FactorSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        name: 'accountProfileEdit',
+        builder: (context, state) => ProfileEditScreen(),
+      ),
+      GoRoute(
+        path: '/publishers',
+        name: 'accountPublishers',
+        builder: (context, state) => PublisherScreen(),
+      ),
+      GoRoute(
+        path: '/publishers/new',
+        name: 'accountPublisherNew',
+        builder: (context, state) => AccountPublisherNewScreen(),
+      ),
+      GoRoute(
+        path: '/publishers/edit/:name',
+        name: 'accountPublisherEdit',
+        builder: (context, state) => AccountPublisherEditScreen(
+          name: state.pathParameters['name']!,
         ),
-        GoRoute(
-          path: '/settings',
-          name: 'accountSettings',
-          builder: (context, state) => AccountSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/:name',
+        name: 'accountProfilePage',
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: UserScreen(name: state.pathParameters['name']!),
         ),
-        GoRoute(
-          path: '/settings/factors',
-          name: 'factorSettings',
-          builder: (context, state) => FactorSettingsScreen(),
-        ),
-        GoRoute(
-          path: '/profile/edit',
-          name: 'accountProfileEdit',
-          builder: (context, state) => ProfileEditScreen(),
-        ),
-        GoRoute(
-          path: '/publishers',
-          name: 'accountPublishers',
-          builder: (context, state) => PublisherScreen(),
-        ),
-        GoRoute(
-          path: '/publishers/new',
-          name: 'accountPublisherNew',
-          builder: (context, state) => AccountPublisherNewScreen(),
-        ),
-        GoRoute(
-          path: '/publishers/edit/:name',
-          name: 'accountPublisherEdit',
-          builder: (context, state) => AccountPublisherEditScreen(
-            name: state.pathParameters['name']!,
-          ),
-        ),
-        GoRoute(
-          path: '/:name',
-          name: 'accountProfilePage',
-          pageBuilder: (context, state) => NoTransitionPage(
-            child: UserScreen(name: state.pathParameters['name']!),
-          ),
-        ),
-      ]),
+      ),
+    ],
+  ),
   GoRoute(
     path: '/chat',
     name: 'chat',
@@ -217,8 +222,7 @@ final _appRoutes = [
       GoRoute(
         path: '/:alias',
         name: 'realmDetail',
-        builder: (context, state) =>
-            RealmDetailScreen(alias: state.pathParameters['alias']!),
+        builder: (context, state) => RealmDetailScreen(alias: state.pathParameters['alias']!),
       ),
     ],
   ),
