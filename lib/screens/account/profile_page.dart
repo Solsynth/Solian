@@ -22,7 +22,7 @@ import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/universal_image.dart';
 import 'package:surface/theme.dart';
 
-const Map<String, (String, IconData, Color)> kBadgesMeta = {
+final Map<String, (String, IconData, Color)> kBadgesMeta = {
   'company.staff': (
     'badgeCompanyStaff',
     Symbols.tools_wrench,
@@ -32,6 +32,31 @@ const Map<String, (String, IconData, Color)> kBadgesMeta = {
     'badgeSiteMigration',
     Symbols.flag,
     Colors.orange,
+  ),
+  'site.anniversary': (
+    'badgeSiteAnniversary',
+    Symbols.celebration,
+    Colors.orangeAccent,
+  ),
+  'user.birthday': (
+    'badgeUserBirthday',
+    Symbols.cake,
+    Colors.red[400]!,
+  ),
+  'community.survey': (
+    'badgeCommunitySurvey',
+    Symbols.star,
+    Colors.yellow[700]!,
+  ),
+  'community.verified': (
+    'badgeCommunityVerified',
+    Symbols.verified,
+    Colors.blue,
+  ),
+  'community.contributor': (
+    'badgeCommunityContributor',
+    Symbols.thumb_up,
+    Colors.lightGreen,
   ),
 };
 
