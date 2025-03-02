@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/widgets/universal_image.dart';
 
@@ -9,6 +10,7 @@ class AccountImage extends StatelessWidget {
   final Color? backgroundColor;
   final Color? foregroundColor;
   final double? radius;
+  final double? borderRadius;
   final Widget? fallbackWidget;
   final Widget? badge;
 
@@ -18,6 +20,7 @@ class AccountImage extends StatelessWidget {
     this.backgroundColor,
     this.foregroundColor,
     this.radius,
+    this.borderRadius,
     this.fallbackWidget,
     this.badge,
   });
@@ -27,29 +30,30 @@ class AccountImage extends StatelessWidget {
     final sn = context.read<SnNetworkProvider>();
     final url = sn.getAttachmentUrl(content ?? '');
 
-    final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
     return Stack(
       children: [
-        CircleAvatar(
-          key: Key('attachment-${content.hashCode}'),
-          radius: radius,
-          backgroundColor: backgroundColor,
-          backgroundImage: (content?.isNotEmpty ?? false)
-              ? ResizeImage(
-                  UniversalImage.provider(url),
-                  width: ((radius ?? 20) * devicePixelRatio * 2).round(),
-                  height: ((radius ?? 20) * devicePixelRatio * 2).round(),
-                  policy: ResizeImagePolicy.fit,
-                )
-              : null,
-          child: (content?.isEmpty ?? true)
-              ? (fallbackWidget ??
-                  Icon(
-                    Symbols.account_circle,
-                    size: radius != null ? radius! * 1.2 : 24,
-                    color: foregroundColor,
-                  ))
-              : null,
+        SizedBox(
+          width: (radius != null ? radius! : 20) * 2,
+          height: (radius != null ? radius! : 20) * 2,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(borderRadius ?? radius ?? 20),
+            child: (content?.isEmpty ?? true)
+                ? Container(
+                    color: backgroundColor ?? Theme.of(context).colorScheme.primaryContainer,
+                    child: (fallbackWidget ??
+                            Icon(
+                              Symbols.account_circle,
+                              size: radius != null ? radius! * 1.2 : 24,
+                              color: foregroundColor,
+                            ))
+                        .center(),
+                  )
+                : AutoResizeUniversalImage(
+                    sn.getAttachmentUrl(url),
+                    key: Key('attachment-${content.hashCode}'),
+                    fit: BoxFit.cover,
+                  ),
+          ),
         ),
         if (badge != null)
           Positioned(

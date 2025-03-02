@@ -28,6 +28,7 @@ class SnPostContentProvider {
 
   Future<List<SnPost>> _preloadRelatedDataInBatch(List<SnPost> out) async {
     Set<String> rids = {};
+    Set<int> uids = {};
     for (var i = 0; i < out.length; i++) {
       rids.addAll(out[i].body['attachments']?.cast<String>() ?? []);
       if (out[i].body['thumbnail'] != null) {
@@ -40,6 +41,9 @@ class SnPostContentProvider {
         out[i] = out[i].copyWith(
           repostTo: await _preloadRelatedDataSingle(out[i].repostTo!),
         );
+      }
+      if (out[i].publisher.type == 0) {
+        uids.add(out[i].publisher.accountId);
       }
     }
 
@@ -65,15 +69,15 @@ class SnPostContentProvider {
       );
     }
 
-    await _ud.listAccount(
-      attachments.where((ele) => ele != null).map((ele) => ele!.accountId).toSet(),
-    );
+    uids.addAll(attachments.where((ele) => ele != null).map((ele) => ele!.accountId));
+    await _ud.listAccount(uids);
 
     return out;
   }
 
   Future<SnPost> _preloadRelatedDataSingle(SnPost out) async {
     Set<String> rids = {};
+    Set<int> uids = {};
     rids.addAll(out.body['attachments']?.cast<String>() ?? []);
     if (out.body['thumbnail'] != null) {
       rids.add(out.body['thumbnail']);
@@ -85,6 +89,9 @@ class SnPostContentProvider {
       out = out.copyWith(
         repostTo: await _preloadRelatedDataSingle(out.repostTo!),
       );
+    }
+    if (out.publisher.type == 0) {
+      uids.add(out.publisher.accountId);
     }
 
     final attachments = await _attach.getMultiple(rids.toList());
@@ -107,6 +114,9 @@ class SnPostContentProvider {
         realm: realm,
       ),
     );
+
+    uids.addAll(attachments.where((ele) => ele != null).map((ele) => ele!.accountId));
+    await _ud.listAccount(uids);
 
     return out;
   }

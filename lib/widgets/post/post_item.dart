@@ -22,6 +22,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/screens/post/post_detail.dart';
 import 'package:surface/types/attachment.dart';
@@ -41,6 +42,8 @@ import 'package:surface/widgets/post/post_reaction.dart';
 import 'package:surface/widgets/post/publisher_popover.dart';
 import 'package:surface/widgets/universal_image.dart';
 import 'package:xml/xml.dart';
+
+import '../../screens/account/profile_page.dart' show kBadgesMeta;
 
 class OpenablePostItem extends StatelessWidget {
   final SnPost data;
@@ -867,12 +870,30 @@ class _PostContentHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ud = context.read<UserDirectoryProvider>();
+    final user = data.publisher.type == 0 ? ud.getAccountFromCache(data.publisher.accountId) : null;
+
     return Row(
       children: [
         GestureDetector(
           child: AccountImage(
             content: data.publisher.avatar,
             radius: isCompact ? 12 : 20,
+            badge: (user?.badges.isNotEmpty ?? false)
+                ? Icon(
+                    kBadgesMeta[user!.badges.first.type]?.$2 ?? Symbols.question_mark,
+                    color: kBadgesMeta[user.badges.first.type]?.$3,
+                    fill: 1,
+                    size: 18,
+                    shadows: [
+                      Shadow(
+                        offset: Offset(1, 1),
+                        blurRadius: 5.0,
+                        color: Color.fromARGB(255, 0, 0, 0),
+                      ),
+                    ],
+                  )
+                : null,
           ),
           onTap: () {
             showPopover(
