@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' show max;
 
 import 'package:dio/dio.dart';
 import 'package:dismissible_page/dismissible_page.dart';
@@ -42,6 +43,9 @@ class AttachmentZoomView extends StatefulWidget {
 
 class _AttachmentZoomViewState extends State<AttachmentZoomView> {
   late final PageController _pageController = PageController(initialPage: widget.initialIndex ?? 0);
+
+  bool _showOverlay = true;
+  bool _dismissable = true;
 
   void _updatePage() {
     setState(() {
@@ -146,7 +150,7 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
       onDismissed: () {
         Navigator.of(context).pop();
       },
-      direction: DismissiblePageDismissDirection.none,
+      direction: _dismissable ? DismissiblePageDismissDirection.multi : DismissiblePageDismissDirection.none,
       backgroundColor: Colors.transparent,
       isFullScreen: true,
       child: GestureDetector(
@@ -163,6 +167,9 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                     child: PhotoView(
                       key: Key('attachment-detail-${widget.data.first.rid}-$heroTag'),
                       backgroundDecoration: BoxDecoration(color: Colors.transparent),
+                      scaleStateChangedCallback: (scaleState) {
+                        setState(() => _dismissable = scaleState == PhotoViewScaleState.initial);
+                      },
                       imageProvider: UniversalImage.provider(
                         sn.getAttachmentUrl(widget.data.first.rid),
                       ),
@@ -172,7 +179,10 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
 
                 return PhotoViewGallery.builder(
                   pageController: _pageController,
-                  scrollPhysics: const BouncingScrollPhysics(),
+                  enableRotation: true,
+                  scaleStateChangedCallback: (scaleState) {
+                    setState(() => _dismissable = scaleState == PhotoViewScaleState.initial);
+                  },
                   builder: (context, idx) {
                     final heroTag = widget.heroTags?.elementAt(idx) ?? uuid.v4();
                     return PhotoViewGalleryPageOptions(
@@ -197,6 +207,27 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                   backgroundDecoration: BoxDecoration(color: Colors.transparent),
                 );
               }),
+              Positioned(
+                top: max(MediaQuery.of(context).padding.top, 8),
+                left: 14,
+                child: IgnorePointer(
+                  ignoring: !_showOverlay,
+                  child: IconButton(
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.close),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                        Theme.of(context).colorScheme.surface.withOpacity(0.5),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  )
+                      .opacity(_showOverlay ? 1 : 0, animate: true)
+                      .animate(const Duration(milliseconds: 300), Curves.easeInOut),
+                ),
+              ),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: IgnorePointer(
@@ -214,7 +245,9 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                     ),
                   ),
                 ),
-              ),
+              )
+                  .opacity(_showOverlay ? 1 : 0, animate: true)
+                  .animate(const Duration(milliseconds: 300), Curves.easeInOut),
               Positioned(
                 left: 16,
                 right: 16,
@@ -318,16 +351,6 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                                   ]),
                                   style: metaTextStyle,
                                 ).padding(right: 2),
-                              if (item.metadata['exif']?['ISO'] != null)
-                                Text(
-                                  'ISO${item.metadata['exif']?['ISO']}',
-                                  style: metaTextStyle,
-                                ).padding(right: 2),
-                              if (item.metadata['exif']?['Aperture'] != null)
-                                Text(
-                                  'f/${item.metadata['exif']?['Aperture']}',
-                                  style: metaTextStyle,
-                                ).padding(right: 2),
                               if (item.metadata['exif']?['Megapixels'] != null &&
                                   item.metadata['exif']?['Model'] != null)
                                 Text(
@@ -344,29 +367,44 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                                   '${item.metadata['width']}x${item.metadata['height']}',
                                   style: metaTextStyle,
                                 ),
-                              if (item.metadata['ratio'] != null)
-                                Text(
-                                  (item.metadata['ratio'] as num).toStringAsFixed(2),
-                                  style: metaTextStyle,
-                                ),
-                              Text(
-                                item.mimetype,
-                                style: metaTextStyle,
-                              ),
                             ],
+                          ),
+                        ),
+                        const Gap(4),
+                        InkWell(
+                          onTap: () {
+                            _showDetail = true;
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) => _AttachmentZoomDetailPopup(
+                                data: widget.data
+                                    .elementAt(widget.data.length > 1 ? _pageController.page?.round() ?? 0 : 0),
+                              ),
+                            ).then((_) {
+                              _showDetail = false;
+                            });
+                          },
+                          child: Text(
+                            'viewDetailedAttachment'.tr(),
+                            style: metaTextStyle.copyWith(decoration: TextDecoration.underline),
                           ),
                         ),
                       ],
                     );
                   }),
-                ),
+                )
+                    .opacity(_showOverlay ? 1 : 0, animate: true)
+                    .animate(const Duration(milliseconds: 300), Curves.easeInOut),
               ),
             ],
           ),
         ),
+        onTap: () {
+          setState(() => _showOverlay = !_showOverlay);
+        },
         onVerticalDragUpdate: (details) {
           if (_showDetail) return;
-          if (details.delta.dy <= -40) {
+          if (details.delta.dy <= -20) {
             _showDetail = true;
             showModalBottomSheet(
               context: context,
@@ -377,9 +415,6 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
               _showDetail = false;
             });
           }
-        },
-        onTap: () {
-          Navigator.of(context).pop();
         },
       ),
     );
@@ -480,14 +515,14 @@ class _AttachmentZoomDetailPopup extends StatelessWidget {
                     ),
                   tableGap,
                   ...(data.metadata['exif']?.keys.map((k) => TableRow(
-                        children: [
-                          TableCell(child: Text(k).padding(right: 16)),
-                          TableCell(child: Text(data.metadata['exif'][k].toString())),
-                        ],
-                      )) ??
+                            children: [
+                              TableCell(child: Text(k).padding(right: 16)),
+                              TableCell(child: Text(data.metadata['exif'][k].toString())),
+                            ],
+                          )) ??
                       []),
                 ],
-              ).padding(horizontal: 20, vertical: 8),
+              ).padding(horizontal: 20, vertical: 8, bottom: MediaQuery.of(context).padding.bottom),
             ),
           ),
         ],

@@ -6,17 +6,24 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/user_directory.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/universal_image.dart';
 
+import '../../screens/account/profile_page.dart' show kBadgesMeta;
+
 class PublisherPopoverCard extends StatelessWidget {
   final SnPublisher data;
+
   const PublisherPopoverCard({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
     final sn = context.read<SnNetworkProvider>();
+    final ud = context.read<UserDirectoryProvider>();
+
+    final user = data.type == 0 ? ud.getAccountFromCache(data.accountId) : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,6 +48,7 @@ class PublisherPopoverCard extends StatelessWidget {
             AccountImage(
               content: data.avatar,
               radius: 20,
+              borderRadius: data.type == 1 ? 8 : 20,
             ),
             Gap(16),
             Expanded(
@@ -68,6 +76,36 @@ class PublisherPopoverCard extends StatelessWidget {
             const Gap(8)
           ],
         ).padding(horizontal: 16),
+        if (user != null && user.badges.isNotEmpty) const Gap(16),
+        if (user != null && user.badges.isNotEmpty)
+          Wrap(
+            spacing: 4,
+            children: user.badges
+                .map(
+                  (ele) => Tooltip(
+                    richMessage: TextSpan(
+                      children: [
+                        TextSpan(text: kBadgesMeta[ele.type]?.$1.tr() ?? 'unknown'.tr()),
+                        if (ele.metadata['title'] != null)
+                          TextSpan(
+                            text: '\n${ele.metadata['title']}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        TextSpan(text: '\n'),
+                        TextSpan(
+                          text: DateFormat.yMEd().format(ele.createdAt),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      kBadgesMeta[ele.type]?.$2 ?? Symbols.question_mark,
+                      color: kBadgesMeta[ele.type]?.$3,
+                      fill: 1,
+                    ),
+                  ),
+                )
+                .toList(),
+          ).padding(horizontal: 24),
         const Gap(16),
         Row(
           children: [
@@ -108,10 +146,7 @@ class PublisherPopoverCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('publisherTotalDownvote')
-                      .tr()
-                      .fontSize(13)
-                      .opacity(0.75),
+                  Text('publisherTotalDownvote').tr().fontSize(13).opacity(0.75),
                   Text(data.totalDownvote.toString()),
                 ],
               ),

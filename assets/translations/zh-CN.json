@@ -750,5 +750,6 @@
   "screenAccountBadges": "徽章",
   "accountBadges": "徽章",
   "accountBadgesDescription": "查看并管理你的徽章。",
-  "badgeActivated": "已佩戴徽章 {}。"
+  "badgeActivated": "已佩戴徽章 {}。",
+  "viewDetailedAttachment": "查看附件详情"
 }

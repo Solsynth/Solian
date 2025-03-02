@@ -752,5 +752,6 @@
   "screenAccountBadges": "Badges",
   "accountBadges": "Badges",
   "accountBadgesDescription": "View and manage your badges.",
-  "badgeActivated": "Activated badge {}."
+  "badgeActivated": "Activated badge {}.",
+  "viewDetailedAttachment": "Details"
 }

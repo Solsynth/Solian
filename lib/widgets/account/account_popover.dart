@@ -72,34 +72,36 @@ class AccountPopoverCard extends StatelessWidget {
             const Gap(8)
           ],
         ).padding(horizontal: 16),
-        const Gap(16),
-        Wrap(
-          children: data.badges
-              .map(
-                (ele) => Tooltip(
-              richMessage: TextSpan(
-                children: [
-                  TextSpan(text: kBadgesMeta[ele.type]?.$1.tr() ?? 'unknown'.tr()),
-                  if (ele.metadata['title'] != null)
-                    TextSpan(
-                      text: '\n${ele.metadata['title']}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+        if (data.badges.isNotEmpty) const Gap(12),
+        if (data.badges.isNotEmpty)
+          Wrap(
+            spacing: 4,
+            children: data.badges
+                .map(
+                  (ele) => Tooltip(
+                    richMessage: TextSpan(
+                      children: [
+                        TextSpan(text: kBadgesMeta[ele.type]?.$1.tr() ?? 'unknown'.tr()),
+                        if (ele.metadata['title'] != null)
+                          TextSpan(
+                            text: '\n${ele.metadata['title']}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        TextSpan(text: '\n'),
+                        TextSpan(
+                          text: DateFormat.yMEd().format(ele.createdAt),
+                        ),
+                      ],
                     ),
-                  TextSpan(text: '\n'),
-                  TextSpan(
-                    text: DateFormat.yMEd().format(ele.createdAt),
+                    child: Icon(
+                      kBadgesMeta[ele.type]?.$2 ?? Symbols.question_mark,
+                      color: kBadgesMeta[ele.type]?.$3,
+                      fill: 1,
+                    ),
                   ),
-                ],
-              ),
-              child: Icon(
-                kBadgesMeta[ele.type]?.$2 ?? Symbols.question_mark,
-                color: kBadgesMeta[ele.type]?.$3,
-                fill: 1,
-              ),
-            ),
-          )
-              .toList(),
-        ).padding(horizontal: 24),
+                )
+                .toList(),
+          ).padding(horizontal: 24),
         const Gap(8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -127,33 +129,33 @@ class AccountPopoverCard extends StatelessWidget {
             final SnAccountStatusInfo? status =
                 snapshot.hasData ? SnAccountStatusInfo.fromJson(snapshot.data!.data) : null;
             return Row(
-                children: [
-                  Icon(
-                    Symbols.circle,
-                    fill: 1,
-                    size: 16,
-                    color: (status?.isOnline ?? false) ? Colors.green : Colors.grey,
-                  ).padding(all: 4),
-                  const Gap(8),
+              children: [
+                Icon(
+                  Symbols.circle,
+                  fill: 1,
+                  size: 16,
+                  color: (status?.isOnline ?? false) ? Colors.green : Colors.grey,
+                ).padding(all: 4),
+                const Gap(8),
+                Text(
+                  status != null
+                      ? status.isOnline
+                          ? 'accountStatusOnline'.tr()
+                          : 'accountStatusOffline'.tr()
+                      : 'loading'.tr(),
+                ),
+                if (status != null && !status.isOnline && status.lastSeenAt != null)
                   Text(
-                    status != null
-                        ? status.isOnline
-                            ? 'accountStatusOnline'.tr()
-                            : 'accountStatusOffline'.tr()
-                        : 'loading'.tr(),
-                  ),
-                  if (status != null && !status.isOnline && status.lastSeenAt != null)
-                    Text(
-                      'accountStatusLastSeen'.tr(args: [
-                        status.lastSeenAt != null
-                            ? RelativeTime(context).format(
-                                status.lastSeenAt!.toLocal(),
-                              )
-                            : 'unknown',
-                      ]),
-                    ).padding(left: 6).opacity(0.75),
-                ],
-              ).padding(horizontal: 24);
+                    'accountStatusLastSeen'.tr(args: [
+                      status.lastSeenAt != null
+                          ? RelativeTime(context).format(
+                              status.lastSeenAt!.toLocal(),
+                            )
+                          : 'unknown',
+                    ]),
+                  ).padding(left: 6).opacity(0.75),
+              ],
+            ).padding(horizontal: 24);
           },
         ),
         // Bottom padding
