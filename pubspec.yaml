@@ -134,6 +134,9 @@ dependencies:
   talker_dio_logger: ^4.6.14
   talker: ^4.6.14
   flutter_cache_manager: ^3.4.1
+  flutter_timezone: ^4.1.0
+  flutter_map: ^8.1.0
+  geolocator: ^13.0.2
 
 dev_dependencies:
   flutter_test:

@@ -406,7 +406,7 @@ class _UserScreenState extends State<UserScreen>
                     ],
                   ).padding(right: 8),
                   const Gap(12),
-                  Text(_account!.description).padding(horizontal: 8),
+                  Text(_account!.profile!.description).padding(horizontal: 8),
                   const Gap(4),
                   Card(
                     child: Row(

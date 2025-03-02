@@ -45,8 +45,7 @@ class AccountScreen extends StatelessWidget {
             ? Stack(
                 fit: StackFit.expand,
                 children: [
-                  AutoResizeUniversalImage(sn.getAttachmentUrl(ua.user!.banner),
-                      fit: BoxFit.cover),
+                  AutoResizeUniversalImage(sn.getAttachmentUrl(ua.user!.banner), fit: BoxFit.cover),
                   Positioned(
                     top: 0,
                     left: 0,
@@ -80,9 +79,7 @@ class AccountScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        child: ua.isAuthorized
-            ? _AuthorizedAccountScreen()
-            : _UnauthorizedAccountScreen(),
+        child: ua.isAuthorized ? _AuthorizedAccountScreen() : _UnauthorizedAccountScreen(),
       ),
     );
   }
@@ -118,15 +115,19 @@ class _AuthorizedAccountScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text(ua.user!.nick)
-                          .textStyle(Theme.of(context).textTheme.titleLarge!),
+                      Text(ua.user!.nick).textStyle(Theme.of(context).textTheme.titleLarge!),
                       const Gap(4),
-                      Text('@${ua.user!.name}')
-                          .textStyle(Theme.of(context).textTheme.bodySmall!),
+                      Text('@${ua.user!.name}').textStyle(Theme.of(context).textTheme.bodySmall!),
                     ],
                   ),
-                  Text(ua.user!.description)
-                      .textStyle(Theme.of(context).textTheme.bodyMedium!),
+                  Text(
+                    (ua.user!.profile?.description.isNotEmpty ?? false)
+                        ? ua.user!.profile!.description
+                        : 'userNoDescription'.tr(),
+                    style: (ua.user!.profile?.description.isEmpty ?? true)
+                        ? TextStyle(fontStyle: FontStyle.italic)
+                        : null,
+                  ).textStyle(Theme.of(context).textTheme.bodyMedium!),
                 ],
               ),
             );
@@ -225,9 +226,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   child: Icon(Symbols.waving_hand, size: 28),
                 ),
                 const Gap(8),
-                Text('accountIntroTitle')
-                    .tr()
-                    .textStyle(Theme.of(context).textTheme.titleLarge!),
+                Text('accountIntroTitle').tr().textStyle(Theme.of(context).textTheme.titleLarge!),
                 Text('accountIntroSubtitle').tr(),
               ],
             ).padding(all: 20),

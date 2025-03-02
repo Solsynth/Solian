@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -36,11 +37,16 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _timezoneController = TextEditingController();
+  final _genderController = TextEditingController();
+  final _pronounsController = TextEditingController();
+  final _locationController = TextEditingController();
   final _birthdayController = TextEditingController();
 
   String? _avatar;
   String? _banner;
   DateTime? _birthday;
+  List<(String, String)>? _links;
 
   bool _isBusy = false;
 
@@ -51,15 +57,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final prof = ua.user!;
     _usernameController.text = prof.name;
     _nicknameController.text = prof.nick;
-    _descriptionController.text = prof.description;
+    _descriptionController.text = prof.profile!.description;
     _firstNameController.text = prof.profile!.firstName;
     _lastNameController.text = prof.profile!.lastName;
+    _timezoneController.text = prof.profile!.timeZone;
+    _genderController.text = prof.profile!.gender;
+    _pronounsController.text = prof.profile!.pronouns;
+    _locationController.text = prof.profile!.location;
     _avatar = prof.avatar;
     _banner = prof.banner;
-    if (prof.profile!.birthday != null) {
+    _links = prof.profile!.links.entries.map((ele) => (ele.key, ele.value)).toList();
+    _birthday = prof.profile!.birthday?.toLocal();
+    if(_birthday != null) {
       _birthdayController.text = DateFormat(_kDateFormat).format(
-        prof.profile!.birthday!.toLocal(),
-      );
+      prof.profile!.birthday!.toLocal(),
+    );
     }
   }
 
@@ -166,7 +178,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           'description': _descriptionController.value.text,
           'first_name': _firstNameController.value.text,
           'last_name': _lastNameController.value.text,
+          'time_zone': _timezoneController.value.text,
+          'gender': _genderController.value.text,
+          'pronouns': _pronounsController.value.text,
+          'location': _locationController.value.text,
           'birthday': _birthday?.toUtc().toIso8601String(),
+          'links': {
+            for (final link in _links!.where((ele) => ele.$1.isNotEmpty && ele.$2.isNotEmpty)) link.$1: link.$2
+          },
         },
       );
 
@@ -197,6 +216,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _descriptionController.dispose();
+    _timezoneController.dispose();
+    _genderController.dispose();
+    _pronounsController.dispose();
+    _locationController.dispose();
     _birthdayController.dispose();
     super.dispose();
   }
@@ -262,6 +285,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             ).padding(horizontal: padding),
             const Gap(8 + 28),
             Column(
+              spacing: 4,
               children: [
                 TextField(
                   readOnly: true,
@@ -271,16 +295,16 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     labelText: 'fieldUsername'.tr(),
                     helperText: 'fieldUsernameCannotEditHint'.tr(),
                   ),
+                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
-                const Gap(4),
                 TextField(
                   controller: _nicknameController,
                   decoration: InputDecoration(
                     border: const UnderlineInputBorder(),
                     labelText: 'fieldNickname'.tr(),
                   ),
+                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
-                const Gap(4),
                 Row(
                   children: [
                     Flexible(
@@ -291,6 +315,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           border: const UnderlineInputBorder(),
                           labelText: 'fieldFirstName'.tr(),
                         ),
+                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                       ),
                     ),
                     const Gap(8),
@@ -302,11 +327,38 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           border: const UnderlineInputBorder(),
                           labelText: 'fieldLastName'.tr(),
                         ),
+                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                       ),
                     ),
                   ],
                 ),
-                const Gap(4),
+                Row(
+                  children: [
+                    Flexible(
+                      flex: 1,
+                      child: TextField(
+                        controller: _genderController,
+                        decoration: InputDecoration(
+                          border: const UnderlineInputBorder(),
+                          labelText: 'fieldGender'.tr(),
+                        ),
+                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      ),
+                    ),
+                    const Gap(4),
+                    Flexible(
+                      flex: 1,
+                      child: TextField(
+                        controller: _pronounsController,
+                        decoration: InputDecoration(
+                          border: const UnderlineInputBorder(),
+                          labelText: 'fieldPronouns'.tr(),
+                        ),
+                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      ),
+                    ),
+                  ],
+                ),
                 TextField(
                   controller: _descriptionController,
                   keyboardType: TextInputType.multiline,
@@ -316,8 +368,51 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     border: const UnderlineInputBorder(),
                     labelText: 'fieldDescription'.tr(),
                   ),
+                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
-                const Gap(4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _timezoneController,
+                        decoration: InputDecoration(
+                          border: const UnderlineInputBorder(),
+                          labelText: 'fieldTimeZone'.tr(),
+                        ),
+                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      ),
+                    ),
+                    const Gap(4),
+                    StyledWidget(IconButton(
+                      icon: const Icon(Symbols.calendar_month),
+                      visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () async {
+                        _timezoneController.text = await FlutterTimezone.getLocalTimezone();
+                      },
+                    )).padding(top: 6),
+                    const Gap(4),
+                    StyledWidget(IconButton(
+                      icon: const Icon(Symbols.clear),
+                      visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        _timezoneController.clear();
+                      },
+                    )).padding(top: 6),
+                  ],
+                ),
+                TextField(
+                  controller: _locationController,
+                  decoration: InputDecoration(
+                    border: const UnderlineInputBorder(),
+                    labelText: 'fieldLocation'.tr(),
+                  ),
+                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                ),
                 TextField(
                   controller: _birthdayController,
                   readOnly: true,
@@ -327,6 +422,75 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   ),
                   onTap: () => _selectBirthday(),
                 ),
+                if (_links != null)
+                  Card(
+                    margin: const EdgeInsets.only(top: 16, bottom: 4),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'fieldLinks'.tr(),
+                                  style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 17),
+                                ),
+                              ),
+                              IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                                icon: const Icon(Symbols.add),
+                                onPressed: () {
+                                  setState(() => _links!.add(('', '')));
+                                },
+                              ),
+                            ],
+                          ),
+                          const Gap(8),
+                          for (var idx = 0; idx < _links!.length; idx++)
+                            Row(
+                              children: [
+                                Flexible(
+                                  flex: 1,
+                                  child: TextFormField(
+                                    initialValue: _links![idx].$1,
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      border: const OutlineInputBorder(),
+                                      labelText: 'fieldLinkName'.tr(),
+                                    ),
+                                    onChanged: (value) {
+                                      _links![idx] = (value, _links![idx].$2);
+                                    },
+                                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                                  ),
+                                ),
+                                const Gap(8),
+                                Flexible(
+                                  flex: 1,
+                                  child: TextFormField(
+                                    initialValue: _links![idx].$2,
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      border: const OutlineInputBorder(),
+                                      labelText: 'fieldLinkUrl'.tr(),
+                                    ),
+                                    onChanged: (value) {
+                                      _links![idx] = (_links![idx].$1, value);
+                                    },
+                                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ).padding(horizontal: padding + 8),
             const Gap(12),
@@ -340,6 +504,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 ),
               ],
             ).padding(horizontal: padding),
+            Gap(MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),

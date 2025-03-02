@@ -92,10 +92,9 @@ class OpenablePostItem extends StatelessWidget {
         openColor: Colors.transparent,
         openElevation: 0,
         transitionType: ContainerTransitionType.fade,
-        closedColor:
-            Theme.of(context).colorScheme.surfaceContainerLow.withOpacity(
-                  cfg.prefs.getBool(kAppBackgroundStoreKey) == true ? 0.75 : 1,
-                ),
+        closedColor: Theme.of(context).colorScheme.surfaceContainerLow.withOpacity(
+              cfg.prefs.getBool(kAppBackgroundStoreKey) == true ? 0.75 : 1,
+            ),
         closedShape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
@@ -136,11 +135,9 @@ class PostItem extends StatelessWidget {
     final box = context.findRenderObject() as RenderBox?;
     final url = 'https://solsynth.dev/posts/${data.id}';
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-      Share.shareUri(Uri.parse(url),
-          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+      Share.shareUri(Uri.parse(url), sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
     } else {
-      Share.share(url,
-          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+      Share.share(url, sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
     }
   }
 
@@ -158,8 +155,7 @@ class PostItem extends StatelessWidget {
             child: MultiProvider(
               providers: [
                 Provider<SnNetworkProvider>(create: (_) => context.read()),
-                ChangeNotifierProvider<ConfigProvider>(
-                    create: (_) => context.read()),
+                ChangeNotifierProvider<ConfigProvider>(create: (_) => context.read()),
               ],
               child: ResponsiveBreakpoints.builder(
                 breakpoints: ResponsiveBreakpoints.of(context).breakpoints,
@@ -187,8 +183,7 @@ class PostItem extends StatelessWidget {
         sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
       );
     } else {
-      await FileSaver.instance.saveFile(
-          name: 'Solar Network Post #${data.id}.png', file: imageFile);
+      await FileSaver.instance.saveFile(name: 'Solar Network Post #${data.id}.png', file: imageFile);
     }
 
     await imageFile.delete();
@@ -202,9 +197,7 @@ class PostItem extends StatelessWidget {
     final isAuthor = ua.isAuthorized && data.publisher.accountId == ua.user?.id;
 
     // Video full view
-    if (showFullPost &&
-        data.type == 'video' &&
-        ResponsiveBreakpoints.of(context).largerThan(TABLET)) {
+    if (showFullPost && data.type == 'video' && ResponsiveBreakpoints.of(context).largerThan(TABLET)) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -224,8 +217,7 @@ class PostItem extends StatelessWidget {
                     if (onDeleted != null) {}
                   },
                 ).padding(bottom: 8),
-                if (data.preload?.video != null)
-                  _PostVideoPlayer(data: data).padding(bottom: 8),
+                if (data.preload?.video != null) _PostVideoPlayer(data: data).padding(bottom: 8),
                 _PostHeadline(data: data).padding(horizontal: 4, bottom: 8),
                 _PostFeaturedComment(data: data),
                 _PostBottomAction(
@@ -273,8 +265,7 @@ class PostItem extends StatelessWidget {
                 if (onDeleted != null) {}
               },
             ).padding(horizontal: 12, top: 8, bottom: 8),
-            if (data.preload?.video != null)
-              _PostVideoPlayer(data: data).padding(horizontal: 12, bottom: 8),
+            if (data.preload?.video != null) _PostVideoPlayer(data: data).padding(horizontal: 12, bottom: 8),
             Container(
               width: double.infinity,
               margin: const EdgeInsets.only(bottom: 4, left: 12, right: 12),
@@ -317,13 +308,8 @@ class PostItem extends StatelessWidget {
                 ],
               ),
             ),
-            Text('postArticle')
-                .tr()
-                .fontSize(13)
-                .opacity(0.75)
-                .padding(horizontal: 24, bottom: 8),
-            _PostFeaturedComment(data: data, maxWidth: maxWidth)
-                .padding(horizontal: 12),
+            Text('postArticle').tr().fontSize(13).opacity(0.75).padding(horizontal: 24, bottom: 8),
+            _PostFeaturedComment(data: data, maxWidth: maxWidth).padding(horizontal: 12),
             _PostBottomAction(
               data: data,
               showComments: showComments,
@@ -338,8 +324,7 @@ class PostItem extends StatelessWidget {
     }
 
     final displayableAttachments = data.preload?.attachments
-        ?.where((ele) =>
-            ele?.mediaType != SnMediaType.image || data.type != 'article')
+        ?.where((ele) => ele?.mediaType != SnMediaType.image || data.type != 'article')
         .toList();
 
     final cfg = context.read<ConfigProvider>();
@@ -364,13 +349,9 @@ class PostItem extends StatelessWidget {
                   if (onDeleted != null) onDeleted!();
                 },
               ).padding(horizontal: 12, vertical: 8),
-              if (data.preload?.video != null)
-                _PostVideoPlayer(data: data).padding(horizontal: 12, bottom: 8),
-              if (data.type == 'question')
-                _PostQuestionHint(data: data)
-                    .padding(horizontal: 16, bottom: 8),
-              if (data.body['title'] != null ||
-                  data.body['description'] != null)
+              if (data.preload?.video != null) _PostVideoPlayer(data: data).padding(horizontal: 12, bottom: 8),
+              if (data.type == 'question') _PostQuestionHint(data: data).padding(horizontal: 16, bottom: 8),
+              if (data.body['title'] != null || data.body['description'] != null)
                 _PostHeadline(
                   data: data,
                   isEnlarge: data.type == 'article' && showFullPost,
@@ -384,8 +365,7 @@ class PostItem extends StatelessWidget {
               if (data.repostTo != null)
                 _PostQuoteContent(child: data.repostTo!).padding(
                   horizontal: 12,
-                  bottom:
-                      data.preload?.attachments?.isNotEmpty ?? false ? 12 : 0,
+                  bottom: data.preload?.attachments?.isNotEmpty ?? false ? 12 : 0,
                 ),
               if (data.visibility > 0)
                 _PostVisibilityHint(data: data).padding(
@@ -397,9 +377,7 @@ class PostItem extends StatelessWidget {
                   horizontal: 16,
                   vertical: 4,
                 ),
-              if (data.tags.isNotEmpty)
-                _PostTagsList(data: data)
-                    .padding(horizontal: 16, top: 4, bottom: 6),
+              if (data.tags.isNotEmpty) _PostTagsList(data: data).padding(horizontal: 16, top: 4, bottom: 6),
             ],
           ),
         ),
@@ -412,16 +390,12 @@ class PostItem extends StatelessWidget {
             fit: showFullPost ? BoxFit.cover : BoxFit.contain,
             padding: const EdgeInsets.symmetric(horizontal: 12),
           ),
-        if (data.preload?.poll != null)
-          PostPoll(poll: data.preload!.poll!)
-              .padding(horizontal: 12, vertical: 4),
-        if (data.body['content'] != null &&
-            (cfg.prefs.getBool(kAppExpandPostLink) ?? true))
+        if (data.preload?.poll != null) PostPoll(poll: data.preload!.poll!).padding(horizontal: 12, vertical: 4),
+        if (data.body['content'] != null && (cfg.prefs.getBool(kAppExpandPostLink) ?? true))
           LinkPreviewWidget(
             text: data.body['content'],
           ).padding(horizontal: 4),
-        _PostFeaturedComment(data: data, maxWidth: maxWidth)
-            .padding(horizontal: 12),
+        _PostFeaturedComment(data: data, maxWidth: maxWidth).padding(horizontal: 12),
         Container(
           constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
           child: Column(
@@ -483,8 +457,7 @@ class PostShareImageWidget extends StatelessWidget {
             showMenu: false,
             isRelativeDate: false,
           ).padding(horizontal: 16, bottom: 8),
-          if (data.type == 'question')
-            _PostQuestionHint(data: data).padding(horizontal: 16, bottom: 8),
+          if (data.type == 'question') _PostQuestionHint(data: data).padding(horizontal: 16, bottom: 8),
           _PostHeadline(
             data: data,
             isEnlarge: data.type == 'article',
@@ -499,8 +472,7 @@ class PostShareImageWidget extends StatelessWidget {
               child: data.repostTo!,
               isRelativeDate: false,
             ).padding(horizontal: 16, bottom: 8),
-          if (data.type != 'article' &&
-              (data.preload?.attachments?.isNotEmpty ?? false))
+          if (data.type != 'article' && (data.preload?.attachments?.isNotEmpty ?? false))
             StyledWidget(AttachmentList(
               data: data.preload!.attachments!,
               columned: true,
@@ -509,8 +481,7 @@ class PostShareImageWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (data.visibility > 0) _PostVisibilityHint(data: data),
-              if (data.body['content_truncated'] == true)
-                _PostTruncatedHint(data: data),
+              if (data.body['content_truncated'] == true) _PostTruncatedHint(data: data),
             ],
           ).padding(horizontal: 16),
           _PostBottomAction(
@@ -570,8 +541,7 @@ class PostShareImageWidget extends StatelessWidget {
                   version: QrVersions.auto,
                   size: 100,
                   gapless: true,
-                  embeddedImage:
-                      AssetImage('assets/icon/icon-light-radius.png'),
+                  embeddedImage: AssetImage('assets/icon/icon-light-radius.png'),
                   embeddedImageStyle: QrEmbeddedImageStyle(
                     size: Size(28, 28),
                   ),
@@ -602,11 +572,9 @@ class _PostQuestionHint extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(data.body['answer'] == null ? Symbols.help : Symbols.check_circle,
-            size: 20),
+        Icon(data.body['answer'] == null ? Symbols.help : Symbols.check_circle, size: 20),
         const Gap(4),
-        if (data.body['answer'] == null &&
-            data.body['reward']?.toDouble() != null)
+        if (data.body['answer'] == null && data.body['reward']?.toDouble() != null)
           Text('postQuestionUnansweredWithReward'.tr(args: [
             '${data.body['reward']}',
           ])).opacity(0.75)
@@ -642,9 +610,7 @@ class _PostBottomAction extends StatelessWidget {
         );
 
     final String? mostTypicalReaction = data.metric.reactionList.isNotEmpty
-        ? data.metric.reactionList.entries
-            .reduce((a, b) => a.value > b.value ? a : b)
-            .key
+        ? data.metric.reactionList.entries.reduce((a, b) => a.value > b.value ? a : b).key
         : null;
 
     return Row(
@@ -658,8 +624,7 @@ class _PostBottomAction extends StatelessWidget {
                 InkWell(
                   child: Row(
                     children: [
-                      if (mostTypicalReaction == null ||
-                          kTemplateReactions[mostTypicalReaction] == null)
+                      if (mostTypicalReaction == null || kTemplateReactions[mostTypicalReaction] == null)
                         Icon(Symbols.add_reaction, size: 20, color: iconColor)
                       else
                         Text(
@@ -671,8 +636,7 @@ class _PostBottomAction extends StatelessWidget {
                           ),
                         ),
                       const Gap(8),
-                      if (data.totalUpvote > 0 &&
-                          data.totalUpvote >= data.totalDownvote)
+                      if (data.totalUpvote > 0 && data.totalUpvote >= data.totalDownvote)
                         Text('postReactionUpvote').plural(
                           data.totalUpvote,
                         )
@@ -691,12 +655,8 @@ class _PostBottomAction extends StatelessWidget {
                         data: data,
                         onChanged: (value, attr, delta) {
                           onChanged(data.copyWith(
-                            totalUpvote: attr == 1
-                                ? data.totalUpvote + delta
-                                : data.totalUpvote,
-                            totalDownvote: attr == 2
-                                ? data.totalDownvote + delta
-                                : data.totalDownvote,
+                            totalUpvote: attr == 1 ? data.totalUpvote + delta : data.totalUpvote,
+                            totalDownvote: attr == 2 ? data.totalDownvote + delta : data.totalDownvote,
                             metric: data.metric.copyWith(reactionList: value),
                           ));
                         },
@@ -803,7 +763,7 @@ class _PostHeadline extends StatelessWidget {
             children: [
               Text(
                 'articleWrittenAt'.tr(
-                  args: [DateFormat('y/M/d HH:mm').format(data.createdAt)],
+                  args: [DateFormat('y/M/d HH:mm').format(data.createdAt.toLocal())],
                 ),
                 style: TextStyle(fontSize: 13),
               ),
@@ -811,7 +771,7 @@ class _PostHeadline extends StatelessWidget {
               if (data.editedAt != null)
                 Text(
                   'articleEditedAt'.tr(
-                    args: [DateFormat('y/M/d HH:mm').format(data.editedAt!)],
+                    args: [DateFormat('y/M/d HH:mm').format(data.editedAt!.toLocal())],
                   ),
                   style: TextStyle(fontSize: 13),
                 ),
@@ -944,10 +904,8 @@ class _PostContentHeader extends StatelessWidget {
                   const Gap(4),
                   Text(
                     isRelativeDate
-                        ? RelativeTime(context)
-                            .format(data.publishedAt ?? data.createdAt)
-                        : DateFormat('y/M/d HH:mm')
-                            .format(data.publishedAt ?? data.createdAt),
+                        ? RelativeTime(context).format((data.publishedAt ?? data.createdAt).toLocal())
+                        : DateFormat('y/M/d HH:mm').format((data.publishedAt ?? data.createdAt).toLocal()),
                   ).fontSize(13),
                 ],
               ).opacity(0.8),
@@ -965,10 +923,8 @@ class _PostContentHeader extends StatelessWidget {
                     const Gap(4),
                     Text(
                       isRelativeDate
-                          ? RelativeTime(context)
-                              .format(data.publishedAt ?? data.createdAt)
-                          : DateFormat('y/M/d HH:mm')
-                              .format(data.publishedAt ?? data.createdAt),
+                          ? RelativeTime(context).format((data.publishedAt ?? data.createdAt).toLocal())
+                          : DateFormat('y/M/d HH:mm').format((data.publishedAt ?? data.createdAt).toLocal()),
                     ).fontSize(13),
                   ],
                 ).opacity(0.8),
@@ -1151,8 +1107,7 @@ class _PostContentBody extends StatelessWidget {
     if (data.body['content'] == null) return const SizedBox.shrink();
     final content = MarkdownTextContent(
       isAutoWarp: data.type == 'story',
-      isEnlargeSticker:
-          RegExp(r"^:([-\w]+):$").hasMatch(data.body['content'] ?? ''),
+      isEnlargeSticker: RegExp(r"^:([-\w]+):$").hasMatch(data.body['content'] ?? ''),
       textScaler: isEnlarge ? TextScaler.linear(1.1) : null,
       content: data.body['content'],
       attachments: data.preload?.attachments,
@@ -1201,12 +1156,10 @@ class _PostQuoteContent extends StatelessWidget {
                   onDeleted: () {},
                 ).padding(bottom: 4),
                 _PostContentBody(data: child),
-                if (child.visibility > 0)
-                  _PostVisibilityHint(data: child).padding(top: 4),
+                if (child.visibility > 0) _PostVisibilityHint(data: child).padding(top: 4),
               ],
             ).padding(horizontal: 16),
-            if (child.type != 'article' &&
-                (child.preload?.attachments?.isNotEmpty ?? false))
+            if (child.type != 'article' && (child.preload?.attachments?.isNotEmpty ?? false))
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(8),
@@ -1357,9 +1310,7 @@ class _PostTruncatedHint extends StatelessWidget {
                 const Gap(4),
                 Text('postReadEstimate').tr(args: [
                   '${Duration(
-                    seconds: (data.body['content_length'] as num).toDouble() *
-                        60 ~/
-                        kHumanReadSpeed,
+                    seconds: (data.body['content_length'] as num).toDouble() * 60 ~/ kHumanReadSpeed,
                   ).inSeconds}s',
                 ]),
               ],
@@ -1398,8 +1349,7 @@ class _PostFeaturedCommentState extends State<_PostFeaturedComment> {
     // If this is a answered question, fetch the answer instead
     if (widget.data.type == 'question' && widget.data.body['answer'] != null) {
       final sn = context.read<SnNetworkProvider>();
-      final resp =
-          await sn.client.get('/cgi/co/posts/${widget.data.body['answer']}');
+      final resp = await sn.client.get('/cgi/co/posts/${widget.data.body['answer']}');
       _isAnswer = true;
       setState(() => _featuredComment = SnPost.fromJson(resp.data));
       return;
@@ -1407,11 +1357,9 @@ class _PostFeaturedCommentState extends State<_PostFeaturedComment> {
 
     try {
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get(
-          '/cgi/co/posts/${widget.data.id}/replies/featured',
-          queryParameters: {
-            'take': 1,
-          });
+      final resp = await sn.client.get('/cgi/co/posts/${widget.data.id}/replies/featured', queryParameters: {
+        'take': 1,
+      });
       setState(() => _featuredComment = SnPost.fromJson(resp.data[0]));
     } catch (err) {
       if (!mounted) return;
@@ -1440,9 +1388,7 @@ class _PostFeaturedCommentState extends State<_PostFeaturedComment> {
       width: double.infinity,
       child: Material(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
-        color: _isAnswer
-            ? Colors.green.withOpacity(0.5)
-            : Theme.of(context).colorScheme.surfaceContainerHigh,
+        color: _isAnswer ? Colors.green.withOpacity(0.5) : Theme.of(context).colorScheme.surfaceContainerHigh,
         child: InkWell(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           onTap: () {
@@ -1462,17 +1408,11 @@ class _PostFeaturedCommentState extends State<_PostFeaturedComment> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Gap(2),
-                  Icon(_isAnswer ? Symbols.task_alt : Symbols.prompt_suggestion,
-                      size: 20),
+                  Icon(_isAnswer ? Symbols.task_alt : Symbols.prompt_suggestion, size: 20),
                   const Gap(10),
                   Text(
-                    _isAnswer
-                        ? 'postQuestionAnswerTitle'
-                        : 'postFeaturedComment',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium!
-                        .copyWith(fontSize: 15),
+                    _isAnswer ? 'postQuestionAnswerTitle' : 'postFeaturedComment',
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 15),
                   ).tr(),
                 ],
               ),
@@ -1610,8 +1550,7 @@ class _PostGetInsightPopupState extends State<_PostGetInsightPopup> {
       }
 
       RegExp cleanThinkingRegExp = RegExp(r'<think>[\s\S]*?</think>');
-      setState(
-          () => _response = out.replaceAll(cleanThinkingRegExp, '').trim());
+      setState(() => _response = out.replaceAll(cleanThinkingRegExp, '').trim());
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -1634,16 +1573,11 @@ class _PostGetInsightPopupState extends State<_PostGetInsightPopup> {
           children: [
             const Icon(Symbols.book_4_spark, size: 24),
             const Gap(16),
-            Text('postGetInsightTitle',
-                    style: Theme.of(context).textTheme.titleLarge)
-                .tr(),
+            Text('postGetInsightTitle', style: Theme.of(context).textTheme.titleLarge).tr(),
           ],
         ).padding(horizontal: 20, top: 16, bottom: 12),
         const Gap(4),
-        Text('postGetInsightDescription',
-                style: Theme.of(context).textTheme.bodySmall)
-            .tr()
-            .padding(horizontal: 20),
+        Text('postGetInsightDescription', style: Theme.of(context).textTheme.bodySmall).tr().padding(horizontal: 20),
         const Gap(4),
         if (_response == null)
           Expanded(
@@ -1661,16 +1595,12 @@ class _PostGetInsightPopupState extends State<_PostGetInsightPopup> {
                       leading: const Icon(Symbols.info),
                       title: Text('aiThinkingProcess'.tr()),
                       tilePadding: const EdgeInsets.symmetric(horizontal: 20),
-                      collapsedBackgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainerHigh,
+                      collapsedBackgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
                       minTileHeight: 32,
                       children: [
                         SelectableText(
                           _thinkingProcess!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium!
-                              .copyWith(fontStyle: FontStyle.italic),
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(fontStyle: FontStyle.italic),
                         ).padding(horizontal: 20, vertical: 8),
                       ],
                     ).padding(vertical: 8),
@@ -1707,8 +1637,7 @@ class _PostVideoPlayer extends StatelessWidget {
         aspectRatio: 16 / 9,
         child: ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
-          child: AttachmentItem(
-              data: data.preload!.video!, heroTag: 'post-video-${data.id}'),
+          child: AttachmentItem(data: data.preload!.video!, heroTag: 'post-video-${data.id}'),
         ),
       ),
     );

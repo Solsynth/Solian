@@ -108,8 +108,7 @@ void main() async {
   }
 
   if (!kIsWeb && Platform.isAndroid) {
-    final ImagePickerPlatform imagePickerImplementation =
-        ImagePickerPlatform.instance;
+    final ImagePickerPlatform imagePickerImplementation = ImagePickerPlatform.instance;
     if (imagePickerImplementation is ImagePickerAndroid) {
       imagePickerImplementation.useAndroidPhotoPicker = true;
     }
@@ -228,8 +227,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     if (prefs.containsKey('first_boot_time')) {
       final rawTime = prefs.getString('first_boot_time');
       final time = DateTime.tryParse(rawTime ?? '');
-      if (time != null &&
-          time.isBefore(DateTime.now().subtract(const Duration(days: 3)))) {
+      if (time != null && time.isBefore(DateTime.now().subtract(const Duration(days: 3)))) {
         final inAppReview = InAppReview.instance;
         if (prefs.getBool('rating_requested') == true) return;
         if (await inAppReview.isAvailable()) {
@@ -260,18 +258,12 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       final remoteVersionString = resp.data?['tag_name'] ?? '0.0.0+0';
       final remoteVersion = Version.parse(remoteVersionString.split('+').first);
       final localVersion = Version.parse(localVersionString.split('+').first);
-      final remoteBuildNumber =
-          int.tryParse(remoteVersionString.split('+').last) ?? 0;
-      final localBuildNumber =
-          int.tryParse(localVersionString.split('+').last) ?? 0;
-      logging.info(
-          "[Update] Local: $localVersionString, Remote: $remoteVersionString");
-      if ((remoteVersion > localVersion ||
-              remoteBuildNumber > localBuildNumber) &&
-          mounted) {
+      final remoteBuildNumber = int.tryParse(remoteVersionString.split('+').last) ?? 0;
+      final localBuildNumber = int.tryParse(localVersionString.split('+').last) ?? 0;
+      logging.info("[Update] Local: $localVersionString, Remote: $remoteVersionString");
+      if ((remoteVersion > localVersion || remoteBuildNumber > localBuildNumber) && mounted) {
         final config = context.read<ConfigProvider>();
-        config.setUpdate(
-            remoteVersionString, resp.data?['body'] ?? 'No changelog');
+        config.setUpdate(remoteVersionString, resp.data?['body'] ?? 'No changelog');
         logging.info("[Update] Update available: $remoteVersionString");
       }
     } catch (e) {
@@ -363,9 +355,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   Future<void> _trayInitialization() async {
     if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
 
-    final icon = Platform.isWindows
-        ? 'assets/icon/tray-icon.ico'
-        : 'assets/icon/tray-icon.png';
+    final icon = Platform.isWindows ? 'assets/icon/tray-icon.ico' : 'assets/icon/tray-icon.png';
     final appVersion = await PackageInfo.fromPlatform();
 
     trayManager.addListener(this);

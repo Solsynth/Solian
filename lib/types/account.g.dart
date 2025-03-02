@@ -21,7 +21,6 @@ _SnAccount _$SnAccountFromJson(Map<String, dynamic> json) => _SnAccount(
           .toList(),
       avatar: json['avatar'] as String? ?? "",
       banner: json['banner'] as String? ?? "",
-      description: json['description'] as String,
       name: json['name'] as String,
       nick: json['nick'] as String,
       permNodes: json['perm_nodes'] as Map<String, dynamic>? ?? const {},
@@ -52,7 +51,6 @@ Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
       'contacts': instance.contacts?.map((e) => e.toJson()).toList(),
       'avatar': instance.avatar,
       'banner': instance.banner,
-      'description': instance.description,
       'name': instance.name,
       'nick': instance.nick,
       'perm_nodes': instance.permNodes,
@@ -101,35 +99,50 @@ Map<String, dynamic> _$SnAccountContactToJson(_SnAccountContact instance) =>
 _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
     _SnAccountProfile(
       id: (json['id'] as num).toInt(),
-      accountId: (json['account_id'] as num).toInt(),
-      birthday: json['birthday'] == null
-          ? null
-          : DateTime.parse(json['birthday'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
-      experience: (json['experience'] as num).toInt(),
       firstName: json['first_name'] as String,
       lastName: json['last_name'] as String,
+      description: json['description'] as String,
+      timeZone: json['time_zone'] as String,
+      location: json['location'] as String,
+      pronouns: json['pronouns'] as String,
+      gender: json['gender'] as String,
+      links: (json['links'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
+      experience: (json['experience'] as num).toInt(),
       lastSeenAt: json['last_seen_at'] == null
           ? null
           : DateTime.parse(json['last_seen_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      birthday: json['birthday'] == null
+          ? null
+          : DateTime.parse(json['birthday'] as String),
+      accountId: (json['account_id'] as num).toInt(),
     );
 
 Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'account_id': instance.accountId,
-      'birthday': instance.birthday?.toIso8601String(),
       'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
-      'experience': instance.experience,
       'first_name': instance.firstName,
       'last_name': instance.lastName,
+      'description': instance.description,
+      'time_zone': instance.timeZone,
+      'location': instance.location,
+      'pronouns': instance.pronouns,
+      'gender': instance.gender,
+      'links': instance.links,
+      'experience': instance.experience,
       'last_seen_at': instance.lastSeenAt?.toIso8601String(),
-      'updated_at': instance.updatedAt.toIso8601String(),
+      'birthday': instance.birthday?.toIso8601String(),
+      'account_id': instance.accountId,
     };
 
 _SnRelationship _$SnRelationshipFromJson(Map<String, dynamic> json) =>

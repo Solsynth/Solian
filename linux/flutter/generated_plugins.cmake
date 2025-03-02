@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   bitsdojo_window_linux
   file_saver
   file_selector_linux
+  flutter_timezone
   flutter_udid
   flutter_webrtc
   hotkey_manager_linux

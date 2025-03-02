@@ -23,7 +23,6 @@ mixin _$SnAccount {
   List<SnAccountContact>? get contacts;
   String get avatar;
   String get banner;
-  String get description;
   String get name;
   String get nick;
   Map<String, dynamic> get permNodes;
@@ -63,8 +62,6 @@ mixin _$SnAccount {
             const DeepCollectionEquality().equals(other.contacts, contacts) &&
             (identical(other.avatar, avatar) || other.avatar == avatar) &&
             (identical(other.banner, banner) || other.banner == banner) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.nick, nick) || other.nick == nick) &&
             const DeepCollectionEquality().equals(other.permNodes, permNodes) &&
@@ -96,7 +93,6 @@ mixin _$SnAccount {
         const DeepCollectionEquality().hash(contacts),
         avatar,
         banner,
-        description,
         name,
         nick,
         const DeepCollectionEquality().hash(permNodes),
@@ -112,7 +108,7 @@ mixin _$SnAccount {
 
   @override
   String toString() {
-    return 'SnAccount(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, confirmedAt: $confirmedAt, contacts: $contacts, avatar: $avatar, banner: $banner, description: $description, name: $name, nick: $nick, permNodes: $permNodes, language: $language, profile: $profile, badges: $badges, suspendedAt: $suspendedAt, affiliatedId: $affiliatedId, affiliatedTo: $affiliatedTo, automatedBy: $automatedBy, automatedId: $automatedId)';
+    return 'SnAccount(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, confirmedAt: $confirmedAt, contacts: $contacts, avatar: $avatar, banner: $banner, name: $name, nick: $nick, permNodes: $permNodes, language: $language, profile: $profile, badges: $badges, suspendedAt: $suspendedAt, affiliatedId: $affiliatedId, affiliatedTo: $affiliatedTo, automatedBy: $automatedBy, automatedId: $automatedId)';
   }
 }
 
@@ -130,7 +126,6 @@ abstract mixin class $SnAccountCopyWith<$Res> {
       List<SnAccountContact>? contacts,
       String avatar,
       String banner,
-      String description,
       String name,
       String nick,
       Map<String, dynamic> permNodes,
@@ -166,7 +161,6 @@ class _$SnAccountCopyWithImpl<$Res> implements $SnAccountCopyWith<$Res> {
     Object? contacts = freezed,
     Object? avatar = null,
     Object? banner = null,
-    Object? description = null,
     Object? name = null,
     Object? nick = null,
     Object? permNodes = null,
@@ -211,10 +205,6 @@ class _$SnAccountCopyWithImpl<$Res> implements $SnAccountCopyWith<$Res> {
       banner: null == banner
           ? _self.banner
           : banner // ignore: cast_nullable_to_non_nullable
-              as String,
-      description: null == description
-          ? _self.description
-          : description // ignore: cast_nullable_to_non_nullable
               as String,
       name: null == name
           ? _self.name
@@ -290,7 +280,6 @@ class _SnAccount extends SnAccount {
       required final List<SnAccountContact>? contacts,
       this.avatar = "",
       this.banner = "",
-      required this.description,
       required this.name,
       required this.nick,
       final Map<String, dynamic> permNodes = const {},
@@ -335,8 +324,6 @@ class _SnAccount extends SnAccount {
   @override
   @JsonKey()
   final String banner;
-  @override
-  final String description;
   @override
   final String name;
   @override
@@ -406,8 +393,6 @@ class _SnAccount extends SnAccount {
             const DeepCollectionEquality().equals(other._contacts, _contacts) &&
             (identical(other.avatar, avatar) || other.avatar == avatar) &&
             (identical(other.banner, banner) || other.banner == banner) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.nick, nick) || other.nick == nick) &&
             const DeepCollectionEquality()
@@ -440,7 +425,6 @@ class _SnAccount extends SnAccount {
         const DeepCollectionEquality().hash(_contacts),
         avatar,
         banner,
-        description,
         name,
         nick,
         const DeepCollectionEquality().hash(_permNodes),
@@ -456,7 +440,7 @@ class _SnAccount extends SnAccount {
 
   @override
   String toString() {
-    return 'SnAccount(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, confirmedAt: $confirmedAt, contacts: $contacts, avatar: $avatar, banner: $banner, description: $description, name: $name, nick: $nick, permNodes: $permNodes, language: $language, profile: $profile, badges: $badges, suspendedAt: $suspendedAt, affiliatedId: $affiliatedId, affiliatedTo: $affiliatedTo, automatedBy: $automatedBy, automatedId: $automatedId)';
+    return 'SnAccount(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, confirmedAt: $confirmedAt, contacts: $contacts, avatar: $avatar, banner: $banner, name: $name, nick: $nick, permNodes: $permNodes, language: $language, profile: $profile, badges: $badges, suspendedAt: $suspendedAt, affiliatedId: $affiliatedId, affiliatedTo: $affiliatedTo, automatedBy: $automatedBy, automatedId: $automatedId)';
   }
 }
 
@@ -477,7 +461,6 @@ abstract mixin class _$SnAccountCopyWith<$Res>
       List<SnAccountContact>? contacts,
       String avatar,
       String banner,
-      String description,
       String name,
       String nick,
       Map<String, dynamic> permNodes,
@@ -514,7 +497,6 @@ class __$SnAccountCopyWithImpl<$Res> implements _$SnAccountCopyWith<$Res> {
     Object? contacts = freezed,
     Object? avatar = null,
     Object? banner = null,
-    Object? description = null,
     Object? name = null,
     Object? nick = null,
     Object? permNodes = null,
@@ -559,10 +541,6 @@ class __$SnAccountCopyWithImpl<$Res> implements _$SnAccountCopyWith<$Res> {
       banner: null == banner
           ? _self.banner
           : banner // ignore: cast_nullable_to_non_nullable
-              as String,
-      description: null == description
-          ? _self.description
-          : description // ignore: cast_nullable_to_non_nullable
               as String,
       name: null == name
           ? _self.name
@@ -954,15 +932,21 @@ class __$SnAccountContactCopyWithImpl<$Res>
 /// @nodoc
 mixin _$SnAccountProfile {
   int get id;
-  int get accountId;
-  DateTime? get birthday;
   DateTime get createdAt;
+  DateTime get updatedAt;
   DateTime? get deletedAt;
-  int get experience;
   String get firstName;
   String get lastName;
+  String get description;
+  String get timeZone;
+  String get location;
+  String get pronouns;
+  String get gender;
+  Map<String, String> get links;
+  int get experience;
   DateTime? get lastSeenAt;
-  DateTime get updatedAt;
+  DateTime? get birthday;
+  int get accountId;
 
   /// Create a copy of SnAccountProfile
   /// with the given fields replaced by the non-null parameter values.
@@ -981,24 +965,34 @@ mixin _$SnAccountProfile {
         (other.runtimeType == runtimeType &&
             other is SnAccountProfile &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.accountId, accountId) ||
-                other.accountId == accountId) &&
-            (identical(other.birthday, birthday) ||
-                other.birthday == birthday) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
             (identical(other.deletedAt, deletedAt) ||
                 other.deletedAt == deletedAt) &&
-            (identical(other.experience, experience) ||
-                other.experience == experience) &&
             (identical(other.firstName, firstName) ||
                 other.firstName == firstName) &&
             (identical(other.lastName, lastName) ||
                 other.lastName == lastName) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.timeZone, timeZone) ||
+                other.timeZone == timeZone) &&
+            (identical(other.location, location) ||
+                other.location == location) &&
+            (identical(other.pronouns, pronouns) ||
+                other.pronouns == pronouns) &&
+            (identical(other.gender, gender) || other.gender == gender) &&
+            const DeepCollectionEquality().equals(other.links, links) &&
+            (identical(other.experience, experience) ||
+                other.experience == experience) &&
             (identical(other.lastSeenAt, lastSeenAt) ||
                 other.lastSeenAt == lastSeenAt) &&
-            (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+            (identical(other.birthday, birthday) ||
+                other.birthday == birthday) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1006,19 +1000,25 @@ mixin _$SnAccountProfile {
   int get hashCode => Object.hash(
       runtimeType,
       id,
-      accountId,
-      birthday,
       createdAt,
+      updatedAt,
       deletedAt,
-      experience,
       firstName,
       lastName,
+      description,
+      timeZone,
+      location,
+      pronouns,
+      gender,
+      const DeepCollectionEquality().hash(links),
+      experience,
       lastSeenAt,
-      updatedAt);
+      birthday,
+      accountId);
 
   @override
   String toString() {
-    return 'SnAccountProfile(id: $id, accountId: $accountId, birthday: $birthday, createdAt: $createdAt, deletedAt: $deletedAt, experience: $experience, firstName: $firstName, lastName: $lastName, lastSeenAt: $lastSeenAt, updatedAt: $updatedAt)';
+    return 'SnAccountProfile(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, firstName: $firstName, lastName: $lastName, description: $description, timeZone: $timeZone, location: $location, pronouns: $pronouns, gender: $gender, links: $links, experience: $experience, lastSeenAt: $lastSeenAt, birthday: $birthday, accountId: $accountId)';
   }
 }
 
@@ -1030,15 +1030,21 @@ abstract mixin class $SnAccountProfileCopyWith<$Res> {
   @useResult
   $Res call(
       {int id,
-      int accountId,
-      DateTime? birthday,
       DateTime createdAt,
+      DateTime updatedAt,
       DateTime? deletedAt,
-      int experience,
       String firstName,
       String lastName,
+      String description,
+      String timeZone,
+      String location,
+      String pronouns,
+      String gender,
+      Map<String, String> links,
+      int experience,
       DateTime? lastSeenAt,
-      DateTime updatedAt});
+      DateTime? birthday,
+      int accountId});
 }
 
 /// @nodoc
@@ -1055,41 +1061,39 @@ class _$SnAccountProfileCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? accountId = null,
-    Object? birthday = freezed,
     Object? createdAt = null,
+    Object? updatedAt = null,
     Object? deletedAt = freezed,
-    Object? experience = null,
     Object? firstName = null,
     Object? lastName = null,
+    Object? description = null,
+    Object? timeZone = null,
+    Object? location = null,
+    Object? pronouns = null,
+    Object? gender = null,
+    Object? links = null,
+    Object? experience = null,
     Object? lastSeenAt = freezed,
-    Object? updatedAt = null,
+    Object? birthday = freezed,
+    Object? accountId = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
-      accountId: null == accountId
-          ? _self.accountId
-          : accountId // ignore: cast_nullable_to_non_nullable
-              as int,
-      birthday: freezed == birthday
-          ? _self.birthday
-          : birthday // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       createdAt: null == createdAt
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       deletedAt: freezed == deletedAt
           ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      experience: null == experience
-          ? _self.experience
-          : experience // ignore: cast_nullable_to_non_nullable
-              as int,
       firstName: null == firstName
           ? _self.firstName
           : firstName // ignore: cast_nullable_to_non_nullable
@@ -1098,14 +1102,46 @@ class _$SnAccountProfileCopyWithImpl<$Res>
           ? _self.lastName
           : lastName // ignore: cast_nullable_to_non_nullable
               as String,
+      description: null == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      timeZone: null == timeZone
+          ? _self.timeZone
+          : timeZone // ignore: cast_nullable_to_non_nullable
+              as String,
+      location: null == location
+          ? _self.location
+          : location // ignore: cast_nullable_to_non_nullable
+              as String,
+      pronouns: null == pronouns
+          ? _self.pronouns
+          : pronouns // ignore: cast_nullable_to_non_nullable
+              as String,
+      gender: null == gender
+          ? _self.gender
+          : gender // ignore: cast_nullable_to_non_nullable
+              as String,
+      links: null == links
+          ? _self.links
+          : links // ignore: cast_nullable_to_non_nullable
+              as Map<String, String>,
+      experience: null == experience
+          ? _self.experience
+          : experience // ignore: cast_nullable_to_non_nullable
+              as int,
       lastSeenAt: freezed == lastSeenAt
           ? _self.lastSeenAt
           : lastSeenAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      updatedAt: null == updatedAt
-          ? _self.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+      birthday: freezed == birthday
+          ? _self.birthday
+          : birthday // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -1115,38 +1151,64 @@ class _$SnAccountProfileCopyWithImpl<$Res>
 class _SnAccountProfile implements SnAccountProfile {
   const _SnAccountProfile(
       {required this.id,
-      required this.accountId,
-      required this.birthday,
       required this.createdAt,
+      required this.updatedAt,
       required this.deletedAt,
-      required this.experience,
       required this.firstName,
       required this.lastName,
+      required this.description,
+      required this.timeZone,
+      required this.location,
+      required this.pronouns,
+      required this.gender,
+      final Map<String, String> links = const {},
+      required this.experience,
       required this.lastSeenAt,
-      required this.updatedAt});
+      required this.birthday,
+      required this.accountId})
+      : _links = links;
   factory _SnAccountProfile.fromJson(Map<String, dynamic> json) =>
       _$SnAccountProfileFromJson(json);
 
   @override
   final int id;
   @override
-  final int accountId;
-  @override
-  final DateTime? birthday;
-  @override
   final DateTime createdAt;
   @override
-  final DateTime? deletedAt;
+  final DateTime updatedAt;
   @override
-  final int experience;
+  final DateTime? deletedAt;
   @override
   final String firstName;
   @override
   final String lastName;
   @override
+  final String description;
+  @override
+  final String timeZone;
+  @override
+  final String location;
+  @override
+  final String pronouns;
+  @override
+  final String gender;
+  final Map<String, String> _links;
+  @override
+  @JsonKey()
+  Map<String, String> get links {
+    if (_links is EqualUnmodifiableMapView) return _links;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_links);
+  }
+
+  @override
+  final int experience;
+  @override
   final DateTime? lastSeenAt;
   @override
-  final DateTime updatedAt;
+  final DateTime? birthday;
+  @override
+  final int accountId;
 
   /// Create a copy of SnAccountProfile
   /// with the given fields replaced by the non-null parameter values.
@@ -1169,24 +1231,34 @@ class _SnAccountProfile implements SnAccountProfile {
         (other.runtimeType == runtimeType &&
             other is _SnAccountProfile &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.accountId, accountId) ||
-                other.accountId == accountId) &&
-            (identical(other.birthday, birthday) ||
-                other.birthday == birthday) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
             (identical(other.deletedAt, deletedAt) ||
                 other.deletedAt == deletedAt) &&
-            (identical(other.experience, experience) ||
-                other.experience == experience) &&
             (identical(other.firstName, firstName) ||
                 other.firstName == firstName) &&
             (identical(other.lastName, lastName) ||
                 other.lastName == lastName) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.timeZone, timeZone) ||
+                other.timeZone == timeZone) &&
+            (identical(other.location, location) ||
+                other.location == location) &&
+            (identical(other.pronouns, pronouns) ||
+                other.pronouns == pronouns) &&
+            (identical(other.gender, gender) || other.gender == gender) &&
+            const DeepCollectionEquality().equals(other._links, _links) &&
+            (identical(other.experience, experience) ||
+                other.experience == experience) &&
             (identical(other.lastSeenAt, lastSeenAt) ||
                 other.lastSeenAt == lastSeenAt) &&
-            (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+            (identical(other.birthday, birthday) ||
+                other.birthday == birthday) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1194,19 +1266,25 @@ class _SnAccountProfile implements SnAccountProfile {
   int get hashCode => Object.hash(
       runtimeType,
       id,
-      accountId,
-      birthday,
       createdAt,
+      updatedAt,
       deletedAt,
-      experience,
       firstName,
       lastName,
+      description,
+      timeZone,
+      location,
+      pronouns,
+      gender,
+      const DeepCollectionEquality().hash(_links),
+      experience,
       lastSeenAt,
-      updatedAt);
+      birthday,
+      accountId);
 
   @override
   String toString() {
-    return 'SnAccountProfile(id: $id, accountId: $accountId, birthday: $birthday, createdAt: $createdAt, deletedAt: $deletedAt, experience: $experience, firstName: $firstName, lastName: $lastName, lastSeenAt: $lastSeenAt, updatedAt: $updatedAt)';
+    return 'SnAccountProfile(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, firstName: $firstName, lastName: $lastName, description: $description, timeZone: $timeZone, location: $location, pronouns: $pronouns, gender: $gender, links: $links, experience: $experience, lastSeenAt: $lastSeenAt, birthday: $birthday, accountId: $accountId)';
   }
 }
 
@@ -1220,15 +1298,21 @@ abstract mixin class _$SnAccountProfileCopyWith<$Res>
   @useResult
   $Res call(
       {int id,
-      int accountId,
-      DateTime? birthday,
       DateTime createdAt,
+      DateTime updatedAt,
       DateTime? deletedAt,
-      int experience,
       String firstName,
       String lastName,
+      String description,
+      String timeZone,
+      String location,
+      String pronouns,
+      String gender,
+      Map<String, String> links,
+      int experience,
       DateTime? lastSeenAt,
-      DateTime updatedAt});
+      DateTime? birthday,
+      int accountId});
 }
 
 /// @nodoc
@@ -1245,41 +1329,39 @@ class __$SnAccountProfileCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   $Res call({
     Object? id = null,
-    Object? accountId = null,
-    Object? birthday = freezed,
     Object? createdAt = null,
+    Object? updatedAt = null,
     Object? deletedAt = freezed,
-    Object? experience = null,
     Object? firstName = null,
     Object? lastName = null,
+    Object? description = null,
+    Object? timeZone = null,
+    Object? location = null,
+    Object? pronouns = null,
+    Object? gender = null,
+    Object? links = null,
+    Object? experience = null,
     Object? lastSeenAt = freezed,
-    Object? updatedAt = null,
+    Object? birthday = freezed,
+    Object? accountId = null,
   }) {
     return _then(_SnAccountProfile(
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
-      accountId: null == accountId
-          ? _self.accountId
-          : accountId // ignore: cast_nullable_to_non_nullable
-              as int,
-      birthday: freezed == birthday
-          ? _self.birthday
-          : birthday // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       createdAt: null == createdAt
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
       deletedAt: freezed == deletedAt
           ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      experience: null == experience
-          ? _self.experience
-          : experience // ignore: cast_nullable_to_non_nullable
-              as int,
       firstName: null == firstName
           ? _self.firstName
           : firstName // ignore: cast_nullable_to_non_nullable
@@ -1288,14 +1370,46 @@ class __$SnAccountProfileCopyWithImpl<$Res>
           ? _self.lastName
           : lastName // ignore: cast_nullable_to_non_nullable
               as String,
+      description: null == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      timeZone: null == timeZone
+          ? _self.timeZone
+          : timeZone // ignore: cast_nullable_to_non_nullable
+              as String,
+      location: null == location
+          ? _self.location
+          : location // ignore: cast_nullable_to_non_nullable
+              as String,
+      pronouns: null == pronouns
+          ? _self.pronouns
+          : pronouns // ignore: cast_nullable_to_non_nullable
+              as String,
+      gender: null == gender
+          ? _self.gender
+          : gender // ignore: cast_nullable_to_non_nullable
+              as String,
+      links: null == links
+          ? _self._links
+          : links // ignore: cast_nullable_to_non_nullable
+              as Map<String, String>,
+      experience: null == experience
+          ? _self.experience
+          : experience // ignore: cast_nullable_to_non_nullable
+              as int,
       lastSeenAt: freezed == lastSeenAt
           ? _self.lastSeenAt
           : lastSeenAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      updatedAt: null == updatedAt
-          ? _self.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+      birthday: freezed == birthday
+          ? _self.birthday
+          : birthday // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }

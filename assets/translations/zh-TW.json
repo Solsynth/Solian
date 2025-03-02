@@ -733,5 +733,13 @@
   "cacheSize": "緩存資源大小",
   "cacheDelete": "清除緩存",
   "cacheDeleteDescription": "從磁盤中移除緩存的圖片和其他資源，內容將從服務器重新下載。",
-  "cacheDeleted": "所有緩存已被清除。"
+  "cacheDeleted": "所有緩存已被清除。",
+  "userNoDescription": "這個人很懶，沒有留下什麼……",
+  "fieldTimeZone": "時區",
+  "fieldGender": "性別",
+  "fieldPronouns": "人稱代詞",
+  "fieldLocation": "位置",
+  "fieldLinks": "鏈接",
+  "fieldLinkName": "名稱",
+  "fieldLinkUrl": "鏈接"
 }

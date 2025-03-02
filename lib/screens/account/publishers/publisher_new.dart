@@ -109,7 +109,7 @@ class _PublisherNewPersonalState extends State<_PublisherNewPersonal> {
 
     _nameController.text = ua.user!.name;
     _nickController.text = ua.user!.nick;
-    _descriptionController.text = ua.user!.description;
+    _descriptionController.text = ua.user!.profile!.description;
   }
 
   @override

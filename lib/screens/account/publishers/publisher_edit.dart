@@ -97,7 +97,7 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
     _banner = ua.user!.banner;
     _nickController.text = ua.user!.nick;
     _nameController.text = ua.user!.name;
-    _descriptionController.text = ua.user!.description;
+    _descriptionController.text = ua.user!.profile!.description;
     setState(() {});
   }
 

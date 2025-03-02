@@ -16,7 +16,6 @@ abstract class SnAccount with _$SnAccount {
     required List<SnAccountContact>? contacts,
     @Default("") String avatar,
     @Default("") String banner,
-    required String description,
     required String name,
     required String nick,
     @Default({}) Map<String, dynamic> permNodes,
@@ -57,15 +56,21 @@ abstract class SnAccountContact with _$SnAccountContact {
 abstract class SnAccountProfile with _$SnAccountProfile {
   const factory SnAccountProfile({
     required int id,
-    required int accountId,
-    required DateTime? birthday,
     required DateTime createdAt,
+    required DateTime updatedAt,
     required DateTime? deletedAt,
-    required int experience,
     required String firstName,
     required String lastName,
+    required String description,
+    required String timeZone,
+    required String location,
+    required String pronouns,
+    required String gender,
+    @Default({}) Map<String, String> links,
+    required int experience,
     required DateTime? lastSeenAt,
-    required DateTime updatedAt,
+    required DateTime? birthday,
+    required int accountId,
   }) = _SnAccountProfile;
 
   factory SnAccountProfile.fromJson(Map<String, Object?> json) =>
