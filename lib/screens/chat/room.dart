@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -19,6 +20,7 @@ import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/providers/websocket.dart';
 import 'package:surface/types/chat.dart';
+import 'package:surface/types/websocket.dart';
 import 'package:surface/widgets/chat/call/call_prejoin.dart';
 import 'package:surface/widgets/chat/chat_message.dart';
 import 'package:surface/widgets/chat/chat_message_input.dart';
@@ -58,6 +60,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final GlobalKey<ChatMessageInputState> _inputGlobalKey = GlobalKey();
   late final ChatMessageController _messageController;
 
+  bool _isEncrypted = false;
+
   StreamSubscription? _wsSubscription;
 
   // TODO fetch user identity and ask them to join the channel or not
@@ -91,9 +95,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       nty.skippableNotifyChannel = _channel!.id;
       final ws = context.read<WebSocketProvider>();
       if (_channel != null) {
-        ws.conn?.sink.add({
-          'channel_id': _channel?.id,
-        });
+        ws.conn?.sink.add(
+          jsonEncode(WebSocketPackage(
+              method: 'events.subscribe',
+              endpoint: 'im',
+              payload: {
+                'channel_id': _channel!.id,
+              })),
+        );
       }
     } catch (err) {
       if (!mounted) return;
@@ -247,9 +256,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     nty.skippableNotifyChannel = null;
     final ws = context.read<WebSocketProvider>();
     if (_channel != null) {
-      ws.conn?.sink.add({
-        'channel_id': _channel?.id,
-      });
+      ws.conn?.sink.add(
+        jsonEncode(WebSocketPackage(
+          method: 'events.unsubscribe',
+          endpoint: 'im',
+          payload: {
+            'channel_id': _channel!.id,
+          },
+        )),
+      );
     }
     super.dispose();
   }
@@ -268,6 +283,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               : _channel?.name ?? 'loading'.tr(),
         ),
         actions: [
+          IconButton(
+            onPressed: () {
+              setState(() => _isEncrypted = !_isEncrypted);
+              _inputGlobalKey.currentState?.setEncrypted(_isEncrypted);
+            },
+            icon: _isEncrypted
+                ? const Icon(Symbols.lock)
+                : const Icon(Symbols.no_encryption),
+          ),
           IconButton(
             icon: _ongoingCall == null
                 ? const Icon(Symbols.call)

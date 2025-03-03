@@ -464,9 +464,14 @@ class _PostMediaPendingItem extends StatelessWidget {
 }
 
 class AddPostMediaButton extends StatelessWidget {
+  final VisualDensity? visualDensity;
   final Function(Iterable<PostWriteMedia>) onAdd;
 
-  const AddPostMediaButton({super.key, required this.onAdd});
+  const AddPostMediaButton({
+    super.key,
+    required this.onAdd,
+    this.visualDensity,
+  });
 
   void _takeMedia(bool isVideo) async {
     final picker = ImagePicker();
@@ -550,11 +555,7 @@ class AddPostMediaButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton(
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      style: ButtonStyle(
-        visualDensity: VisualDensity(horizontal: -4, vertical: -4),
-      ),
+      style: ButtonStyle(visualDensity: visualDensity),
       icon: Icon(
         Symbols.add_photo_alternate,
         color: Theme.of(context).colorScheme.primary,

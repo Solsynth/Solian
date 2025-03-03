@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:surface/database/database.dart';
 import 'package:surface/logger.dart';
 import 'package:surface/providers/database.dart';
+import 'package:surface/providers/keypair.dart';
 import 'package:surface/providers/sn_attachment.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
@@ -25,6 +26,7 @@ class ChatMessageController extends ChangeNotifier {
   late final WebSocketProvider _ws;
   late final SnAttachmentProvider _attach;
   late final DatabaseProvider _dt;
+  late final KeyPairProvider _kp;
 
   StreamSubscription? _wsSubscription;
 
@@ -34,6 +36,7 @@ class ChatMessageController extends ChangeNotifier {
     _ws = context.read<WebSocketProvider>();
     _attach = context.read<SnAttachmentProvider>();
     _dt = context.read<DatabaseProvider>();
+    _kp = context.read<KeyPairProvider>();
   }
 
   bool isPending = true;
@@ -245,6 +248,24 @@ class ChatMessageController extends ChangeNotifier {
     }
   }
 
+  Future<Map<String, dynamic>> _encodeMessageBody(
+    String text,
+    bool isEncrypted,
+  ) async {
+    if (!isEncrypted || _kp.activeKp == null) {
+      return {
+        'text': text,
+        'algorithm': 'plain',
+      };
+    } else {
+      return {
+        'text': await _kp.encryptText(text),
+        'algorithm': 'rsa',
+        'keypair_id': _kp.activeKp!.id,
+      };
+    }
+  }
+
   Future<void> sendMessage(
     String type,
     String content, {
@@ -252,13 +273,13 @@ class ChatMessageController extends ChangeNotifier {
     int? relatedId,
     List<String>? attachments,
     SnChatMessage? editingMessage,
+    bool isEncrypted = false,
   }) async {
     if (channel == null) return;
     const uuid = Uuid();
     final nonce = uuid.v4();
     final body = {
-      'text': content,
-      'algorithm': 'plain',
+      ...(await _encodeMessageBody(content, isEncrypted)),
       if (quoteId != null) 'quote_event': quoteId,
       if (relatedId != null) 'related_event': relatedId,
       if (attachments != null && attachments.isNotEmpty)
