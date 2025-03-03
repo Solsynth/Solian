@@ -16,6 +16,7 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/widgets/universal_image.dart';
 import 'package:uuid/uuid.dart';
+import 'package:surface/widgets/dialog.dart';
 
 class AttachmentItem extends StatelessWidget {
   final SnAttachment? data;
@@ -289,6 +290,7 @@ class _AttachmentItemContentVideoState extends State<_AttachmentItemContentVideo
                               shadows: labelShadows,
                               color: Colors.white,
                             ),
+                            maxLines: 1,
                           ),
                         ],
                       ),
@@ -480,12 +482,13 @@ class _AttachmentItemContentAudioState extends State<_AttachmentItemContentAudio
                             ),
                           ),
                           Text(
-                            widget.data.size.toString(),
+                            widget.data.size.formatBytes(),
                             style: GoogleFonts.robotoMono(
                               fontSize: 12,
                               shadows: labelShadows,
                               color: Colors.white,
                             ),
+                            maxLines: 1,
                           ),
                         ],
                       ),

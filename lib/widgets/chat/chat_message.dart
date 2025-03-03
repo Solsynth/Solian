@@ -106,37 +106,30 @@ class ChatMessage extends StatelessWidget {
                     GestureDetector(
                       child: AccountImage(
                         content: user?.avatar,
-                        badge: (user?.badges.isNotEmpty ?? false)
-                            ? Icon(
-                                kBadgesMeta[user!.badges.first.type]?.$2 ??
-                                    Symbols.question_mark,
-                                color: kBadgesMeta[user.badges.first.type]?.$3,
-                                fill: 1,
-                                size: 18,
-                                shadows: [
-                                  Shadow(
-                                    offset: Offset(1, 1),
-                                    blurRadius: 5.0,
-                                    color: Color.fromARGB(200, 0, 0, 0),
-                                  ),
-                                ],
-                              )
-                            : null,
+                        badge:
+                            (user?.badges.isNotEmpty ?? false)
+                                ? Icon(
+                                  kBadgesMeta[user!.badges.first.type]?.$2 ?? Symbols.question_mark,
+                                  color: kBadgesMeta[user.badges.first.type]?.$3,
+                                  fill: 1,
+                                  size: 18,
+                                  shadows: [
+                                    Shadow(offset: Offset(1, 1), blurRadius: 5.0, color: Color.fromARGB(200, 0, 0, 0)),
+                                  ],
+                                )
+                                : null,
                       ),
                       onTap: () {
                         if (user == null) return;
                         showPopover(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surface,
+                          backgroundColor: Theme.of(context).colorScheme.surface,
                           context: context,
                           transition: PopoverTransition.other,
-                          bodyBuilder: (context) => SizedBox(
-                            width: math.min(
-                                400, MediaQuery.of(context).size.width - 10),
-                            child: AccountPopoverCard(
-                              data: user,
-                            ),
-                          ),
+                          bodyBuilder:
+                              (context) => SizedBox(
+                                width: math.min(400, MediaQuery.of(context).size.width - 10),
+                                child: AccountPopoverCard(data: user),
+                              ),
                           direction: PopoverDirection.bottom,
                           arrowHeight: 5,
                           arrowWidth: 15,
@@ -157,64 +150,46 @@ class ChatMessage extends StatelessWidget {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                if (isCompact)
-                                  AccountImage(
-                                    content: user?.avatar,
-                                    radius: 12,
-                                  ).padding(right: 8),
+                                if (isCompact) AccountImage(content: user?.avatar, radius: 12).padding(right: 8),
                                 Text(
-                                  (data.sender.nick?.isNotEmpty ?? false)
-                                      ? data.sender.nick!
-                                      : user?.nick ?? 'unknown',
+                                  (data.sender.nick?.isNotEmpty ?? false) ? data.sender.nick! : user?.nick ?? 'unknown',
                                 ).bold(),
                                 const Gap(8),
-                                Text(
-                                  dateFormatter
-                                      .format(data.createdAt.toLocal()),
-                                ).fontSize(13),
+                                Text(dateFormatter.format(data.createdAt.toLocal())).fontSize(13),
                               ],
                             ).height(21),
                           if (isCompact) const Gap(8),
                           if (data.preload?.quoteEvent != null)
-                            StyledWidget(Container(
-                              constraints: BoxConstraints(
-                                maxWidth: 360,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius:
-                                    const BorderRadius.all(Radius.circular(8)),
-                                border: Border.all(
-                                  color: Theme.of(context).dividerColor,
-                                  width: 1,
+                            StyledWidget(
+                              Container(
+                                constraints: BoxConstraints(maxWidth: 360),
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                  border: Border.all(color: Theme.of(context).dividerColor, width: 1),
+                                ),
+                                padding: const EdgeInsets.only(left: 4, right: 4, top: 8, bottom: 6),
+                                child: ChatMessage(
+                                  data: data.preload!.quoteEvent!,
+                                  isCompact: true,
+                                  onReply: onReply,
+                                  onEdit: onEdit,
+                                  onDelete: onDelete,
                                 ),
                               ),
-                              padding: const EdgeInsets.only(
-                                left: 4,
-                                right: 4,
-                                top: 8,
-                                bottom: 6,
-                              ),
-                              child: ChatMessage(
-                                data: data.preload!.quoteEvent!,
-                                isCompact: true,
-                                onReply: onReply,
-                                onEdit: onEdit,
-                                onDelete: onDelete,
-                              ),
-                            )).padding(bottom: 4, top: 4),
+                            ).padding(bottom: 4, top: 4),
                           switch (data.type) {
                             'messages.new' => _ChatMessageText(
-                                data: data,
-                                onReply: onReply,
-                                onEdit: onEdit,
-                                onDelete: onDelete,
-                              ),
+                              data: data,
+                              onReply: onReply,
+                              onEdit: onEdit,
+                              onDelete: onDelete,
+                            ),
                             _ => _ChatMessageSystemNotify(data: data),
                           },
                         ],
                       ),
                     ),
-                  )
+                  ),
                 ],
               ).opacity(isPending ? 0.5 : 1),
             ),
@@ -222,22 +197,16 @@ class ChatMessage extends StatelessWidget {
                 data.type == 'messages.new' &&
                 (data.body['text']?.isNotEmpty ?? false) &&
                 (cfg.prefs.getBool(kAppExpandChatLink) ?? true))
-              LinkPreviewWidget(text: data.body['text']!),
+              LinkPreviewWidget(text: data.body['text']!).padding(left: 48),
             if (data.preload?.attachments?.isNotEmpty ?? false)
               AttachmentList(
                 data: data.preload!.attachments!,
                 bordered: true,
                 maxHeight: 360,
                 maxWidth: 480 - 48 - padding.left,
-                padding: padding.copyWith(
-                  top: 8,
-                  left: isCompact ? padding.left : 48 + padding.left,
-                ),
+                padding: padding.copyWith(top: 8, left: isCompact ? padding.left : 48 + padding.left),
               ),
-            if (!hasMerged && !isCompact)
-              const Gap(12)
-            else if (!isCompact)
-              const Gap(8),
+            if (!hasMerged && !isCompact) const Gap(12) else if (!isCompact) const Gap(8),
           ],
         ),
       ),
@@ -251,8 +220,7 @@ class _ChatMessageText extends StatelessWidget {
   final Function(SnChatMessage)? onEdit;
   final Function(SnChatMessage)? onDelete;
 
-  const _ChatMessageText(
-      {required this.data, this.onReply, this.onEdit, this.onDelete});
+  const _ChatMessageText({required this.data, this.onReply, this.onEdit, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -266,8 +234,7 @@ class _ChatMessageText extends StatelessWidget {
         children: [
           SelectionArea(
             contextMenuBuilder: (context, editableTextState) {
-              final List<ContextMenuButtonItem> items =
-                  editableTextState.contextMenuButtonItems;
+              final List<ContextMenuButtonItem> items = editableTextState.contextMenuButtonItems;
 
               if (onReply != null) {
                 items.insert(
@@ -314,14 +281,10 @@ class _ChatMessageText extends StatelessWidget {
             child: MarkdownTextContent(
               content: data.body['text'],
               isAutoWarp: true,
-              isEnlargeSticker:
-                  RegExp(r"^:([-\w]+):$").hasMatch(data.body['text'] ?? ''),
+              isEnlargeSticker: RegExp(r"^:([-\w]+):$").hasMatch(data.body['text'] ?? ''),
             ),
           ),
-          if (data.updatedAt != data.createdAt)
-            Text(
-              'messageEditedHint'.tr(),
-            ).fontSize(13).opacity(0.75),
+          if (data.updatedAt != data.createdAt) Text('messageEditedHint'.tr()).fontSize(13).opacity(0.75),
         ],
       );
     } else if (data.body['attachments']?.isNotEmpty) {
@@ -329,11 +292,7 @@ class _ChatMessageText extends StatelessWidget {
         children: [
           const Icon(Symbols.file_present, size: 20),
           const Gap(4),
-          Text(
-            'messageFileHint'.plural(
-              data.body['attachments']!.length,
-            ),
-          ),
+          Text('messageFileHint'.plural(data.body['attachments']!.length)),
         ],
       ).opacity(0.75);
     }
@@ -363,9 +322,7 @@ class _ChatMessageSystemNotify extends StatelessWidget {
           children: [
             const Icon(Symbols.edit, size: 20),
             const Gap(4),
-            Text(
-              'messageEdited'.tr(args: ['#${data.relatedEventId}']),
-            ),
+            Text('messageEdited'.tr(args: ['#${data.relatedEventId}'])),
           ],
         ).opacity(0.75);
       case 'messages.delete':
@@ -373,31 +330,19 @@ class _ChatMessageSystemNotify extends StatelessWidget {
           children: [
             const Icon(Symbols.delete, size: 20),
             const Gap(4),
-            Text(
-              'messageDeleted'.tr(args: ['#${data.relatedEventId}']),
-            ),
+            Text('messageDeleted'.tr(args: ['#${data.relatedEventId}'])),
           ],
         ).opacity(0.75);
       case 'calls.start':
         return Row(
-          children: [
-            const Icon(Symbols.call, size: 20),
-            const Gap(4),
-            Text(
-              'callMessageStarted'.tr(),
-            ),
-          ],
+          children: [const Icon(Symbols.call, size: 20), const Gap(4), Text('callMessageStarted'.tr())],
         ).opacity(0.75);
       case 'calls.end':
         return Row(
           children: [
             const Icon(Symbols.call_end, size: 20),
             const Gap(4),
-            Text(
-              'callMessageEnded'.tr(args: [
-                _formatDuration(Duration(seconds: data.body['last'])),
-              ]),
-            ),
+            Text('callMessageEnded'.tr(args: [_formatDuration(Duration(seconds: data.body['last']))])),
           ],
         ).opacity(0.75);
       default:
