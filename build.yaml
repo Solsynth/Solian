@@ -5,3 +5,7 @@ targets:
         options:
           explicit_to_json: true
           field_rename: snake
+      drift_dev:
+        options:
+          databases:
+            my_database: lib/database/database.dart

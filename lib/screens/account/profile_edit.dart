@@ -138,6 +138,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       rawBytes = await image.readAsBytes();
     }
 
+    if (!mounted) return;
     final attach = context.read<SnAttachmentProvider>();
 
     try {

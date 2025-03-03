@@ -68,16 +68,19 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
     setState(() => _isBusy = true);
 
     try {
-      await sn.client.put('/cgi/co/publishers/${widget.name}', data: {
-        'avatar': _avatar,
-        'banner': _banner,
-        'nick': _nickController.text,
-        'name': _nameController.text,
-        'description': _descriptionController.text,
-      });
+      await sn.client.put(
+        '/cgi/co/publishers/${widget.name}',
+        data: {
+          'avatar': _avatar,
+          'banner': _banner,
+          'nick': _nickController.text,
+          'name': _nameController.text,
+          'description': _descriptionController.text,
+        },
+      );
       if (mounted) Navigator.pop(context, true);
     } catch (err) {
-      if(mounted) context.showErrorDialog(err);
+      if (mounted) context.showErrorDialog(err);
     } finally {
       setState(() => _isBusy = false);
     }
@@ -114,21 +117,21 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
     if (!skipCrop) {
       final ImageProvider imageProvider = kIsWeb ? NetworkImage(image.path) : FileImage(File(image.path));
       final aspectRatios =
-      place == 'banner' ? [CropAspectRatio(width: 16, height: 7)] : [CropAspectRatio(width: 1, height: 1)];
+          place == 'banner' ? [CropAspectRatio(width: 16, height: 7)] : [CropAspectRatio(width: 1, height: 1)];
       final result =
-      (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
-          ? await showCupertinoImageCropper(
-        // ignore: use_build_context_synchronously
-        context,
-        allowedAspectRatios: aspectRatios,
-        imageProvider: imageProvider,
-      )
-          : await showMaterialImageCropper(
-        // ignore: use_build_context_synchronously
-        context,
-        allowedAspectRatios: aspectRatios,
-        imageProvider: imageProvider,
-      );
+          (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
+              ? await showCupertinoImageCropper(
+                // ignore: use_build_context_synchronously
+                context,
+                allowedAspectRatios: aspectRatios,
+                imageProvider: imageProvider,
+              )
+              : await showMaterialImageCropper(
+                // ignore: use_build_context_synchronously
+                context,
+                allowedAspectRatios: aspectRatios,
+                imageProvider: imageProvider,
+              );
 
       if (result == null) return;
 
@@ -141,6 +144,7 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
       rawBytes = await image.readAsBytes();
     }
 
+    if (!mounted) return;
     final attach = context.read<SnAttachmentProvider>();
 
     try {
@@ -187,10 +191,7 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
     final sn = context.read<SnNetworkProvider>();
 
     return AppScaffold(
-      appBar: AppBar(
-        leading: PageBackButton(),
-        title: Text('screenAccountPublisherEdit').tr(),
-      ),
+      appBar: AppBar(leading: PageBackButton(), title: Text('screenAccountPublisherEdit').tr()),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -208,12 +209,10 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
                         aspectRatio: 16 / 9,
                         child: Container(
                           color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                          child: _banner != null
-                              ? AutoResizeUniversalImage(
-                                  sn.getAttachmentUrl(_banner!),
-                                  fit: BoxFit.cover,
-                                )
-                              : const SizedBox.shrink(),
+                          child:
+                              _banner != null
+                                  ? AutoResizeUniversalImage(sn.getAttachmentUrl(_banner!), fit: BoxFit.cover)
+                                  : const SizedBox.shrink(),
                         ),
                       ),
                     ),
@@ -251,9 +250,7 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
             const Gap(4),
             TextField(
               controller: _nickController,
-              decoration: InputDecoration(
-                labelText: 'fieldNickname'.tr(),
-              ),
+              decoration: InputDecoration(labelText: 'fieldNickname'.tr()),
               onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             ),
             const Gap(4),
@@ -261,9 +258,7 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
               controller: _descriptionController,
               maxLines: null,
               minLines: 3,
-              decoration: InputDecoration(
-                labelText: 'fieldDescription'.tr(),
-              ),
+              decoration: InputDecoration(labelText: 'fieldDescription'.tr()),
               onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             ),
             const Gap(12),
@@ -284,7 +279,7 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
                   icon: const Icon(Symbols.save),
                 ),
               ],
-            )
+            ),
           ],
         ).padding(horizontal: 24, vertical: 12),
       ),
