@@ -25,6 +25,7 @@ import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/chat_call.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/database.dart';
+import 'package:surface/providers/keypair.dart';
 import 'package:surface/providers/link_preview.dart';
 import 'package:surface/providers/navigation.dart';
 import 'package:surface/providers/notification.dart';
@@ -108,7 +109,8 @@ void main() async {
   }
 
   if (!kIsWeb && Platform.isAndroid) {
-    final ImagePickerPlatform imagePickerImplementation = ImagePickerPlatform.instance;
+    final ImagePickerPlatform imagePickerImplementation =
+        ImagePickerPlatform.instance;
     if (imagePickerImplementation is ImagePickerAndroid) {
       imagePickerImplementation.useAndroidPhotoPicker = true;
     }
@@ -160,6 +162,7 @@ class SolianApp extends StatelessWidget {
             Provider(create: (ctx) => SnStickerProvider(ctx)),
             ChangeNotifierProvider(create: (ctx) => UserProvider(ctx)),
             ChangeNotifierProvider(create: (ctx) => WebSocketProvider(ctx)),
+            Provider(create: (ctx) => KeyPairProvider(ctx)),
             ChangeNotifierProvider(create: (ctx) => NotificationProvider(ctx)),
             ChangeNotifierProvider(create: (ctx) => ChatChannelProvider(ctx)),
             ChangeNotifierProvider(create: (ctx) => ChatCallProvider(ctx)),
@@ -227,7 +230,8 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     if (prefs.containsKey('first_boot_time')) {
       final rawTime = prefs.getString('first_boot_time');
       final time = DateTime.tryParse(rawTime ?? '');
-      if (time != null && time.isBefore(DateTime.now().subtract(const Duration(days: 3)))) {
+      if (time != null &&
+          time.isBefore(DateTime.now().subtract(const Duration(days: 3)))) {
         final inAppReview = InAppReview.instance;
         if (prefs.getBool('rating_requested') == true) return;
         if (await inAppReview.isAvailable()) {
@@ -258,12 +262,18 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       final remoteVersionString = resp.data?['tag_name'] ?? '0.0.0+0';
       final remoteVersion = Version.parse(remoteVersionString.split('+').first);
       final localVersion = Version.parse(localVersionString.split('+').first);
-      final remoteBuildNumber = int.tryParse(remoteVersionString.split('+').last) ?? 0;
-      final localBuildNumber = int.tryParse(localVersionString.split('+').last) ?? 0;
-      logging.info("[Update] Local: $localVersionString, Remote: $remoteVersionString");
-      if ((remoteVersion > localVersion || remoteBuildNumber > localBuildNumber) && mounted) {
+      final remoteBuildNumber =
+          int.tryParse(remoteVersionString.split('+').last) ?? 0;
+      final localBuildNumber =
+          int.tryParse(localVersionString.split('+').last) ?? 0;
+      logging.info(
+          "[Update] Local: $localVersionString, Remote: $remoteVersionString");
+      if ((remoteVersion > localVersion ||
+              remoteBuildNumber > localBuildNumber) &&
+          mounted) {
         final config = context.read<ConfigProvider>();
-        config.setUpdate(remoteVersionString, resp.data?['body'] ?? 'No changelog');
+        config.setUpdate(
+            remoteVersionString, resp.data?['body'] ?? 'No changelog');
         logging.info("[Update] Update available: $remoteVersionString");
       }
     } catch (e) {
@@ -297,6 +307,9 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       final notify = context.read<NotificationProvider>();
       notify.listen();
       await notify.registerPushNotifications();
+      if (!mounted) return;
+      final kp = context.read<KeyPairProvider>();
+      kp.listen();
       if (!mounted) return;
       final sticker = context.read<SnStickerProvider>();
       await sticker.listSticker();
@@ -355,7 +368,9 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   Future<void> _trayInitialization() async {
     if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
 
-    final icon = Platform.isWindows ? 'assets/icon/tray-icon.ico' : 'assets/icon/tray-icon.png';
+    final icon = Platform.isWindows
+        ? 'assets/icon/tray-icon.ico'
+        : 'assets/icon/tray-icon.png';
     final appVersion = await PackageInfo.fromPlatform();
 
     trayManager.addListener(this);

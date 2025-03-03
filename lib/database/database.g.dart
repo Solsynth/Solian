@@ -538,6 +538,282 @@ class SnLocalChatMessageCompanion
   }
 }
 
+class $SnLocalKeyPairTable extends SnLocalKeyPair
+    with TableInfo<$SnLocalKeyPairTable, SnLocalKeyPairData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SnLocalKeyPairTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _accountIdMeta =
+      const VerificationMeta('accountId');
+  @override
+  late final GeneratedColumn<int> accountId = GeneratedColumn<int>(
+      'account_id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _publicKeyMeta =
+      const VerificationMeta('publicKey');
+  @override
+  late final GeneratedColumn<String> publicKey = GeneratedColumn<String>(
+      'public_key', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _privateKeyMeta =
+      const VerificationMeta('privateKey');
+  @override
+  late final GeneratedColumn<String> privateKey = GeneratedColumn<String>(
+      'private_key', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, accountId, publicKey, privateKey];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sn_local_key_pair';
+  @override
+  VerificationContext validateIntegrity(Insertable<SnLocalKeyPairData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(_accountIdMeta,
+          accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('public_key')) {
+      context.handle(_publicKeyMeta,
+          publicKey.isAcceptableOrUnknown(data['public_key']!, _publicKeyMeta));
+    } else if (isInserting) {
+      context.missing(_publicKeyMeta);
+    }
+    if (data.containsKey('private_key')) {
+      context.handle(
+          _privateKeyMeta,
+          privateKey.isAcceptableOrUnknown(
+              data['private_key']!, _privateKeyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  SnLocalKeyPairData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SnLocalKeyPairData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      accountId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}account_id'])!,
+      publicKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}public_key'])!,
+      privateKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}private_key']),
+    );
+  }
+
+  @override
+  $SnLocalKeyPairTable createAlias(String alias) {
+    return $SnLocalKeyPairTable(attachedDatabase, alias);
+  }
+}
+
+class SnLocalKeyPairData extends DataClass
+    implements Insertable<SnLocalKeyPairData> {
+  final String id;
+  final int accountId;
+  final String publicKey;
+  final String? privateKey;
+  const SnLocalKeyPairData(
+      {required this.id,
+      required this.accountId,
+      required this.publicKey,
+      this.privateKey});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['account_id'] = Variable<int>(accountId);
+    map['public_key'] = Variable<String>(publicKey);
+    if (!nullToAbsent || privateKey != null) {
+      map['private_key'] = Variable<String>(privateKey);
+    }
+    return map;
+  }
+
+  SnLocalKeyPairCompanion toCompanion(bool nullToAbsent) {
+    return SnLocalKeyPairCompanion(
+      id: Value(id),
+      accountId: Value(accountId),
+      publicKey: Value(publicKey),
+      privateKey: privateKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(privateKey),
+    );
+  }
+
+  factory SnLocalKeyPairData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SnLocalKeyPairData(
+      id: serializer.fromJson<String>(json['id']),
+      accountId: serializer.fromJson<int>(json['accountId']),
+      publicKey: serializer.fromJson<String>(json['publicKey']),
+      privateKey: serializer.fromJson<String?>(json['privateKey']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'accountId': serializer.toJson<int>(accountId),
+      'publicKey': serializer.toJson<String>(publicKey),
+      'privateKey': serializer.toJson<String?>(privateKey),
+    };
+  }
+
+  SnLocalKeyPairData copyWith(
+          {String? id,
+          int? accountId,
+          String? publicKey,
+          Value<String?> privateKey = const Value.absent()}) =>
+      SnLocalKeyPairData(
+        id: id ?? this.id,
+        accountId: accountId ?? this.accountId,
+        publicKey: publicKey ?? this.publicKey,
+        privateKey: privateKey.present ? privateKey.value : this.privateKey,
+      );
+  SnLocalKeyPairData copyWithCompanion(SnLocalKeyPairCompanion data) {
+    return SnLocalKeyPairData(
+      id: data.id.present ? data.id.value : this.id,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      publicKey: data.publicKey.present ? data.publicKey.value : this.publicKey,
+      privateKey:
+          data.privateKey.present ? data.privateKey.value : this.privateKey,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SnLocalKeyPairData(')
+          ..write('id: $id, ')
+          ..write('accountId: $accountId, ')
+          ..write('publicKey: $publicKey, ')
+          ..write('privateKey: $privateKey')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, accountId, publicKey, privateKey);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SnLocalKeyPairData &&
+          other.id == this.id &&
+          other.accountId == this.accountId &&
+          other.publicKey == this.publicKey &&
+          other.privateKey == this.privateKey);
+}
+
+class SnLocalKeyPairCompanion extends UpdateCompanion<SnLocalKeyPairData> {
+  final Value<String> id;
+  final Value<int> accountId;
+  final Value<String> publicKey;
+  final Value<String?> privateKey;
+  final Value<int> rowid;
+  const SnLocalKeyPairCompanion({
+    this.id = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.publicKey = const Value.absent(),
+    this.privateKey = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SnLocalKeyPairCompanion.insert({
+    required String id,
+    required int accountId,
+    required String publicKey,
+    this.privateKey = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        accountId = Value(accountId),
+        publicKey = Value(publicKey);
+  static Insertable<SnLocalKeyPairData> custom({
+    Expression<String>? id,
+    Expression<int>? accountId,
+    Expression<String>? publicKey,
+    Expression<String>? privateKey,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (accountId != null) 'account_id': accountId,
+      if (publicKey != null) 'public_key': publicKey,
+      if (privateKey != null) 'private_key': privateKey,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SnLocalKeyPairCompanion copyWith(
+      {Value<String>? id,
+      Value<int>? accountId,
+      Value<String>? publicKey,
+      Value<String?>? privateKey,
+      Value<int>? rowid}) {
+    return SnLocalKeyPairCompanion(
+      id: id ?? this.id,
+      accountId: accountId ?? this.accountId,
+      publicKey: publicKey ?? this.publicKey,
+      privateKey: privateKey ?? this.privateKey,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<int>(accountId.value);
+    }
+    if (publicKey.present) {
+      map['public_key'] = Variable<String>(publicKey.value);
+    }
+    if (privateKey.present) {
+      map['private_key'] = Variable<String>(privateKey.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SnLocalKeyPairCompanion(')
+          ..write('id: $id, ')
+          ..write('accountId: $accountId, ')
+          ..write('publicKey: $publicKey, ')
+          ..write('privateKey: $privateKey, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -545,12 +821,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $SnLocalChatChannelTable(this);
   late final $SnLocalChatMessageTable snLocalChatMessage =
       $SnLocalChatMessageTable(this);
+  late final $SnLocalKeyPairTable snLocalKeyPair = $SnLocalKeyPairTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [snLocalChatChannel, snLocalChatMessage];
+      [snLocalChatChannel, snLocalChatMessage, snLocalKeyPair];
 }
 
 typedef $$SnLocalChatChannelTableCreateCompanionBuilder
@@ -869,6 +1146,165 @@ typedef $$SnLocalChatMessageTableProcessedTableManager = ProcessedTableManager<
     ),
     SnLocalChatMessageData,
     PrefetchHooks Function()>;
+typedef $$SnLocalKeyPairTableCreateCompanionBuilder = SnLocalKeyPairCompanion
+    Function({
+  required String id,
+  required int accountId,
+  required String publicKey,
+  Value<String?> privateKey,
+  Value<int> rowid,
+});
+typedef $$SnLocalKeyPairTableUpdateCompanionBuilder = SnLocalKeyPairCompanion
+    Function({
+  Value<String> id,
+  Value<int> accountId,
+  Value<String> publicKey,
+  Value<String?> privateKey,
+  Value<int> rowid,
+});
+
+class $$SnLocalKeyPairTableFilterComposer
+    extends Composer<_$AppDatabase, $SnLocalKeyPairTable> {
+  $$SnLocalKeyPairTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get publicKey => $composableBuilder(
+      column: $table.publicKey, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get privateKey => $composableBuilder(
+      column: $table.privateKey, builder: (column) => ColumnFilters(column));
+}
+
+class $$SnLocalKeyPairTableOrderingComposer
+    extends Composer<_$AppDatabase, $SnLocalKeyPairTable> {
+  $$SnLocalKeyPairTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get publicKey => $composableBuilder(
+      column: $table.publicKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get privateKey => $composableBuilder(
+      column: $table.privateKey, builder: (column) => ColumnOrderings(column));
+}
+
+class $$SnLocalKeyPairTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SnLocalKeyPairTable> {
+  $$SnLocalKeyPairTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
+
+  GeneratedColumn<String> get publicKey =>
+      $composableBuilder(column: $table.publicKey, builder: (column) => column);
+
+  GeneratedColumn<String> get privateKey => $composableBuilder(
+      column: $table.privateKey, builder: (column) => column);
+}
+
+class $$SnLocalKeyPairTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SnLocalKeyPairTable,
+    SnLocalKeyPairData,
+    $$SnLocalKeyPairTableFilterComposer,
+    $$SnLocalKeyPairTableOrderingComposer,
+    $$SnLocalKeyPairTableAnnotationComposer,
+    $$SnLocalKeyPairTableCreateCompanionBuilder,
+    $$SnLocalKeyPairTableUpdateCompanionBuilder,
+    (
+      SnLocalKeyPairData,
+      BaseReferences<_$AppDatabase, $SnLocalKeyPairTable, SnLocalKeyPairData>
+    ),
+    SnLocalKeyPairData,
+    PrefetchHooks Function()> {
+  $$SnLocalKeyPairTableTableManager(
+      _$AppDatabase db, $SnLocalKeyPairTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SnLocalKeyPairTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SnLocalKeyPairTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SnLocalKeyPairTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<int> accountId = const Value.absent(),
+            Value<String> publicKey = const Value.absent(),
+            Value<String?> privateKey = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SnLocalKeyPairCompanion(
+            id: id,
+            accountId: accountId,
+            publicKey: publicKey,
+            privateKey: privateKey,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required int accountId,
+            required String publicKey,
+            Value<String?> privateKey = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SnLocalKeyPairCompanion.insert(
+            id: id,
+            accountId: accountId,
+            publicKey: publicKey,
+            privateKey: privateKey,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$SnLocalKeyPairTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SnLocalKeyPairTable,
+    SnLocalKeyPairData,
+    $$SnLocalKeyPairTableFilterComposer,
+    $$SnLocalKeyPairTableOrderingComposer,
+    $$SnLocalKeyPairTableAnnotationComposer,
+    $$SnLocalKeyPairTableCreateCompanionBuilder,
+    $$SnLocalKeyPairTableUpdateCompanionBuilder,
+    (
+      SnLocalKeyPairData,
+      BaseReferences<_$AppDatabase, $SnLocalKeyPairTable, SnLocalKeyPairData>
+    ),
+    SnLocalKeyPairData,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -877,4 +1313,6 @@ class $AppDatabaseManager {
       $$SnLocalChatChannelTableTableManager(_db, _db.snLocalChatChannel);
   $$SnLocalChatMessageTableTableManager get snLocalChatMessage =>
       $$SnLocalChatMessageTableTableManager(_db, _db.snLocalChatMessage);
+  $$SnLocalKeyPairTableTableManager get snLocalKeyPair =>
+      $$SnLocalKeyPairTableTableManager(_db, _db.snLocalKeyPair);
 }

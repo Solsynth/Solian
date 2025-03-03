@@ -137,6 +137,7 @@ dependencies:
   flutter_timezone: ^4.1.0
   flutter_map: ^8.1.0
   geolocator: ^13.0.2
+  fast_rsa: ^3.8.0
 
 dev_dependencies:
   flutter_test:

@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   bitsdojo_window_windows
   connectivity_plus
+  fast_rsa
   file_saver
   file_selector_windows
   firebase_core

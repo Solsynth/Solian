@@ -117,7 +117,8 @@ class WebSocketProvider extends ChangeNotifier {
       (event) {
         final packet = WebSocketPackage.fromJson(jsonDecode(event));
         logging.debug(
-            '[Websocket] Incoming message: ${packet.method} ${packet.message}');
+          '[Websocket] Incoming message: ${packet.method} ${packet.message}',
+        );
         pk.sink.add(packet);
       },
       onDone: () {
