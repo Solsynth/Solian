@@ -68,38 +68,35 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _banner = prof.banner;
     _links = prof.profile!.links.entries.map((ele) => (ele.key, ele.value)).toList();
     _birthday = prof.profile!.birthday?.toLocal();
-    if(_birthday != null) {
-      _birthdayController.text = DateFormat(_kDateFormat).format(
-      prof.profile!.birthday!.toLocal(),
-    );
+    if (_birthday != null) {
+      _birthdayController.text = DateFormat(_kDateFormat).format(prof.profile!.birthday!.toLocal());
     }
   }
 
   void _selectBirthday() async {
     await showCupertinoModalPopup<DateTime?>(
       context: context,
-      builder: (BuildContext context) => Container(
-        height: 216,
-        padding: const EdgeInsets.only(top: 6.0),
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        color: Theme.of(context).colorScheme.surface,
-        child: SafeArea(
-          top: false,
-          child: CupertinoDatePicker(
-            initialDateTime: _birthday?.toLocal(),
-            mode: CupertinoDatePickerMode.date,
-            use24hFormat: true,
-            onDateTimeChanged: (DateTime newDate) {
-              setState(() {
-                _birthday = newDate;
-                _birthdayController.text = DateFormat(_kDateFormat).format(_birthday!);
-              });
-            },
+      builder:
+          (BuildContext context) => Container(
+            height: 216,
+            padding: const EdgeInsets.only(top: 6.0),
+            margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            color: Theme.of(context).colorScheme.surface,
+            child: SafeArea(
+              top: false,
+              child: CupertinoDatePicker(
+                initialDateTime: _birthday?.toLocal(),
+                mode: CupertinoDatePickerMode.date,
+                use24hFormat: true,
+                onDateTimeChanged: (DateTime newDate) {
+                  setState(() {
+                    _birthday = newDate;
+                    _birthdayController.text = DateFormat(_kDateFormat).format(_birthday!);
+                  });
+                },
+              ),
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -108,31 +105,40 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     if (image == null) return;
     if (!mounted) return;
 
-    final ImageProvider imageProvider = kIsWeb ? NetworkImage(image.path) : FileImage(File(image.path));
-    final aspectRatios =
-        place == 'banner' ? [CropAspectRatio(width: 16, height: 7)] : [CropAspectRatio(width: 1, height: 1)];
-    final result = (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
-        ? await showCupertinoImageCropper(
-            // ignore: use_build_context_synchronously
-            context,
-            allowedAspectRatios: aspectRatios,
-            imageProvider: imageProvider,
-          )
-        : await showMaterialImageCropper(
-            // ignore: use_build_context_synchronously
-            context,
-            allowedAspectRatios: aspectRatios,
-            imageProvider: imageProvider,
-          );
+    final skipCrop = image.path.endsWith('.gif');
 
-    if (result == null) return;
+    Uint8List? rawBytes;
+    if (!skipCrop) {
+      final ImageProvider imageProvider = kIsWeb ? NetworkImage(image.path) : FileImage(File(image.path));
+      final aspectRatios =
+          place == 'banner' ? [CropAspectRatio(width: 16, height: 7)] : [CropAspectRatio(width: 1, height: 1)];
+      final result =
+          (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
+              ? await showCupertinoImageCropper(
+                // ignore: use_build_context_synchronously
+                context,
+                allowedAspectRatios: aspectRatios,
+                imageProvider: imageProvider,
+              )
+              : await showMaterialImageCropper(
+                // ignore: use_build_context_synchronously
+                context,
+                allowedAspectRatios: aspectRatios,
+                imageProvider: imageProvider,
+              );
 
-    if (!mounted) return;
+      if (result == null) return;
+
+      if (!mounted) return;
+      setState(() => _isBusy = true);
+      rawBytes = (await result.uiImage.toByteData(format: ImageByteFormat.png))!.buffer.asUint8List();
+    } else {
+      if (!mounted) return;
+      setState(() => _isBusy = true);
+      rawBytes = await image.readAsBytes();
+    }
+
     final attach = context.read<SnAttachmentProvider>();
-
-    setState(() => _isBusy = true);
-
-    final rawBytes = (await result.uiImage.toByteData(format: ImageByteFormat.png))!.buffer.asUint8List();
 
     try {
       final attachment = await attach.directUploadOne(
@@ -145,10 +151,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
       if (!mounted) return;
       final sn = context.read<SnNetworkProvider>();
-      await sn.client.put(
-        '/cgi/id/users/me/$place',
-        data: {'attachment': attachment.rid},
-      );
+      await sn.client.put('/cgi/id/users/me/$place', data: {'attachment': attachment.rid});
 
       if (!mounted) return;
       final ua = context.read<UserProvider>();
@@ -184,7 +187,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           'location': _locationController.value.text,
           'birthday': _birthday?.toUtc().toIso8601String(),
           'links': {
-            for (final link in _links!.where((ele) => ele.$1.isNotEmpty && ele.$2.isNotEmpty)) link.$1: link.$2
+            for (final link in _links!.where((ele) => ele.$1.isNotEmpty && ele.$2.isNotEmpty)) link.$1: link.$2,
           },
         },
       );
@@ -231,10 +234,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final sn = context.read<SnNetworkProvider>();
 
     return AppScaffold(
-      appBar: AppBar(
-        leading: const PageBackButton(),
-        title: Text('screenAccountProfileEdit').tr(),
-      ),
+      appBar: AppBar(leading: const PageBackButton(), title: Text('screenAccountProfileEdit').tr()),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,12 +253,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         aspectRatio: 16 / 9,
                         child: Container(
                           color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                          child: _banner != null
-                              ? AutoResizeUniversalImage(
-                                  sn.getAttachmentUrl(_banner!),
-                                  fit: BoxFit.cover,
-                                )
-                              : const SizedBox.shrink(),
+                          child:
+                              _banner != null
+                                  ? AutoResizeUniversalImage(sn.getAttachmentUrl(_banner!), fit: BoxFit.cover)
+                                  : const SizedBox.shrink(),
                         ),
                       ),
                     ),
@@ -299,10 +297,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 ),
                 TextField(
                   controller: _nicknameController,
-                  decoration: InputDecoration(
-                    border: const UnderlineInputBorder(),
-                    labelText: 'fieldNickname'.tr(),
-                  ),
+                  decoration: InputDecoration(border: const UnderlineInputBorder(), labelText: 'fieldNickname'.tr()),
                   onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
                 Row(
@@ -364,10 +359,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
                   minLines: 3,
-                  decoration: InputDecoration(
-                    border: const UnderlineInputBorder(),
-                    labelText: 'fieldDescription'.tr(),
-                  ),
+                  decoration: InputDecoration(border: const UnderlineInputBorder(), labelText: 'fieldDescription'.tr()),
                   onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
                 Row(
@@ -384,42 +376,40 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       ),
                     ),
                     const Gap(4),
-                    StyledWidget(IconButton(
-                      icon: const Icon(Symbols.calendar_month),
-                      visualDensity: VisualDensity(horizontal: -4, vertical: -4),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () async {
-                        _timezoneController.text = await FlutterTimezone.getLocalTimezone();
-                      },
-                    )).padding(top: 6),
+                    StyledWidget(
+                      IconButton(
+                        icon: const Icon(Symbols.calendar_month),
+                        visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () async {
+                          _timezoneController.text = await FlutterTimezone.getLocalTimezone();
+                        },
+                      ),
+                    ).padding(top: 6),
                     const Gap(4),
-                    StyledWidget(IconButton(
-                      icon: const Icon(Symbols.clear),
-                      visualDensity: VisualDensity(horizontal: -4, vertical: -4),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () {
-                        _timezoneController.clear();
-                      },
-                    )).padding(top: 6),
+                    StyledWidget(
+                      IconButton(
+                        icon: const Icon(Symbols.clear),
+                        visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {
+                          _timezoneController.clear();
+                        },
+                      ),
+                    ).padding(top: 6),
                   ],
                 ),
                 TextField(
                   controller: _locationController,
-                  decoration: InputDecoration(
-                    border: const UnderlineInputBorder(),
-                    labelText: 'fieldLocation'.tr(),
-                  ),
+                  decoration: InputDecoration(border: const UnderlineInputBorder(), labelText: 'fieldLocation'.tr()),
                   onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
                 TextField(
                   controller: _birthdayController,
                   readOnly: true,
-                  decoration: InputDecoration(
-                    border: const UnderlineInputBorder(),
-                    labelText: 'fieldBirthday'.tr(),
-                  ),
+                  decoration: InputDecoration(border: const UnderlineInputBorder(), labelText: 'fieldBirthday'.tr()),
                   onTap: () => _selectBirthday(),
                 ),
                 if (_links != null)

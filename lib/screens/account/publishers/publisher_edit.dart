@@ -108,31 +108,40 @@ class _AccountPublisherEditScreenState extends State<AccountPublisherEditScreen>
     if (image == null) return;
     if (!mounted) return;
 
-    final ImageProvider imageProvider = kIsWeb ? NetworkImage(image.path) : FileImage(File(image.path));
-    final aspectRatios =
-        place == 'banner' ? [CropAspectRatio(width: 16, height: 7)] : [CropAspectRatio(width: 1, height: 1)];
-    final result = (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
-        ? await showCupertinoImageCropper(
-            // ignore: use_build_context_synchronously
-            context,
-            allowedAspectRatios: aspectRatios,
-            imageProvider: imageProvider,
-          )
-        : await showMaterialImageCropper(
-            // ignore: use_build_context_synchronously
-            context,
-            allowedAspectRatios: aspectRatios,
-            imageProvider: imageProvider,
-          );
+    final skipCrop = image.path.endsWith('.gif');
 
-    if (result == null) return;
+    Uint8List? rawBytes;
+    if (!skipCrop) {
+      final ImageProvider imageProvider = kIsWeb ? NetworkImage(image.path) : FileImage(File(image.path));
+      final aspectRatios =
+      place == 'banner' ? [CropAspectRatio(width: 16, height: 7)] : [CropAspectRatio(width: 1, height: 1)];
+      final result =
+      (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
+          ? await showCupertinoImageCropper(
+        // ignore: use_build_context_synchronously
+        context,
+        allowedAspectRatios: aspectRatios,
+        imageProvider: imageProvider,
+      )
+          : await showMaterialImageCropper(
+        // ignore: use_build_context_synchronously
+        context,
+        allowedAspectRatios: aspectRatios,
+        imageProvider: imageProvider,
+      );
 
-    if (!mounted) return;
+      if (result == null) return;
+
+      if (!mounted) return;
+      setState(() => _isBusy = true);
+      rawBytes = (await result.uiImage.toByteData(format: ImageByteFormat.png))!.buffer.asUint8List();
+    } else {
+      if (!mounted) return;
+      setState(() => _isBusy = true);
+      rawBytes = await image.readAsBytes();
+    }
+
     final attach = context.read<SnAttachmentProvider>();
-
-    setState(() => _isBusy = true);
-
-    final rawBytes = (await result.uiImage.toByteData(format: ImageByteFormat.png))!.buffer.asUint8List();
 
     try {
       final attachment = await attach.directUploadOne(
