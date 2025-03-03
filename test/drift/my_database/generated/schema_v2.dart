@@ -465,8 +465,16 @@ class SnLocalKeyPair extends Table
   late final GeneratedColumn<String> privateKey = GeneratedColumn<String>(
       'private_key', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+      'is_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const CustomExpression('0'));
   @override
-  List<GeneratedColumn> get $columns => [id, accountId, publicKey, privateKey];
+  List<GeneratedColumn> get $columns =>
+      [id, accountId, publicKey, privateKey, isActive];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -486,6 +494,8 @@ class SnLocalKeyPair extends Table
           .read(DriftSqlType.string, data['${effectivePrefix}public_key'])!,
       privateKey: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}private_key']),
+      isActive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
     );
   }
 
@@ -501,11 +511,13 @@ class SnLocalKeyPairData extends DataClass
   final int accountId;
   final String publicKey;
   final String? privateKey;
+  final bool isActive;
   const SnLocalKeyPairData(
       {required this.id,
       required this.accountId,
       required this.publicKey,
-      this.privateKey});
+      this.privateKey,
+      required this.isActive});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -515,6 +527,7 @@ class SnLocalKeyPairData extends DataClass
     if (!nullToAbsent || privateKey != null) {
       map['private_key'] = Variable<String>(privateKey);
     }
+    map['is_active'] = Variable<bool>(isActive);
     return map;
   }
 
@@ -526,6 +539,7 @@ class SnLocalKeyPairData extends DataClass
       privateKey: privateKey == null && nullToAbsent
           ? const Value.absent()
           : Value(privateKey),
+      isActive: Value(isActive),
     );
   }
 
@@ -537,6 +551,7 @@ class SnLocalKeyPairData extends DataClass
       accountId: serializer.fromJson<int>(json['accountId']),
       publicKey: serializer.fromJson<String>(json['publicKey']),
       privateKey: serializer.fromJson<String?>(json['privateKey']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
     );
   }
   @override
@@ -547,6 +562,7 @@ class SnLocalKeyPairData extends DataClass
       'accountId': serializer.toJson<int>(accountId),
       'publicKey': serializer.toJson<String>(publicKey),
       'privateKey': serializer.toJson<String?>(privateKey),
+      'isActive': serializer.toJson<bool>(isActive),
     };
   }
 
@@ -554,12 +570,14 @@ class SnLocalKeyPairData extends DataClass
           {String? id,
           int? accountId,
           String? publicKey,
-          Value<String?> privateKey = const Value.absent()}) =>
+          Value<String?> privateKey = const Value.absent(),
+          bool? isActive}) =>
       SnLocalKeyPairData(
         id: id ?? this.id,
         accountId: accountId ?? this.accountId,
         publicKey: publicKey ?? this.publicKey,
         privateKey: privateKey.present ? privateKey.value : this.privateKey,
+        isActive: isActive ?? this.isActive,
       );
   SnLocalKeyPairData copyWithCompanion(SnLocalKeyPairCompanion data) {
     return SnLocalKeyPairData(
@@ -568,6 +586,7 @@ class SnLocalKeyPairData extends DataClass
       publicKey: data.publicKey.present ? data.publicKey.value : this.publicKey,
       privateKey:
           data.privateKey.present ? data.privateKey.value : this.privateKey,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
     );
   }
 
@@ -577,13 +596,15 @@ class SnLocalKeyPairData extends DataClass
           ..write('id: $id, ')
           ..write('accountId: $accountId, ')
           ..write('publicKey: $publicKey, ')
-          ..write('privateKey: $privateKey')
+          ..write('privateKey: $privateKey, ')
+          ..write('isActive: $isActive')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, accountId, publicKey, privateKey);
+  int get hashCode =>
+      Object.hash(id, accountId, publicKey, privateKey, isActive);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -591,7 +612,8 @@ class SnLocalKeyPairData extends DataClass
           other.id == this.id &&
           other.accountId == this.accountId &&
           other.publicKey == this.publicKey &&
-          other.privateKey == this.privateKey);
+          other.privateKey == this.privateKey &&
+          other.isActive == this.isActive);
 }
 
 class SnLocalKeyPairCompanion extends UpdateCompanion<SnLocalKeyPairData> {
@@ -599,12 +621,14 @@ class SnLocalKeyPairCompanion extends UpdateCompanion<SnLocalKeyPairData> {
   final Value<int> accountId;
   final Value<String> publicKey;
   final Value<String?> privateKey;
+  final Value<bool> isActive;
   final Value<int> rowid;
   const SnLocalKeyPairCompanion({
     this.id = const Value.absent(),
     this.accountId = const Value.absent(),
     this.publicKey = const Value.absent(),
     this.privateKey = const Value.absent(),
+    this.isActive = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SnLocalKeyPairCompanion.insert({
@@ -612,6 +636,7 @@ class SnLocalKeyPairCompanion extends UpdateCompanion<SnLocalKeyPairData> {
     required int accountId,
     required String publicKey,
     this.privateKey = const Value.absent(),
+    this.isActive = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         accountId = Value(accountId),
@@ -621,6 +646,7 @@ class SnLocalKeyPairCompanion extends UpdateCompanion<SnLocalKeyPairData> {
     Expression<int>? accountId,
     Expression<String>? publicKey,
     Expression<String>? privateKey,
+    Expression<bool>? isActive,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -628,6 +654,7 @@ class SnLocalKeyPairCompanion extends UpdateCompanion<SnLocalKeyPairData> {
       if (accountId != null) 'account_id': accountId,
       if (publicKey != null) 'public_key': publicKey,
       if (privateKey != null) 'private_key': privateKey,
+      if (isActive != null) 'is_active': isActive,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -637,12 +664,14 @@ class SnLocalKeyPairCompanion extends UpdateCompanion<SnLocalKeyPairData> {
       Value<int>? accountId,
       Value<String>? publicKey,
       Value<String?>? privateKey,
+      Value<bool>? isActive,
       Value<int>? rowid}) {
     return SnLocalKeyPairCompanion(
       id: id ?? this.id,
       accountId: accountId ?? this.accountId,
       publicKey: publicKey ?? this.publicKey,
       privateKey: privateKey ?? this.privateKey,
+      isActive: isActive ?? this.isActive,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -662,6 +691,9 @@ class SnLocalKeyPairCompanion extends UpdateCompanion<SnLocalKeyPairData> {
     if (privateKey.present) {
       map['private_key'] = Variable<String>(privateKey.value);
     }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -675,6 +707,7 @@ class SnLocalKeyPairCompanion extends UpdateCompanion<SnLocalKeyPairData> {
           ..write('accountId: $accountId, ')
           ..write('publicKey: $publicKey, ')
           ..write('privateKey: $privateKey, ')
+          ..write('isActive: $isActive, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();

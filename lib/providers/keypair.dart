@@ -27,8 +27,6 @@ class KeyPairProvider {
     _dt = context.read<DatabaseProvider>();
     _ua = context.read<UserProvider>();
     _ws = context.read<WebSocketProvider>();
-
-    reloadActive();
   }
 
   void listen() {
@@ -150,6 +148,7 @@ class KeyPairProvider {
     final kp = await (_dt.db.snLocalKeyPair.select()
           ..where((e) => e.accountId.equals(_ua.user!.id))
           ..where((e) => e.privateKey.isNotNull())
+          ..where((e) => e.isActive.equals(true))
           ..limit(1))
         .getSingleOrNull();
 
@@ -169,16 +168,42 @@ class KeyPairProvider {
     return activeKp;
   }
 
-  Future<SnKeyPair> enrollNew() async {
-    if (!_ua.isAuthorized) throw Exception('Unauthorized');
+  Future<List<SnKeyPair>> listKeyPair() async {
+    final kps = await (_dt.db.snLocalKeyPair.select()).get();
+    return kps
+        .map((e) => SnKeyPair(
+              id: e.id,
+              accountId: e.accountId,
+              publicKey: e.publicKey,
+              privateKey: e.privateKey,
+              isActive: e.isActive,
+            ))
+        .toList();
+  }
 
-    final existsOne = await (_dt.db.snLocalKeyPair.select()
-          ..where((e) => e.accountId.equals(_ua.user!.id))
+  Future<void> activeKeyPair(String kpId) async {
+    final kp = await (_dt.db.snLocalKeyPair.select()
+          ..where((e) => e.id.equals(kpId))
           ..where((e) => e.privateKey.isNotNull())
           ..limit(1))
         .getSingleOrNull();
+    if (kp == null) return;
 
-    final id = existsOne?.id ?? const Uuid().v4();
+    await _dt.db.transaction(() async {
+      await (_dt.db.update(_dt.db.snLocalKeyPair)
+            ..where((e) => e.isActive.equals(true)))
+          .write(SnLocalKeyPairCompanion(isActive: Value(false)));
+
+      await (_dt.db.update(_dt.db.snLocalKeyPair)
+            ..where((e) => e.id.equals(kp.id)))
+          .write(SnLocalKeyPairCompanion(isActive: Value(true)));
+    });
+  }
+
+  Future<SnKeyPair> enrollNew() async {
+    if (!_ua.isAuthorized) throw Exception('Unauthorized');
+
+    final id = const Uuid().v4();
     final kp = await RSA.generate(2048);
     final kpMeta = SnKeyPair(
       id: id,
@@ -189,20 +214,21 @@ class KeyPairProvider {
 
     // Save the keypair to the local database
     // If there is already one with private key, it will be overwritten
-    await _dt.db.snLocalKeyPair.insertOne(
-      SnLocalKeyPairCompanion.insert(
-        id: kpMeta.id,
-        accountId: kpMeta.accountId,
-        publicKey: kpMeta.publicKey,
-        privateKey: Value(kpMeta.privateKey),
-      ),
-      onConflict: DoUpdate(
-        (_) => SnLocalKeyPairCompanion.custom(
-          publicKey: Constant(kpMeta.publicKey),
-          privateKey: Constant(kpMeta.privateKey),
+    await _dt.db.transaction(() async {
+      await (_dt.db.update(_dt.db.snLocalKeyPair)
+            ..where((e) => e.isActive.equals(true)))
+          .write(SnLocalKeyPairCompanion(isActive: Value(false)));
+
+      await _dt.db.snLocalKeyPair.insertOne(
+        SnLocalKeyPairCompanion.insert(
+          id: kpMeta.id,
+          accountId: kpMeta.accountId,
+          publicKey: kpMeta.publicKey,
+          privateKey: Value(kpMeta.privateKey),
+          isActive: Value(true),
         ),
-      ),
-    );
+      );
+    });
 
     await reloadActive(autoEnroll: false);
 

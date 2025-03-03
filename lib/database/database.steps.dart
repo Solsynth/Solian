@@ -53,6 +53,7 @@ final class Schema2 extends i0.VersionedSchema {
           _column_6,
           _column_7,
           _column_8,
+          _column_9,
         ],
         attachedDatabase: database,
       ),
@@ -115,6 +116,8 @@ class Shape2 extends i0.VersionedTable {
       columnsByName['public_key']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<String> get privateKey =>
       columnsByName['private_key']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<bool> get isActive =>
+      columnsByName['is_active']! as i1.GeneratedColumn<bool>;
 }
 
 i1.GeneratedColumn<String> _column_5(String aliasedName) =>
@@ -129,6 +132,12 @@ i1.GeneratedColumn<String> _column_7(String aliasedName) =>
 i1.GeneratedColumn<String> _column_8(String aliasedName) =>
     i1.GeneratedColumn<String>('private_key', aliasedName, true,
         type: i1.DriftSqlType.string);
+i1.GeneratedColumn<bool> _column_9(String aliasedName) =>
+    i1.GeneratedColumn<bool>('is_active', aliasedName, false,
+        type: i1.DriftSqlType.bool,
+        defaultConstraints: i1.GeneratedColumn.constraintIsAlways(
+            'CHECK ("is_active" IN (0, 1))'),
+        defaultValue: const CustomExpression('0'));
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
 }) {

@@ -751,5 +751,11 @@
   "accountBadges": "徽章",
   "accountBadgesDescription": "查看並管理你的徽章。",
   "badgeActivated": "已佩戴徽章 {}。",
-  "viewDetailedAttachment": "查看附件詳情"
+  "viewDetailedAttachment": "查看附件詳情",
+  "screenKeyPairs": "密鑰對",
+  "accountKeyPairs": "密鑰對",
+  "accountKeyPairsDescription": "管理用於加密信息的密鑰對。",
+  "enrollNewKeyPair": "新建密鑰對",
+  "enrollNewKeyPairDescription": "生成一對新密鑰對，覆蓋當前的；如果已有一個密鑰將會丟棄舊密鑰的私鑰。",
+  "keyPairHasPrivateKey": "有私鑰"
 }

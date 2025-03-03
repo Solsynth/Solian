@@ -18,6 +18,7 @@ mixin _$SnKeyPair {
   String get id;
   int get accountId;
   String get publicKey;
+  bool? get isActive;
   String? get privateKey;
 
   /// Create a copy of SnKeyPair
@@ -40,6 +41,8 @@ mixin _$SnKeyPair {
                 other.accountId == accountId) &&
             (identical(other.publicKey, publicKey) ||
                 other.publicKey == publicKey) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
             (identical(other.privateKey, privateKey) ||
                 other.privateKey == privateKey));
   }
@@ -47,11 +50,11 @@ mixin _$SnKeyPair {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, accountId, publicKey, privateKey);
+      Object.hash(runtimeType, id, accountId, publicKey, isActive, privateKey);
 
   @override
   String toString() {
-    return 'SnKeyPair(id: $id, accountId: $accountId, publicKey: $publicKey, privateKey: $privateKey)';
+    return 'SnKeyPair(id: $id, accountId: $accountId, publicKey: $publicKey, isActive: $isActive, privateKey: $privateKey)';
   }
 }
 
@@ -60,7 +63,12 @@ abstract mixin class $SnKeyPairCopyWith<$Res> {
   factory $SnKeyPairCopyWith(SnKeyPair value, $Res Function(SnKeyPair) _then) =
       _$SnKeyPairCopyWithImpl;
   @useResult
-  $Res call({String id, int accountId, String publicKey, String? privateKey});
+  $Res call(
+      {String id,
+      int accountId,
+      String publicKey,
+      bool? isActive,
+      String? privateKey});
 }
 
 /// @nodoc
@@ -78,6 +86,7 @@ class _$SnKeyPairCopyWithImpl<$Res> implements $SnKeyPairCopyWith<$Res> {
     Object? id = null,
     Object? accountId = null,
     Object? publicKey = null,
+    Object? isActive = freezed,
     Object? privateKey = freezed,
   }) {
     return _then(_self.copyWith(
@@ -93,6 +102,10 @@ class _$SnKeyPairCopyWithImpl<$Res> implements $SnKeyPairCopyWith<$Res> {
           ? _self.publicKey
           : publicKey // ignore: cast_nullable_to_non_nullable
               as String,
+      isActive: freezed == isActive
+          ? _self.isActive
+          : isActive // ignore: cast_nullable_to_non_nullable
+              as bool?,
       privateKey: freezed == privateKey
           ? _self.privateKey
           : privateKey // ignore: cast_nullable_to_non_nullable
@@ -108,6 +121,7 @@ class _SnKeyPair implements SnKeyPair {
       {required this.id,
       required this.accountId,
       required this.publicKey,
+      this.isActive,
       this.privateKey});
   factory _SnKeyPair.fromJson(Map<String, dynamic> json) =>
       _$SnKeyPairFromJson(json);
@@ -118,6 +132,8 @@ class _SnKeyPair implements SnKeyPair {
   final int accountId;
   @override
   final String publicKey;
+  @override
+  final bool? isActive;
   @override
   final String? privateKey;
 
@@ -146,6 +162,8 @@ class _SnKeyPair implements SnKeyPair {
                 other.accountId == accountId) &&
             (identical(other.publicKey, publicKey) ||
                 other.publicKey == publicKey) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
             (identical(other.privateKey, privateKey) ||
                 other.privateKey == privateKey));
   }
@@ -153,11 +171,11 @@ class _SnKeyPair implements SnKeyPair {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, accountId, publicKey, privateKey);
+      Object.hash(runtimeType, id, accountId, publicKey, isActive, privateKey);
 
   @override
   String toString() {
-    return 'SnKeyPair(id: $id, accountId: $accountId, publicKey: $publicKey, privateKey: $privateKey)';
+    return 'SnKeyPair(id: $id, accountId: $accountId, publicKey: $publicKey, isActive: $isActive, privateKey: $privateKey)';
   }
 }
 
@@ -169,7 +187,12 @@ abstract mixin class _$SnKeyPairCopyWith<$Res>
       __$SnKeyPairCopyWithImpl;
   @override
   @useResult
-  $Res call({String id, int accountId, String publicKey, String? privateKey});
+  $Res call(
+      {String id,
+      int accountId,
+      String publicKey,
+      bool? isActive,
+      String? privateKey});
 }
 
 /// @nodoc
@@ -187,6 +210,7 @@ class __$SnKeyPairCopyWithImpl<$Res> implements _$SnKeyPairCopyWith<$Res> {
     Object? id = null,
     Object? accountId = null,
     Object? publicKey = null,
+    Object? isActive = freezed,
     Object? privateKey = freezed,
   }) {
     return _then(_SnKeyPair(
@@ -202,6 +226,10 @@ class __$SnKeyPairCopyWithImpl<$Res> implements _$SnKeyPairCopyWith<$Res> {
           ? _self.publicKey
           : publicKey // ignore: cast_nullable_to_non_nullable
               as String,
+      isActive: freezed == isActive
+          ? _self.isActive
+          : isActive // ignore: cast_nullable_to_non_nullable
+              as bool?,
       privateKey: freezed == privateKey
           ? _self.privateKey
           : privateKey // ignore: cast_nullable_to_non_nullable

@@ -753,5 +753,11 @@
   "accountBadges": "Badges",
   "accountBadgesDescription": "View and manage your badges.",
   "badgeActivated": "Activated badge {}.",
-  "viewDetailedAttachment": "Details"
+  "viewDetailedAttachment": "Details",
+  "screenKeyPairs": "Key Pairs",
+  "accountKeyPairs": "Key Pairs",
+  "accountKeyPairsDescription": "Manage the key pairs which used to encrypt messages.",
+  "enrollNewKeyPair": "Enroll New One",
+  "enrollNewKeyPairDescription": "Generate a new key pair.",
+  "keyPairHasPrivateKey": "With private key"
 }

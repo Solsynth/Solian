@@ -9,8 +9,10 @@ abstract class SnKeyPair with _$SnKeyPair {
     required String id,
     required int accountId,
     required String publicKey,
+    bool? isActive,
     String? privateKey,
   }) = _SnKeyPair;
 
-  factory SnKeyPair.fromJson(Map<String, Object?> json) => _$SnKeyPairFromJson(json);
+  factory SnKeyPair.fromJson(Map<String, Object?> json) =>
+      _$SnKeyPairFromJson(json);
 }

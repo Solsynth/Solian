@@ -8,4 +8,6 @@ class SnLocalKeyPair extends Table {
   TextColumn get publicKey => text()();
 
   TextColumn get privateKey => text().nullable()();
+
+  BoolColumn get isActive => boolean().withDefault(Constant(false))();
 }

@@ -309,6 +309,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       await notify.registerPushNotifications();
       if (!mounted) return;
       final kp = context.read<KeyPairProvider>();
+      await kp.reloadActive();
       kp.listen();
       if (!mounted) return;
       final sticker = context.read<SnStickerProvider>();
