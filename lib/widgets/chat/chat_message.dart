@@ -51,7 +51,7 @@ class ChatMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final ua = context.read<UserProvider>();
     final ud = context.read<UserDirectoryProvider>();
-    final user = ud.getAccountFromCache(data.sender.accountId);
+    final user = ud.getFromCache(data.sender.accountId);
 
     final isOwner = ua.isAuthorized && data.sender.accountId == ua.user?.id;
 

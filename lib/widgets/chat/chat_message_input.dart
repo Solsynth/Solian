@@ -380,7 +380,7 @@ class ChatMessageInputState extends State<ChatMessageInput> {
                         _isEncrypted ? Icon(Symbols.lock, size: 18) : null,
                     hintText: widget.otherMember != null
                         ? 'fieldChatMessageDirect'.tr(args: [
-                            '@${ud.getAccountFromCache(widget.otherMember?.accountId)?.name}',
+                            '@${ud.getFromCache(widget.otherMember?.accountId)?.name}',
                           ])
                         : 'fieldChatMessage'.tr(args: [
                             widget.controller.channel?.name ?? 'loading'.tr()

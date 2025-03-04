@@ -33,11 +33,13 @@ class ChatTypingIndicator extends StatelessWidget {
                     const Icon(Symbols.more_horiz, weight: 600, size: 20),
                     const Gap(8),
                     Text(
-                      'messageTyping'.plural(controller.typingMembers.length, args: [
+                      'messageTyping'
+                          .plural(controller.typingMembers.length, args: [
                         controller.typingMembers
                             .map((ele) => (ele.nick?.isNotEmpty ?? false)
                                 ? ele.nick!
-                                : ud.getAccountFromCache(ele.accountId)?.name ?? 'unknown')
+                                : ud.getFromCache(ele.accountId)?.name ??
+                                    'unknown')
                             .join(', '),
                       ]),
                     ),

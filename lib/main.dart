@@ -314,6 +314,10 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       if (!mounted) return;
       final sticker = context.read<SnStickerProvider>();
       await sticker.listSticker();
+      if (!mounted) return;
+      final ud = context.read<UserDirectoryProvider>();
+      final userCacheSize = await ud.loadAccountCache();
+      logging.info('[Users] Loaded local user cache, size: $userCacheSize');
       logging.info('[Bootstrap] Everything initialized!');
     } catch (err) {
       if (!mounted) return;

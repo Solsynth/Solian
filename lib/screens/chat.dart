@@ -336,7 +336,7 @@ class _ChatChannelEntry extends StatelessWidget {
         : null;
 
     final title = otherMember != null
-        ? ud.getAccountFromCache(otherMember.accountId)?.nick ?? channel.name
+        ? ud.getFromCache(otherMember.accountId)?.nick ?? channel.name
         : channel.name;
 
     return ListTile(
@@ -354,10 +354,9 @@ class _ChatChannelEntry extends StatelessWidget {
           ? Row(
               children: [
                 Badge(
-                  label: Text(ud
-                          .getAccountFromCache(lastMessage!.sender.accountId)
-                          ?.nick ??
-                      'unknown'.tr()),
+                  label: Text(
+                      ud.getFromCache(lastMessage!.sender.accountId)?.nick ??
+                          'unknown'.tr()),
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   textColor: Theme.of(context).colorScheme.onPrimary,
                 ),
@@ -400,7 +399,7 @@ class _ChatChannelEntry extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       leading: AccountImage(
         content: otherMember != null
-            ? ud.getAccountFromCache(otherMember.accountId)?.avatar
+            ? ud.getFromCache(otherMember.accountId)?.avatar
             : channel.realm?.avatar,
         fallbackWidget: const Icon(Symbols.chat, size: 20),
       ),

@@ -51,8 +51,10 @@ class _AppSharingListenerState extends State<AppSharingListener> {
                 child: Column(
                   children: [
                     ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 24),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       leading: Icon(Icons.post_add),
                       trailing: const Icon(Icons.chevron_right),
                       title: Text('shareIntentPostStory').tr(),
@@ -64,13 +66,20 @@ class _AppSharingListenerState extends State<AppSharingListener> {
                           },
                           extra: PostEditorExtra(
                             text: value
-                                .where((e) => [SharedMediaType.text, SharedMediaType.url].contains(e.type))
+                                .where((e) => [
+                                      SharedMediaType.text,
+                                      SharedMediaType.url
+                                    ].contains(e.type))
                                 .map((e) => e.path)
                                 .join('\n'),
                             attachments: value
-                                .where((e) => [SharedMediaType.video, SharedMediaType.file, SharedMediaType.image]
-                                    .contains(e.type))
-                                .map((e) => PostWriteMedia.fromFile(XFile(e.path)))
+                                .where((e) => [
+                                      SharedMediaType.video,
+                                      SharedMediaType.file,
+                                      SharedMediaType.image
+                                    ].contains(e.type))
+                                .map((e) =>
+                                    PostWriteMedia.fromFile(XFile(e.path)))
                                 .toList(),
                           ),
                         );
@@ -78,15 +87,18 @@ class _AppSharingListenerState extends State<AppSharingListener> {
                       },
                     ),
                     ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 24),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       leading: Icon(Icons.chat_outlined),
                       trailing: const Icon(Icons.chevron_right),
                       title: Text('shareIntentSendChannel').tr(),
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
-                          builder: (context) => _ShareIntentChannelSelect(value: value),
+                          builder: (context) =>
+                              _ShareIntentChannelSelect(value: value),
                         ).then((val) {
                           if (!context.mounted) return;
                           if (val == true) Navigator.pop(context);
@@ -110,7 +122,8 @@ class _AppSharingListenerState extends State<AppSharingListener> {
   }
 
   void _initialize() async {
-    _shareIntentSubscription = ReceiveSharingIntent.instance.getMediaStream().listen((value) {
+    _shareIntentSubscription =
+        ReceiveSharingIntent.instance.getMediaStream().listen((value) {
       if (value.isEmpty) return;
       if (mounted) {
         _gotoPost(value);
@@ -157,7 +170,8 @@ class _ShareIntentChannelSelect extends StatefulWidget {
   const _ShareIntentChannelSelect({required this.value});
 
   @override
-  State<_ShareIntentChannelSelect> createState() => _ShareIntentChannelSelectState();
+  State<_ShareIntentChannelSelect> createState() =>
+      _ShareIntentChannelSelectState();
 }
 
 class _ShareIntentChannelSelectState extends State<_ShareIntentChannelSelect> {
@@ -178,8 +192,11 @@ class _ShareIntentChannelSelectState extends State<_ShareIntentChannelSelect> {
       final lastMessages = await chan.getLastMessages(channels);
       _lastMessages = {for (final val in lastMessages) val.channelId: val};
       channels.sort((a, b) {
-        if (_lastMessages!.containsKey(a.id) && _lastMessages!.containsKey(b.id)) {
-          return _lastMessages![b.id]!.createdAt.compareTo(_lastMessages![a.id]!.createdAt);
+        if (_lastMessages!.containsKey(a.id) &&
+            _lastMessages!.containsKey(b.id)) {
+          return _lastMessages![b.id]!
+              .createdAt
+              .compareTo(_lastMessages![a.id]!.createdAt);
         }
         if (_lastMessages!.containsKey(a.id)) return -1;
         if (_lastMessages!.containsKey(b.id)) return 1;
@@ -232,7 +249,9 @@ class _ShareIntentChannelSelectState extends State<_ShareIntentChannelSelect> {
           children: [
             const Icon(Symbols.chat, size: 24),
             const Gap(16),
-            Text('shareIntentSendChannel', style: Theme.of(context).textTheme.titleLarge).tr(),
+            Text('shareIntentSendChannel',
+                    style: Theme.of(context).textTheme.titleLarge)
+                .tr(),
           ],
         ).padding(horizontal: 20, top: 16, bottom: 12),
         LoadingIndicator(isActive: _isBusy),
@@ -249,29 +268,34 @@ class _ShareIntentChannelSelectState extends State<_ShareIntentChannelSelect> {
                   final lastMessage = _lastMessages?[channel.id];
 
                   if (channel.type == 1) {
-                    final otherMember = channel.members?.cast<SnChannelMember?>().firstWhere(
-                          (ele) => ele?.accountId != ua.user?.id,
-                          orElse: () => null,
-                        );
+                    final otherMember =
+                        channel.members?.cast<SnChannelMember?>().firstWhere(
+                              (ele) => ele?.accountId != ua.user?.id,
+                              orElse: () => null,
+                            );
 
                     return ListTile(
-                      title: Text(ud.getAccountFromCache(otherMember?.accountId)?.nick ?? channel.name),
+                      title: Text(
+                          ud.getFromCache(otherMember?.accountId)?.nick ??
+                              channel.name),
                       subtitle: lastMessage != null
                           ? Text(
-                              '${ud.getAccountFromCache(lastMessage.sender.accountId)?.nick}: ${lastMessage.body['text'] ?? 'Unable preview'}',
+                              '${ud.getFromCache(lastMessage.sender.accountId)?.nick}: ${lastMessage.body['text'] ?? 'Unable preview'}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             )
                           : Text(
                               'channelDirectMessageDescription'.tr(args: [
-                                '@${ud.getAccountFromCache(otherMember?.accountId)?.name}',
+                                '@${ud.getFromCache(otherMember?.accountId)?.name}',
                               ]),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16),
                       leading: AccountImage(
-                        content: ud.getAccountFromCache(otherMember?.accountId)?.avatar,
+                        content:
+                            ud.getFromCache(otherMember?.accountId)?.avatar,
                       ),
                       onTap: () {
                         GoRouter.of(context).pushNamed(
@@ -291,7 +315,7 @@ class _ShareIntentChannelSelectState extends State<_ShareIntentChannelSelect> {
                     title: Text(channel.name),
                     subtitle: lastMessage != null
                         ? Text(
-                            '${ud.getAccountFromCache(lastMessage.sender.accountId)?.nick}: ${lastMessage.body['text'] ?? 'Unable preview'}',
+                            '${ud.getFromCache(lastMessage.sender.accountId)?.nick}: ${lastMessage.body['text'] ?? 'Unable preview'}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           )
@@ -316,13 +340,20 @@ class _ShareIntentChannelSelectState extends State<_ShareIntentChannelSelect> {
                         },
                         extra: ChatRoomScreenExtra(
                           initialText: widget.value
-                              .where((e) => [SharedMediaType.text, SharedMediaType.url].contains(e.type))
+                              .where((e) => [
+                                    SharedMediaType.text,
+                                    SharedMediaType.url
+                                  ].contains(e.type))
                               .map((e) => e.path)
                               .join('\n'),
                           initialAttachments: widget.value
-                              .where((e) =>
-                                  [SharedMediaType.video, SharedMediaType.file, SharedMediaType.image].contains(e.type))
-                              .map((e) => PostWriteMedia.fromFile(XFile(e.path)))
+                              .where((e) => [
+                                    SharedMediaType.video,
+                                    SharedMediaType.file,
+                                    SharedMediaType.image
+                                  ].contains(e.type))
+                              .map(
+                                  (e) => PostWriteMedia.fromFile(XFile(e.path)))
                               .toList(),
                         ),
                       )

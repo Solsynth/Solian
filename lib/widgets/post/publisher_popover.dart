@@ -23,7 +23,7 @@ class PublisherPopoverCard extends StatelessWidget {
     final sn = context.read<SnNetworkProvider>();
     final ud = context.read<UserDirectoryProvider>();
 
-    final user = data.type == 0 ? ud.getAccountFromCache(data.accountId) : null;
+    final user = data.type == 0 ? ud.getFromCache(data.accountId) : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +85,9 @@ class PublisherPopoverCard extends StatelessWidget {
                   (ele) => Tooltip(
                     richMessage: TextSpan(
                       children: [
-                        TextSpan(text: kBadgesMeta[ele.type]?.$1.tr() ?? 'unknown'.tr()),
+                        TextSpan(
+                            text: kBadgesMeta[ele.type]?.$1.tr() ??
+                                'unknown'.tr()),
                         if (ele.metadata['title'] != null)
                           TextSpan(
                             text: '\n${ele.metadata['title']}',
@@ -146,7 +148,10 @@ class PublisherPopoverCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('publisherTotalDownvote').tr().fontSize(13).opacity(0.75),
+                  Text('publisherTotalDownvote')
+                      .tr()
+                      .fontSize(13)
+                      .opacity(0.75),
                   Text(data.totalDownvote.toString()),
                 ],
               ),

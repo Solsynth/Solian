@@ -277,8 +277,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       appBar: AppBar(
         title: Text(
           _channel?.type == 1
-              ? ud.getAccountFromCache(_otherMember?.accountId)?.nick ??
-                  _channel!.name
+              ? ud.getFromCache(_otherMember?.accountId)?.nick ?? _channel!.name
               : _channel?.name ?? 'loading'.tr(),
         ),
         actions: [

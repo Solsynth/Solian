@@ -289,15 +289,14 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
                   ),
                   ListTile(
                     leading: AccountImage(
-                      content:
-                          ud.getAccountFromCache(_profile!.accountId)?.avatar,
+                      content: ud.getFromCache(_profile!.accountId)?.avatar,
                       radius: 18,
                     ),
                     trailing: const Icon(Symbols.chevron_right),
                     title: Text('channelEditProfile').tr(),
                     subtitle: Text(
                       (_profile?.nick?.isEmpty ?? true)
-                          ? ud.getAccountFromCache(_profile!.accountId)!.nick
+                          ? ud.getFromCache(_profile!.accountId)!.nick
                           : _profile!.nick!,
                     ),
                     contentPadding: const EdgeInsets.only(left: 20, right: 20),
@@ -575,11 +574,10 @@ class _ChannelMemberListWidgetState extends State<_ChannelMemberListWidget> {
                 return ListTile(
                   contentPadding: const EdgeInsets.only(right: 24, left: 16),
                   leading: AccountImage(
-                    content: ud.getAccountFromCache(member.accountId)?.avatar,
+                    content: ud.getFromCache(member.accountId)?.avatar,
                   ),
                   title: Text(
-                    ud.getAccountFromCache(member.accountId)?.name ??
-                        'unknown'.tr(),
+                    ud.getFromCache(member.accountId)?.name ?? 'unknown'.tr(),
                   ),
                   subtitle: Text(member.nick ?? 'unknown'.tr()),
                   trailing: SizedBox(

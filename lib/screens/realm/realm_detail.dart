@@ -51,7 +51,8 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
   Future<void> _fetchPublishers() async {
     try {
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/co/publishers?realm=${widget.alias}');
+      final resp =
+          await sn.client.get('/cgi/co/publishers?realm=${widget.alias}');
       _publishers = List<SnPublisher>.from(
         resp.data?.map((e) => SnPublisher.fromJson(e)) ?? [],
       );
@@ -68,7 +69,8 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
   Future<void> _fetchChannels() async {
     try {
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/im/channels/${widget.alias}/public');
+      final resp =
+          await sn.client.get('/cgi/im/channels/${widget.alias}/public');
       _channels = List<SnChannel>.from(
         resp.data.map((e) => SnChannel.fromJson(e)).cast<SnChannel>(),
       );
@@ -98,15 +100,32 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
           headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
             return <Widget>[
               SliverOverlapAbsorber(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                handle:
+                    NestedScrollView.sliverOverlapAbsorberHandleFor(context),
                 sliver: SliverAppBar(
                   title: Text(_realm?.name ?? 'loading'.tr()),
                   bottom: TabBar(
                     tabs: [
-                      Tab(icon: Icon(Symbols.home, color: Theme.of(context).appBarTheme.foregroundColor)),
-                      Tab(icon: Icon(Symbols.explore, color: Theme.of(context).appBarTheme.foregroundColor)),
-                      Tab(icon: Icon(Symbols.group, color: Theme.of(context).appBarTheme.foregroundColor)),
-                      Tab(icon: Icon(Symbols.settings, color: Theme.of(context).appBarTheme.foregroundColor)),
+                      Tab(
+                          icon: Icon(Symbols.home,
+                              color: Theme.of(context)
+                                  .appBarTheme
+                                  .foregroundColor)),
+                      Tab(
+                          icon: Icon(Symbols.explore,
+                              color: Theme.of(context)
+                                  .appBarTheme
+                                  .foregroundColor)),
+                      Tab(
+                          icon: Icon(Symbols.group,
+                              color: Theme.of(context)
+                                  .appBarTheme
+                                  .foregroundColor)),
+                      Tab(
+                          icon: Icon(Symbols.settings,
+                              color: Theme.of(context)
+                                  .appBarTheme
+                                  .foregroundColor)),
                     ],
                   ),
                 ),
@@ -115,7 +134,8 @@ class _RealmDetailScreenState extends State<RealmDetailScreen> {
           },
           body: TabBarView(
             children: [
-              _RealmDetailHomeWidget(realm: _realm, publishers: _publishers, channels: _channels),
+              _RealmDetailHomeWidget(
+                  realm: _realm, publishers: _publishers, channels: _channels),
               _RealmPostListWidget(realm: _realm),
               _RealmMemberListWidget(realm: _realm),
               _RealmSettingsWidget(
@@ -137,7 +157,8 @@ class _RealmDetailHomeWidget extends StatelessWidget {
   final List<SnPublisher>? publishers;
   final List<SnChannel>? channels;
 
-  const _RealmDetailHomeWidget({required this.realm, this.publishers, this.channels});
+  const _RealmDetailHomeWidget(
+      {required this.realm, this.publishers, this.channels});
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +189,8 @@ class _RealmDetailHomeWidget extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    child: Text('realmCommunityPublishersHint'.tr(), style: Theme.of(context).textTheme.bodyMedium)
+                    child: Text('realmCommunityPublishersHint'.tr(),
+                            style: Theme.of(context).textTheme.bodyMedium)
                         .padding(horizontal: 24, vertical: 8),
                   ),
                 ),
@@ -199,7 +221,8 @@ class _RealmDetailHomeWidget extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    child: Text('realmCommunityPublicChannelsHint'.tr(), style: Theme.of(context).textTheme.bodyMedium)
+                    child: Text('realmCommunityPublicChannelsHint'.tr(),
+                            style: Theme.of(context).textTheme.bodyMedium)
                         .padding(horizontal: 24, vertical: 8),
                   ),
                 ),
@@ -323,10 +346,12 @@ class _RealmMemberListWidgetState extends State<_RealmMemberListWidget> {
     try {
       final ud = context.read<UserDirectoryProvider>();
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/id/realms/${widget.realm!.alias}/members', queryParameters: {
-        'take': 10,
-        'offset': _members.length,
-      });
+      final resp = await sn.client.get(
+          '/cgi/id/realms/${widget.realm!.alias}/members',
+          queryParameters: {
+            'take': 10,
+            'offset': _members.length,
+          });
 
       final out = List<SnRealmMember>.from(
         resp.data['data']?.map((e) => SnRealmMember.fromJson(e)) ?? [],
@@ -432,14 +457,14 @@ class _RealmMemberListWidgetState extends State<_RealmMemberListWidget> {
             return ListTile(
               contentPadding: const EdgeInsets.only(right: 24, left: 16),
               leading: AccountImage(
-                content: ud.getAccountFromCache(member.accountId)?.avatar,
+                content: ud.getFromCache(member.accountId)?.avatar,
                 fallbackWidget: const Icon(Symbols.group, size: 24),
               ),
               title: Text(
-                ud.getAccountFromCache(member.accountId)?.nick ?? 'unknown'.tr(),
+                ud.getFromCache(member.accountId)?.nick ?? 'unknown'.tr(),
               ),
               subtitle: Text(
-                ud.getAccountFromCache(member.accountId)?.name ?? 'unknown'.tr(),
+                ud.getFromCache(member.accountId)?.name ?? 'unknown'.tr(),
               ),
               trailing: IconButton(
                 icon: const Icon(Symbols.person_remove),

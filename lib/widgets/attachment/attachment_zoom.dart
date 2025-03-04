@@ -42,7 +42,8 @@ class AttachmentZoomView extends StatefulWidget {
 }
 
 class _AttachmentZoomViewState extends State<AttachmentZoomView> {
-  late final PageController _pageController = PageController(initialPage: widget.initialIndex ?? 0);
+  late final PageController _pageController =
+      PageController(initialPage: widget.initialIndex ?? 0);
 
   bool _showOverlay = true;
   bool _dismissable = true;
@@ -107,7 +108,9 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
 
     if (!mounted) return;
     context.showSnackbar(
-      (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) ? 'attachmentSaved'.tr() : 'attachmentSavedDesktop'.tr(),
+      (!kIsWeb && (Platform.isIOS || Platform.isAndroid))
+          ? 'attachmentSaved'.tr()
+          : 'attachmentSavedDesktop'.tr(),
       action: (!kIsWeb && (Platform.isIOS || Platform.isAndroid))
           ? SnackBarAction(
               label: 'openInAlbum'.tr(),
@@ -131,7 +134,8 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
     super.dispose();
   }
 
-  Color get _unFocusColor => Theme.of(context).colorScheme.onSurface.withOpacity(0.75);
+  Color get _unFocusColor =>
+      Theme.of(context).colorScheme.onSurface.withOpacity(0.75);
 
   bool _showDetail = false;
 
@@ -150,7 +154,9 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
       onDismissed: () {
         Navigator.of(context).pop();
       },
-      direction: _dismissable ? DismissiblePageDismissDirection.multi : DismissiblePageDismissDirection.none,
+      direction: _dismissable
+          ? DismissiblePageDismissDirection.multi
+          : DismissiblePageDismissDirection.none,
       backgroundColor: Colors.transparent,
       isFullScreen: true,
       child: GestureDetector(
@@ -165,10 +171,13 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                   return Hero(
                     tag: 'attachment-${widget.data.first.rid}-$heroTag',
                     child: PhotoView(
-                      key: Key('attachment-detail-${widget.data.first.rid}-$heroTag'),
-                      backgroundDecoration: BoxDecoration(color: Colors.transparent),
+                      key: Key(
+                          'attachment-detail-${widget.data.first.rid}-$heroTag'),
+                      backgroundDecoration:
+                          BoxDecoration(color: Colors.transparent),
                       scaleStateChangedCallback: (scaleState) {
-                        setState(() => _dismissable = scaleState == PhotoViewScaleState.initial);
+                        setState(() => _dismissable =
+                            scaleState == PhotoViewScaleState.initial);
                       },
                       imageProvider: UniversalImage.provider(
                         sn.getAttachmentUrl(widget.data.first.rid),
@@ -181,10 +190,12 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                   pageController: _pageController,
                   enableRotation: true,
                   scaleStateChangedCallback: (scaleState) {
-                    setState(() => _dismissable = scaleState == PhotoViewScaleState.initial);
+                    setState(() => _dismissable =
+                        scaleState == PhotoViewScaleState.initial);
                   },
                   builder: (context, idx) {
-                    final heroTag = widget.heroTags?.elementAt(idx) ?? uuid.v4();
+                    final heroTag =
+                        widget.heroTags?.elementAt(idx) ?? uuid.v4();
                     return PhotoViewGalleryPageOptions(
                       imageProvider: UniversalImage.provider(
                         sn.getAttachmentUrl(widget.data.elementAt(idx).rid),
@@ -200,11 +211,15 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                       width: 20.0,
                       height: 20.0,
                       child: CircularProgressIndicator(
-                        value: event == null ? 0 : event.cumulativeBytesLoaded / (event.expectedTotalBytes ?? 1),
+                        value: event == null
+                            ? 0
+                            : event.cumulativeBytesLoaded /
+                                (event.expectedTotalBytes ?? 1),
                       ),
                     ),
                   ),
-                  backgroundDecoration: BoxDecoration(color: Colors.transparent),
+                  backgroundDecoration:
+                      BoxDecoration(color: Colors.transparent),
                 );
               }),
               Positioned(
@@ -223,9 +238,8 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                  )
-                      .opacity(_showOverlay ? 1 : 0, animate: true)
-                      .animate(const Duration(milliseconds: 300), Curves.easeInOut),
+                  ).opacity(_showOverlay ? 1 : 0, animate: true).animate(
+                      const Duration(milliseconds: 300), Curves.easeInOut),
                 ),
               ),
               Align(
@@ -257,9 +271,11 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                   child: Builder(builder: (context) {
                     final ud = context.read<UserDirectoryProvider>();
                     final item = widget.data.elementAt(
-                      widget.data.length > 1 ? _pageController.page?.round() ?? 0 : 0,
+                      widget.data.length > 1
+                          ? _pageController.page?.round() ?? 0
+                          : 0,
                     );
-                    final account = ud.getAccountFromCache(item.accountId);
+                    final account = ud.getFromCache(item.accountId);
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,15 +293,20 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                               Expanded(
                                 child: IgnorePointer(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'attachmentUploadBy'.tr(),
-                                        style: Theme.of(context).textTheme.bodySmall,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
                                       ),
                                       Text(
                                         account?.nick ?? 'unknown'.tr(),
-                                        style: Theme.of(context).textTheme.bodyMedium,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
                                       ),
                                     ],
                                   ),
@@ -299,11 +320,13 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                                   ).padding(right: 8),
                                 ),
                               InkWell(
-                                borderRadius: const BorderRadius.all(Radius.circular(16)),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(16)),
                                 onTap: _isDownloading
                                     ? null
-                                    : () =>
-                                        _saveToAlbum(widget.data.length > 1 ? _pageController.page?.round() ?? 0 : 0),
+                                    : () => _saveToAlbum(widget.data.length > 1
+                                        ? _pageController.page?.round() ?? 0
+                                        : 0),
                                 child: Container(
                                   padding: const EdgeInsets.all(6),
                                   child: !_isDownloading
@@ -351,7 +374,8 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                                   ]),
                                   style: metaTextStyle,
                                 ).padding(right: 2),
-                              if (item.metadata['exif']?['Megapixels'] != null &&
+                              if (item.metadata['exif']?['Megapixels'] !=
+                                      null &&
                                   item.metadata['exif']?['Model'] != null)
                                 Text(
                                   '${item.metadata['exif']?['Megapixels']}MP',
@@ -362,7 +386,8 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                                   item.size.formatBytes(),
                                   style: metaTextStyle,
                                 ),
-                              if (item.metadata['width'] != null && item.metadata['height'] != null)
+                              if (item.metadata['width'] != null &&
+                                  item.metadata['height'] != null)
                                 Text(
                                   '${item.metadata['width']}x${item.metadata['height']}',
                                   style: metaTextStyle,
@@ -377,8 +402,10 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                             showModalBottomSheet(
                               context: context,
                               builder: (context) => _AttachmentZoomDetailPopup(
-                                data: widget.data
-                                    .elementAt(widget.data.length > 1 ? _pageController.page?.round() ?? 0 : 0),
+                                data: widget.data.elementAt(
+                                    widget.data.length > 1
+                                        ? _pageController.page?.round() ?? 0
+                                        : 0),
                               ),
                             ).then((_) {
                               _showDetail = false;
@@ -386,15 +413,15 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                           },
                           child: Text(
                             'viewDetailedAttachment'.tr(),
-                            style: metaTextStyle.copyWith(decoration: TextDecoration.underline),
+                            style: metaTextStyle.copyWith(
+                                decoration: TextDecoration.underline),
                           ),
                         ),
                       ],
                     );
                   }),
-                )
-                    .opacity(_showOverlay ? 1 : 0, animate: true)
-                    .animate(const Duration(milliseconds: 300), Curves.easeInOut),
+                ).opacity(_showOverlay ? 1 : 0, animate: true).animate(
+                    const Duration(milliseconds: 300), Curves.easeInOut),
               ),
             ],
           ),
@@ -409,7 +436,9 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
             showModalBottomSheet(
               context: context,
               builder: (context) => _AttachmentZoomDetailPopup(
-                data: widget.data.elementAt(widget.data.length > 1 ? _pageController.page?.round() ?? 0 : 0),
+                data: widget.data.elementAt(widget.data.length > 1
+                    ? _pageController.page?.round() ?? 0
+                    : 0),
               ),
             ).then((_) {
               _showDetail = false;
@@ -429,7 +458,7 @@ class _AttachmentZoomDetailPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ud = context.read<UserDirectoryProvider>();
-    final account = ud.getAccountFromCache(data.accountId);
+    final account = ud.getFromCache(data.accountId);
 
     const tableGap = TableRow(
       children: [
@@ -447,7 +476,9 @@ class _AttachmentZoomDetailPopup extends StatelessWidget {
             children: [
               const Icon(Symbols.info, size: 24),
               const Gap(16),
-              Text('attachmentDetailInfo').tr().textStyle(Theme.of(context).textTheme.titleLarge!),
+              Text('attachmentDetailInfo')
+                  .tr()
+                  .textStyle(Theme.of(context).textTheme.titleLarge!),
             ],
           ).padding(horizontal: 20, top: 16, bottom: 12),
           Expanded(
@@ -461,7 +492,8 @@ class _AttachmentZoomDetailPopup extends StatelessWidget {
                   TableRow(
                     children: [
                       TableCell(
-                        child: Text('attachmentUploadBy').tr().padding(right: 16),
+                        child:
+                            Text('attachmentUploadBy').tr().padding(right: 16),
                       ),
                       TableCell(
                         child: Row(
@@ -472,9 +504,13 @@ class _AttachmentZoomDetailPopup extends StatelessWidget {
                                 radius: 8,
                               ),
                             const Gap(8),
-                            Text(data.accountId > 0 ? account?.nick ?? 'unknown'.tr() : 'unknown'.tr()),
+                            Text(data.accountId > 0
+                                ? account?.nick ?? 'unknown'.tr()
+                                : 'unknown'.tr()),
                             const Gap(8),
-                            Text('#${data.accountId}', style: GoogleFonts.robotoMono()).opacity(0.75),
+                            Text('#${data.accountId}',
+                                    style: GoogleFonts.robotoMono())
+                                .opacity(0.75),
                           ],
                         ),
                       ),
@@ -495,7 +531,9 @@ class _AttachmentZoomDetailPopup extends StatelessWidget {
                         children: [
                           Text(data.size.formatBytes()),
                           const Gap(12),
-                          Text('${data.size} Bytes', style: GoogleFonts.robotoMono()).opacity(0.75),
+                          Text('${data.size} Bytes',
+                                  style: GoogleFonts.robotoMono())
+                              .opacity(0.75),
                         ],
                       )),
                     ],
@@ -510,19 +548,27 @@ class _AttachmentZoomDetailPopup extends StatelessWidget {
                     TableRow(
                       children: [
                         TableCell(child: Text('Hash').padding(right: 16)),
-                        TableCell(child: Text(data.hash, style: GoogleFonts.robotoMono(fontSize: 11)).opacity(0.9)),
+                        TableCell(
+                            child: Text(data.hash,
+                                    style: GoogleFonts.robotoMono(fontSize: 11))
+                                .opacity(0.9)),
                       ],
                     ),
                   tableGap,
                   ...(data.metadata['exif']?.keys.map((k) => TableRow(
                             children: [
                               TableCell(child: Text(k).padding(right: 16)),
-                              TableCell(child: Text(data.metadata['exif'][k].toString())),
+                              TableCell(
+                                  child: Text(
+                                      data.metadata['exif'][k].toString())),
                             ],
                           )) ??
                       []),
                 ],
-              ).padding(horizontal: 20, vertical: 8, bottom: MediaQuery.of(context).padding.bottom),
+              ).padding(
+                  horizontal: 20,
+                  vertical: 8,
+                  bottom: MediaQuery.of(context).padding.bottom),
             ),
           ),
         ],
