@@ -20,6 +20,7 @@ import 'package:surface/widgets/attachment/attachment_list.dart';
 import 'package:surface/widgets/context_menu.dart';
 import 'package:surface/widgets/link_preview.dart';
 import 'package:surface/widgets/markdown_content.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:swipe_to/swipe_to.dart';
 
 class ChatMessage extends StatelessWidget {
@@ -321,7 +322,7 @@ class _ChatMessageText extends StatelessWidget {
           const Gap(4),
           Text('messageFileHint'.plural(data.body['attachments']!.length)),
         ],
-      ).opacity(0.75);
+      ).opacity(0.8);
     }
 
     return const SizedBox.shrink();
@@ -347,44 +348,44 @@ class _ChatMessageSystemNotify extends StatelessWidget {
       case 'messages.edit':
         return Row(
           children: [
-            const Icon(Symbols.edit, size: 20),
-            const Gap(4),
+            const Icon(Symbols.edit, size: 16),
+            const Gap(8),
             Text('messageEdited'.tr(args: ['#${data.relatedEventId}'])),
           ],
-        ).opacity(0.75);
+        ).opacity(0.8);
       case 'messages.delete':
         return Row(
           children: [
-            const Icon(Symbols.delete, size: 20),
-            const Gap(4),
+            const Icon(Symbols.delete, size: 16),
+            const Gap(8),
             Text('messageDeleted'.tr(args: ['#${data.relatedEventId}'])),
           ],
-        ).opacity(0.75);
+        ).opacity(0.8);
       case 'calls.start':
         return Row(
           children: [
-            const Icon(Symbols.call, size: 20),
-            const Gap(4),
+            const Icon(Symbols.call, size: 16),
+            const Gap(8),
             Text('callMessageStarted'.tr())
           ],
-        ).opacity(0.75);
+        ).opacity(0.8);
       case 'calls.end':
         return Row(
           children: [
-            const Icon(Symbols.call_end, size: 20),
-            const Gap(4),
+            const Icon(Symbols.call_end, size: 16),
+            const Gap(8),
             Text('callMessageEnded'.tr(
                 args: [_formatDuration(Duration(seconds: data.body['last']))])),
           ],
-        ).opacity(0.75);
+        ).opacity(0.8);
       default:
         return Row(
           children: [
-            const Icon(Symbols.info, size: 20),
-            const Gap(4),
+            const Icon(Symbols.info, size: 16),
+            const Gap(8),
             Text('messageUnsupported'.tr(args: [data.type])),
           ],
-        ).opacity(0.75);
+        ).opacity(0.8);
     }
   }
 }
@@ -397,6 +398,7 @@ class _ChatDecryptMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final kp = context.read<KeyPairProvider>();
     return FutureBuilder(
+      key: Key('chat-message-encrypted-${message.id}'),
       future: kp.decryptText(
         message.body['text'],
         message.body['keypair_id'],
@@ -404,10 +406,37 @@ class _ChatDecryptMessage extends StatelessWidget {
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Text('decryptingKeyNotFound'.tr());
+          return Row(
+            children: [
+              Icon(Symbols.key_off, size: 16),
+              const Gap(8),
+              Expanded(
+                child: Text('decryptingKeyNotFound'.tr()),
+              ),
+            ],
+          ).opacity(0.8);
         }
         if (!snapshot.hasData) {
-          return Text('decrypting'.tr());
+          return Row(
+            children: [
+              Animate(
+                autoPlay: true,
+                onPlay: (e) => e.repeat(),
+                effects: [
+                  RotateEffect(
+                    duration: const Duration(seconds: 3),
+                    begin: 0,
+                    end: -1,
+                  )
+                ],
+                child: Icon(Symbols.sync, size: 16),
+              ),
+              const Gap(8),
+              Expanded(
+                child: Text('decrypting'.tr()),
+              ),
+            ],
+          );
         }
         return MarkdownTextContent(
           content: snapshot.data!,
