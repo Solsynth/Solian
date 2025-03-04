@@ -138,6 +138,8 @@ class UserDirectoryProvider {
           (_) => SnLocalAccountCompanion.custom(
             name: Constant(ele.name),
             content: Constant(jsonEncode(ele.toJson())),
+            cacheExpiredAt:
+                Constant(DateTime.now().add(const Duration(hours: 1))),
           ),
         ),
       );

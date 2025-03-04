@@ -1,11 +1,14 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:provider/provider.dart';
+import 'package:surface/database/database.dart';
+import 'package:surface/providers/database.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/attachment.dart';
 
@@ -13,10 +16,12 @@ const kConcurrentUploadChunks = 5;
 
 class SnAttachmentProvider {
   late final SnNetworkProvider _sn;
+  late final DatabaseProvider _dt;
   final Map<String, SnAttachment> _cache = {};
 
   SnAttachmentProvider(BuildContext context) {
     _sn = context.read<SnNetworkProvider>();
+    _dt = context.read<DatabaseProvider>();
   }
 
   void putCache(Iterable<SnAttachment> items, {bool noCheck = false}) {
@@ -28,21 +33,33 @@ class SnAttachmentProvider {
   }
 
   Future<SnAttachment> getOne(String rid, {noCache = false}) async {
+    // In-memory cache
     if (!noCache && _cache.containsKey(rid)) {
       return _cache[rid]!;
     }
-
+    // On-disk cache
+    final dbResp = await (_dt.db.snLocalAttachment.select()
+          ..where((e) => e.rid.equals(rid))
+          ..where((e) => e.cacheExpiredAt.isBiggerThanValue(DateTime.now())))
+        .getSingleOrNull();
+    if (dbResp != null) {
+      _cache[rid] = dbResp.content;
+      return dbResp.content;
+    }
+    // Remote server
     final resp = await _sn.client.get('/cgi/uc/attachments/$rid/meta');
     final out = SnAttachment.fromJson(resp.data);
     if (out.isAnalyzed) {
       _cache[rid] = out;
     }
+    _saveToLocal([out]);
 
     return out;
   }
 
   Future<List<SnAttachment?>> getMultiple(List<String> rids,
-      {noCache = false}) async {
+      {bool noCache = false}) async {
+    // In-memory cache
     final result = List<SnAttachment?>.filled(rids.length, null);
     final Map<String, int> randomMapping = {};
     for (int i = 0; i < rids.length; i++) {
@@ -53,29 +70,44 @@ class SnAttachmentProvider {
         result[i] = _cache[rid]!;
       }
     }
-    final pendingFetch = randomMapping.keys;
-
-    if (pendingFetch.isNotEmpty) {
-      final resp = await _sn.client.get(
-        '/cgi/uc/attachments',
-        queryParameters: {
-          'take': pendingFetch.length,
-          'id': pendingFetch.join(','),
-        },
-      );
-      final List<SnAttachment?> out = resp.data['data']
-          .map((e) => e['id'] == 0 ? null : SnAttachment.fromJson(e))
-          .cast<SnAttachment?>()
-          .toList();
-
-      for (final item in out) {
-        if (item == null) continue;
-        if (item.isAnalyzed) {
-          _cache[item.rid] = item;
+    var pendingFetch = randomMapping.keys;
+    // On-disk cache
+    if (pendingFetch.isEmpty) return result;
+    if (!noCache) {
+      final dbResp = await (_dt.db.snLocalAttachment.select()
+            ..where((e) => e.rid.isIn(pendingFetch))
+            ..where((e) => e.cacheExpiredAt.isBiggerThanValue(DateTime.now())))
+          .get();
+      for (final item in dbResp) {
+        if (item.content.isAnalyzed) {
+          _cache[item.rid] = item.content;
         }
-        result[randomMapping[item.rid]!] = item;
+        result[randomMapping[item.rid]!] = item.content;
+        randomMapping.remove(item.rid);
       }
+      pendingFetch = randomMapping.keys;
     }
+    // Remote server
+    if (pendingFetch.isEmpty) return result;
+    final resp = await _sn.client.get(
+      '/cgi/uc/attachments',
+      queryParameters: {
+        'take': pendingFetch.length,
+        'id': pendingFetch.join(','),
+      },
+    );
+    final List<SnAttachment?> out = resp.data['data']
+        .map((e) => e['id'] == 0 ? null : SnAttachment.fromJson(e))
+        .cast<SnAttachment?>()
+        .toList();
+    for (final item in out) {
+      if (item == null) continue;
+      if (item.isAnalyzed) {
+        _cache[item.rid] = item;
+      }
+      result[randomMapping[item.rid]!] = item;
+    }
+    _saveToLocal(out.where((ele) => ele != null).cast());
 
     return result;
   }
@@ -274,6 +306,31 @@ class SnAttachmentProvider {
       'metadata': metadata ?? item.usermeta,
       'is_indexable': isIndexable ?? item.isIndexable,
     });
-    return SnAttachment.fromJson(resp.data);
+    final out = SnAttachment.fromJson(resp.data);
+    _saveToLocal([out]);
+    return out;
+  }
+
+  Future<void> _saveToLocal(Iterable<SnAttachment> out) async {
+    for (final ele in out) {
+      if (!ele.isAnalyzed || ele.destination == 0) continue;
+      await _dt.db.snLocalAttachment.insertOne(
+        SnLocalAttachmentCompanion.insert(
+          id: Value(ele.id),
+          rid: ele.rid,
+          uuid: ele.uuid,
+          content: ele,
+          accountId: ele.accountId,
+          cacheExpiredAt: DateTime.now().add(const Duration(days: 7)),
+        ),
+        onConflict: DoUpdate(
+          (_) => SnLocalAttachmentCompanion.custom(
+            content: Constant(jsonEncode(ele.toJson())),
+            cacheExpiredAt:
+                Constant(DateTime.now().add(const Duration(days: 7))),
+          ),
+        ),
+      );
+    }
   }
 }
