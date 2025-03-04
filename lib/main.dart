@@ -495,6 +495,11 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             cfg.calcDrawerSize(context);
           });
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (context.mounted) {
+              cfg.calcDrawerSize(context);
+            }
+          });
           return SizeChangedLayoutNotifier(
             child: widget.child,
           );
