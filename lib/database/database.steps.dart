@@ -140,8 +140,207 @@ i1.GeneratedColumn<bool> _column_9(String aliasedName) =>
         defaultConstraints: i1.GeneratedColumn.constraintIsAlways(
             'CHECK ("is_active" IN (0, 1))'),
         defaultValue: const CustomExpression('0'));
+
+final class Schema3 extends i0.VersionedSchema {
+  Schema3({required super.database}) : super(version: 3);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    snLocalChatChannel,
+    snLocalChatMessage,
+    snLocalChannelMember,
+    snLocalKeyPair,
+    snLocalAccount,
+    snLocalAttachment,
+    idxChannelAlias,
+    idxChatChannel,
+    idxAccountName,
+    idxAttachmentRid,
+    idxAttachmentAccount,
+  ];
+  late final Shape0 snLocalChatChannel = Shape0(
+      source: i0.VersionedTable(
+        entityName: 'sn_local_chat_channel',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_0,
+          _column_1,
+          _column_2,
+          _column_3,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape3 snLocalChatMessage = Shape3(
+      source: i0.VersionedTable(
+        entityName: 'sn_local_chat_message',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_0,
+          _column_4,
+          _column_10,
+          _column_2,
+          _column_3,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape4 snLocalChannelMember = Shape4(
+      source: i0.VersionedTable(
+        entityName: 'sn_local_channel_member',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_0,
+          _column_4,
+          _column_6,
+          _column_2,
+          _column_3,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape2 snLocalKeyPair = Shape2(
+      source: i0.VersionedTable(
+        entityName: 'sn_local_key_pair',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_5,
+          _column_6,
+          _column_7,
+          _column_8,
+          _column_9,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape5 snLocalAccount = Shape5(
+      source: i0.VersionedTable(
+        entityName: 'sn_local_account',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_0,
+          _column_11,
+          _column_2,
+          _column_3,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape6 snLocalAttachment = Shape6(
+      source: i0.VersionedTable(
+        entityName: 'sn_local_attachment',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_0,
+          _column_12,
+          _column_13,
+          _column_2,
+          _column_6,
+          _column_3,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  final i1.Index idxChannelAlias = i1.Index('idx_channel_alias',
+      'CREATE INDEX idx_channel_alias ON sn_local_chat_channel (alias)');
+  final i1.Index idxChatChannel = i1.Index('idx_chat_channel',
+      'CREATE INDEX idx_chat_channel ON sn_local_chat_message (channel_id)');
+  final i1.Index idxAccountName = i1.Index('idx_account_name',
+      'CREATE INDEX idx_account_name ON sn_local_account (name)');
+  final i1.Index idxAttachmentRid = i1.Index('idx_attachment_rid',
+      'CREATE INDEX idx_attachment_rid ON sn_local_attachment (rid)');
+  final i1.Index idxAttachmentAccount = i1.Index('idx_attachment_account',
+      'CREATE INDEX idx_attachment_account ON sn_local_attachment (account_id)');
+}
+
+class Shape3 extends i0.VersionedTable {
+  Shape3({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get channelId =>
+      columnsByName['channel_id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get senderId =>
+      columnsByName['sender_id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get content =>
+      columnsByName['content']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<DateTime> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
+}
+
+i1.GeneratedColumn<int> _column_10(String aliasedName) =>
+    i1.GeneratedColumn<int>('sender_id', aliasedName, true,
+        type: i1.DriftSqlType.int);
+
+class Shape4 extends i0.VersionedTable {
+  Shape4({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get channelId =>
+      columnsByName['channel_id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get accountId =>
+      columnsByName['account_id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get content =>
+      columnsByName['content']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<DateTime> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
+}
+
+class Shape5 extends i0.VersionedTable {
+  Shape5({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get content =>
+      columnsByName['content']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<DateTime> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
+}
+
+i1.GeneratedColumn<String> _column_11(String aliasedName) =>
+    i1.GeneratedColumn<String>('name', aliasedName, false,
+        type: i1.DriftSqlType.string);
+
+class Shape6 extends i0.VersionedTable {
+  Shape6({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get rid =>
+      columnsByName['rid']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get uuid =>
+      columnsByName['uuid']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get content =>
+      columnsByName['content']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get accountId =>
+      columnsByName['account_id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<DateTime> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
+}
+
+i1.GeneratedColumn<String> _column_12(String aliasedName) =>
+    i1.GeneratedColumn<String>('rid', aliasedName, false,
+        type: i1.DriftSqlType.string,
+        defaultConstraints: i1.GeneratedColumn.constraintIsAlways('UNIQUE'));
+i1.GeneratedColumn<String> _column_13(String aliasedName) =>
+    i1.GeneratedColumn<String>('uuid', aliasedName, false,
+        type: i1.DriftSqlType.string,
+        defaultConstraints: i1.GeneratedColumn.constraintIsAlways('UNIQUE'));
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
+  required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -150,6 +349,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from1To2(migrator, schema);
         return 2;
+      case 2:
+        final schema = Schema3(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from2To3(migrator, schema);
+        return 3;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -158,8 +362,10 @@ i0.MigrationStepWithVersion migrationSteps({
 
 i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
+  required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
 }) =>
     i0.VersionedSchema.stepByStepHelper(
         step: migrationSteps(
       from1To2: from1To2,
+      from2To3: from2To3,
     ));

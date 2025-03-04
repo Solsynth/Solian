@@ -28,6 +28,7 @@ class SnChannelConverter extends TypeConverter<SnChannel, String>
   }
 }
 
+@TableIndex(name: 'idx_channel_alias', columns: {#alias})
 class SnLocalChatChannel extends Table {
   IntColumn get id => integer().autoIncrement()();
 
@@ -63,12 +64,52 @@ class SnMessageConverter extends TypeConverter<SnChatMessage, String>
   }
 }
 
+@TableIndex(name: 'idx_chat_channel', columns: {#channelId})
 class SnLocalChatMessage extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   IntColumn get channelId => integer()();
 
+  IntColumn get senderId => integer().nullable()();
+
   TextColumn get content => text().map(const SnMessageConverter())();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+class SnChannelMemberConverter extends TypeConverter<SnChannelMember, String>
+    with JsonTypeConverter2<SnChannelMember, String, Map<String, Object?>> {
+  const SnChannelMemberConverter();
+
+  @override
+  SnChannelMember fromSql(String fromDb) {
+    return fromJson(jsonDecode(fromDb) as Map<String, dynamic>);
+  }
+
+  @override
+  String toSql(SnChannelMember value) {
+    return jsonEncode(toJson(value));
+  }
+
+  @override
+  SnChannelMember fromJson(Map<String, Object?> json) {
+    return SnChannelMember.fromJson(json);
+  }
+
+  @override
+  Map<String, Object?> toJson(SnChannelMember value) {
+    return value.toJson();
+  }
+}
+
+class SnLocalChannelMember extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  IntColumn get channelId => integer()();
+
+  IntColumn get accountId => integer()();
+
+  TextColumn get content => text().map(SnChannelMemberConverter())();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }

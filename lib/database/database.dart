@@ -1,19 +1,30 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:surface/database/account.dart';
+import 'package:surface/database/attachment.dart';
 import 'package:surface/database/chat.dart';
 import 'package:surface/database/database.steps.dart';
 import 'package:surface/database/keypair.dart';
 import 'package:surface/types/chat.dart';
+import 'package:surface/types/attachment.dart';
+import 'package:surface/types/account.dart';
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [SnLocalChatChannel, SnLocalChatMessage, SnLocalKeyPair])
+@DriftDatabase(tables: [
+  SnLocalChatChannel,
+  SnLocalChatMessage,
+  SnLocalChannelMember,
+  SnLocalKeyPair,
+  SnLocalAccount,
+  SnLocalAttachment,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
@@ -33,6 +44,8 @@ class AppDatabase extends _$AppDatabase {
     return MigrationStrategy(
       onUpgrade: stepByStep(from1To2: (m, schema) async {
         // Nothing else to do here
+      }, from2To3: (m, schema) async {
+        // Nothing else to do here, too
       }),
     );
   }
