@@ -60,6 +60,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final GlobalKey<ChatMessageInputState> _inputGlobalKey = GlobalKey();
   late final ChatMessageController _messageController;
 
+  late final NotificationProvider _nty = context.read<NotificationProvider>();
+  late final WebSocketProvider _ws = context.read<WebSocketProvider>();
+
   bool _isEncrypted = false;
 
   StreamSubscription? _wsSubscription;
@@ -91,8 +94,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       }
 
       if (!mounted) return;
-      final nty = context.read<NotificationProvider>();
-      nty.skippableNotifyChannel = _channel!.id;
+      _nty.skippableNotifyChannel = _channel!.id;
       final ws = context.read<WebSocketProvider>();
       if (_channel != null) {
         ws.conn?.sink.add(
@@ -229,8 +231,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ]);
     });
 
-    final ws = context.read<WebSocketProvider>();
-    _wsSubscription = ws.pk.stream.listen((event) {
+    _wsSubscription = _ws.pk.stream.listen((event) {
       switch (event.method) {
         case 'calls.new':
           final payload = SnChatCall.fromJson(event.payload!);
@@ -252,11 +253,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   void dispose() {
     _wsSubscription?.cancel();
     _messageController.dispose();
-    final nty = context.read<NotificationProvider>();
-    nty.skippableNotifyChannel = null;
-    final ws = context.read<WebSocketProvider>();
+    _nty.skippableNotifyChannel = null;
     if (_channel != null) {
-      ws.conn?.sink.add(
+      _ws.conn?.sink.add(
         jsonEncode(WebSocketPackage(
           method: 'events.unsubscribe',
           endpoint: 'im',

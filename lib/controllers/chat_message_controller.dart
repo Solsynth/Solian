@@ -357,6 +357,7 @@ class ChatMessageController extends ChangeNotifier {
     if (mostRecentMessage == null) {
       // Initial load
       await loadMessages(take: 20);
+      isAggressiveLoading = false;
       isCheckedUpdate = true;
       return;
     }
