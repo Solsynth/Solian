@@ -163,7 +163,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final ud = context.read<UserDirectoryProvider>();
     final ua = context.read<UserProvider>();
 
     if (!ua.isAuthorized) {
@@ -266,144 +265,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     final channel = _channels![idx];
                     final lastMessage = _lastMessages?[channel.id];
 
-                    if (channel.type == 1) {
-                      final otherMember =
-                          channel.members?.cast<SnChannelMember?>().firstWhere(
-                                (ele) => ele?.accountId != ua.user?.id,
-                                orElse: () => null,
-                              );
-
-                      return ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(ud
-                                      .getAccountFromCache(
-                                          otherMember?.accountId)
-                                      ?.nick ??
-                                  channel.name),
-                            ),
-                            const Gap(8),
-                            if (_unreadCounts?[channel.id] != null &&
-                                _unreadCounts![channel.id]! > 0)
-                              Badge(
-                                label: Text('${_unreadCounts![channel.id]}'),
-                              ),
-                          ],
-                        ),
-                        subtitle: lastMessage != null
-                            ? Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      lastMessage.body['text'] ??
-                                          'Unable preview',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const Gap(4),
-                                  Text(
-                                    DateFormat(
-                                      lastMessage.createdAt.toLocal().day ==
-                                              DateTime.now().day
-                                          ? 'HH:mm'
-                                          : lastMessage.createdAt
-                                                      .toLocal()
-                                                      .year ==
-                                                  DateTime.now().year
-                                              ? 'MM/dd'
-                                              : 'yy/MM/dd',
-                                    ).format(lastMessage.createdAt.toLocal()),
-                                    style: GoogleFonts.robotoMono(
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Text(
-                                channel.description,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16),
-                        leading: AccountImage(
-                          content: ud
-                              .getAccountFromCache(otherMember?.accountId)
-                              ?.avatar,
-                        ),
-                        onTap: () {
-                          _onTapChannel(channel);
-                        },
-                      );
-                    }
-
-                    return ListTile(
-                      title: Row(
-                        children: [
-                          Expanded(child: Text(channel.name)),
-                          const Gap(8),
-                          if (_unreadCounts?[channel.id] != null &&
-                              _unreadCounts![channel.id]! > 0)
-                            Badge(
-                              label: Text('${_unreadCounts![channel.id]}'),
-                            ),
-                        ],
-                      ),
-                      subtitle: lastMessage != null
-                          ? Row(
-                              children: [
-                                Badge(
-                                  label: Text(ud
-                                          .getAccountFromCache(
-                                              lastMessage.sender.accountId)
-                                          ?.nick ??
-                                      'unknown'.tr()),
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  textColor:
-                                      Theme.of(context).colorScheme.onPrimary,
-                                ),
-                                const Gap(6),
-                                Expanded(
-                                  child: Text(
-                                    lastMessage.body['text'] ??
-                                        'Unable preview',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const Gap(4),
-                                Text(
-                                  DateFormat(
-                                    lastMessage.createdAt.toLocal().day ==
-                                            DateTime.now().day
-                                        ? 'HH:mm'
-                                        : lastMessage.createdAt
-                                                    .toLocal()
-                                                    .year ==
-                                                DateTime.now().year
-                                            ? 'MM/dd'
-                                            : 'yy/MM/dd',
-                                  ).format(lastMessage.createdAt.toLocal()),
-                                  style: GoogleFonts.robotoMono(
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Text(
-                              channel.description,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 16),
-                      leading: AccountImage(
-                        content: channel.realm?.avatar,
-                        fallbackWidget: const Icon(Symbols.chat, size: 20),
-                      ),
+                    return _ChatChannelEntry(
+                      channel: channel,
+                      lastMessage: lastMessage,
+                      unreadCount: _unreadCounts?[channel.id],
                       onTap: () {
                         if (doExpand) {
                           _unreadCounts?[channel.id] = 0;
@@ -443,5 +308,103 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return chatList;
+  }
+}
+
+class _ChatChannelEntry extends StatelessWidget {
+  final SnChannel channel;
+  final int? unreadCount;
+  final SnChatMessage? lastMessage;
+  final Function? onTap;
+  const _ChatChannelEntry({
+    required this.channel,
+    this.unreadCount,
+    this.lastMessage,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final ud = context.read<UserDirectoryProvider>();
+    final ua = context.read<UserProvider>();
+
+    final otherMember = channel.type == 1
+        ? channel.members?.cast<SnChannelMember?>().firstWhere(
+              (ele) => ele?.accountId != ua.user?.id,
+              orElse: () => null,
+            )
+        : null;
+
+    final title = otherMember != null
+        ? ud.getAccountFromCache(otherMember.accountId)?.nick ?? channel.name
+        : channel.name;
+
+    return ListTile(
+      title: Row(
+        children: [
+          Expanded(child: Text(title)),
+          const Gap(8),
+          if (unreadCount != null && unreadCount! > 0)
+            Badge(
+              label: Text(unreadCount.toString()),
+            ),
+        ],
+      ),
+      subtitle: lastMessage != null
+          ? Row(
+              children: [
+                Badge(
+                  label: Text(ud
+                          .getAccountFromCache(lastMessage!.sender.accountId)
+                          ?.nick ??
+                      'unknown'.tr()),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  textColor: Theme.of(context).colorScheme.onPrimary,
+                ),
+                const Gap(6),
+                Expanded(
+                  child: Text(
+                    lastMessage!.body['algorithm'] == 'plain'
+                        ? lastMessage!.body['text'] ??
+                            'messageUnablePreview'.tr()
+                        : 'messageUnablePreviewEncrypted'.tr(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: lastMessage!.body['algorithm'] != 'plain' ||
+                            lastMessage!.body['text'] == null
+                        ? TextStyle(fontStyle: FontStyle.italic)
+                        : null,
+                  ),
+                ),
+                const Gap(4),
+                Text(
+                  DateFormat(
+                    lastMessage!.createdAt.toLocal().day == DateTime.now().day
+                        ? 'HH:mm'
+                        : lastMessage!.createdAt.toLocal().year ==
+                                DateTime.now().year
+                            ? 'MM/dd'
+                            : 'yy/MM/dd',
+                  ).format(lastMessage!.createdAt.toLocal()),
+                  style: GoogleFonts.robotoMono(
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            )
+          : Text(
+              channel.description,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      leading: AccountImage(
+        content: otherMember != null
+            ? ud.getAccountFromCache(otherMember.accountId)?.avatar
+            : channel.realm?.avatar,
+        fallbackWidget: const Icon(Symbols.chat, size: 20),
+      ),
+      onTap: () => onTap?.call(),
+    );
   }
 }

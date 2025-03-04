@@ -759,5 +759,7 @@
   "enrollNewKeyPairDescription": "生成一对新密钥对。",
   "keyPairHasPrivateKey": "有私钥",
   "decrypting": "解密中……",
-  "decryptingKeyNotFound": "未找到密钥对或交换失败，对方可能不在线"
+  "decryptingKeyNotFound": "未找到密钥对或交换失败，对方可能不在线",
+  "messageUnablePreview": "无法预览消息",
+  "messageUnablePreviewEncrypted": "无法预览加密消息"
 }
