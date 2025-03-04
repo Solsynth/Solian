@@ -284,7 +284,10 @@ class _StickerPackAddPopupState extends State<_StickerPackAddPopup> {
       );
       if (!mounted) return;
       context.showSnackbar('stickersAdded'.tr());
-      if (_pack?.stickers != null) stickers.putSticker(_pack!.stickers!);
+      if (_pack?.stickers != null) {
+        stickers.putSticker(
+            _pack!.stickers!.map((ele) => ele.copyWith(pack: _pack!)));
+      }
       Navigator.pop(context, true);
     } catch (err) {
       if (!mounted) return;
