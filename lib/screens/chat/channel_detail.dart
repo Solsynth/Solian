@@ -59,6 +59,7 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
     try {
       final ct = context.read<ChatChannelProvider>();
       final resp = await ct.getChannelProfile(_channel!);
+      _profile = resp;
       _notifyLevel = resp.notify;
       if (!mounted) return;
       final ud = context.read<UserDirectoryProvider>();
@@ -132,10 +133,11 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
     try {
       final ct = context.read<ChatChannelProvider>();
       final sn = context.read<SnNetworkProvider>();
-      await sn.client.put(
+      final resp = await sn.client.put(
         '/cgi/im/channels/${_channel!.keyPath}/members/me/notify',
         data: {'notify_level': value},
       );
+      _profile = SnChannelMember.fromJson(resp.data);
       _notifyLevel = value;
       await ct.updateChannelProfile(_profile!);
       if (!mounted) return;
@@ -409,11 +411,14 @@ class _ChannelProfileDetailDialogState
     setState(() => _isBusy = true);
 
     try {
+      final ct = context.read<ChatChannelProvider>();
       final sn = context.read<SnNetworkProvider>();
-      await sn.client.put(
+      final resp = await sn.client.put(
         '/cgi/im/channels/${widget.channel.keyPath}/members/me',
         data: {'nick': _nickController.text},
       );
+      final out = SnChannelMember.fromJson(resp.data);
+      await ct.updateChannelProfile(out);
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (err) {
