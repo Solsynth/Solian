@@ -21,6 +21,7 @@ import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/universal_image.dart';
 import 'package:surface/theme.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 final Map<String, (String, IconData, Color)> kBadgesMeta = {
   'company.staff': (
@@ -69,7 +70,8 @@ class UserScreen extends StatefulWidget {
   State<UserScreen> createState() => _UserScreenState();
 }
 
-class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateMixin {
+class _UserScreenState extends State<UserScreen>
+    with SingleTickerProviderStateMixin {
   late final ScrollController _scrollController = ScrollController();
 
   SnAccount? _account;
@@ -95,7 +97,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
   Future<void> _getCheckInRecords() async {
     try {
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/id/users/${widget.name}/check-in?take=14');
+      final resp =
+          await sn.client.get('/cgi/id/users/${widget.name}/check-in?take=14');
       setState(() {
         _records = List.from(
           resp.data['data']?.map((x) => SnCheckInRecord.fromJson(x)) ?? [],
@@ -128,7 +131,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
   Future<void> _fetchPublishers() async {
     try {
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/co/publishers?user=${widget.name}');
+      final resp =
+          await sn.client.get('/cgi/co/publishers?user=${widget.name}');
       _publishers = List<SnPublisher>.from(
         resp.data?.map((e) => SnPublisher.fromJson(e)) ?? [],
       );
@@ -174,7 +178,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
         'related': _account!.name,
       });
       if (!mounted) return;
-      context.showSnackbar('userBlocked'.tr(args: ['@${_account?.name ?? 'unknown'}']));
+      context.showSnackbar(
+          'userBlocked'.tr(args: ['@${_account?.name ?? 'unknown'}']));
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -190,9 +195,11 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
 
     try {
       final rel = context.read<SnRelationshipProvider>();
-      await rel.updateRelationship(_account!.id, 1, _accountRelationship?.permNodes ?? {});
+      await rel.updateRelationship(
+          _account!.id, 1, _accountRelationship?.permNodes ?? {});
       if (!mounted) return;
-      context.showSnackbar('userUnblocked'.tr(args: ['@${_account?.name ?? 'unknown'}']));
+      context.showSnackbar(
+          'userUnblocked'.tr(args: ['@${_account?.name ?? 'unknown'}']));
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -218,12 +225,14 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
   double _appBarBlur = 0.0;
 
   late final _appBarWidth = MediaQuery.of(context).size.width;
-  late final _appBarHeight = (_appBarWidth * kBannerAspectRatio).roundToDouble();
+  late final _appBarHeight =
+      (_appBarWidth * kBannerAspectRatio).roundToDouble();
 
   void _updateAppBarBlur() {
     if (_scrollController.offset > _appBarHeight) return;
     setState(() {
-      _appBarBlur = (_scrollController.offset / _appBarHeight * 10).clamp(0.0, 10.0);
+      _appBarBlur =
+          (_scrollController.offset / _appBarHeight * 10).clamp(0.0, 10.0);
     });
   }
 
@@ -291,18 +300,20 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                       text: TextSpan(children: [
                         TextSpan(
                           text: _account!.nick,
-                          style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                color: Colors.white,
-                                shadows: labelShadows,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge!.copyWith(
+                                    color: Colors.white,
+                                    shadows: labelShadows,
+                                  ),
                         ),
                         const TextSpan(text: '\n'),
                         TextSpan(
                           text: '@${_account!.name}',
-                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                color: Colors.white,
-                                shadows: labelShadows,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall!.copyWith(
+                                    color: Colors.white,
+                                    shadows: labelShadows,
+                                  ),
                         ),
                       ]),
                     ),
@@ -311,14 +322,21 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                   ? Stack(
                       fit: StackFit.expand,
                       children: [
-                        UniversalImage(
-                          sn.getAttachmentUrl(_account!.banner),
-                          fit: BoxFit.cover,
-                          height: imageHeight,
-                          width: _appBarWidth,
-                          cacheHeight: imageHeight,
-                          cacheWidth: _appBarWidth,
-                        ),
+                        if (_account!.banner.isNotEmpty)
+                          UniversalImage(
+                            sn.getAttachmentUrl(_account!.banner),
+                            fit: BoxFit.cover,
+                            height: imageHeight,
+                            width: _appBarWidth,
+                            cacheHeight: imageHeight,
+                            cacheWidth: _appBarWidth,
+                          )
+                        else
+                          Container(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHigh,
+                          ),
                         Positioned(
                           top: 0,
                           left: 0,
@@ -370,7 +388,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                       PopupMenuButton(
                         padding: EdgeInsets.zero,
                         style: ButtonStyle(
-                          visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                          visualDensity:
+                              VisualDensity(horizontal: -4, vertical: -4),
                         ),
                         itemBuilder: (context) => [
                           PopupMenuItem(
@@ -420,8 +439,12 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                       ),
                     ],
                   ).padding(right: 8),
-                  const Gap(12),
-                  Text(_account!.profile!.description).padding(horizontal: 8),
+                  if (_account!.profile!.description.isNotEmpty)
+                    const Gap(12)
+                  else
+                    const Gap(8),
+                  if (_account!.profile!.description.isNotEmpty)
+                    Text(_account!.profile!.description).padding(horizontal: 8),
                   const Gap(4),
                   Card(
                     child: Row(
@@ -430,7 +453,9 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                           Symbols.circle,
                           fill: 1,
                           size: 16,
-                          color: (_status?.isOnline ?? false) ? Colors.green : Colors.grey,
+                          color: (_status?.isOnline ?? false)
+                              ? Colors.green
+                              : Colors.grey,
                         ).padding(all: 4),
                         const Gap(8),
                         Text(
@@ -440,7 +465,9 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                                   : 'accountStatusOffline'.tr()
                               : 'loading'.tr(),
                         ),
-                        if (_status != null && !_status!.isOnline && _status!.lastSeenAt != null)
+                        if (_status != null &&
+                            !_status!.isOnline &&
+                            _status!.lastSeenAt != null)
                           Text(
                             'accountStatusLastSeen'.tr(args: [
                               _status!.lastSeenAt != null
@@ -461,12 +488,14 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                             richMessage: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: kBadgesMeta[ele.type]?.$1.tr() ?? 'unknown'.tr(),
+                                  text: kBadgesMeta[ele.type]?.$1.tr() ??
+                                      'unknown'.tr(),
                                 ),
                                 if (ele.metadata['title'] != null)
                                   TextSpan(
                                     text: '\n${ele.metadata['title']}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 TextSpan(text: '\n'),
                                 TextSpan(
@@ -475,7 +504,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                               ],
                             ),
                             child: Icon(
-                              kBadgesMeta[ele.type]?.$2 ?? Symbols.question_mark,
+                              kBadgesMeta[ele.type]?.$2 ??
+                                  Symbols.question_mark,
                               color: ele.metadata['color'] != null
                                   ? HexColor.fromHex(ele.metadata['color']!)
                                   : kBadgesMeta[ele.type]?.$3,
@@ -493,7 +523,9 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                         children: [
                           const Icon(Symbols.calendar_add_on),
                           const Gap(8),
-                          Text('publisherJoinedAt').tr(args: [DateFormat('y/M/d').format(_account!.createdAt)]),
+                          Text('publisherJoinedAt').tr(args: [
+                            DateFormat('y/M/d').format(_account!.createdAt)
+                          ]),
                         ],
                       ),
                       Row(
@@ -510,6 +542,44 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                           ]),
                         ],
                       ),
+                      if (_account!.profile!.gender.isNotEmpty ||
+                          _account!.profile!.pronouns.isNotEmpty)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Icon(Symbols.wc),
+                            const Gap(8),
+                            Text(
+                              _account!.profile!.gender.isNotEmpty
+                                  ? _account!.profile!.gender
+                                  : 'unknown'.tr(),
+                            ),
+                            Text(' · ').padding(horizontal: 4),
+                            Text(
+                              _account!.profile!.pronouns.isNotEmpty
+                                  ? _account!.profile!.pronouns
+                                  : 'unknown'.tr(),
+                            ),
+                          ],
+                        ),
+                      if (_account!.profile!.timeZone.isNotEmpty)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Icon(Symbols.schedule),
+                            const Gap(8),
+                            Text(_account!.profile!.timeZone),
+                          ],
+                        ),
+                      if (_account!.profile!.location.isNotEmpty)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Icon(Symbols.location_on),
+                            const Gap(8),
+                            Text(_account!.profile!.location),
+                          ],
+                        ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -526,17 +596,24 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                         children: [
                           const Icon(Symbols.star),
                           const Gap(8),
-                          Text('Lv${getLevelFromExp(_account?.profile?.experience ?? 0)}'),
+                          Text(
+                              'Lv${getLevelFromExp(_account?.profile?.experience ?? 0)}'),
                           const Gap(8),
-                          Text(calcLevelUpProgressLevel(_account?.profile?.experience ?? 0)).fontSize(11).opacity(0.5),
+                          Text(calcLevelUpProgressLevel(
+                                  _account?.profile?.experience ?? 0))
+                              .fontSize(11)
+                              .opacity(0.5),
                           const Gap(8),
                           Container(
                             width: double.infinity,
                             constraints: const BoxConstraints(maxWidth: 160),
                             child: LinearProgressIndicator(
-                              value: calcLevelUpProgress(_account?.profile?.experience ?? 0),
+                              value: calcLevelUpProgress(
+                                  _account?.profile?.experience ?? 0),
                               borderRadius: BorderRadius.circular(8),
-                              backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer,
                             ).alignment(Alignment.centerLeft),
                           ),
                         ],
@@ -545,6 +622,26 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                   ).padding(horizontal: 8),
                 ],
               ).padding(all: 16),
+            ),
+          if (_account?.profile?.links.isNotEmpty ?? false)
+            SliverToBoxAdapter(child: const Divider()),
+          if (_account?.profile?.links.isNotEmpty ?? false)
+            SliverToBoxAdapter(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _account!.profile!.links.entries.map((ele) {
+                  return ListTile(
+                    leading: const Icon(Symbols.link),
+                    title: Text(ele.key),
+                    subtitle: Text(ele.value),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                    onTap: () {
+                      launchUrlString(ele.value);
+                    },
+                  );
+                }).toList(),
+              ),
             ),
           SliverToBoxAdapter(child: const Divider()),
           const SliverGap(12),
@@ -556,7 +653,11 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                   return Text(
                     'accountCheckInNoRecords',
                     textAlign: TextAlign.center,
-                  ).tr().fontWeight(FontWeight.bold).center().padding(horizontal: 20, vertical: 8);
+                  )
+                      .tr()
+                      .fontWeight(FontWeight.bold)
+                      .center()
+                      .padding(horizontal: 20, vertical: 8);
                 }
                 return SizedBox(
                   width: double.infinity,
@@ -573,47 +674,55 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
           const SliverGap(12),
           SliverToBoxAdapter(child: const Divider()),
           const SliverGap(12),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('accountBadge').bold().fontSize(17).tr().padding(horizontal: 20, bottom: 4),
-                SizedBox(
-                  height: 80,
-                  width: double.infinity,
-                  child: ListView(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      for (final badge in _account?.badges ?? [])
-                        SizedBox(
-                          width: 280,
-                          child: Card(
-                            child: ListTile(
-                              leading: Icon(
-                                kBadgesMeta[badge.type]?.$2 ?? Symbols.question_mark,
-                                color: badge.metadata['color'] != null
-                                    ? HexColor.fromHex(badge.metadata['color']!)
-                                    : kBadgesMeta[badge.type]?.$3,
-                                fill: 1,
+          if (_account?.badges.isNotEmpty ?? false)
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('accountBadge')
+                      .bold()
+                      .fontSize(17)
+                      .tr()
+                      .padding(horizontal: 20, bottom: 4),
+                  SizedBox(
+                    height: 80,
+                    width: double.infinity,
+                    child: ListView(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        for (final badge in _account?.badges ?? [])
+                          SizedBox(
+                            width: 280,
+                            child: Card(
+                              child: ListTile(
+                                leading: Icon(
+                                  kBadgesMeta[badge.type]?.$2 ??
+                                      Symbols.question_mark,
+                                  color: badge.metadata['color'] != null
+                                      ? HexColor.fromHex(
+                                          badge.metadata['color']!)
+                                      : kBadgesMeta[badge.type]?.$3,
+                                  fill: 1,
+                                ),
+                                title: Text(
+                                  kBadgesMeta[badge.type]?.$1 ?? 'unknown',
+                                ).tr(),
+                                subtitle: badge.metadata['title'] != null
+                                    ? Text(badge.metadata['title'])
+                                    : Text(
+                                        DateFormat('y/M/d')
+                                            .format(badge.createdAt),
+                                      ),
                               ),
-                              title: Text(
-                                kBadgesMeta[badge.type]?.$1 ?? 'unknown',
-                              ).tr(),
-                              subtitle: badge.metadata['title'] != null
-                                  ? Text(badge.metadata['title'])
-                                  : Text(
-                                      DateFormat('y/M/d').format(badge.createdAt),
-                                    ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           const SliverGap(8),
           SliverToBoxAdapter(child: const Divider()),
           SliverList.builder(
@@ -699,7 +808,8 @@ class CheckInRecordChart extends StatelessWidget {
                   ),
                 )
                 .toList(),
-            getTooltipColor: (_) => Theme.of(context).colorScheme.surfaceContainerHigh,
+            getTooltipColor: (_) =>
+                Theme.of(context).colorScheme.surfaceContainerHigh,
           ),
         ),
         titlesData: FlTitlesData(

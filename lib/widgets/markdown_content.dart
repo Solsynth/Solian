@@ -140,28 +140,14 @@ class MarkdownTextContent extends StatelessWidget {
                     future: st.lookupSticker(alias),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        return GestureDetector(
-                            child: UniversalImage(
-                              sn.getAttachmentUrl(
-                                  snapshot.data!.attachment.rid),
-                              fit: BoxFit.contain,
-                              width: size,
-                              height: size,
-                              cacheHeight: size,
-                              cacheWidth: size,
-                            ),
-                            onTap: () {
-                              if (snapshot.data == null) return;
-                              context.pushTransparentRoute(
-                                AttachmentZoomView(
-                                  data: [snapshot.data!.attachment],
-                                  initialIndex: 0,
-                                  heroTags: [const Uuid().v4()],
-                                ),
-                                backgroundColor: Colors.black.withOpacity(0.7),
-                                rootNavigator: true,
-                              );
-                            });
+                        return UniversalImage(
+                          sn.getAttachmentUrl(snapshot.data!.attachment.rid),
+                          fit: BoxFit.contain,
+                          width: size,
+                          height: size,
+                          cacheHeight: size,
+                          cacheWidth: size,
+                        );
                       }
                       return const SizedBox.shrink();
                     },
