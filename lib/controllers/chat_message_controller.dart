@@ -287,23 +287,26 @@ class ChatMessageController extends ChangeNotifier {
     };
 
     // Mock the message locally
-    final createdAt = DateTime.now();
-    final message = SnChatMessage(
-      id: 0,
-      createdAt: createdAt,
-      updatedAt: createdAt,
-      deletedAt: null,
-      uuid: nonce,
-      body: body,
-      type: type,
-      channel: channel!,
-      channelId: channel!.id,
-      sender: profile!,
-      senderId: profile!.id,
-      quoteEventId: quoteId,
-      relatedEventId: relatedId,
-    );
-    _addUnconfirmedMessage(message);
+    // Do not mock the editing message
+    if (editingMessage == null) {
+      final createdAt = DateTime.now();
+      final message = SnChatMessage(
+        id: 0,
+        createdAt: createdAt,
+        updatedAt: createdAt,
+        deletedAt: null,
+        uuid: nonce,
+        body: body,
+        type: type,
+        channel: channel!,
+        channelId: channel!.id,
+        sender: profile!,
+        senderId: profile!.id,
+        quoteEventId: quoteId,
+        relatedEventId: relatedId,
+      );
+      _addUnconfirmedMessage(message);
+    }
 
     // Send to server
     try {
