@@ -47,7 +47,9 @@ final class Schema2 extends i0.VersionedSchema {
         entityName: 'sn_local_key_pair',
         withoutRowId: false,
         isStrict: false,
-        tableConstraints: [],
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
         columns: [
           _column_5,
           _column_6,

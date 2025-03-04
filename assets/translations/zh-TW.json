@@ -756,6 +756,8 @@
   "accountKeyPairs": "密鑰對",
   "accountKeyPairsDescription": "管理用於加密信息的密鑰對。",
   "enrollNewKeyPair": "新建密鑰對",
-  "enrollNewKeyPairDescription": "生成一對新密鑰對，覆蓋當前的；如果已有一個密鑰將會丟棄舊密鑰的私鑰。",
-  "keyPairHasPrivateKey": "有私鑰"
+  "enrollNewKeyPairDescription": "生成一對新密鑰對。",
+  "keyPairHasPrivateKey": "有私鑰",
+  "decrypting": "解密中……",
+  "decryptingKeyNotFound": "未找到密鑰對或交換失敗，對方可能不在線"
 }

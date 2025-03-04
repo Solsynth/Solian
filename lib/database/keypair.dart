@@ -10,4 +10,7 @@ class SnLocalKeyPair extends Table {
   TextColumn get privateKey => text().nullable()();
 
   BoolColumn get isActive => boolean().withDefault(Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
 }

@@ -757,5 +757,7 @@
   "accountKeyPairsDescription": "管理用于加密信息的密钥对。",
   "enrollNewKeyPair": "新建密钥对",
   "enrollNewKeyPairDescription": "生成一对新密钥对。",
-  "keyPairHasPrivateKey": "有私钥"
+  "keyPairHasPrivateKey": "有私钥",
+  "decrypting": "解密中……",
+  "decryptingKeyNotFound": "未找到密钥对或交换失败，对方可能不在线"
 }

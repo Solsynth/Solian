@@ -7,6 +7,8 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
+  - fast_rsa (0.6.0):
+    - FlutterMacOS
   - file_picker (0.0.1):
     - FlutterMacOS
   - file_saver (0.0.1):
@@ -23,14 +25,14 @@ PODS:
   - Firebase/Messaging (11.8.0):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 11.8.0)
-  - firebase_analytics (11.4.3):
+  - firebase_analytics (11.4.4):
     - Firebase/Analytics (= 11.8.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_core (3.12.0):
+  - firebase_core (3.12.1):
     - Firebase/CoreOnly (~> 11.8.0)
     - FlutterMacOS
-  - firebase_messaging (15.2.3):
+  - firebase_messaging (15.2.4):
     - Firebase/CoreOnly (~> 11.8.0)
     - Firebase/Messaging (~> 11.8.0)
     - firebase_core
@@ -76,6 +78,8 @@ PODS:
   - flutter_inappwebview_macos (0.0.1):
     - FlutterMacOS
     - OrderedSet (~> 6.0.3)
+  - flutter_timezone (0.1.0):
+    - FlutterMacOS
   - flutter_udid (0.0.1):
     - FlutterMacOS
     - SAMKeychain
@@ -85,6 +89,8 @@ PODS:
   - FlutterMacOS (1.0.0)
   - gal (1.0.0):
     - Flutter
+    - FlutterMacOS
+  - geolocator_apple (1.2.0):
     - FlutterMacOS
   - GoogleAppMeasurement (11.8.0):
     - GoogleAppMeasurement/AdIdSupport (= 11.8.0)
@@ -213,6 +219,7 @@ DEPENDENCIES:
   - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
   - croppy (from `Flutter/ephemeral/.symlinks/plugins/croppy/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
+  - fast_rsa (from `Flutter/ephemeral/.symlinks/plugins/fast_rsa/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - file_saver (from `Flutter/ephemeral/.symlinks/plugins/file_saver/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
@@ -220,10 +227,12 @@ DEPENDENCIES:
   - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
   - firebase_messaging (from `Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos`)
   - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
+  - flutter_timezone (from `Flutter/ephemeral/.symlinks/plugins/flutter_timezone/macos`)
   - flutter_udid (from `Flutter/ephemeral/.symlinks/plugins/flutter_udid/macos`)
   - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gal (from `Flutter/ephemeral/.symlinks/plugins/gal/darwin`)
+  - geolocator_apple (from `Flutter/ephemeral/.symlinks/plugins/geolocator_apple/macos`)
   - hotkey_manager_macos (from `Flutter/ephemeral/.symlinks/plugins/hotkey_manager_macos/macos`)
   - in_app_review (from `Flutter/ephemeral/.symlinks/plugins/in_app_review/macos`)
   - livekit_client (from `Flutter/ephemeral/.symlinks/plugins/livekit_client/macos`)
@@ -272,6 +281,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/croppy/macos
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
+  fast_rsa:
+    :path: Flutter/ephemeral/.symlinks/plugins/fast_rsa/macos
   file_picker:
     :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   file_saver:
@@ -286,6 +297,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos
   flutter_inappwebview_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
+  flutter_timezone:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_timezone/macos
   flutter_udid:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_udid/macos
   flutter_webrtc:
@@ -294,6 +307,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   gal:
     :path: Flutter/ephemeral/.symlinks/plugins/gal/darwin
+  geolocator_apple:
+    :path: Flutter/ephemeral/.symlinks/plugins/geolocator_apple/macos
   hotkey_manager_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/hotkey_manager_macos/macos
   in_app_review:
@@ -338,23 +353,26 @@ SPEC CHECKSUMS:
   connectivity_plus: 0a976dfd033b59192912fa3c6c7b54aab5093802
   croppy: 25a638bd7d05411d8c697f481568f261037694fc
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
+  fast_rsa: 47a50bec1042c8c01726007dc0590a078418f997
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_saver: 44e6fbf666677faf097302460e214e977fdd977b
   file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
   Firebase: d80354ed7f6df5f9aca55e9eb47cc4b634735eaf
-  firebase_analytics: 1a71372a9735d7046d2c69db848a8d178f9fb587
-  firebase_core: 68e1d27035b096239f147a041643e14e156f1481
-  firebase_messaging: 89b5e0e28413dd878a58d2f286cdc03887b5d467
+  firebase_analytics: 75b9d9ea8b21ce77898a3a46910e2051e93db8e1
+  firebase_core: 1b573eac37729348cdc472516991dd7e269ae37e
+  firebase_messaging: 0620038ea399ceae2218c9087fca00a28f576209
   FirebaseAnalytics: 4fd42def128146e24e480e89f310e3d8534ea42b
   FirebaseCore: 99fe0c4b44a39f37d99e6404e02009d2db5d718d
   FirebaseCoreInternal: df24ce5af28864660ecbd13596fc8dd3a8c34629
   FirebaseInstallations: 6c963bd2a86aca0481eef4f48f5a4df783ae5917
   FirebaseMessaging: 487b634ccdf6f7b7ff180fdcb2a9935490f764e8
   flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
+  flutter_timezone: 62400baa441155f2a4144188648f2ff861649747
   flutter_udid: 2e7b3da4b5fdfba86a396b97898f5fe8f4ec1a52
   flutter_webrtc: d55fd3f5c75b42940b6b4b2cf376a5797398d1f8
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   gal: 6a522c75909f1244732d4596d11d6a2f86ff37a5
+  geolocator_apple: 72a78ae3f3e4ec0db62117bd93e34523f5011d58
   GoogleAppMeasurement: fc0817122bd4d4189164f85374e06773b9561896
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d

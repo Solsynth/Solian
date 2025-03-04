@@ -481,7 +481,7 @@ class SnLocalKeyPair extends Table
   String get actualTableName => $name;
   static const String $name = 'sn_local_key_pair';
   @override
-  Set<GeneratedColumn> get $primaryKey => const {};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   SnLocalKeyPairData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';

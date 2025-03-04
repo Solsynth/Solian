@@ -9,6 +9,7 @@ import 'package:popover/popover.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/config.dart';
+import 'package:surface/providers/keypair.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/screens/account/profile_page.dart';
@@ -106,30 +107,34 @@ class ChatMessage extends StatelessWidget {
                     GestureDetector(
                       child: AccountImage(
                         content: user?.avatar,
-                        badge:
-                            (user?.badges.isNotEmpty ?? false)
-                                ? Icon(
-                                  kBadgesMeta[user!.badges.first.type]?.$2 ?? Symbols.question_mark,
-                                  color: kBadgesMeta[user.badges.first.type]?.$3,
-                                  fill: 1,
-                                  size: 18,
-                                  shadows: [
-                                    Shadow(offset: Offset(1, 1), blurRadius: 5.0, color: Color.fromARGB(200, 0, 0, 0)),
-                                  ],
-                                )
-                                : null,
+                        badge: (user?.badges.isNotEmpty ?? false)
+                            ? Icon(
+                                kBadgesMeta[user!.badges.first.type]?.$2 ??
+                                    Symbols.question_mark,
+                                color: kBadgesMeta[user.badges.first.type]?.$3,
+                                fill: 1,
+                                size: 18,
+                                shadows: [
+                                  Shadow(
+                                      offset: Offset(1, 1),
+                                      blurRadius: 5.0,
+                                      color: Color.fromARGB(200, 0, 0, 0)),
+                                ],
+                              )
+                            : null,
                       ),
                       onTap: () {
                         if (user == null) return;
                         showPopover(
-                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
                           context: context,
                           transition: PopoverTransition.other,
-                          bodyBuilder:
-                              (context) => SizedBox(
-                                width: math.min(400, MediaQuery.of(context).size.width - 10),
-                                child: AccountPopoverCard(data: user),
-                              ),
+                          bodyBuilder: (context) => SizedBox(
+                            width: math.min(
+                                400, MediaQuery.of(context).size.width - 10),
+                            child: AccountPopoverCard(data: user),
+                          ),
                           direction: PopoverDirection.bottom,
                           arrowHeight: 5,
                           arrowWidth: 15,
@@ -150,12 +155,19 @@ class ChatMessage extends StatelessWidget {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                if (isCompact) AccountImage(content: user?.avatar, radius: 12).padding(right: 8),
+                                if (isCompact)
+                                  AccountImage(
+                                          content: user?.avatar, radius: 12)
+                                      .padding(right: 8),
                                 Text(
-                                  (data.sender.nick?.isNotEmpty ?? false) ? data.sender.nick! : user?.nick ?? 'unknown',
+                                  (data.sender.nick?.isNotEmpty ?? false)
+                                      ? data.sender.nick!
+                                      : user?.nick ?? 'unknown',
                                 ).bold(),
                                 const Gap(8),
-                                Text(dateFormatter.format(data.createdAt.toLocal())).fontSize(13),
+                                Text(dateFormatter
+                                        .format(data.createdAt.toLocal()))
+                                    .fontSize(13),
                               ],
                             ).height(21),
                           if (isCompact) const Gap(8),
@@ -164,10 +176,14 @@ class ChatMessage extends StatelessWidget {
                               Container(
                                 constraints: BoxConstraints(maxWidth: 360),
                                 decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                  border: Border.all(color: Theme.of(context).dividerColor, width: 1),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)),
+                                  border: Border.all(
+                                      color: Theme.of(context).dividerColor,
+                                      width: 1),
                                 ),
-                                padding: const EdgeInsets.only(left: 4, right: 4, top: 8, bottom: 6),
+                                padding: const EdgeInsets.only(
+                                    left: 4, right: 4, top: 8, bottom: 6),
                                 child: ChatMessage(
                                   data: data.preload!.quoteEvent!,
                                   isCompact: true,
@@ -179,11 +195,11 @@ class ChatMessage extends StatelessWidget {
                             ).padding(bottom: 4, top: 4),
                           switch (data.type) {
                             'messages.new' => _ChatMessageText(
-                              data: data,
-                              onReply: onReply,
-                              onEdit: onEdit,
-                              onDelete: onDelete,
-                            ),
+                                data: data,
+                                onReply: onReply,
+                                onEdit: onEdit,
+                                onDelete: onDelete,
+                              ),
                             _ => _ChatMessageSystemNotify(data: data),
                           },
                         ],
@@ -204,9 +220,13 @@ class ChatMessage extends StatelessWidget {
                 bordered: true,
                 maxHeight: 360,
                 maxWidth: 480 - 48 - padding.left,
-                padding: padding.copyWith(top: 8, left: isCompact ? padding.left : 48 + padding.left),
+                padding: padding.copyWith(
+                    top: 8, left: isCompact ? padding.left : 48 + padding.left),
               ),
-            if (!hasMerged && !isCompact) const Gap(12) else if (!isCompact) const Gap(8),
+            if (!hasMerged && !isCompact)
+              const Gap(12)
+            else if (!isCompact)
+              const Gap(8),
           ],
         ),
       ),
@@ -220,7 +240,8 @@ class _ChatMessageText extends StatelessWidget {
   final Function(SnChatMessage)? onEdit;
   final Function(SnChatMessage)? onDelete;
 
-  const _ChatMessageText({required this.data, this.onReply, this.onEdit, this.onDelete});
+  const _ChatMessageText(
+      {required this.data, this.onReply, this.onEdit, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -234,7 +255,8 @@ class _ChatMessageText extends StatelessWidget {
         children: [
           SelectionArea(
             contextMenuBuilder: (context, editableTextState) {
-              final List<ContextMenuButtonItem> items = editableTextState.contextMenuButtonItems;
+              final List<ContextMenuButtonItem> items =
+                  editableTextState.contextMenuButtonItems;
 
               if (onReply != null) {
                 items.insert(
@@ -278,13 +300,18 @@ class _ChatMessageText extends StatelessWidget {
                 buttonItems: items,
               );
             },
-            child: MarkdownTextContent(
-              content: data.body['text'],
-              isAutoWarp: true,
-              isEnlargeSticker: RegExp(r"^:([-\w]+):$").hasMatch(data.body['text'] ?? ''),
-            ),
+            child: switch (data.body['algorithm']) {
+              'rsa' => _ChatDecryptMessage(message: data),
+              _ => MarkdownTextContent(
+                  content: data.body['text'],
+                  isAutoWarp: true,
+                  isEnlargeSticker:
+                      RegExp(r"^:([-\w]+):$").hasMatch(data.body['text'] ?? ''),
+                ),
+            },
           ),
-          if (data.updatedAt != data.createdAt) Text('messageEditedHint'.tr()).fontSize(13).opacity(0.75),
+          if (data.updatedAt != data.createdAt)
+            Text('messageEditedHint'.tr()).fontSize(13).opacity(0.75),
         ],
       );
     } else if (data.body['attachments']?.isNotEmpty) {
@@ -335,14 +362,19 @@ class _ChatMessageSystemNotify extends StatelessWidget {
         ).opacity(0.75);
       case 'calls.start':
         return Row(
-          children: [const Icon(Symbols.call, size: 20), const Gap(4), Text('callMessageStarted'.tr())],
+          children: [
+            const Icon(Symbols.call, size: 20),
+            const Gap(4),
+            Text('callMessageStarted'.tr())
+          ],
         ).opacity(0.75);
       case 'calls.end':
         return Row(
           children: [
             const Icon(Symbols.call_end, size: 20),
             const Gap(4),
-            Text('callMessageEnded'.tr(args: [_formatDuration(Duration(seconds: data.body['last']))])),
+            Text('callMessageEnded'.tr(
+                args: [_formatDuration(Duration(seconds: data.body['last']))])),
           ],
         ).opacity(0.75);
       default:
@@ -354,5 +386,35 @@ class _ChatMessageSystemNotify extends StatelessWidget {
           ],
         ).opacity(0.75);
     }
+  }
+}
+
+class _ChatDecryptMessage extends StatelessWidget {
+  final SnChatMessage message;
+  const _ChatDecryptMessage({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final kp = context.read<KeyPairProvider>();
+    return FutureBuilder(
+      future: kp.decryptText(
+        message.body['text'],
+        message.body['keypair_id'],
+        kpOwner: message.sender.accountId,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text('decryptingKeyNotFound'.tr());
+        }
+        if (!snapshot.hasData) {
+          return Text('decrypting'.tr());
+        }
+        return MarkdownTextContent(
+          content: snapshot.data!,
+          isAutoWarp: true,
+          isEnlargeSticker: RegExp(r"^:([-\w]+):$").hasMatch(snapshot.data!),
+        );
+      },
+    );
   }
 }

@@ -759,5 +759,7 @@
   "accountKeyPairsDescription": "Manage the key pairs which used to encrypt messages.",
   "enrollNewKeyPair": "Enroll New One",
   "enrollNewKeyPairDescription": "Generate a new key pair.",
-  "keyPairHasPrivateKey": "With private key"
+  "keyPairHasPrivateKey": "With private key",
+  "decrypting": "Decrypting……",
+  "decryptingKeyNotFound": "Key not found or exchange failed, the other party may not be online"
 }

@@ -53,12 +53,11 @@ class WebSocketProvider extends ChangeNotifier {
     try {
       _connectCompleter = Completer<void>();
 
-      final clientId = await FlutterUdid.consistentUdid;
       final atk = await _sn.getFreshAtk();
       final uri = Uri.parse(
         kIsWeb
             ? '${_sn.client.options.baseUrl.replaceFirst('http', 'ws')}/ws?tk=$atk'
-            : '${_sn.client.options.baseUrl.replaceFirst('http', 'ws')}/ws?clientId=${clientId}tk=$atk',
+            : '${_sn.client.options.baseUrl.replaceFirst('http', 'ws')}/ws?clientId=${await FlutterUdid.consistentUdid}tk=$atk',
       );
 
       isBusy = true;

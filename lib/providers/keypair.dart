@@ -35,24 +35,35 @@ class KeyPairProvider {
         case 'kex.ack':
           ackKeyExchange(event);
           break;
-        case 'key.ask':
+        case 'kex.ask':
           replyAskKeyExchange(event);
           break;
       }
     });
   }
 
-  Future<String> decryptText(String text, String kpId) async {
+  Future<String> decryptText(String text, String kpId, {int? kpOwner}) async {
+    String? publicKey;
     final kp = await (_dt.db.snLocalKeyPair.select()
           ..where((e) => e.id.equals(kpId)))
         .getSingleOrNull();
-    if (kp == null) throw Exception('Key pair not found');
-    return await RSA.decryptPKCS1v15(text, kp.privateKey!);
+    if (kp == null) {
+      if (kpOwner != null) {
+        final out = await askKeyExchange(kpOwner, kpId);
+        publicKey = out.publicKey;
+      }
+    } else {
+      publicKey = kp.publicKey;
+    }
+    if (publicKey == null) {
+      throw Exception('Key pair not found');
+    }
+    return await RSA.decryptPKCS1v15(text, publicKey);
   }
 
   Future<String> encryptText(String text) async {
     if (activeKp == null) throw Exception('No active key pair');
-    return await RSA.encryptPKCS1v15(text, activeKp!.publicKey);
+    return await RSA.encryptPKCS1v15(text, activeKp!.privateKey!);
   }
 
   final Map<String, Completer<SnKeyPair>> _requests = {};
@@ -65,7 +76,7 @@ class KeyPairProvider {
 
     _ws.conn?.sink.add(
       jsonEncode(WebSocketPackage(
-        method: 'key.ask',
+        method: 'kex.ask',
         endpoint: 'id',
         payload: {
           'keypair_id': kpId,
@@ -105,12 +116,7 @@ class KeyPairProvider {
         publicKey: kpMeta.publicKey,
         privateKey: Value(kpMeta.privateKey),
       ),
-      onConflict: DoUpdate(
-        (_) => SnLocalKeyPairCompanion.custom(
-          publicKey: Constant(kpMeta.publicKey),
-          privateKey: Constant(kpMeta.privateKey),
-        ),
-      ),
+      onConflict: DoNothing(),
     );
   }
 
@@ -208,8 +214,10 @@ class KeyPairProvider {
     final kpMeta = SnKeyPair(
       id: id,
       accountId: _ua.user!.id,
-      publicKey: kp.publicKey,
-      privateKey: kp.privateKey,
+      // This is work as expected
+      // We need to share private key to let everyone can decode the message
+      publicKey: kp.privateKey,
+      privateKey: kp.publicKey,
     );
 
     // Save the keypair to the local database
