@@ -50,7 +50,8 @@ class _AccountBadgesScreenState extends State<AccountBadgesScreen> {
       final sn = context.read<SnNetworkProvider>();
       await sn.client.post('/cgi/id/badges/${badge.id}/active');
       if (!mounted) return;
-      context.showSnackbar('badgeActivated'.tr(args: [(kBadgesMeta[badge.type]?.$1 ?? 'unknown').tr()]));
+      context.showSnackbar('badgeActivated'
+          .tr(args: [(kBadgesMeta[badge.type]?.$1 ?? 'unknown').tr()]));
       await _fetchBadges();
     } catch (err) {
       if (!mounted) return;
@@ -90,7 +91,12 @@ class _AccountBadgesScreenState extends State<AccountBadgesScreen> {
                         title: Text(
                           kBadgesMeta[badge.type]?.$1 ?? 'unknown',
                         ).tr(),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                        contentPadding: const EdgeInsets.only(
+                          left: 24,
+                          right: 16,
+                          top: 4,
+                          bottom: 4,
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
