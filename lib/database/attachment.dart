@@ -42,4 +42,6 @@ class SnLocalAttachment extends Table {
   IntColumn get accountId => integer()();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  DateTimeColumn get cacheExpiredAt => dateTime()();
 }

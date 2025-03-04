@@ -37,4 +37,6 @@ class SnLocalAccount extends Table {
   TextColumn get content => text().map(const SnAccountConverter())();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  DateTimeColumn get cacheExpiredAt => dateTime()();
 }

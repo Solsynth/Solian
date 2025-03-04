@@ -151,6 +151,8 @@ final class Schema3 extends i0.VersionedSchema {
     snLocalKeyPair,
     snLocalAccount,
     snLocalAttachment,
+    snLocalSticker,
+    snLocalStickerPack,
     idxChannelAlias,
     idxChatChannel,
     idxAccountName,
@@ -200,6 +202,7 @@ final class Schema3 extends i0.VersionedSchema {
           _column_6,
           _column_2,
           _column_3,
+          _column_11,
         ],
         attachedDatabase: database,
       ),
@@ -230,9 +233,10 @@ final class Schema3 extends i0.VersionedSchema {
         tableConstraints: [],
         columns: [
           _column_0,
-          _column_11,
+          _column_12,
           _column_2,
           _column_3,
+          _column_11,
         ],
         attachedDatabase: database,
       ),
@@ -245,10 +249,41 @@ final class Schema3 extends i0.VersionedSchema {
         tableConstraints: [],
         columns: [
           _column_0,
-          _column_12,
           _column_13,
+          _column_14,
           _column_2,
           _column_6,
+          _column_3,
+          _column_11,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape7 snLocalSticker = Shape7(
+      source: i0.VersionedTable(
+        entityName: 'sn_local_sticker',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_0,
+          _column_1,
+          _column_15,
+          _column_2,
+          _column_3,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape8 snLocalStickerPack = Shape8(
+      source: i0.VersionedTable(
+        entityName: 'sn_local_sticker_pack',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_0,
+          _column_2,
           _column_3,
         ],
         attachedDatabase: database,
@@ -296,7 +331,13 @@ class Shape4 extends i0.VersionedTable {
       columnsByName['content']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<DateTime> get createdAt =>
       columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
+  i1.GeneratedColumn<DateTime> get cacheExpiredAt =>
+      columnsByName['cache_expired_at']! as i1.GeneratedColumn<DateTime>;
 }
+
+i1.GeneratedColumn<DateTime> _column_11(String aliasedName) =>
+    i1.GeneratedColumn<DateTime>('cache_expired_at', aliasedName, false,
+        type: i1.DriftSqlType.dateTime);
 
 class Shape5 extends i0.VersionedTable {
   Shape5({required super.source, required super.alias}) : super.aliased();
@@ -308,9 +349,11 @@ class Shape5 extends i0.VersionedTable {
       columnsByName['content']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<DateTime> get createdAt =>
       columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
+  i1.GeneratedColumn<DateTime> get cacheExpiredAt =>
+      columnsByName['cache_expired_at']! as i1.GeneratedColumn<DateTime>;
 }
 
-i1.GeneratedColumn<String> _column_11(String aliasedName) =>
+i1.GeneratedColumn<String> _column_12(String aliasedName) =>
     i1.GeneratedColumn<String>('name', aliasedName, false,
         type: i1.DriftSqlType.string);
 
@@ -328,16 +371,47 @@ class Shape6 extends i0.VersionedTable {
       columnsByName['account_id']! as i1.GeneratedColumn<int>;
   i1.GeneratedColumn<DateTime> get createdAt =>
       columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
+  i1.GeneratedColumn<DateTime> get cacheExpiredAt =>
+      columnsByName['cache_expired_at']! as i1.GeneratedColumn<DateTime>;
 }
 
-i1.GeneratedColumn<String> _column_12(String aliasedName) =>
+i1.GeneratedColumn<String> _column_13(String aliasedName) =>
     i1.GeneratedColumn<String>('rid', aliasedName, false,
         type: i1.DriftSqlType.string,
         defaultConstraints: i1.GeneratedColumn.constraintIsAlways('UNIQUE'));
-i1.GeneratedColumn<String> _column_13(String aliasedName) =>
+i1.GeneratedColumn<String> _column_14(String aliasedName) =>
     i1.GeneratedColumn<String>('uuid', aliasedName, false,
         type: i1.DriftSqlType.string,
         defaultConstraints: i1.GeneratedColumn.constraintIsAlways('UNIQUE'));
+
+class Shape7 extends i0.VersionedTable {
+  Shape7({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get alias =>
+      columnsByName['alias']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get fullAlias =>
+      columnsByName['full_alias']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get content =>
+      columnsByName['content']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<DateTime> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
+}
+
+i1.GeneratedColumn<String> _column_15(String aliasedName) =>
+    i1.GeneratedColumn<String>('full_alias', aliasedName, false,
+        type: i1.DriftSqlType.string);
+
+class Shape8 extends i0.VersionedTable {
+  Shape8({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get content =>
+      columnsByName['content']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<DateTime> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<DateTime>;
+}
+
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,

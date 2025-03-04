@@ -6,6 +6,7 @@ import 'package:surface/database/attachment.dart';
 import 'package:surface/database/chat.dart';
 import 'package:surface/database/database.steps.dart';
 import 'package:surface/database/keypair.dart';
+import 'package:surface/database/sticker.dart';
 import 'package:surface/types/chat.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/types/account.dart';
@@ -19,6 +20,8 @@ part 'database.g.dart';
   SnLocalKeyPair,
   SnLocalAccount,
   SnLocalAttachment,
+  SnLocalSticker,
+  SnLocalStickerPack,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());

@@ -48,6 +48,7 @@ class UserDirectoryProvider {
     if (plannedQuery.isEmpty) return out;
     final dbResp = await (_dt.db.snLocalAccount.select()
           ..where((e) => e.id.isIn(plannedQuery))
+          ..where((e) => e.cacheExpiredAt.isBiggerThanValue(DateTime.now()))
           ..limit(plannedQuery.length))
         .get();
     for (var idx = 0; idx < out.length; idx++) {
@@ -91,7 +92,8 @@ class UserDirectoryProvider {
     }
     // On-disk cache
     final dbResp = await (_dt.db.snLocalAccount.select()
-          ..where((e) => e.id.equals(id)))
+          ..where((e) => e.id.equals(id))
+          ..where((e) => e.cacheExpiredAt.isBiggerThanValue(DateTime.now())))
         .getSingleOrNull();
     if (dbResp != null) {
       _cache[dbResp.id] = dbResp.content;
@@ -130,6 +132,7 @@ class UserDirectoryProvider {
           id: Value(ele.id),
           name: ele.name,
           content: ele,
+          cacheExpiredAt: DateTime.now().add(const Duration(hours: 1)),
         ),
         onConflict: DoUpdate(
           (_) => SnLocalAccountCompanion.custom(

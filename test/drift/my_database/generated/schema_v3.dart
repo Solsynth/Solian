@@ -510,9 +510,12 @@ class SnLocalChannelMember extends Table
       requiredDuringInsert: false,
       defaultValue: const CustomExpression(
           'CAST(strftime(\'%s\', CURRENT_TIMESTAMP) AS INTEGER)'));
+  late final GeneratedColumn<DateTime> cacheExpiredAt =
+      GeneratedColumn<DateTime>('cache_expired_at', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, channelId, accountId, content, createdAt];
+      [id, channelId, accountId, content, createdAt, cacheExpiredAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -535,6 +538,8 @@ class SnLocalChannelMember extends Table
           .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      cacheExpiredAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}cache_expired_at'])!,
     );
   }
 
@@ -551,12 +556,14 @@ class SnLocalChannelMemberData extends DataClass
   final int accountId;
   final String content;
   final DateTime createdAt;
+  final DateTime cacheExpiredAt;
   const SnLocalChannelMemberData(
       {required this.id,
       required this.channelId,
       required this.accountId,
       required this.content,
-      required this.createdAt});
+      required this.createdAt,
+      required this.cacheExpiredAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -565,6 +572,7 @@ class SnLocalChannelMemberData extends DataClass
     map['account_id'] = Variable<int>(accountId);
     map['content'] = Variable<String>(content);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['cache_expired_at'] = Variable<DateTime>(cacheExpiredAt);
     return map;
   }
 
@@ -575,6 +583,7 @@ class SnLocalChannelMemberData extends DataClass
       accountId: Value(accountId),
       content: Value(content),
       createdAt: Value(createdAt),
+      cacheExpiredAt: Value(cacheExpiredAt),
     );
   }
 
@@ -587,6 +596,7 @@ class SnLocalChannelMemberData extends DataClass
       accountId: serializer.fromJson<int>(json['accountId']),
       content: serializer.fromJson<String>(json['content']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      cacheExpiredAt: serializer.fromJson<DateTime>(json['cacheExpiredAt']),
     );
   }
   @override
@@ -598,6 +608,7 @@ class SnLocalChannelMemberData extends DataClass
       'accountId': serializer.toJson<int>(accountId),
       'content': serializer.toJson<String>(content),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'cacheExpiredAt': serializer.toJson<DateTime>(cacheExpiredAt),
     };
   }
 
@@ -606,13 +617,15 @@ class SnLocalChannelMemberData extends DataClass
           int? channelId,
           int? accountId,
           String? content,
-          DateTime? createdAt}) =>
+          DateTime? createdAt,
+          DateTime? cacheExpiredAt}) =>
       SnLocalChannelMemberData(
         id: id ?? this.id,
         channelId: channelId ?? this.channelId,
         accountId: accountId ?? this.accountId,
         content: content ?? this.content,
         createdAt: createdAt ?? this.createdAt,
+        cacheExpiredAt: cacheExpiredAt ?? this.cacheExpiredAt,
       );
   SnLocalChannelMemberData copyWithCompanion(
       SnLocalChannelMemberCompanion data) {
@@ -622,6 +635,9 @@ class SnLocalChannelMemberData extends DataClass
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
       content: data.content.present ? data.content.value : this.content,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      cacheExpiredAt: data.cacheExpiredAt.present
+          ? data.cacheExpiredAt.value
+          : this.cacheExpiredAt,
     );
   }
 
@@ -632,13 +648,15 @@ class SnLocalChannelMemberData extends DataClass
           ..write('channelId: $channelId, ')
           ..write('accountId: $accountId, ')
           ..write('content: $content, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('cacheExpiredAt: $cacheExpiredAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, channelId, accountId, content, createdAt);
+  int get hashCode =>
+      Object.hash(id, channelId, accountId, content, createdAt, cacheExpiredAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -647,7 +665,8 @@ class SnLocalChannelMemberData extends DataClass
           other.channelId == this.channelId &&
           other.accountId == this.accountId &&
           other.content == this.content &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.cacheExpiredAt == this.cacheExpiredAt);
 }
 
 class SnLocalChannelMemberCompanion
@@ -657,12 +676,14 @@ class SnLocalChannelMemberCompanion
   final Value<int> accountId;
   final Value<String> content;
   final Value<DateTime> createdAt;
+  final Value<DateTime> cacheExpiredAt;
   const SnLocalChannelMemberCompanion({
     this.id = const Value.absent(),
     this.channelId = const Value.absent(),
     this.accountId = const Value.absent(),
     this.content = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.cacheExpiredAt = const Value.absent(),
   });
   SnLocalChannelMemberCompanion.insert({
     this.id = const Value.absent(),
@@ -670,15 +691,18 @@ class SnLocalChannelMemberCompanion
     required int accountId,
     required String content,
     this.createdAt = const Value.absent(),
+    required DateTime cacheExpiredAt,
   })  : channelId = Value(channelId),
         accountId = Value(accountId),
-        content = Value(content);
+        content = Value(content),
+        cacheExpiredAt = Value(cacheExpiredAt);
   static Insertable<SnLocalChannelMemberData> custom({
     Expression<int>? id,
     Expression<int>? channelId,
     Expression<int>? accountId,
     Expression<String>? content,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? cacheExpiredAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -686,6 +710,7 @@ class SnLocalChannelMemberCompanion
       if (accountId != null) 'account_id': accountId,
       if (content != null) 'content': content,
       if (createdAt != null) 'created_at': createdAt,
+      if (cacheExpiredAt != null) 'cache_expired_at': cacheExpiredAt,
     });
   }
 
@@ -694,13 +719,15 @@ class SnLocalChannelMemberCompanion
       Value<int>? channelId,
       Value<int>? accountId,
       Value<String>? content,
-      Value<DateTime>? createdAt}) {
+      Value<DateTime>? createdAt,
+      Value<DateTime>? cacheExpiredAt}) {
     return SnLocalChannelMemberCompanion(
       id: id ?? this.id,
       channelId: channelId ?? this.channelId,
       accountId: accountId ?? this.accountId,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
+      cacheExpiredAt: cacheExpiredAt ?? this.cacheExpiredAt,
     );
   }
 
@@ -722,6 +749,9 @@ class SnLocalChannelMemberCompanion
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (cacheExpiredAt.present) {
+      map['cache_expired_at'] = Variable<DateTime>(cacheExpiredAt.value);
+    }
     return map;
   }
 
@@ -732,7 +762,8 @@ class SnLocalChannelMemberCompanion
           ..write('channelId: $channelId, ')
           ..write('accountId: $accountId, ')
           ..write('content: $content, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('cacheExpiredAt: $cacheExpiredAt')
           ..write(')'))
         .toString();
   }
@@ -1030,8 +1061,12 @@ class SnLocalAccount extends Table
       requiredDuringInsert: false,
       defaultValue: const CustomExpression(
           'CAST(strftime(\'%s\', CURRENT_TIMESTAMP) AS INTEGER)'));
+  late final GeneratedColumn<DateTime> cacheExpiredAt =
+      GeneratedColumn<DateTime>('cache_expired_at', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [id, name, content, createdAt];
+  List<GeneratedColumn> get $columns =>
+      [id, name, content, createdAt, cacheExpiredAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1051,6 +1086,8 @@ class SnLocalAccount extends Table
           .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      cacheExpiredAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}cache_expired_at'])!,
     );
   }
 
@@ -1066,11 +1103,13 @@ class SnLocalAccountData extends DataClass
   final String name;
   final String content;
   final DateTime createdAt;
+  final DateTime cacheExpiredAt;
   const SnLocalAccountData(
       {required this.id,
       required this.name,
       required this.content,
-      required this.createdAt});
+      required this.createdAt,
+      required this.cacheExpiredAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1078,6 +1117,7 @@ class SnLocalAccountData extends DataClass
     map['name'] = Variable<String>(name);
     map['content'] = Variable<String>(content);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['cache_expired_at'] = Variable<DateTime>(cacheExpiredAt);
     return map;
   }
 
@@ -1087,6 +1127,7 @@ class SnLocalAccountData extends DataClass
       name: Value(name),
       content: Value(content),
       createdAt: Value(createdAt),
+      cacheExpiredAt: Value(cacheExpiredAt),
     );
   }
 
@@ -1098,6 +1139,7 @@ class SnLocalAccountData extends DataClass
       name: serializer.fromJson<String>(json['name']),
       content: serializer.fromJson<String>(json['content']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      cacheExpiredAt: serializer.fromJson<DateTime>(json['cacheExpiredAt']),
     );
   }
   @override
@@ -1108,16 +1150,22 @@ class SnLocalAccountData extends DataClass
       'name': serializer.toJson<String>(name),
       'content': serializer.toJson<String>(content),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'cacheExpiredAt': serializer.toJson<DateTime>(cacheExpiredAt),
     };
   }
 
   SnLocalAccountData copyWith(
-          {int? id, String? name, String? content, DateTime? createdAt}) =>
+          {int? id,
+          String? name,
+          String? content,
+          DateTime? createdAt,
+          DateTime? cacheExpiredAt}) =>
       SnLocalAccountData(
         id: id ?? this.id,
         name: name ?? this.name,
         content: content ?? this.content,
         createdAt: createdAt ?? this.createdAt,
+        cacheExpiredAt: cacheExpiredAt ?? this.cacheExpiredAt,
       );
   SnLocalAccountData copyWithCompanion(SnLocalAccountCompanion data) {
     return SnLocalAccountData(
@@ -1125,6 +1173,9 @@ class SnLocalAccountData extends DataClass
       name: data.name.present ? data.name.value : this.name,
       content: data.content.present ? data.content.value : this.content,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      cacheExpiredAt: data.cacheExpiredAt.present
+          ? data.cacheExpiredAt.value
+          : this.cacheExpiredAt,
     );
   }
 
@@ -1134,13 +1185,14 @@ class SnLocalAccountData extends DataClass
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('content: $content, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('cacheExpiredAt: $cacheExpiredAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, content, createdAt);
+  int get hashCode => Object.hash(id, name, content, createdAt, cacheExpiredAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1148,7 +1200,8 @@ class SnLocalAccountData extends DataClass
           other.id == this.id &&
           other.name == this.name &&
           other.content == this.content &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.cacheExpiredAt == this.cacheExpiredAt);
 }
 
 class SnLocalAccountCompanion extends UpdateCompanion<SnLocalAccountData> {
@@ -1156,30 +1209,36 @@ class SnLocalAccountCompanion extends UpdateCompanion<SnLocalAccountData> {
   final Value<String> name;
   final Value<String> content;
   final Value<DateTime> createdAt;
+  final Value<DateTime> cacheExpiredAt;
   const SnLocalAccountCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.content = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.cacheExpiredAt = const Value.absent(),
   });
   SnLocalAccountCompanion.insert({
     this.id = const Value.absent(),
     required String name,
     required String content,
     this.createdAt = const Value.absent(),
+    required DateTime cacheExpiredAt,
   })  : name = Value(name),
-        content = Value(content);
+        content = Value(content),
+        cacheExpiredAt = Value(cacheExpiredAt);
   static Insertable<SnLocalAccountData> custom({
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? content,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? cacheExpiredAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (content != null) 'content': content,
       if (createdAt != null) 'created_at': createdAt,
+      if (cacheExpiredAt != null) 'cache_expired_at': cacheExpiredAt,
     });
   }
 
@@ -1187,12 +1246,14 @@ class SnLocalAccountCompanion extends UpdateCompanion<SnLocalAccountData> {
       {Value<int>? id,
       Value<String>? name,
       Value<String>? content,
-      Value<DateTime>? createdAt}) {
+      Value<DateTime>? createdAt,
+      Value<DateTime>? cacheExpiredAt}) {
     return SnLocalAccountCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
+      cacheExpiredAt: cacheExpiredAt ?? this.cacheExpiredAt,
     );
   }
 
@@ -1211,6 +1272,9 @@ class SnLocalAccountCompanion extends UpdateCompanion<SnLocalAccountData> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (cacheExpiredAt.present) {
+      map['cache_expired_at'] = Variable<DateTime>(cacheExpiredAt.value);
+    }
     return map;
   }
 
@@ -1220,7 +1284,8 @@ class SnLocalAccountCompanion extends UpdateCompanion<SnLocalAccountData> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('content: $content, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('cacheExpiredAt: $cacheExpiredAt')
           ..write(')'))
         .toString();
   }
@@ -1261,9 +1326,12 @@ class SnLocalAttachment extends Table
       requiredDuringInsert: false,
       defaultValue: const CustomExpression(
           'CAST(strftime(\'%s\', CURRENT_TIMESTAMP) AS INTEGER)'));
+  late final GeneratedColumn<DateTime> cacheExpiredAt =
+      GeneratedColumn<DateTime>('cache_expired_at', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, rid, uuid, content, accountId, createdAt];
+      [id, rid, uuid, content, accountId, createdAt, cacheExpiredAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1287,6 +1355,8 @@ class SnLocalAttachment extends Table
           .read(DriftSqlType.int, data['${effectivePrefix}account_id'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      cacheExpiredAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}cache_expired_at'])!,
     );
   }
 
@@ -1304,13 +1374,15 @@ class SnLocalAttachmentData extends DataClass
   final String content;
   final int accountId;
   final DateTime createdAt;
+  final DateTime cacheExpiredAt;
   const SnLocalAttachmentData(
       {required this.id,
       required this.rid,
       required this.uuid,
       required this.content,
       required this.accountId,
-      required this.createdAt});
+      required this.createdAt,
+      required this.cacheExpiredAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1320,6 +1392,7 @@ class SnLocalAttachmentData extends DataClass
     map['content'] = Variable<String>(content);
     map['account_id'] = Variable<int>(accountId);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['cache_expired_at'] = Variable<DateTime>(cacheExpiredAt);
     return map;
   }
 
@@ -1331,6 +1404,7 @@ class SnLocalAttachmentData extends DataClass
       content: Value(content),
       accountId: Value(accountId),
       createdAt: Value(createdAt),
+      cacheExpiredAt: Value(cacheExpiredAt),
     );
   }
 
@@ -1344,6 +1418,7 @@ class SnLocalAttachmentData extends DataClass
       content: serializer.fromJson<String>(json['content']),
       accountId: serializer.fromJson<int>(json['accountId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      cacheExpiredAt: serializer.fromJson<DateTime>(json['cacheExpiredAt']),
     );
   }
   @override
@@ -1356,6 +1431,7 @@ class SnLocalAttachmentData extends DataClass
       'content': serializer.toJson<String>(content),
       'accountId': serializer.toJson<int>(accountId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'cacheExpiredAt': serializer.toJson<DateTime>(cacheExpiredAt),
     };
   }
 
@@ -1365,7 +1441,8 @@ class SnLocalAttachmentData extends DataClass
           String? uuid,
           String? content,
           int? accountId,
-          DateTime? createdAt}) =>
+          DateTime? createdAt,
+          DateTime? cacheExpiredAt}) =>
       SnLocalAttachmentData(
         id: id ?? this.id,
         rid: rid ?? this.rid,
@@ -1373,6 +1450,7 @@ class SnLocalAttachmentData extends DataClass
         content: content ?? this.content,
         accountId: accountId ?? this.accountId,
         createdAt: createdAt ?? this.createdAt,
+        cacheExpiredAt: cacheExpiredAt ?? this.cacheExpiredAt,
       );
   SnLocalAttachmentData copyWithCompanion(SnLocalAttachmentCompanion data) {
     return SnLocalAttachmentData(
@@ -1382,6 +1460,9 @@ class SnLocalAttachmentData extends DataClass
       content: data.content.present ? data.content.value : this.content,
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      cacheExpiredAt: data.cacheExpiredAt.present
+          ? data.cacheExpiredAt.value
+          : this.cacheExpiredAt,
     );
   }
 
@@ -1393,13 +1474,15 @@ class SnLocalAttachmentData extends DataClass
           ..write('uuid: $uuid, ')
           ..write('content: $content, ')
           ..write('accountId: $accountId, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('cacheExpiredAt: $cacheExpiredAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, rid, uuid, content, accountId, createdAt);
+  int get hashCode =>
+      Object.hash(id, rid, uuid, content, accountId, createdAt, cacheExpiredAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1409,7 +1492,8 @@ class SnLocalAttachmentData extends DataClass
           other.uuid == this.uuid &&
           other.content == this.content &&
           other.accountId == this.accountId &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.cacheExpiredAt == this.cacheExpiredAt);
 }
 
 class SnLocalAttachmentCompanion
@@ -1420,6 +1504,7 @@ class SnLocalAttachmentCompanion
   final Value<String> content;
   final Value<int> accountId;
   final Value<DateTime> createdAt;
+  final Value<DateTime> cacheExpiredAt;
   const SnLocalAttachmentCompanion({
     this.id = const Value.absent(),
     this.rid = const Value.absent(),
@@ -1427,6 +1512,7 @@ class SnLocalAttachmentCompanion
     this.content = const Value.absent(),
     this.accountId = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.cacheExpiredAt = const Value.absent(),
   });
   SnLocalAttachmentCompanion.insert({
     this.id = const Value.absent(),
@@ -1435,10 +1521,12 @@ class SnLocalAttachmentCompanion
     required String content,
     required int accountId,
     this.createdAt = const Value.absent(),
+    required DateTime cacheExpiredAt,
   })  : rid = Value(rid),
         uuid = Value(uuid),
         content = Value(content),
-        accountId = Value(accountId);
+        accountId = Value(accountId),
+        cacheExpiredAt = Value(cacheExpiredAt);
   static Insertable<SnLocalAttachmentData> custom({
     Expression<int>? id,
     Expression<String>? rid,
@@ -1446,6 +1534,7 @@ class SnLocalAttachmentCompanion
     Expression<String>? content,
     Expression<int>? accountId,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? cacheExpiredAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1454,6 +1543,7 @@ class SnLocalAttachmentCompanion
       if (content != null) 'content': content,
       if (accountId != null) 'account_id': accountId,
       if (createdAt != null) 'created_at': createdAt,
+      if (cacheExpiredAt != null) 'cache_expired_at': cacheExpiredAt,
     });
   }
 
@@ -1463,7 +1553,8 @@ class SnLocalAttachmentCompanion
       Value<String>? uuid,
       Value<String>? content,
       Value<int>? accountId,
-      Value<DateTime>? createdAt}) {
+      Value<DateTime>? createdAt,
+      Value<DateTime>? cacheExpiredAt}) {
     return SnLocalAttachmentCompanion(
       id: id ?? this.id,
       rid: rid ?? this.rid,
@@ -1471,6 +1562,7 @@ class SnLocalAttachmentCompanion
       content: content ?? this.content,
       accountId: accountId ?? this.accountId,
       createdAt: createdAt ?? this.createdAt,
+      cacheExpiredAt: cacheExpiredAt ?? this.cacheExpiredAt,
     );
   }
 
@@ -1495,6 +1587,9 @@ class SnLocalAttachmentCompanion
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (cacheExpiredAt.present) {
+      map['cache_expired_at'] = Variable<DateTime>(cacheExpiredAt.value);
+    }
     return map;
   }
 
@@ -1506,6 +1601,451 @@ class SnLocalAttachmentCompanion
           ..write('uuid: $uuid, ')
           ..write('content: $content, ')
           ..write('accountId: $accountId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('cacheExpiredAt: $cacheExpiredAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class SnLocalSticker extends Table
+    with TableInfo<SnLocalSticker, SnLocalStickerData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SnLocalSticker(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  late final GeneratedColumn<String> alias = GeneratedColumn<String>(
+      'alias', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> fullAlias = GeneratedColumn<String>(
+      'full_alias', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+      'content', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: const CustomExpression(
+          'CAST(strftime(\'%s\', CURRENT_TIMESTAMP) AS INTEGER)'));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, alias, fullAlias, content, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sn_local_sticker';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SnLocalStickerData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SnLocalStickerData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      alias: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}alias'])!,
+      fullAlias: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}full_alias'])!,
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  SnLocalSticker createAlias(String alias) {
+    return SnLocalSticker(attachedDatabase, alias);
+  }
+}
+
+class SnLocalStickerData extends DataClass
+    implements Insertable<SnLocalStickerData> {
+  final int id;
+  final String alias;
+  final String fullAlias;
+  final String content;
+  final DateTime createdAt;
+  const SnLocalStickerData(
+      {required this.id,
+      required this.alias,
+      required this.fullAlias,
+      required this.content,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['alias'] = Variable<String>(alias);
+    map['full_alias'] = Variable<String>(fullAlias);
+    map['content'] = Variable<String>(content);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SnLocalStickerCompanion toCompanion(bool nullToAbsent) {
+    return SnLocalStickerCompanion(
+      id: Value(id),
+      alias: Value(alias),
+      fullAlias: Value(fullAlias),
+      content: Value(content),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SnLocalStickerData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SnLocalStickerData(
+      id: serializer.fromJson<int>(json['id']),
+      alias: serializer.fromJson<String>(json['alias']),
+      fullAlias: serializer.fromJson<String>(json['fullAlias']),
+      content: serializer.fromJson<String>(json['content']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'alias': serializer.toJson<String>(alias),
+      'fullAlias': serializer.toJson<String>(fullAlias),
+      'content': serializer.toJson<String>(content),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SnLocalStickerData copyWith(
+          {int? id,
+          String? alias,
+          String? fullAlias,
+          String? content,
+          DateTime? createdAt}) =>
+      SnLocalStickerData(
+        id: id ?? this.id,
+        alias: alias ?? this.alias,
+        fullAlias: fullAlias ?? this.fullAlias,
+        content: content ?? this.content,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  SnLocalStickerData copyWithCompanion(SnLocalStickerCompanion data) {
+    return SnLocalStickerData(
+      id: data.id.present ? data.id.value : this.id,
+      alias: data.alias.present ? data.alias.value : this.alias,
+      fullAlias: data.fullAlias.present ? data.fullAlias.value : this.fullAlias,
+      content: data.content.present ? data.content.value : this.content,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SnLocalStickerData(')
+          ..write('id: $id, ')
+          ..write('alias: $alias, ')
+          ..write('fullAlias: $fullAlias, ')
+          ..write('content: $content, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, alias, fullAlias, content, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SnLocalStickerData &&
+          other.id == this.id &&
+          other.alias == this.alias &&
+          other.fullAlias == this.fullAlias &&
+          other.content == this.content &&
+          other.createdAt == this.createdAt);
+}
+
+class SnLocalStickerCompanion extends UpdateCompanion<SnLocalStickerData> {
+  final Value<int> id;
+  final Value<String> alias;
+  final Value<String> fullAlias;
+  final Value<String> content;
+  final Value<DateTime> createdAt;
+  const SnLocalStickerCompanion({
+    this.id = const Value.absent(),
+    this.alias = const Value.absent(),
+    this.fullAlias = const Value.absent(),
+    this.content = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  SnLocalStickerCompanion.insert({
+    this.id = const Value.absent(),
+    required String alias,
+    required String fullAlias,
+    required String content,
+    this.createdAt = const Value.absent(),
+  })  : alias = Value(alias),
+        fullAlias = Value(fullAlias),
+        content = Value(content);
+  static Insertable<SnLocalStickerData> custom({
+    Expression<int>? id,
+    Expression<String>? alias,
+    Expression<String>? fullAlias,
+    Expression<String>? content,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (alias != null) 'alias': alias,
+      if (fullAlias != null) 'full_alias': fullAlias,
+      if (content != null) 'content': content,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  SnLocalStickerCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? alias,
+      Value<String>? fullAlias,
+      Value<String>? content,
+      Value<DateTime>? createdAt}) {
+    return SnLocalStickerCompanion(
+      id: id ?? this.id,
+      alias: alias ?? this.alias,
+      fullAlias: fullAlias ?? this.fullAlias,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (alias.present) {
+      map['alias'] = Variable<String>(alias.value);
+    }
+    if (fullAlias.present) {
+      map['full_alias'] = Variable<String>(fullAlias.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SnLocalStickerCompanion(')
+          ..write('id: $id, ')
+          ..write('alias: $alias, ')
+          ..write('fullAlias: $fullAlias, ')
+          ..write('content: $content, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class SnLocalStickerPack extends Table
+    with TableInfo<SnLocalStickerPack, SnLocalStickerPackData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SnLocalStickerPack(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+      'content', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: const CustomExpression(
+          'CAST(strftime(\'%s\', CURRENT_TIMESTAMP) AS INTEGER)'));
+  @override
+  List<GeneratedColumn> get $columns => [id, content, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sn_local_sticker_pack';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SnLocalStickerPackData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SnLocalStickerPackData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  SnLocalStickerPack createAlias(String alias) {
+    return SnLocalStickerPack(attachedDatabase, alias);
+  }
+}
+
+class SnLocalStickerPackData extends DataClass
+    implements Insertable<SnLocalStickerPackData> {
+  final int id;
+  final String content;
+  final DateTime createdAt;
+  const SnLocalStickerPackData(
+      {required this.id, required this.content, required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['content'] = Variable<String>(content);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SnLocalStickerPackCompanion toCompanion(bool nullToAbsent) {
+    return SnLocalStickerPackCompanion(
+      id: Value(id),
+      content: Value(content),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SnLocalStickerPackData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SnLocalStickerPackData(
+      id: serializer.fromJson<int>(json['id']),
+      content: serializer.fromJson<String>(json['content']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'content': serializer.toJson<String>(content),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SnLocalStickerPackData copyWith(
+          {int? id, String? content, DateTime? createdAt}) =>
+      SnLocalStickerPackData(
+        id: id ?? this.id,
+        content: content ?? this.content,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  SnLocalStickerPackData copyWithCompanion(SnLocalStickerPackCompanion data) {
+    return SnLocalStickerPackData(
+      id: data.id.present ? data.id.value : this.id,
+      content: data.content.present ? data.content.value : this.content,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SnLocalStickerPackData(')
+          ..write('id: $id, ')
+          ..write('content: $content, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, content, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SnLocalStickerPackData &&
+          other.id == this.id &&
+          other.content == this.content &&
+          other.createdAt == this.createdAt);
+}
+
+class SnLocalStickerPackCompanion
+    extends UpdateCompanion<SnLocalStickerPackData> {
+  final Value<int> id;
+  final Value<String> content;
+  final Value<DateTime> createdAt;
+  const SnLocalStickerPackCompanion({
+    this.id = const Value.absent(),
+    this.content = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  SnLocalStickerPackCompanion.insert({
+    this.id = const Value.absent(),
+    required String content,
+    this.createdAt = const Value.absent(),
+  }) : content = Value(content);
+  static Insertable<SnLocalStickerPackData> custom({
+    Expression<int>? id,
+    Expression<String>? content,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (content != null) 'content': content,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  SnLocalStickerPackCompanion copyWith(
+      {Value<int>? id, Value<String>? content, Value<DateTime>? createdAt}) {
+    return SnLocalStickerPackCompanion(
+      id: id ?? this.id,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SnLocalStickerPackCompanion(')
+          ..write('id: $id, ')
+          ..write('content: $content, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -1521,6 +2061,8 @@ class DatabaseAtV3 extends GeneratedDatabase {
   late final SnLocalKeyPair snLocalKeyPair = SnLocalKeyPair(this);
   late final SnLocalAccount snLocalAccount = SnLocalAccount(this);
   late final SnLocalAttachment snLocalAttachment = SnLocalAttachment(this);
+  late final SnLocalSticker snLocalSticker = SnLocalSticker(this);
+  late final SnLocalStickerPack snLocalStickerPack = SnLocalStickerPack(this);
   late final Index idxChannelAlias = Index('idx_channel_alias',
       'CREATE INDEX idx_channel_alias ON sn_local_chat_channel (alias)');
   late final Index idxChatChannel = Index('idx_chat_channel',
@@ -1542,6 +2084,8 @@ class DatabaseAtV3 extends GeneratedDatabase {
         snLocalKeyPair,
         snLocalAccount,
         snLocalAttachment,
+        snLocalSticker,
+        snLocalStickerPack,
         idxChannelAlias,
         idxChatChannel,
         idxAccountName,

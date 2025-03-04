@@ -112,4 +112,6 @@ class SnLocalChannelMember extends Table {
   TextColumn get content => text().map(SnChannelMemberConverter())();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  DateTimeColumn get cacheExpiredAt => dateTime()();
 }
