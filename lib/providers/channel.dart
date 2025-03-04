@@ -8,6 +8,7 @@ import 'package:surface/providers/database.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/providers/user_directory.dart';
+import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/chat.dart';
 
 class ChatChannelProvider extends ChangeNotifier {
@@ -15,12 +16,14 @@ class ChatChannelProvider extends ChangeNotifier {
 
   late final SnNetworkProvider _sn;
   late final UserDirectoryProvider _ud;
+  late final UserProvider _ua;
   late final DatabaseProvider _dt;
   late final SnRealmProvider _rels;
 
   ChatChannelProvider(BuildContext context) {
     _sn = context.read<SnNetworkProvider>();
     _ud = context.read<UserDirectoryProvider>();
+    _ua = context.read<UserProvider>();
     _dt = context.read<DatabaseProvider>();
     _rels = context.read<SnRealmProvider>();
   }
@@ -147,6 +150,62 @@ class ChatChannelProvider extends ChangeNotifier {
         .map((e) => e!.content)
         .toList();
     await _ud.listAccount(out.map((ele) => ele.sender.accountId).toSet());
+    return out;
+  }
+
+  Future<void> _saveMemberToLocal(Iterable<SnChannelMember> members) async {
+    final queries = members.map((ele) {
+      return _dt.db.snLocalChannelMember.insertOne(
+        SnLocalChannelMemberCompanion.insert(
+          id: Value(ele.id),
+          channelId: ele.channelId,
+          accountId: ele.accountId,
+          content: ele,
+          cacheExpiredAt: DateTime.now().add(const Duration(days: 7)),
+        ),
+        onConflict: DoUpdate(
+          (_) => SnLocalChannelMemberCompanion.custom(
+            content: Constant(jsonEncode(ele.toJson())),
+            cacheExpiredAt:
+                Constant(DateTime.now().add(const Duration(days: 7))),
+          ),
+        ),
+      );
+    });
+    await Future.wait(queries);
+  }
+
+  Future<void> removeLocalChannel(SnChannel channel) async {
+    await _dt.db.transaction(() async {
+      await (_dt.db.snLocalChannelMember.delete()
+            ..where((e) => e.channelId.equals(channel.id)))
+          .go();
+      await (_dt.db.snLocalChatChannel.delete()
+            ..where((e) => e.id.equals(channel.id)))
+          .go();
+      await (_dt.db.snLocalChatMessage.delete()
+            ..where((e) => e.channelId.equals(channel.id)))
+          .go();
+    });
+  }
+
+  Future<void> updateChannelProfile(SnChannelMember member) {
+    return _saveMemberToLocal([member]);
+  }
+
+  Future<SnChannelMember> getChannelProfile(SnChannel channel) async {
+    if (_ua.user == null) throw Exception('User not logged in');
+    final local = await (_dt.db.snLocalChannelMember.select()
+          ..where((e) => e.channelId.equals(channel.id))
+          ..where((e) => e.accountId.equals(_ua.user!.id)))
+        .getSingleOrNull();
+    if (local != null) {
+      return local.content;
+    }
+
+    final resp = await _sn.client.get('/cgi/im/channels/${channel.keyPath}/me');
+    final out = SnChannelMember.fromJson(resp.data);
+    _saveMemberToLocal([out]);
     return out;
   }
 }

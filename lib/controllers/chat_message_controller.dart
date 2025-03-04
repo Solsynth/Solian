@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:surface/database/database.dart';
 import 'package:surface/logger.dart';
+import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/database.dart';
 import 'package:surface/providers/keypair.dart';
 import 'package:surface/providers/sn_attachment.dart';
@@ -26,6 +27,7 @@ class ChatMessageController extends ChangeNotifier {
   late final WebSocketProvider _ws;
   late final SnAttachmentProvider _attach;
   late final DatabaseProvider _dt;
+  late final ChatChannelProvider _ct;
   late final KeyPairProvider _kp;
 
   StreamSubscription? _wsSubscription;
@@ -35,6 +37,7 @@ class ChatMessageController extends ChangeNotifier {
     _ud = context.read<UserDirectoryProvider>();
     _ws = context.read<WebSocketProvider>();
     _attach = context.read<SnAttachmentProvider>();
+    _ct = context.read<ChatChannelProvider>();
     _dt = context.read<DatabaseProvider>();
     _kp = context.read<KeyPairProvider>();
   }
@@ -65,10 +68,7 @@ class ChatMessageController extends ChangeNotifier {
     channel = chan;
 
     // Fetch channel profile
-    final resp = await _sn.client.get(
-      '/cgi/im/channels/${chan.keyPath}/me',
-    );
-    profile = SnChannelMember.fromJson(resp.data);
+    profile = await _ct.getChannelProfile(channel!);
 
     _wsSubscription = _ws.pk.stream.listen((event) {
       switch (event.method) {
