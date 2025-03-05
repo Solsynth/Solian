@@ -127,9 +127,29 @@
     <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
 </picture>
 
+<script>
+{{flutter_js}}
+{{flutter_build_config}}
 
-<script src="flutter_bootstrap.js" async=""></script>
+const searchParams = new URLSearchParams(window.location.search);
+const renderer = searchParams.get('renderer');
+let cdn = searchParams.get('cdn');
 
+if (cdn) {
+  localStorage.setItem('sn-web-canvaskit-cdn', cdn);
+} else {
+  const storagedCdn = localStorage.getItem('sn-web-canvaskit-cdn');
+  cdn = storagedCdn ?? 'com';
+}
+
+_flutter.loader.load({
+  config: {
+    renderer: renderer ?? 'canvaskit',
+    canvasKitVariant: 'full',
+    canvasKitBaseUrl: `https://www.gstatic.${cdn}/flutter-canvaskit/f73bfc4522dd0bc87bbcdb4bb3088082755c5e87`,
+  },
+});
+</script>
 
 </body>
 </html>

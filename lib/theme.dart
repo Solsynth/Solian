@@ -50,16 +50,17 @@ Future<ThemeData> createAppTheme(
       useMaterial3 ?? (prefs.getBool(kMaterialYouToggleStoreKey) ?? true);
 
   final inUseFonts = (customFonts ?? prefs.getString(kAppCustomFonts))
-      ?.split(',')
-      .map((ele) => ele.trim())
-      .toList();
+          ?.split(',')
+          .map((ele) => ele.trim())
+          .toList() ??
+      ['Nunito'];
 
   return ThemeData(
     useMaterial3: useM3,
     colorScheme: colorScheme,
     brightness: brightness,
-    fontFamily: inUseFonts?.firstOrNull,
-    fontFamilyFallback: inUseFonts?.sublist(1),
+    fontFamily: inUseFonts.firstOrNull,
+    fontFamilyFallback: inUseFonts.sublist(1),
     iconTheme: IconThemeData(
       fill: 0,
       weight: 400,
