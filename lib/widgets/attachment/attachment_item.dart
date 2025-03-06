@@ -22,12 +22,14 @@ class AttachmentItem extends StatelessWidget {
   final SnAttachment? data;
   final String? heroTag;
   final BoxFit fit;
+  final FilterQuality? filterQuality;
 
   const AttachmentItem({
     super.key,
     this.fit = BoxFit.cover,
     required this.data,
     required this.heroTag,
+    this.filterQuality,
   });
 
   Widget _buildContent(BuildContext context) {
@@ -47,6 +49,7 @@ class AttachmentItem extends StatelessWidget {
             sn.getAttachmentUrl(data!.rid),
             key: Key('attachment-${data!.rid}-$tag'),
             fit: fit,
+            filterQuality: filterQuality,
           ),
         );
       case 'video':
@@ -83,13 +86,16 @@ class _AttachmentItemSensitiveBlur extends StatefulWidget {
   final Widget child;
   final bool isCompact;
 
-  const _AttachmentItemSensitiveBlur({required this.child, this.isCompact = false});
+  const _AttachmentItemSensitiveBlur(
+      {required this.child, this.isCompact = false});
 
   @override
-  State<_AttachmentItemSensitiveBlur> createState() => _AttachmentItemSensitiveBlurState();
+  State<_AttachmentItemSensitiveBlur> createState() =>
+      _AttachmentItemSensitiveBlurState();
 }
 
-class _AttachmentItemSensitiveBlurState extends State<_AttachmentItemSensitiveBlur> {
+class _AttachmentItemSensitiveBlurState
+    extends State<_AttachmentItemSensitiveBlur> {
   bool _doesShow = false;
 
   @override
@@ -124,10 +130,15 @@ class _AttachmentItemSensitiveBlurState extends State<_AttachmentItemSensitiveBl
                       Text(
                         'sensitiveContentDescription',
                         textAlign: TextAlign.center,
-                      ).tr().fontSize(14).textColor(Colors.white.withOpacity(0.8)),
+                      )
+                          .tr()
+                          .fontSize(14)
+                          .textColor(Colors.white.withOpacity(0.8)),
                     if (!widget.isCompact) const Gap(16),
                     InkWell(
-                      child: Text('sensitiveContentReveal').tr().textColor(Colors.white),
+                      child: Text('sensitiveContentReveal')
+                          .tr()
+                          .textColor(Colors.white),
                       onTap: () {
                         setState(() => _doesShow = !_doesShow);
                       },
@@ -137,7 +148,9 @@ class _AttachmentItemSensitiveBlurState extends State<_AttachmentItemSensitiveBl
               ).center(),
             ),
           ),
-        ).opacity(_doesShow ? 0 : 1, animate: true).animate(const Duration(milliseconds: 300), Curves.easeInOut),
+        )
+            .opacity(_doesShow ? 0 : 1, animate: true)
+            .animate(const Duration(milliseconds: 300), Curves.easeInOut),
         if (_doesShow)
           Positioned(
             top: 0,
@@ -174,10 +187,12 @@ class _AttachmentItemContentVideo extends StatefulWidget {
   });
 
   @override
-  State<_AttachmentItemContentVideo> createState() => _AttachmentItemContentVideoState();
+  State<_AttachmentItemContentVideo> createState() =>
+      _AttachmentItemContentVideoState();
 }
 
-class _AttachmentItemContentVideoState extends State<_AttachmentItemContentVideo> {
+class _AttachmentItemContentVideoState
+    extends State<_AttachmentItemContentVideo> {
   bool _showContent = false;
   bool _showOriginal = false;
 
@@ -188,7 +203,9 @@ class _AttachmentItemContentVideoState extends State<_AttachmentItemContentVideo
     setState(() => _showContent = true);
     MediaKit.ensureInitialized();
     final sn = context.read<SnNetworkProvider>();
-    final url = _showOriginal ? sn.getAttachmentUrl(widget.data.rid) : sn.getAttachmentUrl(widget.data.compressed!.rid);
+    final url = _showOriginal
+        ? sn.getAttachmentUrl(widget.data.rid)
+        : sn.getAttachmentUrl(widget.data.compressed!.rid);
     _videoPlayer = Player();
     _videoController = VideoController(_videoPlayer!);
     _videoPlayer!.open(Media(url), play: !widget.isAutoload);
@@ -201,7 +218,9 @@ class _AttachmentItemContentVideoState extends State<_AttachmentItemContentVideo
     final sn = context.read<SnNetworkProvider>();
     _videoPlayer?.open(
       Media(
-        _showOriginal ? sn.getAttachmentUrl(widget.data.rid) : sn.getAttachmentUrl(widget.data.compressed!.rid),
+        _showOriginal
+            ? sn.getAttachmentUrl(widget.data.rid)
+            : sn.getAttachmentUrl(widget.data.compressed!.rid),
       ),
       play: true,
     );
@@ -283,7 +302,9 @@ class _AttachmentItemContentVideoState extends State<_AttachmentItemContentVideo
                           ),
                           Text(
                             Duration(
-                              milliseconds: (widget.data.data['duration'] ?? 0).toInt() * 1000,
+                              milliseconds:
+                                  (widget.data.data['duration'] ?? 0).toInt() *
+                                      1000,
                             ).toString(),
                             style: GoogleFonts.robotoMono(
                               fontSize: 12,
@@ -346,7 +367,9 @@ class _AttachmentItemContentVideoState extends State<_AttachmentItemContentVideo
             MaterialDesktopCustomButton(
               iconSize: 24,
               onPressed: _toggleOriginal,
-              icon: _showOriginal ? const Icon(Symbols.high_quality, size: 24) : const Icon(Symbols.sd, size: 24),
+              icon: _showOriginal
+                  ? const Icon(Symbols.high_quality, size: 24)
+                  : const Icon(Symbols.sd, size: 24),
             ),
           ],
         ),
@@ -354,8 +377,9 @@ class _AttachmentItemContentVideoState extends State<_AttachmentItemContentVideo
         child: Video(
           controller: _videoController!,
           aspectRatio: ratio,
-          controls:
-              !kIsWeb && (Platform.isAndroid || Platform.isIOS) ? MaterialVideoControls : MaterialDesktopVideoControls,
+          controls: !kIsWeb && (Platform.isAndroid || Platform.isIOS)
+              ? MaterialVideoControls
+              : MaterialDesktopVideoControls,
         ),
       ),
     );
@@ -378,10 +402,12 @@ class _AttachmentItemContentAudio extends StatefulWidget {
   });
 
   @override
-  State<_AttachmentItemContentAudio> createState() => _AttachmentItemContentAudioState();
+  State<_AttachmentItemContentAudio> createState() =>
+      _AttachmentItemContentAudioState();
 }
 
-class _AttachmentItemContentAudioState extends State<_AttachmentItemContentAudio> {
+class _AttachmentItemContentAudioState
+    extends State<_AttachmentItemContentAudio> {
   bool _showContent = false;
 
   double? _draggingValue;
@@ -552,8 +578,12 @@ class _AttachmentItemContentAudioState extends State<_AttachmentItemContentAudio
                             overlayShape: SliderComponentShape.noOverlay,
                           ),
                           child: Slider(
-                            secondaryTrackValue: _bufferedPosition.inMilliseconds.abs().toDouble(),
-                            value: _draggingValue?.abs() ?? _position.inMilliseconds.toDouble().abs(),
+                            secondaryTrackValue: _bufferedPosition
+                                .inMilliseconds
+                                .abs()
+                                .toDouble(),
+                            value: _draggingValue?.abs() ??
+                                _position.inMilliseconds.toDouble().abs(),
                             min: 0,
                             max: math
                                 .max(
@@ -593,7 +623,9 @@ class _AttachmentItemContentAudioState extends State<_AttachmentItemContentAudio
                   ),
                   const Gap(16),
                   IconButton.filled(
-                    icon: _isPlaying ? const Icon(Symbols.pause) : const Icon(Symbols.play_arrow),
+                    icon: _isPlaying
+                        ? const Icon(Symbols.pause)
+                        : const Icon(Symbols.play_arrow),
                     onPressed: () {
                       _audioPlayer!.playOrPause();
                     },

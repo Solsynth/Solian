@@ -149,7 +149,6 @@ class PostItem extends StatelessWidget {
 
   void _doShareViaPicture(BuildContext context) async {
     final box = context.findRenderObject() as RenderBox?;
-    context.showSnackbar('postSharingViaPicture'.tr());
 
     final controller = ScreenshotController();
     final capturedImage = await controller.captureFromLongWidget(
@@ -160,9 +159,9 @@ class PostItem extends StatelessWidget {
           child: Material(
             child: MultiProvider(
               providers: [
+                // Create a copy of environments
                 Provider<SnNetworkProvider>(create: (_) => context.read()),
-                ChangeNotifierProvider<ConfigProvider>(
-                    create: (_) => context.read()),
+                Provider<UserDirectoryProvider>(create: (_) => context.read()),
               ],
               child: ResponsiveBreakpoints.builder(
                 breakpoints: ResponsiveBreakpoints.of(context).breakpoints,
@@ -507,6 +506,8 @@ class PostShareImageWidget extends StatelessWidget {
             StyledWidget(AttachmentList(
               data: data.preload!.attachments!,
               columned: true,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
             )).padding(horizontal: 16, bottom: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

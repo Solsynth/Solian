@@ -34,11 +34,14 @@ class UniversalImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-    final double? resizeHeight = cacheHeight != null ? (cacheHeight! * devicePixelRatio) : null;
-    final double? resizeWidth = cacheWidth != null ? (cacheWidth! * devicePixelRatio) : null;
+    final double? resizeHeight =
+        cacheHeight != null ? (cacheHeight! * devicePixelRatio) : null;
+    final double? resizeWidth =
+        cacheWidth != null ? (cacheWidth! * devicePixelRatio) : null;
 
     return Image(
-      filterQuality: filterQuality ?? context.read<ConfigProvider>().imageQuality,
+      filterQuality:
+          filterQuality ?? context.read<ConfigProvider>().imageQuality,
       image: kIsWeb
           ? UniversalImage.provider(url)
           : ResizeImage(
@@ -52,7 +55,8 @@ class UniversalImage extends StatelessWidget {
       fit: fit,
       loadingBuilder: noProgressIndicator
           ? null
-          : (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+          : (BuildContext context, Widget child,
+              ImageChunkEvent? loadingProgress) {
               if (loadingProgress == null) return child;
               return Container(
                 constraints: BoxConstraints(maxHeight: 80),
@@ -61,12 +65,15 @@ class UniversalImage extends StatelessWidget {
                     tween: Tween(
                       begin: 0,
                       end: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
                           : 0,
                     ),
                     duration: const Duration(milliseconds: 300),
                     builder: (context, value, _) => CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null ? value.toDouble() : null,
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? value.toDouble()
+                          : null,
                     ),
                   ),
                 ),
@@ -114,6 +121,7 @@ class AutoResizeUniversalImage extends StatelessWidget {
   final BoxFit? fit;
   final bool noProgressIndicator;
   final bool noErrorWidget;
+  final FilterQuality? filterQuality;
 
   const AutoResizeUniversalImage(
     this.url, {
@@ -123,6 +131,7 @@ class AutoResizeUniversalImage extends StatelessWidget {
     this.fit,
     this.noProgressIndicator = false,
     this.noErrorWidget = false,
+    this.filterQuality,
   });
 
   @override
@@ -137,6 +146,7 @@ class AutoResizeUniversalImage extends StatelessWidget {
         noErrorWidget: noErrorWidget,
         cacheHeight: constraints.maxHeight,
         cacheWidth: constraints.maxWidth,
+        filterQuality: filterQuality,
       );
     });
   }

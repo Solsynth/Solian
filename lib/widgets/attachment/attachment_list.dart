@@ -21,6 +21,7 @@ class AttachmentList extends StatefulWidget {
   final double? minWidth;
   final double? maxWidth;
   final EdgeInsets? padding;
+  final FilterQuality? filterQuality;
 
   const AttachmentList({
     super.key,
@@ -33,23 +34,27 @@ class AttachmentList extends StatefulWidget {
     this.minWidth,
     this.maxWidth,
     this.padding,
+    this.filterQuality,
   });
 
-  static const BorderRadius kDefaultRadius = BorderRadius.all(Radius.circular(8));
+  static const BorderRadius kDefaultRadius =
+      BorderRadius.all(Radius.circular(8));
 
   @override
   State<AttachmentList> createState() => _AttachmentListState();
 }
 
 class _AttachmentListState extends State<AttachmentList> {
-  late final List<String> heroTags = List.generate(widget.data.length, (_) => const Uuid().v4());
+  late final List<String> heroTags =
+      List.generate(widget.data.length, (_) => const Uuid().v4());
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, layoutConstraints) {
-        final borderSide =
-            widget.bordered ? BorderSide(width: 1, color: Theme.of(context).dividerColor) : BorderSide.none;
+        final borderSide = widget.bordered
+            ? BorderSide(width: 1, color: Theme.of(context).dividerColor)
+            : BorderSide.none;
         final backgroundColor = Theme.of(context).colorScheme.surfaceContainer;
         final constraints = BoxConstraints(
           minWidth: widget.minWidth ?? 80,
@@ -58,13 +63,13 @@ class _AttachmentListState extends State<AttachmentList> {
 
         if (widget.data.isEmpty) return const SizedBox.shrink();
         if (widget.data.length == 1) {
-          final singleAspectRatio =
-              widget.data[0]?.data['ratio']?.toDouble() ??
+          final singleAspectRatio = widget.data[0]?.data['ratio']?.toDouble() ??
               switch (widget.data[0]?.mimetype.split('/').firstOrNull) {
                 'audio' => 16 / 9,
                 'video' => 16 / 9,
                 _ => 1,
-              }.toDouble();
+              }
+                  .toDouble();
 
           return Container(
             padding: widget.padding ?? EdgeInsets.zero,
@@ -80,12 +85,18 @@ class _AttachmentListState extends State<AttachmentList> {
                   ),
                   child: ClipRRect(
                     borderRadius: AttachmentList.kDefaultRadius,
-                    child: AttachmentItem(data: widget.data[0], heroTag: heroTags[0], fit: widget.fit),
+                    child: AttachmentItem(
+                      data: widget.data[0],
+                      heroTag: heroTags[0],
+                      fit: widget.fit,
+                      filterQuality: widget.filterQuality,
+                    ),
                   ),
                 ),
               ),
               onTap: () {
-                if (widget.data.firstOrNull?.mediaType != SnMediaType.image) return;
+                if (widget.data.firstOrNull?.mediaType != SnMediaType.image)
+                  return;
                 context.pushTransparentRoute(
                   AttachmentZoomView(
                     data: widget.data.where((ele) => ele != null).cast(),
@@ -100,8 +111,10 @@ class _AttachmentListState extends State<AttachmentList> {
           );
         }
 
-        final fullOfImage =
-            widget.data.where((ele) => ele?.mediaType == SnMediaType.image).length == widget.data.length;
+        final fullOfImage = widget.data
+                .where((ele) => ele?.mediaType == SnMediaType.image)
+                .length ==
+            widget.data.length;
 
         if (widget.gridded && fullOfImage) {
           return Container(
@@ -117,29 +130,36 @@ class _AttachmentListState extends State<AttachmentList> {
                 crossAxisCount: math.min(widget.data.length, 2),
                 crossAxisSpacing: 4,
                 mainAxisSpacing: 4,
-                children:
-                    widget.data
-                        .mapIndexed(
-                          (idx, ele) => GestureDetector(
-                            child: Container(
-                              constraints: constraints,
-                              child: AttachmentItem(data: ele, heroTag: heroTags[idx], fit: BoxFit.cover),
-                            ),
-                            onTap: () {
-                              if (widget.data[idx]!.mediaType != SnMediaType.image) return;
-                              context.pushTransparentRoute(
-                                AttachmentZoomView(
-                                  data: widget.data.where((ele) => ele != null).cast(),
-                                  initialIndex: idx,
-                                  heroTags: heroTags,
-                                ),
-                                backgroundColor: Colors.black.withOpacity(0.7),
-                                rootNavigator: true,
-                              );
-                            },
+                children: widget.data
+                    .mapIndexed(
+                      (idx, ele) => GestureDetector(
+                        child: Container(
+                          constraints: constraints,
+                          child: AttachmentItem(
+                            data: ele,
+                            heroTag: heroTags[idx],
+                            fit: BoxFit.cover,
+                            filterQuality: widget.filterQuality,
                           ),
-                        )
-                        .toList(),
+                        ),
+                        onTap: () {
+                          if (widget.data[idx]!.mediaType != SnMediaType.image)
+                            return;
+                          context.pushTransparentRoute(
+                            AttachmentZoomView(
+                              data: widget.data
+                                  .where((ele) => ele != null)
+                                  .cast(),
+                              initialIndex: idx,
+                              heroTags: heroTags,
+                            ),
+                            backgroundColor: Colors.black.withOpacity(0.7),
+                            rootNavigator: true,
+                          );
+                        },
+                      ),
+                    )
+                    .toList(),
               ),
             ),
           );
@@ -156,22 +176,26 @@ class _AttachmentListState extends State<AttachmentList> {
             child: ClipRRect(
               borderRadius: AttachmentList.kDefaultRadius,
               child: Column(
-                children:
-                    widget.data
-                        .mapIndexed(
-                          (idx, ele) => GestureDetector(
-                            child: AspectRatio(
-                              aspectRatio: ele?.data['ratio']?.toDouble() ?? 1,
-                              child: Container(
-                                constraints: constraints,
-                                child: AttachmentItem(data: ele, heroTag: heroTags[idx], fit: BoxFit.cover),
-                              ),
+                children: widget.data
+                    .mapIndexed(
+                      (idx, ele) => GestureDetector(
+                        child: AspectRatio(
+                          aspectRatio: ele?.data['ratio']?.toDouble() ?? 1,
+                          child: Container(
+                            constraints: constraints,
+                            child: AttachmentItem(
+                              data: ele,
+                              heroTag: heroTags[idx],
+                              fit: BoxFit.cover,
+                              filterQuality: widget.filterQuality,
                             ),
                           ),
-                        )
-                        .expand((ele) => [ele, const Divider(height: 1)])
-                        .toList()
-                      ..removeLast(),
+                        ),
+                      ),
+                    )
+                    .expand((ele) => [ele, const Divider(height: 1)])
+                    .toList()
+                  ..removeLast(),
               ),
             ),
           );
@@ -189,16 +213,22 @@ class _AttachmentListState extends State<AttachmentList> {
                 itemCount: widget.data.length,
                 itemBuilder: (context, idx) {
                   return Container(
-                    constraints: constraints.copyWith(maxWidth: widget.maxWidth),
+                    constraints:
+                        constraints.copyWith(maxWidth: widget.maxWidth),
                     child: AspectRatio(
-                      aspectRatio: (widget.data[idx]?.data['ratio'] ?? 1).toDouble(),
+                      aspectRatio:
+                          (widget.data[idx]?.data['ratio'] ?? 1).toDouble(),
                       child: GestureDetector(
                         onTap: () {
-                          if (widget.data[idx]?.mediaType != SnMediaType.image) return;
+                          if (widget.data[idx]?.mediaType != SnMediaType.image)
+                            return;
                           context.pushTransparentRoute(
                             AttachmentZoomView(
-                              data:
-                                  widget.data.where((ele) => ele != null && ele.mediaType == SnMediaType.image).cast(),
+                              data: widget.data
+                                  .where((ele) =>
+                                      ele != null &&
+                                      ele.mediaType == SnMediaType.image)
+                                  .cast(),
                               initialIndex: idx,
                               heroTags: heroTags,
                             ),
@@ -212,18 +242,25 @@ class _AttachmentListState extends State<AttachmentList> {
                             Container(
                               decoration: BoxDecoration(
                                 color: backgroundColor,
-                                border: Border(top: borderSide, bottom: borderSide),
+                                border:
+                                    Border(top: borderSide, bottom: borderSide),
                                 borderRadius: AttachmentList.kDefaultRadius,
                               ),
                               child: ClipRRect(
                                 borderRadius: AttachmentList.kDefaultRadius,
-                                child: AttachmentItem(data: widget.data[idx], heroTag: heroTags[idx]),
+                                child: AttachmentItem(
+                                  data: widget.data[idx],
+                                  heroTag: heroTags[idx],
+                                  filterQuality: widget.filterQuality,
+                                ),
                               ),
                             ),
                             Positioned(
                               right: 8,
                               bottom: 8,
-                              child: Chip(label: Text('${idx + 1}/${widget.data.length}')),
+                              child: Chip(
+                                  label:
+                                      Text('${idx + 1}/${widget.data.length}')),
                             ),
                           ],
                         ),
@@ -245,5 +282,6 @@ class _AttachmentListState extends State<AttachmentList> {
 
 class _AttachmentListScrollBehavior extends MaterialScrollBehavior {
   @override
-  Set<PointerDeviceKind> get dragDevices => {PointerDeviceKind.touch, PointerDeviceKind.mouse};
+  Set<PointerDeviceKind> get dragDevices =>
+      {PointerDeviceKind.touch, PointerDeviceKind.mouse};
 }
