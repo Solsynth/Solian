@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' show max;
 
 import 'package:dio/dio.dart';
 import 'package:dismissible_page/dismissible_page.dart';
@@ -48,11 +47,14 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
   bool _showOverlay = true;
   bool _dismissable = true;
 
+  int _page = 0;
+
   void _updatePage() {
     setState(() {
       if (_isCompletedDownload) {
         setState(() => _isCompletedDownload = false);
       }
+      _page = _pageController.page?.round() ?? 0;
     });
   }
 
@@ -222,31 +224,11 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                       BoxDecoration(color: Colors.transparent),
                 );
               }),
-              Positioned(
-                top: max(MediaQuery.of(context).padding.top, 8),
-                left: 14,
-                child: IgnorePointer(
-                  ignoring: !_showOverlay,
-                  child: IconButton(
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(Icons.close),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                        Theme.of(context).colorScheme.surface.withOpacity(0.5),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ).opacity(_showOverlay ? 1 : 0, animate: true).animate(
-                      const Duration(milliseconds: 300), Curves.easeInOut),
-                ),
-              ),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: IgnorePointer(
                   child: Container(
-                    height: 300,
+                    height: 200,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.bottomCenter,
@@ -269,153 +251,130 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                 child: Material(
                   color: Colors.transparent,
                   child: Builder(builder: (context) {
-                    final ud = context.read<UserDirectoryProvider>();
-                    final item = widget.data.elementAt(
-                      widget.data.length > 1
-                          ? _pageController.page?.round() ?? 0
-                          : 0,
-                    );
-                    final account = ud.getFromCache(item.accountId);
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    return Row(
                       children: [
-                        if (item.accountId > 0)
-                          Row(
-                            children: [
-                              IgnorePointer(
-                                child: AccountImage(
-                                  content: account?.avatar,
-                                  radius: 19,
-                                ),
-                              ),
-                              const Gap(8),
-                              Expanded(
-                                child: IgnorePointer(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'attachmentUploadBy'.tr(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                      ),
-                                      Text(
-                                        account?.nick ?? 'unknown'.tr(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              if (widget.data.length > 1)
-                                IgnorePointer(
-                                  child: Text(
-                                    '${(_pageController.page?.round() ?? 0) + 1}/${widget.data.length}',
-                                    style: GoogleFonts.robotoMono(fontSize: 13),
-                                  ).padding(right: 8),
-                                ),
-                              InkWell(
-                                borderRadius:
-                                    const BorderRadius.all(Radius.circular(16)),
-                                onTap: _isDownloading
-                                    ? null
-                                    : () => _saveToAlbum(widget.data.length > 1
-                                        ? _pageController.page?.round() ?? 0
-                                        : 0),
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  child: !_isDownloading
-                                      ? !_isCompletedDownload
-                                          ? const Icon(Symbols.save_alt)
-                                          : const Icon(Symbols.download_done)
-                                      : SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            value: _progressOfDownload,
-                                            strokeWidth: 3,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        const Gap(4),
-                        IgnorePointer(
-                          child: Text(
-                            item.alt,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
+                        IconButton(
+                          iconSize: 18,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.close),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                              Theme.of(context)
+                                  .colorScheme
+                                  .surface
+                                  .withOpacity(0.5),
                             ),
                           ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
                         ),
-                        const Gap(2),
-                        IgnorePointer(
-                          child: Wrap(
-                            spacing: 6,
-                            children: [
-                              if (item.metadata['exif'] == null)
-                                Text(
-                                  '#${item.rid}',
-                                  style: metaTextStyle,
-                                ),
-                              if (item.metadata['exif']?['Model'] != null)
-                                Text(
-                                  'attachmentShotOn'.tr(args: [
-                                    item.metadata['exif']?['Model'],
-                                  ]),
-                                  style: metaTextStyle,
-                                ).padding(right: 2),
-                              if (item.metadata['exif']?['Megapixels'] !=
-                                      null &&
-                                  item.metadata['exif']?['Model'] != null)
-                                Text(
-                                  '${item.metadata['exif']?['Megapixels']}MP',
-                                  style: metaTextStyle,
-                                )
-                              else
-                                Text(
-                                  item.size.formatBytes(),
-                                  style: metaTextStyle,
-                                ),
-                              if (item.metadata['width'] != null &&
-                                  item.metadata['height'] != null)
-                                Text(
-                                  '${item.metadata['width']}x${item.metadata['height']}',
-                                  style: metaTextStyle,
-                                ),
-                            ],
+                        IconButton(
+                            iconSize: 20,
+                            constraints: const BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Symbols.hide).padding(all: 6),
+                            onPressed: () {
+                              setState(() => _showOverlay = false);
+                            }),
+                        Expanded(
+                          child: IgnorePointer(
+                            child: Builder(builder: (context) {
+                              final item = widget.data.elementAt(_page);
+                              final doShowCameraInfo =
+                                  item.metadata['exif']?['Model'] != null;
+                              final exif = item.metadata['exif'];
+                              return Column(
+                                children: [
+                                  if (widget.data.length > 1)
+                                    Text(
+                                      '${_page + 1}/${widget.data.length}',
+                                      style:
+                                          GoogleFonts.robotoMono(fontSize: 13),
+                                    ).padding(right: 8),
+                                  if (doShowCameraInfo)
+                                    Text(
+                                      'attachmentShotOn'
+                                          .tr(args: [exif?['Model']]),
+                                      style: metaTextStyle,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  if (doShowCameraInfo)
+                                    Row(
+                                      spacing: 4,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (exif?['Megapixels'] != null)
+                                          Text(
+                                            '${exif?['Megapixels']}MP',
+                                            style: metaTextStyle,
+                                          ),
+                                        if (exif?['ISO'] != null)
+                                          Text(
+                                            'ISO${exif['ISO']}',
+                                            style: metaTextStyle,
+                                          ),
+                                        if (exif?['FNumber'] != null)
+                                          Text(
+                                            'f/${exif['FNumber']}',
+                                            style: metaTextStyle,
+                                          ),
+                                      ],
+                                    )
+                                ],
+                              );
+                            }),
                           ),
                         ),
-                        const Gap(4),
-                        InkWell(
-                          onTap: () {
+                        IconButton(
+                          constraints: const BoxConstraints(),
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                          icon: Container(
+                            padding: const EdgeInsets.all(6),
+                            child: !_isDownloading
+                                ? !_isCompletedDownload
+                                    ? const Icon(Symbols.save_alt)
+                                    : const Icon(Symbols.download_done)
+                                : SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest,
+                                      value: _progressOfDownload,
+                                      strokeWidth: 3,
+                                    ),
+                                  ),
+                          ),
+                          onPressed:
+                              _isDownloading ? null : () => _saveToAlbum(_page),
+                        ),
+                        IconButton(
+                          iconSize: 18,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.info_outline),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                              Theme.of(context)
+                                  .colorScheme
+                                  .surface
+                                  .withOpacity(0.5),
+                            ),
+                          ),
+                          onPressed: () {
                             _showDetail = true;
                             showModalBottomSheet(
                               context: context,
                               builder: (context) => _AttachmentZoomDetailPopup(
-                                data: widget.data.elementAt(
-                                    widget.data.length > 1
-                                        ? _pageController.page?.round() ?? 0
-                                        : 0),
+                                data: widget.data.elementAt(_page),
                               ),
                             ).then((_) {
                               _showDetail = false;
                             });
                           },
-                          child: Text(
-                            'viewDetailedAttachment'.tr(),
-                            style: metaTextStyle.copyWith(
-                                decoration: TextDecoration.underline),
-                          ),
                         ),
                       ],
                     );
@@ -427,18 +386,20 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
           ),
         ),
         onTap: () {
+          if (_showOverlay) {
+            Navigator.pop(context);
+            return;
+          }
           setState(() => _showOverlay = !_showOverlay);
         },
         onVerticalDragUpdate: (details) {
-          if (_showDetail) return;
+          if (_showDetail || !_dismissable) return;
           if (details.delta.dy <= -20) {
             _showDetail = true;
             showModalBottomSheet(
               context: context,
               builder: (context) => _AttachmentZoomDetailPopup(
-                data: widget.data.elementAt(widget.data.length > 1
-                    ? _pageController.page?.round() ?? 0
-                    : 0),
+                data: widget.data.elementAt(_page),
               ),
             ).then((_) {
               _showDetail = false;
