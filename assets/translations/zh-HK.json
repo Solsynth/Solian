@@ -137,6 +137,11 @@
   "publisherRunBy": "由 {} 管理",
   "fieldPublisherBelongToRealm": "所屬領域",
   "fieldPublisherBelongToRealmUnset": "未設置發佈者所屬領域",
+  "writePost": "撰寫",
+  "postTypeStory": "動態",
+  "postTypeArticle": "文章",
+  "postTypeQuestion": "問題",
+  "postTypeVideo": "視頻",
   "writePostTypeStory": "發動態",
   "writePostTypeArticle": "寫文章",
   "writePostTypeQuestion": "提問題",
@@ -761,5 +766,6 @@
   "decrypting": "解密中……",
   "decryptingKeyNotFound": "未找到密鑰對或交換失敗，對方可能不在線",
   "messageUnablePreview": "無法預覽消息",
-  "messageUnablePreviewEncrypted": "無法預覽加密消息"
+  "messageUnablePreviewEncrypted": "無法預覽加密消息",
+  "postViewInGlobalDescription": "不查看特定領域的帖子。"
 }

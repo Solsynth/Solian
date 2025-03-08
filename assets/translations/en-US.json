@@ -768,5 +768,6 @@
   "decrypting": "Decrypting……",
   "decryptingKeyNotFound": "Key not found or exchange failed, the other party may not be online",
   "messageUnablePreview": "Unable preview",
-  "messageUnablePreviewEncrypted": "Unable preview encrypted message"
+  "messageUnablePreviewEncrypted": "Unable preview encrypted message",
+  "postViewInGlobalDescription": "Do not view the post in the specific realm."
 }

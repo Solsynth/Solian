@@ -11,6 +11,7 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/types/realm.dart';
+import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
@@ -42,10 +43,13 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen>
     with TickerProviderStateMixin {
-  late TabController _tabController = TabController(length: 3, vsync: this);
+  late TabController _tabController = TabController(
+    length: kPostChannels.length,
+    vsync: this,
+  );
 
   final _fabKey = GlobalKey<ExpandableFabState>();
-  final _listKeys = GlobalKey<_PostListWidgetState>();
+  final _listKey = GlobalKey<_PostListWidgetState>();
 
   bool _showCategories = false;
 
@@ -88,7 +92,7 @@ class _ExploreScreenState extends State<ExploreScreen>
     if (_showCategories) {
       _tabController = TabController(length: _categories.length, vsync: this);
     } else {
-      _tabController = TabController(length: 4, vsync: this);
+      _tabController = TabController(length: kPostChannels.length, vsync: this);
     }
     _tabListen();
     setState(() {});
@@ -98,24 +102,23 @@ class _ExploreScreenState extends State<ExploreScreen>
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         if (_showCategories) {
-          _listKeys.currentState
-              ?.setCategory(_categories[_tabController.index]);
-          _listKeys.currentState?.refreshPosts();
+          _listKey.currentState?.setCategory(_categories[_tabController.index]);
+          _listKey.currentState?.refreshPosts();
           return;
         }
         switch (_tabController.index) {
           case 0:
           case 3:
-            _listKeys.currentState?.setChannel(null);
+            _listKey.currentState?.setChannel(null);
             break;
           case 1:
-            _listKeys.currentState?.setChannel('friends');
+            _listKey.currentState?.setChannel('friends');
             break;
           case 2:
-            _listKeys.currentState?.setChannel('following');
+            _listKey.currentState?.setChannel('following');
             break;
         }
-        _listKeys.currentState?.refreshPosts();
+        _listKey.currentState?.refreshPosts();
       }
     });
   }
@@ -135,7 +138,7 @@ class _ExploreScreenState extends State<ExploreScreen>
   }
 
   Future<void> refreshPosts() async {
-    await _listKeys.currentState?.refreshPosts();
+    await _listKey.currentState?.refreshPosts();
   }
 
   @override
@@ -198,7 +201,45 @@ class _ExploreScreenState extends State<ExploreScreen>
               handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
               sliver: SliverAppBar(
                 leading: AutoAppBarLeading(),
-                title: Text('screenExplore').tr(),
+                titleSpacing: 0,
+                title: Row(
+                  children: [
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      visualDensity: VisualDensity.compact,
+                      icon: _listKey.currentState?.realm != null
+                          ? AccountImage(
+                              content: _listKey.currentState!.realm!.avatar,
+                              radius: 14,
+                            )
+                          : const Icon(Symbols.group),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) => _PostListRealmPopup(
+                            realms: _realms,
+                            onUpdate: (realm) {
+                              _listKey.currentState?.setRealm(realm);
+                              _listKey.currentState?.refreshPosts();
+                              Future.delayed(const Duration(milliseconds: 100),
+                                  () {
+                                if (mounted) {
+                                  setState(() {});
+                                }
+                              });
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: Text('screenExplore').tr(),
+                      ),
+                    ),
+                  ],
+                ),
                 floating: true,
                 snap: true,
                 actions: [
@@ -294,7 +335,7 @@ class _ExploreScreenState extends State<ExploreScreen>
           ];
         },
         body: _PostListWidget(
-          key: _listKeys,
+          key: _listKey,
         ),
       ),
     );
@@ -310,6 +351,8 @@ class _PostListWidget extends StatefulWidget {
 
 class _PostListWidgetState extends State<_PostListWidget> {
   bool _isBusy = false;
+
+  SnRealm? get realm => _selectedRealm;
 
   final List<SnPost> _posts = List.empty(growable: true);
   SnRealm? _selectedRealm;
@@ -424,6 +467,62 @@ class _PostListWidgetState extends State<_PostListWidget> {
                 separatorBuilder: (_, __) => const Gap(8),
               ),
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PostListRealmPopup extends StatelessWidget {
+  final List<SnRealm>? realms;
+  final Function(SnRealm?) onUpdate;
+
+  const _PostListRealmPopup({
+    required this.realms,
+    required this.onUpdate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(Symbols.face, size: 24),
+            const Gap(16),
+            Text('accountRealms', style: Theme.of(context).textTheme.titleLarge)
+                .tr(),
+          ],
+        ).padding(horizontal: 20, top: 16, bottom: 12),
+        ListTile(
+          leading: const Icon(Symbols.close),
+          title: Text('postInGlobal').tr(),
+          subtitle: Text('postViewInGlobalDescription').tr(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          onTap: () {
+            onUpdate.call(null);
+            Navigator.pop(context);
+          },
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ListView.builder(
+            itemCount: realms?.length ?? 0,
+            itemBuilder: (context, idx) {
+              final realm = realms![idx];
+              return ListTile(
+                title: Text(realm.name),
+                subtitle: Text('@${realm.alias}'),
+                leading: AccountImage(content: realm.avatar, radius: 18),
+                onTap: () {
+                  onUpdate.call(realm);
+                  Navigator.pop(context);
+                },
+              );
+            },
           ),
         ),
       ],
