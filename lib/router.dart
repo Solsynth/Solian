@@ -69,6 +69,7 @@ final _appRoutes = [
         path: '/write',
         name: 'postEditor',
         builder: (context, state) => PostEditorScreen(
+          mode: state.uri.queryParameters['mode'],
           postEditId: int.tryParse(
             state.uri.queryParameters['editing'] ?? '',
           ),

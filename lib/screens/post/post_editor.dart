@@ -55,6 +55,7 @@ class PostEditorExtra {
 }
 
 class PostEditorScreen extends StatefulWidget {
+  final String? mode;
   final int? postEditId;
   final int? postReplyId;
   final int? postRepostId;
@@ -62,6 +63,7 @@ class PostEditorScreen extends StatefulWidget {
 
   const PostEditorScreen({
     super.key,
+    required this.mode,
     required this.postEditId,
     required this.postReplyId,
     required this.postRepostId,
@@ -226,6 +228,9 @@ class _PostEditorScreenState extends State<PostEditorScreen>
     _registerHotKey();
     _fetchRealms();
     _fetchPublishers();
+    if (widget.mode != null) {
+      _writeController.setMode(widget.mode!);
+    }
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         _writeController.setMode(kPostTypeAliases[_tabController.index]);
@@ -270,7 +275,7 @@ class _PostEditorScreenState extends State<PostEditorScreen>
               ),
               const Gap(8),
             ],
-            bottom: _writeController.isNotEmpty
+            bottom: _writeController.isNotEmpty || widget.mode != null
                 ? null
                 : TabBar(
                     controller: _tabController,

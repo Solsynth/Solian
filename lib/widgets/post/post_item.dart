@@ -1038,8 +1038,10 @@ class _PostContentHeader extends StatelessWidget {
                   onTap: () {
                     GoRouter.of(context).pushNamed(
                       'postEditor',
-                      pathParameters: {'mode': data.typePlural},
-                      queryParameters: {'editing': data.id.toString()},
+                      queryParameters: {
+                        'editing': data.id.toString(),
+                        'mode': data.typePlural,
+                      },
                     );
                   },
                 ),
@@ -1066,8 +1068,10 @@ class _PostContentHeader extends StatelessWidget {
                 onTap: () {
                   GoRouter.of(context).pushNamed(
                     'postEditor',
-                    pathParameters: {'mode': 'stories'},
-                    queryParameters: {'replying': data.id.toString()},
+                    queryParameters: {
+                      'replying': data.id.toString(),
+                      'mode': data.typePlural,
+                    },
                   );
                 },
               ),
@@ -1082,8 +1086,10 @@ class _PostContentHeader extends StatelessWidget {
                 onTap: () {
                   GoRouter.of(context).pushNamed(
                     'postEditor',
-                    pathParameters: {'mode': 'stories'},
-                    queryParameters: {'reposting': data.id.toString()},
+                    queryParameters: {
+                      'reposting': data.id.toString(),
+                      'mode': 'stories',
+                    },
                   );
                 },
               ),

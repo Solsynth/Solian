@@ -61,7 +61,7 @@ class _AppSharingListenerState extends State<AppSharingListener> {
                       onTap: () {
                         GoRouter.of(context).pushNamed(
                           'postEditor',
-                          pathParameters: {
+                          queryParameters: {
                             'mode': 'stories',
                           },
                           extra: PostEditorExtra(

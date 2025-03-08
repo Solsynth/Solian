@@ -25,7 +25,8 @@ class PostMiniEditor extends StatefulWidget {
 }
 
 class _PostMiniEditorState extends State<PostMiniEditor> {
-  final PostWriteController _writeController = PostWriteController(doLoadFromTemporary: false);
+  final PostWriteController _writeController =
+      PostWriteController(doLoadFromTemporary: false);
 
   bool _isFetching = false;
 
@@ -44,8 +45,9 @@ class _PostMiniEditorState extends State<PostMiniEditor> {
         resp.data?.map((e) => SnPublisher.fromJson(e)) ?? [],
       );
       final beforeId = config.prefs.getInt('int_last_publisher_id');
-      _writeController
-          .setPublisher(_publishers?.where((ele) => ele.id == beforeId).firstOrNull ?? _publishers?.firstOrNull);
+      _writeController.setPublisher(
+          _publishers?.where((ele) => ele.id == beforeId).firstOrNull ??
+              _publishers?.firstOrNull);
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -99,11 +101,17 @@ class _PostMiniEditorState extends State<PostMiniEditor> {
                                 Expanded(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(item.nick).textStyle(Theme.of(context).textTheme.bodyMedium!),
+                                      Text(item.nick).textStyle(
+                                          Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium!),
                                       Text('@${item.name}')
-                                          .textStyle(Theme.of(context).textTheme.bodySmall!)
+                                          .textStyle(Theme.of(context)
+                                              .textTheme
+                                              .bodySmall!)
                                           .fontSize(12),
                                     ],
                                   ),
@@ -120,7 +128,8 @@ class _PostMiniEditorState extends State<PostMiniEditor> {
                           CircleAvatar(
                             radius: 16,
                             backgroundColor: Colors.transparent,
-                            foregroundColor: Theme.of(context).colorScheme.onSurface,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onSurface,
                             child: const Icon(Symbols.add),
                           ),
                           const Gap(8),
@@ -129,7 +138,8 @@ class _PostMiniEditorState extends State<PostMiniEditor> {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('publishersNew').tr().textStyle(Theme.of(context).textTheme.bodyMedium!),
+                                Text('publishersNew').tr().textStyle(
+                                    Theme.of(context).textTheme.bodyMedium!),
                               ],
                             ),
                           ),
@@ -140,7 +150,9 @@ class _PostMiniEditorState extends State<PostMiniEditor> {
                   value: _writeController.publisher,
                   onChanged: (SnPublisher? value) {
                     if (value == null) {
-                      GoRouter.of(context).pushNamed('accountPublisherNew').then((value) {
+                      GoRouter.of(context)
+                          .pushNamed('accountPublisherNew')
+                          .then((value) {
                         if (value == true) {
                           _publishers = null;
                           _fetchPublishers();
@@ -176,7 +188,8 @@ class _PostMiniEditorState extends State<PostMiniEditor> {
                     ),
                     border: InputBorder.none,
                   ),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ),
               ),
               const Gap(8),
@@ -185,7 +198,8 @@ class _PostMiniEditorState extends State<PostMiniEditor> {
                 TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: _writeController.progress),
                   duration: Duration(milliseconds: 300),
-                  builder: (context, value, _) => LinearProgressIndicator(value: value, minHeight: 2),
+                  builder: (context, value, _) =>
+                      LinearProgressIndicator(value: value, minHeight: 2),
                 )
               else if (_writeController.isBusy)
                 const LinearProgressIndicator(value: null, minHeight: 2),
@@ -200,15 +214,17 @@ class _PostMiniEditorState extends State<PostMiniEditor> {
                     onPressed: () {
                       GoRouter.of(context).pushNamed(
                         'postEditor',
-                        pathParameters: {'mode': 'stories'},
                         queryParameters: {
-                          if (widget.postReplyId != null) 'replying': widget.postReplyId.toString(),
+                          if (widget.postReplyId != null)
+                            'replying': widget.postReplyId.toString(),
+                          'mode': 'stories',
                         },
                       );
                     },
                   ),
                   TextButton.icon(
-                    onPressed: (_writeController.isBusy || _writeController.publisher == null)
+                    onPressed: (_writeController.isBusy ||
+                            _writeController.publisher == null)
                         ? null
                         : () {
                             _writeController.sendPost(context).then((_) {
