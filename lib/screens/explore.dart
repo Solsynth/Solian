@@ -238,12 +238,12 @@ class _ExploreScreenState extends State<ExploreScreen>
                           icon: _listKey.currentState?.realm != null
                               ? AccountImage(
                                   content: _listKey.currentState!.realm!.avatar,
-                                  radius: 18,
+                                  radius: 14,
                                 )
                               : Image.asset(
                                   'assets/icon/icon-dark.png',
-                                  width: 36,
-                                  height: 36,
+                                  width: 32,
+                                  height: 32,
                                   color: Theme.of(context)
                                       .appBarTheme
                                       .foregroundColor,
