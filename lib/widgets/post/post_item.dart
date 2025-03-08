@@ -923,27 +923,48 @@ class _PostContentHeader extends StatelessWidget {
     return Row(
       children: [
         GestureDetector(
-          child: AccountImage(
-            content: data.publisher.avatar,
-            radius: isCompact ? 12 : 20,
-            borderRadius: data.publisher.type == 1 ? (isCompact ? 4 : 8) : 20,
-            badge: (user?.badges.isNotEmpty ?? false)
-                ? Icon(
-                    kBadgesMeta[user!.badges.first.type]?.$2 ??
-                        Symbols.question_mark,
-                    color: kBadgesMeta[user.badges.first.type]?.$3,
-                    fill: 1,
-                    size: 18,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(1, 1),
-                        blurRadius: 5.0,
-                        color: Color.fromARGB(200, 0, 0, 0),
+          child: data.preload?.realm == null
+              ? AccountImage(
+                  content: data.publisher.avatar,
+                  radius: isCompact ? 12 : 20,
+                  borderRadius:
+                      data.publisher.type == 1 ? (isCompact ? 4 : 8) : 20,
+                  badge: (user?.badges.isNotEmpty ?? false)
+                      ? Icon(
+                          kBadgesMeta[user!.badges.first.type]?.$2 ??
+                              Symbols.question_mark,
+                          color: kBadgesMeta[user.badges.first.type]?.$3,
+                          fill: 1,
+                          size: 18,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(1, 1),
+                              blurRadius: 5.0,
+                              color: Color.fromARGB(200, 0, 0, 0),
+                            ),
+                          ],
+                        )
+                      : null,
+                )
+              : AccountImage(
+                  content: data.preload!.realm!.avatar,
+                  radius: isCompact ? 12 : 20,
+                  borderRadius: isCompact ? 4 : 8,
+                  badgeOffset: Offset(-6, -4),
+                  badge: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.surface,
+                        width: 2,
                       ),
-                    ],
-                  )
-                : null,
-          ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: AccountImage(
+                      content: data.publisher.avatar,
+                      radius: 10,
+                    ),
+                  ),
+                ),
           onTap: () {
             showPopover(
               backgroundColor: Theme.of(context).colorScheme.surface,
@@ -988,7 +1009,17 @@ class _PostContentHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(data.publisher.nick).bold(),
+                Row(
+                  children: [
+                    Text(data.publisher.nick).bold(),
+                    if (data.preload?.realm != null)
+                      const Icon(Symbols.arrow_right, size: 16)
+                          .padding(horizontal: 2)
+                          .opacity(0.5),
+                    if (data.preload?.realm != null)
+                      Text(data.preload!.realm!.name),
+                  ],
+                ),
                 Row(
                   children: [
                     Text('@${data.publisher.name}').fontSize(13),

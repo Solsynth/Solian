@@ -13,6 +13,7 @@ class AccountImage extends StatelessWidget {
   final double? borderRadius;
   final Widget? fallbackWidget;
   final Widget? badge;
+  final Offset? badgeOffset;
 
   const AccountImage({
     super.key,
@@ -23,6 +24,7 @@ class AccountImage extends StatelessWidget {
     this.borderRadius,
     this.fallbackWidget,
     this.badge,
+    this.badgeOffset,
   });
 
   @override
@@ -40,7 +42,8 @@ class AccountImage extends StatelessWidget {
             borderRadius: BorderRadius.circular(borderRadius ?? radius ?? 20),
             child: (content?.isEmpty ?? true)
                 ? Container(
-                    color: backgroundColor ?? Theme.of(context).colorScheme.primaryContainer,
+                    color: backgroundColor ??
+                        Theme.of(context).colorScheme.primaryContainer,
                     child: (fallbackWidget ??
                             Icon(
                               Symbols.account_circle,
@@ -58,8 +61,8 @@ class AccountImage extends StatelessWidget {
         ),
         if (badge != null)
           Positioned(
-            right: -4,
-            bottom: -2,
+            right: badgeOffset?.dx ?? -4,
+            bottom: badgeOffset?.dy ?? -2,
             child: badge!,
           ),
       ],
