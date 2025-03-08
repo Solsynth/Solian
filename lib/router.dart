@@ -30,6 +30,7 @@ import 'package:surface/screens/notification.dart';
 import 'package:surface/screens/post/post_detail.dart';
 import 'package:surface/screens/post/post_draft.dart';
 import 'package:surface/screens/post/post_editor.dart';
+import 'package:surface/screens/post/post_shuffle.dart';
 import 'package:surface/screens/post/publisher_page.dart';
 import 'package:surface/screens/post/post_search.dart';
 import 'package:surface/screens/realm.dart';
@@ -87,6 +88,11 @@ final _appRoutes = [
           ),
           extraProps: state.extra as PostEditorExtra?,
         ),
+      ),
+      GoRoute(
+        path: '/shuffle',
+        name: 'postShuffle',
+        builder: (context, state) => const PostShuffleScreen(),
       ),
       GoRoute(
         path: '/search',

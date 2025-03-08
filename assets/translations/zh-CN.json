@@ -769,5 +769,6 @@
   "messageUnablePreviewEncrypted": "无法预览加密消息",
   "postViewInGlobalDescription": "不查看特定领域的帖子。",
   "postDraftSaved": "已保存为草稿。",
-  "postDraftBox": "草稿箱"
+  "postDraftBox": "草稿箱",
+  "postShuffle": "随便看看"
 }

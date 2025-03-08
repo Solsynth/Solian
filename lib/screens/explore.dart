@@ -225,7 +225,9 @@ class _ExploreScreenState extends State<ExploreScreen>
                   children: [
                     IconButton(
                       icon: const Icon(Symbols.shuffle),
-                      onPressed: () {},
+                      onPressed: () {
+                        GoRouter.of(context).pushNamed('postShuffle');
+                      },
                     ),
                     Expanded(
                       child: Center(

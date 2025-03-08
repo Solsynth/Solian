@@ -155,9 +155,12 @@ class SnPostContentProvider {
     String? realm,
     String? channel,
     bool isDraft = false,
+    bool isShuffle = false,
   }) async {
     final resp = await _sn.client.get(
-      '/cgi/co/posts${isDraft ? '/drafts' : ''}',
+      isShuffle
+          ? '/cgi/co/recommendations/shuffle'
+          : '/cgi/co/posts${isDraft ? '/drafts' : ''}',
       queryParameters: {
         'take': take,
         'offset': offset,

@@ -771,5 +771,6 @@
   "messageUnablePreviewEncrypted": "Unable preview encrypted message",
   "postViewInGlobalDescription": "Do not view the post in the specific realm.",
   "postDraftSaved": "The draft has been saved.",
-  "postDraftBox": "Draft Box"
+  "postDraftBox": "Draft Box",
+  "postShuffle": "Read Randomly"
 }
