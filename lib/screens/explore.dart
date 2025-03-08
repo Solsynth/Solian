@@ -91,8 +91,12 @@ class _ExploreScreenState extends State<ExploreScreen>
     _showCategories = !_showCategories;
     if (_showCategories) {
       _tabController = TabController(length: _categories.length, vsync: this);
+      _listKey.currentState?.setCategory(_categories[_tabController.index]);
+      _listKey.currentState?.refreshPosts();
     } else {
       _tabController = TabController(length: kPostChannels.length, vsync: this);
+      _listKey.currentState?.setCategory(null);
+      _listKey.currentState?.refreshPosts();
     }
     _tabListen();
     setState(() {});
@@ -226,7 +230,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                       icon: _listKey.currentState?.realm != null
                           ? AccountImage(
                               content: _listKey.currentState!.realm!.avatar,
-                              radius: 14,
+                              radius: 18,
                             )
                           : const Icon(Symbols.group),
                       onPressed: () {
@@ -248,6 +252,24 @@ class _ExploreScreenState extends State<ExploreScreen>
                         );
                       },
                     ),
+                    IconButton(
+                      icon: const Icon(Symbols.category),
+                      style: _showCategories
+                          ? ButtonStyle(
+                              foregroundColor: WidgetStateProperty.all(
+                                Theme.of(context).colorScheme.primary,
+                              ),
+                              backgroundColor: MaterialStateProperty.all(
+                                Theme.of(context)
+                                    .colorScheme
+                                    .secondaryContainer,
+                              ),
+                            )
+                          : null,
+                      onPressed: () {
+                        _toggleShowCategories();
+                      },
+                    ),
                     Expanded(
                       child: Center(
                         child: Text('screenExplore').tr(),
@@ -258,22 +280,6 @@ class _ExploreScreenState extends State<ExploreScreen>
                 floating: true,
                 snap: true,
                 actions: [
-                  IconButton(
-                    icon: const Icon(Symbols.category),
-                    style: _showCategories
-                        ? ButtonStyle(
-                            foregroundColor: WidgetStateProperty.all(
-                              Theme.of(context).colorScheme.primary,
-                            ),
-                            backgroundColor: MaterialStateProperty.all(
-                              Theme.of(context).colorScheme.secondaryContainer,
-                            ),
-                          )
-                        : null,
-                    onPressed: () {
-                      _toggleShowCategories();
-                    },
-                  ),
                   IconButton(
                     icon: const Icon(Symbols.search),
                     onPressed: () {
