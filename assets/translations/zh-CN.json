@@ -767,5 +767,7 @@
   "decryptingKeyNotFound": "未找到密钥对或交换失败，对方可能不在线",
   "messageUnablePreview": "无法预览消息",
   "messageUnablePreviewEncrypted": "无法预览加密消息",
-  "postViewInGlobalDescription": "不查看特定领域的帖子。"
+  "postViewInGlobalDescription": "不查看特定领域的帖子。",
+  "postDraftSaved": "已保存为草稿。",
+  "postDraftBox": "草稿箱"
 }

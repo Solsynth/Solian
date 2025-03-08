@@ -28,6 +28,7 @@ import 'package:surface/screens/news/news_detail.dart';
 import 'package:surface/screens/news/news_list.dart';
 import 'package:surface/screens/notification.dart';
 import 'package:surface/screens/post/post_detail.dart';
+import 'package:surface/screens/post/post_draft.dart';
 import 'package:surface/screens/post/post_editor.dart';
 import 'package:surface/screens/post/publisher_page.dart';
 import 'package:surface/screens/post/post_search.dart';
@@ -65,6 +66,11 @@ final _appRoutes = [
     name: 'explore',
     builder: (context, state) => const ExploreScreen(),
     routes: [
+      GoRoute(
+        path: '/draft',
+        name: 'postDraftBox',
+        builder: (context, state) => const PostDraftBox(),
+      ),
       GoRoute(
         path: '/write',
         name: 'postEditor',

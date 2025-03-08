@@ -192,6 +192,21 @@ class _ExploreScreenState extends State<ExploreScreen>
               ),
             ],
           ),
+          Row(
+            children: [
+              Text('postDraftBox').tr(),
+              const Gap(20),
+              FloatingActionButton(
+                heroTag: null,
+                tooltip: 'postDraftBox'.tr(),
+                onPressed: () {
+                  GoRouter.of(context).pushNamed('postDraftBox');
+                  _fabKey.currentState!.toggle();
+                },
+                child: const Icon(Symbols.box_edit),
+              ),
+            ],
+          ),
         ],
       ),
       body: NestedScrollView(
@@ -293,9 +308,11 @@ class _ExploreScreenState extends State<ExploreScreen>
                                               .tr()
                                           : category.name,
                                       maxLines: 1,
-                                    ).textColor(Theme.of(context)
-                                        .appBarTheme
-                                        .foregroundColor!),
+                                    ).textColor(
+                                      Theme.of(context)
+                                          .appBarTheme
+                                          .foregroundColor!,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -321,9 +338,11 @@ class _ExploreScreenState extends State<ExploreScreen>
                                     child: Text(
                                       'postChannel$channel',
                                       maxLines: 1,
-                                    ).tr().textColor(Theme.of(context)
-                                        .appBarTheme
-                                        .foregroundColor),
+                                    ).tr().textColor(
+                                          Theme.of(context)
+                                              .appBarTheme
+                                              .foregroundColor,
+                                        ),
                                   ),
                                 ],
                               ),

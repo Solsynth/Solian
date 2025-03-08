@@ -223,7 +223,7 @@ class PostItem extends StatelessWidget {
                   onShareImage: () => _doShareViaPicture(context),
                   onSelectAnswer: onSelectAnswer,
                   onDeleted: () {
-                    if (onDeleted != null) {}
+                    onDeleted?.call();
                   },
                 ).padding(bottom: 8),
                 if (data.preload?.video != null)
@@ -272,7 +272,7 @@ class PostItem extends StatelessWidget {
               onShareImage: () => _doShareViaPicture(context),
               onSelectAnswer: onSelectAnswer,
               onDeleted: () {
-                if (onDeleted != null) {}
+                onDeleted?.call();
               },
             ).padding(horizontal: 12, top: 8, bottom: 8),
             if (data.preload?.video != null)
@@ -363,7 +363,7 @@ class PostItem extends StatelessWidget {
                 onShareImage: () => _doShareViaPicture(context),
                 onSelectAnswer: onSelectAnswer,
                 onDeleted: () {
-                  if (onDeleted != null) onDeleted!();
+                  onDeleted?.call();
                 },
               ).padding(horizontal: 12, vertical: 8),
               if (data.preload?.video != null)

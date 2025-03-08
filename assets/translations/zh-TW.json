@@ -767,5 +767,7 @@
   "decryptingKeyNotFound": "未找到密鑰對或交換失敗，對方可能不在線",
   "messageUnablePreview": "無法預覽消息",
   "messageUnablePreviewEncrypted": "無法預覽加密消息",
-  "postViewInGlobalDescription": "不查看特定領域的帖子。"
+  "postViewInGlobalDescription": "不查看特定領域的帖子。",
+  "postDraftSaved": "已保存為草稿。",
+  "postDraftBox": "草稿箱"
 }

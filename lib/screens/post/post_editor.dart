@@ -138,6 +138,15 @@ class _PostEditorScreenState extends State<PostEditorScreen>
     ],
     scope: HotKeyScope.inapp,
   );
+  final HotKey _saveDraftHotKey = HotKey(
+    key: PhysicalKeyboardKey.keyS,
+    modifiers: [
+      (!kIsWeb && Platform.isMacOS)
+          ? HotKeyModifier.meta
+          : HotKeyModifier.control
+    ],
+    scope: HotKeyScope.inapp,
+  );
 
   void _registerHotKey() {
     if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
@@ -152,6 +161,11 @@ class _PostEditorScreenState extends State<PostEditorScreen>
         ),
       ]);
       setState(() {});
+    });
+    hotKeyManager.register(_saveDraftHotKey, keyDownHandler: (_) async {
+      if (mounted) {
+        _writeController.sendPost(context);
+      }
     });
   }
 
@@ -218,6 +232,7 @@ class _PostEditorScreenState extends State<PostEditorScreen>
     _writeController.dispose();
     if (!kIsWeb && !(Platform.isAndroid || Platform.isIOS)) {
       hotKeyManager.unregister(_pasteHotKey);
+      hotKeyManager.unregister(_saveDraftHotKey);
     }
     super.dispose();
   }
@@ -270,6 +285,20 @@ class _PostEditorScreenState extends State<PostEditorScreen>
             ),
             actions: [
               IconButton(
+                icon: _writeController.editingDraft
+                    ? const Icon(Icons.save)
+                    : const Icon(Symbols.save_as),
+                onPressed: () {
+                  _writeController.sendPost(context, saveAsDraft: true).then(
+                    (_) {
+                      if (!context.mounted) return;
+                      context.showSnackbar('postDraftSaved'.tr());
+                      HapticFeedback.mediumImpact();
+                    },
+                  );
+                },
+              ),
+              IconButton(
                 icon: const Icon(Symbols.tune),
                 onPressed: _writeController.isBusy ? null : _updateMeta,
               ),
@@ -296,7 +325,8 @@ class _PostEditorScreenState extends State<PostEditorScreen>
           ),
           body: Column(
             children: [
-              if (_writeController.editingPost != null)
+              if (_writeController.editingPost != null &&
+                  !_writeController.editingDraft)
                 Container(
                   padding: const EdgeInsets.only(
                       top: 4, bottom: 4, left: 20, right: 20),

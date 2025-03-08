@@ -60,16 +60,24 @@ class SnPostContentProvider {
 
       out[i] = out[i].copyWith(
         preload: SnPostPreload(
-          thumbnail: attachments.where((ele) => ele?.rid == out[i].body['thumbnail']).firstOrNull,
-          attachments: attachments.where((ele) => out[i].body['attachments']?.contains(ele?.rid) ?? false).toList(),
-          video: attachments.where((ele) => ele?.rid == out[i].body['video']).firstOrNull,
+          thumbnail: attachments
+              .where((ele) => ele?.rid == out[i].body['thumbnail'])
+              .firstOrNull,
+          attachments: attachments
+              .where((ele) =>
+                  out[i].body['attachments']?.contains(ele?.rid) ?? false)
+              .toList(),
+          video: attachments
+              .where((ele) => ele?.rid == out[i].body['video'])
+              .firstOrNull,
           poll: poll,
           realm: realm,
         ),
       );
     }
 
-    uids.addAll(attachments.where((ele) => ele != null).map((ele) => ele!.accountId));
+    uids.addAll(
+        attachments.where((ele) => ele != null).map((ele) => ele!.accountId));
     await _ud.listAccount(uids);
 
     return out;
@@ -107,15 +115,23 @@ class SnPostContentProvider {
 
     out = out.copyWith(
       preload: SnPostPreload(
-        thumbnail: attachments.where((ele) => ele?.rid == out.body['thumbnail']).firstOrNull,
-        attachments: attachments.where((ele) => out.body['attachments']?.contains(ele?.rid) ?? false).toList(),
-        video: attachments.where((ele) => ele?.rid == out.body['video']).firstOrNull,
+        thumbnail: attachments
+            .where((ele) => ele?.rid == out.body['thumbnail'])
+            .firstOrNull,
+        attachments: attachments
+            .where(
+                (ele) => out.body['attachments']?.contains(ele?.rid) ?? false)
+            .toList(),
+        video: attachments
+            .where((ele) => ele?.rid == out.body['video'])
+            .firstOrNull,
         poll: poll,
         realm: realm,
       ),
     );
 
-    uids.addAll(attachments.where((ele) => ele != null).map((ele) => ele!.accountId));
+    uids.addAll(
+        attachments.where((ele) => ele != null).map((ele) => ele!.accountId));
     await _ud.listAccount(uids);
 
     return out;
@@ -138,17 +154,22 @@ class SnPostContentProvider {
     Iterable<String>? tags,
     String? realm,
     String? channel,
+    bool isDraft = false,
   }) async {
-    final resp = await _sn.client.get('/cgi/co/posts', queryParameters: {
-      'take': take,
-      'offset': offset,
-      if (type != null) 'type': type,
-      if (author != null) 'author': author,
-      if (tags?.isNotEmpty ?? false) 'tags': tags!.join(','),
-      if (categories?.isNotEmpty ?? false) 'categories': categories!.join(','),
-      if (realm != null) 'realm': realm,
-      if (channel != null) 'channel': channel,
-    });
+    final resp = await _sn.client.get(
+      '/cgi/co/posts${isDraft ? '/drafts' : ''}',
+      queryParameters: {
+        'take': take,
+        'offset': offset,
+        if (type != null) 'type': type,
+        if (author != null) 'author': author,
+        if (tags?.isNotEmpty ?? false) 'tags': tags!.join(','),
+        if (categories?.isNotEmpty ?? false)
+          'categories': categories!.join(','),
+        if (realm != null) 'realm': realm,
+        if (channel != null) 'channel': channel,
+      },
+    );
     final List<SnPost> out = await _preloadRelatedDataInBatch(
       List.from(resp.data['data']?.map((e) => SnPost.fromJson(e)) ?? []),
     );
@@ -161,7 +182,8 @@ class SnPostContentProvider {
     int take = 10,
     int offset = 0,
   }) async {
-    final resp = await _sn.client.get('/cgi/co/posts/$parentId/replies', queryParameters: {
+    final resp = await _sn.client
+        .get('/cgi/co/posts/$parentId/replies', queryParameters: {
       'take': take,
       'offset': offset,
     });
@@ -198,6 +220,11 @@ class SnPostContentProvider {
     final out = _preloadRelatedDataSingle(
       SnPost.fromJson(resp.data),
     );
+    return out;
+  }
+
+  Future<SnPost> completePostData(SnPost post) async {
+    final out = await _preloadRelatedDataSingle(post);
     return out;
   }
 }

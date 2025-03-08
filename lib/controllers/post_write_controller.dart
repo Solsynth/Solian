@@ -208,6 +208,7 @@ class PostWriteController extends ChangeNotifier {
   SnRealm? realm;
   SnPublisher? publisher;
   SnPost? editingPost, repostingPost, replyingPost;
+  bool editingDraft = false;
 
   int visibility = 0;
   List<int> visibleUsers = List.empty();
@@ -253,6 +254,8 @@ class PostWriteController extends ChangeNotifier {
         attachments.addAll(
             post.preload?.attachments?.map((ele) => PostWriteMedia(ele)) ?? []);
         poll = post.preload?.poll;
+
+        editingDraft = post.isDraft;
 
         if (post.preload?.thumbnail != null &&
             (post.preload?.thumbnail?.rid.isNotEmpty ?? false)) {
@@ -474,7 +477,10 @@ class PostWriteController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> sendPost(BuildContext context) async {
+  Future<void> sendPost(
+    BuildContext context, {
+    bool saveAsDraft = false,
+  }) async {
     if (isBusy || publisher == null) return;
 
     final sn = context.read<SnNetworkProvider>();
@@ -552,7 +558,7 @@ class PostWriteController extends ChangeNotifier {
     // Posting the content
     try {
       final baseProgressVal = progress!;
-      await sn.client.request(
+      final resp = await sn.client.request(
         [
           '/cgi/co/$mode',
           if (editingPost != null) '${editingPost!.id}',
@@ -585,6 +591,7 @@ class PostWriteController extends ChangeNotifier {
           if (videoAttachment != null) 'video': videoAttachment!.rid,
           if (poll != null) 'poll': poll!.id,
           if (realm != null) 'realm': realm!.id,
+          'is_draft': saveAsDraft,
         },
         onSendProgress: (count, total) {
           progress =
@@ -601,7 +608,16 @@ class PostWriteController extends ChangeNotifier {
           method: editingPost != null ? 'PUT' : 'POST',
         ),
       );
-      reset();
+      if (saveAsDraft) {
+        if (!context.mounted) return;
+        editingDraft = true;
+        final out = SnPost.fromJson(resp.data);
+        final pt = context.read<SnPostContentProvider>();
+        editingPost = await pt.completePostData(out);
+        notifyListeners();
+      } else {
+        reset();
+      }
     } catch (err) {
       if (!context.mounted) return;
       context.showErrorDialog(err);
