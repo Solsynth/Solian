@@ -224,55 +224,47 @@ class _ExploreScreenState extends State<ExploreScreen>
                 title: Row(
                   children: [
                     IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      visualDensity: VisualDensity.compact,
-                      icon: _listKey.currentState?.realm != null
-                          ? AccountImage(
-                              content: _listKey.currentState!.realm!.avatar,
-                              radius: 18,
-                            )
-                          : const Icon(Symbols.group),
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (context) => _PostListRealmPopup(
-                            realms: _realms,
-                            onUpdate: (realm) {
-                              _listKey.currentState?.setRealm(realm);
-                              _listKey.currentState?.refreshPosts();
-                              Future.delayed(const Duration(milliseconds: 100),
-                                  () {
-                                if (mounted) {
-                                  setState(() {});
-                                }
-                              });
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Symbols.category),
-                      style: _showCategories
-                          ? ButtonStyle(
-                              foregroundColor: WidgetStateProperty.all(
-                                Theme.of(context).colorScheme.primary,
-                              ),
-                              backgroundColor: MaterialStateProperty.all(
-                                Theme.of(context)
-                                    .colorScheme
-                                    .secondaryContainer,
-                              ),
-                            )
-                          : null,
-                      onPressed: () {
-                        _toggleShowCategories();
-                      },
+                      icon: const Icon(Symbols.shuffle),
+                      onPressed: () {},
                     ),
                     Expanded(
                       child: Center(
-                        child: Text('screenExplore').tr(),
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                          icon: _listKey.currentState?.realm != null
+                              ? AccountImage(
+                                  content: _listKey.currentState!.realm!.avatar,
+                                  radius: 18,
+                                )
+                              : Image.asset(
+                                  'assets/icon/icon-dark.png',
+                                  width: 36,
+                                  height: 36,
+                                  color: Theme.of(context)
+                                      .appBarTheme
+                                      .foregroundColor,
+                                ),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) => _PostListRealmPopup(
+                                realms: _realms,
+                                onUpdate: (realm) {
+                                  _listKey.currentState?.setRealm(realm);
+                                  _listKey.currentState?.refreshPosts();
+                                  Future.delayed(
+                                      const Duration(milliseconds: 100), () {
+                                    if (mounted) {
+                                      setState(() {});
+                                    }
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ],
@@ -280,6 +272,22 @@ class _ExploreScreenState extends State<ExploreScreen>
                 floating: true,
                 snap: true,
                 actions: [
+                  IconButton(
+                    icon: const Icon(Symbols.category),
+                    style: _showCategories
+                        ? ButtonStyle(
+                            foregroundColor: WidgetStateProperty.all(
+                              Theme.of(context).colorScheme.primary,
+                            ),
+                            backgroundColor: MaterialStateProperty.all(
+                              Theme.of(context).colorScheme.secondaryContainer,
+                            ),
+                          )
+                        : null,
+                    onPressed: () {
+                      _toggleShowCategories();
+                    },
+                  ),
                   IconButton(
                     icon: const Icon(Symbols.search),
                     onPressed: () {
@@ -300,11 +308,12 @@ class _ExploreScreenState extends State<ExploreScreen>
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Icon(
-                                      kCategoryIcons[category.alias] ??
-                                          Symbols.question_mark,
-                                      color: Theme.of(context)
-                                          .appBarTheme
-                                          .foregroundColor!),
+                                    kCategoryIcons[category.alias] ??
+                                        Symbols.question_mark,
+                                    color: Theme.of(context)
+                                        .appBarTheme
+                                        .foregroundColor!,
+                                  ),
                                   const Gap(8),
                                   Flexible(
                                     child: Text(

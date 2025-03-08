@@ -214,7 +214,8 @@ class ChatMessage extends StatelessWidget {
                 data.type == 'messages.new' &&
                 (data.body['text']?.isNotEmpty ?? false) &&
                 (cfg.prefs.getBool(kAppExpandChatLink) ?? true))
-              LinkPreviewWidget(text: data.body['text']!).padding(left: 48),
+              LinkPreviewWidget(text: data.body['text']!)
+                  .padding(left: isCompact ? 0 : 48),
             if (data.preload?.attachments?.isNotEmpty ?? false)
               AttachmentList(
                 data: data.preload!.attachments!,
