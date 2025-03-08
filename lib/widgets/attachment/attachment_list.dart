@@ -143,8 +143,10 @@ class _AttachmentListState extends State<AttachmentList> {
                           ),
                         ),
                         onTap: () {
-                          if (widget.data[idx]!.mediaType != SnMediaType.image)
+                          if (widget.data[idx]!.mediaType !=
+                              SnMediaType.image) {
                             return;
+                          }
                           context.pushTransparentRoute(
                             AttachmentZoomView(
                               data: widget.data
@@ -203,6 +205,7 @@ class _AttachmentListState extends State<AttachmentList> {
 
         return Container(
           constraints: BoxConstraints(maxHeight: constraints.maxHeight),
+          width: double.infinity,
           child: AspectRatio(
             aspectRatio: widget.data[0]?.data['ratio']?.toDouble() ?? 1,
             child: ScrollConfiguration(

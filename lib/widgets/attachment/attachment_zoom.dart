@@ -157,7 +157,7 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
         Navigator.of(context).pop();
       },
       direction: _dismissable
-          ? DismissiblePageDismissDirection.multi
+          ? DismissiblePageDismissDirection.down
           : DismissiblePageDismissDirection.none,
       backgroundColor: Colors.transparent,
       isFullScreen: true,
