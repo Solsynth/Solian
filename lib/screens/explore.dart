@@ -111,7 +111,6 @@ class _ExploreScreenState extends State<ExploreScreen>
               Theme.of(context).floatingActionButtonTheme.foregroundColor,
           backgroundColor:
               Theme.of(context).floatingActionButtonTheme.backgroundColor,
-          shape: const CircleBorder(),
         ),
         closeButtonBuilder: DefaultFloatingActionButtonBuilder(
           child: const Icon(Symbols.close, size: 28),
@@ -120,90 +119,24 @@ class _ExploreScreenState extends State<ExploreScreen>
               Theme.of(context).floatingActionButtonTheme.foregroundColor,
           backgroundColor:
               Theme.of(context).floatingActionButtonTheme.backgroundColor,
-          shape: const CircleBorder(),
         ),
         children: [
           Row(
             children: [
-              Text('writePostTypeStory').tr(),
+              Text('writePost').tr(),
               const Gap(20),
               FloatingActionButton(
                 heroTag: null,
-                tooltip: 'writePostTypeStory'.tr(),
+                tooltip: 'writePost'.tr(),
                 onPressed: () {
-                  GoRouter.of(context).pushNamed('postEditor', pathParameters: {
-                    'mode': 'stories',
-                  }).then((value) {
+                  GoRouter.of(context).pushNamed('postEditor').then((value) {
                     if (value == true) {
                       refreshPosts();
                     }
                   });
                   _fabKey.currentState!.toggle();
                 },
-                child: const Icon(Symbols.post_rounded),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Text('writePostTypeArticle').tr(),
-              const Gap(20),
-              FloatingActionButton(
-                heroTag: null,
-                tooltip: 'writePostTypeArticle'.tr(),
-                onPressed: () {
-                  GoRouter.of(context).pushNamed('postEditor', pathParameters: {
-                    'mode': 'articles',
-                  }).then((value) {
-                    if (value == true) {
-                      refreshPosts();
-                    }
-                  });
-                  _fabKey.currentState!.toggle();
-                },
-                child: const Icon(Symbols.news),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Text('writePostTypeQuestion').tr(),
-              const Gap(20),
-              FloatingActionButton(
-                heroTag: null,
-                tooltip: 'writePostTypeQuestion'.tr(),
-                onPressed: () {
-                  GoRouter.of(context).pushNamed('postEditor', pathParameters: {
-                    'mode': 'questions',
-                  }).then((value) {
-                    if (value == true) {
-                      refreshPosts();
-                    }
-                  });
-                  _fabKey.currentState!.toggle();
-                },
-                child: const Icon(Symbols.question_answer),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Text('writePostTypeVideo').tr(),
-              const Gap(20),
-              FloatingActionButton(
-                heroTag: null,
-                tooltip: 'writePostTypeVideo'.tr(),
-                onPressed: () {
-                  GoRouter.of(context).pushNamed('postEditor', pathParameters: {
-                    'mode': 'videos',
-                  }).then((value) {
-                    if (value == true) {
-                      refreshPosts();
-                    }
-                  });
-                  _fabKey.currentState!.toggle();
-                },
-                child: const Icon(Symbols.video_call),
+                child: const Icon(Symbols.edit),
               ),
             ],
           ),

@@ -66,10 +66,9 @@ final _appRoutes = [
     builder: (context, state) => const ExploreScreen(),
     routes: [
       GoRoute(
-        path: '/write/:mode',
+        path: '/write',
         name: 'postEditor',
         builder: (context, state) => PostEditorScreen(
-          mode: state.pathParameters['mode']!,
           postEditId: int.tryParse(
             state.uri.queryParameters['editing'] ?? '',
           ),

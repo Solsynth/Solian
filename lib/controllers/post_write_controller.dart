@@ -71,7 +71,8 @@ class PostWriteMedia {
     }
   }
 
-  PostWriteMedia.fromBytes(this.raw, this.name, this.type, {this.attachment, this.file});
+  PostWriteMedia.fromBytes(this.raw, this.name, this.type,
+      {this.attachment, this.file});
 
   bool get isEmpty => attachment == null && file == null && raw == null;
 
@@ -105,7 +106,8 @@ class PostWriteMedia {
   }) {
     if (attachment != null) {
       final sn = context.read<SnNetworkProvider>();
-      final ImageProvider provider = UniversalImage.provider(sn.getAttachmentUrl(attachment!.rid));
+      final ImageProvider provider =
+          UniversalImage.provider(sn.getAttachmentUrl(attachment!.rid));
       if (width != null && height != null && !kIsWeb) {
         return ResizeImage(
           provider,
@@ -116,7 +118,8 @@ class PostWriteMedia {
       }
       return provider;
     } else if (file != null) {
-      final ImageProvider provider = kIsWeb ? NetworkImage(file!.path) : FileImage(File(file!.path));
+      final ImageProvider provider =
+          kIsWeb ? NetworkImage(file!.path) : FileImage(File(file!.path));
       if (width != null && height != null) {
         return ResizeImage(
           provider,
@@ -159,11 +162,14 @@ class PostWriteController extends ChangeNotifier {
   final TextEditingController aliasController = TextEditingController();
   final TextEditingController rewardController = TextEditingController();
 
-  ContentInsertionConfiguration get contentInsertionConfiguration => ContentInsertionConfiguration(
+  ContentInsertionConfiguration get contentInsertionConfiguration =>
+      ContentInsertionConfiguration(
         onContentInserted: (KeyboardInsertedContent content) {
           if (content.hasData) {
-            addAttachments(
-                [PostWriteMedia.fromBytes(content.data!, 'attachmentInsertedImage'.tr(), SnMediaType.image)]);
+            addAttachments([
+              PostWriteMedia.fromBytes(content.data!,
+                  'attachmentInsertedImage'.tr(), SnMediaType.image)
+            ]);
           }
         },
       );
@@ -193,7 +199,8 @@ class PostWriteController extends ChangeNotifier {
 
   String get description => descriptionController.text;
 
-  bool get isRelatedNull => ![editingPost, repostingPost, replyingPost].any((ele) => ele != null);
+  bool get isRelatedNull =>
+      ![editingPost, repostingPost, replyingPost].any((ele) => ele != null);
 
   bool isLoading = false, isBusy = false;
   double? progress;
@@ -237,14 +244,18 @@ class PostWriteController extends ChangeNotifier {
         publishedAt = post.publishedAt;
         publishedUntil = post.publishedUntil;
         visibleUsers = List.from(post.visibleUsersList ?? [], growable: true);
-        invisibleUsers = List.from(post.invisibleUsersList ?? [], growable: true);
+        invisibleUsers =
+            List.from(post.invisibleUsersList ?? [], growable: true);
         visibility = post.visibility;
         tags = List.from(post.tags.map((ele) => ele.alias), growable: true);
-        categories = List.from(post.categories.map((ele) => ele.alias), growable: true);
-        attachments.addAll(post.preload?.attachments?.map((ele) => PostWriteMedia(ele)) ?? []);
+        categories =
+            List.from(post.categories.map((ele) => ele.alias), growable: true);
+        attachments.addAll(
+            post.preload?.attachments?.map((ele) => PostWriteMedia(ele)) ?? []);
         poll = post.preload?.poll;
 
-        if (post.preload?.thumbnail != null && (post.preload?.thumbnail?.rid.isNotEmpty ?? false)) {
+        if (post.preload?.thumbnail != null &&
+            (post.preload?.thumbnail?.rid.isNotEmpty ?? false)) {
           thumbnail = PostWriteMedia(post.preload!.thumbnail);
         }
         if (post.preload?.realm != null) {
@@ -272,7 +283,8 @@ class PostWriteController extends ChangeNotifier {
     }
   }
 
-  Future<SnAttachment> _uploadAttachment(BuildContext context, PostWriteMedia media,
+  Future<SnAttachment> _uploadAttachment(
+      BuildContext context, PostWriteMedia media,
       {bool isCompressed = false}) async {
     final attach = context.read<SnAttachmentProvider>();
 
@@ -281,7 +293,9 @@ class PostWriteController extends ChangeNotifier {
       media.name,
       'interactive',
       null,
-      mimetype: media.raw != null && media.type == SnMediaType.image ? 'image/png' : null,
+      mimetype: media.raw != null && media.type == SnMediaType.image
+          ? 'image/png'
+          : null,
     );
 
     var item = await attach.chunkedUploadParts(
@@ -297,9 +311,11 @@ class PostWriteController extends ChangeNotifier {
 
     if (media.type == SnMediaType.video && !isCompressed && context.mounted) {
       try {
-        final compressedAttachment = await _tryCompressVideoCopy(context, media);
+        final compressedAttachment =
+            await _tryCompressVideoCopy(context, media);
         if (compressedAttachment != null) {
-          item = await attach.updateOne(item, compressedId: compressedAttachment.id);
+          item = await attach.updateOne(item,
+              compressedId: compressedAttachment.id);
         }
       } catch (err) {
         if (context.mounted) context.showErrorDialog(err);
@@ -309,8 +325,10 @@ class PostWriteController extends ChangeNotifier {
     return item;
   }
 
-  Future<SnAttachment?> _tryCompressVideoCopy(BuildContext context, PostWriteMedia media) async {
-    if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) return null;
+  Future<SnAttachment?> _tryCompressVideoCopy(
+      BuildContext context, PostWriteMedia media) async {
+    if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS))
+      return null;
     if (media.type != SnMediaType.video) return null;
     if (media.file == null) return null;
     if (VideoCompress.isCompressing) return null;
@@ -334,7 +352,8 @@ class PostWriteController extends ChangeNotifier {
     if (!context.mounted) return null;
 
     final compressedMedia = PostWriteMedia.fromFile(XFile(mediaInfo.path!));
-    final compressedAttachment = await _uploadAttachment(context, compressedMedia, isCompressed: true);
+    final compressedAttachment =
+        await _uploadAttachment(context, compressedMedia, isCompressed: true);
 
     return compressedAttachment;
   }
@@ -370,18 +389,25 @@ class PostWriteController extends ChangeNotifier {
           'content': contentController.text,
           if (aliasController.text.isNotEmpty) 'alias': aliasController.text,
           if (titleController.text.isNotEmpty) 'title': titleController.text,
-          if (descriptionController.text.isNotEmpty) 'description': descriptionController.text,
+          if (descriptionController.text.isNotEmpty)
+            'description': descriptionController.text,
           if (rewardController.text.isNotEmpty) 'reward': rewardController.text,
-          if (thumbnail != null && thumbnail!.attachment != null) 'thumbnail': thumbnail!.attachment!.toJson(),
-          'attachments':
-              attachments.where((e) => e.attachment != null).map((e) => e.attachment!.toJson()).toList(growable: true),
+          if (thumbnail != null && thumbnail!.attachment != null)
+            'thumbnail': thumbnail!.attachment!.toJson(),
+          'attachments': attachments
+              .where((e) => e.attachment != null)
+              .map((e) => e.attachment!.toJson())
+              .toList(growable: true),
           'tags': tags.map((ele) => {'alias': ele}).toList(growable: true),
-          'categories': categories.map((ele) => {'alias': ele}).toList(growable: true),
+          'categories':
+              categories.map((ele) => {'alias': ele}).toList(growable: true),
           'visibility': visibility,
           'visible_users_list': visibleUsers,
           'invisible_users_list': invisibleUsers,
-          if (publishedAt != null) 'published_at': publishedAt!.toUtc().toIso8601String(),
-          if (publishedUntil != null) 'published_until': publishedAt!.toUtc().toIso8601String(),
+          if (publishedAt != null)
+            'published_at': publishedAt!.toUtc().toIso8601String(),
+          if (publishedUntil != null)
+            'published_until': publishedAt!.toUtc().toIso8601String(),
           if (replyingPost != null) 'reply_to': replyingPost!.toJson(),
           if (repostingPost != null) 'repost_to': repostingPost!.toJson(),
           if (poll != null) 'poll': poll!.toJson(),
@@ -390,6 +416,12 @@ class PostWriteController extends ChangeNotifier {
       );
     });
   }
+
+  bool get isNotEmpty =>
+      title.isNotEmpty ||
+      description.isNotEmpty ||
+      contentController.text.isNotEmpty ||
+      attachments.isNotEmpty;
 
   bool temporaryRestored = false;
 
@@ -403,18 +435,24 @@ class PostWriteController extends ChangeNotifier {
       titleController.text = data['title'] ?? '';
       descriptionController.text = data['description'] ?? '';
       rewardController.text = data['reward']?.toString() ?? '';
-      if (data['thumbnail'] != null) thumbnail = PostWriteMedia(SnAttachment.fromJson(data['thumbnail']));
-      attachments
-          .addAll(data['attachments'].map((ele) => PostWriteMedia(SnAttachment.fromJson(ele))).cast<PostWriteMedia>());
+      if (data['thumbnail'] != null)
+        thumbnail = PostWriteMedia(SnAttachment.fromJson(data['thumbnail']));
+      attachments.addAll(data['attachments']
+          .map((ele) => PostWriteMedia(SnAttachment.fromJson(ele)))
+          .cast<PostWriteMedia>());
       tags = List.from(data['tags'].map((ele) => ele['alias']));
       categories = List.from(data['categories'].map((ele) => ele['alias']));
       visibility = data['visibility'];
       visibleUsers = List.from(data['visible_users_list'] ?? []);
       invisibleUsers = List.from(data['invisible_users_list'] ?? []);
-      if (data['published_at'] != null) publishedAt = DateTime.tryParse(data['published_at'])?.toLocal();
-      if (data['published_until'] != null) publishedUntil = DateTime.tryParse(data['published_until'])?.toLocal();
-      replyingPost = data['reply_to'] != null ? SnPost.fromJson(data['reply_to']) : null;
-      repostingPost = data['repost_to'] != null ? SnPost.fromJson(data['repost_to']) : null;
+      if (data['published_at'] != null)
+        publishedAt = DateTime.tryParse(data['published_at'])?.toLocal();
+      if (data['published_until'] != null)
+        publishedUntil = DateTime.tryParse(data['published_until'])?.toLocal();
+      replyingPost =
+          data['reply_to'] != null ? SnPost.fromJson(data['reply_to']) : null;
+      repostingPost =
+          data['repost_to'] != null ? SnPost.fromJson(data['repost_to']) : null;
       poll = data['poll'] != null ? SnPoll.fromJson(data['poll']) : null;
       realm = data['realm'] != null ? SnRealm.fromJson(data['realm']) : null;
       temporaryRestored = true;
@@ -463,7 +501,9 @@ class PostWriteController extends ChangeNotifier {
           media.name,
           'interactive',
           null,
-          mimetype: media.raw != null && media.type == SnMediaType.image ? 'image/png' : null,
+          mimetype: media.raw != null && media.type == SnMediaType.image
+              ? 'image/png'
+              : null,
         );
 
         var item = await attach.chunkedUploadParts(
@@ -472,16 +512,20 @@ class PostWriteController extends ChangeNotifier {
           place.$2,
           onProgress: (value) {
             // Calculate overall progress for attachments
-            progress = math.max(((i + value) / attachments.length) * kAttachmentProgressWeight, value);
+            progress = math.max(
+                ((i + value) / attachments.length) * kAttachmentProgressWeight,
+                value);
             notifyListeners();
           },
         );
 
         try {
           if (context.mounted) {
-            final compressedAttachment = await _tryCompressVideoCopy(context, media);
+            final compressedAttachment =
+                await _tryCompressVideoCopy(context, media);
             if (compressedAttachment != null) {
-              item = await attach.updateOne(item, compressedId: compressedAttachment.id);
+              item = await attach.updateOne(item,
+                  compressedId: compressedAttachment.id);
             }
           }
         } catch (err) {
@@ -518,16 +562,23 @@ class PostWriteController extends ChangeNotifier {
           'content': contentController.text,
           if (aliasController.text.isNotEmpty) 'alias': aliasController.text,
           if (titleController.text.isNotEmpty) 'title': titleController.text,
-          if (descriptionController.text.isNotEmpty) 'description': descriptionController.text,
-          if (thumbnail != null && thumbnail!.attachment != null) 'thumbnail': thumbnail!.attachment!.rid,
-          'attachments': attachments.where((e) => e.attachment != null).map((e) => e.attachment!.rid).toList(),
+          if (descriptionController.text.isNotEmpty)
+            'description': descriptionController.text,
+          if (thumbnail != null && thumbnail!.attachment != null)
+            'thumbnail': thumbnail!.attachment!.rid,
+          'attachments': attachments
+              .where((e) => e.attachment != null)
+              .map((e) => e.attachment!.rid)
+              .toList(),
           'tags': tags.map((ele) => {'alias': ele}).toList(),
           'categories': categories.map((ele) => {'alias': ele}).toList(),
           'visibility': visibility,
           'visible_users_list': visibleUsers,
           'invisible_users_list': invisibleUsers,
-          if (publishedAt != null) 'published_at': publishedAt!.toUtc().toIso8601String(),
-          if (publishedUntil != null) 'published_until': publishedAt!.toUtc().toIso8601String(),
+          if (publishedAt != null)
+            'published_at': publishedAt!.toUtc().toIso8601String(),
+          if (publishedUntil != null)
+            'published_until': publishedAt!.toUtc().toIso8601String(),
           if (replyingPost != null) 'reply_to': replyingPost!.id,
           if (repostingPost != null) 'repost_to': repostingPost!.id,
           if (reward != null) 'reward': reward,
@@ -536,11 +587,14 @@ class PostWriteController extends ChangeNotifier {
           if (realm != null) 'realm': realm!.id,
         },
         onSendProgress: (count, total) {
-          progress = baseProgressVal + (count / total) * (kPostingProgressWeight / 2);
+          progress =
+              baseProgressVal + (count / total) * (kPostingProgressWeight / 2);
           notifyListeners();
         },
         onReceiveProgress: (count, total) {
-          progress = baseProgressVal + (kPostingProgressWeight / 2) + (count / total) * (kPostingProgressWeight / 2);
+          progress = baseProgressVal +
+              (kPostingProgressWeight / 2) +
+              (count / total) * (kPostingProgressWeight / 2);
           notifyListeners();
         },
         options: Options(
@@ -683,7 +737,8 @@ class PostWriteController extends ChangeNotifier {
     repostingPost = null;
     mode = kTitleMap.keys.first;
     temporaryRestored = false;
-    SharedPreferences.getInstance().then((prefs) => prefs.remove(kTemporaryStorageKey));
+    SharedPreferences.getInstance()
+        .then((prefs) => prefs.remove(kTemporaryStorageKey));
     notifyListeners();
   }
 

@@ -204,7 +204,6 @@ class _ChatScreenState extends State<ChatScreen> {
               Theme.of(context).floatingActionButtonTheme.foregroundColor,
           backgroundColor:
               Theme.of(context).floatingActionButtonTheme.backgroundColor,
-          shape: const CircleBorder(),
         ),
         closeButtonBuilder: DefaultFloatingActionButtonBuilder(
           child: const Icon(Symbols.close, size: 28),
@@ -213,7 +212,6 @@ class _ChatScreenState extends State<ChatScreen> {
               Theme.of(context).floatingActionButtonTheme.foregroundColor,
           backgroundColor:
               Theme.of(context).floatingActionButtonTheme.backgroundColor,
-          shape: const CircleBorder(),
         ),
         children: [
           Row(

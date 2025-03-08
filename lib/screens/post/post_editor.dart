@@ -18,6 +18,7 @@ import 'package:surface/controllers/post_write_controller.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/sn_attachment.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/types/realm.dart';
@@ -36,7 +37,8 @@ import 'package:provider/provider.dart';
 import 'package:surface/widgets/post/post_poll_editor.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../providers/sn_realm.dart';
+const kPostTypes = ['Story', 'Article', 'Question', 'Video'];
+const kPostTypeAliases = ['stories', 'articles', 'questions', 'videos'];
 
 class PostEditorExtra {
   final String? text;
@@ -53,7 +55,6 @@ class PostEditorExtra {
 }
 
 class PostEditorScreen extends StatefulWidget {
-  final String mode;
   final int? postEditId;
   final int? postReplyId;
   final int? postRepostId;
@@ -61,7 +62,6 @@ class PostEditorScreen extends StatefulWidget {
 
   const PostEditorScreen({
     super.key,
-    required this.mode,
     required this.postEditId,
     required this.postReplyId,
     required this.postRepostId,
@@ -72,7 +72,10 @@ class PostEditorScreen extends StatefulWidget {
   State<PostEditorScreen> createState() => _PostEditorScreenState();
 }
 
-class _PostEditorScreenState extends State<PostEditorScreen> {
+class _PostEditorScreenState extends State<PostEditorScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController =
+      TabController(length: 4, vsync: this);
   late final PostWriteController _writeController = PostWriteController(
     doLoadFromTemporary: widget.postEditId == null,
   );
@@ -209,6 +212,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _writeController.dispose();
     if (!kIsWeb && !(Platform.isAndroid || Platform.isIOS)) {
       hotKeyManager.unregister(_pasteHotKey);
@@ -220,14 +224,13 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
   void initState() {
     super.initState();
     _registerHotKey();
-    if (!PostWriteController.kTitleMap.keys.contains(widget.mode)) {
-      context.showErrorDialog('Unknown post type');
-      Navigator.pop(context);
-    } else {
-      _writeController.setMode(widget.mode);
-    }
     _fetchRealms();
     _fetchPublishers();
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        _writeController.setMode(kPostTypeAliases[_tabController.index]);
+      }
+    });
     _writeController.fetchRelatedPost(
       context,
       editing: widget.postEditId,
@@ -255,26 +258,10 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                 Navigator.pop(context);
               },
             ),
-            title: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(children: [
-                TextSpan(
-                  text: _writeController.title.isNotEmpty
-                      ? _writeController.title
-                      : 'untitled'.tr(),
-                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        color: Theme.of(context).appBarTheme.foregroundColor!,
-                      ),
-                ),
-                const TextSpan(text: '\n'),
-                TextSpan(
-                  text: PostWriteController.kTitleMap[widget.mode]!.tr(),
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: Theme.of(context).appBarTheme.foregroundColor!,
-                      ),
-                ),
-              ]),
-              maxLines: 2,
+            title: Text(
+              _writeController.title.isNotEmpty
+                  ? _writeController.title
+                  : 'untitled'.tr(),
             ),
             actions: [
               IconButton(
@@ -283,6 +270,24 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
               ),
               const Gap(8),
             ],
+            bottom: _writeController.isNotEmpty
+                ? null
+                : TabBar(
+                    controller: _tabController,
+                    tabs: [
+                      for (final type in kPostTypes)
+                        Tab(
+                          child: Text(
+                            'postType$type'.tr(),
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .appBarTheme
+                                  .foregroundColor!,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
           ),
           body: Column(
             children: [
@@ -374,7 +379,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                   children: [
                     SingleChildScrollView(
                       padding: EdgeInsets.only(bottom: 160),
-                      child: StyledWidget(switch (_writeController.mode) {
+                      child: switch (_writeController.mode) {
                         'stories' => _PostStoryEditor(
                             controller: _writeController,
                             onTapPublisher: _showPublisherPopup,
@@ -396,8 +401,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                             onTapRealm: _showRealmPopup,
                           ),
                         _ => const Placeholder(),
-                      })
-                          .padding(top: 8),
+                      },
                     ),
                     if (_writeController.attachments.isNotEmpty ||
                         _writeController.thumbnail != null)
@@ -720,7 +724,7 @@ class _PostStoryEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
       constraints: const BoxConstraints(maxWidth: 640),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -969,7 +973,7 @@ class _PostQuestionEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
       constraints: const BoxConstraints(maxWidth: 640),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1053,7 +1057,7 @@ class _PostQuestionEditor extends StatelessWidget {
             ),
           ),
         ],
-      ).padding(top: 8),
+      ),
     );
   }
 }
@@ -1154,7 +1158,7 @@ class _PostVideoEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
       constraints: const BoxConstraints(maxWidth: 640),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
