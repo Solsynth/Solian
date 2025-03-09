@@ -775,5 +775,19 @@
     "zero": "無連擊",
     "one": "連續簽到 {} 天",
     "other": "連續簽到 {} 天"
-  }
+  },
+  "accountChangeStatus": "修改狀態",
+  "accountStatusSilent": "請勿打擾",
+  "accountStatusSilentDesc": "將會暫停所有通知推送",
+  "accountStatusInvisible": "隱身",
+  "accountStatusInvisibleDesc": "將會在他人界面顯示離線，但不影響功能使用",
+  "accountCustomStatus": "自定義狀態",
+  "accountCustomStatusDescription": "客製化你的狀態。",
+  "accountClearStatus": "清除狀態",
+  "accountClearStatusDescription": "清除你的狀態，並讓服務器決定你的狀態。",
+  "fieldAccountStatusLabel": "狀態文字",
+  "fieldAccountStatusClearAt": "清除時間",
+  "accountStatusNegative": "負面",
+  "accountStatusNeutral": "中性",
+  "accountStatusPositive": "正面"
 }

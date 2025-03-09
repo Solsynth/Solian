@@ -11,7 +11,9 @@ import 'package:surface/providers/database.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/providers/websocket.dart';
+import 'package:surface/types/account.dart';
 import 'package:surface/widgets/account/account_image.dart';
+import 'package:surface/widgets/account/account_status.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
@@ -112,7 +114,14 @@ class _AuthorizedAccountScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AccountImage(content: ua.user!.avatar, radius: 28),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AccountImage(content: ua.user!.avatar, radius: 28),
+                      _AccountStatusWidget(account: ua.user!),
+                    ],
+                  ),
                   const Gap(8),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -287,6 +296,84 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+class _AccountStatusWidget extends StatefulWidget {
+  final SnAccount account;
+  const _AccountStatusWidget({required this.account});
+
+  @override
+  State<_AccountStatusWidget> createState() => _AccountStatusWidgetState();
+}
+
+class _AccountStatusWidgetState extends State<_AccountStatusWidget> {
+  SnAccountStatusInfo? _status;
+
+  Future<void> _fetchStatus() async {
+    try {
+      final sn = context.read<SnNetworkProvider>();
+      final resp =
+          await sn.client.get('/cgi/id/users/${widget.account.name}/status');
+      setState(() {
+        _status = SnAccountStatusInfo.fromJson(resp.data);
+      });
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    } finally {
+      setState(() {});
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStatus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      child: Row(
+        children: [
+          Text(
+            _status != null
+                ? (_status!.status?.label.isNotEmpty ?? false)
+                    ? _status!.status!.label
+                    : _status!.isOnline
+                        ? 'accountStatusOnline'.tr()
+                        : 'accountStatusOffline'.tr()
+                : 'loading'.tr(),
+          ),
+          const Gap(4),
+          Icon(
+            (_status?.isDisturbable ?? true)
+                ? Symbols.circle
+                : Symbols.do_not_disturb_on,
+            fill: (_status?.isOnline ?? false) ? 1 : 0,
+            size: 16,
+            color: (_status?.isOnline ?? false)
+                ? (_status?.isDisturbable ?? true)
+                    ? Colors.green
+                    : Colors.red
+                : Colors.grey,
+          ).padding(all: 4),
+        ],
+      ),
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          builder: (context) => AccountStatusActionPopup(
+            currentStatus: _status,
+          ),
+        ).then((value) {
+          if (value == true && mounted) {
+            _fetchStatus();
+          }
+        });
+      },
     );
   }
 }

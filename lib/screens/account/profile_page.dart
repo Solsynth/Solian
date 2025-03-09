@@ -451,19 +451,25 @@ class _UserScreenState extends State<UserScreen>
                     child: Row(
                       children: [
                         Icon(
-                          Symbols.circle,
-                          fill: 1,
+                          (_status?.isDisturbable ?? true)
+                              ? Symbols.circle
+                              : Symbols.do_not_disturb_on,
+                          fill: (_status?.isOnline ?? false) ? 1 : 0,
                           size: 16,
                           color: (_status?.isOnline ?? false)
-                              ? Colors.green
+                              ? (_status?.isDisturbable ?? true)
+                                  ? Colors.green
+                                  : Colors.red
                               : Colors.grey,
                         ).padding(all: 4),
                         const Gap(8),
                         Text(
                           _status != null
-                              ? _status!.isOnline
-                                  ? 'accountStatusOnline'.tr()
-                                  : 'accountStatusOffline'.tr()
+                              ? (_status!.status?.label.isNotEmpty ?? false)
+                                  ? _status!.status!.label
+                                  : _status!.isOnline
+                                      ? 'accountStatusOnline'.tr()
+                                      : 'accountStatusOffline'.tr()
                               : 'loading'.tr(),
                         ),
                         if (_status != null &&

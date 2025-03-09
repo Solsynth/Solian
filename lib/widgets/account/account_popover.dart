@@ -118,18 +118,25 @@ class AccountPopoverCard extends StatelessWidget {
             return Row(
               children: [
                 Icon(
-                  Symbols.circle,
-                  fill: 1,
+                  (status?.isDisturbable ?? true)
+                      ? Symbols.circle
+                      : Symbols.do_not_disturb_on,
+                  fill: (status?.isOnline ?? false) ? 1 : 0,
                   size: 16,
-                  color:
-                      (status?.isOnline ?? false) ? Colors.green : Colors.grey,
+                  color: (status?.isOnline ?? false)
+                      ? (status?.isDisturbable ?? true)
+                          ? Colors.green
+                          : Colors.red
+                      : Colors.grey,
                 ).padding(all: 4),
                 const Gap(8),
                 Text(
                   status != null
-                      ? status.isOnline
-                          ? 'accountStatusOnline'.tr()
-                          : 'accountStatusOffline'.tr()
+                      ? (status.status?.label.isNotEmpty ?? false)
+                          ? status.status!.label
+                          : status.isOnline
+                              ? 'accountStatusOnline'.tr()
+                              : 'accountStatusOffline'.tr()
                       : 'loading'.tr(),
                 ),
                 if (status != null &&

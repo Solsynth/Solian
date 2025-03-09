@@ -777,5 +777,19 @@
     "zero": "No streak",
     "one": "{} day streak",
     "other": "{} days streak"
-  }
+  },
+  "accountChangeStatus": "Change Status",
+  "accountStatusSilent": "Do not Disturb",
+  "accountStatusSilentDesc": "The notification will stop popping up",
+  "accountStatusInvisible": "Invisible",
+  "accountStatusInvisibleDesc": "Will show as offline, but all features still remain normal",
+  "accountCustomStatus": "Custom Status",
+  "accountCustomStatusDescription": "Customize your status.",
+  "accountClearStatus": "Clear Status",
+  "accountClearStatusDescription": "Clear your status, and let server decide which status you are for you.",
+  "fieldAccountStatusLabel": "Status Text",
+  "fieldAccountStatusClearAt": "Clear At",
+  "accountStatusNegative": "Negative",
+  "accountStatusNeutral": "Neutral",
+  "accountStatusPositive": "Positive"
 }

@@ -2139,7 +2139,7 @@ mixin _$SnAccountStatusInfo {
   bool get isDisturbable;
   bool get isOnline;
   DateTime? get lastSeenAt;
-  dynamic get status;
+  SnAccountStatus? get status;
 
   /// Create a copy of SnAccountStatusInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -2163,13 +2163,13 @@ mixin _$SnAccountStatusInfo {
                 other.isOnline == isOnline) &&
             (identical(other.lastSeenAt, lastSeenAt) ||
                 other.lastSeenAt == lastSeenAt) &&
-            const DeepCollectionEquality().equals(other.status, status));
+            (identical(other.status, status) || other.status == status));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, isDisturbable, isOnline,
-      lastSeenAt, const DeepCollectionEquality().hash(status));
+  int get hashCode =>
+      Object.hash(runtimeType, isDisturbable, isOnline, lastSeenAt, status);
 
   @override
   String toString() {
@@ -2187,7 +2187,9 @@ abstract mixin class $SnAccountStatusInfoCopyWith<$Res> {
       {bool isDisturbable,
       bool isOnline,
       DateTime? lastSeenAt,
-      dynamic status});
+      SnAccountStatus? status});
+
+  $SnAccountStatusCopyWith<$Res>? get status;
 }
 
 /// @nodoc
@@ -2224,8 +2226,22 @@ class _$SnAccountStatusInfoCopyWithImpl<$Res>
       status: freezed == status
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as SnAccountStatus?,
     ));
+  }
+
+  /// Create a copy of SnAccountStatusInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountStatusCopyWith<$Res>? get status {
+    if (_self.status == null) {
+      return null;
+    }
+
+    return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
+      return _then(_self.copyWith(status: value));
+    });
   }
 }
 
@@ -2247,7 +2263,7 @@ class _SnAccountStatusInfo implements SnAccountStatusInfo {
   @override
   final DateTime? lastSeenAt;
   @override
-  final dynamic status;
+  final SnAccountStatus? status;
 
   /// Create a copy of SnAccountStatusInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -2276,13 +2292,13 @@ class _SnAccountStatusInfo implements SnAccountStatusInfo {
                 other.isOnline == isOnline) &&
             (identical(other.lastSeenAt, lastSeenAt) ||
                 other.lastSeenAt == lastSeenAt) &&
-            const DeepCollectionEquality().equals(other.status, status));
+            (identical(other.status, status) || other.status == status));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, isDisturbable, isOnline,
-      lastSeenAt, const DeepCollectionEquality().hash(status));
+  int get hashCode =>
+      Object.hash(runtimeType, isDisturbable, isOnline, lastSeenAt, status);
 
   @override
   String toString() {
@@ -2302,7 +2318,10 @@ abstract mixin class _$SnAccountStatusInfoCopyWith<$Res>
       {bool isDisturbable,
       bool isOnline,
       DateTime? lastSeenAt,
-      dynamic status});
+      SnAccountStatus? status});
+
+  @override
+  $SnAccountStatusCopyWith<$Res>? get status;
 }
 
 /// @nodoc
@@ -2339,7 +2358,386 @@ class __$SnAccountStatusInfoCopyWithImpl<$Res>
       status: freezed == status
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as SnAccountStatus?,
+    ));
+  }
+
+  /// Create a copy of SnAccountStatusInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountStatusCopyWith<$Res>? get status {
+    if (_self.status == null) {
+      return null;
+    }
+
+    return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
+      return _then(_self.copyWith(status: value));
+    });
+  }
+}
+
+/// @nodoc
+mixin _$SnAccountStatus {
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  String get type;
+  String get label;
+  int get attitude;
+  bool get isNoDisturb;
+  bool get isInvisible;
+  DateTime? get clearAt;
+  int get accountId;
+
+  /// Create a copy of SnAccountStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $SnAccountStatusCopyWith<SnAccountStatus> get copyWith =>
+      _$SnAccountStatusCopyWithImpl<SnAccountStatus>(
+          this as SnAccountStatus, _$identity);
+
+  /// Serializes this SnAccountStatus to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnAccountStatus &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.label, label) || other.label == label) &&
+            (identical(other.attitude, attitude) ||
+                other.attitude == attitude) &&
+            (identical(other.isNoDisturb, isNoDisturb) ||
+                other.isNoDisturb == isNoDisturb) &&
+            (identical(other.isInvisible, isInvisible) ||
+                other.isInvisible == isInvisible) &&
+            (identical(other.clearAt, clearAt) || other.clearAt == clearAt) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      type,
+      label,
+      attitude,
+      isNoDisturb,
+      isInvisible,
+      clearAt,
+      accountId);
+
+  @override
+  String toString() {
+    return 'SnAccountStatus(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, label: $label, attitude: $attitude, isNoDisturb: $isNoDisturb, isInvisible: $isInvisible, clearAt: $clearAt, accountId: $accountId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $SnAccountStatusCopyWith<$Res> {
+  factory $SnAccountStatusCopyWith(
+          SnAccountStatus value, $Res Function(SnAccountStatus) _then) =
+      _$SnAccountStatusCopyWithImpl;
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String type,
+      String label,
+      int attitude,
+      bool isNoDisturb,
+      bool isInvisible,
+      DateTime? clearAt,
+      int accountId});
+}
+
+/// @nodoc
+class _$SnAccountStatusCopyWithImpl<$Res>
+    implements $SnAccountStatusCopyWith<$Res> {
+  _$SnAccountStatusCopyWithImpl(this._self, this._then);
+
+  final SnAccountStatus _self;
+  final $Res Function(SnAccountStatus) _then;
+
+  /// Create a copy of SnAccountStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? type = null,
+    Object? label = null,
+    Object? attitude = null,
+    Object? isNoDisturb = null,
+    Object? isInvisible = null,
+    Object? clearAt = freezed,
+    Object? accountId = null,
+  }) {
+    return _then(_self.copyWith(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
+      label: null == label
+          ? _self.label
+          : label // ignore: cast_nullable_to_non_nullable
+              as String,
+      attitude: null == attitude
+          ? _self.attitude
+          : attitude // ignore: cast_nullable_to_non_nullable
+              as int,
+      isNoDisturb: null == isNoDisturb
+          ? _self.isNoDisturb
+          : isNoDisturb // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isInvisible: null == isInvisible
+          ? _self.isInvisible
+          : isInvisible // ignore: cast_nullable_to_non_nullable
+              as bool,
+      clearAt: freezed == clearAt
+          ? _self.clearAt
+          : clearAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _SnAccountStatus implements SnAccountStatus {
+  const _SnAccountStatus(
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.type,
+      required this.label,
+      required this.attitude,
+      required this.isNoDisturb,
+      required this.isInvisible,
+      required this.clearAt,
+      required this.accountId});
+  factory _SnAccountStatus.fromJson(Map<String, dynamic> json) =>
+      _$SnAccountStatusFromJson(json);
+
+  @override
+  final int id;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+  @override
+  final DateTime? deletedAt;
+  @override
+  final String type;
+  @override
+  final String label;
+  @override
+  final int attitude;
+  @override
+  final bool isNoDisturb;
+  @override
+  final bool isInvisible;
+  @override
+  final DateTime? clearAt;
+  @override
+  final int accountId;
+
+  /// Create a copy of SnAccountStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnAccountStatusCopyWith<_SnAccountStatus> get copyWith =>
+      __$SnAccountStatusCopyWithImpl<_SnAccountStatus>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnAccountStatusToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _SnAccountStatus &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.label, label) || other.label == label) &&
+            (identical(other.attitude, attitude) ||
+                other.attitude == attitude) &&
+            (identical(other.isNoDisturb, isNoDisturb) ||
+                other.isNoDisturb == isNoDisturb) &&
+            (identical(other.isInvisible, isInvisible) ||
+                other.isInvisible == isInvisible) &&
+            (identical(other.clearAt, clearAt) || other.clearAt == clearAt) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      type,
+      label,
+      attitude,
+      isNoDisturb,
+      isInvisible,
+      clearAt,
+      accountId);
+
+  @override
+  String toString() {
+    return 'SnAccountStatus(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, label: $label, attitude: $attitude, isNoDisturb: $isNoDisturb, isInvisible: $isInvisible, clearAt: $clearAt, accountId: $accountId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$SnAccountStatusCopyWith<$Res>
+    implements $SnAccountStatusCopyWith<$Res> {
+  factory _$SnAccountStatusCopyWith(
+          _SnAccountStatus value, $Res Function(_SnAccountStatus) _then) =
+      __$SnAccountStatusCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String type,
+      String label,
+      int attitude,
+      bool isNoDisturb,
+      bool isInvisible,
+      DateTime? clearAt,
+      int accountId});
+}
+
+/// @nodoc
+class __$SnAccountStatusCopyWithImpl<$Res>
+    implements _$SnAccountStatusCopyWith<$Res> {
+  __$SnAccountStatusCopyWithImpl(this._self, this._then);
+
+  final _SnAccountStatus _self;
+  final $Res Function(_SnAccountStatus) _then;
+
+  /// Create a copy of SnAccountStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? type = null,
+    Object? label = null,
+    Object? attitude = null,
+    Object? isNoDisturb = null,
+    Object? isInvisible = null,
+    Object? clearAt = freezed,
+    Object? accountId = null,
+  }) {
+    return _then(_SnAccountStatus(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
+      label: null == label
+          ? _self.label
+          : label // ignore: cast_nullable_to_non_nullable
+              as String,
+      attitude: null == attitude
+          ? _self.attitude
+          : attitude // ignore: cast_nullable_to_non_nullable
+              as int,
+      isNoDisturb: null == isNoDisturb
+          ? _self.isNoDisturb
+          : isNoDisturb // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isInvisible: null == isInvisible
+          ? _self.isInvisible
+          : isInvisible // ignore: cast_nullable_to_non_nullable
+              as bool,
+      clearAt: freezed == clearAt
+          ? _self.clearAt
+          : clearAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }

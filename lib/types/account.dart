@@ -119,11 +119,31 @@ abstract class SnAccountStatusInfo with _$SnAccountStatusInfo {
     required bool isDisturbable,
     required bool isOnline,
     required DateTime? lastSeenAt,
-    required dynamic status,
+    required SnAccountStatus? status,
   }) = _SnAccountStatusInfo;
 
   factory SnAccountStatusInfo.fromJson(Map<String, Object?> json) =>
       _$SnAccountStatusInfoFromJson(json);
+}
+
+@freezed
+abstract class SnAccountStatus with _$SnAccountStatus {
+  const factory SnAccountStatus({
+    required int id,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required String type,
+    required String label,
+    required int attitude,
+    required bool isNoDisturb,
+    required bool isInvisible,
+    required DateTime? clearAt,
+    required int accountId,
+  }) = _SnAccountStatus;
+
+  factory SnAccountStatus.fromJson(Map<String, Object?> json) =>
+      _$SnAccountStatusFromJson(json);
 }
 
 @freezed

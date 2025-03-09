@@ -210,7 +210,9 @@ _SnAccountStatusInfo _$SnAccountStatusInfoFromJson(Map<String, dynamic> json) =>
       lastSeenAt: json['last_seen_at'] == null
           ? null
           : DateTime.parse(json['last_seen_at'] as String),
-      status: json['status'],
+      status: json['status'] == null
+          ? null
+          : SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SnAccountStatusInfoToJson(
@@ -219,7 +221,41 @@ Map<String, dynamic> _$SnAccountStatusInfoToJson(
       'is_disturbable': instance.isDisturbable,
       'is_online': instance.isOnline,
       'last_seen_at': instance.lastSeenAt?.toIso8601String(),
-      'status': instance.status,
+      'status': instance.status?.toJson(),
+    };
+
+_SnAccountStatus _$SnAccountStatusFromJson(Map<String, dynamic> json) =>
+    _SnAccountStatus(
+      id: (json['id'] as num).toInt(),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+      type: json['type'] as String,
+      label: json['label'] as String,
+      attitude: (json['attitude'] as num).toInt(),
+      isNoDisturb: json['is_no_disturb'] as bool,
+      isInvisible: json['is_invisible'] as bool,
+      clearAt: json['clear_at'] == null
+          ? null
+          : DateTime.parse(json['clear_at'] as String),
+      accountId: (json['account_id'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$SnAccountStatusToJson(_SnAccountStatus instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+      'type': instance.type,
+      'label': instance.label,
+      'attitude': instance.attitude,
+      'is_no_disturb': instance.isNoDisturb,
+      'is_invisible': instance.isInvisible,
+      'clear_at': instance.clearAt?.toIso8601String(),
+      'account_id': instance.accountId,
     };
 
 _SnAbuseReport _$SnAbuseReportFromJson(Map<String, dynamic> json) =>
