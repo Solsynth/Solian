@@ -19,6 +19,7 @@ class UserDirectoryProvider {
 
   final Map<String, int> _idCache = {};
   final Map<int, SnAccount> _cache = {};
+  DateTime? _cacheExpiredAt;
 
   Future<int> loadAccountCache({int max = 100}) async {
     final out = await (_dt.db.snLocalAccount.select()..limit(max)).get();
@@ -26,11 +27,18 @@ class UserDirectoryProvider {
       _cache[ele.id] = ele.content;
       _idCache[ele.name] = ele.id;
     }
+    _cacheExpiredAt = DateTime.now().add(const Duration(hours: 1));
     return out.length;
   }
 
   Future<List<SnAccount?>> listAccount(Iterable<dynamic> id) async {
     // In-memory cache
+    if (_cacheExpiredAt != null && _cacheExpiredAt!.isAfter(DateTime.now())) {
+      _cache.clear();
+      _cacheExpiredAt = DateTime.now().add(const Duration(hours: 1));
+    } else {
+      _cacheExpiredAt ??= DateTime.now().add(const Duration(hours: 1));
+    }
     final out = List<SnAccount?>.generate(id.length, (e) => null);
     final plannedQuery = <int>{};
     for (var idx = 0; idx < out.length; idx++) {
@@ -62,6 +70,7 @@ class UserDirectoryProvider {
       plannedQuery.remove(dbResp[idx].id);
     }
     // Remote server
+    _saveToLocal(out.where((ele) => ele != null).cast());
     if (plannedQuery.isEmpty) return out;
     final resp = await _sn.client
         .get('/cgi/id/users', queryParameters: {'id': plannedQuery.join(',')});
