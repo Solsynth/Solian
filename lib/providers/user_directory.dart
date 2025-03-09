@@ -33,7 +33,7 @@ class UserDirectoryProvider {
 
   Future<List<SnAccount?>> listAccount(Iterable<dynamic> id) async {
     // In-memory cache
-    if (_cacheExpiredAt != null && _cacheExpiredAt!.isAfter(DateTime.now())) {
+    if (_cacheExpiredAt != null && _cacheExpiredAt!.isBefore(DateTime.now())) {
       _cache.clear();
       _cacheExpiredAt = DateTime.now().add(const Duration(hours: 1));
     } else {

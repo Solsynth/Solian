@@ -5,10 +5,12 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/post.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/sn_realm.dart';
+import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/types/realm.dart';
 import 'package:surface/widgets/account/account_image.dart';
@@ -75,6 +77,8 @@ class _ExploreScreenState extends State<ExploreScreen>
 
   Future<void> _fetchRealms() async {
     try {
+      final ua = context.read<UserProvider>();
+      if (!ua.isAuthorized) return;
       final rels = context.read<SnRealmProvider>();
       final out = await rels.listAvailableRealms();
       setState(() {
@@ -219,10 +223,15 @@ class _ExploreScreenState extends State<ExploreScreen>
             SliverOverlapAbsorber(
               handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
               sliver: SliverAppBar(
-                leading: AutoAppBarLeading(),
+                leading:
+                    ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE)
+                        ? AutoAppBarLeading()
+                        : null,
                 titleSpacing: 0,
                 title: Row(
                   children: [
+                    if (ResponsiveBreakpoints.of(context).largerThan(MOBILE))
+                      const Gap(8),
                     IconButton(
                       icon: const Icon(Symbols.shuffle),
                       onPressed: () {
