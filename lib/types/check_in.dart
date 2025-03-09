@@ -25,11 +25,13 @@ abstract class SnCheckInRecord with _$SnCheckInRecord {
     required int resultTier,
     required int resultExperience,
     required double resultCoin,
+    @Default(0) int currentStreak,
     required List<int> resultModifiers,
     required int accountId,
   }) = _SnCheckInRecord;
 
-  factory SnCheckInRecord.fromJson(Map<String, dynamic> json) => _$SnCheckInRecordFromJson(json);
+  factory SnCheckInRecord.fromJson(Map<String, dynamic> json) =>
+      _$SnCheckInRecordFromJson(json);
 
   String get symbol => kCheckInResultTierSymbols[resultTier];
 }

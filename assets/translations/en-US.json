@@ -772,5 +772,10 @@
   "postViewInGlobalDescription": "Do not view the post in the specific realm.",
   "postDraftSaved": "The draft has been saved.",
   "postDraftBox": "Draft Box",
-  "postShuffle": "Read Randomly"
+  "postShuffle": "Read Randomly",
+  "checkInStreak": {
+    "zero": "No streak",
+    "one": "{} day streak",
+    "other": "{} days streak"
+  }
 }

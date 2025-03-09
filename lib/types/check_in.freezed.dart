@@ -22,6 +22,7 @@ mixin _$SnCheckInRecord {
   int get resultTier;
   int get resultExperience;
   double get resultCoin;
+  int get currentStreak;
   List<int> get resultModifiers;
   int get accountId;
 
@@ -54,6 +55,8 @@ mixin _$SnCheckInRecord {
                 other.resultExperience == resultExperience) &&
             (identical(other.resultCoin, resultCoin) ||
                 other.resultCoin == resultCoin) &&
+            (identical(other.currentStreak, currentStreak) ||
+                other.currentStreak == currentStreak) &&
             const DeepCollectionEquality()
                 .equals(other.resultModifiers, resultModifiers) &&
             (identical(other.accountId, accountId) ||
@@ -71,12 +74,13 @@ mixin _$SnCheckInRecord {
       resultTier,
       resultExperience,
       resultCoin,
+      currentStreak,
       const DeepCollectionEquality().hash(resultModifiers),
       accountId);
 
   @override
   String toString() {
-    return 'SnCheckInRecord(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, resultTier: $resultTier, resultExperience: $resultExperience, resultCoin: $resultCoin, resultModifiers: $resultModifiers, accountId: $accountId)';
+    return 'SnCheckInRecord(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, resultTier: $resultTier, resultExperience: $resultExperience, resultCoin: $resultCoin, currentStreak: $currentStreak, resultModifiers: $resultModifiers, accountId: $accountId)';
   }
 }
 
@@ -94,6 +98,7 @@ abstract mixin class $SnCheckInRecordCopyWith<$Res> {
       int resultTier,
       int resultExperience,
       double resultCoin,
+      int currentStreak,
       List<int> resultModifiers,
       int accountId});
 }
@@ -118,6 +123,7 @@ class _$SnCheckInRecordCopyWithImpl<$Res>
     Object? resultTier = null,
     Object? resultExperience = null,
     Object? resultCoin = null,
+    Object? currentStreak = null,
     Object? resultModifiers = null,
     Object? accountId = null,
   }) {
@@ -150,6 +156,10 @@ class _$SnCheckInRecordCopyWithImpl<$Res>
           ? _self.resultCoin
           : resultCoin // ignore: cast_nullable_to_non_nullable
               as double,
+      currentStreak: null == currentStreak
+          ? _self.currentStreak
+          : currentStreak // ignore: cast_nullable_to_non_nullable
+              as int,
       resultModifiers: null == resultModifiers
           ? _self.resultModifiers
           : resultModifiers // ignore: cast_nullable_to_non_nullable
@@ -173,6 +183,7 @@ class _SnCheckInRecord extends SnCheckInRecord {
       required this.resultTier,
       required this.resultExperience,
       required this.resultCoin,
+      this.currentStreak = 0,
       required final List<int> resultModifiers,
       required this.accountId})
       : _resultModifiers = resultModifiers,
@@ -194,6 +205,9 @@ class _SnCheckInRecord extends SnCheckInRecord {
   final int resultExperience;
   @override
   final double resultCoin;
+  @override
+  @JsonKey()
+  final int currentStreak;
   final List<int> _resultModifiers;
   @override
   List<int> get resultModifiers {
@@ -238,6 +252,8 @@ class _SnCheckInRecord extends SnCheckInRecord {
                 other.resultExperience == resultExperience) &&
             (identical(other.resultCoin, resultCoin) ||
                 other.resultCoin == resultCoin) &&
+            (identical(other.currentStreak, currentStreak) ||
+                other.currentStreak == currentStreak) &&
             const DeepCollectionEquality()
                 .equals(other._resultModifiers, _resultModifiers) &&
             (identical(other.accountId, accountId) ||
@@ -255,12 +271,13 @@ class _SnCheckInRecord extends SnCheckInRecord {
       resultTier,
       resultExperience,
       resultCoin,
+      currentStreak,
       const DeepCollectionEquality().hash(_resultModifiers),
       accountId);
 
   @override
   String toString() {
-    return 'SnCheckInRecord(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, resultTier: $resultTier, resultExperience: $resultExperience, resultCoin: $resultCoin, resultModifiers: $resultModifiers, accountId: $accountId)';
+    return 'SnCheckInRecord(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, resultTier: $resultTier, resultExperience: $resultExperience, resultCoin: $resultCoin, currentStreak: $currentStreak, resultModifiers: $resultModifiers, accountId: $accountId)';
   }
 }
 
@@ -280,6 +297,7 @@ abstract mixin class _$SnCheckInRecordCopyWith<$Res>
       int resultTier,
       int resultExperience,
       double resultCoin,
+      int currentStreak,
       List<int> resultModifiers,
       int accountId});
 }
@@ -304,6 +322,7 @@ class __$SnCheckInRecordCopyWithImpl<$Res>
     Object? resultTier = null,
     Object? resultExperience = null,
     Object? resultCoin = null,
+    Object? currentStreak = null,
     Object? resultModifiers = null,
     Object? accountId = null,
   }) {
@@ -336,6 +355,10 @@ class __$SnCheckInRecordCopyWithImpl<$Res>
           ? _self.resultCoin
           : resultCoin // ignore: cast_nullable_to_non_nullable
               as double,
+      currentStreak: null == currentStreak
+          ? _self.currentStreak
+          : currentStreak // ignore: cast_nullable_to_non_nullable
+              as int,
       resultModifiers: null == resultModifiers
           ? _self._resultModifiers
           : resultModifiers // ignore: cast_nullable_to_non_nullable

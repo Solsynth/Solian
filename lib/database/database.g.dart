@@ -23,8 +23,6 @@ class $SnLocalChatChannelTable extends SnLocalChatChannel
   late final GeneratedColumn<String> alias = GeneratedColumn<String>(
       'alias', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
   @override
   late final GeneratedColumnWithTypeConverter<SnChannel, String> content =
       GeneratedColumn<String>('content', aliasedName, false,
@@ -60,7 +58,6 @@ class $SnLocalChatChannelTable extends SnLocalChatChannel
     } else if (isInserting) {
       context.missing(_aliasMeta);
     }
-    context.handle(_contentMeta, const VerificationResult.success());
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -295,8 +292,6 @@ class $SnLocalChatMessageTable extends SnLocalChatMessage
   late final GeneratedColumn<int> senderId = GeneratedColumn<int>(
       'sender_id', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
   @override
   late final GeneratedColumnWithTypeConverter<SnChatMessage, String> content =
       GeneratedColumn<String>('content', aliasedName, false,
@@ -338,7 +333,6 @@ class $SnLocalChatMessageTable extends SnLocalChatMessage
       context.handle(_senderIdMeta,
           senderId.isAcceptableOrUnknown(data['sender_id']!, _senderIdMeta));
     }
-    context.handle(_contentMeta, const VerificationResult.success());
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -604,8 +598,6 @@ class $SnLocalChannelMemberTable extends SnLocalChannelMember
   late final GeneratedColumn<int> accountId = GeneratedColumn<int>(
       'account_id', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
   @override
   late final GeneratedColumnWithTypeConverter<SnChannelMember, String> content =
       GeneratedColumn<String>('content', aliasedName, false,
@@ -655,7 +647,6 @@ class $SnLocalChannelMemberTable extends SnLocalChannelMember
     } else if (isInserting) {
       context.missing(_accountIdMeta);
     }
-    context.handle(_contentMeta, const VerificationResult.success());
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -1265,8 +1256,6 @@ class $SnLocalAccountTable extends SnLocalAccount
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
   @override
   late final GeneratedColumnWithTypeConverter<SnAccount, String> content =
       GeneratedColumn<String>('content', aliasedName, false,
@@ -1308,7 +1297,6 @@ class $SnLocalAccountTable extends SnLocalAccount
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    context.handle(_contentMeta, const VerificationResult.success());
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -1582,8 +1570,6 @@ class $SnLocalAttachmentTable extends SnLocalAttachment
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
   @override
   late final GeneratedColumnWithTypeConverter<SnAttachment, String> content =
       GeneratedColumn<String>('content', aliasedName, false,
@@ -1639,7 +1625,6 @@ class $SnLocalAttachmentTable extends SnLocalAttachment
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
-    context.handle(_contentMeta, const VerificationResult.success());
     if (data.containsKey('account_id')) {
       context.handle(_accountIdMeta,
           accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
@@ -1968,8 +1953,6 @@ class $SnLocalStickerTable extends SnLocalSticker
   late final GeneratedColumn<String> fullAlias = GeneratedColumn<String>(
       'full_alias', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
   @override
   late final GeneratedColumnWithTypeConverter<SnSticker, String> content =
       GeneratedColumn<String>('content', aliasedName, false,
@@ -2011,7 +1994,6 @@ class $SnLocalStickerTable extends SnLocalSticker
     } else if (isInserting) {
       context.missing(_fullAliasMeta);
     }
-    context.handle(_contentMeta, const VerificationResult.success());
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -2261,8 +2243,6 @@ class $SnLocalStickerPackTable extends SnLocalStickerPack
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
   @override
   late final GeneratedColumnWithTypeConverter<SnStickerPack, String> content =
       GeneratedColumn<String>('content', aliasedName, false,
@@ -2293,7 +2273,6 @@ class $SnLocalStickerPackTable extends SnLocalStickerPack
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    context.handle(_contentMeta, const VerificationResult.success());
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));

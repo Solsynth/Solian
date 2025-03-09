@@ -546,11 +546,26 @@ class _HomeDashCheckInWidgetState extends State<_HomeDashCheckInWidget> {
                           '+${_todayRecord!.resultExperience} EXP',
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        if (_todayRecord!.resultCoin >= 0)
+                        if (_todayRecord!.resultCoin > 0)
                           Text(
                             '+${_todayRecord!.resultCoin} ${'walletCurrencyShort'.tr()}',
                             style: Theme.of(context).textTheme.bodyLarge,
-                          )
+                          ),
+                        if (_todayRecord!.currentStreak > 0)
+                          Row(
+                            children: [
+                              const Icon(
+                                Symbols.local_fire_department,
+                                size: 14,
+                              ).padding(bottom: 2),
+                              const Gap(4),
+                              Text(
+                                'checkInStreak'
+                                    .plural(_todayRecord!.currentStreak),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ).padding(top: 4),
                       ],
                     ),
             ),

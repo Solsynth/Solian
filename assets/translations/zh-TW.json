@@ -770,5 +770,10 @@
   "postViewInGlobalDescription": "不查看特定領域的帖子。",
   "postDraftSaved": "已保存為草稿。",
   "postDraftBox": "草稿箱",
-  "postShuffle": "隨便看看"
+  "postShuffle": "隨便看看",
+  "checkInStreak": {
+    "zero": "無連擊",
+    "one": "連續簽到 {} 天",
+    "other": "連續簽到 {} 天"
+  }
 }
