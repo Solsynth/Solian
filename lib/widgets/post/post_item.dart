@@ -29,6 +29,7 @@ import 'package:surface/types/attachment.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/types/reaction.dart';
 import 'package:surface/widgets/account/account_image.dart';
+import 'package:surface/widgets/account/badge.dart';
 import 'package:surface/widgets/attachment/attachment_item.dart';
 import 'package:surface/widgets/attachment/attachment_list.dart';
 import 'package:surface/widgets/dialog.dart';
@@ -42,8 +43,6 @@ import 'package:surface/widgets/post/post_reaction.dart';
 import 'package:surface/widgets/post/publisher_popover.dart';
 import 'package:surface/widgets/universal_image.dart';
 import 'package:xml/xml.dart';
-
-import '../../screens/account/profile_page.dart' show kBadgesMeta;
 
 class OpenablePostItem extends StatelessWidget {
   final SnPost data;
@@ -887,7 +886,7 @@ class _PostContentHeader extends StatelessWidget {
         'publisherId': data.publisherId,
       });
       if (!context.mounted) return;
-      context.showSnackbar('postDeleted'.tr(args: ['#${data.id}']));
+      onDeleted.call();
     } catch (err) {
       if (!context.mounted) return;
       context.showErrorDialog(err);
@@ -930,19 +929,10 @@ class _PostContentHeader extends StatelessWidget {
                   borderRadius:
                       data.publisher.type == 1 ? (isCompact ? 4 : 8) : 20,
                   badge: (user?.badges.isNotEmpty ?? false)
-                      ? Icon(
-                          kBadgesMeta[user!.badges.first.type]?.$2 ??
-                              Symbols.question_mark,
-                          color: kBadgesMeta[user.badges.first.type]?.$3,
-                          fill: 1,
-                          size: 18,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(1, 1),
-                              blurRadius: 5.0,
-                              color: Color.fromARGB(200, 0, 0, 0),
-                            ),
-                          ],
+                      ? AccountBadge(
+                          badge: user!.badges.first,
+                          radius: 16,
+                          padding: EdgeInsets.all(2),
                         )
                       : null,
                 )

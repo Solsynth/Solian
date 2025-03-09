@@ -18,6 +18,7 @@ import 'package:surface/types/account.dart';
 import 'package:surface/types/check_in.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/account/account_image.dart';
+import 'package:surface/widgets/account/badge.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/universal_image.dart';
 import 'package:surface/theme.dart';
@@ -484,34 +485,7 @@ class _UserScreenState extends State<UserScreen>
                   Wrap(
                     children: _account!.badges
                         .map(
-                          (ele) => Tooltip(
-                            richMessage: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: kBadgesMeta[ele.type]?.$1.tr() ??
-                                      'unknown'.tr(),
-                                ),
-                                if (ele.metadata['title'] != null)
-                                  TextSpan(
-                                    text: '\n${ele.metadata['title']}',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                TextSpan(text: '\n'),
-                                TextSpan(
-                                  text: DateFormat.yMEd().format(ele.createdAt),
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              kBadgesMeta[ele.type]?.$2 ??
-                                  Symbols.question_mark,
-                              color: ele.metadata['color'] != null
-                                  ? HexColor.fromHex(ele.metadata['color']!)
-                                  : kBadgesMeta[ele.type]?.$3,
-                              fill: 1,
-                            ),
-                          ),
+                          (ele) => AccountBadge(badge: ele),
                         )
                         .toList(),
                   ).padding(horizontal: 8),

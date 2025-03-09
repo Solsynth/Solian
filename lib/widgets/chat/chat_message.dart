@@ -12,10 +12,10 @@ import 'package:surface/providers/config.dart';
 import 'package:surface/providers/keypair.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
-import 'package:surface/screens/account/profile_page.dart';
 import 'package:surface/types/chat.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/account/account_popover.dart';
+import 'package:surface/widgets/account/badge.dart';
 import 'package:surface/widgets/attachment/attachment_list.dart';
 import 'package:surface/widgets/context_menu.dart';
 import 'package:surface/widgets/link_preview.dart';
@@ -109,18 +109,10 @@ class ChatMessage extends StatelessWidget {
                       child: AccountImage(
                         content: user?.avatar,
                         badge: (user?.badges.isNotEmpty ?? false)
-                            ? Icon(
-                                kBadgesMeta[user!.badges.first.type]?.$2 ??
-                                    Symbols.question_mark,
-                                color: kBadgesMeta[user.badges.first.type]?.$3,
-                                fill: 1,
-                                size: 18,
-                                shadows: [
-                                  Shadow(
-                                      offset: Offset(1, 1),
-                                      blurRadius: 5.0,
-                                      color: Color.fromARGB(200, 0, 0, 0)),
-                                ],
+                            ? AccountBadge(
+                                badge: user!.badges.first,
+                                radius: 16,
+                                padding: EdgeInsets.all(2),
                               )
                             : null,
                       ),

@@ -9,9 +9,8 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/account/account_image.dart';
+import 'package:surface/widgets/account/badge.dart';
 import 'package:surface/widgets/universal_image.dart';
-
-import '../../screens/account/profile_page.dart' show kBadgesMeta;
 
 class PublisherPopoverCard extends StatelessWidget {
   final SnPublisher data;
@@ -76,39 +75,22 @@ class PublisherPopoverCard extends StatelessWidget {
             const Gap(8)
           ],
         ).padding(horizontal: 16),
-        if (user != null && user.badges.isNotEmpty) const Gap(16),
         if (user != null && user.badges.isNotEmpty)
           Wrap(
             spacing: 4,
             children: user.badges
                 .map(
-                  (ele) => Tooltip(
-                    richMessage: TextSpan(
-                      children: [
-                        TextSpan(
-                            text: kBadgesMeta[ele.type]?.$1.tr() ??
-                                'unknown'.tr()),
-                        if (ele.metadata['title'] != null)
-                          TextSpan(
-                            text: '\n${ele.metadata['title']}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        TextSpan(text: '\n'),
-                        TextSpan(
-                          text: DateFormat.yMEd().format(ele.createdAt),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      kBadgesMeta[ele.type]?.$2 ?? Symbols.question_mark,
-                      color: kBadgesMeta[ele.type]?.$3,
-                      fill: 1,
-                    ),
-                  ),
+                  (ele) => AccountBadge(badge: ele),
                 )
                 .toList(),
-          ).padding(horizontal: 24),
+          ).padding(horizontal: 24, top: 16),
         const Gap(16),
+        if (data.description.isNotEmpty)
+          Text(
+            data.description,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ).padding(horizontal: 26, bottom: 20),
         Row(
           children: [
             Expanded(

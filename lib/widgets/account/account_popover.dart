@@ -8,9 +8,9 @@ import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/experience.dart';
 import 'package:surface/providers/sn_network.dart';
-import 'package:surface/screens/account/profile_page.dart';
 import 'package:surface/types/account.dart';
 import 'package:surface/widgets/account/account_image.dart';
+import 'package:surface/widgets/account/badge.dart';
 import 'package:surface/widgets/universal_image.dart';
 
 class AccountPopoverCard extends StatelessWidget {
@@ -72,37 +72,21 @@ class AccountPopoverCard extends StatelessWidget {
             const Gap(8)
           ],
         ).padding(horizontal: 16),
-        if (data.badges.isNotEmpty) const Gap(12),
         if (data.badges.isNotEmpty)
           Wrap(
             spacing: 4,
             children: data.badges
                 .map(
-                  (ele) => Tooltip(
-                    richMessage: TextSpan(
-                      children: [
-                        TextSpan(text: kBadgesMeta[ele.type]?.$1.tr() ?? 'unknown'.tr()),
-                        if (ele.metadata['title'] != null)
-                          TextSpan(
-                            text: '\n${ele.metadata['title']}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        TextSpan(text: '\n'),
-                        TextSpan(
-                          text: DateFormat.yMEd().format(ele.createdAt),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      kBadgesMeta[ele.type]?.$2 ?? Symbols.question_mark,
-                      color: kBadgesMeta[ele.type]?.$3,
-                      fill: 1,
-                    ),
-                  ),
+                  (ele) => AccountBadge(badge: ele),
                 )
                 .toList(),
-          ).padding(horizontal: 24),
-        const Gap(8),
+          ).padding(horizontal: 24, bottom: 12, top: 12),
+        if (data.profile?.description.isNotEmpty ?? false)
+          Text(
+            data.profile?.description ?? '',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ).padding(horizontal: 26, bottom: 8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -110,7 +94,9 @@ class AccountPopoverCard extends StatelessWidget {
             const Gap(8),
             Text('Lv${getLevelFromExp(data.profile?.experience ?? 0)}'),
             const Gap(8),
-            Text(calcLevelUpProgressLevel(data.profile?.experience ?? 0)).fontSize(11).opacity(0.5),
+            Text(calcLevelUpProgressLevel(data.profile?.experience ?? 0))
+                .fontSize(11)
+                .opacity(0.5),
             const Gap(8),
             Container(
               width: double.infinity,
@@ -126,15 +112,17 @@ class AccountPopoverCard extends StatelessWidget {
         FutureBuilder(
           future: sn.client.get('/cgi/id/users/${data.name}/status'),
           builder: (context, snapshot) {
-            final SnAccountStatusInfo? status =
-                snapshot.hasData ? SnAccountStatusInfo.fromJson(snapshot.data!.data) : null;
+            final SnAccountStatusInfo? status = snapshot.hasData
+                ? SnAccountStatusInfo.fromJson(snapshot.data!.data)
+                : null;
             return Row(
               children: [
                 Icon(
                   Symbols.circle,
                   fill: 1,
                   size: 16,
-                  color: (status?.isOnline ?? false) ? Colors.green : Colors.grey,
+                  color:
+                      (status?.isOnline ?? false) ? Colors.green : Colors.grey,
                 ).padding(all: 4),
                 const Gap(8),
                 Text(
@@ -144,7 +132,9 @@ class AccountPopoverCard extends StatelessWidget {
                           : 'accountStatusOffline'.tr()
                       : 'loading'.tr(),
                 ),
-                if (status != null && !status.isOnline && status.lastSeenAt != null)
+                if (status != null &&
+                    !status.isOnline &&
+                    status.lastSeenAt != null)
                   Text(
                     'accountStatusLastSeen'.tr(args: [
                       status.lastSeenAt != null
