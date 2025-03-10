@@ -164,7 +164,7 @@ class _PostEditorScreenState extends State<PostEditorScreen>
     });
     hotKeyManager.register(_saveDraftHotKey, keyDownHandler: (_) async {
       if (mounted) {
-        _writeController.sendPost(context);
+        _writeController.sendPost(context, saveAsDraft: true);
       }
     });
   }
