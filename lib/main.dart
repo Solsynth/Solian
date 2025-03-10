@@ -44,6 +44,7 @@ import 'package:surface/providers/widget.dart';
 import 'package:surface/router.dart';
 import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:surface/widgets/dialog.dart';
+import 'package:surface/widgets/menu_bar.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:version/version.dart';
 import 'package:workmanager/workmanager.dart';
@@ -331,18 +332,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
 
   Future<void> _hotkeyInitialization() async {
     if (kIsWeb) return;
-
-    if (Platform.isMacOS) {
-      HotKey quitHotKey = HotKey(
-        key: PhysicalKeyboardKey.keyQ,
-        modifiers: [HotKeyModifier.meta],
-        scope: HotKeyScope.inapp,
-      );
-      await hotKeyManager.register(quitHotKey, keyUpHandler: (_) {
-        _appLifecycleListener?.dispose();
-        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-      });
-    }
+    // The quit key has been removed, and the logic of the quit key is moved to system menu bar activator.
   }
 
   final Menu _appTrayMenu = Menu(
@@ -426,6 +416,15 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     return AppExitResponse.cancel;
   }
 
+  void _quitApp() {
+    _appLifecycleListener?.dispose();
+    if (Platform.isWindows) {
+      appWindow.close();
+    } else {
+      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+    }
+  }
+
   @override
   void onTrayIconMouseDown() {
     if (Platform.isWindows) {
@@ -460,12 +459,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
         Timer(const Duration(milliseconds: 100), () => appWindow.show());
         break;
       case 'exit':
-        _appLifecycleListener?.dispose();
-        if (Platform.isWindows) {
-          appWindow.close();
-        } else {
-          SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-        }
+        _quitApp();
         break;
     }
   }
@@ -482,28 +476,31 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   @override
   Widget build(BuildContext context) {
     final cfg = context.read<ConfigProvider>();
-    return NotificationListener<SizeChangedLayoutNotification>(
-      onNotification: (notification) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          cfg.calcDrawerSize(context);
-        });
-        return false;
-      },
-      child: OrientationBuilder(
-        builder: (context, orientation) {
-          final cfg = context.read<ConfigProvider>();
+    return AppSystemMenuBar(
+      onQuit: _quitApp,
+      child: NotificationListener<SizeChangedLayoutNotification>(
+        onNotification: (notification) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             cfg.calcDrawerSize(context);
           });
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (context.mounted) {
-              cfg.calcDrawerSize(context);
-            }
-          });
-          return SizeChangedLayoutNotifier(
-            child: widget.child,
-          );
+          return false;
         },
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            final cfg = context.read<ConfigProvider>();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              cfg.calcDrawerSize(context);
+            });
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (context.mounted) {
+                cfg.calcDrawerSize(context);
+              }
+            });
+            return SizeChangedLayoutNotifier(
+              child: widget.child,
+            );
+          },
+        ),
       ),
     );
   }
