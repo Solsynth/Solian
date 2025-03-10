@@ -14,36 +14,37 @@ class UnauthorizedHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 280),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Symbols.login, size: 36),
-            const Gap(8),
-            Text(
-              'unauthorized',
-              style: Theme.of(context).textTheme.titleLarge,
-            ).tr(),
-            const Gap(8),
-            Text(
-              'unauthorizedDescription',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ).tr(),
-          ],
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Symbols.login, size: 36),
+              const Gap(8),
+              Text(
+                'unauthorized',
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ).tr(),
+              const Gap(8),
+              Text(
+                'unauthorizedDescription',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ).tr(),
+            ],
+          ),
         ),
-      ),
-      onTap: () {
-        GoRouter.of(context).pushNamed('authLogin').then((value) {
-          if (value == true && context.mounted) {
-            final ua = context.read<UserProvider>();
-            context.showSnackbar('loginSuccess'.tr(args: [
-              '@${ua.user?.name} (${ua.user?.nick})',
-            ]));
-          }
+        onTap: () {
+          GoRouter.of(context).pushNamed('authLogin').then((value) {
+            if (value == true && context.mounted) {
+              final ua = context.read<UserProvider>();
+              context.showSnackbar('loginSuccess'.tr(args: [
+                '@${ua.user?.name} (${ua.user?.nick})',
+              ]));
+            }
+          });
         });
-      }
-    );
   }
 }
