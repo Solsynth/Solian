@@ -145,6 +145,36 @@ class SnPostContentProvider {
     return out;
   }
 
+  Future<List<SnFeedEntry>> getFeed({int take = 20, DateTime? cursor}) async {
+    final resp =
+        await _sn.client.get('/cgi/co/recommendations/feed', queryParameters: {
+      'take': take,
+      if (cursor != null) 'cursor': cursor.toUtc().millisecondsSinceEpoch,
+    });
+    final List<SnFeedEntry> out =
+        List.from(resp.data.map((ele) => SnFeedEntry.fromJson(ele)));
+
+    List<SnPost> posts = List.empty(growable: true);
+    for (var idx = 0; idx < out.length; idx++) {
+      final ele = out[idx];
+      if (ele.type == 'interactive.post') {
+        posts.add(SnPost.fromJson(ele.data));
+      }
+    }
+    posts = await _preloadRelatedDataInBatch(posts);
+
+    var postsIdx = 0;
+    for (var idx = 0; idx < out.length; idx++) {
+      final ele = out[idx];
+      if (ele.type == 'interactive.post') {
+        out[idx] = ele.copyWith(data: posts[postsIdx].toJson());
+        postsIdx++;
+      }
+    }
+
+    return out;
+  }
+
   Future<(List<SnPost>, int)> listPosts({
     int take = 10,
     int offset = 0,

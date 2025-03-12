@@ -19,6 +19,7 @@ const kAppExpandPostLink = 'app_expand_post_link';
 const kAppExpandChatLink = 'app_expand_chat_link';
 const kAppRealmCompactView = 'app_realm_compact_view';
 const kAppCustomFonts = 'app_custom_fonts';
+const kAppMixedFeed = 'app_mixed_feed';
 
 const Map<String, FilterQuality> kImageQualityLevel = {
   'settingsImageQualityLowest': FilterQuality.none,
@@ -81,8 +82,18 @@ class ConfigProvider extends ChangeNotifier {
     return prefs.getBool(kAppRealmCompactView) ?? false;
   }
 
+  bool get mixedFeed {
+    return prefs.getBool(kAppMixedFeed) ?? true;
+  }
+
+  set mixedFeed(bool value) {
+    prefs.setBool(kAppMixedFeed, value);
+    notifyListeners();
+  }
+
   set realmCompactView(bool value) {
     prefs.setBool(kAppRealmCompactView, value);
+    notifyListeners();
   }
 
   set serverUrl(String url) {

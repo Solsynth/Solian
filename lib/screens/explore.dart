@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:surface/providers/config.dart';
 import 'package:surface/providers/post.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/sn_realm.dart';
@@ -17,6 +18,7 @@ import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
+import 'package:surface/widgets/post/fediverse_post_item.dart';
 import 'package:surface/widgets/post/post_item.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 
@@ -151,6 +153,7 @@ class _ExploreScreenState extends State<ExploreScreen>
 
   @override
   Widget build(BuildContext context) {
+    final cfg = context.watch<ConfigProvider>();
     return AppScaffold(
       floatingActionButtonLocation: ExpandableFab.location,
       floatingActionButton: ExpandableFab(
@@ -272,6 +275,14 @@ class _ExploreScreenState extends State<ExploreScreen>
                                     }
                                   });
                                 },
+                                onMixedFeedChanged: (flag) {
+                                  _listKey.currentState?.setRealm(null);
+                                  _listKey.currentState?.setCategory(null);
+                                  if (_showCategories && flag) {
+                                    _toggleShowCategories();
+                                  }
+                                  _listKey.currentState?.refreshPosts();
+                                },
                               ),
                             );
                           },
@@ -295,9 +306,11 @@ class _ExploreScreenState extends State<ExploreScreen>
                             ),
                           )
                         : null,
-                    onPressed: () {
-                      _toggleShowCategories();
-                    },
+                    onPressed: cfg.mixedFeed
+                        ? null
+                        : () {
+                            _toggleShowCategories();
+                          },
                   ),
                   IconButton(
                     icon: const Icon(Symbols.search),
@@ -307,74 +320,78 @@ class _ExploreScreenState extends State<ExploreScreen>
                   ),
                   const Gap(8),
                 ],
-                bottom: TabBar(
-                  isScrollable: _showCategories,
-                  controller: _tabController,
-                  tabs: _showCategories
-                      ? [
-                          for (final category in _categories)
-                            Tab(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    kCategoryIcons[category.alias] ??
-                                        Symbols.question_mark,
-                                    color: Theme.of(context)
-                                        .appBarTheme
-                                        .foregroundColor!,
-                                  ),
-                                  const Gap(8),
-                                  Flexible(
-                                    child: Text(
-                                      'postCategory${category.alias.capitalize()}'
-                                              .trExists()
-                                          ? 'postCategory${category.alias.capitalize()}'
-                                              .tr()
-                                          : category.name,
-                                      maxLines: 1,
-                                    ).textColor(
-                                      Theme.of(context)
-                                          .appBarTheme
-                                          .foregroundColor!,
+                bottom: cfg.mixedFeed
+                    ? null
+                    : TabBar(
+                        isScrollable: _showCategories,
+                        controller: _tabController,
+                        tabs: _showCategories
+                            ? [
+                                for (final category in _categories)
+                                  Tab(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          kCategoryIcons[category.alias] ??
+                                              Symbols.question_mark,
+                                          color: Theme.of(context)
+                                              .appBarTheme
+                                              .foregroundColor!,
+                                        ),
+                                        const Gap(8),
+                                        Flexible(
+                                          child: Text(
+                                            'postCategory${category.alias.capitalize()}'
+                                                    .trExists()
+                                                ? 'postCategory${category.alias.capitalize()}'
+                                                    .tr()
+                                                : category.name,
+                                            maxLines: 1,
+                                          ).textColor(
+                                            Theme.of(context)
+                                                .appBarTheme
+                                                .foregroundColor!,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                        ]
-                      : [
-                          for (final channel in kPostChannels)
-                            Tab(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    kPostChannelIcons[
-                                        kPostChannels.indexOf(channel)],
-                                    size: 20,
-                                    color: Theme.of(context)
-                                        .appBarTheme
-                                        .foregroundColor,
-                                  ),
-                                  const Gap(8),
-                                  Flexible(
-                                    child: Text(
-                                      'postChannel$channel',
-                                      maxLines: 1,
-                                    ).tr().textColor(
-                                          Theme.of(context)
+                              ]
+                            : [
+                                for (final channel in kPostChannels)
+                                  Tab(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          kPostChannelIcons[
+                                              kPostChannels.indexOf(channel)],
+                                          size: 20,
+                                          color: Theme.of(context)
                                               .appBarTheme
                                               .foregroundColor,
                                         ),
+                                        const Gap(8),
+                                        Flexible(
+                                          child: Text(
+                                            'postChannel$channel',
+                                            maxLines: 1,
+                                          ).tr().textColor(
+                                                Theme.of(context)
+                                                    .appBarTheme
+                                                    .foregroundColor,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
-                              ),
-                            ),
-                        ],
-                ),
+                              ],
+                      ),
               ),
             ),
           ];
@@ -399,21 +416,22 @@ class _PostListWidgetState extends State<_PostListWidget> {
 
   SnRealm? get realm => _selectedRealm;
 
-  final List<SnPost> _posts = List.empty(growable: true);
+  final List<SnFeedEntry> _feed = List.empty(growable: true);
   SnRealm? _selectedRealm;
   String? _selectedChannel;
   SnPostCategory? _selectedCategory;
-  int? _postCount;
+  bool _hasLoadedAll = false;
 
+  // Called when using regular feed
   Future<void> _fetchPosts() async {
-    if (_postCount != null && _posts.length >= _postCount!) return;
+    if (_hasLoadedAll) return;
 
     setState(() => _isBusy = true);
 
     final pt = context.read<SnPostContentProvider>();
     final result = await pt.listPosts(
       take: 10,
-      offset: _posts.length,
+      offset: _feed.length,
       categories: _selectedCategory != null ? [_selectedCategory!.alias] : null,
       channel: _selectedChannel,
       realm: _selectedRealm?.alias,
@@ -422,8 +440,31 @@ class _PostListWidgetState extends State<_PostListWidget> {
 
     if (!mounted) return;
 
-    _postCount = result.$2;
-    _posts.addAll(out);
+    final postCount = result.$2;
+    _feed.addAll(
+      out.map((ele) => SnFeedEntry(
+          type: 'interactive.post',
+          data: ele.toJson(),
+          createdAt: ele.createdAt)),
+    );
+    _hasLoadedAll = postCount >= _feed.length;
+
+    if (mounted) setState(() => _isBusy = false);
+  }
+
+  // Called when mixed feed is enabled
+  Future<void> _fetchFeed() async {
+    if (_hasLoadedAll) return;
+
+    setState(() => _isBusy = true);
+
+    final pt = context.read<SnPostContentProvider>();
+    final result = await pt.getFeed(cursor: _feed.lastOrNull?.createdAt);
+
+    if (!mounted) return;
+
+    _feed.addAll(result);
+    _hasLoadedAll = result.isEmpty;
 
     if (mounted) setState(() => _isBusy = false);
   }
@@ -444,9 +485,14 @@ class _PostListWidgetState extends State<_PostListWidget> {
   }
 
   Future<void> refreshPosts() {
-    _postCount = null;
-    _posts.clear();
-    return _fetchPosts();
+    _hasLoadedAll = false;
+    _feed.clear();
+    final cfg = context.read<ConfigProvider>();
+    if (cfg.mixedFeed) {
+      return _fetchFeed();
+    } else {
+      return _fetchPosts();
+    }
   }
 
   @override
@@ -457,64 +503,48 @@ class _PostListWidgetState extends State<_PostListWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (_selectedCategory != null)
-          MaterialBanner(
-            content: Text(
-              'postFilterWithCategory'.tr(args: [
-                'postCategory${_selectedCategory!.alias.capitalize()}'.trExists()
-                    ? 'postCategory${_selectedCategory!.alias.capitalize()}'
-                        .tr()
-                    : _selectedCategory!.name,
-              ]),
-            ),
-            leading: Icon(kCategoryIcons[_selectedCategory!.alias] ??
-                Symbols.question_mark),
-            actions: [
-              IconButton(
-                icon: const Icon(Symbols.clear),
-                onPressed: () {
-                  setState(() => _selectedCategory = null);
-                  refreshPosts();
-                },
-              ),
-            ],
-            padding: const EdgeInsets.only(left: 20, right: 4),
-          ),
-        Expanded(
-          child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: RefreshIndicator(
-              displacement: 40 + MediaQuery.of(context).padding.top,
-              onRefresh: () => refreshPosts(),
-              child: InfiniteList(
-                padding: EdgeInsets.only(top: 8),
-                itemCount: _posts.length,
-                isLoading: _isBusy,
-                centerLoading: true,
-                hasReachedMax:
-                    _postCount != null && _posts.length >= _postCount!,
-                onFetchData: _fetchPosts,
-                itemBuilder: (context, idx) {
-                  return OpenablePostItem(
-                    data: _posts[idx],
-                    maxWidth: 640,
-                    onChanged: (data) {
-                      setState(() => _posts[idx] = data);
-                    },
-                    onDeleted: () {
-                      refreshPosts();
-                    },
-                  );
-                },
-                separatorBuilder: (_, __) => const Gap(8),
-              ),
-            ),
-          ),
+    final cfg = context.watch<ConfigProvider>();
+    return MediaQuery.removePadding(
+      context: context,
+      removeTop: true,
+      child: RefreshIndicator(
+        displacement: 40 + MediaQuery.of(context).padding.top,
+        onRefresh: () => refreshPosts(),
+        child: InfiniteList(
+          padding: EdgeInsets.only(top: 8),
+          itemCount: _feed.length,
+          isLoading: _isBusy,
+          centerLoading: true,
+          hasReachedMax: _hasLoadedAll,
+          onFetchData: cfg.mixedFeed ? _fetchFeed : _fetchPosts,
+          itemBuilder: (context, idx) {
+            final ele = _feed[idx];
+            switch (ele.type) {
+              case 'interactive.post':
+                return OpenablePostItem(
+                  data: SnPost.fromJson(ele.data),
+                  maxWidth: 640,
+                  onChanged: (data) {
+                    setState(() {
+                      _feed[idx] = _feed[idx].copyWith(data: data.toJson());
+                    });
+                  },
+                  onDeleted: () {
+                    refreshPosts();
+                  },
+                );
+              case 'fediverse.post':
+                return FediversePostWidget(
+                  data: SnFediversePost.fromJson(ele.data),
+                  maxWidth: 640,
+                );
+              default:
+                return Placeholder();
+            }
+          },
+          separatorBuilder: (_, __) => const Gap(8),
         ),
-      ],
+      ),
     );
   }
 }
@@ -522,54 +552,71 @@ class _PostListWidgetState extends State<_PostListWidget> {
 class _PostListRealmPopup extends StatelessWidget {
   final List<SnRealm>? realms;
   final Function(SnRealm?) onUpdate;
+  final Function(bool) onMixedFeedChanged;
 
   const _PostListRealmPopup({
     required this.realms,
     required this.onUpdate,
+    required this.onMixedFeedChanged,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cfg = context.watch<ConfigProvider>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(Symbols.face, size: 24),
+            const Icon(Symbols.tune, size: 24),
             const Gap(16),
-            Text('accountRealms', style: Theme.of(context).textTheme.titleLarge)
+            Text('filterFeed', style: Theme.of(context).textTheme.titleLarge)
                 .tr(),
           ],
         ).padding(horizontal: 20, top: 16, bottom: 12),
-        ListTile(
-          leading: const Icon(Symbols.close),
-          title: Text('postInGlobal').tr(),
-          subtitle: Text('postViewInGlobalDescription').tr(),
+        SwitchListTile(
+          secondary: const Icon(Symbols.merge_type),
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          onTap: () {
-            onUpdate.call(null);
-            Navigator.pop(context);
+          title: Text('mixedFeed').tr(),
+          subtitle: Text('mixedFeedDescription').tr(),
+          value: cfg.mixedFeed,
+          onChanged: (value) {
+            cfg.mixedFeed = value;
+            onMixedFeedChanged.call(value);
           },
         ),
-        const Divider(height: 1),
-        Expanded(
-          child: ListView.builder(
-            itemCount: realms?.length ?? 0,
-            itemBuilder: (context, idx) {
-              final realm = realms![idx];
-              return ListTile(
-                title: Text(realm.name),
-                subtitle: Text('@${realm.alias}'),
-                leading: AccountImage(content: realm.avatar, radius: 18),
-                onTap: () {
-                  onUpdate.call(realm);
-                  Navigator.pop(context);
-                },
-              );
+        if (!cfg.mixedFeed)
+          ListTile(
+            leading: const Icon(Symbols.close),
+            title: Text('postInGlobal').tr(),
+            subtitle: Text('postViewInGlobalDescription').tr(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+            onTap: () {
+              onUpdate.call(null);
+              Navigator.pop(context);
             },
           ),
-        ),
+        if (!cfg.mixedFeed) const Divider(height: 1),
+        if (!cfg.mixedFeed)
+          Expanded(
+            child: ListView.builder(
+              itemCount: realms?.length ?? 0,
+              itemBuilder: (context, idx) {
+                final realm = realms![idx];
+                return ListTile(
+                  title: Text(realm.name),
+                  subtitle: Text('@${realm.alias}'),
+                  leading: AccountImage(content: realm.avatar, radius: 18),
+                  onTap: () {
+                    onUpdate.call(realm);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
       ],
     );
   }

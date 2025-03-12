@@ -1,0 +1,11 @@
+meta {
+  name: Trigger Fediverse Scan
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{endpoint}}/cgi/co/admin/fediverse
+  body: none
+  auth: inherit
+}

@@ -95,8 +95,9 @@ class _AttachmentListState extends State<AttachmentList> {
                 ),
               ),
               onTap: () {
-                if (widget.data.firstOrNull?.mediaType != SnMediaType.image)
+                if (widget.data.firstOrNull?.mediaType != SnMediaType.image) {
                   return;
+                }
                 context.pushTransparentRoute(
                   AttachmentZoomView(
                     data: widget.data.where((ele) => ele != null).cast(),
@@ -209,7 +210,7 @@ class _AttachmentListState extends State<AttachmentList> {
           child: AspectRatio(
             aspectRatio: widget.data[0]?.data['ratio']?.toDouble() ?? 1,
             child: ScrollConfiguration(
-              behavior: _AttachmentListScrollBehavior(),
+              behavior: AttachmentListScrollBehavior(),
               child: ListView.separated(
                 padding: widget.padding,
                 shrinkWrap: true,
@@ -283,7 +284,7 @@ class _AttachmentListState extends State<AttachmentList> {
   }
 }
 
-class _AttachmentListScrollBehavior extends MaterialScrollBehavior {
+class AttachmentListScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices =>
       {PointerDeviceKind.touch, PointerDeviceKind.mouse};
