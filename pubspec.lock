@@ -53,10 +53,10 @@ packages:
     dependency: transitive
     description:
       name: args
-      sha256: bf9f5caeea8d8fe6721a9c358dd8a5c1947b27f1cfaa18b39c301273594919e6
+      sha256: d0481093c50b1da8910eb0bb301626d4d8eb7284aa739614d2b394ee09e3ea04
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.0"
+    version: "2.7.0"
   async:
     dependency: transitive
     description:
@@ -213,10 +213,10 @@ packages:
     dependency: transitive
     description:
       name: chalkdart
-      sha256: "08c910ee341fcdd1e46f20ddce59b13c1d85f5d97f2fd2f12014c46ede670e40"
+      sha256: e7cfcc9a9d9546843304c1ff87fe0696c7eb82ee70e6df63f555f321b15a40d8
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.2"
+    version: "2.3.3"
   characters:
     dependency: transitive
     description:
@@ -301,10 +301,10 @@ packages:
     dependency: "direct main"
     description:
       name: croppy
-      sha256: "99f4fbb4a4b44d2712e8dcd61c57c1acac151bd53cab11de3babec80407ed266"
+      sha256: "2a69059d9ec007b79d6a494854094b2e3c0a4f7ed609cf55a4805c9de9ec171d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.5"
+    version: "1.3.6"
   cross_file:
     dependency: "direct main"
     description:
@@ -541,10 +541,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: "7423298f08f6fc8cce05792bae329f9a93653fc9c08712831b1a55540127995d"
+      sha256: "2458a41b4dc53899263bb16b17961797deaa18d4660e4d33e4de8a6c2a13db9c"
       url: "https://pub.dev"
     source: hosted
-    version: "9.0.2"
+    version: "9.0.3"
   file_saver:
     dependency: "direct main"
     description:
@@ -702,6 +702,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.2"
+  flutter_blurhash:
+    dependency: "direct main"
+    description:
+      name: flutter_blurhash
+      sha256: "5e67678e479ac639069d7af1e133f4a4702311491188ff3e0227486430db0c06"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.2"
   flutter_cache_manager:
     dependency: "direct main"
     description:
@@ -937,10 +945,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_webrtc
-      sha256: "6ea3a86d95b61cfe42d5715426d355b3cece6c88d0119de428d56f6c653811ce"
+      sha256: b832dc76c0d1577f14aaf35e9c38d4ed7667cbc89c492b7bf4505d8d5f62e08b
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.11"
+    version: "0.12.12+hotfix.1"
   freezed:
     dependency: "direct dev"
     description:
@@ -1133,6 +1141,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.15.5"
+  html2md:
+    dependency: "direct main"
+    description:
+      name: html2md
+      sha256: "465cf8ffa1b510fe0e97941579bf5b22e2d575f2cecb500a9c0254efe33a8036"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.2"
   http:
     dependency: transitive
     description:
@@ -1353,10 +1369,10 @@ packages:
     dependency: "direct main"
     description:
       name: livekit_client
-      sha256: "753bbf484c6b70f10f3dc1dc808dfe3755f472d80eb9682323cff07ad8e2609d"
+      sha256: "7f489fa415253d8d99c649b7efc95a733c5e5ac38dcfb02362ced99feb139376"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.0"
+    version: "2.4.1"
   local_notifier:
     dependency: "direct main"
     description:
@@ -1417,10 +1433,10 @@ packages:
     dependency: "direct main"
     description:
       name: material_symbols_icons
-      sha256: ca30ccbd97763353bde6bb1076aa4f4d17a40db0804384da77df142102aa225d
+      sha256: ee916e08fc0e15d4544a3544b3a46821808b8c965629b56e076e4da1cfe69915
       url: "https://pub.dev"
     source: hosted
-    version: "4.2808.0"
+    version: "4.2808.1"
   media_kit:
     dependency: "direct main"
     description:
@@ -1553,10 +1569,10 @@ packages:
     dependency: transitive
     description:
       name: package_config
-      sha256: "92d4488434b520a62570293fbd33bb556c7d49230791c1b4bbd973baf6d2dc67"
+      sha256: f096c55ebb7deb7e384101542bfba8c52696c1b56fca2eb62827989ef2353bbc
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "2.2.0"
   package_info_plus:
     dependency: "direct main"
     description:
@@ -2526,10 +2542,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: b89e6e24d1454e149ab20fbb225af58660f0c0bf4475544650700d8e2da54aef
+      sha256: dc6ecaa00a7c708e5b4d10ee7bec8c270e9276dfcab1783f57e9962d7884305f
       url: "https://pub.dev"
     source: hosted
-    version: "5.11.0"
+    version: "5.12.0"
   win32_registry:
     dependency: transitive
     description:
