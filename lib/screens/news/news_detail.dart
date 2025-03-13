@@ -1,15 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
+import 'package:html2md/html2md.dart' as html2md;
 import 'package:provider/provider.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/news.dart';
 import 'package:surface/widgets/dialog.dart';
-import 'package:surface/widgets/html.dart';
+import 'package:surface/widgets/markdown_content.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -25,14 +25,12 @@ class NewsDetailScreen extends StatefulWidget {
 
 class _NewsDetailScreenState extends State<NewsDetailScreen> {
   SnNewsArticle? _article;
-  dom.Document? _articleFragment;
 
   Future<void> _fetchArticle() async {
     try {
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/re/news/${widget.hash}');
       _article = SnNewsArticle.fromJson(resp.data);
-      _articleFragment = parse(_article!.content);
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err).then((_) {
@@ -76,7 +74,7 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
               ),
             ],
           ),
-          if (_articleFragment != null && _isReadingFromReader)
+          if (_article != null && _isReadingFromReader)
             Expanded(
               child: Container(
                 constraints: BoxConstraints(maxWidth: 640),
@@ -118,8 +116,10 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
                           .textStyle(Theme.of(context).textTheme.bodySmall!)
                           .opacity(0.75),
                       const Divider(),
-                      ...parseHtmlToWidgets(
-                          context, _articleFragment!.children),
+                      MarkdownTextContent(
+                        textScaler: TextScaler.linear(1.2),
+                        content: html2md.convert(_article!.content),
+                      ),
                       const Divider(),
                       InkWell(
                         child: Row(

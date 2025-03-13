@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
@@ -207,10 +209,14 @@ class MarkdownTextContent extends StatelessWidget {
           }
           return const SizedBox.shrink();
         }
+        width ??= math.min(MediaQuery.of(context).size.width, 640);
+        height ??= width;
         return UniversalImage(
           url,
           width: width,
           height: height,
+          cacheHeight: height,
+          cacheWidth: width,
           fit: fit,
         );
       },
