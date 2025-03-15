@@ -285,7 +285,7 @@ Map<String, dynamic> _$SnSubscriptionToJson(_SnSubscription instance) =>
 
 _SnFeedEntry _$SnFeedEntryFromJson(Map<String, dynamic> json) => _SnFeedEntry(
       type: json['type'] as String,
-      data: json['data'] as Map<String, dynamic>,
+      data: json['data'],
       createdAt: DateTime.parse(json['created_at'] as String),
     );
 

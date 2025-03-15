@@ -792,5 +792,6 @@
   "accountStatusPositive": "正面",
   "mixedFeed": "混合推荐流",
   "mixedFeedDescription": "探索页面可能不只会展示用户的帖子，更可能包含其他的内容。但该模式不适用分类和过滤。",
-  "filterFeed": "探索队列调整"
+  "filterFeed": "探索队列调整",
+  "feedUnknownItem": "无法显示该内容，当前版本客户端不支持该类型的内容，请尝试更新应用程序后再试。"
 }

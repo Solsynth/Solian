@@ -17,6 +17,8 @@ import 'package:surface/types/realm.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
+import 'package:surface/widgets/feed/feed_news.dart';
+import 'package:surface/widgets/feed/feed_unknown.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:surface/widgets/post/fediverse_post_item.dart';
 import 'package:surface/widgets/post/post_item.dart';
@@ -459,7 +461,12 @@ class _PostListWidgetState extends State<_PostListWidget> {
     setState(() => _isBusy = true);
 
     final pt = context.read<SnPostContentProvider>();
-    final result = await pt.getFeed(cursor: _feed.lastOrNull?.createdAt);
+    final result = await pt.getFeed(
+      cursor: _feed
+          .where((ele) => !['reader.news'].contains(ele.type))
+          .lastOrNull
+          ?.createdAt,
+    );
 
     if (!mounted) return;
 
@@ -498,7 +505,12 @@ class _PostListWidgetState extends State<_PostListWidget> {
   @override
   void initState() {
     super.initState();
-    _fetchPosts();
+    final cfg = context.read<ConfigProvider>();
+    if (cfg.mixedFeed) {
+      _fetchFeed();
+    } else {
+      _fetchPosts();
+    }
   }
 
   @override
@@ -538,8 +550,10 @@ class _PostListWidgetState extends State<_PostListWidget> {
                   data: SnFediversePost.fromJson(ele.data),
                   maxWidth: 640,
                 );
+              case 'reader.news':
+                return NewsFeedEntry(data: ele);
               default:
-                return Placeholder();
+                return FeedUnknownEntry(data: ele);
             }
           },
           separatorBuilder: (_, __) => const Gap(8),

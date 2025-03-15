@@ -3123,7 +3123,7 @@ class __$SnSubscriptionCopyWithImpl<$Res>
 /// @nodoc
 mixin _$SnFeedEntry {
   String get type;
-  Map<String, dynamic> get data;
+  dynamic get data;
   DateTime get createdAt;
 
   /// Create a copy of SnFeedEntry
@@ -3164,7 +3164,7 @@ abstract mixin class $SnFeedEntryCopyWith<$Res> {
           SnFeedEntry value, $Res Function(SnFeedEntry) _then) =
       _$SnFeedEntryCopyWithImpl;
   @useResult
-  $Res call({String type, Map<String, dynamic> data, DateTime createdAt});
+  $Res call({String type, dynamic data, DateTime createdAt});
 }
 
 /// @nodoc
@@ -3180,7 +3180,7 @@ class _$SnFeedEntryCopyWithImpl<$Res> implements $SnFeedEntryCopyWith<$Res> {
   @override
   $Res call({
     Object? type = null,
-    Object? data = null,
+    Object? data = freezed,
     Object? createdAt = null,
   }) {
     return _then(_self.copyWith(
@@ -3188,10 +3188,10 @@ class _$SnFeedEntryCopyWithImpl<$Res> implements $SnFeedEntryCopyWith<$Res> {
           ? _self.type
           : type // ignore: cast_nullable_to_non_nullable
               as String,
-      data: null == data
+      data: freezed == data
           ? _self.data
           : data // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
+              as dynamic,
       createdAt: null == createdAt
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -3204,23 +3204,14 @@ class _$SnFeedEntryCopyWithImpl<$Res> implements $SnFeedEntryCopyWith<$Res> {
 @JsonSerializable()
 class _SnFeedEntry implements SnFeedEntry {
   const _SnFeedEntry(
-      {required this.type,
-      required final Map<String, dynamic> data,
-      required this.createdAt})
-      : _data = data;
+      {required this.type, required this.data, required this.createdAt});
   factory _SnFeedEntry.fromJson(Map<String, dynamic> json) =>
       _$SnFeedEntryFromJson(json);
 
   @override
   final String type;
-  final Map<String, dynamic> _data;
   @override
-  Map<String, dynamic> get data {
-    if (_data is EqualUnmodifiableMapView) return _data;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_data);
-  }
-
+  final dynamic data;
   @override
   final DateTime createdAt;
 
@@ -3245,7 +3236,7 @@ class _SnFeedEntry implements SnFeedEntry {
         (other.runtimeType == runtimeType &&
             other is _SnFeedEntry &&
             (identical(other.type, type) || other.type == type) &&
-            const DeepCollectionEquality().equals(other._data, _data) &&
+            const DeepCollectionEquality().equals(other.data, data) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
@@ -3253,7 +3244,7 @@ class _SnFeedEntry implements SnFeedEntry {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, type, const DeepCollectionEquality().hash(_data), createdAt);
+      runtimeType, type, const DeepCollectionEquality().hash(data), createdAt);
 
   @override
   String toString() {
@@ -3269,7 +3260,7 @@ abstract mixin class _$SnFeedEntryCopyWith<$Res>
       __$SnFeedEntryCopyWithImpl;
   @override
   @useResult
-  $Res call({String type, Map<String, dynamic> data, DateTime createdAt});
+  $Res call({String type, dynamic data, DateTime createdAt});
 }
 
 /// @nodoc
@@ -3285,7 +3276,7 @@ class __$SnFeedEntryCopyWithImpl<$Res> implements _$SnFeedEntryCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? type = null,
-    Object? data = null,
+    Object? data = freezed,
     Object? createdAt = null,
   }) {
     return _then(_SnFeedEntry(
@@ -3293,10 +3284,10 @@ class __$SnFeedEntryCopyWithImpl<$Res> implements _$SnFeedEntryCopyWith<$Res> {
           ? _self.type
           : type // ignore: cast_nullable_to_non_nullable
               as String,
-      data: null == data
-          ? _self._data
+      data: freezed == data
+          ? _self.data
           : data // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
+              as dynamic,
       createdAt: null == createdAt
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable

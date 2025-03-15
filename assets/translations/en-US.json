@@ -794,5 +794,6 @@
   "accountStatusPositive": "Positive",
   "mixedFeed": "Mixed Feed",
   "mixedFeedDescription": "The Explore screen may not only display the user's posts, but may also contain other content. However, this mode does not apply to classification and filtering.",
-  "filterFeed": "Exploring Adjust"
+  "filterFeed": "Exploring Adjust",
+  "feedUnknownItem": "Unable to display this content, the current version of the client does not support the type of content, please try to update the application afterwards."
 }

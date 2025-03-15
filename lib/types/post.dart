@@ -171,7 +171,7 @@ abstract class SnSubscription with _$SnSubscription {
 abstract class SnFeedEntry with _$SnFeedEntry {
   const factory SnFeedEntry({
     required String type,
-    required Map<String, dynamic> data,
+    required dynamic data,
     required DateTime createdAt,
   }) = _SnFeedEntry;
 
