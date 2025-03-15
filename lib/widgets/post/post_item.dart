@@ -1765,7 +1765,9 @@ class _PostVideoPlayer extends StatelessWidget {
         child: ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           child: AttachmentItem(
-              data: data.preload!.video!, heroTag: 'post-video-${data.id}'),
+            data: data.preload!.video!,
+            heroTag: 'post-video-${data.id}',
+          ),
         ),
       ),
     );

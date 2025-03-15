@@ -251,6 +251,7 @@ class _AttachmentItemContentVideoState
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         child: Stack(
+          fit: StackFit.expand,
           children: [
             if (widget.data.thumbnail != null)
               AutoResizeUniversalImage(
@@ -455,6 +456,7 @@ class _AttachmentItemContentAudioState
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         child: Stack(
+          fit: StackFit.expand,
           children: [
             if (widget.data.thumbnail != null)
               AspectRatio(

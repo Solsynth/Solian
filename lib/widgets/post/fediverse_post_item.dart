@@ -42,6 +42,7 @@ class FediversePostWidget extends StatelessWidget {
                         data.user.nick.isNotEmpty
                             ? data.user.nick
                             : '@${data.user.name}',
+                        maxLines: 1,
                       ).bold(),
                       Row(
                         children: [
@@ -49,6 +50,7 @@ class FediversePostWidget extends StatelessWidget {
                             data.user.identifier.contains('@')
                                 ? data.user.identifier
                                 : '${data.user.identifier}@${data.user.origin}',
+                            maxLines: 1,
                           ).fontSize(13),
                           const Gap(4),
                           Text(
