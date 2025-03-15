@@ -13,7 +13,7 @@ import 'package:surface/screens/account/profile_edit.dart';
 import 'package:surface/screens/account/publishers/publisher_edit.dart';
 import 'package:surface/screens/account/publishers/publisher_new.dart';
 import 'package:surface/screens/account/publishers/publishers.dart';
-import 'package:surface/screens/account/tickets.dart';
+import 'package:surface/screens/account/auth_tickets.dart';
 import 'package:surface/screens/album.dart';
 import 'package:surface/screens/auth/login.dart';
 import 'package:surface/screens/auth/register.dart';

@@ -813,5 +813,6 @@
   "eventMetadata": "Metadata",
   "authTicketCreatedAt": "Issued at {}",
   "authTicketExpiredAt": "Expired at {}",
-  "authTicketLastGrantAt": "Last granted at {}"
+  "authTicketLastGrantAt": "Last granted at {}",
+  "authTicketCurrent": "Current"
 }

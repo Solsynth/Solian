@@ -813,5 +813,6 @@
   "accountAuthTicketsDescription": "查看和管理你的授權會話。",
   "authTicketCreatedAt": "簽發於 {}",
   "authTicketExpiredAt": "到期於 {}",
-  "authTicketLastGrantAt": "上次刷新於 {}"
+  "authTicketLastGrantAt": "上次刷新於 {}",
+  "authTicketCurrent": "當前會話"
 }

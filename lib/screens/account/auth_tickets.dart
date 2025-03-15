@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/auth.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
@@ -73,10 +74,18 @@ class _AccountAuthTicketState extends State<AccountAuthTicket> {
     }
   }
 
+  int? _currentTicketId;
+
   @override
   void initState() {
     super.initState();
     _fetchAuthTickets();
+
+    final ua = context.read<UserProvider>();
+    ua.atkClaims.then((value) {
+      if (value == null) return;
+      _currentTicketId = int.parse(value['sed']);
+    });
   }
 
   @override
@@ -142,6 +151,11 @@ class _AccountAuthTicketState extends State<AccountAuthTicket> {
                                     .format(ticket.lastGrantAt!.toLocal()))
                               ])).fontSize(12).opacity(0.75),
                             const Gap(4),
+                            if (_currentTicketId == ticket.id)
+                              Text('authTicketCurrent'.tr())
+                                  .fontSize(11)
+                                  .bold()
+                                  .opacity(0.75),
                             Text('#${ticket.id}').fontSize(11).opacity(0.75),
                           ],
                         ),
@@ -153,9 +167,11 @@ class _AccountAuthTicketState extends State<AccountAuthTicket> {
                         constraints: const BoxConstraints(),
                         padding: EdgeInsets.zero,
                         icon: const Icon(Symbols.logout),
-                        onPressed: () {
-                          _deleteAuthTicket(ticket);
-                        },
+                        onPressed: _currentTicketId == ticket.id
+                            ? null
+                            : () {
+                                _deleteAuthTicket(ticket);
+                              },
                       ),
                     ],
                   ).padding(horizontal: 16, vertical: 12);
