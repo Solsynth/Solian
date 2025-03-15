@@ -819,5 +819,8 @@
   "accountUnconfirmedSubtitle": "Your account is unconfirmed, which will make most features unavailable and your account will be destroyed in 24 hours. You should receive an email in your inbox with a confirmation link.",
   "accountUnconfirmedUnreceived": "Didn't receive the email?",
   "accountUnconfirmedResend": "Resend one",
-  "accountUnconfirmedResendSuccessful": "Email has been resent, you can resend it again in 60 minutes."
+  "accountUnconfirmedResendSuccessful": "Email has been resent, you can resend it again in 60 minutes.",
+  "stickerPickerEmpty": "Sticker list is empty",
+  "stickerPickerEmptyHint": "To start using stickers, you need to add a sticker pack first.",
+  "goto": "Go to {}"
 }

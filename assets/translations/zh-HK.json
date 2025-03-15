@@ -819,5 +819,8 @@
   "accountUnconfirmedSubtitle": "您的賬户尚未確認，這會導致大部分功能不可用，並且您的帳户將在 24 小時後自毀。您綁定的郵箱的收件箱應該會有一封郵件指引您確認您的帳户。",
   "accountUnconfirmedUnreceived": "未收到郵件？",
   "accountUnconfirmedResend": "重新發送一封",
-  "accountUnconfirmedResendSuccessful": "郵件已重新發送，你可以在 60 分鐘後再重發一封。"
+  "accountUnconfirmedResendSuccessful": "郵件已重新發送，你可以在 60 分鐘後再重發一封。",
+  "stickerPickerEmpty": "貼圖列表為空",
+  "stickerPickerEmptyHint": "想要開始使用貼圖，請先添加貼圖包。",
+  "goto": "跳轉到 {}"
 }

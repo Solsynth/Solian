@@ -819,5 +819,8 @@
   "accountUnconfirmedSubtitle": "您的账户尚未确认，这会导致大部分功能不可用，并且您的帐户将在 24 小时后自毁。您绑定的邮箱的收件箱应该会有一封邮件指引您确认您的帐户。",
   "accountUnconfirmedUnreceived": "未收到邮件？",
   "accountUnconfirmedResend": "重新发送一封",
-  "accountUnconfirmedResendSuccessful": "邮件已重新发送，你可以在 60 分钟后再重发一封。"
+  "accountUnconfirmedResendSuccessful": "邮件已重新发送，你可以在 60 分钟后再重发一封。",
+  "stickerPickerEmpty": "贴图列表为空",
+  "stickerPickerEmptyHint": "想要开始使用贴图，请先添加贴图包。",
+  "goto": "跳转到 {}"
 }

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -445,6 +446,61 @@ class _StickerPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sticker = context.read<SnStickerProvider>();
+    if (sticker.stickersByPack.isEmpty) {
+      return GestureDetector(
+        onTap: () {
+          onDismiss?.call();
+        },
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: min(360, MediaQuery.of(context).size.width - 40),
+          ),
+          child: Material(
+            elevation: 8,
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(Symbols.ar_stickers, size: 48),
+                  const Gap(8),
+                  Text('stickerPickerEmpty').tr().bold(),
+                  Text(
+                    'stickerPickerEmptyHint',
+                    textAlign: TextAlign.center,
+                  ).tr().opacity(0.75),
+                  TextButton(
+                    child: Text('goto'.tr(args: ['screenStickers'.tr()])),
+                    onPressed: () {
+                      GoRouter.of(context).goNamed('stickers');
+                    },
+                  ),
+                  InkWell(
+                    child: Text(
+                      'stickersReload',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ).tr(),
+                    onTap: () async {
+                      await sticker.listSticker();
+                      if (!context.mounted) return;
+                      HapticFeedback.heavyImpact();
+                      context.showSnackbar('stickersReloaded'.tr());
+                      onDismiss?.call();
+                    },
+                  )
+                ],
+              ).padding(all: 64),
+            ),
+          ),
+        ),
+      );
+    }
+
     return GestureDetector(
       onTap: () {
         onDismiss?.call();
