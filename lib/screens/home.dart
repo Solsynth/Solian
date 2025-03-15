@@ -142,7 +142,7 @@ class _HomeDashUnconfirmedWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ua = context.watch<UserProvider>();
-    if (ua.user != null && ua.user!.confirmedAt == null) {
+    if (ua.user == null || ua.user?.confirmedAt != null) {
       return SizedBox.shrink();
     }
 
