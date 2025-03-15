@@ -541,10 +541,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: "2458a41b4dc53899263bb16b17961797deaa18d4660e4d33e4de8a6c2a13db9c"
+      sha256: ee11ce89f8937c39181bc88d57a455972f7545b86150d8f287d0d9cf95bcdf0a
       url: "https://pub.dev"
     source: hosted
-    version: "9.0.3"
+    version: "9.1.0"
   file_saver:
     dependency: "direct main"
     description:
@@ -989,54 +989,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
-  geolocator:
-    dependency: "direct main"
-    description:
-      name: geolocator
-      sha256: d2ec66329cab29cb297d51d96c067d457ca519dca8589665fa0b82ebacb7dbe4
-      url: "https://pub.dev"
-    source: hosted
-    version: "13.0.2"
-  geolocator_android:
-    dependency: transitive
-    description:
-      name: geolocator_android
-      sha256: "7aefc530db47d90d0580b552df3242440a10fe60814496a979aa67aa98b1fd47"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.6.1"
-  geolocator_apple:
-    dependency: transitive
-    description:
-      name: geolocator_apple
-      sha256: c4ecead17985ede9634f21500072edfcb3dba0ef7b97f8d7bc556d2d722b3ba3
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.9"
-  geolocator_platform_interface:
-    dependency: transitive
-    description:
-      name: geolocator_platform_interface
-      sha256: "386ce3d9cce47838355000070b1d0b13efb5bc430f8ecda7e9238c8409ace012"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.2.4"
-  geolocator_web:
-    dependency: transitive
-    description:
-      name: geolocator_web
-      sha256: "2ed69328e05cd94e7eb48bb0535f5fc0c0c44d1c4fa1e9737267484d05c29b5e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.1.1"
-  geolocator_windows:
-    dependency: transitive
-    description:
-      name: geolocator_windows
-      sha256: "53da08937d07c24b0d9952eb57a3b474e29aae2abf9dd717f7e1230995f13f0e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.3"
   glob:
     dependency: transitive
     description:
@@ -1433,10 +1385,10 @@ packages:
     dependency: "direct main"
     description:
       name: material_symbols_icons
-      sha256: ee916e08fc0e15d4544a3544b3a46821808b8c965629b56e076e4da1cfe69915
+      sha256: db745002d0323c32097f5bc23711c02b0fb36ef616011a38c8c1798d5684d368
       url: "https://pub.dev"
     source: hosted
-    version: "4.2808.1"
+    version: "4.2810.0"
   media_kit:
     dependency: "direct main"
     description:
@@ -2222,34 +2174,34 @@ packages:
     dependency: "direct main"
     description:
       name: talker
-      sha256: "5ab7d974ad92042b3e2382441c41ec4c6e5b3fa2b4b024d8ccbfc4bc2244b7bb"
+      sha256: a074e0a2c1db1b09c1856050c5284a14ff64faea003403409871ab8335738d08
       url: "https://pub.dev"
     source: hosted
-    version: "4.6.14"
+    version: "4.7.0"
   talker_dio_logger:
     dependency: "direct main"
     description:
       name: talker_dio_logger
-      sha256: "71780c52951d36e94964ca06158d827dfc67aa2fb75c8b880603cfefa4377b39"
+      sha256: "6d713d26bdf90c7440222758a4e02ebfbdb3b323cdbdb50b78082db720f69427"
       url: "https://pub.dev"
     source: hosted
-    version: "4.6.14"
+    version: "4.7.0"
   talker_flutter:
     dependency: "direct main"
     description:
       name: talker_flutter
-      sha256: "0cc816260b226c0ff930909c9f22984316b652b140f5eabb97ae9813ee0de135"
+      sha256: "25a9faa98a0dcbab8d1ec366f19b3e91d422ede523461ec6e26e198b280cb98d"
       url: "https://pub.dev"
     source: hosted
-    version: "4.6.14"
+    version: "4.7.0"
   talker_logger:
     dependency: transitive
     description:
       name: talker_logger
-      sha256: "16ff0cfdf011f65b37957c9ff7ef7043dd9f1c8af3ccb4a44ac4a448defb9eb5"
+      sha256: "0a1a295a9d036a3416e89c7155eaaca9ca6e3e0abb5401a40597f98b9cfc8fe6"
       url: "https://pub.dev"
     source: hosted
-    version: "4.6.14"
+    version: "4.7.0"
   term_glyph:
     dependency: transitive
     description:
@@ -2266,6 +2218,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.4"
+  timelines_plus:
+    dependency: "direct main"
+    description:
+      name: timelines_plus
+      sha256: be31f493402dc24df7fe410dc5f82a605807bb4ca13183de6d4362886449b593
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.6"
   timing:
     dependency: transitive
     description:
