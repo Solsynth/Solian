@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:surface/screens/abuse_report.dart';
 import 'package:surface/screens/account.dart';
 import 'package:surface/screens/account/account_settings.dart';
+import 'package:surface/screens/account/action_events.dart';
 import 'package:surface/screens/account/badges.dart';
 import 'package:surface/screens/account/factor_settings.dart';
 import 'package:surface/screens/account/keypairs.dart';
@@ -125,6 +126,11 @@ final _appRoutes = [
     builder: (context, state) => const AccountScreen(),
     routes: [
       GoRoute(
+        path: '/events',
+        name: 'accountActionEvents',
+        builder: (context, state) => const ActionEventScreen(),
+      ),
+      GoRoute(
         path: '/badges',
         name: 'accountBadges',
         builder: (context, state) => const AccountBadgesScreen(),
@@ -172,7 +178,7 @@ final _appRoutes = [
         ),
       ),
       GoRoute(
-        path: '/:name',
+        path: '/profile/:name',
         name: 'accountProfilePage',
         pageBuilder: (context, state) => NoTransitionPage(
           child: UserScreen(name: state.pathParameters['name']!),

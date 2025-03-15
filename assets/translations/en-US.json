@@ -807,5 +807,8 @@
   "serviceNameMatrix": "Matrix Software and Game Marketplace",
   "serviceNamePaperclip": "Attachments, Images and Files",
   "serviceNameWallet": "Source Points Wallet",
-  "serviceNamePassport": "Authorization and Authentication"
+  "serviceNamePassport": "Authorization and Authentication",
+  "accountActionEvent": "Action Events",
+  "accountActionEventDescription": "View your action event logs.",
+  "eventMetadata": "Metadata"
 }

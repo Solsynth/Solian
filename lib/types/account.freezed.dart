@@ -3027,4 +3027,447 @@ class __$SnAbuseReportCopyWithImpl<$Res>
   }
 }
 
+/// @nodoc
+mixin _$SnActionEvent {
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  String get type;
+  Map<String, dynamic>? get metadata;
+  String? get location;
+  double? get coordinateX;
+  double? get coordinateY;
+  String get ipAddress;
+  String get userAgent;
+  SnAccount get account;
+  int get accountId;
+
+  /// Create a copy of SnActionEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $SnActionEventCopyWith<SnActionEvent> get copyWith =>
+      _$SnActionEventCopyWithImpl<SnActionEvent>(
+          this as SnActionEvent, _$identity);
+
+  /// Serializes this SnActionEvent to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnActionEvent &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.type, type) || other.type == type) &&
+            const DeepCollectionEquality().equals(other.metadata, metadata) &&
+            (identical(other.location, location) ||
+                other.location == location) &&
+            (identical(other.coordinateX, coordinateX) ||
+                other.coordinateX == coordinateX) &&
+            (identical(other.coordinateY, coordinateY) ||
+                other.coordinateY == coordinateY) &&
+            (identical(other.ipAddress, ipAddress) ||
+                other.ipAddress == ipAddress) &&
+            (identical(other.userAgent, userAgent) ||
+                other.userAgent == userAgent) &&
+            (identical(other.account, account) || other.account == account) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      type,
+      const DeepCollectionEquality().hash(metadata),
+      location,
+      coordinateX,
+      coordinateY,
+      ipAddress,
+      userAgent,
+      account,
+      accountId);
+
+  @override
+  String toString() {
+    return 'SnActionEvent(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, metadata: $metadata, location: $location, coordinateX: $coordinateX, coordinateY: $coordinateY, ipAddress: $ipAddress, userAgent: $userAgent, account: $account, accountId: $accountId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $SnActionEventCopyWith<$Res> {
+  factory $SnActionEventCopyWith(
+          SnActionEvent value, $Res Function(SnActionEvent) _then) =
+      _$SnActionEventCopyWithImpl;
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String type,
+      Map<String, dynamic>? metadata,
+      String? location,
+      double? coordinateX,
+      double? coordinateY,
+      String ipAddress,
+      String userAgent,
+      SnAccount account,
+      int accountId});
+
+  $SnAccountCopyWith<$Res> get account;
+}
+
+/// @nodoc
+class _$SnActionEventCopyWithImpl<$Res>
+    implements $SnActionEventCopyWith<$Res> {
+  _$SnActionEventCopyWithImpl(this._self, this._then);
+
+  final SnActionEvent _self;
+  final $Res Function(SnActionEvent) _then;
+
+  /// Create a copy of SnActionEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? type = null,
+    Object? metadata = freezed,
+    Object? location = freezed,
+    Object? coordinateX = freezed,
+    Object? coordinateY = freezed,
+    Object? ipAddress = null,
+    Object? userAgent = null,
+    Object? account = null,
+    Object? accountId = null,
+  }) {
+    return _then(_self.copyWith(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
+      metadata: freezed == metadata
+          ? _self.metadata
+          : metadata // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      location: freezed == location
+          ? _self.location
+          : location // ignore: cast_nullable_to_non_nullable
+              as String?,
+      coordinateX: freezed == coordinateX
+          ? _self.coordinateX
+          : coordinateX // ignore: cast_nullable_to_non_nullable
+              as double?,
+      coordinateY: freezed == coordinateY
+          ? _self.coordinateY
+          : coordinateY // ignore: cast_nullable_to_non_nullable
+              as double?,
+      ipAddress: null == ipAddress
+          ? _self.ipAddress
+          : ipAddress // ignore: cast_nullable_to_non_nullable
+              as String,
+      userAgent: null == userAgent
+          ? _self.userAgent
+          : userAgent // ignore: cast_nullable_to_non_nullable
+              as String,
+      account: null == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+
+  /// Create a copy of SnActionEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res> get account {
+    return $SnAccountCopyWith<$Res>(_self.account, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _SnActionEvent implements SnActionEvent {
+  const _SnActionEvent(
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.type,
+      required final Map<String, dynamic>? metadata,
+      required this.location,
+      required this.coordinateX,
+      required this.coordinateY,
+      required this.ipAddress,
+      required this.userAgent,
+      required this.account,
+      required this.accountId})
+      : _metadata = metadata;
+  factory _SnActionEvent.fromJson(Map<String, dynamic> json) =>
+      _$SnActionEventFromJson(json);
+
+  @override
+  final int id;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+  @override
+  final DateTime? deletedAt;
+  @override
+  final String type;
+  final Map<String, dynamic>? _metadata;
+  @override
+  Map<String, dynamic>? get metadata {
+    final value = _metadata;
+    if (value == null) return null;
+    if (_metadata is EqualUnmodifiableMapView) return _metadata;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  @override
+  final String? location;
+  @override
+  final double? coordinateX;
+  @override
+  final double? coordinateY;
+  @override
+  final String ipAddress;
+  @override
+  final String userAgent;
+  @override
+  final SnAccount account;
+  @override
+  final int accountId;
+
+  /// Create a copy of SnActionEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnActionEventCopyWith<_SnActionEvent> get copyWith =>
+      __$SnActionEventCopyWithImpl<_SnActionEvent>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnActionEventToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _SnActionEvent &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.type, type) || other.type == type) &&
+            const DeepCollectionEquality().equals(other._metadata, _metadata) &&
+            (identical(other.location, location) ||
+                other.location == location) &&
+            (identical(other.coordinateX, coordinateX) ||
+                other.coordinateX == coordinateX) &&
+            (identical(other.coordinateY, coordinateY) ||
+                other.coordinateY == coordinateY) &&
+            (identical(other.ipAddress, ipAddress) ||
+                other.ipAddress == ipAddress) &&
+            (identical(other.userAgent, userAgent) ||
+                other.userAgent == userAgent) &&
+            (identical(other.account, account) || other.account == account) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      type,
+      const DeepCollectionEquality().hash(_metadata),
+      location,
+      coordinateX,
+      coordinateY,
+      ipAddress,
+      userAgent,
+      account,
+      accountId);
+
+  @override
+  String toString() {
+    return 'SnActionEvent(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, metadata: $metadata, location: $location, coordinateX: $coordinateX, coordinateY: $coordinateY, ipAddress: $ipAddress, userAgent: $userAgent, account: $account, accountId: $accountId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$SnActionEventCopyWith<$Res>
+    implements $SnActionEventCopyWith<$Res> {
+  factory _$SnActionEventCopyWith(
+          _SnActionEvent value, $Res Function(_SnActionEvent) _then) =
+      __$SnActionEventCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String type,
+      Map<String, dynamic>? metadata,
+      String? location,
+      double? coordinateX,
+      double? coordinateY,
+      String ipAddress,
+      String userAgent,
+      SnAccount account,
+      int accountId});
+
+  @override
+  $SnAccountCopyWith<$Res> get account;
+}
+
+/// @nodoc
+class __$SnActionEventCopyWithImpl<$Res>
+    implements _$SnActionEventCopyWith<$Res> {
+  __$SnActionEventCopyWithImpl(this._self, this._then);
+
+  final _SnActionEvent _self;
+  final $Res Function(_SnActionEvent) _then;
+
+  /// Create a copy of SnActionEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? type = null,
+    Object? metadata = freezed,
+    Object? location = freezed,
+    Object? coordinateX = freezed,
+    Object? coordinateY = freezed,
+    Object? ipAddress = null,
+    Object? userAgent = null,
+    Object? account = null,
+    Object? accountId = null,
+  }) {
+    return _then(_SnActionEvent(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
+      metadata: freezed == metadata
+          ? _self._metadata
+          : metadata // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      location: freezed == location
+          ? _self.location
+          : location // ignore: cast_nullable_to_non_nullable
+              as String?,
+      coordinateX: freezed == coordinateX
+          ? _self.coordinateX
+          : coordinateX // ignore: cast_nullable_to_non_nullable
+              as double?,
+      coordinateY: freezed == coordinateY
+          ? _self.coordinateY
+          : coordinateY // ignore: cast_nullable_to_non_nullable
+              as double?,
+      ipAddress: null == ipAddress
+          ? _self.ipAddress
+          : ipAddress // ignore: cast_nullable_to_non_nullable
+              as String,
+      userAgent: null == userAgent
+          ? _self.userAgent
+          : userAgent // ignore: cast_nullable_to_non_nullable
+              as String,
+      account: null == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+
+  /// Create a copy of SnActionEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res> get account {
+    return $SnAccountCopyWith<$Res>(_self.account, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
+}
+
 // dart format on

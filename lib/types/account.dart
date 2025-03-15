@@ -162,3 +162,25 @@ abstract class SnAbuseReport with _$SnAbuseReport {
   factory SnAbuseReport.fromJson(Map<String, Object?> json) =>
       _$SnAbuseReportFromJson(json);
 }
+
+@freezed
+abstract class SnActionEvent with _$SnActionEvent {
+  const factory SnActionEvent({
+    required int id,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required String type,
+    required Map<String, dynamic>? metadata,
+    required String? location,
+    required double? coordinateX,
+    required double? coordinateY,
+    required String ipAddress,
+    required String userAgent,
+    required SnAccount account,
+    required int accountId,
+  }) = _SnActionEvent;
+
+  factory SnActionEvent.fromJson(Map<String, Object?> json) =>
+      _$SnActionEventFromJson(json);
+}

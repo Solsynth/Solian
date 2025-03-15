@@ -126,8 +126,6 @@ PODS:
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
-  - geolocator_apple (1.2.0):
-    - Flutter
   - GoogleAppMeasurement (11.8.0):
     - GoogleAppMeasurement/AdIdSupport (= 11.8.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
@@ -278,7 +276,6 @@ DEPENDENCIES:
   - flutter_udid (from `.symlinks/plugins/flutter_udid/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - gal (from `.symlinks/plugins/gal/darwin`)
-  - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - home_widget (from `.symlinks/plugins/home_widget/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
@@ -362,8 +359,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
   gal:
     :path: ".symlinks/plugins/gal/darwin"
-  geolocator_apple:
-    :path: ".symlinks/plugins/geolocator_apple/ios"
   home_widget:
     :path: ".symlinks/plugins/home_widget/ios"
   image_picker_ios:
@@ -436,7 +431,6 @@ SPEC CHECKSUMS:
   flutter_udid: b2417673f287ee62817a1de3d1643f47b9f508ab
   flutter_webrtc: 90260f83024b1b96d239a575ea4e3708e79344d1
   gal: 6a522c75909f1244732d4596d11d6a2f86ff37a5
-  geolocator_apple: 9bcea1918ff7f0062d98345d238ae12718acfbc1
   GoogleAppMeasurement: fc0817122bd4d4189164f85374e06773b9561896
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d

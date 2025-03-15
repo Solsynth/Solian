@@ -283,3 +283,39 @@ Map<String, dynamic> _$SnAbuseReportToJson(_SnAbuseReport instance) =>
       'status': instance.status,
       'account_id': instance.accountId,
     };
+
+_SnActionEvent _$SnActionEventFromJson(Map<String, dynamic> json) =>
+    _SnActionEvent(
+      id: (json['id'] as num).toInt(),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+      type: json['type'] as String,
+      metadata: json['metadata'] as Map<String, dynamic>?,
+      location: json['location'] as String?,
+      coordinateX: (json['coordinate_x'] as num?)?.toDouble(),
+      coordinateY: (json['coordinate_y'] as num?)?.toDouble(),
+      ipAddress: json['ip_address'] as String,
+      userAgent: json['user_agent'] as String,
+      account: SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      accountId: (json['account_id'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$SnActionEventToJson(_SnActionEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+      'type': instance.type,
+      'metadata': instance.metadata,
+      'location': instance.location,
+      'coordinate_x': instance.coordinateX,
+      'coordinate_y': instance.coordinateY,
+      'ip_address': instance.ipAddress,
+      'user_agent': instance.userAgent,
+      'account': instance.account.toJson(),
+      'account_id': instance.accountId,
+    };

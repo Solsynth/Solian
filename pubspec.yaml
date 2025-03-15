@@ -141,6 +141,7 @@ dependencies:
   html2md: ^1.3.2
   flutter_blurhash: ^0.8.2
   timelines_plus: ^1.0.6
+  latlong2: ^0.9.1
 
 dev_dependencies:
   flutter_test:
