@@ -6,6 +6,7 @@ import 'package:surface/screens/account.dart';
 import 'package:surface/screens/account/account_settings.dart';
 import 'package:surface/screens/account/action_events.dart';
 import 'package:surface/screens/account/badges.dart';
+import 'package:surface/screens/account/contact_methods.dart';
 import 'package:surface/screens/account/factor_settings.dart';
 import 'package:surface/screens/account/keypairs.dart';
 import 'package:surface/screens/account/profile_page.dart';
@@ -126,6 +127,11 @@ final _appRoutes = [
     name: 'account',
     builder: (context, state) => const AccountScreen(),
     routes: [
+      GoRoute(
+        path: '/contacts',
+        name: 'accountContactMethods',
+        builder: (context, state) => const AccountContactMethod(),
+      ),
       GoRoute(
         path: '/events',
         name: 'accountActionEvents',

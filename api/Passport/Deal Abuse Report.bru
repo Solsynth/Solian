@@ -5,14 +5,14 @@ meta {
 }
 
 put {
-  url: {{endpoint}}/cgi/id/reports/abuse/3/status
+  url: {{endpoint}}/cgi/id/reports/abuse/6/status
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "status": "processed",
-    "message": "相关附件已经进行评级处理，未来会将该项权限下放到帖主以及社区成员。"
+    "status": "rejected",
+    "message": "Not a good reason"
   }
 }

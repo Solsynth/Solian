@@ -88,6 +88,16 @@ class AccountSettingsScreen extends StatelessWidget {
               ),
             ),
             ListTile(
+              title: Text('accountContactMethods').tr(),
+              subtitle: Text('accountContactMethodsDescription').tr(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: const Icon(Symbols.contacts),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () {
+                GoRouter.of(context).pushNamed('accountContactMethods');
+              },
+            ),
+            ListTile(
               title: Text('accountProfileEdit').tr(),
               subtitle: Text('accountProfileEditSubtitle').tr(),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),

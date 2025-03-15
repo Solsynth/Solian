@@ -822,5 +822,18 @@
   "accountUnconfirmedResendSuccessful": "邮件已重新发送，你可以在 60 分钟后再重发一封。",
   "stickerPickerEmpty": "贴图列表为空",
   "stickerPickerEmptyHint": "想要开始使用贴图，请先添加贴图包。",
-  "goto": "跳转到 {}"
+  "goto": "跳转到 {}",
+  "accountContactMethods": "联系方式",
+  "accountContactMethodsDescription": "管理你的联系方式。",
+  "accountContactMethodsNameEmail": "电子邮箱",
+  "accountContactMethodsNamePhone": "电话",
+  "accountContactMethodsNameAddress": "地址",
+  "accountContactMethodsPrimary": "主要的",
+  "accountContactMethodsVerified": "已验证",
+  "accountContactMethodsPublic": "公开的",
+  "accountContactMethodsAdd": "添加联系方式",
+  "accountContactMethodsEdit": "编辑联系方式",
+  "accountContactMethodsAddDescription": "添加新的联系方式。",
+  "fieldContactContent": "联系方式",
+  "accountContactMethodsPublicHint": "这个联系方式公开地显示在个人资料中。"
 }

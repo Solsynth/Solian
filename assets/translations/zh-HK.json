@@ -822,5 +822,18 @@
   "accountUnconfirmedResendSuccessful": "郵件已重新發送，你可以在 60 分鐘後再重發一封。",
   "stickerPickerEmpty": "貼圖列表為空",
   "stickerPickerEmptyHint": "想要開始使用貼圖，請先添加貼圖包。",
-  "goto": "跳轉到 {}"
+  "goto": "跳轉到 {}",
+  "accountContactMethods": "聯繫方式",
+  "accountContactMethodsDescription": "管理你的聯繫方式。",
+  "accountContactMethodsNameEmail": "電子郵箱",
+  "accountContactMethodsNamePhone": "電話",
+  "accountContactMethodsNameAddress": "地址",
+  "accountContactMethodsPrimary": "主要的",
+  "accountContactMethodsVerified": "已驗證",
+  "accountContactMethodsPublic": "公開的",
+  "accountContactMethodsAdd": "添加聯繫方式",
+  "accountContactMethodsEdit": "編輯聯繫方式",
+  "accountContactMethodsAddDescription": "添加新的聯繫方式。",
+  "fieldContactContent": "聯繫方式",
+  "accountContactMethodsPublicHint": "這個聯繫方式公開地顯示在個人資料中。"
 }

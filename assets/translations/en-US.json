@@ -822,5 +822,18 @@
   "accountUnconfirmedResendSuccessful": "Email has been resent, you can resend it again in 60 minutes.",
   "stickerPickerEmpty": "Sticker list is empty",
   "stickerPickerEmptyHint": "To start using stickers, you need to add a sticker pack first.",
-  "goto": "Go to {}"
+  "goto": "Go to {}",
+  "accountContactMethods": "Contact Methods",
+  "accountContactMethodsDescription": "Manage your contact methods.",
+  "accountContactMethodsNameEmail": "Email address",
+  "accountContactMethodsNamePhone": "Phone number",
+  "accountContactMethodsNameAddress": "Address",
+  "accountContactMethodsPrimary": "Primary",
+  "accountContactMethodsVerified": "Verified",
+  "accountContactMethodsPublic": "Public",
+  "accountContactMethodsAdd": "Add Contact Method",
+  "accountContactMethodsEdit": "Edit Contact Method",
+  "accountContactMethodsAddDescription": "Add a new contact method.",
+  "fieldContactContent": "Contact method",
+  "accountContactMethodsPublicHint": "This contact method will be displayed publicly on your profile."
 }
