@@ -17,6 +17,20 @@ import 'package:synchronized/synchronized.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 
+enum ServiceStatus { operational, downgraded, failed }
+
+const Map<String, String> kServicesName = {
+  'ai': 'Insights',
+  'co': 'Interactive',
+  're': 'Reader',
+  'im': 'Messaging',
+  'ma': 'Matrix',
+  'uc': 'Paperclip',
+  'wa': 'Wallet',
+  'id': 'Passport',
+  'pusher': 'Pusher',
+};
+
 const kNetworkServerDirectory = [
   ('Solar Network', 'https://api.sn.solsynth.dev'),
   ('Local', 'http://localhost:8001'),

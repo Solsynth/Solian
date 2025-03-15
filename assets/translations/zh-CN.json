@@ -793,5 +793,17 @@
   "mixedFeed": "混合推荐流",
   "mixedFeedDescription": "探索页面可能不只会展示用户的帖子，更可能包含其他的内容。但该模式不适用分类和过滤。",
   "filterFeed": "探索队列调整",
-  "feedUnknownItem": "无法显示该内容，当前版本客户端不支持该类型的内容，请尝试更新应用程序后再试。"
+  "feedUnknownItem": "无法显示该内容，当前版本客户端不支持该类型的内容，请尝试更新应用程序后再试。",
+  "serviceStatusOperational": "所有服务正常",
+  "serviceStatusDowngraded": "部分服务异常",
+  "serviceStatusFailed": "服务状态异常",
+  "serviceStatusFailedDescription": "服务器炸了或者刚刚执行完维护程序。",
+  "serviceNameInsights": "总结、见解与洞察",
+  "serviceNameInteractive": "帖子与互动",
+  "serviceNameReader": "新闻与链接展开",
+  "serviceNameMessaging": "即使聊天",
+  "serviceNameMatrix": "矩阵市场",
+  "serviceNamePaperclip": "附件",
+  "serviceNameWallet": "源点钱包",
+  "serviceNamePassport": "身份验证与授权"
 }

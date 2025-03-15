@@ -789,5 +789,21 @@
   "fieldAccountStatusClearAt": "清除時間",
   "accountStatusNegative": "負面",
   "accountStatusNeutral": "中性",
-  "accountStatusPositive": "正面"
+  "accountStatusPositive": "正面",
+  "mixedFeed": "混合推薦流",
+  "mixedFeedDescription": "探索頁面可能不只會展示用戶的帖子，更可能包含其他的內容。但該模式不適用分類和過濾。",
+  "filterFeed": "探索隊列調整",
+  "feedUnknownItem": "無法顯示該內容，當前版本客戶端不支持該類型的內容，請嘗試更新應用程序後再試。",
+  "serviceStatusOperational": "所有服務正常",
+  "serviceStatusDowngraded": "部分服務異常",
+  "serviceStatusFailed": "服務狀態異常",
+  "serviceStatusFailedDescription": "服務器炸了或者剛剛執行完維護程序。",
+  "serviceNameInsights": "總結、見解與洞察",
+  "serviceNameInteractive": "帖子與互動",
+  "serviceNameReader": "新聞與鏈接展開",
+  "serviceNameMessaging": "即使聊天",
+  "serviceNameMatrix": "矩陣市場",
+  "serviceNamePaperclip": "附件",
+  "serviceNameWallet": "源點錢包",
+  "serviceNamePassport": "身份驗證與授權"
 }

@@ -6,7 +6,6 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:html/parser.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:relative_time/relative_time.dart';
@@ -20,13 +19,14 @@ import 'package:surface/providers/special_day.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/providers/widget.dart';
 import 'package:surface/types/check_in.dart';
-import 'package:surface/types/news.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:surface/widgets/post/post_item.dart';
 import 'package:surface/widgets/updater.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class HomeScreenDashEntry {
   final String name;
@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     HomeScreenDashEntry(
       name: 'dashEntryTodayNews',
-      child: _HomeDashTodayNews(),
+      child: _HomeDashServiceStatus(),
       cols: MediaQuery.of(context).size.width >= 640 ? 3 : 2,
     ),
   ];
@@ -245,21 +245,31 @@ class _HomeDashSpecialDayWidgetState extends State<_HomeDashSpecialDayWidget> {
   }
 }
 
-class _HomeDashTodayNews extends StatefulWidget {
-  const _HomeDashTodayNews();
+class _HomeDashServiceStatus extends StatefulWidget {
+  const _HomeDashServiceStatus();
 
   @override
-  State<_HomeDashTodayNews> createState() => _HomeDashTodayNewsState();
+  State<_HomeDashServiceStatus> createState() => _HomeDashServiceStatusState();
 }
 
-class _HomeDashTodayNewsState extends State<_HomeDashTodayNews> {
-  SnNewsArticle? _article;
+class _HomeDashServiceStatusState extends State<_HomeDashServiceStatus> {
+  Map<String, dynamic>? _statuses;
+  ServiceStatus? _serviceStatus;
 
-  Future<void> _fetchArticle() async {
+  Future<void> _fetchStatuses() async {
     try {
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/re/news/today');
-      _article = SnNewsArticle.fromJson(resp.data['data']);
+      final resp = await sn.client.get('/directory/status');
+      _statuses = resp.data;
+      if (_statuses!.values.contains(false)) {
+        if (_statuses!.values.contains(true)) {
+          _serviceStatus = ServiceStatus.downgraded;
+        } else {
+          _serviceStatus = ServiceStatus.failed;
+        }
+      } else {
+        _serviceStatus = ServiceStatus.operational;
+      }
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -272,7 +282,7 @@ class _HomeDashTodayNewsState extends State<_HomeDashTodayNews> {
   @override
   initState() {
     super.initState();
-    _fetchArticle();
+    _fetchStatuses();
   }
 
   @override
@@ -284,73 +294,124 @@ class _HomeDashTodayNewsState extends State<_HomeDashTodayNews> {
         children: [
           Row(
             children: [
-              const Icon(Symbols.newspaper),
+              const Icon(Symbols.flare),
               const Gap(8),
-              Text(
-                'newsToday',
-                style: Theme.of(context).textTheme.titleLarge,
-              ).tr()
-            ],
-          ).padding(horizontal: 18, top: 12, bottom: 8),
-          if (_article != null)
-            Expanded(
-              child: InkWell(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 4,
-                  children: [
-                    Text(
-                      _article!.title,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium!
-                          .copyWith(fontSize: 18),
-                      maxLines:
-                          MediaQuery.of(context).size.width >= 640 ? 2 : 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      parse(_article!.description)
-                          .children
-                          .map((e) => e.text.trim())
-                          .join(),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    Builder(builder: (context) {
-                      final date = _article!.publishedAt ?? _article!.createdAt;
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        spacing: 2,
-                        children: [
-                          Text(DateFormat().format(date)).textStyle(
-                              Theme.of(context).textTheme.bodySmall!),
-                          Text(' · ')
-                              .textStyle(Theme.of(context).textTheme.bodySmall!)
-                              .bold(),
-                          Text(RelativeTime(context).format(date)).textStyle(
-                              Theme.of(context).textTheme.bodySmall!),
-                        ],
-                      ).opacity(0.75);
-                    }),
-                  ],
-                ).padding(horizontal: 16),
-                onTap: () {
-                  GoRouter.of(context).pushNamed(
-                    'newsDetail',
-                    pathParameters: {'hash': _article!.hash},
-                  );
+              Expanded(
+                child: Text(
+                  'serviceStatus',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ).tr(),
+              ),
+              IconButton(
+                icon: const Icon(Symbols.launch, size: 20),
+                visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                constraints: const BoxConstraints(),
+                padding: EdgeInsets.zero,
+                onPressed: () {
+                  launchUrlString('https://status.solsynth.dev');
                 },
               ),
-            )
-          else
+            ],
+          ).padding(horizontal: 18, top: 12, bottom: 8),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            width: double.infinity,
+            color: _serviceStatus == null
+                ? Theme.of(context).colorScheme.surfaceContainerHigh
+                : switch (_serviceStatus) {
+                    ServiceStatus.operational => Colors.green[300],
+                    ServiceStatus.failed => Colors.red[300],
+                    _ => Colors.orange[300],
+                  },
+            child: _serviceStatus == null
+                ? Row(
+                    children: [
+                      const Icon(
+                        Symbols.more_horiz,
+                        size: 20,
+                      ),
+                      const Gap(10),
+                      Text('serviceStatusOperational').tr(),
+                    ],
+                  )
+                : switch (_serviceStatus) {
+                    ServiceStatus.operational => Row(
+                        children: [
+                          const Icon(
+                            Symbols.check,
+                            size: 20,
+                          ),
+                          const Gap(10),
+                          Text('serviceStatusOperational').tr(),
+                        ],
+                      ),
+                    ServiceStatus.failed => Tooltip(
+                        message: 'serviceStatusFailedDescription'.tr(),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Symbols.dangerous,
+                              size: 20,
+                            ),
+                            const Gap(10),
+                            Text('serviceStatusFailed').tr(),
+                          ],
+                        ),
+                      ),
+                    _ => Row(
+                        children: [
+                          const Icon(
+                            Symbols.error,
+                            size: 20,
+                          ),
+                          const Gap(10),
+                          Text('serviceStatusDowngraded').tr(),
+                        ],
+                      ),
+                  },
+          ),
+          if (_statuses != null)
             Expanded(
-              child: Center(
-                child: CircularProgressIndicator(),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(top: 6),
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final entry in _statuses!.entries)
+                      Tooltip(
+                        message: kServicesName[entry.key] != null
+                            ? 'serviceName${kServicesName[entry.key]}'.tr()
+                            : 'unknown'.tr(),
+                        child: Chip(
+                          avatar: entry.value
+                              ? const Icon(
+                                  Symbols.circle,
+                                  color: Colors.green,
+                                  fill: 1,
+                                  size: 16,
+                                )
+                              : AnimateWidgetExtensions(const Icon(
+                                  Symbols.error,
+                                  color: Colors.red,
+                                  fill: 1,
+                                  size: 16,
+                                ))
+                                  .animate(onPlay: (e) => e.repeat())
+                                  .fadeIn(
+                                      duration: 500.ms, curve: Curves.easeOut)
+                                  .then()
+                                  .fadeOut(
+                                    duration: 500.ms,
+                                    delay: 1000.ms,
+                                    curve: Curves.easeIn,
+                                  ),
+                          label: Text(kServicesName[entry.key] ?? entry.key),
+                        ),
+                      ),
+                  ],
+                ).padding(horizontal: 12),
               ),
-            )
+            ),
         ],
       ),
     );

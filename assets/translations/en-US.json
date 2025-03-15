@@ -795,5 +795,17 @@
   "mixedFeed": "Mixed Feed",
   "mixedFeedDescription": "The Explore screen may not only display the user's posts, but may also contain other content. However, this mode does not apply to classification and filtering.",
   "filterFeed": "Exploring Adjust",
-  "feedUnknownItem": "Unable to display this content, the current version of the client does not support the type of content, please try to update the application afterwards."
+  "feedUnknownItem": "Unable to display this content, the current version of the client does not support the type of content, please try to update the application afterwards.",
+  "serviceStatusOperational": "All services operational",
+  "serviceStatusDowngraded": "Some services downgraded",
+  "serviceStatusFailed": "All services unavailable",
+  "serviceStatusFailedDescription": "The server is down or the maintenance is just finished.",
+  "serviceNameInsights": "Summarize and Insights",
+  "serviceNameInteractive": "Posts, Reactions and Explore",
+  "serviceNameReader": "News and Link Previews",
+  "serviceNameMessaging": "Chat",
+  "serviceNameMatrix": "Matrix Software and Game Marketplace",
+  "serviceNamePaperclip": "Attachments, Images and Files",
+  "serviceNameWallet": "Source Points Wallet",
+  "serviceNamePassport": "Authorization and Authentication"
 }
