@@ -33,7 +33,9 @@ _SnAuthTicket _$SnAuthTicketFromJson(Map<String, dynamic> json) =>
       accessToken: json['access_token'] as String?,
       refreshToken: json['refresh_token'] as String?,
       ipAddress: json['ip_address'] as String,
-      location: json['location'] as String,
+      location: json['location'] as String?,
+      coordinateX: (json['coordinate_x'] as num?)?.toDouble(),
+      coordinateY: (json['coordinate_y'] as num?)?.toDouble(),
       userAgent: json['user_agent'] as String,
       expiredAt: json['expired_at'] == null
           ? null
@@ -64,6 +66,8 @@ Map<String, dynamic> _$SnAuthTicketToJson(_SnAuthTicket instance) =>
       'refresh_token': instance.refreshToken,
       'ip_address': instance.ipAddress,
       'location': instance.location,
+      'coordinate_x': instance.coordinateX,
+      'coordinate_y': instance.coordinateY,
       'user_agent': instance.userAgent,
       'expired_at': instance.expiredAt?.toIso8601String(),
       'last_grant_at': instance.lastGrantAt?.toIso8601String(),

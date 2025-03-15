@@ -810,5 +810,8 @@
   "serviceNamePassport": "Authorization and Authentication",
   "accountActionEvent": "Action Events",
   "accountActionEventDescription": "View your action event logs.",
-  "eventMetadata": "Metadata"
+  "eventMetadata": "Metadata",
+  "authTicketCreatedAt": "Issued at {}",
+  "authTicketExpiredAt": "Expired at {}",
+  "authTicketLastGrantAt": "Last granted at {}"
 }

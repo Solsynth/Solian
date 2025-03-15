@@ -808,5 +808,10 @@
   "serviceNamePassport": "身份验证与授权",
   "accountActionEvent": "操作日志",
   "accountActionEventDescription": "查看你的操作日志。",
-  "eventMetadata": "元数据"
+  "eventMetadata": "元数据",
+  "accountAuthTickets": "授权会话",
+  "accountAuthTicketsDescription": "查看和管理你的授权会话。",
+  "authTicketCreatedAt": "签发于 {}",
+  "authTicketExpiredAt": "到期于 {}",
+  "authTicketLastGrantAt": "上次刷新于 {}"
 }

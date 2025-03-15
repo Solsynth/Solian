@@ -2,10 +2,9 @@ import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/account.dart';
@@ -71,12 +70,12 @@ class _ActionEventScreenState extends State<ActionEventScreen> {
             child: RefreshIndicator(
               onRefresh: () {
                 _totalCount = null;
-                _actionEvents.clear();
                 return _fetchActionEvents();
               },
               child: InfiniteList(
                 padding: EdgeInsets.only(left: 20, right: 8),
                 itemCount: _actionEvents.length,
+                isLoading: _isBusy,
                 hasReachedMax:
                     _totalCount != null && _actionEvents.length >= _totalCount!,
                 onFetchData: _fetchActionEvents,
@@ -105,32 +104,26 @@ class _ActionEventScreenState extends State<ActionEventScreen> {
                                 if (event.ipAddress.isNotEmpty)
                                   Text(
                                     event.ipAddress,
-                                    style: GoogleFonts.robotoMono(fontSize: 12),
+                                    style: TextStyle(fontSize: 13),
                                   ),
                                 if (event.location?.isNotEmpty ?? false)
-                                  Text(event.location!)
+                                  Text(event.location!),
+                                Row(
+                                  children: [
+                                    Text(DateFormat()
+                                            .format(event.createdAt.toLocal()))
+                                        .fontSize(12),
+                                    Text(' · ')
+                                        .fontSize(12)
+                                        .padding(horizontal: 4),
+                                    Text(RelativeTime(context)
+                                            .format(event.createdAt.toLocal()))
+                                        .fontSize(12),
+                                  ],
+                                ).opacity(0.75).padding(top: 4),
                               ],
                             ),
                           ),
-                          if (event.location?.isNotEmpty ?? false)
-                            SizedBox(
-                              height: 180,
-                              child: FlutterMap(
-                                options: MapOptions(
-                                  initialCenter: LatLng(
-                                    event.coordinateX!,
-                                    event.coordinateY!,
-                                  ),
-                                ),
-                                children: [
-                                  TileLayer(
-                                    urlTemplate:
-                                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                    userAgentPackageName: 'dev.solsynth.solian',
-                                  ),
-                                ],
-                              ),
-                            ).padding(bottom: 6),
                           if (event.metadata != null)
                             ExpansionTile(
                               minTileHeight: 40,

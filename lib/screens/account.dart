@@ -218,6 +218,16 @@ class _AuthorizedAccountScreen extends StatelessWidget {
           },
         ),
         ListTile(
+          title: Text('accountAuthTickets').tr(),
+          subtitle: Text('accountAuthTicketsDescription').tr(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          leading: const Icon(Symbols.confirmation_number),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {
+            GoRouter.of(context).pushNamed('accountAuthTickets');
+          },
+        ),
+        ListTile(
           title: Text('accountSettings').tr(),
           subtitle: Text('accountSettingsSubtitle').tr(),
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),

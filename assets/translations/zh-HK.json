@@ -805,5 +805,13 @@
   "serviceNameMatrix": "矩陣市場",
   "serviceNamePaperclip": "附件",
   "serviceNameWallet": "源點錢包",
-  "serviceNamePassport": "身份驗證與授權"
+  "serviceNamePassport": "身份驗證與授權",
+  "accountActionEvent": "操作日誌",
+  "accountActionEventDescription": "查看你的操作日誌。",
+  "eventMetadata": "元數據",
+  "accountAuthTickets": "授權會話",
+  "accountAuthTicketsDescription": "查看和管理你的授權會話。",
+  "authTicketCreatedAt": "簽發於 {}",
+  "authTicketExpiredAt": "到期於 {}",
+  "authTicketLastGrantAt": "上次刷新於 {}"
 }

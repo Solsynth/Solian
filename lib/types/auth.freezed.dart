@@ -217,7 +217,9 @@ mixin _$SnAuthTicket {
   String? get accessToken;
   String? get refreshToken;
   String get ipAddress;
-  String get location;
+  String? get location;
+  double? get coordinateX;
+  double? get coordinateY;
   String get userAgent;
   DateTime? get expiredAt;
   DateTime? get lastGrantAt;
@@ -261,6 +263,10 @@ mixin _$SnAuthTicket {
                 other.ipAddress == ipAddress) &&
             (identical(other.location, location) ||
                 other.location == location) &&
+            (identical(other.coordinateX, coordinateX) ||
+                other.coordinateX == coordinateX) &&
+            (identical(other.coordinateY, coordinateY) ||
+                other.coordinateY == coordinateY) &&
             (identical(other.userAgent, userAgent) ||
                 other.userAgent == userAgent) &&
             (identical(other.expiredAt, expiredAt) ||
@@ -278,29 +284,32 @@ mixin _$SnAuthTicket {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      createdAt,
-      updatedAt,
-      deletedAt,
-      stepRemain,
-      grantToken,
-      accessToken,
-      refreshToken,
-      ipAddress,
-      location,
-      userAgent,
-      expiredAt,
-      lastGrantAt,
-      availableAt,
-      nonce,
-      accountId,
-      const DeepCollectionEquality().hash(factorTrail));
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        stepRemain,
+        grantToken,
+        accessToken,
+        refreshToken,
+        ipAddress,
+        location,
+        coordinateX,
+        coordinateY,
+        userAgent,
+        expiredAt,
+        lastGrantAt,
+        availableAt,
+        nonce,
+        accountId,
+        const DeepCollectionEquality().hash(factorTrail)
+      ]);
 
   @override
   String toString() {
-    return 'SnAuthTicket(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stepRemain: $stepRemain, grantToken: $grantToken, accessToken: $accessToken, refreshToken: $refreshToken, ipAddress: $ipAddress, location: $location, userAgent: $userAgent, expiredAt: $expiredAt, lastGrantAt: $lastGrantAt, availableAt: $availableAt, nonce: $nonce, accountId: $accountId, factorTrail: $factorTrail)';
+    return 'SnAuthTicket(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stepRemain: $stepRemain, grantToken: $grantToken, accessToken: $accessToken, refreshToken: $refreshToken, ipAddress: $ipAddress, location: $location, coordinateX: $coordinateX, coordinateY: $coordinateY, userAgent: $userAgent, expiredAt: $expiredAt, lastGrantAt: $lastGrantAt, availableAt: $availableAt, nonce: $nonce, accountId: $accountId, factorTrail: $factorTrail)';
   }
 }
 
@@ -320,7 +329,9 @@ abstract mixin class $SnAuthTicketCopyWith<$Res> {
       String? accessToken,
       String? refreshToken,
       String ipAddress,
-      String location,
+      String? location,
+      double? coordinateX,
+      double? coordinateY,
       String userAgent,
       DateTime? expiredAt,
       DateTime? lastGrantAt,
@@ -351,7 +362,9 @@ class _$SnAuthTicketCopyWithImpl<$Res> implements $SnAuthTicketCopyWith<$Res> {
     Object? accessToken = freezed,
     Object? refreshToken = freezed,
     Object? ipAddress = null,
-    Object? location = null,
+    Object? location = freezed,
+    Object? coordinateX = freezed,
+    Object? coordinateY = freezed,
     Object? userAgent = null,
     Object? expiredAt = freezed,
     Object? lastGrantAt = freezed,
@@ -397,10 +410,18 @@ class _$SnAuthTicketCopyWithImpl<$Res> implements $SnAuthTicketCopyWith<$Res> {
           ? _self.ipAddress
           : ipAddress // ignore: cast_nullable_to_non_nullable
               as String,
-      location: null == location
+      location: freezed == location
           ? _self.location
           : location // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
+      coordinateX: freezed == coordinateX
+          ? _self.coordinateX
+          : coordinateX // ignore: cast_nullable_to_non_nullable
+              as double?,
+      coordinateY: freezed == coordinateY
+          ? _self.coordinateY
+          : coordinateY // ignore: cast_nullable_to_non_nullable
+              as double?,
       userAgent: null == userAgent
           ? _self.userAgent
           : userAgent // ignore: cast_nullable_to_non_nullable
@@ -447,6 +468,8 @@ class _SnAuthTicket implements SnAuthTicket {
       required this.refreshToken,
       required this.ipAddress,
       required this.location,
+      required this.coordinateX,
+      required this.coordinateY,
       required this.userAgent,
       required this.expiredAt,
       required this.lastGrantAt,
@@ -477,7 +500,11 @@ class _SnAuthTicket implements SnAuthTicket {
   @override
   final String ipAddress;
   @override
-  final String location;
+  final String? location;
+  @override
+  final double? coordinateX;
+  @override
+  final double? coordinateY;
   @override
   final String userAgent;
   @override
@@ -538,6 +565,10 @@ class _SnAuthTicket implements SnAuthTicket {
                 other.ipAddress == ipAddress) &&
             (identical(other.location, location) ||
                 other.location == location) &&
+            (identical(other.coordinateX, coordinateX) ||
+                other.coordinateX == coordinateX) &&
+            (identical(other.coordinateY, coordinateY) ||
+                other.coordinateY == coordinateY) &&
             (identical(other.userAgent, userAgent) ||
                 other.userAgent == userAgent) &&
             (identical(other.expiredAt, expiredAt) ||
@@ -555,29 +586,32 @@ class _SnAuthTicket implements SnAuthTicket {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      createdAt,
-      updatedAt,
-      deletedAt,
-      stepRemain,
-      grantToken,
-      accessToken,
-      refreshToken,
-      ipAddress,
-      location,
-      userAgent,
-      expiredAt,
-      lastGrantAt,
-      availableAt,
-      nonce,
-      accountId,
-      const DeepCollectionEquality().hash(_factorTrail));
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        stepRemain,
+        grantToken,
+        accessToken,
+        refreshToken,
+        ipAddress,
+        location,
+        coordinateX,
+        coordinateY,
+        userAgent,
+        expiredAt,
+        lastGrantAt,
+        availableAt,
+        nonce,
+        accountId,
+        const DeepCollectionEquality().hash(_factorTrail)
+      ]);
 
   @override
   String toString() {
-    return 'SnAuthTicket(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stepRemain: $stepRemain, grantToken: $grantToken, accessToken: $accessToken, refreshToken: $refreshToken, ipAddress: $ipAddress, location: $location, userAgent: $userAgent, expiredAt: $expiredAt, lastGrantAt: $lastGrantAt, availableAt: $availableAt, nonce: $nonce, accountId: $accountId, factorTrail: $factorTrail)';
+    return 'SnAuthTicket(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, stepRemain: $stepRemain, grantToken: $grantToken, accessToken: $accessToken, refreshToken: $refreshToken, ipAddress: $ipAddress, location: $location, coordinateX: $coordinateX, coordinateY: $coordinateY, userAgent: $userAgent, expiredAt: $expiredAt, lastGrantAt: $lastGrantAt, availableAt: $availableAt, nonce: $nonce, accountId: $accountId, factorTrail: $factorTrail)';
   }
 }
 
@@ -599,7 +633,9 @@ abstract mixin class _$SnAuthTicketCopyWith<$Res>
       String? accessToken,
       String? refreshToken,
       String ipAddress,
-      String location,
+      String? location,
+      double? coordinateX,
+      double? coordinateY,
       String userAgent,
       DateTime? expiredAt,
       DateTime? lastGrantAt,
@@ -631,7 +667,9 @@ class __$SnAuthTicketCopyWithImpl<$Res>
     Object? accessToken = freezed,
     Object? refreshToken = freezed,
     Object? ipAddress = null,
-    Object? location = null,
+    Object? location = freezed,
+    Object? coordinateX = freezed,
+    Object? coordinateY = freezed,
     Object? userAgent = null,
     Object? expiredAt = freezed,
     Object? lastGrantAt = freezed,
@@ -677,10 +715,18 @@ class __$SnAuthTicketCopyWithImpl<$Res>
           ? _self.ipAddress
           : ipAddress // ignore: cast_nullable_to_non_nullable
               as String,
-      location: null == location
+      location: freezed == location
           ? _self.location
           : location // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
+      coordinateX: freezed == coordinateX
+          ? _self.coordinateX
+          : coordinateX // ignore: cast_nullable_to_non_nullable
+              as double?,
+      coordinateY: freezed == coordinateY
+          ? _self.coordinateY
+          : coordinateY // ignore: cast_nullable_to_non_nullable
+              as double?,
       userAgent: null == userAgent
           ? _self.userAgent
           : userAgent // ignore: cast_nullable_to_non_nullable
