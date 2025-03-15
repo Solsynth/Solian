@@ -814,5 +814,10 @@
   "authTicketCreatedAt": "Issued at {}",
   "authTicketExpiredAt": "Expired at {}",
   "authTicketLastGrantAt": "Last granted at {}",
-  "authTicketCurrent": "Current"
+  "authTicketCurrent": "Current",
+  "accountUnconfirmedTitle": "Unconfirmed Account",
+  "accountUnconfirmedSubtitle": "Your account is unconfirmed, which will make most features unavailable and your account will be destroyed in 24 hours. You should receive an email in your inbox with a confirmation link.",
+  "accountUnconfirmedUnreceived": "Didn't receive the email?",
+  "accountUnconfirmedResend": "Resend one",
+  "accountUnconfirmedResendSuccessful": "Email has been resent, you can resend it again in 60 minutes."
 }

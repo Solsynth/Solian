@@ -99,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         right: 8,
                       ),
                     ),
+                    _HomeDashUnconfirmedWidget().padding(horizontal: 8),
                     _HomeDashSpecialDayWidget().padding(horizontal: 8),
                     StaggeredGrid.extent(
                       maxCrossAxisExtent: 280,
@@ -123,6 +124,64 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+class _HomeDashUnconfirmedWidget extends StatelessWidget {
+  const _HomeDashUnconfirmedWidget();
+
+  Future<void> _resendConfirmationEmail(BuildContext context) async {
+    try {
+      final sn = context.read<SnNetworkProvider>();
+      await sn.client.patch('/cgi/id/users/me/confirm');
+      if (!context.mounted) return;
+      context.showSnackbar('accountUnconfirmedResendSuccessful'.tr());
+    } catch (err) {
+      if (!context.mounted) return;
+      context.showErrorDialog(err);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ua = context.watch<UserProvider>();
+    if (ua.user != null && ua.user!.confirmedAt == null) {
+      return SizedBox.shrink();
+    }
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        leading: const Icon(Symbols.shield),
+        title: Text('accountUnconfirmedTitle').tr(),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('accountUnconfirmedSubtitle').tr(),
+            const Gap(4),
+            Row(
+              children: [
+                Text('accountUnconfirmedUnreceived').tr(),
+                const Gap(4),
+                InkWell(
+                  child: Text(
+                    'accountUnconfirmedResend',
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ).tr(),
+                  onTap: () {
+                    _resendConfirmationEmail(context);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+      ),
+    ).padding(bottom: 8);
+  }
+}
+
 class _HomeDashUpdateWidget extends StatelessWidget {
   final EdgeInsets? padding;
 
@@ -131,7 +190,6 @@ class _HomeDashUpdateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final config = context.watch<ConfigProvider>();
-
     return ListenableBuilder(
       listenable: config,
       builder: (context, _) {

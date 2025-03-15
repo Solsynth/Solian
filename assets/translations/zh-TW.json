@@ -814,5 +814,10 @@
   "authTicketCreatedAt": "簽發於 {}",
   "authTicketExpiredAt": "到期於 {}",
   "authTicketLastGrantAt": "上次刷新於 {}",
-  "authTicketCurrent": "當前會話"
+  "authTicketCurrent": "當前會話",
+  "accountUnconfirmedTitle": "尚未未確認賬戶",
+  "accountUnconfirmedSubtitle": "您的賬戶尚未確認，這會導致大部分功能不可用，並且您的帳戶將在 24 小時後自毀。您綁定的郵箱的收件箱應該會有一封郵件指引您確認您的帳戶。",
+  "accountUnconfirmedUnreceived": "未收到郵件？",
+  "accountUnconfirmedResend": "重新發送一封",
+  "accountUnconfirmedResendSuccessful": "郵件已重新發送，你可以在 60 分鐘後再重發一封。"
 }
