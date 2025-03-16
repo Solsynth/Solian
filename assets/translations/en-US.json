@@ -837,5 +837,6 @@
   "fieldContactContent": "Contact method",
   "accountContactMethodsPublicHint": "This contact method will be displayed publicly on your profile.",
   "accountContactMethodsDelete": "Delete Contact Method",
-  "accountContactMethodsDeleteDescription": "Are you sure you want to delete contact method {}? This operation is irreversible."
+  "accountContactMethodsDeleteDescription": "Are you sure you want to delete contact method {}? This operation is irreversible.",
+  "postCommentAdd": "Write a comment"
 }

@@ -551,12 +551,18 @@ class _PostListWidgetState extends State<_PostListWidget> {
                   maxWidth: 640,
                 );
               case 'reader.news':
-                return NewsFeedEntry(data: ele);
+                return Container(
+                  constraints: BoxConstraints(maxWidth: 640),
+                  child: NewsFeedEntry(data: ele),
+                );
               default:
-                return FeedUnknownEntry(data: ele);
+                return Container(
+                  constraints: BoxConstraints(maxWidth: 640),
+                  child: FeedUnknownEntry(data: ele),
+                );
             }
           },
-          separatorBuilder: (_, __) => const Gap(8),
+          separatorBuilder: (_, __) => const Divider().padding(vertical: 2),
         ),
       ),
     );

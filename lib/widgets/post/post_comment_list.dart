@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/post.dart';
+import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/dialog.dart';
@@ -14,14 +15,13 @@ import 'package:surface/widgets/post/post_item.dart';
 import 'package:surface/widgets/post/post_mini_editor.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 
-import '../../providers/sn_network.dart';
-
 class PostCommentQuickAction extends StatelessWidget {
   final double? maxWidth;
   final SnPost parentPost;
   final Function? onPosted;
 
-  const PostCommentQuickAction({super.key, this.maxWidth, required this.parentPost, this.onPosted});
+  const PostCommentQuickAction(
+      {super.key, this.maxWidth, required this.parentPost, this.onPosted});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,9 @@ class PostCommentQuickAction extends StatelessWidget {
     return Container(
       height: 240,
       constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
-      margin: ResponsiveBreakpoints.of(context).largerThan(MOBILE) ? const EdgeInsets.symmetric(vertical: 8) : EdgeInsets.zero,
+      margin: ResponsiveBreakpoints.of(context).largerThan(MOBILE)
+          ? const EdgeInsets.symmetric(vertical: 8)
+          : EdgeInsets.zero,
       decoration: BoxDecoration(
         borderRadius: ResponsiveBreakpoints.of(context).largerThan(MOBILE)
             ? const BorderRadius.all(Radius.circular(8))
@@ -99,7 +101,8 @@ class PostCommentSliverListState extends State<PostCommentSliverList> {
   Future<void> _selectAnswer(SnPost answer) async {
     try {
       final sn = context.read<SnNetworkProvider>();
-      await sn.client.put('/cgi/co/questions/${widget.parentPost.id}/answer', data: {
+      await sn.client
+          .put('/cgi/co/questions/${widget.parentPost.id}/answer', data: {
         'publisher': answer.publisherId,
         'answer_id': answer.id,
       });
@@ -135,7 +138,9 @@ class PostCommentSliverListState extends State<PostCommentSliverList> {
           child: PostItem(
             data: _posts[idx],
             maxWidth: widget.maxWidth,
-            onSelectAnswer: widget.parentPost.type == 'question' ? () => _selectAnswer(_posts[idx]) : null,
+            onSelectAnswer: widget.parentPost.type == 'question'
+                ? () => _selectAnswer(_posts[idx])
+                : null,
             onChanged: (data) {
               setState(() => _posts[idx] = data);
             },
@@ -153,7 +158,8 @@ class PostCommentSliverListState extends State<PostCommentSliverList> {
           },
         );
       },
-      separatorBuilder: (context, index) => const Divider(height: 1),
+      separatorBuilder: (context, index) =>
+          const Divider().padding(vertical: 2),
     );
   }
 }
@@ -188,7 +194,9 @@ class _PostCommentListPopupState extends State<PostCommentListPopup> {
           children: [
             const Icon(Symbols.comment, size: 24),
             const Gap(16),
-            Text('postCommentsDetailed').plural(widget.commentCount).textStyle(Theme.of(context).textTheme.titleLarge!),
+            Text('postCommentsDetailed')
+                .plural(widget.commentCount)
+                .textStyle(Theme.of(context).textTheme.titleLarge!),
           ],
         ).padding(horizontal: 20, top: 16, bottom: 12),
         Expanded(
