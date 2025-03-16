@@ -205,72 +205,6 @@ class PostItem extends StatelessWidget {
     final ua = context.read<UserProvider>();
     final isAuthor = ua.isAuthorized && data.publisher.accountId == ua.user?.id;
 
-    if (!showFullPost && data.type == 'article') {
-      return Container(
-        constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _PostContentHeader(
-              data: data,
-              isRelativeDate: !showFullPost,
-            ).padding(horizontal: 12, top: 8, bottom: 8),
-            if (data.preload?.video != null)
-              _PostVideoPlayer(data: data).padding(horizontal: 12, bottom: 8),
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 4, left: 12, right: 12),
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                border: Border.all(
-                  color: Theme.of(context).dividerColor,
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (data.preload?.thumbnail != null)
-                    AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(8),
-                          topRight: Radius.circular(8),
-                        ),
-                        child: AutoResizeUniversalImage(
-                          sn.getAttachmentUrl(data.preload!.thumbnail!.rid),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  const Gap(8),
-                  _PostHeadline(data: data).padding(horizontal: 14),
-                  const Gap(4),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (data.visibility > 0) _PostVisibilityHint(data: data),
-                      _PostTruncatedHint(data: data),
-                      if (data.tags.isNotEmpty) _PostTagsList(data: data),
-                    ],
-                  ).padding(horizontal: 12),
-                  const Gap(8),
-                ],
-              ),
-            ),
-            Text('postArticle')
-                .tr()
-                .fontSize(13)
-                .opacity(0.75)
-                .padding(horizontal: 24, bottom: 8),
-            _PostFeaturedComment(data: data, maxWidth: maxWidth)
-                .padding(horizontal: 12),
-          ],
-        ),
-      ).center();
-    }
-
     final displayableAttachments = data.preload?.attachments
         ?.where((ele) =>
             ele?.mediaType != SnMediaType.image || data.type != 'article')
@@ -326,6 +260,33 @@ class PostItem extends StatelessWidget {
                           ],
                         ),
                         const Gap(8),
+                        if (data.preload?.thumbnail != null)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(8),
+                              ),
+                              border: Border.all(
+                                color: Theme.of(context).dividerColor,
+                                width: 1,
+                              ),
+                            ),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                                child: AutoResizeUniversalImage(
+                                  sn.getAttachmentUrl(
+                                    data.preload!.thumbnail!.rid,
+                                  ),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
                         if (data.preload?.video != null)
                           _PostVideoPlayer(data: data).padding(bottom: 8),
                         if (data.type == 'question')
@@ -336,7 +297,14 @@ class PostItem extends StatelessWidget {
                             data: data,
                             isEnlarge: data.type == 'article' && showFullPost,
                           ).padding(bottom: 8),
-                        if (data.body['content']?.isNotEmpty ?? false)
+                        if (data.type == 'article' && !showFullPost)
+                          Text('postArticle')
+                              .tr()
+                              .fontSize(13)
+                              .opacity(0.75)
+                              .padding(bottom: 8),
+                        if ((data.body['content']?.isNotEmpty ?? false) &&
+                            (showFullPost || data.type != 'article'))
                           _PostContentBody(
                             data: data,
                             isSelectable: showFullPost,
@@ -1431,7 +1399,10 @@ class _PostFeaturedComment extends StatefulWidget {
   final SnPost data;
   final double? maxWidth;
 
-  const _PostFeaturedComment({required this.data, this.maxWidth});
+  const _PostFeaturedComment({
+    required this.data,
+    this.maxWidth,
+  });
 
   @override
   State<_PostFeaturedComment> createState() => _PostFeaturedCommentState();
@@ -1493,6 +1464,7 @@ class _PostFeaturedCommentState extends State<_PostFeaturedComment> {
             showModalBottomSheet(
               context: context,
               useRootNavigator: true,
+              isScrollControlled: true,
               builder: (context) => PostCommentListPopup(
                 post: widget.data,
                 commentCount: widget.data.metric.replyCount,

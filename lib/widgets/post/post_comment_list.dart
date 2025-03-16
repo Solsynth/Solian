@@ -167,11 +167,13 @@ class PostCommentSliverListState extends State<PostCommentSliverList> {
 class PostCommentListPopup extends StatefulWidget {
   final SnPost post;
   final int commentCount;
+  final int depth;
 
   const PostCommentListPopup({
     super.key,
     required this.post,
     this.commentCount = 0,
+    this.depth = 1,
   });
 
   @override
@@ -186,50 +188,53 @@ class _PostCommentListPopupState extends State<PostCommentListPopup> {
     final ua = context.watch<UserProvider>();
     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Symbols.comment, size: 24),
-            const Gap(16),
-            Text('postCommentsDetailed')
-                .plural(widget.commentCount)
-                .textStyle(Theme.of(context).textTheme.titleLarge!),
-          ],
-        ).padding(horizontal: 20, top: 16, bottom: 12),
-        Expanded(
-          child: CustomScrollView(
-            slivers: [
-              if (ua.isAuthorized)
-                SliverToBoxAdapter(
-                  child: Container(
-                    height: 240,
-                    decoration: BoxDecoration(
-                      border: Border.symmetric(
-                        horizontal: BorderSide(
-                          color: Theme.of(context).dividerColor,
-                          width: 1 / devicePixelRatio,
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.85,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Symbols.comment, size: 24),
+              const Gap(16),
+              Text('postCommentsDetailed')
+                  .plural(widget.commentCount)
+                  .textStyle(Theme.of(context).textTheme.titleLarge!),
+            ],
+          ).padding(horizontal: 20, top: 16, bottom: 12),
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                if (ua.isAuthorized)
+                  SliverToBoxAdapter(
+                    child: Container(
+                      height: 240,
+                      decoration: BoxDecoration(
+                        border: Border.symmetric(
+                          horizontal: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                            width: 1 / devicePixelRatio,
+                          ),
                         ),
                       ),
-                    ),
-                    child: PostMiniEditor(
-                      postReplyId: widget.post.id,
-                      onPost: () {
-                        _childListKey.currentState!.refresh();
-                      },
+                      child: PostMiniEditor(
+                        postReplyId: widget.post.id,
+                        onPost: () {
+                          _childListKey.currentState!.refresh();
+                        },
+                      ),
                     ),
                   ),
+                PostCommentSliverList(
+                  parentPost: widget.post,
+                  key: _childListKey,
                 ),
-              PostCommentSliverList(
-                parentPost: widget.post,
-                key: _childListKey,
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
