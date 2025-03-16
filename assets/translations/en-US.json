@@ -835,5 +835,7 @@
   "accountContactMethodsEdit": "Edit Contact Method",
   "accountContactMethodsAddDescription": "Add a new contact method.",
   "fieldContactContent": "Contact method",
-  "accountContactMethodsPublicHint": "This contact method will be displayed publicly on your profile."
+  "accountContactMethodsPublicHint": "This contact method will be displayed publicly on your profile.",
+  "accountContactMethodsDelete": "Delete Contact Method",
+  "accountContactMethodsDeleteDescription": "Are you sure you want to delete contact method {}? This operation is irreversible."
 }

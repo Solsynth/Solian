@@ -835,5 +835,7 @@
   "accountContactMethodsEdit": "编辑联系方式",
   "accountContactMethodsAddDescription": "添加新的联系方式。",
   "fieldContactContent": "联系方式",
-  "accountContactMethodsPublicHint": "这个联系方式公开地显示在个人资料中。"
+  "accountContactMethodsPublicHint": "这个联系方式公开地显示在个人资料中。",
+  "accountContactMethodsDelete": "删除联系方式",
+  "accountContactMethodsDeleteDescription": "你确定要删除联系方式 {} 吗？这个操作不可撤销。"
 }

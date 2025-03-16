@@ -42,6 +42,24 @@ class _AccountContactMethodState extends State<AccountContactMethod> {
     }
   }
 
+  Future<void> _deleteContactMethod(SnAccountContact contact) async {
+    final confirm = await context.showConfirmDialog(
+      'accountContactMethodsDelete'.tr(),
+      'accountContactMethodsDeleteDescription'.tr(args: [contact.content]),
+    );
+    if (!confirm || !mounted) return;
+
+    try {
+      final sn = context.read<SnNetworkProvider>();
+      await sn.client.delete('/cgi/id/users/me/contacts/${contact.id}');
+      if (!mounted) return;
+      await _fetchContactMethods();
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -118,7 +136,7 @@ class _AccountContactMethodState extends State<AccountContactMethod> {
                           child: Row(
                             children: [
                               const Icon(Symbols.edit),
-                              const Gap(8),
+                              const Gap(16),
                               Text('edit').tr(),
                             ],
                           ),
@@ -133,6 +151,18 @@ class _AccountContactMethodState extends State<AccountContactMethod> {
                                 _fetchContactMethods();
                               }
                             });
+                          },
+                        ),
+                        PopupMenuItem(
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.delete),
+                              const Gap(16),
+                              Text('delete'.tr()),
+                            ],
+                          ),
+                          onTap: () {
+                            _deleteContactMethod(method);
                           },
                         ),
                       ],
