@@ -389,7 +389,7 @@ class _HomeDashServiceStatusState extends State<_HomeDashServiceStatus> {
                         size: 20,
                       ),
                       const Gap(10),
-                      Text('serviceStatusOperational').tr(),
+                      Text('loading').tr(),
                     ],
                   )
                 : switch (_serviceStatus) {
@@ -434,6 +434,7 @@ class _HomeDashServiceStatusState extends State<_HomeDashServiceStatus> {
                 padding: EdgeInsets.only(top: 6),
                 child: Wrap(
                   spacing: 8,
+                  runSpacing: 8,
                   children: [
                     for (final entry in _statuses!.entries)
                       Tooltip(
@@ -441,6 +442,8 @@ class _HomeDashServiceStatusState extends State<_HomeDashServiceStatus> {
                             ? 'serviceName${kServicesName[entry.key]}'.tr()
                             : 'unknown'.tr(),
                         child: Chip(
+                          visualDensity:
+                              VisualDensity(horizontal: -4, vertical: -4),
                           avatar: entry.value
                               ? const Icon(
                                   Symbols.circle,
@@ -877,8 +880,10 @@ class _HomeDashRecommendationPostWidgetState
                   ).tr(),
                 ],
               ),
-              Text('${_currentPage + 1}/${_posts?.length ?? 0}',
-                  style: GoogleFonts.robotoMono())
+              Text(
+                '${_currentPage + 1}/${_posts?.length ?? 0}',
+                style: GoogleFonts.robotoMono(),
+              )
             ],
           ).padding(horizontal: 18, top: 12, bottom: 8),
           Expanded(
@@ -896,6 +901,7 @@ class _HomeDashRecommendationPostWidgetState
                     child: PostItem(
                       data: _posts![index],
                       showMenu: false,
+                      showFullPost: true,
                     ).padding(bottom: 8),
                     onTap: () {
                       GoRouter.of(context)

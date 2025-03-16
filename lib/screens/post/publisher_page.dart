@@ -34,9 +34,11 @@ class PostPublisherScreen extends StatefulWidget {
   State<PostPublisherScreen> createState() => _PostPublisherScreenState();
 }
 
-class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTickerProviderStateMixin {
+class _PostPublisherScreenState extends State<PostPublisherScreen>
+    with SingleTickerProviderStateMixin {
   late final ScrollController _scrollController = ScrollController();
-  late final TabController _tabController = TabController(length: 3, vsync: this);
+  late final TabController _tabController =
+      TabController(length: 3, vsync: this);
 
   SnPublisher? _publisher;
   SnAccount? _account;
@@ -66,7 +68,8 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
       _account = await ud.getAccount(_publisher?.accountId);
       _accountRelationship = await rel.getRelationship(_account!.id);
       if (_publisher?.realmId != null && _publisher!.realmId != 0) {
-        final resp = await sn.client.get('/cgi/id/realms/${_publisher!.realmId}');
+        final resp =
+            await sn.client.get('/cgi/id/realms/${_publisher!.realmId}');
         _realm = SnRealm.fromJson(resp.data);
       }
     } catch (_) {
@@ -133,12 +136,14 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
   double _appBarBlur = 0.0;
 
   late final _appBarWidth = MediaQuery.of(context).size.width;
-  late final _appBarHeight = (_appBarWidth * kBannerAspectRatio).roundToDouble();
+  late final _appBarHeight =
+      (_appBarWidth * kBannerAspectRatio).roundToDouble();
 
   void _updateAppBarBlur() {
     if (_scrollController.offset > _appBarHeight) return;
     setState(() {
-      _appBarBlur = (_scrollController.offset / _appBarHeight * 10).clamp(0.0, 10.0);
+      _appBarBlur =
+          (_scrollController.offset / _appBarHeight * 10).clamp(0.0, 10.0);
     });
   }
 
@@ -193,7 +198,8 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
         'related': _account!.name,
       });
       if (!mounted) return;
-      context.showSnackbar('userBlocked'.tr(args: ['@${_account?.name ?? 'unknown'.tr()}']));
+      context.showSnackbar(
+          'userBlocked'.tr(args: ['@${_account?.name ?? 'unknown'.tr()}']));
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -209,9 +215,11 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
 
     try {
       final rel = context.read<SnRelationshipProvider>();
-      await rel.updateRelationship(_account!.id, 1, _accountRelationship?.permNodes ?? {});
+      await rel.updateRelationship(
+          _account!.id, 1, _accountRelationship?.permNodes ?? {});
       if (!mounted) return;
-      context.showSnackbar('userUnblocked'.tr(args: ['@${_account?.name ?? 'unknown'.tr()}']));
+      context.showSnackbar(
+          'userUnblocked'.tr(args: ['@${_account?.name ?? 'unknown'.tr()}']));
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -299,7 +307,10 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                               text: TextSpan(children: [
                                 TextSpan(
                                   text: _publisher!.nick,
-                                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge!
+                                      .copyWith(
                                         color: Colors.white,
                                         shadows: labelShadows,
                                       ),
@@ -307,7 +318,10 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                 const TextSpan(text: '\n'),
                                 TextSpan(
                                   text: '@${_publisher!.name}',
-                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall!
+                                      .copyWith(
                                         color: Colors.white,
                                         shadows: labelShadows,
                                       ),
@@ -330,13 +344,16 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                   )
                                 else
                                   Container(
-                                    color: Theme.of(context).colorScheme.surfaceContainer,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainer,
                                   ),
                                 Positioned(
                                   top: 0,
                                   left: 0,
                                   right: 0,
-                                  height: 56 + MediaQuery.of(context).padding.top,
+                                  height:
+                                      56 + MediaQuery.of(context).padding.top,
                                   child: ClipRect(
                                     child: BackdropFilter(
                                       filter: ImageFilter.blur(
@@ -345,7 +362,8 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                       ),
                                       child: Container(
                                         color: Colors.black.withOpacity(
-                                          clampDouble(_appBarBlur * 0.1, 0, 0.5),
+                                          clampDouble(
+                                              _appBarBlur * 0.1, 0, 0.5),
                                         ),
                                       ),
                                     ),
@@ -372,11 +390,14 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                 const Gap(16),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         _publisher!.nick,
-                                        style: Theme.of(context).textTheme.titleMedium,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
                                       ).bold(),
                                       Text('@${_publisher!.name}').fontSize(13),
                                     ],
@@ -387,7 +408,9 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                     style: ButtonStyle(
                                       elevation: WidgetStatePropertyAll(0),
                                     ),
-                                    onPressed: _isSubscribing ? null : _toggleSubscription,
+                                    onPressed: _isSubscribing
+                                        ? null
+                                        : _toggleSubscription,
                                     label: Text('subscribe').tr(),
                                     icon: const Icon(Symbols.add),
                                   )
@@ -396,14 +419,17 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                     style: ButtonStyle(
                                       elevation: WidgetStatePropertyAll(0),
                                     ),
-                                    onPressed: _isSubscribing ? null : _toggleSubscription,
+                                    onPressed: _isSubscribing
+                                        ? null
+                                        : _toggleSubscription,
                                     label: Text('unsubscribe').tr(),
                                     icon: const Icon(Symbols.remove),
                                   ),
                                 PopupMenuButton(
                                   padding: EdgeInsets.zero,
                                   style: ButtonStyle(
-                                    visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                                    visualDensity: VisualDensity(
+                                        horizontal: -4, vertical: -4),
                                   ),
                                   itemBuilder: (BuildContext context) => [
                                     PopupMenuItem(
@@ -443,7 +469,8 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                               ],
                             ),
                             const Gap(12),
-                            Text(_publisher!.description).padding(horizontal: 8),
+                            Text(_publisher!.description)
+                                .padding(horizontal: 8),
                             const Gap(12),
                             Column(
                               children: [
@@ -451,8 +478,10 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                   children: [
                                     const Icon(Symbols.calendar_add_on),
                                     const Gap(8),
-                                    Text('publisherJoinedAt')
-                                        .tr(args: [DateFormat('y/M/d').format(_publisher!.createdAt)]),
+                                    Text('publisherJoinedAt').tr(args: [
+                                      DateFormat('y/M/d')
+                                          .format(_publisher!.createdAt)
+                                    ]),
                                   ],
                                 ),
                                 Row(
@@ -460,7 +489,8 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                     const Icon(Symbols.trending_up),
                                     const Gap(8),
                                     Text('publisherSocialPointTotal').plural(
-                                      _publisher!.totalUpvote - _publisher!.totalDownvote,
+                                      _publisher!.totalUpvote -
+                                          _publisher!.totalDownvote,
                                     ),
                                   ],
                                 ),
@@ -470,18 +500,22 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                       const Icon(Symbols.group_work),
                                       const Gap(8),
                                       InkWell(
-                                        child: Text('publisherAffiliatedBy').tr(args: [
+                                        child: Text('publisherAffiliatedBy')
+                                            .tr(args: [
                                           '@${_realm?.alias ?? 'unknown'}',
                                         ]),
                                         onTap: () {
                                           GoRouter.of(context).pushNamed(
                                             'realmDetail',
-                                            pathParameters: {'alias': _realm!.alias},
+                                            pathParameters: {
+                                              'alias': _realm!.alias
+                                            },
                                           );
                                         },
                                       ),
                                       const Gap(8),
-                                      AccountImage(content: _realm?.avatar, radius: 8),
+                                      AccountImage(
+                                          content: _realm?.avatar, radius: 8),
                                     ],
                                   ),
                                 Row(
@@ -502,7 +536,8 @@ class _PostPublisherScreenState extends State<PostPublisherScreen> with SingleTi
                                       },
                                     ),
                                     const Gap(8),
-                                    AccountImage(content: _account?.avatar, radius: 8),
+                                    AccountImage(
+                                        content: _account?.avatar, radius: 8),
                                   ],
                                 ),
                               ],
@@ -606,7 +641,7 @@ class _PublisherPostList extends StatelessWidget {
           onDeleted: onDeleted,
         );
       },
-      separatorBuilder: (_, __) => const Gap(8),
+      separatorBuilder: (_, __) => const Divider().padding(vertical: 2),
     );
   }
 }

@@ -23,57 +23,54 @@ class FediversePostWidget extends StatelessWidget {
     return Center(
       child: Container(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Card(
-          margin: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  AccountImage(
-                    content: data.user.avatar,
-                    radius: 20,
-                  ),
-                  const Gap(12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        data.user.nick.isNotEmpty
-                            ? data.user.nick
-                            : '@${data.user.name}',
-                        maxLines: 1,
-                      ).bold(),
-                      Row(
-                        children: [
-                          Text(
-                            data.user.identifier.contains('@')
-                                ? data.user.identifier
-                                : '${data.user.identifier}@${data.user.origin}',
-                            maxLines: 1,
-                          ).fontSize(13),
-                          const Gap(4),
-                          Text(
-                            RelativeTime(context)
-                                .format(data.createdAt.toLocal()),
-                          ).fontSize(13),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ).padding(horizontal: 12, vertical: 8),
-              MarkdownTextContent(
-                isAutoWarp: true,
-                content: html2md.convert(data.content),
-              ).padding(horizontal: 16, bottom: 6),
-              if (data.images.isNotEmpty)
-                _FediversePostImageList(
-                  data: data,
-                  maxWidth: maxWidth,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                AccountImage(
+                  content: data.user.avatar,
+                  radius: 20,
                 ),
-            ],
-          ),
+                const Gap(12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data.user.nick.isNotEmpty
+                          ? data.user.nick
+                          : '@${data.user.name}',
+                      maxLines: 1,
+                    ).bold(),
+                    Row(
+                      children: [
+                        Text(
+                          data.user.identifier.contains('@')
+                              ? data.user.identifier
+                              : '${data.user.identifier}@${data.user.origin}',
+                          maxLines: 1,
+                        ).fontSize(13),
+                        const Gap(4),
+                        Text(
+                          RelativeTime(context)
+                              .format(data.createdAt.toLocal()),
+                        ).fontSize(13),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ).padding(horizontal: 12, vertical: 8),
+            MarkdownTextContent(
+              isAutoWarp: true,
+              content: html2md.convert(data.content),
+            ).padding(horizontal: 16, bottom: 6),
+            if (data.images.isNotEmpty)
+              _FediversePostImageList(
+                data: data,
+                maxWidth: maxWidth,
+              ),
+          ],
         ),
       ),
     );

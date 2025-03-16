@@ -45,7 +45,8 @@ class _PostSearchScreenState extends State<PostSearchScreen> {
   }
 
   Future<void> _fetchPosts() async {
-    if (_searchTerm.isEmpty && _searchCategories.isEmpty && _searchTags.isEmpty) return;
+    if (_searchTerm.isEmpty && _searchCategories.isEmpty && _searchTags.isEmpty)
+      return;
     if (_postCount != null && _posts.length >= _postCount!) return;
 
     setState(() => _isBusy = true);
@@ -152,7 +153,7 @@ class _PostSearchScreenState extends State<PostSearchScreen> {
                 },
               );
             },
-            separatorBuilder: (_, __) => const Gap(8),
+            separatorBuilder: (_, __) => const Divider().padding(vertical: 2),
           ),
           Positioned(
             top: 16,
@@ -166,7 +167,8 @@ class _PostSearchScreenState extends State<PostSearchScreen> {
                   padding: const WidgetStatePropertyAll(
                     EdgeInsets.symmetric(horizontal: 24),
                   ),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                   onChanged: (value) {
                     _searchTerm = value;
                   },

@@ -22,7 +22,8 @@ class PostDetailScreen extends StatefulWidget {
   final SnPost? preload;
   final Function? onBack;
 
-  const PostDetailScreen({super.key, required this.slug, this.preload, this.onBack});
+  const PostDetailScreen(
+      {super.key, required this.slug, this.preload, this.onBack});
 
   @override
   State<PostDetailScreen> createState() => _PostDetailScreenState();
@@ -88,14 +89,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     TextSpan(
                       text: _data?.body['title'] ?? 'postNoun'.tr(),
                       style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                            color: Theme.of(context).appBarTheme.foregroundColor!,
+                            color:
+                                Theme.of(context).appBarTheme.foregroundColor!,
                           ),
                     ),
                     const TextSpan(text: '\n'),
                     TextSpan(
                       text: 'postDetail'.tr(),
                       style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                            color: Theme.of(context).appBarTheme.foregroundColor!,
+                            color:
+                                Theme.of(context).appBarTheme.foregroundColor!,
                           ),
                     ),
                   ]),
@@ -124,8 +127,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   },
                 ),
               ),
-            if (_data != null && _data!.type != 'video') const SliverToBoxAdapter(child: Divider(height: 1)),
-            if (_data != null && _data!.type != 'video')
+            if (_data != null)
+              SliverToBoxAdapter(
+                child: Divider(height: 1).padding(top: 8),
+              ),
+            if (_data != null)
               SliverToBoxAdapter(
                 child: Container(
                   constraints: BoxConstraints(maxWidth: maxWidth),
@@ -141,7 +147,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   ).padding(horizontal: 20, vertical: 12).center(),
                 ),
               ),
-            if (_data != null && ua.isAuthorized && _data!.type != 'video')
+            if (_data != null && ua.isAuthorized)
               SliverToBoxAdapter(
                 child: PostCommentQuickAction(
                   parentPost: _data!,
@@ -158,13 +164,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   },
                 ),
               ),
-            if (_data != null && _data!.type != 'video')
+            if (_data != null) SliverGap(8),
+            if (_data != null)
               PostCommentSliverList(
                 key: _childListKey,
                 parentPost: _data!,
                 maxWidth: maxWidth,
               ),
-            if (_data != null && _data!.type == 'video') SliverGap(math.max(MediaQuery.of(context).padding.bottom, 16)),
+            if (_data != null)
+              SliverGap(math.max(MediaQuery.of(context).padding.bottom, 16)),
           ],
         ),
       ),

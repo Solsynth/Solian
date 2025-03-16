@@ -551,9 +551,11 @@ class _PostListWidgetState extends State<_PostListWidget> {
                   maxWidth: 640,
                 );
               case 'reader.news':
-                return Container(
-                  constraints: BoxConstraints(maxWidth: 640),
-                  child: NewsFeedEntry(data: ele),
+                return Center(
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: 640),
+                    child: NewsFeedEntry(data: ele),
+                  ),
                 );
               default:
                 return Container(

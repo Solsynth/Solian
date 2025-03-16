@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/post.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/dialog.dart';
@@ -77,7 +77,8 @@ class _PostDraftBoxState extends State<PostDraftBox> {
                     },
                   );
                 },
-                separatorBuilder: (_, __) => const Gap(8),
+                separatorBuilder: (_, __) =>
+                    const Divider().padding(vertical: 2),
               ),
             ),
           ),

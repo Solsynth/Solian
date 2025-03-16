@@ -19,89 +19,87 @@ class NewsFeedEntry extends StatelessWidget {
         .cast<SnNewsArticle>()
         .toList();
 
-    return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Symbols.newspaper),
-              const Gap(8),
-              Text(
-                'newsToday',
-                style: Theme.of(context).textTheme.titleLarge,
-              ).tr()
-            ],
-          ).padding(horizontal: 18, top: 12, bottom: 8),
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            height: 150,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: news.length,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemBuilder: (context, idx) {
-                return Container(
-                  width: 360,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme.of(context).dividerColor,
-                      width: 1,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Symbols.newspaper),
+            const Gap(8),
+            Text(
+              'newsToday',
+              style: Theme.of(context).textTheme.titleLarge,
+            ).tr()
+          ],
+        ).padding(horizontal: 18, top: 12, bottom: 8),
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          height: 150,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: news.length,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemBuilder: (context, idx) {
+              return Container(
+                width: 360,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor,
+                    width: 1,
                   ),
-                  child: Material(
-                    elevation: 0,
-                    color: Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                ),
+                child: Material(
+                  elevation: 0,
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  child: InkWell(
                     borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    child: InkWell(
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            news[idx].title,
-                            maxLines: 2,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ).padding(horizontal: 16, top: 12, bottom: 4),
-                          Text(
-                            news[idx].description,
-                            maxLines: 2,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ).padding(horizontal: 16, vertical: 4),
-                          const Gap(4),
-                          Row(
-                            children: [
-                              Text(
-                                DateFormat('y/M/d HH:mm')
-                                    .format(news[idx].createdAt.toLocal()),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              const Gap(4),
-                              Text(
-                                RelativeTime(context)
-                                    .format(news[idx].createdAt.toLocal()),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ).opacity(0.8).padding(horizontal: 16),
-                        ],
-                      ),
-                      onTap: () {
-                        GoRouter.of(context).pushNamed(
-                          'newsDetail',
-                          pathParameters: {'hash': news[idx].hash},
-                        );
-                      },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          news[idx].title,
+                          maxLines: 2,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ).padding(horizontal: 16, top: 12, bottom: 4),
+                        Text(
+                          news[idx].description,
+                          maxLines: 2,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ).padding(horizontal: 16, vertical: 4),
+                        const Gap(4),
+                        Row(
+                          children: [
+                            Text(
+                              DateFormat('y/M/d HH:mm')
+                                  .format(news[idx].createdAt.toLocal()),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const Gap(4),
+                            Text(
+                              RelativeTime(context)
+                                  .format(news[idx].createdAt.toLocal()),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ).opacity(0.8).padding(horizontal: 16),
+                      ],
                     ),
+                    onTap: () {
+                      GoRouter.of(context).pushNamed(
+                        'newsDetail',
+                        pathParameters: {'hash': news[idx].hash},
+                      );
+                    },
                   ),
-                );
-              },
-              separatorBuilder: (_, __) => const Gap(12),
-            ),
+                ),
+              );
+            },
+            separatorBuilder: (_, __) => const Gap(12),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -166,6 +166,14 @@ class _PostItemState extends State<PostItem> {
     }
   }
 
+  @override
+  void didUpdateWidget(covariant PostItem oldWidget) {
+    _displayText = widget.data.body['content'] ?? '';
+    _displayTitle = widget.data.body['title'] ?? '';
+    _displayDescription = widget.data.body['description'] ?? '';
+    super.didUpdateWidget(oldWidget);
+  }
+
   Future<void> _translateText() async {
     final ta = context.read<SnTranslator>();
     setState(() => _isTranslating = true);
@@ -284,6 +292,247 @@ class _PostItemState extends State<PostItem> {
       attachmentSize -= 80;
     }
 
+    if (widget.showFullPost) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            constraints:
+                BoxConstraints(maxWidth: widget.maxWidth ?? double.infinity),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          if (widget.showAvatar)
+                            _PostAvatar(
+                              data: widget.data,
+                              isCompact: false,
+                            ),
+                          if (widget.showAvatar) const Gap(12),
+                          Expanded(
+                            child: _PostContentHeader(
+                              isRelativeDate: !widget.showFullPost,
+                              isCompact: false,
+                              data: widget.data,
+                            ),
+                          ),
+                          _PostActionPopup(
+                            data: widget.data,
+                            isAuthor: isAuthor,
+                            onShare: () => _doShare(context),
+                            onShareImage: () => _doShareViaPicture(context),
+                            onSelectAnswer: widget.onSelectAnswer,
+                            onDeleted: () {
+                              widget.onDeleted?.call();
+                            },
+                            onTranslate: () {
+                              _translateText();
+                            },
+                          ),
+                        ],
+                      ),
+                      const Gap(8),
+                      if (widget.data.preload?.thumbnail != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),
+                            ),
+                            border: Border.all(
+                              color: Theme.of(context).dividerColor,
+                              width: 1,
+                            ),
+                          ),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(8),
+                              ),
+                              child: AutoResizeUniversalImage(
+                                sn.getAttachmentUrl(
+                                  widget.data.preload!.thumbnail!.rid,
+                                ),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (widget.data.preload?.video != null)
+                        _PostVideoPlayer(data: widget.data).padding(bottom: 8),
+                      if (widget.data.type == 'question')
+                        _PostQuestionHint(data: widget.data).padding(bottom: 8),
+                      if (_displayDescription.isNotEmpty ||
+                          _displayTitle.isNotEmpty)
+                        _PostHeadline(
+                          title: _displayTitle,
+                          description: _displayDescription,
+                          data: widget.data,
+                          isEnlarge: widget.data.type == 'article' &&
+                              widget.showFullPost,
+                        ).padding(bottom: 8),
+                      if (widget.data.type == 'article' && !widget.showFullPost)
+                        Text('postArticle')
+                            .tr()
+                            .fontSize(13)
+                            .opacity(0.75)
+                            .padding(bottom: 8),
+                      if ((_displayText.isNotEmpty) &&
+                          (widget.showFullPost ||
+                              widget.data.type != 'article'))
+                        _PostContentBody(
+                          text: _displayText,
+                          data: widget.data,
+                          isSelectable: widget.showFullPost,
+                          isEnlarge: widget.data.type == 'article' &&
+                              widget.showFullPost,
+                        ).padding(bottom: 6),
+                      if (widget.data.visibility > 0)
+                        _PostVisibilityHint(data: widget.data).padding(
+                          vertical: 4,
+                        ),
+                      if (widget.data.body['content_truncated'] == true)
+                        _PostTruncatedHint(data: widget.data).padding(
+                          vertical: 4,
+                        ),
+                      if (widget.data.tags.isNotEmpty)
+                        _PostTagsList(data: widget.data)
+                            .padding(top: 4, bottom: 6),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 4,
+                        children: [
+                          if (widget.showViews)
+                            Row(
+                              children: [
+                                Icon(Symbols.play_circle, size: 20),
+                                const Gap(4),
+                                Text('postViews')
+                                    .plural(widget.data.totalViews),
+                              ],
+                            ).opacity(0.75),
+                          if (_isTranslating)
+                            AnimateWidgetExtensions(Row(
+                              children: [
+                                Icon(Symbols.translate, size: 20),
+                                const Gap(4),
+                                Text('translating').tr(),
+                              ],
+                            ))
+                                .animate(onPlay: (e) => e.repeat())
+                                .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+                                .then()
+                                .fadeOut(
+                                  duration: 500.ms,
+                                  delay: 1000.ms,
+                                  curve: Curves.easeIn,
+                                ),
+                          if (_isTranslated)
+                            InkWell(
+                              child: Row(
+                                children: [
+                                  Icon(Symbols.translate, size: 20),
+                                  const Gap(4),
+                                  Text('translated').tr(),
+                                ],
+                              ).opacity(0.75),
+                              onTap: () {
+                                setState(() {
+                                  _displayText =
+                                      widget.data.body['content'] ?? '';
+                                  _displayTitle =
+                                      widget.data.body['title'] ?? '';
+                                  _displayDescription =
+                                      widget.data.body['description'] ?? '';
+                                  _isTranslated = false;
+                                });
+                              },
+                            ),
+                          if (widget.data.repostTo != null)
+                            _PostQuoteContent(child: widget.data.repostTo!)
+                                .padding(
+                              top: 4,
+                              bottom: widget.data.preload?.attachments
+                                          ?.isNotEmpty ??
+                                      false
+                                  ? 12
+                                  : 0,
+                            ),
+                        ],
+                      ).padding(
+                        bottom:
+                            widget.showViews || _isTranslated || _isTranslating
+                                ? 8
+                                : 0,
+                      ),
+                    ],
+                  ),
+                ).padding(horizontal: 12, top: 8),
+              ],
+            ),
+          ),
+          if (displayableAttachments?.isNotEmpty ?? false)
+            AttachmentList(
+              data: displayableAttachments!,
+              bordered: true,
+              maxHeight: widget.showFullPost ? null : 480,
+              minWidth: attachmentSize,
+              maxWidth: attachmentSize,
+              fit: widget.showFullPost ? BoxFit.cover : BoxFit.contain,
+              padding: EdgeInsets.only(left: 12, right: 12),
+            ),
+          if (widget.data.preload?.poll != null)
+            StyledWidget(Container(
+              constraints:
+                  BoxConstraints(maxWidth: widget.maxWidth ?? double.infinity),
+              child: PostPoll(poll: widget.data.preload!.poll!),
+            ))
+                .padding(
+                  left: 12,
+                  right: 12,
+                  top: 12,
+                  bottom: 4,
+                )
+                .center(),
+          if (widget.data.body['content'] != null &&
+              (cfg.prefs.getBool(kAppExpandPostLink) ?? true))
+            LinkPreviewWidget(
+              text: widget.data.body['content'],
+            ).padding(left: 12, right: 4),
+          if (widget.showExpandableComments)
+            _PostCommentIntent(
+              data: widget.data,
+              showAvatar: widget.showAvatar,
+            ).padding(left: 12, right: 12)
+          else
+            _PostFeaturedComment(data: widget.data, maxWidth: widget.maxWidth)
+                .padding(left: 12, right: 12),
+          if (widget.showReactions)
+            Center(
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: (widget.maxWidth ?? double.infinity) + 24,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: _PostReactionList(
+                    data: widget.data,
+                    padding: EdgeInsets.only(left: 12, right: 12),
+                    onChanged: _onChanged,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -389,15 +638,6 @@ class _PostItemState extends State<PostItem> {
                             isEnlarge: widget.data.type == 'article' &&
                                 widget.showFullPost,
                           ).padding(bottom: 6),
-                        if (widget.data.repostTo != null)
-                          _PostQuoteContent(child: widget.data.repostTo!)
-                              .padding(
-                            bottom:
-                                widget.data.preload?.attachments?.isNotEmpty ??
-                                        false
-                                    ? 12
-                                    : 0,
-                          ),
                         if (widget.data.visibility > 0)
                           _PostVisibilityHint(data: widget.data).padding(
                             vertical: 4,
@@ -462,12 +702,25 @@ class _PostItemState extends State<PostItem> {
                               ),
                           ],
                         ).padding(
-                          bottom: widget.showViews ||
-                                  _isTranslated ||
-                                  _isTranslating
+                          bottom: (widget.showViews ||
+                                      _isTranslated ||
+                                      _isTranslating) &&
+                                  (widget.data.repostTo != null ||
+                                      (widget.data.preload?.attachments
+                                              ?.isNotEmpty ??
+                                          false))
                               ? 8
                               : 0,
                         ),
+                        if (widget.data.repostTo != null)
+                          _PostQuoteContent(child: widget.data.repostTo!)
+                              .padding(
+                            bottom:
+                                (widget.data.preload?.attachments?.isNotEmpty ??
+                                        false)
+                                    ? 8
+                                    : 0,
+                          ),
                       ],
                     ),
                   )
@@ -504,7 +757,7 @@ class _PostItemState extends State<PostItem> {
             data: widget.data,
             showAvatar: widget.showAvatar,
           ).padding(left: widget.showAvatar ? 60 : 12, right: 12)
-        else
+        else if (widget.showComments)
           _PostFeaturedComment(data: widget.data, maxWidth: widget.maxWidth)
               .padding(left: widget.showAvatar ? 60 : 12, right: 12),
         if (widget.showReactions)
@@ -1403,10 +1656,19 @@ class _PostQuoteContent extends StatelessWidget {
           children: [
             Column(
               children: [
-                _PostContentHeader(
-                  data: child,
-                  isCompact: true,
-                  isRelativeDate: isRelativeDate,
+                Row(
+                  children: [
+                    _PostAvatar(
+                      data: child,
+                      isCompact: true,
+                    ),
+                    const Gap(8),
+                    _PostContentHeader(
+                      data: child,
+                      isCompact: true,
+                      isRelativeDate: isRelativeDate,
+                    ),
+                  ],
                 ).padding(bottom: 4),
                 _PostContentBody(
                   data: child,
@@ -1637,6 +1899,7 @@ class _PostCommentIntentState extends State<_PostCommentIntent> {
       children: [
         if (_comments.isNotEmpty)
           Card(
+            elevation: 4,
             margin: EdgeInsets.zero,
             child: Column(
               spacing: 8,
@@ -1652,7 +1915,7 @@ class _PostCommentIntentState extends State<_PostCommentIntent> {
                   ).padding(vertical: 8, left: 6),
               ],
             ),
-          ).padding(bottom: 8),
+          ).padding(vertical: 8),
         Row(
           children: [
             Transform.flip(
