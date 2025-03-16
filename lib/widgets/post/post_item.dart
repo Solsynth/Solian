@@ -50,6 +50,7 @@ class OpenablePostItem extends StatelessWidget {
   final bool showComments;
   final bool showMenu;
   final bool showFullPost;
+  final bool showExpandableComments;
   final double? maxWidth;
   final Function(SnPost data)? onChanged;
   final Function()? onDeleted;
@@ -62,6 +63,7 @@ class OpenablePostItem extends StatelessWidget {
     this.showComments = true,
     this.showMenu = true,
     this.showFullPost = false,
+    this.showExpandableComments = false,
     this.maxWidth,
     this.onChanged,
     this.onDeleted,
@@ -83,6 +85,7 @@ class OpenablePostItem extends StatelessWidget {
               maxWidth: maxWidth,
               showComments: showComments,
               showFullPost: showFullPost,
+              showExpandableComments: showExpandableComments,
               onChanged: onChanged,
               onDeleted: onDeleted,
               onSelectAnswer: onSelectAnswer,
@@ -115,6 +118,7 @@ class PostItem extends StatelessWidget {
   final bool showComments;
   final bool showMenu;
   final bool showFullPost;
+  final bool showExpandableComments;
   final double? maxWidth;
   final Function(SnPost data)? onChanged;
   final Function()? onDeleted;
@@ -127,6 +131,7 @@ class PostItem extends StatelessWidget {
     this.showComments = true,
     this.showMenu = true,
     this.showFullPost = false,
+    this.showExpandableComments = false,
     this.maxWidth,
     this.onChanged,
     this.onDeleted,
@@ -354,14 +359,17 @@ class PostItem extends StatelessWidget {
           ),
         if (data.preload?.poll != null)
           PostPoll(poll: data.preload!.poll!)
-              .padding(horizontal: 12, vertical: 4),
+              .padding(left: 60, right: 12, top: 12, bottom: 4),
         if (data.body['content'] != null &&
             (cfg.prefs.getBool(kAppExpandPostLink) ?? true))
           LinkPreviewWidget(
             text: data.body['content'],
           ).padding(left: 60, right: 4),
-        _PostFeaturedComment(data: data, maxWidth: maxWidth)
-            .padding(left: 60, right: 12),
+        if (showExpandableComments)
+          _PostCommentIntent(data: data).padding(left: 60, right: 12)
+        else
+          _PostFeaturedComment(data: data, maxWidth: maxWidth)
+              .padding(left: 60, right: 12),
         Padding(
           padding: const EdgeInsets.only(top: 4),
           child: _PostReactionList(
@@ -404,13 +412,24 @@ class PostShareImageWidget extends StatelessWidget {
                 child: AutoResizeUniversalImage(
                   sn.getAttachmentUrl(data.preload!.thumbnail!.rid),
                   fit: BoxFit.cover,
+                  filterQuality: FilterQuality.high,
                 ),
               ),
             ).padding(bottom: 8),
-          _PostContentHeader(
-            data: data,
-            isRelativeDate: false,
-          ).padding(horizontal: 16, bottom: 8),
+          Row(
+            children: [
+              _PostAvatar(
+                data: data,
+                isCompact: false,
+                filterQuality: FilterQuality.high,
+              ),
+              const Gap(12),
+              _PostContentHeader(
+                data: data,
+                isRelativeDate: false,
+              ).padding(horizontal: 16, bottom: 8),
+            ],
+          ),
           if (data.type == 'question')
             _PostQuestionHint(data: data).padding(horizontal: 16, bottom: 8),
           _PostHeadline(
@@ -803,7 +822,12 @@ class _PostHeadline extends StatelessWidget {
 class _PostAvatar extends StatelessWidget {
   final SnPost data;
   final bool isCompact;
-  const _PostAvatar({required this.data, required this.isCompact});
+  final FilterQuality? filterQuality;
+  const _PostAvatar({
+    required this.data,
+    required this.isCompact,
+    this.filterQuality,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -815,6 +839,7 @@ class _PostAvatar extends StatelessWidget {
     return GestureDetector(
       child: data.preload?.realm == null
           ? AccountImage(
+              filterQuality: filterQuality,
               content: data.publisher.avatar,
               radius: isCompact ? 12 : 20,
               borderRadius: data.publisher.type == 1 ? (isCompact ? 4 : 8) : 20,
@@ -827,6 +852,7 @@ class _PostAvatar extends StatelessWidget {
                   : null,
             )
           : AccountImage(
+              filterQuality: filterQuality,
               content: data.preload!.realm!.avatar,
               radius: isCompact ? 12 : 20,
               borderRadius: isCompact ? 4 : 8,
@@ -1391,6 +1417,95 @@ class _PostTruncatedHint extends StatelessWidget {
             ),
         ],
       ).opacity(0.75),
+    );
+  }
+}
+
+class _PostCommentIntent extends StatefulWidget {
+  final SnPost data;
+  const _PostCommentIntent({required this.data});
+
+  @override
+  State<_PostCommentIntent> createState() => _PostCommentIntentState();
+}
+
+class _PostCommentIntentState extends State<_PostCommentIntent> {
+  bool _isBusy = false;
+  int? _totalCount;
+  final List<SnPost> _comments = List.empty(growable: true);
+
+  bool get _isAllLoaded =>
+      _totalCount != null && _comments.length >= _totalCount!;
+
+  Future<void> _fetchComments() async {
+    setState(() => _isBusy = true);
+    try {
+      final sn = context.read<SnNetworkProvider>();
+      final resp = await sn.client.get(
+        '/cgi/co/posts/${widget.data.id}/replies',
+        queryParameters: {
+          'take': 10,
+          'offset': _comments.length,
+        },
+      );
+      _totalCount = resp.data['count'];
+      _comments.addAll(
+        resp.data['data'].map((ele) => SnPost.fromJson(ele)).cast<SnPost>(),
+      );
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    } finally {
+      setState(() => _isBusy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (_comments.isNotEmpty)
+          Card(
+            margin: EdgeInsets.zero,
+            child: Column(
+              spacing: 8,
+              children: [
+                for (final ele in _comments)
+                  PostItem(
+                    data: ele,
+                    showExpandableComments: true,
+                    maxWidth: double.infinity,
+                  ).padding(vertical: 8),
+              ],
+            ),
+          ).padding(bottom: 8),
+        Row(
+          children: [
+            Transform.flip(
+              flipX: true,
+              child: const Icon(Symbols.comment, size: 20),
+            ),
+            const Gap(4),
+            Text('postCommentsDetailed'.plural(widget.data.metric.replyCount)),
+            if (widget.data.metric.replyCount > 0 && !_isAllLoaded)
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: IconButton(
+                  visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                  constraints: const BoxConstraints(),
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Symbols.expand_more, size: 18),
+                  onPressed: _isBusy
+                      ? null
+                      : () {
+                          _fetchComments();
+                        },
+                ),
+              ).padding(left: 8),
+          ],
+        ).opacity(0.75).padding(horizontal: 4),
+      ],
     );
   }
 }

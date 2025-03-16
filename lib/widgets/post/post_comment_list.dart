@@ -138,6 +138,7 @@ class PostCommentSliverListState extends State<PostCommentSliverList> {
           child: PostItem(
             data: _posts[idx],
             maxWidth: widget.maxWidth,
+            showExpandableComments: true,
             onSelectAnswer: widget.parentPost.type == 'question'
                 ? () => _selectAnswer(_posts[idx])
                 : null,
@@ -209,6 +210,7 @@ class _PostCommentListPopupState extends State<PostCommentListPopup> {
                 if (ua.isAuthorized)
                   SliverToBoxAdapter(
                     child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
                       height: 240,
                       decoration: BoxDecoration(
                         border: Border.symmetric(

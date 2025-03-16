@@ -14,6 +14,7 @@ class AccountImage extends StatelessWidget {
   final Widget? fallbackWidget;
   final Widget? badge;
   final Offset? badgeOffset;
+  final FilterQuality? filterQuality;
 
   const AccountImage({
     super.key,
@@ -25,6 +26,7 @@ class AccountImage extends StatelessWidget {
     this.fallbackWidget,
     this.badge,
     this.badgeOffset,
+    this.filterQuality,
   });
 
   @override
@@ -54,6 +56,7 @@ class AccountImage extends StatelessWidget {
                   )
                 : AutoResizeUniversalImage(
                     sn.getAttachmentUrl(url),
+                    filterQuality: filterQuality,
                     key: Key('attachment-${content.hashCode}'),
                     fit: BoxFit.cover,
                   ),

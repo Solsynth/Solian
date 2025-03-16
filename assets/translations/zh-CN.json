@@ -205,6 +205,7 @@
     "one": "{} 条评论",
     "other": "{} 条评论"
   },
+  "postCommentExpand": "展开评论",
   "settingsAppearance": "外观",
   "settingsCustomFonts": "自定义字体",
   "settingsCustomFontsDescription": "设置应用程序使用的字体。",

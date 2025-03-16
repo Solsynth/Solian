@@ -205,6 +205,7 @@
     "one": "{} 條評論",
     "other": "{} 條評論"
   },
+  "postCommentExpand": "展開評論",
   "settingsAppearance": "外觀",
   "settingsCustomFonts": "自定義字體",
   "settingsCustomFontsDescription": "設置應用程序使用的字體。",

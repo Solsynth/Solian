@@ -207,6 +207,7 @@
     "one": "{} comment",
     "other": "{} comments"
   },
+  "postCommentExpand": "Show comments",
   "settingsAppearance": "Appearance",
   "settingsCustomFonts": "Custom Fonts",
   "settingsCustomFontsDescription": "Set custom fonts for the application.",
