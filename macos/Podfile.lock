@@ -90,8 +90,6 @@ PODS:
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
-  - geolocator_apple (1.2.0):
-    - FlutterMacOS
   - GoogleAppMeasurement (11.8.0):
     - GoogleAppMeasurement/AdIdSupport (= 11.8.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
@@ -148,7 +146,7 @@ PODS:
     - HotKey
   - in_app_review (2.0.0):
     - FlutterMacOS
-  - livekit_client (2.4.0):
+  - livekit_client (2.4.1):
     - flutter_webrtc
     - FlutterMacOS
     - WebRTC-SDK (= 125.6422.06)
@@ -232,7 +230,6 @@ DEPENDENCIES:
   - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gal (from `Flutter/ephemeral/.symlinks/plugins/gal/darwin`)
-  - geolocator_apple (from `Flutter/ephemeral/.symlinks/plugins/geolocator_apple/macos`)
   - hotkey_manager_macos (from `Flutter/ephemeral/.symlinks/plugins/hotkey_manager_macos/macos`)
   - in_app_review (from `Flutter/ephemeral/.symlinks/plugins/in_app_review/macos`)
   - livekit_client (from `Flutter/ephemeral/.symlinks/plugins/livekit_client/macos`)
@@ -307,8 +304,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   gal:
     :path: Flutter/ephemeral/.symlinks/plugins/gal/darwin
-  geolocator_apple:
-    :path: Flutter/ephemeral/.symlinks/plugins/geolocator_apple/macos
   hotkey_manager_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/hotkey_manager_macos/macos
   in_app_review:
@@ -372,14 +367,13 @@ SPEC CHECKSUMS:
   flutter_webrtc: d55fd3f5c75b42940b6b4b2cf376a5797398d1f8
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   gal: 6a522c75909f1244732d4596d11d6a2f86ff37a5
-  geolocator_apple: 72a78ae3f3e4ec0db62117bd93e34523f5011d58
   GoogleAppMeasurement: fc0817122bd4d4189164f85374e06773b9561896
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   HotKey: 400beb7caa29054ea8d864c96f5ba7e5b4852277
   hotkey_manager_macos: 1e2edb0c7ae4fe67108af44a9d3445de41404160
   in_app_review: a6a031b9acd03c7d103e341aa334adf2c493fb93
-  livekit_client: 2e766be2c3ee6274a8e2633b356b98b5eb842987
+  livekit_client: d03409f83df069a1bb00a4c8dc78c54fb2287262
   local_notifier: e9506bc66fc70311e8bc7291fb70f743c081e4ff
   media_kit_libs_macos_video: b3e2bbec2eef97c285f2b1baa7963c67c753fb82
   media_kit_native_event_loop: 81fd5b45192b72f8b5b69eaf5b540f45777eb8d5
