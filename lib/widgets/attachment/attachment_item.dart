@@ -45,11 +45,25 @@ class AttachmentItem extends StatelessWidget {
       case 'image':
         return Hero(
           tag: 'attachment-${data!.rid}-$tag',
-          child: AutoResizeUniversalImage(
-            sn.getAttachmentUrl(data!.rid),
-            key: Key('attachment-${data!.rid}-$tag'),
-            fit: fit,
-            filterQuality: filterQuality,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: AutoResizeUniversalImage(
+                  sn.getAttachmentUrl(data!.rid),
+                  key: Key('attachment-${data!.rid}-$tag-blur-background'),
+                  fit: BoxFit.cover,
+                  filterQuality: filterQuality,
+                ),
+              ),
+              AutoResizeUniversalImage(
+                sn.getAttachmentUrl(data!.rid),
+                key: Key('attachment-${data!.rid}-$tag'),
+                fit: fit,
+                filterQuality: filterQuality,
+              ),
+            ],
           ),
         );
       case 'video':
