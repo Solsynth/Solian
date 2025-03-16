@@ -80,59 +80,64 @@ class _PostPollState extends State<PostPoll> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Column(
-        children: [
-          for (final option in _poll.options)
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  child: Container(
-                    height: 60,
-                    width: MediaQuery.of(context).size.width *
-                        (_poll.metric.byOptionsPercentage[option.id] ?? 0)
-                            .toDouble(),
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  ),
-                ),
-                ListTile(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  minTileHeight: 60,
-                  leading: _answeredChoice == option.id
-                      ? const Icon(Symbols.circle, fill: 1)
-                      : const Icon(Symbols.circle),
-                  title: Text(option.name),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Card(
+          margin: EdgeInsets.zero,
+          child: Column(
+            children: [
+              for (final option in _poll.options)
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      child: Container(
+                        height: 60,
+                        width: constraints.maxWidth *
+                            (_poll.metric.byOptionsPercentage[option.id] ?? 0)
+                                .toDouble(),
+                        color:
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                      ),
+                    ),
+                    ListTile(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      minTileHeight: 60,
+                      leading: _answeredChoice == option.id
+                          ? const Icon(Symbols.circle, fill: 1)
+                          : const Icon(Symbols.circle),
+                      title: Text(option.name),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'pollVotes'
-                                .plural(_poll.metric.byOptions[option.id] ?? 0),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'pollVotes'.plural(
+                                    _poll.metric.byOptions[option.id] ?? 0),
+                              ),
+                              Text(' · ').padding(horizontal: 4),
+                              Text(
+                                '${((_poll.metric.byOptionsPercentage[option.id] ?? 0).toDouble() * 100).toStringAsFixed(2)}%',
+                              ),
+                            ],
                           ),
-                          Text(' · ').padding(horizontal: 4),
-                          Text(
-                            '${((_poll.metric.byOptionsPercentage[option.id] ?? 0).toDouble() * 100).toStringAsFixed(2)}%',
-                          ),
+                          if (option.description.isNotEmpty)
+                            Text(option.description),
                         ],
                       ),
-                      if (option.description.isNotEmpty)
-                        Text(option.description),
-                    ],
-                  ),
-                  onTap: _isBusy ? null : () => _voteForOption(option),
-                ),
-              ],
-            )
-        ],
-      ),
+                      onTap: _isBusy ? null : () => _voteForOption(option),
+                    ),
+                  ],
+                )
+            ],
+          ),
+        );
+      },
     );
   }
 }
