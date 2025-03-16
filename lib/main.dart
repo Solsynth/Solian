@@ -37,6 +37,7 @@ import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/providers/sn_sticker.dart';
 import 'package:surface/providers/special_day.dart';
 import 'package:surface/providers/theme.dart';
+import 'package:surface/providers/translation.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/providers/websocket.dart';
@@ -167,6 +168,7 @@ class SolianApp extends StatelessWidget {
             ChangeNotifierProvider(create: (ctx) => NotificationProvider(ctx)),
             ChangeNotifierProvider(create: (ctx) => ChatChannelProvider(ctx)),
             ChangeNotifierProvider(create: (ctx) => ChatCallProvider(ctx)),
+            Provider(create: (ctx) => SnTranslator()),
 
             // Additional helper layer
             Provider(create: (ctx) => SpecialDayProvider(ctx)),
@@ -274,7 +276,9 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
           mounted) {
         final config = context.read<ConfigProvider>();
         config.setUpdate(
-            remoteVersionString, resp.data?['body'] ?? 'No changelog');
+          remoteVersionString,
+          resp.data?['body'] ?? 'No changelog',
+        );
         logging.info("[Update] Update available: $remoteVersionString");
       }
     } catch (e) {

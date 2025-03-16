@@ -839,5 +839,7 @@
   "accountContactMethodsPublicHint": "这个联系方式公开地显示在个人资料中。",
   "accountContactMethodsDelete": "删除联系方式",
   "accountContactMethodsDeleteDescription": "你确定要删除联系方式 {} 吗？这个操作不可撤销。",
-  "postCommentAdd": "撰写一条评论"
+  "postCommentAdd": "撰写一条评论",
+  "translate": "翻译",
+  "translated": "已翻译"
 }

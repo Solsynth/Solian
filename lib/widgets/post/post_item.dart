@@ -22,6 +22,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/translation.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/screens/post/post_detail.dart';
@@ -112,10 +113,11 @@ class OpenablePostItem extends StatelessWidget {
   }
 }
 
-class PostItem extends StatelessWidget {
+class PostItem extends StatefulWidget {
   final SnPost data;
   final bool showReactions;
   final bool showComments;
+  final bool showViews;
   final bool showMenu;
   final bool showFullPost;
   final bool showAvatar;
@@ -130,6 +132,7 @@ class PostItem extends StatelessWidget {
     required this.data,
     this.showReactions = true,
     this.showComments = true,
+    this.showViews = true,
     this.showMenu = true,
     this.showFullPost = false,
     this.showAvatar = true,
@@ -140,13 +143,23 @@ class PostItem extends StatelessWidget {
     this.onSelectAnswer,
   });
 
+  @override
+  State<PostItem> createState() => _PostItemState();
+}
+
+class _PostItemState extends State<PostItem> {
+  late String _displayText = widget.data.body['content'] ?? '';
+  late String _displayTitle = widget.data.body['title'] ?? '';
+  late String _displayDescription = widget.data.body['description'] ?? '';
+  bool _isTranslated = false;
+
   void _onChanged(SnPost data) {
-    if (onChanged != null) onChanged!(data);
+    if (widget.onChanged != null) widget.onChanged!(data);
   }
 
   void _doShare(BuildContext context) {
     final box = context.findRenderObject() as RenderBox?;
-    final url = 'https://solsynth.dev/posts/${data.id}';
+    final url = 'https://solsynth.dev/posts/${widget.data.id}';
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       Share.shareUri(Uri.parse(url),
           sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
@@ -174,7 +187,7 @@ class PostItem extends StatelessWidget {
               ],
               child: ResponsiveBreakpoints.builder(
                 breakpoints: ResponsiveBreakpoints.of(context).breakpoints,
-                child: PostShareImageWidget(data: data),
+                child: PostShareImageWidget(data: widget.data),
               ),
             ),
           ),
@@ -199,7 +212,7 @@ class PostItem extends StatelessWidget {
       );
     } else {
       await FileSaver.instance.saveFile(
-          name: 'Solar Network Post #${data.id}.png', file: imageFile);
+          name: 'Solar Network Post #${widget.data.id}.png', file: imageFile);
     }
 
     await imageFile.delete();
@@ -210,18 +223,20 @@ class PostItem extends StatelessWidget {
     final sn = context.read<SnNetworkProvider>();
 
     final ua = context.read<UserProvider>();
-    final isAuthor = ua.isAuthorized && data.publisher.accountId == ua.user?.id;
+    final isAuthor =
+        ua.isAuthorized && widget.data.publisher.accountId == ua.user?.id;
 
-    final displayableAttachments = data.preload?.attachments
+    final displayableAttachments = widget.data.preload?.attachments
         ?.where((ele) =>
-            ele?.mediaType != SnMediaType.image || data.type != 'article')
+            ele?.mediaType != SnMediaType.image ||
+            widget.data.type != 'article')
         .toList();
 
     final cfg = context.read<ConfigProvider>();
 
     var attachmentSize = math.min(
-        MediaQuery.of(context).size.width, maxWidth ?? double.infinity);
-    if ((data.preload?.attachments?.length ?? 0) > 1) {
+        MediaQuery.of(context).size.width, widget.maxWidth ?? double.infinity);
+    if ((widget.data.preload?.attachments?.length ?? 0) > 1) {
       attachmentSize -= 80;
     }
 
@@ -229,19 +244,20 @@ class PostItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+          constraints:
+              BoxConstraints(maxWidth: widget.maxWidth ?? double.infinity),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (showAvatar)
+                  if (widget.showAvatar)
                     _PostAvatar(
-                      data: data,
+                      data: widget.data,
                       isCompact: false,
                     ),
-                  if (showAvatar) const Gap(12),
+                  if (widget.showAvatar) const Gap(12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,25 +266,33 @@ class PostItem extends StatelessWidget {
                           children: [
                             Expanded(
                               child: _PostContentHeader(
-                                isRelativeDate: !showFullPost,
+                                isRelativeDate: !widget.showFullPost,
                                 isCompact: true,
-                                data: data,
+                                data: widget.data,
                               ),
                             ),
                             _PostActionPopup(
-                              data: data,
+                              data: widget.data,
                               isAuthor: isAuthor,
                               onShare: () => _doShare(context),
                               onShareImage: () => _doShareViaPicture(context),
-                              onSelectAnswer: onSelectAnswer,
+                              onSelectAnswer: widget.onSelectAnswer,
                               onDeleted: () {
-                                onDeleted?.call();
+                                widget.onDeleted?.call();
+                              },
+                              onTranslate: (text) {
+                                setState(() {
+                                  _displayText = text['content']?.trim() ?? '';
+                                  _displayTitle = text['title']?.trim() ?? '';
+                                  _displayDescription =
+                                      text['description']?.trim() ?? '';
+                                  _isTranslated = true;
+                                });
                               },
                             ),
                           ],
                         ),
-                        const Gap(8),
-                        if (data.preload?.thumbnail != null)
+                        if (widget.data.preload?.thumbnail != null)
                           Container(
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
@@ -288,60 +312,103 @@ class PostItem extends StatelessWidget {
                                 ),
                                 child: AutoResizeUniversalImage(
                                   sn.getAttachmentUrl(
-                                    data.preload!.thumbnail!.rid,
+                                    widget.data.preload!.thumbnail!.rid,
                                   ),
                                   fit: BoxFit.cover,
                                 ),
                               ),
                             ),
                           ),
-                        if (data.preload?.video != null)
-                          _PostVideoPlayer(data: data).padding(bottom: 8),
-                        if (data.type == 'question')
-                          _PostQuestionHint(data: data).padding(bottom: 8),
-                        if (data.body['title'] != null ||
-                            data.body['description'] != null)
+                        if (widget.data.preload?.video != null)
+                          _PostVideoPlayer(data: widget.data)
+                              .padding(bottom: 8),
+                        if (widget.data.type == 'question')
+                          _PostQuestionHint(data: widget.data)
+                              .padding(bottom: 8),
+                        if (_displayDescription.isNotEmpty ||
+                            _displayTitle.isNotEmpty)
                           _PostHeadline(
-                            data: data,
-                            isEnlarge: data.type == 'article' && showFullPost,
+                            title: _displayTitle,
+                            description: _displayDescription,
+                            data: widget.data,
+                            isEnlarge: widget.data.type == 'article' &&
+                                widget.showFullPost,
                           ).padding(bottom: 8),
-                        if (data.type == 'article' && !showFullPost)
+                        if (widget.data.type == 'article' &&
+                            !widget.showFullPost)
                           Text('postArticle')
                               .tr()
                               .fontSize(13)
                               .opacity(0.75)
                               .padding(bottom: 8),
-                        if ((data.body['content']?.isNotEmpty ?? false) &&
-                            (showFullPost || data.type != 'article'))
+                        if ((_displayText.isNotEmpty) &&
+                            (widget.showFullPost ||
+                                widget.data.type != 'article'))
                           _PostContentBody(
-                            data: data,
-                            isSelectable: showFullPost,
-                            isEnlarge: data.type == 'article' && showFullPost,
+                            text: _displayText,
+                            data: widget.data,
+                            isSelectable: widget.showFullPost,
+                            isEnlarge: widget.data.type == 'article' &&
+                                widget.showFullPost,
                           ).padding(bottom: 6),
-                        if (data.repostTo != null)
-                          _PostQuoteContent(child: data.repostTo!).padding(
+                        if (widget.data.repostTo != null)
+                          _PostQuoteContent(child: widget.data.repostTo!)
+                              .padding(
                             bottom:
-                                data.preload?.attachments?.isNotEmpty ?? false
+                                widget.data.preload?.attachments?.isNotEmpty ??
+                                        false
                                     ? 12
                                     : 0,
                           ),
-                        if (data.visibility > 0)
-                          _PostVisibilityHint(data: data).padding(
+                        if (widget.data.visibility > 0)
+                          _PostVisibilityHint(data: widget.data).padding(
                             vertical: 4,
                           ),
-                        if (data.body['content_truncated'] == true)
-                          _PostTruncatedHint(data: data).padding(
+                        if (widget.data.body['content_truncated'] == true)
+                          _PostTruncatedHint(data: widget.data).padding(
                             vertical: 4,
                           ),
-                        if (data.tags.isNotEmpty)
-                          _PostTagsList(data: data).padding(top: 4, bottom: 6),
-                        Row(
+                        if (widget.data.tags.isNotEmpty)
+                          _PostTagsList(data: widget.data)
+                              .padding(top: 4, bottom: 6),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 4,
                           children: [
-                            Icon(Symbols.play_circle, size: 20),
-                            const Gap(4),
-                            Text('postViews').plural(data.totalViews),
+                            if (widget.showViews)
+                              Row(
+                                children: [
+                                  Icon(Symbols.play_circle, size: 20),
+                                  const Gap(4),
+                                  Text('postViews')
+                                      .plural(widget.data.totalViews),
+                                ],
+                              ).opacity(0.75),
+                            if (_isTranslated)
+                              InkWell(
+                                child: Row(
+                                  children: [
+                                    Icon(Symbols.translate, size: 20),
+                                    const Gap(4),
+                                    Text('translated').tr(),
+                                  ],
+                                ).opacity(0.75),
+                                onTap: () {
+                                  setState(() {
+                                    _displayText =
+                                        widget.data.body['content'] ?? '';
+                                    _displayTitle =
+                                        widget.data.body['title'] ?? '';
+                                    _displayDescription =
+                                        widget.data.body['description'] ?? '';
+                                    _isTranslated = false;
+                                  });
+                                },
+                              ),
                           ],
-                        ).opacity(0.75).padding(vertical: 4),
+                        ).padding(
+                          bottom: widget.showViews || _isTranslated ? 8 : 0,
+                        ),
                       ],
                     ),
                   )
@@ -354,40 +421,43 @@ class PostItem extends StatelessWidget {
           AttachmentList(
             data: displayableAttachments!,
             bordered: true,
-            maxHeight: showFullPost ? null : 480,
+            maxHeight: widget.showFullPost ? null : 480,
             minWidth: attachmentSize,
             maxWidth: attachmentSize,
-            fit: showFullPost ? BoxFit.cover : BoxFit.contain,
-            padding: EdgeInsets.only(left: showAvatar ? 60 : 12, right: 12),
+            fit: widget.showFullPost ? BoxFit.cover : BoxFit.contain,
+            padding:
+                EdgeInsets.only(left: widget.showAvatar ? 60 : 12, right: 12),
           ),
-        if (data.preload?.poll != null)
-          PostPoll(poll: data.preload!.poll!).padding(
-            left: showAvatar ? 60 : 12,
+        if (widget.data.preload?.poll != null)
+          PostPoll(poll: widget.data.preload!.poll!).padding(
+            left: widget.showAvatar ? 60 : 12,
             right: 12,
             top: 12,
             bottom: 4,
           ),
-        if (data.body['content'] != null &&
+        if (widget.data.body['content'] != null &&
             (cfg.prefs.getBool(kAppExpandPostLink) ?? true))
           LinkPreviewWidget(
-            text: data.body['content'],
-          ).padding(left: showAvatar ? 60 : 12, right: 4),
-        if (showExpandableComments)
+            text: widget.data.body['content'],
+          ).padding(left: widget.showAvatar ? 60 : 12, right: 4),
+        if (widget.showExpandableComments)
           _PostCommentIntent(
-            data: data,
-            showAvatar: showAvatar,
-          ).padding(left: showAvatar ? 60 : 12, right: 12)
+            data: widget.data,
+            showAvatar: widget.showAvatar,
+          ).padding(left: widget.showAvatar ? 60 : 12, right: 12)
         else
-          _PostFeaturedComment(data: data, maxWidth: maxWidth)
-              .padding(left: showAvatar ? 60 : 12, right: 12),
-        Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: _PostReactionList(
-            data: data,
-            padding: EdgeInsets.only(left: showAvatar ? 60 : 12, right: 12),
-            onChanged: _onChanged,
+          _PostFeaturedComment(data: widget.data, maxWidth: widget.maxWidth)
+              .padding(left: widget.showAvatar ? 60 : 12, right: 12),
+        if (widget.showReactions)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: _PostReactionList(
+              data: widget.data,
+              padding:
+                  EdgeInsets.only(left: widget.showAvatar ? 60 : 12, right: 12),
+              onChanged: _onChanged,
+            ),
           ),
-        ),
       ],
     );
   }
@@ -448,6 +518,7 @@ class PostShareImageWidget extends StatelessWidget {
           ).padding(horizontal: 16, bottom: 8),
           if (data.body['content']?.isNotEmpty ?? false)
             _PostContentBody(
+              text: data.body['content'] ?? '',
               data: data,
               isEnlarge: data.type == 'article',
             ).padding(horizontal: 16, bottom: 8),
@@ -733,10 +804,14 @@ class _PostReactionListState extends State<_PostReactionList> {
 }
 
 class _PostHeadline extends StatelessWidget {
+  final String? title;
+  final String? description;
   final SnPost data;
   final bool isEnlarge;
 
   const _PostHeadline({
+    this.title,
+    this.description,
     required this.data,
     this.isEnlarge = false,
   });
@@ -769,19 +844,24 @@ class _PostHeadline extends StatelessWidget {
                 ),
               ),
             ),
-          if (data.body['title'] != null)
+          if (data.body['title'] != null || (title?.isNotEmpty ?? false))
             Text(
-              data.body['title'],
+              title ?? data.body['title'],
               style: Theme.of(context).textTheme.titleMedium,
               textScaler: TextScaler.linear(1.4),
             ),
-          if (data.body['description'] != null)
+          if (data.body['description'] != null ||
+              (description?.isNotEmpty ?? false))
             Text(
-              data.body['description'],
+              description ?? data.body['description'],
               style: Theme.of(context).textTheme.bodyMedium,
               textScaler: TextScaler.linear(1.1),
             ),
-          if (data.body['description'] != null) const Gap(8) else const Gap(4),
+          if (data.body['description'] != null ||
+              (description?.isNotEmpty ?? false))
+            const Gap(8)
+          else
+            const Gap(4),
           Row(
             children: [
               Text(
@@ -814,14 +894,15 @@ class _PostHeadline extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (data.body['title'] != null)
+        if (data.body['title'] != null || (title?.isNotEmpty ?? false))
           Text(
-            data.body['title'],
+            title ?? data.body['title'],
             style: Theme.of(context).textTheme.titleMedium,
           ),
-        if (data.body['description'] != null)
+        if (data.body['description'] != null ||
+            (description?.isNotEmpty ?? false))
           Text(
-            data.body['description'],
+            description ?? data.body['description'],
             style: Theme.of(context).textTheme.bodyMedium,
           ),
       ],
@@ -908,12 +989,14 @@ class _PostActionPopup extends StatelessWidget {
   final Function onDeleted;
   final Function() onShare, onShareImage;
   final Function()? onSelectAnswer;
+  final Function(Map<String, dynamic>)? onTranslate;
   const _PostActionPopup({
     required this.data,
     required this.isAuthor,
     required this.onDeleted,
     required this.onShare,
     required this.onShareImage,
+    this.onTranslate,
     this.onSelectAnswer,
   });
 
@@ -958,6 +1041,28 @@ class _PostActionPopup extends StatelessWidget {
     }
   }
 
+  Future<void> _translatePost(BuildContext context) async {
+    final ta = context.read<SnTranslator>();
+    try {
+      final to = EasyLocalization.of(context)!.locale.languageCode;
+      final body = {
+        'title': (data.body['title']?.isNotEmpty ?? false)
+            ? await ta.translate(data.body['title'], to: to)
+            : null,
+        'description': (data.body['description']?.isNotEmpty ?? false)
+            ? await ta.translate(data.body['description'], to: to)
+            : null,
+        'content': (data.body['content']?.isNotEmpty ?? false)
+            ? await ta.translate(data.body['content'], to: to)
+            : null,
+      };
+      onTranslate?.call(body);
+    } catch (err) {
+      if (!context.mounted) return;
+      context.showErrorDialog(err);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -969,6 +1074,20 @@ class _PostActionPopup extends StatelessWidget {
         ),
         padding: EdgeInsets.zero,
         itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+          if (onTranslate != null)
+            PopupMenuItem(
+              child: Row(
+                children: [
+                  const Icon(Symbols.translate),
+                  const Gap(16),
+                  Text('translate').tr(),
+                ],
+              ),
+              onTap: () {
+                _translatePost(context);
+              },
+            ),
+          if (onTranslate != null) PopupMenuDivider(),
           if (isAuthor && onSelectAnswer != null)
             PopupMenuItem(
               child: Row(
@@ -1192,11 +1311,13 @@ class _PostContentHeader extends StatelessWidget {
 }
 
 class _PostContentBody extends StatelessWidget {
+  final String text;
   final SnPost data;
   final bool isEnlarge;
   final bool isSelectable;
 
   const _PostContentBody({
+    required this.text,
     required this.data,
     this.isEnlarge = false,
     this.isSelectable = false,
@@ -1204,13 +1325,12 @@ class _PostContentBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (data.body['content'] == null) return const SizedBox.shrink();
     final content = MarkdownTextContent(
       isAutoWarp: data.type == 'story',
       isEnlargeSticker:
           RegExp(r"^:([-\w]+):$").hasMatch(data.body['content'] ?? ''),
       textScaler: isEnlarge ? TextScaler.linear(1.1) : null,
-      content: data.body['content'],
+      content: text,
       attachments: data.preload?.attachments,
     );
 
@@ -1251,7 +1371,10 @@ class _PostQuoteContent extends StatelessWidget {
                   isCompact: true,
                   isRelativeDate: isRelativeDate,
                 ).padding(bottom: 4),
-                _PostContentBody(data: child),
+                _PostContentBody(
+                  data: child,
+                  text: child.body['content'] ?? '',
+                ),
                 if (child.visibility > 0)
                   _PostVisibilityHint(data: child).padding(top: 4),
               ],
@@ -1486,6 +1609,8 @@ class _PostCommentIntentState extends State<_PostCommentIntent> {
                     data: ele,
                     showAvatar: false,
                     showExpandableComments: true,
+                    showReactions: false,
+                    showViews: false,
                     maxWidth: double.infinity,
                   ).padding(vertical: 8, left: 6),
               ],

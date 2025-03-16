@@ -812,6 +812,8 @@
   "accountActionEvent": "Action Events",
   "accountActionEventDescription": "View your action event logs.",
   "eventMetadata": "Metadata",
+  "accountAuthTickets": "Auth Sessions",
+  "accountAuthTicketsDescription": "View and manage your auth sessions.",
   "authTicketCreatedAt": "Issued at {}",
   "authTicketExpiredAt": "Expired at {}",
   "authTicketLastGrantAt": "Last granted at {}",
@@ -839,5 +841,7 @@
   "accountContactMethodsPublicHint": "This contact method will be displayed publicly on your profile.",
   "accountContactMethodsDelete": "Delete Contact Method",
   "accountContactMethodsDeleteDescription": "Are you sure you want to delete contact method {}? This operation is irreversible.",
-  "postCommentAdd": "Write a comment"
+  "postCommentAdd": "Write a comment",
+  "translate": "Translate",
+  "translated": "Translated"
 }

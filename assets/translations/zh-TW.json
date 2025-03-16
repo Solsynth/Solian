@@ -839,5 +839,7 @@
   "accountContactMethodsPublicHint": "這個聯繫方式公開地顯示在個人資料中。",
   "accountContactMethodsDelete": "刪除聯繫方式",
   "accountContactMethodsDeleteDescription": "你確定要刪除聯繫方式 {} 嗎？這個操作不可撤銷。",
-  "postCommentAdd": "撰寫一條評論"
+  "postCommentAdd": "撰寫一條評論",
+  "translate": "翻譯",
+  "translated": "已翻譯"
 }
