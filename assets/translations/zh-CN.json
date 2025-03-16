@@ -841,5 +841,8 @@
   "accountContactMethodsDeleteDescription": "你确定要删除联系方式 {} 吗？这个操作不可撤销。",
   "postCommentAdd": "撰写一条评论",
   "translate": "翻译",
-  "translated": "已翻译"
+  "translating": "正在翻译……",
+  "translated": "已翻译",
+  "settingsAutoTranslate": "自动翻译",
+  "settingsAutoTranslateDescription": "在查看帖子、消息时自动翻译文本。"
 }

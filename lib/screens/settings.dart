@@ -388,6 +388,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     .tr()
                     .padding(horizontal: 20, bottom: 4),
                 CheckboxListTile(
+                  secondary: const Icon(Symbols.translate),
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  title: Text('settingsAutoTranslate').tr(),
+                  subtitle: Text('settingsAutoTranslateDescription').tr(),
+                  value: _prefs.getBool(kAppAutoTranslate) ?? false,
+                  onChanged: (value) {
+                    setState(() {
+                      _prefs.setBool(kAppAutoTranslate, value ?? false);
+                    });
+                  },
+                ),
+                CheckboxListTile(
                   secondary: const Icon(Symbols.vibration),
                   contentPadding: const EdgeInsets.only(left: 24, right: 17),
                   title: Text('settingsNotifyWithHaptic').tr(),

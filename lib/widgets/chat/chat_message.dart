@@ -246,9 +246,14 @@ class _ChatMessageText extends StatefulWidget {
 class _ChatMessageTextState extends State<_ChatMessageText> {
   late String _displayText = widget.data.body['text'] ?? '';
   bool _isTranslated = false;
+  bool _isTranslating = false;
 
   Future<void> _translateText() async {
+    if (widget.data.body['text'] == null || widget.data.body['text']!.isEmpty) {
+      return;
+    }
     final ta = context.read<SnTranslator>();
+    setState(() => _isTranslating = true);
     try {
       final to = EasyLocalization.of(context)!.locale.languageCode;
       _displayText = await ta.translate(
@@ -259,6 +264,19 @@ class _ChatMessageTextState extends State<_ChatMessageText> {
       if (mounted) setState(() {});
     } catch (err) {
       if (mounted) context.showErrorDialog(err);
+    } finally {
+      setState(() => _isTranslating = false);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final cfg = context.read<ConfigProvider>();
+    if (cfg.autoTranslate) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _translateText();
+      });
     }
   }
 
@@ -345,6 +363,16 @@ class _ChatMessageTextState extends State<_ChatMessageText> {
           ),
           if (widget.data.updatedAt != widget.data.createdAt)
             Text('messageEditedHint'.tr()).fontSize(13).opacity(0.75),
+          if (_isTranslating)
+            AnimateWidgetExtensions(Text('translating').tr())
+                .animate(onPlay: (e) => e.repeat())
+                .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+                .then()
+                .fadeOut(
+                  duration: 500.ms,
+                  delay: 1000.ms,
+                  curve: Curves.easeIn,
+                ),
           if (_isTranslated)
             InkWell(
               child: Text('translated').tr().opacity(0.75),

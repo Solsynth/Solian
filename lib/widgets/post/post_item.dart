@@ -8,6 +8,7 @@ import 'package:file_saver/file_saver.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -152,6 +153,49 @@ class _PostItemState extends State<PostItem> {
   late String _displayTitle = widget.data.body['title'] ?? '';
   late String _displayDescription = widget.data.body['description'] ?? '';
   bool _isTranslated = false;
+  bool _isTranslating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final cfg = context.read<ConfigProvider>();
+    if (cfg.autoTranslate) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _translateText();
+      });
+    }
+  }
+
+  Future<void> _translateText() async {
+    final ta = context.read<SnTranslator>();
+    setState(() => _isTranslating = true);
+    try {
+      final to = EasyLocalization.of(context)!.locale.languageCode;
+      final futures = List<Future<void>>.empty(growable: true);
+      if (_displayTitle.isNotEmpty) {
+        futures.add(ta.translate(_displayTitle, to: to).then((value) {
+          _displayTitle = value;
+        }));
+      }
+      if (_displayDescription.isNotEmpty) {
+        futures.add(ta.translate(_displayDescription, to: to).then((value) {
+          _displayDescription = value;
+        }));
+      }
+      if (_displayText.isNotEmpty) {
+        futures.add(ta.translate(_displayText, to: to).then((value) {
+          _displayText = value;
+        }));
+      }
+      await Future.wait(futures);
+      _isTranslated = true;
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    } finally {
+      setState(() => _isTranslating = false);
+    }
+  }
 
   void _onChanged(SnPost data) {
     if (widget.onChanged != null) widget.onChanged!(data);
@@ -280,14 +324,8 @@ class _PostItemState extends State<PostItem> {
                               onDeleted: () {
                                 widget.onDeleted?.call();
                               },
-                              onTranslate: (text) {
-                                setState(() {
-                                  _displayText = text['content']?.trim() ?? '';
-                                  _displayTitle = text['title']?.trim() ?? '';
-                                  _displayDescription =
-                                      text['description']?.trim() ?? '';
-                                  _isTranslated = true;
-                                });
+                              onTranslate: () {
+                                _translateText();
                               },
                             ),
                           ],
@@ -384,6 +422,23 @@ class _PostItemState extends State<PostItem> {
                                       .plural(widget.data.totalViews),
                                 ],
                               ).opacity(0.75),
+                            if (_isTranslating)
+                              AnimateWidgetExtensions(Row(
+                                children: [
+                                  Icon(Symbols.translate, size: 20),
+                                  const Gap(4),
+                                  Text('translating').tr(),
+                                ],
+                              ))
+                                  .animate(onPlay: (e) => e.repeat())
+                                  .fadeIn(
+                                      duration: 500.ms, curve: Curves.easeOut)
+                                  .then()
+                                  .fadeOut(
+                                    duration: 500.ms,
+                                    delay: 1000.ms,
+                                    curve: Curves.easeIn,
+                                  ),
                             if (_isTranslated)
                               InkWell(
                                 child: Row(
@@ -407,7 +462,11 @@ class _PostItemState extends State<PostItem> {
                               ),
                           ],
                         ).padding(
-                          bottom: widget.showViews || _isTranslated ? 8 : 0,
+                          bottom: widget.showViews ||
+                                  _isTranslated ||
+                                  _isTranslating
+                              ? 8
+                              : 0,
                         ),
                       ],
                     ),
@@ -989,7 +1048,7 @@ class _PostActionPopup extends StatelessWidget {
   final Function onDeleted;
   final Function() onShare, onShareImage;
   final Function()? onSelectAnswer;
-  final Function(Map<String, dynamic>)? onTranslate;
+  final Function()? onTranslate;
   const _PostActionPopup({
     required this.data,
     required this.isAuthor,
@@ -1041,28 +1100,6 @@ class _PostActionPopup extends StatelessWidget {
     }
   }
 
-  Future<void> _translatePost(BuildContext context) async {
-    final ta = context.read<SnTranslator>();
-    try {
-      final to = EasyLocalization.of(context)!.locale.languageCode;
-      final body = {
-        'title': (data.body['title']?.isNotEmpty ?? false)
-            ? await ta.translate(data.body['title'], to: to)
-            : null,
-        'description': (data.body['description']?.isNotEmpty ?? false)
-            ? await ta.translate(data.body['description'], to: to)
-            : null,
-        'content': (data.body['content']?.isNotEmpty ?? false)
-            ? await ta.translate(data.body['content'], to: to)
-            : null,
-      };
-      onTranslate?.call(body);
-    } catch (err) {
-      if (!context.mounted) return;
-      context.showErrorDialog(err);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -1084,7 +1121,7 @@ class _PostActionPopup extends StatelessWidget {
                 ],
               ),
               onTap: () {
-                _translatePost(context);
+                onTranslate?.call();
               },
             ),
           if (onTranslate != null) PopupMenuDivider(),

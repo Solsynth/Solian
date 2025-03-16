@@ -843,5 +843,8 @@
   "accountContactMethodsDeleteDescription": "Are you sure you want to delete contact method {}? This operation is irreversible.",
   "postCommentAdd": "Write a comment",
   "translate": "Translate",
-  "translated": "Translated"
+  "translating": "Translating…",
+  "translated": "Translated",
+  "settingsAutoTranslate": "Auto Translate",
+  "settingsAutoTranslateDescription": "Automatically translate text when viewing posts and messages."
 }
