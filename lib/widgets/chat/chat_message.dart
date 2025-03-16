@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/keypair.dart';
+import 'package:surface/providers/translation.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/chat.dart';
@@ -18,6 +19,7 @@ import 'package:surface/widgets/account/account_popover.dart';
 import 'package:surface/widgets/account/badge.dart';
 import 'package:surface/widgets/attachment/attachment_list.dart';
 import 'package:surface/widgets/context_menu.dart';
+import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/link_preview.dart';
 import 'package:surface/widgets/markdown_content.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -228,7 +230,7 @@ class ChatMessage extends StatelessWidget {
   }
 }
 
-class _ChatMessageText extends StatelessWidget {
+class _ChatMessageText extends StatefulWidget {
   final SnChatMessage data;
   final Function(SnChatMessage)? onReply;
   final Function(SnChatMessage)? onEdit;
@@ -238,12 +240,37 @@ class _ChatMessageText extends StatelessWidget {
       {required this.data, this.onReply, this.onEdit, this.onDelete});
 
   @override
+  State<_ChatMessageText> createState() => _ChatMessageTextState();
+}
+
+class _ChatMessageTextState extends State<_ChatMessageText> {
+  late String _displayText = widget.data.body['text'] ?? '';
+  bool _isTranslated = false;
+
+  Future<void> _translateText() async {
+    final ta = context.read<SnTranslator>();
+    try {
+      final to = EasyLocalization.of(context)!.locale.languageCode;
+      _displayText = await ta.translate(
+        widget.data.body['text'],
+        to: to,
+      );
+      _isTranslated = true;
+      if (mounted) setState(() {});
+    } catch (err) {
+      if (mounted) context.showErrorDialog(err);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final ua = context.read<UserProvider>();
 
-    final isOwner = ua.isAuthorized && data.sender.accountId == ua.user?.id;
+    final isOwner =
+        ua.isAuthorized && widget.data.sender.accountId == ua.user?.id;
 
-    if (data.body['text'] != null && data.body['text'].isNotEmpty) {
+    if (widget.data.body['text'] != null &&
+        widget.data.body['text'].isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -252,38 +279,50 @@ class _ChatMessageText extends StatelessWidget {
               final List<ContextMenuButtonItem> items =
                   editableTextState.contextMenuButtonItems;
 
-              if (onReply != null) {
+              if (widget.onReply != null) {
                 items.insert(
                   0,
                   ContextMenuButtonItem(
                     label: 'reply'.tr(),
                     onPressed: () {
                       ContextMenuController.removeAny();
-                      onReply?.call(data);
+                      widget.onReply?.call(widget.data);
                     },
                   ),
                 );
               }
-              if (isOwner && onEdit != null) {
+              if (isOwner && widget.onEdit != null) {
                 items.insert(
                   1,
                   ContextMenuButtonItem(
                     label: 'edit'.tr(),
                     onPressed: () {
                       ContextMenuController.removeAny();
-                      onEdit?.call(data);
+                      widget.onEdit?.call(widget.data);
                     },
                   ),
                 );
               }
-              if (isOwner && onDelete != null) {
+              if (isOwner && widget.onDelete != null) {
                 items.insert(
                   2,
                   ContextMenuButtonItem(
                     label: 'delete'.tr(),
                     onPressed: () {
                       ContextMenuController.removeAny();
-                      onDelete?.call(data);
+                      widget.onDelete?.call(widget.data);
+                    },
+                  ),
+                );
+              }
+              if (widget.data.body['algorithm'] == 'plain') {
+                items.insert(
+                  3,
+                  ContextMenuButtonItem(
+                    label: 'translate'.tr(),
+                    onPressed: () {
+                      ContextMenuController.removeAny();
+                      _translateText();
                     },
                   ),
                 );
@@ -294,26 +333,37 @@ class _ChatMessageText extends StatelessWidget {
                 buttonItems: items,
               );
             },
-            child: switch (data.body['algorithm']) {
-              'rsa' => _ChatDecryptMessage(message: data),
+            child: switch (widget.data.body['algorithm']) {
+              'rsa' => _ChatDecryptMessage(message: widget.data),
               _ => MarkdownTextContent(
-                  content: data.body['text'],
+                  content: _displayText,
                   isAutoWarp: true,
-                  isEnlargeSticker:
-                      RegExp(r"^:([-\w]+):$").hasMatch(data.body['text'] ?? ''),
+                  isEnlargeSticker: RegExp(r"^:([-\w]+):$")
+                      .hasMatch(widget.data.body['text'] ?? ''),
                 ),
             },
           ),
-          if (data.updatedAt != data.createdAt)
+          if (widget.data.updatedAt != widget.data.createdAt)
             Text('messageEditedHint'.tr()).fontSize(13).opacity(0.75),
+          if (_isTranslated)
+            InkWell(
+              child: Text('translated').tr().opacity(0.75),
+              onTap: () {
+                setState(() {
+                  _displayText = widget.data.body['text'] ?? '';
+                  _isTranslated = false;
+                });
+              },
+            ),
         ],
       );
-    } else if (data.body['attachments']?.isNotEmpty) {
+    } else if (widget.data.body['attachments']?.isNotEmpty) {
       return Row(
         children: [
           const Icon(Symbols.file_present, size: 20),
           const Gap(4),
-          Text('messageFileHint'.plural(data.body['attachments']!.length)),
+          Text('messageFileHint'
+              .plural(widget.data.body['attachments']!.length)),
         ],
       ).opacity(0.8);
     }
