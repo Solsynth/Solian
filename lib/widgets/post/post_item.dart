@@ -118,6 +118,7 @@ class PostItem extends StatelessWidget {
   final bool showComments;
   final bool showMenu;
   final bool showFullPost;
+  final bool showAvatar;
   final bool showExpandableComments;
   final double? maxWidth;
   final Function(SnPost data)? onChanged;
@@ -131,6 +132,7 @@ class PostItem extends StatelessWidget {
     this.showComments = true,
     this.showMenu = true,
     this.showFullPost = false,
+    this.showAvatar = true,
     this.showExpandableComments = false,
     this.maxWidth,
     this.onChanged,
@@ -234,11 +236,12 @@ class PostItem extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _PostAvatar(
-                    data: data,
-                    isCompact: false,
-                  ),
-                  const Gap(12),
+                  if (showAvatar)
+                    _PostAvatar(
+                      data: data,
+                      isCompact: false,
+                    ),
+                  if (showAvatar) const Gap(12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,26 +358,33 @@ class PostItem extends StatelessWidget {
             minWidth: attachmentSize,
             maxWidth: attachmentSize,
             fit: showFullPost ? BoxFit.cover : BoxFit.contain,
-            padding: const EdgeInsets.only(left: 60, right: 12),
+            padding: EdgeInsets.only(left: showAvatar ? 60 : 12, right: 12),
           ),
         if (data.preload?.poll != null)
-          PostPoll(poll: data.preload!.poll!)
-              .padding(left: 60, right: 12, top: 12, bottom: 4),
+          PostPoll(poll: data.preload!.poll!).padding(
+            left: showAvatar ? 60 : 12,
+            right: 12,
+            top: 12,
+            bottom: 4,
+          ),
         if (data.body['content'] != null &&
             (cfg.prefs.getBool(kAppExpandPostLink) ?? true))
           LinkPreviewWidget(
             text: data.body['content'],
-          ).padding(left: 60, right: 4),
+          ).padding(left: showAvatar ? 60 : 12, right: 4),
         if (showExpandableComments)
-          _PostCommentIntent(data: data).padding(left: 60, right: 12)
+          _PostCommentIntent(
+            data: data,
+            showAvatar: showAvatar,
+          ).padding(left: showAvatar ? 60 : 12, right: 12)
         else
           _PostFeaturedComment(data: data, maxWidth: maxWidth)
-              .padding(left: 60, right: 12),
+              .padding(left: showAvatar ? 60 : 12, right: 12),
         Padding(
           padding: const EdgeInsets.only(top: 4),
           child: _PostReactionList(
             data: data,
-            padding: const EdgeInsets.only(left: 60, right: 12),
+            padding: EdgeInsets.only(left: showAvatar ? 60 : 12, right: 12),
             onChanged: _onChanged,
           ),
         ),
@@ -1423,7 +1433,8 @@ class _PostTruncatedHint extends StatelessWidget {
 
 class _PostCommentIntent extends StatefulWidget {
   final SnPost data;
-  const _PostCommentIntent({required this.data});
+  final bool showAvatar;
+  const _PostCommentIntent({required this.data, this.showAvatar = false});
 
   @override
   State<_PostCommentIntent> createState() => _PostCommentIntentState();
@@ -1473,9 +1484,10 @@ class _PostCommentIntentState extends State<_PostCommentIntent> {
                 for (final ele in _comments)
                   PostItem(
                     data: ele,
+                    showAvatar: false,
                     showExpandableComments: true,
                     maxWidth: double.infinity,
-                  ).padding(vertical: 8),
+                  ).padding(vertical: 8, left: 6),
               ],
             ),
           ).padding(bottom: 8),
@@ -1504,7 +1516,7 @@ class _PostCommentIntentState extends State<_PostCommentIntent> {
                 ),
               ).padding(left: 8),
           ],
-        ).opacity(0.75).padding(horizontal: 4),
+        ).opacity(0.75).padding(horizontal: widget.showAvatar ? 4 : 0),
       ],
     );
   }
