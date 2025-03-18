@@ -1597,39 +1597,30 @@ class _PostContentHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              Flexible(
-                child: Text(data.publisher.nick).bold(),
-              ),
+              Text(data.publisher.nick).bold(),
               if (data.preload?.realm != null)
                 const Icon(Symbols.arrow_right, size: 16)
                     .padding(horizontal: 2)
                     .opacity(0.5),
-              if (data.preload?.realm != null)
-                Flexible(
-                  child: Text(data.preload!.realm!.name),
-                ),
+              if (data.preload?.realm != null) Text(data.preload!.realm!.name),
             ],
           ),
           Row(
             children: [
-              Flexible(
-                child: Text(
-                  '@${data.publisher.name}',
-                  maxLines: 1,
-                ).fontSize(13),
-              ),
+              Text(
+                '@${data.publisher.name}',
+                maxLines: 1,
+              ).fontSize(13),
               const Gap(4),
-              Flexible(
-                child: Text(
-                  isRelativeDate
-                      ? RelativeTime(context).format(
-                          (data.publishedAt ?? data.createdAt).toLocal())
-                      : DateFormat('y/M/d HH:mm').format(
-                          (data.publishedAt ?? data.createdAt).toLocal()),
-                  maxLines: 1,
-                  overflow: TextOverflow.fade,
-                ).fontSize(13),
-              ),
+              Text(
+                isRelativeDate
+                    ? RelativeTime(context)
+                        .format((data.publishedAt ?? data.createdAt).toLocal())
+                    : DateFormat('y/M/d HH:mm')
+                        .format((data.publishedAt ?? data.createdAt).toLocal()),
+                maxLines: 1,
+                overflow: TextOverflow.fade,
+              ).fontSize(13),
             ],
           ).opacity(0.8),
         ],

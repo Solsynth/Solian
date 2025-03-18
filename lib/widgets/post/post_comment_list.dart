@@ -151,6 +151,7 @@ class PostCommentSliverListState extends State<PostCommentSliverList> {
             },
           ),
           onTap: () {
+            Navigator.pop(context);
             GoRouter.of(context).pushNamed(
               'postDetail',
               pathParameters: {'slug': _posts[idx].id.toString()},
@@ -224,6 +225,9 @@ class _PostCommentListPopupState extends State<PostCommentListPopup> {
                         postReplyId: widget.post.id,
                         onPost: () {
                           _childListKey.currentState!.refresh();
+                        },
+                        onExpand: () {
+                          Navigator.pop(context);
                         },
                       ),
                     ),

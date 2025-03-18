@@ -9,6 +9,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/controllers/post_write_controller.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/screens/post/post_editor.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/dialog.dart';
@@ -17,8 +18,10 @@ import 'package:surface/widgets/loading_indicator.dart';
 class PostMiniEditor extends StatefulWidget {
   final int? postReplyId;
   final Function? onPost;
+  final Function? onExpand;
 
-  const PostMiniEditor({super.key, this.postReplyId, this.onPost});
+  const PostMiniEditor(
+      {super.key, this.postReplyId, this.onPost, this.onExpand});
 
   @override
   State<PostMiniEditor> createState() => _PostMiniEditorState();
@@ -214,12 +217,16 @@ class _PostMiniEditorState extends State<PostMiniEditor> {
                     onPressed: () {
                       GoRouter.of(context).pushNamed(
                         'postEditor',
+                        extra: PostEditorExtra(
+                          text: _writeController.contentController.text,
+                        ),
                         queryParameters: {
                           if (widget.postReplyId != null)
                             'replying': widget.postReplyId.toString(),
                           'mode': 'stories',
                         },
                       );
+                      widget.onExpand?.call();
                     },
                   ),
                   TextButton.icon(
