@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -82,6 +83,16 @@ class AppSystemMenuBar extends StatelessWidget {
                   },
                 ),
               ],
+            ),
+            PlatformMenuItem(
+              shortcut: const SingleActivator(
+                LogicalKeyboardKey.keyH,
+                meta: true,
+              ),
+              label: 'trayMenuHide'.tr(),
+              onSelected: () {
+                appWindow.hide();
+              },
             ),
             if (onQuit != null)
               PlatformMenuItem(

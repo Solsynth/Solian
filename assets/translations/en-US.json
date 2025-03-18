@@ -846,5 +846,6 @@
   "translating": "Translating…",
   "translated": "Translated",
   "settingsAutoTranslate": "Auto Translate",
-  "settingsAutoTranslateDescription": "Automatically translate text when viewing posts and messages."
+  "settingsAutoTranslateDescription": "Automatically translate text when viewing posts and messages.",
+  "trayMenuHide": "Hide"
 }

@@ -844,5 +844,6 @@
   "translating": "正在翻譯……",
   "translated": "已翻譯",
   "settingsAutoTranslate": "自動翻譯",
-  "settingsAutoTranslateDescription": "在查看帖子、消息時自動翻譯文本。"
+  "settingsAutoTranslateDescription": "在查看帖子、消息時自動翻譯文本。",
+  "trayMenuHide": "隱藏"
 }
