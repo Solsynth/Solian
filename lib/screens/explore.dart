@@ -449,7 +449,7 @@ class _PostListWidgetState extends State<_PostListWidget> {
           data: ele.toJson(),
           createdAt: ele.createdAt)),
     );
-    _hasLoadedAll = postCount >= _feed.length;
+    _hasLoadedAll = _feed.length >= postCount;
 
     if (mounted) setState(() => _isBusy = false);
   }
