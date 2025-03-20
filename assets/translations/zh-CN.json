@@ -336,6 +336,7 @@
   "fieldAttachmentRandomId": "访问 ID",
   "fieldAttachmentAlt": "概述文字",
   "addAttachmentFromAlbum": "从相册中添加附件",
+  "addAttachmentFromFiles": "从文件中添加附件",
   "addAttachmentFromClipboard": "粘贴附件",
   "addAttachmentFromCameraPhoto": "拍摄照片",
   "addAttachmentFromCameraVideo": "拍摄视频",

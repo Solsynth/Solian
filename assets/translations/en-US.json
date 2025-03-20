@@ -338,6 +338,7 @@
   "fieldAttachmentRandomId": "Random ID",
   "fieldAttachmentAlt": "Alternative text",
   "addAttachmentFromAlbum": "Add from album",
+  "addAttachmentFromFiles": "Add from files",
   "addAttachmentFromClipboard": "Paste file",
   "addAttachmentFromCameraPhoto": "Take photo",
   "addAttachmentFromCameraVideo": "Take video",

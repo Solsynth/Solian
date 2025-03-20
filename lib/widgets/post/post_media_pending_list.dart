@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:croppy/croppy.dart';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -491,6 +492,14 @@ class AddPostMediaButton extends StatelessWidget {
     );
   }
 
+  void _selectFile() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    if (result == null) return;
+    onAdd(
+      result.files.map((e) => PostWriteMedia.fromFile(e.xFile)),
+    );
+  }
+
   void _pasteMedia() async {
     final imageBytes = await Pasteboard.image;
     if (imageBytes == null) return;
@@ -603,6 +612,18 @@ class AddPostMediaButton extends StatelessWidget {
           ),
           onTap: () {
             _selectMedia();
+          },
+        ),
+        PopupMenuItem(
+          child: Row(
+            children: [
+              const Icon(Symbols.file_upload),
+              const Gap(16),
+              Text('addAttachmentFromFiles').tr(),
+            ],
+          ),
+          onTap: () {
+            _selectFile();
           },
         ),
         PopupMenuItem(
