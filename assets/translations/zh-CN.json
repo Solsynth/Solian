@@ -846,5 +846,16 @@
   "translated": "已翻译",
   "settingsAutoTranslate": "自动翻译",
   "settingsAutoTranslateDescription": "在查看帖子、消息时自动翻译文本。",
-  "trayMenuHide": "隐藏"
+  "trayMenuHide": "隐藏",
+  "accountSettingsNotify": "通知设置",
+  "accountSettingsNotifyDescription": "调整你所收到的通知种类。",
+  "accountSettingsSecurity": "安全设置",
+  "accountSettingsSecurityDescription": "调整你的帐户安全设置。",
+  "save": "保存",
+  "notificationTopicPostFeedback": "帖子数据反馈",
+  "notificationTopicPostReply": "帖子回复",
+  "notificationTopicPostSubscription": "帖子订阅",
+  "notificationTopicMessaging": "消息",
+  "notificationTopicMessagingCall": "通话",
+  "notificationTopicGeneral": "杂项"
 }

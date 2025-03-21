@@ -98,6 +98,16 @@ class AccountSettingsScreen extends StatelessWidget {
               },
             ),
             ListTile(
+              title: Text('accountSettingsNotify').tr(),
+              subtitle: Text('accountSettingsNotifyDescription').tr(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: const Icon(Symbols.notifications),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () {
+                GoRouter.of(context).pushNamed('accountSettingsNotify');
+              },
+            ),
+            ListTile(
               title: Text('accountProfileEdit').tr(),
               subtitle: Text('accountProfileEditSubtitle').tr(),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),

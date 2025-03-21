@@ -130,7 +130,7 @@
   "accountPublishersSubtitle": "Manage your publish identities.",
   "accountSettings": "Account Settings",
   "accountSettingsSubtitle": "Manage your account and make it yours.",
-  "accountProfileEdit": "Edit your profile",
+  "accountProfileEdit": "Edit Profile",
   "accountProfileEditSubtitle": "Make your Solarpass account more looks like you.",
   "accountWallet": "Wallet",
   "accountWalletSubtitle": "View your balance and transactions.",
@@ -848,5 +848,16 @@
   "translated": "Translated",
   "settingsAutoTranslate": "Auto Translate",
   "settingsAutoTranslateDescription": "Automatically translate text when viewing posts and messages.",
-  "trayMenuHide": "Hide"
+  "trayMenuHide": "Hide",
+  "accountSettingsNotify": "Notify Settings",
+  "accountSettingsNotifyDescription": "Adjust the types of notifications you receive.",
+  "accountSettingsSecurity": "Security Settings",
+  "accountSettingsSecurityDescription": "Adjust your account security settings.",
+  "save": "Save",
+  "notificationTopicPostFeedback": "Post Feedback",
+  "notificationTopicPostReply": "Post Replies",
+  "notificationTopicPostSubscription": "Post Subscriptions",
+  "notificationTopicMessaging": "New Messages",
+  "notificationTopicMessagingCall": "Incoming Calls",
+  "notificationTopicGeneral": "General"
 }
