@@ -36,10 +36,12 @@ class ChatTypingIndicator extends StatelessWidget {
                       'messageTyping'
                           .plural(controller.typingMembers.length, args: [
                         controller.typingMembers
-                            .map((ele) => (ele.nick?.isNotEmpty ?? false)
-                                ? ele.nick!
-                                : ud.getFromCache(ele.accountId)?.name ??
-                                    'unknown')
+                            .map(
+                              (ele) => (ele.nick?.isNotEmpty ?? false)
+                                  ? ele.nick!
+                                  : ud.getFromCache(ele.accountId)?.nick ??
+                                      'unknown',
+                            )
                             .join(', '),
                       ]),
                     ),
