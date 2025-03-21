@@ -108,6 +108,16 @@ class AccountSettingsScreen extends StatelessWidget {
               },
             ),
             ListTile(
+              title: Text('accountSettingsSecurity').tr(),
+              subtitle: Text('accountSettingsSecurityDescription').tr(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: const Icon(Symbols.shield),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () {
+                GoRouter.of(context).pushNamed('accountSettingsSecurity');
+              },
+            ),
+            ListTile(
               title: Text('accountProfileEdit').tr(),
               subtitle: Text('accountProfileEditSubtitle').tr(),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),

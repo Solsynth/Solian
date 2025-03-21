@@ -859,5 +859,12 @@
   "notificationTopicPostSubscription": "Post Subscriptions",
   "notificationTopicMessaging": "New Messages",
   "notificationTopicMessagingCall": "Incoming Calls",
-  "notificationTopicGeneral": "General"
+  "notificationTopicGeneral": "General",
+  "authMaximumAuthSteps": "Maximum Authenticate Steps",
+  "authMaximumAuthStepsDescription": {
+    "one": "Maximum ask for {} step authenticate",
+    "other": "Maximum ask for {} steps authenticate"
+  },
+  "authAlwaysRisky": "Always Risky",
+  "authAlwaysRiskyDescription": "Always ask for the highest steps count of authentication when logging in."
 }

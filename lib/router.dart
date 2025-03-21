@@ -10,6 +10,7 @@ import 'package:surface/screens/account/contact_methods.dart';
 import 'package:surface/screens/account/factor_settings.dart';
 import 'package:surface/screens/account/keypairs.dart';
 import 'package:surface/screens/account/prefs/notify.dart';
+import 'package:surface/screens/account/prefs/security.dart';
 import 'package:surface/screens/account/profile_page.dart';
 import 'package:surface/screens/account/profile_edit.dart';
 import 'package:surface/screens/account/publishers/publisher_edit.dart';
@@ -167,6 +168,11 @@ final _appRoutes = [
             path: '/notify',
             name: 'accountSettingsNotify',
             builder: (context, state) => const AccountNotifyPrefsScreen(),
+          ),
+          GoRoute(
+            path: '/auth',
+            name: 'accountSettingsSecurity',
+            builder: (context, state) => const AccountSecurityPrefsScreen(),
           ),
         ],
       ),

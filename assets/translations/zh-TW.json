@@ -846,5 +846,23 @@
   "translated": "已翻譯",
   "settingsAutoTranslate": "自動翻譯",
   "settingsAutoTranslateDescription": "在查看帖子、消息時自動翻譯文本。",
-  "trayMenuHide": "隱藏"
+  "trayMenuHide": "隱藏",
+  "accountSettingsNotify": "通知設置",
+  "accountSettingsNotifyDescription": "調整你所收到的通知種類。",
+  "accountSettingsSecurity": "安全設置",
+  "accountSettingsSecurityDescription": "調整你的帳戶安全設置。",
+  "save": "保存",
+  "notificationTopicPostFeedback": "帖子數據反饋",
+  "notificationTopicPostReply": "帖子回覆",
+  "notificationTopicPostSubscription": "帖子訂閱",
+  "notificationTopicMessaging": "消息",
+  "notificationTopicMessagingCall": "通話",
+  "notificationTopicGeneral": "雜項",
+  "authMaximumAuthSteps": "最大驗證步驟",
+  "authMaximumAuthStepsDescription": {
+    "one": "登入時最多要求 {} 步驗證",
+    "other": "登入時最多要求 {} 步驗證"
+  },
+  "authAlwaysRisky": "總是風險",
+  "authAlwaysRiskyDescription": "在登入時始終按最高標準要求驗證。"
 }

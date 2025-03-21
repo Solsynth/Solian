@@ -857,5 +857,12 @@
   "notificationTopicPostSubscription": "帖子订阅",
   "notificationTopicMessaging": "消息",
   "notificationTopicMessagingCall": "通话",
-  "notificationTopicGeneral": "杂项"
+  "notificationTopicGeneral": "杂项",
+  "authMaximumAuthSteps": "最大验证步骤",
+  "authMaximumAuthStepsDescription": {
+    "one": "登入时最多要求 {} 步验证",
+    "other": "登入时最多要求 {} 步验证"
+  },
+  "authAlwaysRisky": "总是风险",
+  "authAlwaysRiskyDescription": "在登入时始终按最高标准要求验证。"
 }
