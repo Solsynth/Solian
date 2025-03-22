@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/navigation.dart';
+import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/version_label.dart';
@@ -40,6 +41,7 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
     final ua = context.read<UserProvider>();
     final nav = context.watch<NavigationProvider>();
     final cfg = context.watch<ConfigProvider>();
+    final rel = context.read<SnRealmProvider>();
 
     final backgroundColor = cfg.drawerIsExpanded ? Colors.transparent : null;
 
@@ -82,7 +84,31 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
                 vertical: 12,
               ),
               Expanded(
-                child: ListView(),
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    ...rel.availableRealms.map((ele) {
+                      return ListTile(
+                        minTileHeight: 48,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                        leading: AccountImage(
+                          content: ele.avatar,
+                          radius: 16,
+                        ),
+                        title: Text(ele.name),
+                        onTap: () {
+                          GoRouter.of(context).goNamed(
+                            'realmDetail',
+                            pathParameters: {
+                              'alias': ele.alias,
+                            },
+                          );
+                          Scaffold.of(context).closeDrawer();
+                        },
+                      );
+                    }),
+                  ],
+                ),
               ),
               Row(
                 spacing: 8,
@@ -106,7 +132,7 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
                 child: ListTile(
                   contentPadding: EdgeInsets.symmetric(horizontal: 24),
                   leading: AccountImage(content: ua.user?.avatar),
-                  title: Text(ua.user?.nick ?? 'unknown').tr().fontSize(15),
+                  title: Text(ua.user?.nick ?? 'unknown'.tr()).fontSize(15),
                   subtitle:
                       Text('@${ua.user?.name ?? 'unknown'.tr()}').fontSize(13),
                   trailing: Row(

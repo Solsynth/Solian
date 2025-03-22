@@ -6,10 +6,12 @@ import 'package:surface/database/attachment.dart';
 import 'package:surface/database/chat.dart';
 import 'package:surface/database/database.steps.dart';
 import 'package:surface/database/keypair.dart';
+import 'package:surface/database/realm.dart';
 import 'package:surface/database/sticker.dart';
 import 'package:surface/types/chat.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/types/account.dart';
+import 'package:surface/types/realm.dart';
 
 part 'database.g.dart';
 
@@ -22,12 +24,13 @@ part 'database.g.dart';
   SnLocalAttachment,
   SnLocalSticker,
   SnLocalStickerPack,
+  SnLocalRealm,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
@@ -49,6 +52,10 @@ class AppDatabase extends _$AppDatabase {
         // Nothing else to do here
       }, from2To3: (m, schema) async {
         // Nothing else to do here, too
+      }, from3To4: (m, schema) async {
+        m.createTable(schema.snLocalRealm);
+        m.createIndex(schema.idxRealmAccount);
+        m.createIndex(schema.idxRealmAlias);
       }),
     );
   }

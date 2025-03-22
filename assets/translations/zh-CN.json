@@ -864,5 +864,9 @@
     "other": "登入时最多要求 {} 步验证"
   },
   "authAlwaysRisky": "总是风险",
-  "authAlwaysRiskyDescription": "在登入时始终按最高标准要求验证。"
+  "authAlwaysRiskyDescription": "在登入时始终按最高标准要求验证。",
+  "chatUnjoined": "未加入频道",
+  "chatUnjoinedDescription": "你没有加入这个频道，所以你也无法发送消息或者查看这个频道中的消息。",
+  "chatUnjoinedPublicDescription": "但幸运的是，这是一个公开频道，所以你可以主动加入。",
+  "chatJoin": "加入频道"
 }

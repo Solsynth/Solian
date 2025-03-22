@@ -2454,6 +2454,351 @@ class SnLocalStickerPackCompanion
   }
 }
 
+class $SnLocalRealmTable extends SnLocalRealm
+    with TableInfo<$SnLocalRealmTable, SnLocalRealmData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SnLocalRealmTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _aliasMeta = const VerificationMeta('alias');
+  @override
+  late final GeneratedColumn<String> alias = GeneratedColumn<String>(
+      'alias', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  @override
+  late final GeneratedColumnWithTypeConverter<SnRealm, String> content =
+      GeneratedColumn<String>('content', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
+          .withConverter<SnRealm>($SnLocalRealmTable.$convertercontent);
+  static const VerificationMeta _accountIdMeta =
+      const VerificationMeta('accountId');
+  @override
+  late final GeneratedColumn<int> accountId = GeneratedColumn<int>(
+      'account_id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _cacheExpiredAtMeta =
+      const VerificationMeta('cacheExpiredAt');
+  @override
+  late final GeneratedColumn<DateTime> cacheExpiredAt =
+      GeneratedColumn<DateTime>('cache_expired_at', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, alias, content, accountId, createdAt, cacheExpiredAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sn_local_realm';
+  @override
+  VerificationContext validateIntegrity(Insertable<SnLocalRealmData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('alias')) {
+      context.handle(
+          _aliasMeta, alias.isAcceptableOrUnknown(data['alias']!, _aliasMeta));
+    } else if (isInserting) {
+      context.missing(_aliasMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(_accountIdMeta,
+          accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('cache_expired_at')) {
+      context.handle(
+          _cacheExpiredAtMeta,
+          cacheExpiredAt.isAcceptableOrUnknown(
+              data['cache_expired_at']!, _cacheExpiredAtMeta));
+    } else if (isInserting) {
+      context.missing(_cacheExpiredAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SnLocalRealmData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SnLocalRealmData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      alias: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}alias'])!,
+      content: $SnLocalRealmTable.$convertercontent.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content'])!),
+      accountId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}account_id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      cacheExpiredAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}cache_expired_at'])!,
+    );
+  }
+
+  @override
+  $SnLocalRealmTable createAlias(String alias) {
+    return $SnLocalRealmTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<SnRealm, String, Map<String, Object?>>
+      $convertercontent = const SnRealmConverter();
+}
+
+class SnLocalRealmData extends DataClass
+    implements Insertable<SnLocalRealmData> {
+  final int id;
+  final String alias;
+  final SnRealm content;
+  final int accountId;
+  final DateTime createdAt;
+  final DateTime cacheExpiredAt;
+  const SnLocalRealmData(
+      {required this.id,
+      required this.alias,
+      required this.content,
+      required this.accountId,
+      required this.createdAt,
+      required this.cacheExpiredAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['alias'] = Variable<String>(alias);
+    {
+      map['content'] =
+          Variable<String>($SnLocalRealmTable.$convertercontent.toSql(content));
+    }
+    map['account_id'] = Variable<int>(accountId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['cache_expired_at'] = Variable<DateTime>(cacheExpiredAt);
+    return map;
+  }
+
+  SnLocalRealmCompanion toCompanion(bool nullToAbsent) {
+    return SnLocalRealmCompanion(
+      id: Value(id),
+      alias: Value(alias),
+      content: Value(content),
+      accountId: Value(accountId),
+      createdAt: Value(createdAt),
+      cacheExpiredAt: Value(cacheExpiredAt),
+    );
+  }
+
+  factory SnLocalRealmData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SnLocalRealmData(
+      id: serializer.fromJson<int>(json['id']),
+      alias: serializer.fromJson<String>(json['alias']),
+      content: $SnLocalRealmTable.$convertercontent
+          .fromJson(serializer.fromJson<Map<String, Object?>>(json['content'])),
+      accountId: serializer.fromJson<int>(json['accountId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      cacheExpiredAt: serializer.fromJson<DateTime>(json['cacheExpiredAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'alias': serializer.toJson<String>(alias),
+      'content': serializer.toJson<Map<String, Object?>>(
+          $SnLocalRealmTable.$convertercontent.toJson(content)),
+      'accountId': serializer.toJson<int>(accountId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'cacheExpiredAt': serializer.toJson<DateTime>(cacheExpiredAt),
+    };
+  }
+
+  SnLocalRealmData copyWith(
+          {int? id,
+          String? alias,
+          SnRealm? content,
+          int? accountId,
+          DateTime? createdAt,
+          DateTime? cacheExpiredAt}) =>
+      SnLocalRealmData(
+        id: id ?? this.id,
+        alias: alias ?? this.alias,
+        content: content ?? this.content,
+        accountId: accountId ?? this.accountId,
+        createdAt: createdAt ?? this.createdAt,
+        cacheExpiredAt: cacheExpiredAt ?? this.cacheExpiredAt,
+      );
+  SnLocalRealmData copyWithCompanion(SnLocalRealmCompanion data) {
+    return SnLocalRealmData(
+      id: data.id.present ? data.id.value : this.id,
+      alias: data.alias.present ? data.alias.value : this.alias,
+      content: data.content.present ? data.content.value : this.content,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      cacheExpiredAt: data.cacheExpiredAt.present
+          ? data.cacheExpiredAt.value
+          : this.cacheExpiredAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SnLocalRealmData(')
+          ..write('id: $id, ')
+          ..write('alias: $alias, ')
+          ..write('content: $content, ')
+          ..write('accountId: $accountId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('cacheExpiredAt: $cacheExpiredAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, alias, content, accountId, createdAt, cacheExpiredAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SnLocalRealmData &&
+          other.id == this.id &&
+          other.alias == this.alias &&
+          other.content == this.content &&
+          other.accountId == this.accountId &&
+          other.createdAt == this.createdAt &&
+          other.cacheExpiredAt == this.cacheExpiredAt);
+}
+
+class SnLocalRealmCompanion extends UpdateCompanion<SnLocalRealmData> {
+  final Value<int> id;
+  final Value<String> alias;
+  final Value<SnRealm> content;
+  final Value<int> accountId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> cacheExpiredAt;
+  const SnLocalRealmCompanion({
+    this.id = const Value.absent(),
+    this.alias = const Value.absent(),
+    this.content = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.cacheExpiredAt = const Value.absent(),
+  });
+  SnLocalRealmCompanion.insert({
+    this.id = const Value.absent(),
+    required String alias,
+    required SnRealm content,
+    required int accountId,
+    this.createdAt = const Value.absent(),
+    required DateTime cacheExpiredAt,
+  })  : alias = Value(alias),
+        content = Value(content),
+        accountId = Value(accountId),
+        cacheExpiredAt = Value(cacheExpiredAt);
+  static Insertable<SnLocalRealmData> custom({
+    Expression<int>? id,
+    Expression<String>? alias,
+    Expression<String>? content,
+    Expression<int>? accountId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? cacheExpiredAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (alias != null) 'alias': alias,
+      if (content != null) 'content': content,
+      if (accountId != null) 'account_id': accountId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (cacheExpiredAt != null) 'cache_expired_at': cacheExpiredAt,
+    });
+  }
+
+  SnLocalRealmCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? alias,
+      Value<SnRealm>? content,
+      Value<int>? accountId,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? cacheExpiredAt}) {
+    return SnLocalRealmCompanion(
+      id: id ?? this.id,
+      alias: alias ?? this.alias,
+      content: content ?? this.content,
+      accountId: accountId ?? this.accountId,
+      createdAt: createdAt ?? this.createdAt,
+      cacheExpiredAt: cacheExpiredAt ?? this.cacheExpiredAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (alias.present) {
+      map['alias'] = Variable<String>(alias.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(
+          $SnLocalRealmTable.$convertercontent.toSql(content.value));
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<int>(accountId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (cacheExpiredAt.present) {
+      map['cache_expired_at'] = Variable<DateTime>(cacheExpiredAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SnLocalRealmCompanion(')
+          ..write('id: $id, ')
+          ..write('alias: $alias, ')
+          ..write('content: $content, ')
+          ..write('accountId: $accountId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('cacheExpiredAt: $cacheExpiredAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2470,6 +2815,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SnLocalStickerTable snLocalSticker = $SnLocalStickerTable(this);
   late final $SnLocalStickerPackTable snLocalStickerPack =
       $SnLocalStickerPackTable(this);
+  late final $SnLocalRealmTable snLocalRealm = $SnLocalRealmTable(this);
   late final Index idxChannelAlias = Index('idx_channel_alias',
       'CREATE INDEX idx_channel_alias ON sn_local_chat_channel (alias)');
   late final Index idxChatChannel = Index('idx_chat_channel',
@@ -2480,6 +2826,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       'CREATE INDEX idx_attachment_rid ON sn_local_attachment (rid)');
   late final Index idxAttachmentAccount = Index('idx_attachment_account',
       'CREATE INDEX idx_attachment_account ON sn_local_attachment (account_id)');
+  late final Index idxRealmAlias = Index('idx_realm_alias',
+      'CREATE INDEX idx_realm_alias ON sn_local_realm (alias)');
+  late final Index idxRealmAccount = Index('idx_realm_account',
+      'CREATE INDEX idx_realm_account ON sn_local_realm (account_id)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2493,11 +2843,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         snLocalAttachment,
         snLocalSticker,
         snLocalStickerPack,
+        snLocalRealm,
         idxChannelAlias,
         idxChatChannel,
         idxAccountName,
         idxAttachmentRid,
-        idxAttachmentAccount
+        idxAttachmentAccount,
+        idxRealmAlias,
+        idxRealmAccount
       ];
 }
 
@@ -3888,6 +4241,192 @@ typedef $$SnLocalStickerPackTableProcessedTableManager = ProcessedTableManager<
     ),
     SnLocalStickerPackData,
     PrefetchHooks Function()>;
+typedef $$SnLocalRealmTableCreateCompanionBuilder = SnLocalRealmCompanion
+    Function({
+  Value<int> id,
+  required String alias,
+  required SnRealm content,
+  required int accountId,
+  Value<DateTime> createdAt,
+  required DateTime cacheExpiredAt,
+});
+typedef $$SnLocalRealmTableUpdateCompanionBuilder = SnLocalRealmCompanion
+    Function({
+  Value<int> id,
+  Value<String> alias,
+  Value<SnRealm> content,
+  Value<int> accountId,
+  Value<DateTime> createdAt,
+  Value<DateTime> cacheExpiredAt,
+});
+
+class $$SnLocalRealmTableFilterComposer
+    extends Composer<_$AppDatabase, $SnLocalRealmTable> {
+  $$SnLocalRealmTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get alias => $composableBuilder(
+      column: $table.alias, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<SnRealm, SnRealm, String> get content =>
+      $composableBuilder(
+          column: $table.content,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<int> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get cacheExpiredAt => $composableBuilder(
+      column: $table.cacheExpiredAt,
+      builder: (column) => ColumnFilters(column));
+}
+
+class $$SnLocalRealmTableOrderingComposer
+    extends Composer<_$AppDatabase, $SnLocalRealmTable> {
+  $$SnLocalRealmTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get alias => $composableBuilder(
+      column: $table.alias, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get content => $composableBuilder(
+      column: $table.content, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get cacheExpiredAt => $composableBuilder(
+      column: $table.cacheExpiredAt,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$SnLocalRealmTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SnLocalRealmTable> {
+  $$SnLocalRealmTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get alias =>
+      $composableBuilder(column: $table.alias, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<SnRealm, String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<int> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cacheExpiredAt => $composableBuilder(
+      column: $table.cacheExpiredAt, builder: (column) => column);
+}
+
+class $$SnLocalRealmTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SnLocalRealmTable,
+    SnLocalRealmData,
+    $$SnLocalRealmTableFilterComposer,
+    $$SnLocalRealmTableOrderingComposer,
+    $$SnLocalRealmTableAnnotationComposer,
+    $$SnLocalRealmTableCreateCompanionBuilder,
+    $$SnLocalRealmTableUpdateCompanionBuilder,
+    (
+      SnLocalRealmData,
+      BaseReferences<_$AppDatabase, $SnLocalRealmTable, SnLocalRealmData>
+    ),
+    SnLocalRealmData,
+    PrefetchHooks Function()> {
+  $$SnLocalRealmTableTableManager(_$AppDatabase db, $SnLocalRealmTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SnLocalRealmTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SnLocalRealmTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SnLocalRealmTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> alias = const Value.absent(),
+            Value<SnRealm> content = const Value.absent(),
+            Value<int> accountId = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> cacheExpiredAt = const Value.absent(),
+          }) =>
+              SnLocalRealmCompanion(
+            id: id,
+            alias: alias,
+            content: content,
+            accountId: accountId,
+            createdAt: createdAt,
+            cacheExpiredAt: cacheExpiredAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String alias,
+            required SnRealm content,
+            required int accountId,
+            Value<DateTime> createdAt = const Value.absent(),
+            required DateTime cacheExpiredAt,
+          }) =>
+              SnLocalRealmCompanion.insert(
+            id: id,
+            alias: alias,
+            content: content,
+            accountId: accountId,
+            createdAt: createdAt,
+            cacheExpiredAt: cacheExpiredAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$SnLocalRealmTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SnLocalRealmTable,
+    SnLocalRealmData,
+    $$SnLocalRealmTableFilterComposer,
+    $$SnLocalRealmTableOrderingComposer,
+    $$SnLocalRealmTableAnnotationComposer,
+    $$SnLocalRealmTableCreateCompanionBuilder,
+    $$SnLocalRealmTableUpdateCompanionBuilder,
+    (
+      SnLocalRealmData,
+      BaseReferences<_$AppDatabase, $SnLocalRealmTable, SnLocalRealmData>
+    ),
+    SnLocalRealmData,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3908,4 +4447,6 @@ class $AppDatabaseManager {
       $$SnLocalStickerTableTableManager(_db, _db.snLocalSticker);
   $$SnLocalStickerPackTableTableManager get snLocalStickerPack =>
       $$SnLocalStickerPackTableTableManager(_db, _db.snLocalStickerPack);
+  $$SnLocalRealmTableTableManager get snLocalRealm =>
+      $$SnLocalRealmTableTableManager(_db, _db.snLocalRealm);
 }

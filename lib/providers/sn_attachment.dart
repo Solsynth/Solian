@@ -321,13 +321,13 @@ class SnAttachmentProvider {
           uuid: ele.uuid,
           content: ele,
           accountId: ele.accountId,
-          cacheExpiredAt: DateTime.now().add(const Duration(days: 7)),
+          cacheExpiredAt: DateTime.now().add(const Duration(hours: 1)),
         ),
         onConflict: DoUpdate(
           (_) => SnLocalAttachmentCompanion.custom(
             content: Constant(jsonEncode(ele.toJson())),
             cacheExpiredAt:
-                Constant(DateTime.now().add(const Duration(days: 7))),
+                Constant(DateTime.now().add(const Duration(hours: 1))),
           ),
         ),
       );

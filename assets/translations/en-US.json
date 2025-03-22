@@ -866,5 +866,9 @@
     "other": "Maximum ask for {} steps authenticate"
   },
   "authAlwaysRisky": "Always Risky",
-  "authAlwaysRiskyDescription": "Always ask for the highest steps count of authentication when logging in."
+  "authAlwaysRiskyDescription": "Always ask for the highest steps count of authentication when logging in.",
+  "chatUnjoined": "Unjoined Channel",
+  "chatUnjoinedDescription": "You haven't joined this channel, so you can't send messages either view messages in it.",
+  "chatUnjoinedPublicDescription": "Fortunately, this is a public channel, so you can join it as you want.",
+  "chatJoin": "Join the Channel"
 }

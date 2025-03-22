@@ -52,8 +52,10 @@ class ChatRoomScreen extends StatefulWidget {
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   bool _isBusy = false;
   bool _isCalling = false;
+  bool _isJoining = false;
 
   SnChannel? _channel;
+  SnChannelMember? _currentMember;
   SnChannelMember? _otherMember;
   SnChatCall? _ongoingCall;
 
@@ -67,7 +69,24 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   StreamSubscription? _wsSubscription;
 
-  // TODO fetch user identity and ask them to join the channel or not
+  Future<void> _joinChannel() async {
+    try {
+      setState(() => _isJoining = true);
+      final sn = context.read<SnNetworkProvider>();
+      final ua = context.read<UserProvider>();
+      await sn.client
+          .post('/cgi/im/channels/${_channel!.keyPath}/members', data: {
+        'related': ua.user?.name,
+      });
+      _initializeChat();
+    } catch (err) {
+      if (!mounted) return;
+      context.showErrorDialog(err);
+    } finally {
+      setState(() => _isJoining = true);
+    }
+  }
+
   Future<void> _fetchChannel() async {
     setState(() => _isBusy = true);
 
@@ -76,6 +95,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       _channel = await chan.getChannel('${widget.scope}:${widget.alias}');
 
       if (!mounted || _channel == null) return;
+      final ct = context.read<ChatChannelProvider>();
+      try {
+        _currentMember = await ct.getChannelProfile(_channel!);
+      } catch (_) {}
+
+      if (!mounted || _currentMember == null) return;
       final ud = context.read<UserDirectoryProvider>();
       final ua = context.read<UserProvider>();
       if (_channel!.type == 1) {
@@ -204,11 +229,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return a.createdAt.difference(b.createdAt).inMinutes <= 3;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _messageController = ChatMessageController(context);
+  Future<void> _initializeChat() async {
     _fetchChannel().then((_) async {
+      if (_currentMember == null) return;
       await _messageController.initialize(_channel!);
 
       if (widget.extra != null) {
@@ -230,6 +253,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         _fetchOngoingCall(),
       ]);
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _messageController = ChatMessageController(context);
+    _initializeChat();
 
     _wsSubscription = _ws.pk.stream.listen((event) {
       switch (event.method) {
@@ -281,25 +311,27 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               : _channel?.name ?? 'loading'.tr(),
         ),
         actions: [
-          IconButton(
-            onPressed: () {
-              setState(() => _isEncrypted = !_isEncrypted);
-              _inputGlobalKey.currentState?.setEncrypted(_isEncrypted);
-            },
-            icon: _isEncrypted
-                ? const Icon(Symbols.lock)
-                : const Icon(Symbols.no_encryption),
-          ),
-          IconButton(
-            icon: _ongoingCall == null
-                ? const Icon(Symbols.call)
-                : const Icon(Symbols.call_end),
-            onPressed: _isCalling
-                ? null
-                : _ongoingCall == null
-                    ? _makeCall
-                    : _endCall,
-          ),
+          if (_currentMember != null)
+            IconButton(
+              onPressed: () {
+                setState(() => _isEncrypted = !_isEncrypted);
+                _inputGlobalKey.currentState?.setEncrypted(_isEncrypted);
+              },
+              icon: _isEncrypted
+                  ? const Icon(Symbols.lock)
+                  : const Icon(Symbols.no_encryption),
+            ),
+          if (_currentMember != null)
+            IconButton(
+              icon: _ongoingCall == null
+                  ? const Icon(Symbols.call)
+                  : const Icon(Symbols.call_end),
+              onPressed: _isCalling
+                  ? null
+                  : _ongoingCall == null
+                      ? _makeCall
+                      : _endCall,
+            ),
           IconButton(
             icon: const Icon(Symbols.more_vert),
             onPressed: () {
@@ -348,7 +380,41 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               ).height(_ongoingCall != null ? 54 : 0, animate: true).animate(
                   const Duration(milliseconds: 300),
                   Curves.fastLinearToSlowEaseIn),
-              if (_messageController.isPending)
+              if (_currentMember == null && !_isBusy)
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 280),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Symbols.person_remove, size: 40, fill: 1),
+                          const Gap(8),
+                          Text('chatUnjoined'.tr(), textAlign: TextAlign.center)
+                              .fontSize(16)
+                              .bold(),
+                          Text('chatUnjoinedDescription'.tr(),
+                                  textAlign: TextAlign.center)
+                              .fontSize(13),
+                          if (_channel!.isPublic)
+                            Text('chatUnjoinedPublicDescription'.tr(),
+                                    textAlign: TextAlign.center)
+                                .fontSize(13)
+                                .padding(top: 8),
+                          if (_channel!.isPublic)
+                            TextButton(
+                              style: ButtonStyle(
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              onPressed: _isJoining ? null : _joinChannel,
+                              child: Text('chatJoin').tr(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else if (_messageController.isPending)
                 Expanded(
                   child: const CircularProgressIndicator().center(),
                 )
@@ -403,7 +469,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     },
                   ),
                 ),
-              if (!_messageController.isPending)
+              if (!_messageController.isPending && _currentMember != null)
                 Material(
                   elevation: 2,
                   child: Column(
