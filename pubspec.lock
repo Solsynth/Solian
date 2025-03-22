@@ -213,10 +213,10 @@ packages:
     dependency: transitive
     description:
       name: chalkdart
-      sha256: e7cfcc9a9d9546843304c1ff87fe0696c7eb82ee70e6df63f555f321b15a40d8
+      sha256: "82dfa884e3cf97641eb0742a3b9ffd41490666b9ece548b2e32cbfefe540bf86"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.3"
+    version: "2.4.0"
   characters:
     dependency: transitive
     description:
@@ -517,10 +517,10 @@ packages:
     dependency: "direct main"
     description:
       name: fast_rsa
-      sha256: "205a36c0412b9fabebf3e18ccb5221d819cc28cfb3da988c0bf7b646368d0270"
+      sha256: a26ad752734dc52fd51abd55248df868d7480e68d8cc8dd12413b0124bba0a7e
       url: "https://pub.dev"
     source: hosted
-    version: "3.8.0"
+    version: "3.8.1"
   ffi:
     dependency: transitive
     description:
@@ -541,10 +541,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: ee11ce89f8937c39181bc88d57a455972f7545b86150d8f287d0d9cf95bcdf0a
+      sha256: "8d938fd5c11dc81bf1acd4f7f0486c683fe9e79a0b13419e27730f9ce4d8a25b"
       url: "https://pub.dev"
     source: hosted
-    version: "9.1.0"
+    version: "9.2.1"
   file_saver:
     dependency: "direct main"
     description:
@@ -746,10 +746,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_expandable_fab
-      sha256: "85275279d19faf4fbe5639dc1f139b4555b150e079d056f085601a45688af12c"
+      sha256: b14caf78720a48f650e6e1a38d724e33b1f5348d646fa1c266570c31a7f87ef3
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.0"
+    version: "2.4.0"
   flutter_highlight:
     dependency: "direct main"
     description:
@@ -953,10 +953,10 @@ packages:
     dependency: "direct dev"
     description:
       name: freezed
-      sha256: a6274c34d61b3d68082f2b0e9a641a3ec197e525d269f35b82f62d5b2c6d9f75
+      sha256: "7ed2ddaa47524976d5f2aa91432a79da36a76969edd84170777ac5bea82d797c"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "3.0.4"
   freezed_annotation:
     dependency: "direct main"
     description:
@@ -1177,10 +1177,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_linux
-      sha256: "4ed1d9bb36f7cd60aa6e6cd479779cc56a4cb4e4de8f49d487b1aaad831300fa"
+      sha256: "34a65f6740df08bbbeb0a1abd8e6d32107941fd4868f67a507b25601651022c9"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.1+1"
+    version: "0.2.1+2"
   image_picker_macos:
     dependency: transitive
     description:
@@ -1385,10 +1385,10 @@ packages:
     dependency: "direct main"
     description:
       name: material_symbols_icons
-      sha256: db745002d0323c32097f5bc23711c02b0fb36ef616011a38c8c1798d5684d368
+      sha256: "99d5b0e7c65232dfe1247e0ac67eeeee2cab9da2d860748fc495d34f5e9e6397"
       url: "https://pub.dev"
     source: hosted
-    version: "4.2810.0"
+    version: "4.2811.0"
   media_kit:
     dependency: "direct main"
     description:
@@ -2102,10 +2102,10 @@ packages:
     dependency: transitive
     description:
       name: sqlite3_flutter_libs
-      sha256: "7adb4cc96dc08648a5eb1d80a7619070796ca6db03901ff2b6dcb15ee30468f3"
+      sha256: "1a96b59227828d9eb1463191d684b37a27d66ee5ed7597fcf42eee6452c88a14"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.31"
+    version: "0.5.32"
   sqlparser:
     dependency: transitive
     description:
@@ -2174,34 +2174,34 @@ packages:
     dependency: "direct main"
     description:
       name: talker
-      sha256: a074e0a2c1db1b09c1856050c5284a14ff64faea003403409871ab8335738d08
+      sha256: "45abef5b92f9b9bd42c3f20133ad4b20ab12e1da2aa206fc0a40ea874bed7c5d"
       url: "https://pub.dev"
     source: hosted
-    version: "4.7.0"
+    version: "4.7.1"
   talker_dio_logger:
     dependency: "direct main"
     description:
       name: talker_dio_logger
-      sha256: "6d713d26bdf90c7440222758a4e02ebfbdb3b323cdbdb50b78082db720f69427"
+      sha256: "52c1b554cccedec6073637a6d4f6a3e267dd4451c1545fe57e1b26897a560ccb"
       url: "https://pub.dev"
     source: hosted
-    version: "4.7.0"
+    version: "4.7.1"
   talker_flutter:
     dependency: "direct main"
     description:
       name: talker_flutter
-      sha256: "25a9faa98a0dcbab8d1ec366f19b3e91d422ede523461ec6e26e198b280cb98d"
+      sha256: "77458ca11638dfefb651e898a26101ee54e60dc0b168ad7481a05b1c97ce2680"
       url: "https://pub.dev"
     source: hosted
-    version: "4.7.0"
+    version: "4.7.1"
   talker_logger:
     dependency: transitive
     description:
       name: talker_logger
-      sha256: "0a1a295a9d036a3416e89c7155eaaca9ca6e3e0abb5401a40597f98b9cfc8fe6"
+      sha256: ed9b20b8c09efff9f6b7c63fc6630ee2f84aa92661ae09e5ba04e77272bf2ad2
       url: "https://pub.dev"
     source: hosted
-    version: "4.7.0"
+    version: "4.7.1"
   term_glyph:
     dependency: transitive
     description:

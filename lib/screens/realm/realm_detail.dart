@@ -318,7 +318,7 @@ class _RealmPostListWidgetState extends State<_RealmPostListWidget> {
               },
             );
           },
-          separatorBuilder: (_, __) => const Gap(8),
+          separatorBuilder: (_, __) => const Divider().padding(vertical: 2),
         ),
       ),
     ).padding(top: 8);

@@ -879,5 +879,11 @@
   "appInitUserDirectory": "正在初始化用户目录",
   "appInitRealm": "正在初始化领域信息",
   "appInitChat": "正在初始化聊天",
-  "appInitDone": "完成"
+  "appInitDone": "完成",
+  "community": "社区",
+  "realmCommunity": "{}的社区",
+  "postTotalCount": {
+    "zero": "没有帖子",
+    "one": "共 {} 条帖子"
+  }
 }

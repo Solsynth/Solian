@@ -881,5 +881,11 @@
   "appInitUserDirectory": "Initializing User Directory",
   "appInitRealm": "Initializing Realms",
   "appInitChat": "Initializing Chat",
-  "appInitDone": "Completed"
+  "appInitDone": "Completed",
+  "community": "Community",
+  "realmCommunity": "{}'s Community",
+  "postTotalCount": {
+    "one": "Total {} post",
+    "other": "Total {} posts"
+  }
 }

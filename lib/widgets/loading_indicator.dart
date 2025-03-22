@@ -76,7 +76,10 @@ class _LoadingIndicatorState extends State<LoadingIndicator>
                   const SizedBox(
                     height: 16,
                     width: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      padding: EdgeInsets.zero,
+                    ),
                   ),
                   const Gap(16),
                   Text('loading').tr(),

@@ -89,6 +89,7 @@ Future<ThemeData> createAppTheme(
       },
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
+    sliderTheme: SliderThemeData(year2023: false),
   );
 }
 

@@ -45,12 +45,14 @@ class PostEditorExtra {
   final String? title;
   final String? description;
   final List<PostWriteMedia>? attachments;
+  final SnRealm? realm;
 
   const PostEditorExtra({
     this.text,
     this.title,
     this.description,
     this.attachments,
+    this.realm,
   });
 }
 
@@ -263,6 +265,7 @@ class _PostEditorScreenState extends State<PostEditorScreen>
       _writeController.descriptionController.text =
           widget.extraProps!.description ?? '';
       _writeController.addAttachments(widget.extraProps!.attachments ?? []);
+      _writeController.setRealm(widget.extraProps!.realm);
     }
   }
 

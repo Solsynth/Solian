@@ -39,6 +39,7 @@ import 'package:surface/screens/post/post_shuffle.dart';
 import 'package:surface/screens/post/publisher_page.dart';
 import 'package:surface/screens/post/post_search.dart';
 import 'package:surface/screens/realm.dart';
+import 'package:surface/screens/realm/community.dart';
 import 'package:surface/screens/realm/manage.dart';
 import 'package:surface/screens/realm/realm_detail.dart';
 import 'package:surface/screens/realm/realm_discovery.dart';
@@ -259,6 +260,13 @@ final _appRoutes = [
       child: const RealmScreen(),
     ),
     routes: [
+      GoRoute(
+        path: '/:alias/community',
+        name: 'realmCommunity',
+        builder: (context, state) => RealmCommunityScreen(
+          alias: state.pathParameters['alias']!,
+        ),
+      ),
       GoRoute(
         path: '/manage',
         name: 'realmManage',
