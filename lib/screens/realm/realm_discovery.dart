@@ -4,8 +4,10 @@ import 'package:gap/gap.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/chat.dart';
 import 'package:surface/types/realm.dart';
@@ -57,7 +59,9 @@ class _RealmDiscoveryScreenState extends State<RealmDiscoveryScreen> {
         title: Text('screenRealmDiscovery').tr(),
         actions: [
           IconButton(
-            icon: _isCompactView ? const Icon(Symbols.view_list) : const Icon(Symbols.view_module),
+            icon: _isCompactView
+                ? const Icon(Symbols.view_list)
+                : const Icon(Symbols.view_module),
             onPressed: () {
               setState(() => _isCompactView = !_isCompactView);
               context.read<ConfigProvider>().realmCompactView = _isCompactView;
@@ -117,7 +121,8 @@ class _RealmJoinPopupState extends State<_RealmJoinPopup> {
     try {
       setState(() => _isBusy = true);
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/im/channels/${widget.realm.alias}/public');
+      final resp =
+          await sn.client.get('/cgi/im/channels/${widget.realm.alias}/public');
       final out = List<SnChannel>.from(
         resp.data.map((e) => SnChannel.fromJson(e)).cast<SnChannel>(),
       );
@@ -135,10 +140,13 @@ class _RealmJoinPopupState extends State<_RealmJoinPopup> {
       setState(() => _isJoining = true);
       final sn = context.read<SnNetworkProvider>();
       final ua = context.read<UserProvider>();
-      await sn.client.post('/cgi/id/realms/${widget.realm.alias}/members', data: {
+      final rel = context.read<SnRealmProvider>();
+      await sn.client
+          .post('/cgi/id/realms/${widget.realm.alias}/members', data: {
         'related': ua.user?.name,
       });
       await _joinSelectedChannels();
+      rel.addAvailableRealm(widget.realm);
       if (!mounted) return;
       context.showSnackbar('realmJoined'.tr(args: [widget.realm.name]));
       Navigator.pop(context);
@@ -156,12 +164,19 @@ class _RealmJoinPopupState extends State<_RealmJoinPopup> {
       try {
         final sn = context.read<SnNetworkProvider>();
         final ua = context.read<UserProvider>();
-        await sn.client.post('/cgi/im/channels/${widget.realm.alias}/$channel/members', data: {
-          'related': ua.user?.name,
-        });
+        await sn.client.post(
+            '/cgi/im/channels/${widget.realm.alias}/$channel/members',
+            data: {
+              'related': ua.user?.name,
+            });
       } catch (err) {
         if (!mounted) return;
         context.showErrorDialog(err);
+      }
+      final ct = context.read<ChatChannelProvider>();
+      for (final channel
+          in _channels!.where((ele) => _planJoinChannels.contains(ele.alias))) {
+        ct.addAvailableChannel(channel);
       }
     }
   }
@@ -182,7 +197,8 @@ class _RealmJoinPopupState extends State<_RealmJoinPopup> {
           children: [
             const Icon(Symbols.group_add, size: 24),
             const Gap(16),
-            Text('realmJoin', style: Theme.of(context).textTheme.titleLarge).tr(),
+            Text('realmJoin', style: Theme.of(context).textTheme.titleLarge)
+                .tr(),
           ],
         ).padding(horizontal: 20, top: 16, bottom: 12),
         Row(
@@ -216,7 +232,8 @@ class _RealmJoinPopupState extends State<_RealmJoinPopup> {
         Container(
           width: double.infinity,
           color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          child: Text('realmCommunityPublicChannelsHint'.tr(), style: Theme.of(context).textTheme.bodyMedium)
+          child: Text('realmCommunityPublicChannelsHint'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium)
               .padding(horizontal: 24, vertical: 8),
         ),
         Expanded(

@@ -201,7 +201,7 @@ class _FriendScreenState extends State<FriendScreen> {
     if (!ua.isAuthorized) {
       return AppScaffold(
         appBar: AppBar(
-          leading: AutoAppBarLeading(),
+          leading: PageBackButton(),
           title: Text('screenFriend').tr(),
         ),
         body: Center(
@@ -254,7 +254,8 @@ class _FriendScreenState extends State<FriendScreen> {
               trailing: const Icon(Symbols.chevron_right),
               onTap: _showBlocks,
             ),
-          if (_requests.isNotEmpty || _blocks.isNotEmpty) const Divider(height: 1),
+          if (_requests.isNotEmpty || _blocks.isNotEmpty)
+            const Divider(height: 1),
           Expanded(
             child: MediaQuery.removePadding(
               context: context,
@@ -270,7 +271,8 @@ class _FriendScreenState extends State<FriendScreen> {
                     final relation = _relations[index];
                     final other = relation.related;
                     return ListTile(
-                      contentPadding: const EdgeInsets.only(right: 24, left: 16),
+                      contentPadding:
+                          const EdgeInsets.only(right: 24, left: 16),
                       leading: AccountImage(content: other?.avatar),
                       title: Text(other?.nick ?? 'unknown'),
                       subtitle: Text(other?.nick ?? 'unknown'),
@@ -286,12 +288,16 @@ class _FriendScreenState extends State<FriendScreen> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 InkWell(
-                                  onTap: _isUpdating ? null : () => _changeRelation(relation, 2),
+                                  onTap: _isUpdating
+                                      ? null
+                                      : () => _changeRelation(relation, 2),
                                   child: Text('friendBlock').tr(),
                                 ),
                                 const Gap(8),
                                 InkWell(
-                                  onTap: _isUpdating ? null : () => _deleteRelation(relation),
+                                  onTap: _isUpdating
+                                      ? null
+                                      : () => _deleteRelation(relation),
                                   child: Text('friendDeleteAction').tr(),
                                 ),
                               ],
@@ -420,7 +426,9 @@ class _FriendshipListWidgetState extends State<_FriendshipListWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(kFriendStatus[relation.status] ?? 'unknown').tr().opacity(0.75),
+                Text(kFriendStatus[relation.status] ?? 'unknown')
+                    .tr()
+                    .opacity(0.75),
                 if (relation.status == 0)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -441,7 +449,8 @@ class _FriendshipListWidgetState extends State<_FriendshipListWidget> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       InkWell(
-                        onTap: _isBusy ? null : () => _changeRelation(relation, 1),
+                        onTap:
+                            _isBusy ? null : () => _changeRelation(relation, 1),
                         child: Text('friendUnblock').tr(),
                       ),
                       const Gap(8),

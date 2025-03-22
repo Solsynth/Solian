@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
-import 'dart:math' hide log;
 import 'dart:ui';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
@@ -161,7 +160,7 @@ class SolianApp extends StatelessWidget {
             Provider(create: (ctx) => SnNetworkProvider(ctx)),
             Provider(create: (ctx) => UserDirectoryProvider(ctx)),
             Provider(create: (ctx) => SnAttachmentProvider(ctx)),
-            Provider(create: (ctx) => SnRealmProvider(ctx)),
+            ChangeNotifierProvider(create: (ctx) => SnRealmProvider(ctx)),
             Provider(create: (ctx) => SnPostContentProvider(ctx)),
             Provider(create: (ctx) => SnRelationshipProvider(ctx)),
             Provider(create: (ctx) => SnLinkPreviewProvider(ctx)),
@@ -331,25 +330,29 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       if (!mounted) return;
       _setPhaseText('keyPair');
       final kp = context.read<KeyPairProvider>();
-      await kp.reloadActive();
-      kp.listen();
-      if (!mounted) return;
-      _setPhaseText('stickers');
-      final sticker = context.read<SnStickerProvider>();
-      await sticker.listSticker();
-      if (!mounted) return;
-      _setPhaseText('userDirectory');
-      final ud = context.read<UserDirectoryProvider>();
-      await ud.loadAccountCache();
-      if (!mounted) return;
-      _setPhaseText('realm');
-      final rm = context.read<SnRealmProvider>();
-      await rm.refreshAvailableRealms();
-      if (!mounted) return;
-      _setPhaseText('chat');
-      final ct = context.read<ChatChannelProvider>();
-      await ct.refreshAvailableChannels();
-      _setPhaseText('done');
+      try {
+        await kp.reloadActive();
+        kp.listen();
+      } catch (_) {}
+      if (ua.isAuthorized) {
+        if (!mounted) return;
+        _setPhaseText('stickers');
+        final sticker = context.read<SnStickerProvider>();
+        await sticker.listSticker();
+        if (!mounted) return;
+        _setPhaseText('userDirectory');
+        final ud = context.read<UserDirectoryProvider>();
+        await ud.loadAccountCache();
+        if (!mounted) return;
+        _setPhaseText('realm');
+        final rm = context.read<SnRealmProvider>();
+        await rm.refreshAvailableRealms();
+        if (!mounted) return;
+        _setPhaseText('chat');
+        final ct = context.read<ChatChannelProvider>();
+        await ct.refreshAvailableChannels();
+        _setPhaseText('done');
+      }
     } catch (err) {
       if (!mounted) return;
       await context.showErrorDialog(err);
@@ -534,7 +537,6 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
                       key: Key('app-splash-screen-$_isBusy'),
                       child: Stack(
                         children: [
-                          CustomPaint(painter: GraphPainter()),
                           Center(
                             child: Container(
                               constraints: const BoxConstraints(
@@ -573,45 +575,4 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       ),
     );
   }
-}
-
-class GraphPainter extends CustomPainter {
-  final Random random = Random();
-  final int numNodes = 20;
-  final double maxDistance = 100; // Max distance to draw a line
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paintNode = Paint()..color = Colors.white;
-    final paintEdge = Paint()
-      ..color = Colors.white.withOpacity(0.3)
-      ..strokeWidth = 1;
-
-    // Generate random points
-    List<Offset> nodes = List.generate(
-      numNodes,
-      (_) => Offset(
-        random.nextDouble() * size.width,
-        random.nextDouble() * size.height,
-      ),
-    );
-
-    // Draw edges between close nodes
-    for (var i = 0; i < nodes.length; i++) {
-      for (var j = i + 1; j < nodes.length; j++) {
-        double distance = (nodes[i] - nodes[j]).distance;
-        if (distance < maxDistance) {
-          canvas.drawLine(nodes[i], nodes[j], paintEdge);
-        }
-      }
-    }
-
-    // Draw nodes
-    for (var node in nodes) {
-      canvas.drawCircle(node, 4, paintNode);
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

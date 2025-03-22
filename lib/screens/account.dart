@@ -158,23 +158,33 @@ class _AuthorizedAccountScreen extends StatelessWidget {
           },
         ),
         ListTile(
-          title: Text('abuseReport').tr(),
-          subtitle: Text('abuseReportActionDescription').tr(),
+          title: Text('friends').tr(),
+          subtitle: Text('friendsDescription').tr(),
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.flag),
+          leading: const Icon(Symbols.person),
           trailing: const Icon(Symbols.chevron_right),
           onTap: () {
-            GoRouter.of(context).pushNamed('abuseReport');
+            GoRouter.of(context).pushNamed('friend');
           },
         ),
         ListTile(
-          title: Text('factorSettings').tr(),
-          subtitle: Text('factorSettingsSubtitle').tr(),
+          title: Text('album').tr(),
+          subtitle: Text('albumDescription').tr(),
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.lock),
+          leading: const Icon(Symbols.photo_library),
           trailing: const Icon(Symbols.chevron_right),
           onTap: () {
-            GoRouter.of(context).pushNamed('factorSettings');
+            GoRouter.of(context).pushNamed('album');
+          },
+        ),
+        ListTile(
+          title: Text('stickers').tr(),
+          subtitle: Text('stickersDescription').tr(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          leading: const Icon(Symbols.emoji_emotions),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {
+            GoRouter.of(context).pushNamed('stickers');
           },
         ),
         ListTile(
@@ -235,6 +245,16 @@ class _AuthorizedAccountScreen extends StatelessWidget {
           trailing: const Icon(Symbols.chevron_right),
           onTap: () {
             GoRouter.of(context).pushNamed('accountSettings');
+          },
+        ),
+        ListTile(
+          title: Text('abuseReport').tr(),
+          subtitle: Text('abuseReportActionDescription').tr(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          leading: const Icon(Symbols.flag),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {
+            GoRouter.of(context).pushNamed('abuseReport');
           },
         ),
         ListTile(

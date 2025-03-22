@@ -118,6 +118,16 @@ class AccountSettingsScreen extends StatelessWidget {
               },
             ),
             ListTile(
+              title: Text('factorSettings').tr(),
+              subtitle: Text('factorSettingsSubtitle').tr(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: const Icon(Symbols.lock),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () {
+                GoRouter.of(context).pushNamed('factorSettings');
+              },
+            ),
+            ListTile(
               title: Text('accountProfileEdit').tr(),
               subtitle: Text('accountProfileEditSubtitle').tr(),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),

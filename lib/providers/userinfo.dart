@@ -64,6 +64,7 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<SnAccount?> refreshUser() async {
+    if (!isAuthorized) return null;
     final resp = await _sn.client.get('/cgi/id/users/me');
     final out = SnAccount.fromJson(resp.data);
 

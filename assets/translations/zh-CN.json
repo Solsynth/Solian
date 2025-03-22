@@ -888,5 +888,11 @@
   },
   "settingsHideBottomNav": "隐藏底部导航栏",
   "settingsHideBottomNavDescription": "隐藏底部导航栏，在侧边栏抽屉显示导航按钮。",
-  "reCaptcha": "人机验证"
+  "reCaptcha": "人机验证",
+  "friends": "好友",
+  "friendsDescription": "管理好友关系。",
+  "album": "相册",
+  "albumDescription": "查看相册与管理上传附件。",
+  "stickers": "贴图",
+  "stickersDescription": "查看贴图包与管理贴图。"
 }

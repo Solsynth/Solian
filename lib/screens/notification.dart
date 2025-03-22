@@ -149,8 +149,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (!ua.isAuthorized) {
       return AppScaffold(
         appBar: AppBar(
-            leading: AutoAppBarLeading(),
-            title: Text('screenNotification').tr()),
+          leading: PageBackButton(),
+          title: Text('screenNotification').tr(),
+        ),
         body: Center(child: UnauthorizedHint()),
       );
     }

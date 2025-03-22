@@ -61,26 +61,6 @@ class NavigationProvider extends ChangeNotifier {
       screen: 'news',
       label: 'screenNews',
     ),
-    AppNavDestination(
-      icon: Icon(Symbols.emoji_emotions, weight: 400, opticalSize: 20),
-      screen: 'stickers',
-      label: 'screenStickers',
-    ),
-    AppNavDestination(
-      icon: Icon(Symbols.photo_library, weight: 400, opticalSize: 20),
-      screen: 'album',
-      label: 'screenAlbum',
-    ),
-    AppNavDestination(
-      icon: Icon(Symbols.diversity_4, weight: 400, opticalSize: 20),
-      screen: 'friend',
-      label: 'screenFriend',
-    ),
-    AppNavDestination(
-      icon: Icon(Symbols.notifications, weight: 400, opticalSize: 20),
-      screen: 'notification',
-      label: 'screenNotification',
-    ),
   ];
   static const List<String> kDefaultPinnedDestination = [
     'home',

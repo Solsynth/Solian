@@ -155,7 +155,7 @@ class _DrawerContentList extends StatelessWidget {
     final ct = context.read<ChatChannelProvider>();
     final sn = context.read<SnNetworkProvider>();
     final nav = context.watch<NavigationProvider>();
-    final rel = context.read<SnRealmProvider>();
+    final rel = context.watch<SnRealmProvider>();
 
     return PageTransitionSwitcher(
       duration: const Duration(milliseconds: 300),
@@ -188,13 +188,14 @@ class _DrawerContentList extends StatelessWidget {
                 ListTile(
                   minTileHeight: 48,
                   contentPadding: EdgeInsets.only(left: 28, right: 16),
-                  leading: const Icon(Symbols.home),
+                  leading: const Icon(Symbols.home).padding(right: 4),
                   title: Text('screenHome').tr(),
                   onTap: () {
                     GoRouter.of(context).goNamed('home');
                     Scaffold.of(context).closeDrawer();
                   },
                 ),
+                const Divider(height: 1).padding(vertical: 4),
                 ...rel.availableRealms.map((ele) {
                   return ListTile(
                     minTileHeight: 48,
@@ -209,6 +210,16 @@ class _DrawerContentList extends StatelessWidget {
                     },
                   );
                 }),
+                ListTile(
+                  minTileHeight: 48,
+                  contentPadding: EdgeInsets.only(left: 28, right: 16),
+                  leading: const Icon(Symbols.globe).padding(right: 4),
+                  title: Text('screenRealmDiscovery').tr(),
+                  onTap: () {
+                    GoRouter.of(context).pushNamed('realmDiscovery');
+                    Scaffold.of(context).closeDrawer();
+                  },
+                ),
               ],
             )
           : ListView(

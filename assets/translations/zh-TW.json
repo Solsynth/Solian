@@ -888,5 +888,11 @@
   },
   "settingsHideBottomNav": "隱藏底部導航欄",
   "settingsHideBottomNavDescription": "隱藏底部導航欄，在側邊欄抽屜顯示導航按鈕。",
-  "reCaptcha": "人機驗證"
+  "reCaptcha": "人機驗證",
+  "friends": "好友",
+  "friendsDescription": "管理好友關係。",
+  "album": "相冊",
+  "albumDescription": "查看相冊與管理上傳附件。",
+  "stickers": "貼圖",
+  "stickersDescription": "查看貼圖包與管理貼圖。"
 }

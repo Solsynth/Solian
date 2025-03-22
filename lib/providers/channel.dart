@@ -41,6 +41,11 @@ class ChatChannelProvider extends ChangeNotifier {
     });
   }
 
+  void addAvailableChannel(SnChannel channel) {
+    _availableChannels.add(channel);
+    notifyListeners();
+  }
+
   Future<void> _saveChannelToLocal(Iterable<SnChannel> channels) async {
     await Future.wait(
       channels.map(

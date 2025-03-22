@@ -10,7 +10,6 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/types/attachment.dart';
-import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/attachment/attachment_zoom.dart';
 import 'package:surface/widgets/attachment/attachment_item.dart';
 import 'package:surface/widgets/dialog.dart';
@@ -106,7 +105,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
         controller: _scrollController,
         slivers: [
           SliverAppBar(
-            leading: AutoAppBarLeading(),
+            leading: PageBackButton(),
             title: Text('screenAlbum').tr(),
           ),
           SliverToBoxAdapter(
@@ -119,7 +118,8 @@ class _AlbumScreenState extends State<AlbumScreen> {
                     child: CircularProgressIndicator(
                       value: _billing?.includedRatio ?? 0,
                       strokeWidth: 8,
-                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainerHigh,
                     ),
                   ).padding(all: 12),
                   const Gap(24),
@@ -129,7 +129,8 @@ class _AlbumScreenState extends State<AlbumScreen> {
                       children: [
                         Text('attachmentBillingUploaded').tr().bold(),
                         Text(
-                          (_billing?.currentBytes ?? 0).formatBytes(decimals: 4),
+                          (_billing?.currentBytes ?? 0)
+                              .formatBytes(decimals: 4),
                           style: GoogleFonts.robotoMono(),
                         ),
                         Text('attachmentBillingDiscount').tr().bold(),

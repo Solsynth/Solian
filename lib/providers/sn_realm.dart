@@ -8,7 +8,7 @@ import 'package:surface/providers/database.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/realm.dart';
 
-class SnRealmProvider {
+class SnRealmProvider extends ChangeNotifier {
   late final SnNetworkProvider _sn;
   late final DatabaseProvider _dt;
 
@@ -37,6 +37,11 @@ class SnRealmProvider {
     }
     _saveToLocal(out);
     return out;
+  }
+
+  void addAvailableRealm(SnRealm realm) {
+    _availableRealms.add(realm);
+    notifyListeners();
   }
 
   Future<SnRealm> getRealm(dynamic aliasOrId) async {

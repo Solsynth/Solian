@@ -806,7 +806,7 @@ class _HomeDashNotificationWidgetState
               child: IconButton(
                 icon: const Icon(Symbols.arrow_right_alt),
                 onPressed: () {
-                  GoRouter.of(context).goNamed('notification');
+                  GoRouter.of(context).pushNamed('notification');
                 },
               ),
             ),

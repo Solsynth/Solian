@@ -890,5 +890,11 @@
   },
   "settingsHideBottomNav": "Hide Bottom Navigation",
   "settingsHideBottomNavDescription": "Hide the bottom navigation bar, and show the navigation buttons in the drawer.",
-  "reCaptcha": "reCaptcha"
+  "reCaptcha": "reCaptcha",
+  "friends": "Friends",
+  "friendsDescription": "Manage your friendships.",
+  "album": "Album",
+  "albumDescription": "View albums and manage attachments.",
+  "stickers": "Stickers",
+  "stickersDescription": "View sticker packs and manage stickers."
 }
