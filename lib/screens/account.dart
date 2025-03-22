@@ -30,19 +30,7 @@ class AccountScreen extends StatelessWidget {
     return AppScaffold(
       appBar: AppBar(
         leading: AutoAppBarLeading(),
-        title: Text(
-          "screenAccount",
-          style: TextStyle(
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                offset: Offset(1, 1),
-                blurRadius: 5.0,
-                color: Color.fromARGB(255, 0, 0, 0),
-              ),
-            ],
-          ),
-        ).tr(),
+        title: Text("screenAccount").tr(),
         flexibleSpace: ua.user != null && ua.user!.banner.isNotEmpty
             ? Stack(
                 fit: StackFit.expand,

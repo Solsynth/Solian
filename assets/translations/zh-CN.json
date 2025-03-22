@@ -894,5 +894,6 @@
   "album": "相册",
   "albumDescription": "查看相册与管理上传附件。",
   "stickers": "贴图",
-  "stickersDescription": "查看贴图包与管理贴图。"
+  "stickersDescription": "查看贴图包与管理贴图。",
+  "navBottomUnauthorizedCaption": "或者注册一个账号"
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:animations/animations.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/config.dart';
@@ -46,6 +48,17 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
     final nav = context.watch<NavigationProvider>();
     final cfg = context.watch<ConfigProvider>();
 
+    final routeName = GoRouter.of(context)
+        .routerDelegate
+        .currentConfiguration
+        .last
+        .route
+        .name;
+    final showNavButtons = cfg.hideBottomNav ||
+        !(nav.showBottomNavScreen.contains(routeName)
+            ? ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE)
+            : false);
+
     final backgroundColor = cfg.drawerIsExpanded ? Colors.transparent : null;
 
     return ListenableBuilder(
@@ -78,19 +91,33 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
               Expanded(
                 child: _DrawerContentList(),
               ),
-              if (cfg.hideBottomNav)
+              if (showNavButtons)
                 Row(
                   spacing: 8,
-                  children: nav.destinations.where((ele) => ele.isPinned).map(
-                    (ele) {
+                  children:
+                      nav.destinations.where((ele) => ele.isPinned).mapIndexed(
+                    (idx, ele) {
                       return Expanded(
                         child: Tooltip(
                           message: ele.label.tr(),
-                          child: IconButton.filledTonal(
+                          child: IconButton(
                             icon: ele.icon,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
+                            color: nav.currentIndex == idx
+                                ? Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer
+                                : Theme.of(context).colorScheme.onSurface,
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStatePropertyAll(
+                                nav.currentIndex == idx
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerLow,
+                              ),
+                            ),
                             onPressed: () {
                               GoRouter.of(context).goNamed(ele.screen);
                               Scaffold.of(context).closeDrawer();
@@ -105,22 +132,30 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
                 alignment: Alignment.bottomCenter,
                 child: ListTile(
                   contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                  leading: AccountImage(content: ua.user?.avatar),
-                  title: Text(ua.user?.nick ?? 'unknown'.tr()).fontSize(15),
-                  subtitle:
-                      Text('@${ua.user?.name ?? 'unknown'.tr()}').fontSize(13),
+                  leading: AccountImage(
+                    content: ua.user?.avatar,
+                    fallbackWidget:
+                        ua.isAuthorized ? null : const Icon(Symbols.login),
+                  ),
+                  title: ua.isAuthorized
+                      ? Text(ua.user?.nick ?? 'unknown'.tr()).fontSize(15)
+                      : Text('screenAuthLogin').tr(),
+                  subtitle: ua.isAuthorized
+                      ? Text('@${ua.user?.name ?? 'unknown'.tr()}').fontSize(13)
+                      : Text('navBottomUnauthorizedCaption').fontSize(13).tr(),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        icon: const Icon(Symbols.notifications, fill: 1),
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () {
-                          GoRouter.of(context).pushNamed('notification');
-                          Scaffold.of(context).closeDrawer();
-                        },
-                      ),
+                      if (ua.isAuthorized)
+                        IconButton(
+                          icon: const Icon(Symbols.notifications, fill: 1),
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () {
+                            GoRouter.of(context).pushNamed('notification');
+                            Scaffold.of(context).closeDrawer();
+                          },
+                        ),
                       IconButton(
                         icon: const Icon(Symbols.settings, fill: 1),
                         padding: EdgeInsets.zero,
@@ -185,17 +220,6 @@ class _DrawerContentList extends StatelessWidget {
                   horizontal: 32,
                   vertical: 12,
                 ),
-                ListTile(
-                  minTileHeight: 48,
-                  contentPadding: EdgeInsets.only(left: 28, right: 16),
-                  leading: const Icon(Symbols.home).padding(right: 4),
-                  title: Text('screenHome').tr(),
-                  onTap: () {
-                    GoRouter.of(context).goNamed('home');
-                    Scaffold.of(context).closeDrawer();
-                  },
-                ),
-                const Divider(height: 1).padding(vertical: 4),
                 ...rel.availableRealms.map((ele) {
                   return ListTile(
                     minTileHeight: 48,

@@ -896,5 +896,6 @@
   "album": "Album",
   "albumDescription": "View albums and manage attachments.",
   "stickers": "Stickers",
-  "stickersDescription": "View sticker packs and manage stickers."
+  "stickersDescription": "View sticker packs and manage stickers.",
+  "navBottomUnauthorizedCaption": "Or create an account"
 }
