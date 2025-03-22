@@ -279,6 +279,8 @@ class _PostItemState extends State<PostItem> {
     final ua = context.read<UserProvider>();
     final isAuthor =
         ua.isAuthorized && widget.data.publisher.accountId == ua.user?.id;
+    final isParentAuthor = ua.isAuthorized &&
+        widget.data.replyTo?.publisher.accountId == ua.user?.id;
 
     final displayableAttachments = widget.data.preload?.attachments
         ?.where((ele) =>
@@ -333,6 +335,7 @@ class _PostItemState extends State<PostItem> {
                     _PostActionPopup(
                       data: widget.data,
                       isAuthor: isAuthor,
+                      isParentAuthor: isParentAuthor,
                       onShare: () => _doShare(context),
                       onShareImage: () => _doShareViaPicture(context),
                       onSelectAnswer: widget.onSelectAnswer,
@@ -577,6 +580,7 @@ class _PostItemState extends State<PostItem> {
                             _PostActionPopup(
                               data: widget.data,
                               isAuthor: isAuthor,
+                              isParentAuthor: isParentAuthor,
                               onShare: () => _doShare(context),
                               onShareImage: () => _doShareViaPicture(context),
                               onSelectAnswer: widget.onSelectAnswer,
@@ -1317,6 +1321,7 @@ class _PostAvatar extends StatelessWidget {
 class _PostActionPopup extends StatelessWidget {
   final SnPost data;
   final bool isAuthor;
+  final bool isParentAuthor;
   final Function onDeleted;
   final Function() onShare, onShareImage;
   final Function()? onSelectAnswer;
@@ -1324,6 +1329,7 @@ class _PostActionPopup extends StatelessWidget {
   const _PostActionPopup({
     required this.data,
     required this.isAuthor,
+    required this.isParentAuthor,
     required this.onDeleted,
     required this.onShare,
     required this.onShareImage,
@@ -1397,7 +1403,7 @@ class _PostActionPopup extends StatelessWidget {
               },
             ),
           if (onTranslate != null) PopupMenuDivider(),
-          if (isAuthor && onSelectAnswer != null)
+          if (isParentAuthor && onSelectAnswer != null)
             PopupMenuItem(
               child: Row(
                 children: [
@@ -1410,7 +1416,7 @@ class _PostActionPopup extends StatelessWidget {
                 onSelectAnswer?.call();
               },
             ),
-          if (isAuthor && onSelectAnswer != null) PopupMenuDivider(),
+          if (isParentAuthor && onSelectAnswer != null) PopupMenuDivider(),
           if (isAuthor)
             PopupMenuItem(
               child: Row(

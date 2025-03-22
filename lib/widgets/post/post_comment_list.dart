@@ -103,7 +103,7 @@ class PostCommentSliverListState extends State<PostCommentSliverList> {
       final sn = context.read<SnNetworkProvider>();
       await sn.client
           .put('/cgi/co/questions/${widget.parentPost.id}/answer', data: {
-        'publisher': answer.publisherId,
+        'publisher': widget.parentPost.publisherId,
         'answer_id': answer.id,
       });
       if (!mounted) return;
