@@ -113,21 +113,20 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
                                     ? Theme.of(context)
                                         .colorScheme
                                         .primaryContainer
-                                    : Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerLow,
+                                    : Colors.transparent,
                               ),
                             ),
                             onPressed: () {
                               GoRouter.of(context).goNamed(ele.screen);
                               Scaffold.of(context).closeDrawer();
+                              nav.setIndex(idx);
                             },
                           ),
                         ),
                       );
                     },
                   ).toList(),
-                ).padding(horizontal: 16),
+                ).padding(horizontal: 16, bottom: 8),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: ListTile(
@@ -173,7 +172,7 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
                   },
                 ),
               ),
-              Gap(MediaQuery.of(context).padding.bottom),
+              Gap(MediaQuery.of(context).padding.bottom + 8),
             ],
           ),
         );
@@ -282,7 +281,7 @@ class _DrawerContentList extends StatelessWidget {
                   ),
                   title: Text(nav.focusedRealm!.name),
                   onTap: () {
-                    GoRouter.of(context).pushNamed(
+                    GoRouter.of(context).goNamed(
                       'realmDetail',
                       pathParameters: {
                         'alias': nav.focusedRealm!.alias,
@@ -300,7 +299,7 @@ class _DrawerContentList extends StatelessWidget {
                   leading: const Icon(Symbols.globe),
                   title: Text('community').tr(),
                   onTap: () {
-                    GoRouter.of(context).pushNamed(
+                    GoRouter.of(context).goNamed(
                       'realmCommunity',
                       pathParameters: {
                         'alias': nav.focusedRealm!.alias,
@@ -325,7 +324,7 @@ class _DrawerContentList extends StatelessWidget {
                     leading: const Icon(Symbols.tag),
                     title: Text(ele.name),
                     onTap: () {
-                      GoRouter.of(context).pushNamed(
+                      GoRouter.of(context).goNamed(
                         'chatRoom',
                         pathParameters: {
                           'scope': ele.realm?.alias ?? 'global',
