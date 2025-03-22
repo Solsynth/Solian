@@ -185,6 +185,16 @@ class _DrawerContentList extends StatelessWidget {
                   horizontal: 32,
                   vertical: 12,
                 ),
+                ListTile(
+                  minTileHeight: 48,
+                  contentPadding: EdgeInsets.only(left: 28, right: 16),
+                  leading: const Icon(Symbols.home),
+                  title: Text('screenHome').tr(),
+                  onTap: () {
+                    GoRouter.of(context).goNamed('home');
+                    Scaffold.of(context).closeDrawer();
+                  },
+                ),
                 ...rel.availableRealms.map((ele) {
                   return ListTile(
                     minTileHeight: 48,

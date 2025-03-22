@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/screens/captcha.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -33,9 +34,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final username = _usernameController.value.text;
     final nickname = _nicknameController.value.text;
     final password = _passwordController.value.text;
-    if (email.isEmpty || username.isEmpty || nickname.isEmpty || password.isEmpty) {
+    if (email.isEmpty ||
+        username.isEmpty ||
+        nickname.isEmpty ||
+        password.isEmpty) {
       return;
     }
+
+    final captchaTk = await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => TurnstileScreen(),
+      ),
+    );
+    if (captchaTk == null) return;
 
     try {
       final sn = context.read<SnNetworkProvider>();
@@ -45,6 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'email': email,
         'password': password,
         'language': EasyLocalization.of(context)!.currentLocale.toString(),
+        'captcha_token': captchaTk,
       });
 
       if (!context.mounted) return;
@@ -91,8 +103,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     TextFormField(
                       validator: (value) {
-                        if (value == null || value.length < 4 || value.length > 32) {
-                          return 'fieldUsernameLengthLimit'.tr(args: [4.toString(), 32.toString()]);
+                        if (value == null ||
+                            value.length < 4 ||
+                            value.length > 32) {
+                          return 'fieldUsernameLengthLimit'
+                              .tr(args: [4.toString(), 32.toString()]);
                         }
                         if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
                           return 'fieldUsernameAlphanumOnly'.tr();
@@ -108,13 +123,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: const UnderlineInputBorder(),
                         labelText: 'fieldUsername'.tr(),
                       ),
-                      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                     const Gap(12),
                     TextFormField(
                       validator: (value) {
-                        if (value == null || value.length < 4 || value.length > 32) {
-                          return 'fieldNicknameLengthLimit'.tr(args: [4.toString(), 32.toString()]);
+                        if (value == null ||
+                            value.length < 4 ||
+                            value.length > 32) {
+                          return 'fieldNicknameLengthLimit'
+                              .tr(args: [4.toString(), 32.toString()]);
                         }
                         return null;
                       },
@@ -127,7 +146,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: const UnderlineInputBorder(),
                         labelText: 'fieldNickname'.tr(),
                       ),
-                      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                     const Gap(12),
                     TextFormField(
@@ -149,7 +169,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: const UnderlineInputBorder(),
                         labelText: 'fieldEmail'.tr(),
                       ),
-                      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                     const Gap(12),
                     TextFormField(
@@ -169,7 +190,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: const UnderlineInputBorder(),
                         labelText: 'fieldPassword'.tr(),
                       ),
-                      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                   ],
                 ).padding(horizontal: 7),
@@ -186,9 +208,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Text(
                           'termAcceptNextWithAgree'.tr(),
                           textAlign: TextAlign.end,
-                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withAlpha((255 * 0.75).round()),
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall!.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withAlpha((255 * 0.75).round()),
+                                  ),
                         ),
                         Material(
                           color: Colors.transparent,

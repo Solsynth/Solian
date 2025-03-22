@@ -887,5 +887,6 @@
     "one": "共 {} 條帖子"
   },
   "settingsHideBottomNav": "隱藏底部導航欄",
-  "settingsHideBottomNavDescription": "隱藏底部導航欄，在側邊欄抽屜顯示導航按鈕。"
+  "settingsHideBottomNavDescription": "隱藏底部導航欄，在側邊欄抽屜顯示導航按鈕。",
+  "reCaptcha": "人機驗證"
 }

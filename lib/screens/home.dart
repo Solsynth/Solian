@@ -18,6 +18,7 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/special_day.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/providers/widget.dart';
+import 'package:surface/screens/captcha.dart';
 import 'package:surface/types/check_in.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
@@ -508,11 +509,20 @@ class _HomeDashCheckInWidgetState extends State<_HomeDashCheckInWidget> {
   }
 
   Future<void> _doCheckIn() async {
+    final captchaTk = await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => TurnstileScreen(),
+      ),
+    );
+    if (captchaTk == null) return;
+
     setState(() => _isBusy = true);
     try {
       final sn = context.read<SnNetworkProvider>();
       final home = context.read<HomeWidgetProvider>();
-      final resp = await sn.client.post('/cgi/id/check-in');
+      final resp = await sn.client.post('/cgi/id/check-in', data: {
+        'captcha_token': captchaTk,
+      });
       _todayRecord = SnCheckInRecord.fromJson(resp.data);
       await home.saveWidgetData('pas_check_in_record', _todayRecord!.toJson());
     } catch (err) {

@@ -887,5 +887,6 @@
     "one": "共 {} 条帖子"
   },
   "settingsHideBottomNav": "隐藏底部导航栏",
-  "settingsHideBottomNavDescription": "隐藏底部导航栏，在侧边栏抽屉显示导航按钮。"
+  "settingsHideBottomNavDescription": "隐藏底部导航栏，在侧边栏抽屉显示导航按钮。",
+  "reCaptcha": "人机验证"
 }
