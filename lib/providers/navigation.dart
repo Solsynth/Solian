@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:surface/types/realm.dart';
 
 class AppNavDestination {
   final String label;
@@ -141,6 +142,13 @@ class NavigationProvider extends ChangeNotifier {
 
   void setIndex(int idx) {
     _currentIndex = idx;
+    notifyListeners();
+  }
+
+  SnRealm? focusedRealm;
+
+  void setFocusedRealm(SnRealm? realm) {
+    focusedRealm = realm;
     notifyListeners();
   }
 }

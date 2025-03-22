@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:math' hide log;
 import 'dart:ui';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
@@ -12,6 +13,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -19,6 +21,7 @@ import 'package:provider/provider.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/firebase_options.dart';
 import 'package:surface/logger.dart';
 import 'package:surface/providers/channel.dart';
@@ -46,6 +49,7 @@ import 'package:surface/router.dart';
 import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/menu_bar.dart';
+import 'package:surface/widgets/version_label.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:version/version.dart';
 import 'package:workmanager/workmanager.dart';
@@ -228,6 +232,9 @@ class _AppSplashScreen extends StatefulWidget {
 }
 
 class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
+  bool _isBusy = false;
+  String _phaseText = 'appInitStarting';
+
   void _tryRequestRating() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.containsKey('first_boot_time')) {
@@ -287,6 +294,11 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     }
   }
 
+  void _setPhaseText(String text) {
+    _phaseText = 'appInit${text.capitalize()}'.tr();
+    if (mounted) setState(() {});
+  }
+
   Future<void> _initialize() async {
     try {
       final cfg = context.read<ConfigProvider>();
@@ -299,34 +311,45 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       // The Network initialization must be done after the HomeWidget initialization
       // The Network initialization will save the server url to the HomeWidget
       // The Network initialization will also save initialize the Config, so it not need to be initialized again
+      _setPhaseText('network');
       final sn = context.read<SnNetworkProvider>();
       await sn.initializeUserAgent();
       await sn.setConfigWithNative();
       if (!mounted) return;
+      _setPhaseText('userdata');
       final ua = context.read<UserProvider>();
       await ua.initialize();
       if (!mounted) return;
+      _setPhaseText('websocket');
       final ws = context.read<WebSocketProvider>();
       await ws.tryConnect();
       if (!mounted) return;
+      _setPhaseText('notification');
       final notify = context.read<NotificationProvider>();
       notify.listen();
       await notify.registerPushNotifications();
       if (!mounted) return;
+      _setPhaseText('keyPair');
       final kp = context.read<KeyPairProvider>();
       await kp.reloadActive();
       kp.listen();
       if (!mounted) return;
+      _setPhaseText('stickers');
       final sticker = context.read<SnStickerProvider>();
       await sticker.listSticker();
       if (!mounted) return;
+      _setPhaseText('userDirectory');
       final ud = context.read<UserDirectoryProvider>();
-      final userCacheSize = await ud.loadAccountCache();
+      await ud.loadAccountCache();
       if (!mounted) return;
+      _setPhaseText('realm');
       final rm = context.read<SnRealmProvider>();
       await rm.refreshAvailableRealms();
-      logging.info('[Users] Loaded local user cache, size: $userCacheSize');
-      logging.info('[Bootstrap] Everything initialized!');
+      if (!mounted) return;
+      _setPhaseText('chat');
+      final ct = context.read<ChatChannelProvider>();
+      await ct.refreshAvailableChannels();
+      _setPhaseText('done');
     } catch (err) {
       if (!mounted) return;
       await context.showErrorDialog(err);
@@ -402,6 +425,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   void initState() {
     super.initState();
 
+    _isBusy = true;
     if (!kIsWeb && !(Platform.isIOS || Platform.isAndroid)) {
       _appLifecycleListener = AppLifecycleListener(
         onExitRequested: _onExitRequested,
@@ -415,6 +439,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       _postInitialization();
       _tryRequestRating();
       _checkForUpdate();
+      setState(() => _isBusy = false);
     });
   }
 
@@ -504,11 +529,89 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
               }
             });
             return SizeChangedLayoutNotifier(
-              child: widget.child,
+              child: _isBusy
+                  ? Material(
+                      key: Key('app-splash-screen-$_isBusy'),
+                      child: Stack(
+                        children: [
+                          CustomPaint(painter: GraphPainter()),
+                          Center(
+                            child: Container(
+                              constraints: const BoxConstraints(
+                                maxWidth: 240,
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.asset(
+                                    'assets/icon/icon.png',
+                                    width: 64,
+                                    height: 64,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                  Text('Solar Network').bold(),
+                                  AppVersionLabel(),
+                                  Gap(8),
+                                  Text(
+                                    _phaseText,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Gap(16),
+                                  const LinearProgressIndicator(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : widget.child,
             );
           },
         ),
       ),
     );
   }
+}
+
+class GraphPainter extends CustomPainter {
+  final Random random = Random();
+  final int numNodes = 20;
+  final double maxDistance = 100; // Max distance to draw a line
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paintNode = Paint()..color = Colors.white;
+    final paintEdge = Paint()
+      ..color = Colors.white.withOpacity(0.3)
+      ..strokeWidth = 1;
+
+    // Generate random points
+    List<Offset> nodes = List.generate(
+      numNodes,
+      (_) => Offset(
+        random.nextDouble() * size.width,
+        random.nextDouble() * size.height,
+      ),
+    );
+
+    // Draw edges between close nodes
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        double distance = (nodes[i] - nodes[j]).distance;
+        if (distance < maxDistance) {
+          canvas.drawLine(nodes[i], nodes[j], paintEdge);
+        }
+      }
+    }
+
+    // Draw nodes
+    for (var node in nodes) {
+      canvas.drawCircle(node, 4, paintNode);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

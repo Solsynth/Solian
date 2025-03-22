@@ -88,6 +88,7 @@ Future<ThemeData> createAppTheme(
         TargetPlatform.windows: ZoomPageTransitionsBuilder(),
       },
     ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
   );
 }
 

@@ -28,6 +28,19 @@ class ChatChannelProvider extends ChangeNotifier {
     _rels = context.read<SnRealmProvider>();
   }
 
+  final List<SnChannel> _availableChannels = List.empty(growable: true);
+
+  List<SnChannel> get availableChannels => _availableChannels;
+
+  Future<void> refreshAvailableChannels() async {
+    final stream = fetchChannels();
+    stream.listen((ele) {
+      _availableChannels.clear();
+      _availableChannels.addAll(ele);
+      notifyListeners();
+    });
+  }
+
   Future<void> _saveChannelToLocal(Iterable<SnChannel> channels) async {
     await Future.wait(
       channels.map(

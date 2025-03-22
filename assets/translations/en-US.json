@@ -870,5 +870,16 @@
   "chatUnjoined": "Unjoined Channel",
   "chatUnjoinedDescription": "You haven't joined this channel, so you can't send messages either view messages in it.",
   "chatUnjoinedPublicDescription": "Fortunately, this is a public channel, so you can join it as you want.",
-  "chatJoin": "Join the Channel"
+  "chatJoin": "Join the Channel",
+  "appInitStarting": "Starting",
+  "appInitNetwork": "Initializing Network",
+  "appInitUserdata": "Initializing User Data",
+  "appInitWebsocket": "Establishing Solar Link",
+  "appInitNotification": "Initializing Push Notifications", 
+  "appInitKeyPair": "Initializing Key Pairs",
+  "appInitStickers": "Initializing Stickers",
+  "appInitUserDirectory": "Initializing User Directory",
+  "appInitRealm": "Initializing Realms",
+  "appInitChat": "Initializing Chat",
+  "appInitDone": "Completed"
 }

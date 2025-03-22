@@ -864,5 +864,20 @@
     "other": "登入時最多要求 {} 步驗證"
   },
   "authAlwaysRisky": "總是風險",
-  "authAlwaysRiskyDescription": "在登入時始終按最高標準要求驗證。"
+  "authAlwaysRiskyDescription": "在登入時始終按最高標準要求驗證。",
+  "chatUnjoined": "未加入頻道",
+  "chatUnjoinedDescription": "你沒有加入這個頻道，所以你也無法發送消息或者查看這個頻道中的消息。",
+  "chatUnjoinedPublicDescription": "但幸運的是，這是一個公開頻道，所以你可以主動加入。",
+  "chatJoin": "加入頻道",
+  "appInitStarting": "啟動中",
+  "appInitNetwork": "正在初始化網絡",
+  "appInitUserdata": "正在初始化用戶數據",
+  "appInitWebsocket": "正在建立 Solar Link",
+  "appInitNotification": "正在初始化推送通知", 
+  "appInitKeyPair": "正在初始化密鑰對",
+  "appInitStickers": "正在初始化貼圖包",
+  "appInitUserDirectory": "正在初始化用戶目錄",
+  "appInitRealm": "正在初始化領域信息",
+  "appInitChat": "正在初始化聊天",
+  "appInitDone": "完成"
 }

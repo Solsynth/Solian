@@ -176,7 +176,7 @@ class MarkdownTextContent extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
                       child: AspectRatio(
-                        aspectRatio: attachment.metadata['ratio'] ??
+                        aspectRatio: attachment.metadata['ratio']?.toDouble() ??
                             switch (attachment.mimetype
                                     .split('/')
                                     .firstOrNull) {

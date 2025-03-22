@@ -868,5 +868,16 @@
   "chatUnjoined": "未加入频道",
   "chatUnjoinedDescription": "你没有加入这个频道，所以你也无法发送消息或者查看这个频道中的消息。",
   "chatUnjoinedPublicDescription": "但幸运的是，这是一个公开频道，所以你可以主动加入。",
-  "chatJoin": "加入频道"
+  "chatJoin": "加入频道",
+  "appInitStarting": "启动中",
+  "appInitNetwork": "正在初始化网络",
+  "appInitUserdata": "正在初始化用户数据",
+  "appInitWebsocket": "正在建立 Solar Link",
+  "appInitNotification": "正在初始化推送通知", 
+  "appInitKeyPair": "正在初始化密钥对",
+  "appInitStickers": "正在初始化贴图包",
+  "appInitUserDirectory": "正在初始化用户目录",
+  "appInitRealm": "正在初始化领域信息",
+  "appInitChat": "正在初始化聊天",
+  "appInitDone": "完成"
 }

@@ -65,7 +65,7 @@ class ChatMessage extends StatelessWidget {
       key: Key('chat-message-${data.id}'),
       iconOnLeftSwipe: Symbols.reply,
       iconOnRightSwipe: Symbols.edit,
-      swipeSensitivity: 20,
+      swipeSensitivity: 10,
       onLeftSwipe: onReply != null ? (_) => onReply!(data) : null,
       onRightSwipe: (onEdit != null && isOwner) ? (_) => onEdit!(data) : null,
       child: ContextMenuArea(
