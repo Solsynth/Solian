@@ -322,6 +322,9 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       if (!mounted) return;
       final ud = context.read<UserDirectoryProvider>();
       final userCacheSize = await ud.loadAccountCache();
+      if (!mounted) return;
+      final rm = context.read<SnRealmProvider>();
+      await rm.refreshAvailableRealms();
       logging.info('[Users] Loaded local user cache, size: $userCacheSize');
       logging.info('[Bootstrap] Everything initialized!');
     } catch (err) {

@@ -88,7 +88,7 @@ class NavigationProvider extends ChangeNotifier {
     'home',
     'explore',
     'chat',
-    'account',
+    'realm',
   ];
 
   List<AppNavDestination> destinations = [];

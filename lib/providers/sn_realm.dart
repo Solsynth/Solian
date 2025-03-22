@@ -11,6 +11,13 @@ class SnRealmProvider {
   }
 
   final Map<String, SnRealm> _cache = {};
+  List<SnRealm> _availableRealms = List.empty(growable: true);
+
+  Future<void> refreshAvailableRealms() async {
+    _availableRealms = await listAvailableRealms();
+  }
+
+  List<SnRealm> get availableRealms => _availableRealms;
 
   Future<List<SnRealm>> listAvailableRealms() async {
     final resp = await _sn.client.get('/cgi/id/realms/me/available');
