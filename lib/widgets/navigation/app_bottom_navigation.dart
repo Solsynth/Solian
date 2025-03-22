@@ -37,17 +37,15 @@ class _AppBottomNavigationBarState extends State<AppBottomNavigationBar> {
           ...nav.destinations.where((ele) => ele.isPinned),
         ];
 
-        return BottomNavigationBar(
-          currentIndex: nav.getIndexInRange(0, nav.pinnedDestinationCount),
-          type: BottomNavigationBarType.fixed,
-          showUnselectedLabels: false,
-          items: destinations.map((ele) {
-            return BottomNavigationBarItem(
+        return NavigationBar(
+          selectedIndex: nav.getIndexInRange(0, nav.pinnedDestinationCount),
+          destinations: destinations.map((ele) {
+            return NavigationDestination(
               icon: ele.icon,
               label: ele.label.tr(),
             );
           }).toList(),
-          onTap: (idx) {
+          onDestinationSelected: (idx) {
             nav.setIndex(idx);
             GoRouter.of(context).goNamed(destinations[idx].screen);
           },

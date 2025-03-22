@@ -336,6 +336,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() {});
                   },
                 ),
+                CheckboxListTile(
+                  secondary: const Icon(Symbols.hide),
+                  title: Text('settingsHideBottomNav').tr(),
+                  subtitle: Text('settingsHideBottomNavDescription').tr(),
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  value: _prefs.getBool(kAppHideBottomNav) ?? false,
+                  onChanged: (value) {
+                    _prefs.setBool(kAppHideBottomNav, value ?? false);
+                    final cfg = context.read<ConfigProvider>();
+                    cfg.calcDrawerSize(context);
+                    setState(() {});
+                  },
+                ),
                 ListTile(
                   leading: const Icon(Symbols.font_download),
                   title: Text('settingsCustomFonts').tr(),

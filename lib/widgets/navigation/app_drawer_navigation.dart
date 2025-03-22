@@ -78,27 +78,29 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
               Expanded(
                 child: _DrawerContentList(),
               ),
-              Row(
-                spacing: 8,
-                children: nav.destinations.where((ele) => ele.isPinned).map(
-                  (ele) {
-                    return Expanded(
-                      child: Tooltip(
-                        message: ele.label.tr(),
-                        child: IconButton.filledTonal(
-                          icon: ele.icon,
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                          onPressed: () {
-                            GoRouter.of(context).goNamed(ele.screen);
-                            Scaffold.of(context).closeDrawer();
-                          },
+              if (cfg.hideBottomNav)
+                Row(
+                  spacing: 8,
+                  children: nav.destinations.where((ele) => ele.isPinned).map(
+                    (ele) {
+                      return Expanded(
+                        child: Tooltip(
+                          message: ele.label.tr(),
+                          child: IconButton.filledTonal(
+                            icon: ele.icon,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
+                            onPressed: () {
+                              GoRouter.of(context).goNamed(ele.screen);
+                              Scaffold.of(context).closeDrawer();
+                            },
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ).toList(),
-              ).padding(horizontal: 16),
+                      );
+                    },
+                  ).toList(),
+                ).padding(horizontal: 16),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: ListTile(

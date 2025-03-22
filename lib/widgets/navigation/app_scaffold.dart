@@ -12,6 +12,7 @@ import 'package:surface/providers/config.dart';
 import 'package:surface/providers/navigation.dart';
 import 'package:surface/widgets/connection_indicator.dart';
 import 'package:surface/widgets/navigation/app_background.dart';
+import 'package:surface/widgets/navigation/app_bottom_navigation.dart';
 import 'package:surface/widgets/navigation/app_drawer_navigation.dart';
 import 'package:surface/widgets/navigation/app_rail_navigation.dart';
 import 'package:surface/widgets/notify_indicator.dart';
@@ -106,6 +107,7 @@ class AppRootScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cfg = context.watch<ConfigProvider>();
+    final nav = context.watch<NavigationProvider>();
     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
 
     final isCollapseDrawer = cfg.drawerIsCollapsed;
@@ -117,6 +119,11 @@ class AppRootScaffold extends StatelessWidget {
         .last
         .route
         .name;
+    final isShowBottomNavigation = cfg.hideBottomNav
+        ? false
+        : nav.showBottomNavScreen.contains(routeName)
+            ? ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE)
+            : false;
     final isPopable = !NavigationProvider.kAllDestination
         .map((ele) => ele.screen)
         .contains(routeName);
@@ -227,6 +234,8 @@ class AppRootScaffold extends StatelessWidget {
       ),
       drawer: !isExpandedDrawer ? AppNavigationDrawer() : null,
       drawerEdgeDragWidth: isPopable ? 0 : null,
+      bottomNavigationBar:
+          isShowBottomNavigation ? AppBottomNavigationBar() : null,
     );
   }
 }

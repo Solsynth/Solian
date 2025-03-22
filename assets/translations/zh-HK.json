@@ -879,5 +879,13 @@
   "appInitUserDirectory": "正在初始化用户目錄",
   "appInitRealm": "正在初始化領域信息",
   "appInitChat": "正在初始化聊天",
-  "appInitDone": "完成"
+  "appInitDone": "完成",
+  "community": "社區",
+  "realmCommunity": "{}的社區",
+  "postTotalCount": {
+    "zero": "沒有帖子",
+    "one": "共 {} 條帖子"
+  },
+  "settingsHideBottomNav": "隱藏底部導航欄",
+  "settingsHideBottomNavDescription": "隱藏底部導航欄，在側邊欄抽屜顯示導航按鈕。"
 }

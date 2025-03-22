@@ -25,13 +25,10 @@ class NavigationProvider extends ChangeNotifier {
 
   int? get currentIndex => _currentIndex;
 
-  static const List<String> kShowBottomNavScreen = [
-    'home',
-    'explore',
-    'account',
-    'album',
-    'chat',
-  ];
+  List<String> get showBottomNavScreen => destinations
+      .where((ele) => ele.isPinned)
+      .map((ele) => ele.screen)
+      .toList();
 
   static const List<AppNavDestination> kAllDestination = [
     AppNavDestination(

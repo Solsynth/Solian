@@ -21,6 +21,7 @@ const kAppRealmCompactView = 'app_realm_compact_view';
 const kAppCustomFonts = 'app_custom_fonts';
 const kAppMixedFeed = 'app_mixed_feed';
 const kAppAutoTranslate = 'app_auto_translate';
+const kAppHideBottomNav = 'app_hide_bottom_nav';
 
 const Map<String, FilterQuality> kImageQualityLevel = {
   'settingsImageQualityLowest': FilterQuality.none,
@@ -89,6 +90,15 @@ class ConfigProvider extends ChangeNotifier {
 
   bool get autoTranslate {
     return prefs.getBool(kAppAutoTranslate) ?? false;
+  }
+
+  bool get hideBottomNav {
+    return prefs.getBool(kAppHideBottomNav) ?? false;
+  }
+
+  set hideBottomNav(bool value) {
+    prefs.setBool(kAppHideBottomNav, value);
+    notifyListeners();
   }
 
   set autoTranslate(bool value) {
