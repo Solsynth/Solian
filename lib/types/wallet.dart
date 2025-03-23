@@ -11,6 +11,7 @@ abstract class SnWallet with _$SnWallet {
     required DateTime updatedAt,
     required DateTime? deletedAt,
     required String balance,
+    required String goldenBalance,
     required String password,
     required int accountId,
   }) = _SnWallet;
@@ -27,6 +28,7 @@ abstract class SnTransaction with _$SnTransaction {
     required DateTime? deletedAt,
     required String remark,
     required String amount,
+    required String currency,
     required SnWallet? payer,
     required SnWallet? payee,
     required int? payerId,

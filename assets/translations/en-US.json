@@ -897,5 +897,12 @@
   "albumDescription": "View albums and manage attachments.",
   "stickers": "Stickers",
   "stickersDescription": "View sticker packs and manage stickers.",
-  "navBottomUnauthorizedCaption": "Or create an account"
+  "navBottomUnauthorizedCaption": "Or create an account",
+  "walletCurrencyGoldenShort": "GDP",
+  "walletCurrencyGolden": {
+    "one": "{} Golden Point",
+    "other": "{} Golden Points"
+  },
+  "walletTransactionTypeNormal": "Source Point",
+  "walletTransactionTypeGolden": "Golden Point"
 }

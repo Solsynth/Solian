@@ -28,11 +28,7 @@ class _PostShuffleScreenState extends State<PostShuffleScreen> {
     setState(() => _isBusy = true);
     try {
       final pt = context.read<SnPostContentProvider>();
-      final result = await pt.listPosts(
-        take: 10,
-        offset: _posts.length,
-        isShuffle: true,
-      );
+      final result = await pt.listPosts(take: 10, offset: _posts.length, isShuffle: true);
       _posts.addAll(result.$1);
     } catch (err) {
       if (!mounted) return;
@@ -57,19 +53,13 @@ class _PostShuffleScreenState extends State<PostShuffleScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppBar(
-        title: Text('postShuffle').tr(),
-      ),
+      appBar: AppBar(title: Text('postShuffle').tr()),
       body: Stack(
         children: [
           Column(
             children: [
               if (_isBusy || _posts.isEmpty)
-                const Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                )
+                const Expanded(child: Center(child: CircularProgressIndicator()))
               else
                 Expanded(
                   child: CardSwiper(
@@ -81,21 +71,19 @@ class _PostShuffleScreenState extends State<PostShuffleScreen> {
                       final ele = _posts[idx];
                       return SingleChildScrollView(
                         child: Center(
-                          child: OpenablePostItem(
-                            key: ValueKey(ele),
-                            data: ele,
-                            maxWidth: 640,
-                            onChanged: (ele) {
-                              _posts[idx] = ele;
-                              setState(() {});
-                            },
-                            onDeleted: () {
-                              _fetchPosts();
-                            },
-                          ).padding(
-                            all: 24,
-                            bottom:
-                                MediaQuery.of(context).padding.bottom + 16 + 50,
+                          child: Card(
+                            child: OpenablePostItem(
+                              key: ValueKey(ele),
+                              data: ele,
+                              maxWidth: 640,
+                              onChanged: (ele) {
+                                _posts[idx] = ele;
+                                setState(() {});
+                              },
+                              onDeleted: () {
+                                _fetchPosts();
+                              },
+                            ).padding(all: 24, bottom: MediaQuery.of(context).padding.bottom + 16 + 50),
                           ),
                         ),
                       );

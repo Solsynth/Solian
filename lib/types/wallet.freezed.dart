@@ -20,6 +20,7 @@ mixin _$SnWallet {
   DateTime get updatedAt;
   DateTime? get deletedAt;
   String get balance;
+  String get goldenBalance;
   String get password;
   int get accountId;
 
@@ -46,6 +47,8 @@ mixin _$SnWallet {
             (identical(other.deletedAt, deletedAt) ||
                 other.deletedAt == deletedAt) &&
             (identical(other.balance, balance) || other.balance == balance) &&
+            (identical(other.goldenBalance, goldenBalance) ||
+                other.goldenBalance == goldenBalance) &&
             (identical(other.password, password) ||
                 other.password == password) &&
             (identical(other.accountId, accountId) ||
@@ -55,11 +58,11 @@ mixin _$SnWallet {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, createdAt, updatedAt,
-      deletedAt, balance, password, accountId);
+      deletedAt, balance, goldenBalance, password, accountId);
 
   @override
   String toString() {
-    return 'SnWallet(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, balance: $balance, password: $password, accountId: $accountId)';
+    return 'SnWallet(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, balance: $balance, goldenBalance: $goldenBalance, password: $password, accountId: $accountId)';
   }
 }
 
@@ -74,6 +77,7 @@ abstract mixin class $SnWalletCopyWith<$Res> {
       DateTime updatedAt,
       DateTime? deletedAt,
       String balance,
+      String goldenBalance,
       String password,
       int accountId});
 }
@@ -95,6 +99,7 @@ class _$SnWalletCopyWithImpl<$Res> implements $SnWalletCopyWith<$Res> {
     Object? updatedAt = null,
     Object? deletedAt = freezed,
     Object? balance = null,
+    Object? goldenBalance = null,
     Object? password = null,
     Object? accountId = null,
   }) {
@@ -119,6 +124,10 @@ class _$SnWalletCopyWithImpl<$Res> implements $SnWalletCopyWith<$Res> {
           ? _self.balance
           : balance // ignore: cast_nullable_to_non_nullable
               as String,
+      goldenBalance: null == goldenBalance
+          ? _self.goldenBalance
+          : goldenBalance // ignore: cast_nullable_to_non_nullable
+              as String,
       password: null == password
           ? _self.password
           : password // ignore: cast_nullable_to_non_nullable
@@ -140,6 +149,7 @@ class _SnWallet implements SnWallet {
       required this.updatedAt,
       required this.deletedAt,
       required this.balance,
+      required this.goldenBalance,
       required this.password,
       required this.accountId});
   factory _SnWallet.fromJson(Map<String, dynamic> json) =>
@@ -155,6 +165,8 @@ class _SnWallet implements SnWallet {
   final DateTime? deletedAt;
   @override
   final String balance;
+  @override
+  final String goldenBalance;
   @override
   final String password;
   @override
@@ -188,6 +200,8 @@ class _SnWallet implements SnWallet {
             (identical(other.deletedAt, deletedAt) ||
                 other.deletedAt == deletedAt) &&
             (identical(other.balance, balance) || other.balance == balance) &&
+            (identical(other.goldenBalance, goldenBalance) ||
+                other.goldenBalance == goldenBalance) &&
             (identical(other.password, password) ||
                 other.password == password) &&
             (identical(other.accountId, accountId) ||
@@ -197,11 +211,11 @@ class _SnWallet implements SnWallet {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, createdAt, updatedAt,
-      deletedAt, balance, password, accountId);
+      deletedAt, balance, goldenBalance, password, accountId);
 
   @override
   String toString() {
-    return 'SnWallet(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, balance: $balance, password: $password, accountId: $accountId)';
+    return 'SnWallet(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, balance: $balance, goldenBalance: $goldenBalance, password: $password, accountId: $accountId)';
   }
 }
 
@@ -218,6 +232,7 @@ abstract mixin class _$SnWalletCopyWith<$Res>
       DateTime updatedAt,
       DateTime? deletedAt,
       String balance,
+      String goldenBalance,
       String password,
       int accountId});
 }
@@ -239,6 +254,7 @@ class __$SnWalletCopyWithImpl<$Res> implements _$SnWalletCopyWith<$Res> {
     Object? updatedAt = null,
     Object? deletedAt = freezed,
     Object? balance = null,
+    Object? goldenBalance = null,
     Object? password = null,
     Object? accountId = null,
   }) {
@@ -263,6 +279,10 @@ class __$SnWalletCopyWithImpl<$Res> implements _$SnWalletCopyWith<$Res> {
           ? _self.balance
           : balance // ignore: cast_nullable_to_non_nullable
               as String,
+      goldenBalance: null == goldenBalance
+          ? _self.goldenBalance
+          : goldenBalance // ignore: cast_nullable_to_non_nullable
+              as String,
       password: null == password
           ? _self.password
           : password // ignore: cast_nullable_to_non_nullable
@@ -283,6 +303,7 @@ mixin _$SnTransaction {
   DateTime? get deletedAt;
   String get remark;
   String get amount;
+  String get currency;
   SnWallet? get payer;
   SnWallet? get payee;
   int? get payerId;
@@ -313,6 +334,8 @@ mixin _$SnTransaction {
                 other.deletedAt == deletedAt) &&
             (identical(other.remark, remark) || other.remark == remark) &&
             (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.currency, currency) ||
+                other.currency == currency) &&
             (identical(other.payer, payer) || other.payer == payer) &&
             (identical(other.payee, payee) || other.payee == payee) &&
             (identical(other.payerId, payerId) || other.payerId == payerId) &&
@@ -322,11 +345,11 @@ mixin _$SnTransaction {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, createdAt, updatedAt,
-      deletedAt, remark, amount, payer, payee, payerId, payeeId);
+      deletedAt, remark, amount, currency, payer, payee, payerId, payeeId);
 
   @override
   String toString() {
-    return 'SnTransaction(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, remark: $remark, amount: $amount, payer: $payer, payee: $payee, payerId: $payerId, payeeId: $payeeId)';
+    return 'SnTransaction(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, remark: $remark, amount: $amount, currency: $currency, payer: $payer, payee: $payee, payerId: $payerId, payeeId: $payeeId)';
   }
 }
 
@@ -343,6 +366,7 @@ abstract mixin class $SnTransactionCopyWith<$Res> {
       DateTime? deletedAt,
       String remark,
       String amount,
+      String currency,
       SnWallet? payer,
       SnWallet? payee,
       int? payerId,
@@ -371,6 +395,7 @@ class _$SnTransactionCopyWithImpl<$Res>
     Object? deletedAt = freezed,
     Object? remark = null,
     Object? amount = null,
+    Object? currency = null,
     Object? payer = freezed,
     Object? payee = freezed,
     Object? payerId = freezed,
@@ -400,6 +425,10 @@ class _$SnTransactionCopyWithImpl<$Res>
       amount: null == amount
           ? _self.amount
           : amount // ignore: cast_nullable_to_non_nullable
+              as String,
+      currency: null == currency
+          ? _self.currency
+          : currency // ignore: cast_nullable_to_non_nullable
               as String,
       payer: freezed == payer
           ? _self.payer
@@ -459,6 +488,7 @@ class _SnTransaction implements SnTransaction {
       required this.deletedAt,
       required this.remark,
       required this.amount,
+      required this.currency,
       required this.payer,
       required this.payee,
       required this.payerId,
@@ -478,6 +508,8 @@ class _SnTransaction implements SnTransaction {
   final String remark;
   @override
   final String amount;
+  @override
+  final String currency;
   @override
   final SnWallet? payer;
   @override
@@ -516,6 +548,8 @@ class _SnTransaction implements SnTransaction {
                 other.deletedAt == deletedAt) &&
             (identical(other.remark, remark) || other.remark == remark) &&
             (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.currency, currency) ||
+                other.currency == currency) &&
             (identical(other.payer, payer) || other.payer == payer) &&
             (identical(other.payee, payee) || other.payee == payee) &&
             (identical(other.payerId, payerId) || other.payerId == payerId) &&
@@ -525,11 +559,11 @@ class _SnTransaction implements SnTransaction {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, createdAt, updatedAt,
-      deletedAt, remark, amount, payer, payee, payerId, payeeId);
+      deletedAt, remark, amount, currency, payer, payee, payerId, payeeId);
 
   @override
   String toString() {
-    return 'SnTransaction(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, remark: $remark, amount: $amount, payer: $payer, payee: $payee, payerId: $payerId, payeeId: $payeeId)';
+    return 'SnTransaction(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, remark: $remark, amount: $amount, currency: $currency, payer: $payer, payee: $payee, payerId: $payerId, payeeId: $payeeId)';
   }
 }
 
@@ -548,6 +582,7 @@ abstract mixin class _$SnTransactionCopyWith<$Res>
       DateTime? deletedAt,
       String remark,
       String amount,
+      String currency,
       SnWallet? payer,
       SnWallet? payee,
       int? payerId,
@@ -578,6 +613,7 @@ class __$SnTransactionCopyWithImpl<$Res>
     Object? deletedAt = freezed,
     Object? remark = null,
     Object? amount = null,
+    Object? currency = null,
     Object? payer = freezed,
     Object? payee = freezed,
     Object? payerId = freezed,
@@ -607,6 +643,10 @@ class __$SnTransactionCopyWithImpl<$Res>
       amount: null == amount
           ? _self.amount
           : amount // ignore: cast_nullable_to_non_nullable
+              as String,
+      currency: null == currency
+          ? _self.currency
+          : currency // ignore: cast_nullable_to_non_nullable
               as String,
       payer: freezed == payer
           ? _self.payer

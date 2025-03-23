@@ -45,10 +45,7 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppBar(
-        leading: PageBackButton(),
-        title: Text('screenAccountWallet').tr(),
-      ),
+      appBar: AppBar(leading: PageBackButton(), title: Text('screenAccountWallet').tr()),
       body: Column(
         children: [
           LoadingIndicator(isActive: _isBusy),
@@ -66,11 +63,6 @@ class _WalletScreenState extends State<WalletScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 28,
-                    child: Icon(Symbols.wallet, size: 28),
-                  ),
-                  const Gap(12),
                   SizedBox(width: double.infinity),
                   Text(
                     NumberFormat.compactCurrency(
@@ -81,6 +73,16 @@ class _WalletScreenState extends State<WalletScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text('walletCurrency'.plural(double.parse(_wallet!.balance))),
+                  const Gap(16),
+                  Text(
+                    NumberFormat.compactCurrency(
+                      locale: EasyLocalization.of(context)!.currentLocale.toString(),
+                      symbol: '${'walletCurrencyGoldenShort'.tr()} ',
+                      decimalDigits: 2,
+                    ).format(double.parse(_wallet!.goldenBalance)),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  Text('walletCurrencyGolden'.plural(double.parse(_wallet!.goldenBalance))),
                 ],
               ).padding(horizontal: 20, vertical: 24),
             ).padding(horizontal: 8, top: 16, bottom: 4),
@@ -109,14 +111,12 @@ class _WalletTransactionListState extends State<_WalletTransactionList> {
     try {
       setState(() => _isBusy = true);
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/wa/transactions/me', queryParameters: {
-        'take': 10,
-        'offset': _transactions.length,
-      });
-      _totalCount = resp.data['count'];
-      _transactions.addAll(
-        resp.data['data']?.map((e) => SnTransaction.fromJson(e)).cast<SnTransaction>() ?? [],
+      final resp = await sn.client.get(
+        '/cgi/wa/transactions/me',
+        queryParameters: {'take': 10, 'offset': _transactions.length},
       );
+      _totalCount = resp.data['count'];
+      _transactions.addAll(resp.data['data']?.map((e) => SnTransaction.fromJson(e)).cast<SnTransaction>() ?? []);
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -159,12 +159,18 @@ class _WalletTransactionListState extends State<_WalletTransactionList> {
                 children: [
                   Text(ele.remark),
                   const Gap(2),
-                  Text(
-                    DateFormat(
-                      null,
-                      EasyLocalization.of(context)!.currentLocale.toString(),
-                    ).format(ele.createdAt),
-                    style: Theme.of(context).textTheme.labelSmall,
+                  Row(
+                    children: [
+                      Text(
+                        'walletTransactionType${ele.currency.capitalize()}'.tr(),
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      Text(' · ').textStyle(Theme.of(context).textTheme.labelSmall!).padding(right: 4),
+                      Text(
+                        DateFormat(null, EasyLocalization.of(context)!.currentLocale.toString()).format(ele.createdAt),
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -193,37 +199,33 @@ class _CreateWalletWidgetState extends State<_CreateWalletWidget> {
     final TextEditingController passwordController = TextEditingController();
     final password = await showDialog<String?>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('walletCreate').tr(),
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('walletCreatePassword').tr(),
-            const Gap(8),
-            TextField(
-              autofocus: true,
-              obscureText: true,
-              controller: passwordController,
-              decoration: InputDecoration(
-                labelText: 'fieldPassword'.tr(),
-              ),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('walletCreate').tr(),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('walletCreatePassword').tr(),
+                const Gap(8),
+                TextField(
+                  autofocus: true,
+                  obscureText: true,
+                  controller: passwordController,
+                  decoration: InputDecoration(labelText: 'fieldPassword'.tr()),
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('cancel').tr(),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text('cancel').tr()),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop(passwordController.text);
+                },
+                child: Text('next').tr(),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop(passwordController.text);
-            },
-            child: Text('next').tr(),
-          ),
-        ],
-      ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       passwordController.dispose();
@@ -234,9 +236,7 @@ class _CreateWalletWidgetState extends State<_CreateWalletWidget> {
     try {
       setState(() => _isBusy = true);
       final sn = context.read<SnNetworkProvider>();
-      await sn.client.post('/cgi/wa/wallets/me', data: {
-        'password': password,
-      });
+      await sn.client.post('/cgi/wa/wallets/me', data: {'password': password});
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -255,20 +255,14 @@ class _CreateWalletWidgetState extends State<_CreateWalletWidget> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 28,
-                child: Icon(Symbols.add, size: 28),
-              ),
+              CircleAvatar(radius: 28, child: Icon(Symbols.add, size: 28)),
               const Gap(12),
               Text('walletCreate', style: Theme.of(context).textTheme.titleLarge).tr(),
               Text('walletCreateSubtitle', style: Theme.of(context).textTheme.bodyMedium).tr(),
               const Gap(8),
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _isBusy ? null : () => _createWallet(),
-                  child: Text('next').tr(),
-                ),
+                child: TextButton(onPressed: _isBusy ? null : () => _createWallet(), child: Text('next').tr()),
               ),
             ],
           ).padding(horizontal: 20, vertical: 24),

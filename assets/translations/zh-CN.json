@@ -895,5 +895,12 @@
   "albumDescription": "查看相册与管理上传附件。",
   "stickers": "贴图",
   "stickersDescription": "查看贴图包与管理贴图。",
-  "navBottomUnauthorizedCaption": "或者注册一个账号"
+  "navBottomUnauthorizedCaption": "或者注册一个账号",
+  "walletCurrencyGoldenShort": "金点",
+  "walletCurrencyGolden": {
+    "one": "{} 金点",
+    "other": "{} 金点"
+  },
+  "walletTransactionTypeNormal": "源点",
+  "walletTransactionTypeGolden": "金点"
 }
