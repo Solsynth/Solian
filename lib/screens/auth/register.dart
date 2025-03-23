@@ -7,7 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
-import 'package:surface/screens/captcha.dart';
+import 'package:surface/screens/captcha/captcha.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:url_launcher/url_launcher_string.dart';

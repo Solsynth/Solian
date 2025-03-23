@@ -18,7 +18,7 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/special_day.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/providers/widget.dart';
-import 'package:surface/screens/captcha.dart';
+import 'package:surface/screens/captcha/captcha.dart';
 import 'package:surface/types/check_in.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
