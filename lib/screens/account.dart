@@ -306,9 +306,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
             GoRouter.of(context).pushNamed('authLogin').then((value) {
               if (value == true && context.mounted) {
                 final ua = context.read<UserProvider>();
-                context.showSnackbar('loginSuccess'.tr(args: [
-                  '@${ua.user?.name} (${ua.user?.nick})',
-                ]));
+                ua.refreshUser();
               }
             });
           },

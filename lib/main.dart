@@ -89,19 +89,14 @@ void main() async {
   await EasyLocalization.ensureInitialized();
 
   if (!kIsWeb && !Platform.isLinux) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   }
 
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-    Workmanager().initialize(
-      appBackgroundDispatcher,
-      isInDebugMode: kDebugMode,
-    );
+    Workmanager().initialize(appBackgroundDispatcher, isInDebugMode: kDebugMode);
     if (Platform.isAndroid) {
       Workmanager().registerPeriodicTask(
         "widget-update-random-post",
@@ -114,8 +109,7 @@ void main() async {
   }
 
   if (!kIsWeb && Platform.isAndroid) {
-    final ImagePickerPlatform imagePickerImplementation =
-        ImagePickerPlatform.instance;
+    final ImagePickerPlatform imagePickerImplementation = ImagePickerPlatform.instance;
     if (imagePickerImplementation is ImagePickerAndroid) {
       imagePickerImplementation.useAndroidPhotoPicker = true;
     }
@@ -132,12 +126,7 @@ class SolianApp extends StatelessWidget {
     return ResponsiveBreakpoints.builder(
       child: EasyLocalization(
         path: 'assets/translations',
-        supportedLocales: [
-          Locale('en', 'US'),
-          Locale('zh', 'CN'),
-          Locale('zh', 'TW'),
-          Locale('zh', 'HK'),
-        ],
+        supportedLocales: [Locale('en', 'US'), Locale('zh', 'CN'), Locale('zh', 'TW'), Locale('zh', 'HK')],
         fallbackLocale: Locale('en', 'US'),
         useFallbackTranslations: true,
         assetLoader: JsonAssetLoader(),
@@ -212,10 +201,7 @@ class _AppDelegate extends StatelessWidget {
       ],
       routerConfig: appRouter,
       builder: (context, child) {
-        return _AppSplashScreen(
-          key: const Key('global-splash-screen'),
-          child: child!,
-        );
+        return _AppSplashScreen(key: const Key('global-splash-screen'), child: child!);
       },
     );
   }
@@ -239,8 +225,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     if (prefs.containsKey('first_boot_time')) {
       final rawTime = prefs.getString('first_boot_time');
       final time = DateTime.tryParse(rawTime ?? '');
-      if (time != null &&
-          time.isBefore(DateTime.now().subtract(const Duration(days: 3)))) {
+      if (time != null && time.isBefore(DateTime.now().subtract(const Duration(days: 3)))) {
         final inAppReview = InAppReview.instance;
         if (prefs.getBool('rating_requested') == true) return;
         if (await inAppReview.isAvailable()) {
@@ -261,30 +246,17 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       final info = await PackageInfo.fromPlatform();
       final localVersionString = '${info.version}+${info.buildNumber}';
       final resp = await Dio(
-        BaseOptions(
-          sendTimeout: const Duration(seconds: 60),
-          receiveTimeout: const Duration(seconds: 60),
-        ),
-      ).get(
-        'https://api.github.com/repos/Solsynth/HyperNet.Surface/releases/latest',
-      );
+        BaseOptions(sendTimeout: const Duration(seconds: 60), receiveTimeout: const Duration(seconds: 60)),
+      ).get('https://api.github.com/repos/Solsynth/HyperNet.Surface/releases/latest');
       final remoteVersionString = resp.data?['tag_name'] ?? '0.0.0+0';
       final remoteVersion = Version.parse(remoteVersionString.split('+').first);
       final localVersion = Version.parse(localVersionString.split('+').first);
-      final remoteBuildNumber =
-          int.tryParse(remoteVersionString.split('+').last) ?? 0;
-      final localBuildNumber =
-          int.tryParse(localVersionString.split('+').last) ?? 0;
-      logging.info(
-          "[Update] Local: $localVersionString, Remote: $remoteVersionString");
-      if ((remoteVersion > localVersion ||
-              remoteBuildNumber > localBuildNumber) &&
-          mounted) {
+      final remoteBuildNumber = int.tryParse(remoteVersionString.split('+').last) ?? 0;
+      final localBuildNumber = int.tryParse(localVersionString.split('+').last) ?? 0;
+      logging.info("[Update] Local: $localVersionString, Remote: $remoteVersionString");
+      if ((remoteVersion > localVersion || remoteBuildNumber > localBuildNumber) && mounted) {
         final config = context.read<ConfigProvider>();
-        config.setUpdate(
-          remoteVersionString,
-          resp.data?['body'] ?? 'No changelog',
-        );
+        config.setUpdate(remoteVersionString, resp.data?['body'] ?? 'No changelog');
         logging.info("[Update] Update available: $remoteVersionString");
       }
     } catch (e) {
@@ -322,19 +294,21 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       _setPhaseText('websocket');
       final ws = context.read<WebSocketProvider>();
       await ws.tryConnect();
-      if (!mounted) return;
-      _setPhaseText('notification');
-      final notify = context.read<NotificationProvider>();
-      notify.listen();
-      await notify.registerPushNotifications();
-      if (!mounted) return;
-      _setPhaseText('keyPair');
-      final kp = context.read<KeyPairProvider>();
       try {
+        if (!mounted) return;
+        _setPhaseText('keyPair');
+        final kp = context.read<KeyPairProvider>();
         await kp.reloadActive();
         kp.listen();
       } catch (_) {}
       if (ua.isAuthorized) {
+        if (!mounted) return;
+        _setPhaseText('notification');
+        final notify = context.read<NotificationProvider>();
+        notify.listen();
+        try {
+          await notify.registerPushNotifications();
+        } catch (_) {}
         if (!mounted) return;
         _setPhaseText('stickers');
         final sticker = context.read<SnStickerProvider>();
@@ -370,35 +344,19 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
 
   final Menu _appTrayMenu = Menu(
     items: [
-      MenuItem(
-        key: 'version_label',
-        label: 'Solian',
-        disabled: true,
-      ),
+      MenuItem(key: 'version_label', label: 'Solian', disabled: true),
       MenuItem.separator(),
-      MenuItem.checkbox(
-        checked: false,
-        key: 'mute_notification',
-        label: 'trayMenuMuteNotification'.tr(),
-      ),
+      MenuItem.checkbox(checked: false, key: 'mute_notification', label: 'trayMenuMuteNotification'.tr()),
       MenuItem.separator(),
-      MenuItem(
-        key: 'window_show',
-        label: 'trayMenuShow'.tr(),
-      ),
-      MenuItem(
-        key: 'exit',
-        label: 'trayMenuExit'.tr(),
-      ),
+      MenuItem(key: 'window_show', label: 'trayMenuShow'.tr()),
+      MenuItem(key: 'exit', label: 'trayMenuExit'.tr()),
     ],
   );
 
   Future<void> _trayInitialization() async {
     if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
 
-    final icon = Platform.isWindows
-        ? 'assets/icon/tray-icon.ico'
-        : 'assets/icon/tray-icon.png';
+    final icon = Platform.isWindows ? 'assets/icon/tray-icon.ico' : 'assets/icon/tray-icon.png';
     final appVersion = await PackageInfo.fromPlatform();
 
     trayManager.addListener(this);
@@ -416,10 +374,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   Future<void> _notifyInitialization() async {
     if (kIsWeb || Platform.isAndroid || Platform.isIOS) return;
 
-    await localNotifier.setup(
-      appName: 'Solian',
-      shortcutPolicy: ShortcutPolicy.requireCreate,
-    );
+    await localNotifier.setup(appName: 'Solian', shortcutPolicy: ShortcutPolicy.requireCreate);
   }
 
   AppLifecycleListener? _appLifecycleListener;
@@ -430,9 +385,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
 
     _isBusy = true;
     if (!kIsWeb && !(Platform.isIOS || Platform.isAndroid)) {
-      _appLifecycleListener = AppLifecycleListener(
-        onExitRequested: _onExitRequested,
-      );
+      _appLifecycleListener = AppLifecycleListener(onExitRequested: _onExitRequested);
     }
 
     _trayInitialization();
@@ -532,43 +485,49 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
               }
             });
             return SizeChangedLayoutNotifier(
-              child: _isBusy
-                  ? Material(
-                      key: Key('app-splash-screen-$_isBusy'),
-                      child: Stack(
-                        children: [
-                          Center(
-                            child: Container(
-                              constraints: const BoxConstraints(
-                                maxWidth: 240,
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Image.asset(
-                                    'assets/icon/icon.png',
-                                    width: 64,
-                                    height: 64,
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                  Text('Solar Network').bold(),
-                                  AppVersionLabel(),
-                                  Gap(8),
-                                  Text(
-                                    _phaseText,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Gap(16),
-                                  const LinearProgressIndicator(),
-                                ],
+              child:
+                  _isBusy
+                      ? Material(
+                        key: Key('app-splash-screen-$_isBusy'),
+                        child: Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: AssetImage('assets/icon/kanban-1st.jpg'),
+                                  fit: BoxFit.cover,
+                                  opacity: 0.1,
+                                ),
+                                color: Theme.of(context).colorScheme.surface,
+                                backgroundBlendMode: BlendMode.darken,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : widget.child,
+                            Center(
+                              child: Container(
+                                constraints: const BoxConstraints(maxWidth: 240),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Image.asset(
+                                      'assets/icon/icon.png',
+                                      width: 64,
+                                      height: 64,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                    Text('Solar Network').bold(),
+                                    AppVersionLabel(),
+                                    Gap(8),
+                                    Text(_phaseText, textAlign: TextAlign.center),
+                                    Gap(16),
+                                    const LinearProgressIndicator(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      : widget.child,
             );
           },
         ),

@@ -67,6 +67,7 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
         return Drawer(
           elevation: widget.elevation,
           backgroundColor: backgroundColor,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(0))),
           child: Column(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,

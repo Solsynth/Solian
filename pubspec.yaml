@@ -179,6 +179,7 @@ flutter:
     - assets/icon/icon-light-radius.png
     - assets/icon/tray-icon.ico
     - assets/icon/tray-icon.png
+    - assets/icon/kanban-1st.jpg
     - assets/translations/
 
   # An image asset can refer to one or more resolution-specific "variants", see

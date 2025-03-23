@@ -511,7 +511,7 @@ class _HomeDashCheckInWidgetState extends State<_HomeDashCheckInWidget> {
   Future<void> _doCheckIn() async {
     final captchaTk = await Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (context) => TurnstileScreen(),
+        builder: (context) => CaptchaScreen(),
       ),
     );
     if (captchaTk == null) return;

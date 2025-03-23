@@ -43,7 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final captchaTk = await Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (context) => TurnstileScreen(),
+        builder: (context) => CaptchaScreen(),
       ),
     );
     if (captchaTk == null) return;

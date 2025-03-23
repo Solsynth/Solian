@@ -16,7 +16,12 @@ class ConnectionIndicator extends StatelessWidget {
     final ws = context.watch<WebSocketProvider>();
     final cfg = context.watch<ConfigProvider>();
 
-    final marginLeft = cfg.drawerIsCollapsed ? 0.0 : cfg.drawerIsExpanded ? 304.0 : 80.0;
+    final marginLeft =
+        cfg.drawerIsCollapsed
+            ? 0.0
+            : cfg.drawerIsExpanded
+            ? 304.0
+            : 80.0;
 
     return ListenableBuilder(
       listenable: ws,
@@ -32,37 +37,39 @@ class ConnectionIndicator extends StatelessWidget {
                 elevation: 2,
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
                 color: Theme.of(context).colorScheme.secondaryContainer,
-                child: ua.isAuthorized
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          if (ws.isBusy)
-                            Text('serverConnecting').tr().textColor(Theme.of(context).colorScheme.onSecondaryContainer)
-                          else if (!ws.isConnected)
-                            Text('serverDisconnected')
-                                .tr()
-                                .textColor(Theme.of(context).colorScheme.onSecondaryContainer)
-                          else
-                            Text('serverConnected').tr().textColor(Theme.of(context).colorScheme.onSecondaryContainer),
-                          const Gap(8),
-                          if (ws.isBusy)
-                            const CircularProgressIndicator(strokeWidth: 2.5)
-                                .width(12)
-                                .height(12)
-                                .padding(horizontal: 4, right: 4)
-                          else if (!ws.isConnected)
-                            const Icon(Symbols.power_off, size: 18)
-                          else
-                            const Icon(Symbols.power, size: 18),
-                        ],
-                      ).padding(horizontal: 8, vertical: 4)
-                    : const SizedBox.shrink(),
-              ).opacity(show ? 1 : 0, animate: true).animate(
-                    const Duration(milliseconds: 300),
-                    Curves.easeInOut,
-                  ),
+                child:
+                    ua.isAuthorized
+                        ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            if (ws.isBusy)
+                              Text(
+                                'serverConnecting',
+                              ).tr().textColor(Theme.of(context).colorScheme.onSecondaryContainer)
+                            else if (!ws.isConnected)
+                              Text(
+                                'serverDisconnected',
+                              ).tr().textColor(Theme.of(context).colorScheme.onSecondaryContainer)
+                            else
+                              Text(
+                                'serverConnected',
+                              ).tr().textColor(Theme.of(context).colorScheme.onSecondaryContainer),
+                            const Gap(8),
+                            if (ws.isBusy)
+                              const CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                padding: EdgeInsets.zero,
+                              ).width(12).height(12).padding(horizontal: 4, right: 4)
+                            else if (!ws.isConnected)
+                              const Icon(Symbols.power_off, size: 18)
+                            else
+                              const Icon(Symbols.power, size: 18),
+                          ],
+                        ).padding(horizontal: 8, vertical: 4)
+                        : const SizedBox.shrink(),
+              ).opacity(show ? 1 : 0, animate: true).animate(const Duration(milliseconds: 300), Curves.easeInOut),
               onTap: () {
                 if (!ws.isConnected && !ws.isBusy) {
                   ws.connect();
