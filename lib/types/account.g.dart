@@ -319,3 +319,64 @@ Map<String, dynamic> _$SnActionEventToJson(_SnActionEvent instance) =>
       'account': instance.account.toJson(),
       'account_id': instance.accountId,
     };
+
+_SnProgram _$SnProgramFromJson(Map<String, dynamic> json) => _SnProgram(
+      id: (json['id'] as num).toInt(),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+      name: json['name'] as String,
+      description: json['description'] as String,
+      alias: json['alias'] as String,
+      expRequirement: (json['exp_requirement'] as num).toInt(),
+      price: json['price'] as Map<String, dynamic>,
+      badge: json['badge'] as Map<String, dynamic>,
+      group: json['group'] as Map<String, dynamic>,
+      appearance: json['appearance'] as Map<String, dynamic>,
+    );
+
+Map<String, dynamic> _$SnProgramToJson(_SnProgram instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+      'name': instance.name,
+      'description': instance.description,
+      'alias': instance.alias,
+      'exp_requirement': instance.expRequirement,
+      'price': instance.price,
+      'badge': instance.badge,
+      'group': instance.group,
+      'appearance': instance.appearance,
+    };
+
+_SnProgramMember _$SnProgramMemberFromJson(Map<String, dynamic> json) =>
+    _SnProgramMember(
+      id: (json['id'] as num).toInt(),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+      lastPaid: DateTime.parse(json['last_paid'] as String),
+      account: SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      accountId: (json['account_id'] as num).toInt(),
+      program: SnProgram.fromJson(json['program'] as Map<String, dynamic>),
+      programId: (json['program_id'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$SnProgramMemberToJson(_SnProgramMember instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+      'last_paid': instance.lastPaid.toIso8601String(),
+      'account': instance.account.toJson(),
+      'account_id': instance.accountId,
+      'program': instance.program.toJson(),
+      'program_id': instance.programId,
+    };

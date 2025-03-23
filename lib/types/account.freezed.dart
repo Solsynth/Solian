@@ -3470,4 +3470,763 @@ class __$SnActionEventCopyWithImpl<$Res>
   }
 }
 
+/// @nodoc
+mixin _$SnProgram {
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  String get name;
+  String get description;
+  String get alias;
+  int get expRequirement;
+  Map<String, dynamic> get price;
+  Map<String, dynamic> get badge;
+  Map<String, dynamic> get group;
+  Map<String, dynamic> get appearance;
+
+  /// Create a copy of SnProgram
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $SnProgramCopyWith<SnProgram> get copyWith =>
+      _$SnProgramCopyWithImpl<SnProgram>(this as SnProgram, _$identity);
+
+  /// Serializes this SnProgram to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnProgram &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.alias, alias) || other.alias == alias) &&
+            (identical(other.expRequirement, expRequirement) ||
+                other.expRequirement == expRequirement) &&
+            const DeepCollectionEquality().equals(other.price, price) &&
+            const DeepCollectionEquality().equals(other.badge, badge) &&
+            const DeepCollectionEquality().equals(other.group, group) &&
+            const DeepCollectionEquality()
+                .equals(other.appearance, appearance));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      name,
+      description,
+      alias,
+      expRequirement,
+      const DeepCollectionEquality().hash(price),
+      const DeepCollectionEquality().hash(badge),
+      const DeepCollectionEquality().hash(group),
+      const DeepCollectionEquality().hash(appearance));
+
+  @override
+  String toString() {
+    return 'SnProgram(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, name: $name, description: $description, alias: $alias, expRequirement: $expRequirement, price: $price, badge: $badge, group: $group, appearance: $appearance)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $SnProgramCopyWith<$Res> {
+  factory $SnProgramCopyWith(SnProgram value, $Res Function(SnProgram) _then) =
+      _$SnProgramCopyWithImpl;
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String name,
+      String description,
+      String alias,
+      int expRequirement,
+      Map<String, dynamic> price,
+      Map<String, dynamic> badge,
+      Map<String, dynamic> group,
+      Map<String, dynamic> appearance});
+}
+
+/// @nodoc
+class _$SnProgramCopyWithImpl<$Res> implements $SnProgramCopyWith<$Res> {
+  _$SnProgramCopyWithImpl(this._self, this._then);
+
+  final SnProgram _self;
+  final $Res Function(SnProgram) _then;
+
+  /// Create a copy of SnProgram
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? name = null,
+    Object? description = null,
+    Object? alias = null,
+    Object? expRequirement = null,
+    Object? price = null,
+    Object? badge = null,
+    Object? group = null,
+    Object? appearance = null,
+  }) {
+    return _then(_self.copyWith(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      name: null == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      alias: null == alias
+          ? _self.alias
+          : alias // ignore: cast_nullable_to_non_nullable
+              as String,
+      expRequirement: null == expRequirement
+          ? _self.expRequirement
+          : expRequirement // ignore: cast_nullable_to_non_nullable
+              as int,
+      price: null == price
+          ? _self.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      badge: null == badge
+          ? _self.badge
+          : badge // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      group: null == group
+          ? _self.group
+          : group // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      appearance: null == appearance
+          ? _self.appearance
+          : appearance // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _SnProgram implements SnProgram {
+  const _SnProgram(
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.name,
+      required this.description,
+      required this.alias,
+      required this.expRequirement,
+      required final Map<String, dynamic> price,
+      required final Map<String, dynamic> badge,
+      required final Map<String, dynamic> group,
+      required final Map<String, dynamic> appearance})
+      : _price = price,
+        _badge = badge,
+        _group = group,
+        _appearance = appearance;
+  factory _SnProgram.fromJson(Map<String, dynamic> json) =>
+      _$SnProgramFromJson(json);
+
+  @override
+  final int id;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+  @override
+  final DateTime? deletedAt;
+  @override
+  final String name;
+  @override
+  final String description;
+  @override
+  final String alias;
+  @override
+  final int expRequirement;
+  final Map<String, dynamic> _price;
+  @override
+  Map<String, dynamic> get price {
+    if (_price is EqualUnmodifiableMapView) return _price;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_price);
+  }
+
+  final Map<String, dynamic> _badge;
+  @override
+  Map<String, dynamic> get badge {
+    if (_badge is EqualUnmodifiableMapView) return _badge;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_badge);
+  }
+
+  final Map<String, dynamic> _group;
+  @override
+  Map<String, dynamic> get group {
+    if (_group is EqualUnmodifiableMapView) return _group;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_group);
+  }
+
+  final Map<String, dynamic> _appearance;
+  @override
+  Map<String, dynamic> get appearance {
+    if (_appearance is EqualUnmodifiableMapView) return _appearance;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_appearance);
+  }
+
+  /// Create a copy of SnProgram
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnProgramCopyWith<_SnProgram> get copyWith =>
+      __$SnProgramCopyWithImpl<_SnProgram>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnProgramToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _SnProgram &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.alias, alias) || other.alias == alias) &&
+            (identical(other.expRequirement, expRequirement) ||
+                other.expRequirement == expRequirement) &&
+            const DeepCollectionEquality().equals(other._price, _price) &&
+            const DeepCollectionEquality().equals(other._badge, _badge) &&
+            const DeepCollectionEquality().equals(other._group, _group) &&
+            const DeepCollectionEquality()
+                .equals(other._appearance, _appearance));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      name,
+      description,
+      alias,
+      expRequirement,
+      const DeepCollectionEquality().hash(_price),
+      const DeepCollectionEquality().hash(_badge),
+      const DeepCollectionEquality().hash(_group),
+      const DeepCollectionEquality().hash(_appearance));
+
+  @override
+  String toString() {
+    return 'SnProgram(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, name: $name, description: $description, alias: $alias, expRequirement: $expRequirement, price: $price, badge: $badge, group: $group, appearance: $appearance)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$SnProgramCopyWith<$Res>
+    implements $SnProgramCopyWith<$Res> {
+  factory _$SnProgramCopyWith(
+          _SnProgram value, $Res Function(_SnProgram) _then) =
+      __$SnProgramCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String name,
+      String description,
+      String alias,
+      int expRequirement,
+      Map<String, dynamic> price,
+      Map<String, dynamic> badge,
+      Map<String, dynamic> group,
+      Map<String, dynamic> appearance});
+}
+
+/// @nodoc
+class __$SnProgramCopyWithImpl<$Res> implements _$SnProgramCopyWith<$Res> {
+  __$SnProgramCopyWithImpl(this._self, this._then);
+
+  final _SnProgram _self;
+  final $Res Function(_SnProgram) _then;
+
+  /// Create a copy of SnProgram
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? name = null,
+    Object? description = null,
+    Object? alias = null,
+    Object? expRequirement = null,
+    Object? price = null,
+    Object? badge = null,
+    Object? group = null,
+    Object? appearance = null,
+  }) {
+    return _then(_SnProgram(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      name: null == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      alias: null == alias
+          ? _self.alias
+          : alias // ignore: cast_nullable_to_non_nullable
+              as String,
+      expRequirement: null == expRequirement
+          ? _self.expRequirement
+          : expRequirement // ignore: cast_nullable_to_non_nullable
+              as int,
+      price: null == price
+          ? _self._price
+          : price // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      badge: null == badge
+          ? _self._badge
+          : badge // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      group: null == group
+          ? _self._group
+          : group // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      appearance: null == appearance
+          ? _self._appearance
+          : appearance // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+    ));
+  }
+}
+
+/// @nodoc
+mixin _$SnProgramMember {
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  DateTime get lastPaid;
+  SnAccount get account;
+  int get accountId;
+  SnProgram get program;
+  int get programId;
+
+  /// Create a copy of SnProgramMember
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $SnProgramMemberCopyWith<SnProgramMember> get copyWith =>
+      _$SnProgramMemberCopyWithImpl<SnProgramMember>(
+          this as SnProgramMember, _$identity);
+
+  /// Serializes this SnProgramMember to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnProgramMember &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.lastPaid, lastPaid) ||
+                other.lastPaid == lastPaid) &&
+            (identical(other.account, account) || other.account == account) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.program, program) || other.program == program) &&
+            (identical(other.programId, programId) ||
+                other.programId == programId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, createdAt, updatedAt,
+      deletedAt, lastPaid, account, accountId, program, programId);
+
+  @override
+  String toString() {
+    return 'SnProgramMember(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, lastPaid: $lastPaid, account: $account, accountId: $accountId, program: $program, programId: $programId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $SnProgramMemberCopyWith<$Res> {
+  factory $SnProgramMemberCopyWith(
+          SnProgramMember value, $Res Function(SnProgramMember) _then) =
+      _$SnProgramMemberCopyWithImpl;
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      DateTime lastPaid,
+      SnAccount account,
+      int accountId,
+      SnProgram program,
+      int programId});
+
+  $SnAccountCopyWith<$Res> get account;
+  $SnProgramCopyWith<$Res> get program;
+}
+
+/// @nodoc
+class _$SnProgramMemberCopyWithImpl<$Res>
+    implements $SnProgramMemberCopyWith<$Res> {
+  _$SnProgramMemberCopyWithImpl(this._self, this._then);
+
+  final SnProgramMember _self;
+  final $Res Function(SnProgramMember) _then;
+
+  /// Create a copy of SnProgramMember
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? lastPaid = null,
+    Object? account = null,
+    Object? accountId = null,
+    Object? program = null,
+    Object? programId = null,
+  }) {
+    return _then(_self.copyWith(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      lastPaid: null == lastPaid
+          ? _self.lastPaid
+          : lastPaid // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      account: null == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
+      program: null == program
+          ? _self.program
+          : program // ignore: cast_nullable_to_non_nullable
+              as SnProgram,
+      programId: null == programId
+          ? _self.programId
+          : programId // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+
+  /// Create a copy of SnProgramMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res> get account {
+    return $SnAccountCopyWith<$Res>(_self.account, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
+
+  /// Create a copy of SnProgramMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnProgramCopyWith<$Res> get program {
+    return $SnProgramCopyWith<$Res>(_self.program, (value) {
+      return _then(_self.copyWith(program: value));
+    });
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _SnProgramMember implements SnProgramMember {
+  const _SnProgramMember(
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.lastPaid,
+      required this.account,
+      required this.accountId,
+      required this.program,
+      required this.programId});
+  factory _SnProgramMember.fromJson(Map<String, dynamic> json) =>
+      _$SnProgramMemberFromJson(json);
+
+  @override
+  final int id;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+  @override
+  final DateTime? deletedAt;
+  @override
+  final DateTime lastPaid;
+  @override
+  final SnAccount account;
+  @override
+  final int accountId;
+  @override
+  final SnProgram program;
+  @override
+  final int programId;
+
+  /// Create a copy of SnProgramMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnProgramMemberCopyWith<_SnProgramMember> get copyWith =>
+      __$SnProgramMemberCopyWithImpl<_SnProgramMember>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnProgramMemberToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _SnProgramMember &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.lastPaid, lastPaid) ||
+                other.lastPaid == lastPaid) &&
+            (identical(other.account, account) || other.account == account) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.program, program) || other.program == program) &&
+            (identical(other.programId, programId) ||
+                other.programId == programId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, createdAt, updatedAt,
+      deletedAt, lastPaid, account, accountId, program, programId);
+
+  @override
+  String toString() {
+    return 'SnProgramMember(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, lastPaid: $lastPaid, account: $account, accountId: $accountId, program: $program, programId: $programId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$SnProgramMemberCopyWith<$Res>
+    implements $SnProgramMemberCopyWith<$Res> {
+  factory _$SnProgramMemberCopyWith(
+          _SnProgramMember value, $Res Function(_SnProgramMember) _then) =
+      __$SnProgramMemberCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      DateTime lastPaid,
+      SnAccount account,
+      int accountId,
+      SnProgram program,
+      int programId});
+
+  @override
+  $SnAccountCopyWith<$Res> get account;
+  @override
+  $SnProgramCopyWith<$Res> get program;
+}
+
+/// @nodoc
+class __$SnProgramMemberCopyWithImpl<$Res>
+    implements _$SnProgramMemberCopyWith<$Res> {
+  __$SnProgramMemberCopyWithImpl(this._self, this._then);
+
+  final _SnProgramMember _self;
+  final $Res Function(_SnProgramMember) _then;
+
+  /// Create a copy of SnProgramMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? lastPaid = null,
+    Object? account = null,
+    Object? accountId = null,
+    Object? program = null,
+    Object? programId = null,
+  }) {
+    return _then(_SnProgramMember(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      lastPaid: null == lastPaid
+          ? _self.lastPaid
+          : lastPaid // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      account: null == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount,
+      accountId: null == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int,
+      program: null == program
+          ? _self.program
+          : program // ignore: cast_nullable_to_non_nullable
+              as SnProgram,
+      programId: null == programId
+          ? _self.programId
+          : programId // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+
+  /// Create a copy of SnProgramMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res> get account {
+    return $SnAccountCopyWith<$Res>(_self.account, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
+
+  /// Create a copy of SnProgramMember
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnProgramCopyWith<$Res> get program {
+    return $SnProgramCopyWith<$Res>(_self.program, (value) {
+      return _then(_self.copyWith(program: value));
+    });
+  }
+}
+
 // dart format on

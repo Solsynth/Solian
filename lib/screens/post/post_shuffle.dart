@@ -28,7 +28,8 @@ class _PostShuffleScreenState extends State<PostShuffleScreen> {
     setState(() => _isBusy = true);
     try {
       final pt = context.read<SnPostContentProvider>();
-      final result = await pt.listPosts(take: 10, offset: _posts.length, isShuffle: true);
+      final result =
+          await pt.listPosts(take: 10, offset: _posts.length, isShuffle: true);
       _posts.addAll(result.$1);
     } catch (err) {
       if (!mounted) return;
@@ -59,7 +60,8 @@ class _PostShuffleScreenState extends State<PostShuffleScreen> {
           Column(
             children: [
               if (_isBusy || _posts.isEmpty)
-                const Expanded(child: Center(child: CircularProgressIndicator()))
+                const Expanded(
+                    child: Center(child: CircularProgressIndicator()))
               else
                 Expanded(
                   child: CardSwiper(
@@ -72,6 +74,7 @@ class _PostShuffleScreenState extends State<PostShuffleScreen> {
                       return SingleChildScrollView(
                         child: Center(
                           child: Card(
+                            color: Theme.of(context).colorScheme.surface,
                             child: OpenablePostItem(
                               key: ValueKey(ele),
                               data: ele,
@@ -83,7 +86,11 @@ class _PostShuffleScreenState extends State<PostShuffleScreen> {
                               onDeleted: () {
                                 _fetchPosts();
                               },
-                            ).padding(all: 24, bottom: MediaQuery.of(context).padding.bottom + 16 + 50),
+                            ).padding(all: 8),
+                          ).padding(
+                            all: 24,
+                            bottom:
+                                MediaQuery.of(context).padding.bottom + 16 + 50,
                           ),
                         ),
                       );

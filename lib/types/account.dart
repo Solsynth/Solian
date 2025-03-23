@@ -184,3 +184,42 @@ abstract class SnActionEvent with _$SnActionEvent {
   factory SnActionEvent.fromJson(Map<String, Object?> json) =>
       _$SnActionEventFromJson(json);
 }
+
+@freezed
+abstract class SnProgram with _$SnProgram {
+  const factory SnProgram({
+    required int id,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required String name,
+    required String description,
+    required String alias,
+    required int expRequirement,
+    required Map<String, dynamic> price,
+    required Map<String, dynamic> badge,
+    required Map<String, dynamic> group,
+    required Map<String, dynamic> appearance,
+  }) = _SnProgram;
+
+  factory SnProgram.fromJson(Map<String, Object?> json) =>
+      _$SnProgramFromJson(json);
+}
+
+@freezed
+abstract class SnProgramMember with _$SnProgramMember {
+  const factory SnProgramMember({
+    required int id,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required DateTime lastPaid,
+    required SnAccount account,
+    required int accountId,
+    required SnProgram program,
+    required int programId,
+  }) = _SnProgramMember;
+
+  factory SnProgramMember.fromJson(Map<String, Object?> json) =>
+      _$SnProgramMemberFromJson(json);
+}

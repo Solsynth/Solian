@@ -146,6 +146,16 @@ class _AuthorizedAccountScreen extends StatelessWidget {
           },
         ),
         ListTile(
+          title: Text('accountProgram').tr(),
+          subtitle: Text('accountProgramDescription').tr(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          leading: const Icon(Symbols.communities),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {
+            GoRouter.of(context).pushNamed('accountProgram');
+          },
+        ),
+        ListTile(
           title: Text('friends').tr(),
           subtitle: Text('friendsDescription').tr(),
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),

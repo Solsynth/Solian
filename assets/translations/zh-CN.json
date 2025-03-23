@@ -902,5 +902,16 @@
     "other": "{} 金点"
   },
   "walletTransactionTypeNormal": "源点",
-  "walletTransactionTypeGolden": "金点"
+  "walletTransactionTypeGolden": "金点",
+  "accountProgram": "计划",
+  "accountProgramDescription": "了解可用的成员计划。",
+  "accountProgramJoin": "加入计划",
+  "accountProgramJoinRequirements": "要求",
+  "accountProgramJoinPricing": "价格",
+  "accountProgramJoinPricingHint": "按月（30 天）收费",
+  "accountProgramLeaveHint": "离开计划后，之前花费的源点不会退款。",
+  "accountProgramJoined": "已加入计划。",
+  "accountProgramLeft": "已离开计划。",
+  "accountProgramAlreadyJoined": "已加入",
+  "leave": "离开"
 }

@@ -904,5 +904,16 @@
     "other": "{} Golden Points"
   },
   "walletTransactionTypeNormal": "Source Point",
-  "walletTransactionTypeGolden": "Golden Point"
+  "walletTransactionTypeGolden": "Golden Point",
+  "accountProgram": "Programs",
+  "accountProgramDescription": "Explore the available member programs.",
+  "accountProgramJoin": "Join Program",
+  "accountProgramJoinRequirements": "Requirements",
+  "accountProgramJoinPricing": "Pricing",
+  "accountProgramJoinPricingHint": "Billed every (30 days) month.",
+  "accountProgramLeaveHint": "After leaving the program, the source points will not be refunded.",
+  "accountProgramJoined": "Joined Program.",
+  "accountProgramAlreadyJoined": "Joined",
+  "accountProgramLeft": "Left Program.",
+  "leave": "Leave"
 }

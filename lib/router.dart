@@ -13,6 +13,7 @@ import 'package:surface/screens/account/prefs/notify.dart';
 import 'package:surface/screens/account/prefs/security.dart';
 import 'package:surface/screens/account/profile_page.dart';
 import 'package:surface/screens/account/profile_edit.dart';
+import 'package:surface/screens/account/programs.dart';
 import 'package:surface/screens/account/publishers/publisher_edit.dart';
 import 'package:surface/screens/account/publishers/publisher_new.dart';
 import 'package:surface/screens/account/publishers/publishers.dart';
@@ -130,6 +131,11 @@ final _appRoutes = [
     name: 'account',
     builder: (context, state) => const AccountScreen(),
     routes: [
+      GoRoute(
+        path: '/programs',
+        name: 'accountProgram',
+        builder: (context, state) => const AccountProgramScreen(),
+      ),
       GoRoute(
         path: '/contacts',
         name: 'accountContactMethods',
