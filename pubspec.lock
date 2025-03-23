@@ -2238,10 +2238,10 @@ packages:
     dependency: "direct main"
     description:
       name: tray_manager
-      sha256: "80be6c508159a6f3c57983de795209ac13453e9832fd574143b06dceee188ed2"
+      sha256: c2da0f0f1ddb455e721cf68d05d1281fec75cf5df0a1d3cb67b6ca0bdfd5709d
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.2"
+    version: "0.4.0"
   tuple:
     dependency: transitive
     description:
@@ -2525,11 +2525,10 @@ packages:
   workmanager:
     dependency: "direct main"
     description:
-      path: workmanager
-      ref: main
-      resolved-ref: "4ce065135dc1b91fee918f81596b42a56850391d"
-      url: "https://github.com/fluttercommunity/flutter_workmanager.git"
-    source: git
+      name: workmanager
+      sha256: ed13530cccd28c5c9959ad42d657cd0666274ca74c56dea0ca183ddd527d3a00
+      url: "https://pub.dev"
+    source: hosted
     version: "0.5.2"
   xdg_directories:
     dependency: transitive

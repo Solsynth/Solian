@@ -103,11 +103,7 @@ dependencies:
   flutter_svg: ^2.0.16
   home_widget: ^0.7.0
   receive_sharing_intent: ^1.8.1
-  workmanager:
-    git:
-      url: https://github.com/fluttercommunity/flutter_workmanager.git
-      path: workmanager
-      ref: main
+  workmanager: ^0.5.2
   flutter_app_update: ^3.2.2
   in_app_review: ^2.0.10
   version: ^3.0.2
@@ -120,7 +116,7 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   html: ^0.15.5
   xml: ^6.5.0
-  tray_manager: ^0.3.2
+  tray_manager: ^0.4.0
   hotkey_manager: ^0.2.3
   image_picker_android: ^0.8.12+20
   cached_network_image_platform_interface: ^4.1.1

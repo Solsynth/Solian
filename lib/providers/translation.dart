@@ -4,8 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:surface/logger.dart';
 
-// TODO self host translate api
-const kTranslateApiBaseUrl = 'https://translate.disroot.org';
+const kTranslateApiBaseUrl = 'https://translate.solsynth.dev';
 
 class SnTranslator {
   final Dio client = Dio(
