@@ -9,6 +9,7 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/account.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
+import 'package:surface/widgets/markdown_content.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 
 class AccountProgramScreen extends StatefulWidget {
@@ -86,14 +87,17 @@ class _AccountProgramScreenState extends State<AccountProgramScreen> {
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                     onTap: () {
                       showModalBottomSheet(
+                        isScrollControlled: true,
                         context: context,
                         builder: (context) => _ProgramJoinPopup(
                           program: ele,
-                          isJoined: _programMembers
-                              .any((ele) => ele.programId == ele.id),
+                          isJoined:
+                              _programMembers.any((e) => e.programId == ele.id),
                         ),
                       ).then((value) {
-                        _fetchProgramMembers();
+                        if (value == true) {
+                          _fetchProgramMembers();
+                        }
                       });
                     },
                     child: Column(
@@ -137,7 +141,7 @@ class _AccountProgramScreenState extends State<AccountProgramScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     if (_programMembers
-                                        .any((ele) => ele.programId == ele.id))
+                                        .any((e) => e.programId == ele.id))
                                       Text('accountProgramAlreadyJoined'.tr())
                                           .opacity(0.75),
                                   ],
@@ -205,80 +209,82 @@ class _ProgramJoinPopupState extends State<_ProgramJoinPopup> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Symbols.add, size: 24),
-            const Gap(16),
-            Text(
-              'accountProgramJoin',
-              style: Theme.of(context).textTheme.titleLarge,
-            ).tr(),
-          ],
-        ).padding(horizontal: 20, top: 16, bottom: 12),
-        Column(
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.75,
+      child: SingleChildScrollView(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.program.appearance['banner'] != null)
-              AspectRatio(
-                aspectRatio: 16 / 5,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    color: Theme.of(context).colorScheme.surfaceVariant,
-                    child: Image.network(
-                      widget.program.appearance['banner'],
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(Symbols.add, size: 24),
+                const Gap(16),
+                Text(
+                  'accountProgramJoin',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ).tr(),
+              ],
+            ).padding(horizontal: 20, top: 16, bottom: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.program.appearance['banner'] != null)
+                  AspectRatio(
+                    aspectRatio: 16 / 5,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        child: Image.network(
+                          widget.program.appearance['banner'],
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
+                  ).padding(bottom: 12),
+                Text(
+                  widget.program.name,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ).bold(),
+                MarkdownTextContent(content: widget.program.description),
+                const Gap(8),
+                Text(
+                  'accountProgramJoinRequirements',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ).tr().bold(),
+                Text('≥EXP ${widget.program.expRequirement}'),
+                Text('≥Lv${getLevelFromExp(widget.program.expRequirement)}'),
+                const Gap(8),
+                Text(
+                  'accountProgramJoinPricing',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ).tr().bold(),
+                Text('walletCurrency${widget.program.price['currency'].toString().capitalize().replaceFirst('Normal', '')}')
+                    .plural(widget.program.price['amount'].toDouble()),
+                Text('accountProgramJoinPricingHint').tr().opacity(0.75),
+                const Gap(8),
+                if (widget.isJoined)
+                  Text('accountProgramLeaveHint')
+                      .tr()
+                      .opacity(0.75)
+                      .padding(bottom: 8),
+                if (!widget.isJoined)
+                  ElevatedButton(
+                    onPressed: _isBusy ? null : _joinProgram,
+                    child: Text('join').tr(),
+                  )
+                else
+                  ElevatedButton(
+                    onPressed: _isBusy ? null : _leaveProgram,
+                    child: Text('leave').tr(),
                   ),
-                ),
-              ).padding(bottom: 12),
-            Text(
-              widget.program.name,
-              style: Theme.of(context).textTheme.titleMedium,
-            ).bold(),
-            Text(
-              widget.program.description,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const Gap(8),
-            Text(
-              'accountProgramJoinRequirements',
-              style: Theme.of(context).textTheme.titleMedium,
-            ).tr().bold(),
-            Text('≥EXP ${widget.program.expRequirement}'),
-            Text('≥Lv${getLevelFromExp(widget.program.expRequirement)}'),
-            const Gap(8),
-            Text(
-              'accountProgramJoinPricing',
-              style: Theme.of(context).textTheme.titleMedium,
-            ).tr().bold(),
-            Text('walletCurrency${widget.program.price['currency'].toString().capitalize().replaceFirst('Normal', '')}')
-                .plural(widget.program.price['amount'].toDouble()),
-            Text('accountProgramJoinPricingHint').tr().opacity(0.75),
-            const Gap(8),
-            if (widget.isJoined)
-              Text('accountProgramLeaveHint')
-                  .tr()
-                  .opacity(0.75)
-                  .padding(bottom: 8),
-            if (!widget.isJoined)
-              ElevatedButton(
-                onPressed: _isBusy ? null : _joinProgram,
-                child: Text('join').tr(),
-              )
-            else
-              ElevatedButton(
-                onPressed: _isBusy ? null : _leaveProgram,
-                child: Text('leave').tr(),
-              ),
+              ],
+            ).padding(horizontal: 24),
+            Gap(MediaQuery.of(context).padding.bottom),
           ],
-        ).padding(horizontal: 24),
-      ],
+        ),
+      ),
     );
   }
 }

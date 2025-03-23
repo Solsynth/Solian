@@ -10,7 +10,6 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/config.dart';
@@ -48,17 +47,6 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
     final nav = context.watch<NavigationProvider>();
     final cfg = context.watch<ConfigProvider>();
 
-    final routeName = GoRouter.of(context)
-        .routerDelegate
-        .currentConfiguration
-        .last
-        .route
-        .name;
-    final showNavButtons = cfg.hideBottomNav ||
-        !(nav.showBottomNavScreen.contains(routeName)
-            ? ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE)
-            : false);
-
     final backgroundColor = cfg.drawerIsExpanded ? Colors.transparent : null;
 
     return ListenableBuilder(
@@ -67,7 +55,8 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
         return Drawer(
           elevation: widget.elevation,
           backgroundColor: backgroundColor,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(0))),
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(0))),
           child: Column(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,42 +81,39 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
               Expanded(
                 child: _DrawerContentList(),
               ),
-              if (showNavButtons)
-                Row(
-                  spacing: 8,
-                  children:
-                      nav.destinations.where((ele) => ele.isPinned).mapIndexed(
-                    (idx, ele) {
-                      return Expanded(
-                        child: Tooltip(
-                          message: ele.label.tr(),
-                          child: IconButton(
-                            icon: ele.icon,
-                            color: nav.currentIndex == idx
-                                ? Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer
-                                : Theme.of(context).colorScheme.onSurface,
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStatePropertyAll(
-                                nav.currentIndex == idx
-                                    ? Theme.of(context)
-                                        .colorScheme
-                                        .primaryContainer
-                                    : Colors.transparent,
-                              ),
+              Row(
+                spacing: 8,
+                children:
+                    nav.destinations.where((ele) => ele.isPinned).mapIndexed(
+                  (idx, ele) {
+                    return Expanded(
+                      child: Tooltip(
+                        message: ele.label.tr(),
+                        child: IconButton(
+                          icon: ele.icon,
+                          color: nav.currentIndex == idx
+                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                              : Theme.of(context).colorScheme.onSurface,
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll(
+                              nav.currentIndex == idx
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer
+                                  : Colors.transparent,
                             ),
-                            onPressed: () {
-                              GoRouter.of(context).goNamed(ele.screen);
-                              Scaffold.of(context).closeDrawer();
-                              nav.setIndex(idx);
-                            },
                           ),
+                          onPressed: () {
+                            GoRouter.of(context).goNamed(ele.screen);
+                            Scaffold.of(context).closeDrawer();
+                            nav.setIndex(idx);
+                          },
                         ),
-                      );
-                    },
-                  ).toList(),
-                ).padding(horizontal: 16, bottom: 8),
+                      ),
+                    );
+                  },
+                ).toList(),
+              ).padding(horizontal: 16, bottom: 8),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: ListTile(
