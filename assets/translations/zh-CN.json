@@ -913,5 +913,6 @@
   "accountProgramJoined": "已加入计划。",
   "accountProgramLeft": "已离开计划。",
   "accountProgramAlreadyJoined": "已加入",
-  "leave": "离开"
+  "leave": "离开",
+  "attachmentFailedToLoadMedia": "无法加载媒体文件，请稍后重试。若此错误重复出现，可能源文件不存在或者网络连接异常。"
 }

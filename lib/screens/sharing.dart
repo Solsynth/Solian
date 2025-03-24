@@ -50,6 +50,7 @@ class _AppSharingListenerState extends State<AppSharingListener> {
               Card(
                 child: Column(
                   children: [
+                    const SizedBox(width: double.infinity),
                     ListTile(
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 24),

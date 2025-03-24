@@ -915,5 +915,6 @@
   "accountProgramJoined": "Joined Program.",
   "accountProgramAlreadyJoined": "Joined",
   "accountProgramLeft": "Left Program.",
-  "leave": "Leave"
+  "leave": "Leave",
+  "attachmentFailedToLoadMedia": "Unable to load media file, please try again later. If this error occurs repeatedly, the source file may not exist or the network connection may be abnormal."
 }

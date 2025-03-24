@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -12,6 +13,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:surface/logger.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/widgets/universal_image.dart';
@@ -222,20 +224,71 @@ class _AttachmentItemContentVideoState
         : sn.getAttachmentUrl(widget.data.compressed!.rid);
     _videoPlayer = Player();
     _videoController = VideoController(_videoPlayer!);
-    _videoPlayer!.open(Media(url), play: !widget.isAutoload);
+
+    String? uri;
+    final inCacheInfo = await DefaultCacheManager().getFileFromCache(url);
+    if (inCacheInfo == null) {
+      logging.info('[MediaPlayer] Miss cache: $url');
+      final fileStream = DefaultCacheManager().getFileStream(
+        url,
+        withProgress: true,
+      );
+      await for (var fileInfo in fileStream) {
+        if (fileInfo is FileInfo) {
+          uri = fileInfo.file.path;
+          break;
+        }
+      }
+    } else {
+      uri = inCacheInfo.file.path;
+      logging.info('[MediaPlayer] Hit cache: $url');
+    }
+    if (uri == null) {
+      if (mounted) {
+        context.showErrorDialog('attachmentFailedToLoadMedia'.tr());
+      }
+      return;
+    }
+
+    _videoPlayer!.open(Media(uri), play: !widget.isAutoload);
   }
 
-  void _toggleOriginal() {
+  void _toggleOriginal() async {
     if (!mounted) return;
     if (widget.data.compressedId == null) return;
     setState(() => _showOriginal = !_showOriginal);
     final sn = context.read<SnNetworkProvider>();
+    final url = _showOriginal
+        ? sn.getAttachmentUrl(widget.data.rid)
+        : sn.getAttachmentUrl(widget.data.compressed!.rid);
+
+    String? uri;
+    final inCacheInfo = await DefaultCacheManager().getFileFromCache(url);
+    if (inCacheInfo == null) {
+      logging.info('[MediaPlayer] Miss cache: $url');
+      final fileStream = DefaultCacheManager().getFileStream(
+        url,
+        withProgress: true,
+      );
+      await for (var fileInfo in fileStream) {
+        if (fileInfo is FileInfo) {
+          uri = fileInfo.file.path;
+          break;
+        }
+      }
+    } else {
+      uri = inCacheInfo.file.path;
+      logging.info('[MediaPlayer] Hit cache: $url');
+    }
+    if (uri == null) {
+      if (mounted) {
+        context.showErrorDialog('attachmentFailedToLoadMedia'.tr());
+      }
+      return;
+    }
+
     _videoPlayer?.open(
-      Media(
-        _showOriginal
-            ? sn.getAttachmentUrl(widget.data.rid)
-            : sn.getAttachmentUrl(widget.data.compressed!.rid),
-      ),
+      Media(uri),
       play: true,
     );
   }
@@ -439,7 +492,33 @@ class _AttachmentItemContentAudioState
     final sn = context.read<SnNetworkProvider>();
     final url = sn.getAttachmentUrl(widget.data.rid);
     _audioPlayer = Player();
-    await _audioPlayer!.open(Media(url), play: !widget.isAutoload);
+
+    String? uri;
+    final inCacheInfo = await DefaultCacheManager().getFileFromCache(url);
+    if (inCacheInfo == null) {
+      logging.info('[MediaPlayer] Miss cache: $url');
+      final fileStream = DefaultCacheManager().getFileStream(
+        url,
+        withProgress: true,
+      );
+      await for (var fileInfo in fileStream) {
+        if (fileInfo is FileInfo) {
+          uri = fileInfo.file.path;
+          break;
+        }
+      }
+    } else {
+      uri = inCacheInfo.file.path;
+      logging.info('[MediaPlayer] Hit cache: $url');
+    }
+    if (uri == null) {
+      if (mounted) {
+        context.showErrorDialog('attachmentFailedToLoadMedia'.tr());
+      }
+      return;
+    }
+
+    await _audioPlayer!.open(Media(uri), play: !widget.isAutoload);
     _audioPlayer!.stream.playing.listen((v) => setState(() => _isPlaying = v));
     _audioPlayer!.stream.position.listen((v) => setState(() => _position = v));
     _audioPlayer!.stream.duration.listen((v) => setState(() => _duration = v));
@@ -567,6 +646,7 @@ class _AttachmentItemContentAudioState
             ),
           ),
         Container(
+          padding: EdgeInsets.symmetric(horizontal: 16),
           constraints: const BoxConstraints(maxWidth: 320),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
