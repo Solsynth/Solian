@@ -639,6 +639,7 @@
   "postQuestionUnansweredWithReward": "Unanswered Question, reward source points {}",
   "postQuestionAnswered": "Answered Question",
   "postQuestionAnswerSelect": "Select as Answer",
+  "postQuestionAnswerTitle": "Selected Question",
   "postQuestionAnswerSelected": "Answer has been selected, reward has been applied.",
   "postVideoUpload": "Upload Video",
   "realmJoin": "Join Realm",

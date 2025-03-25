@@ -38,7 +38,7 @@ class _PostPublisherScreenState extends State<PostPublisherScreen>
     with SingleTickerProviderStateMixin {
   late final ScrollController _scrollController = ScrollController();
   late final TabController _tabController =
-      TabController(length: 3, vsync: this);
+      TabController(length: 5, vsync: this);
 
   SnPublisher? _publisher;
   SnAccount? _account;
@@ -137,7 +137,7 @@ class _PostPublisherScreenState extends State<PostPublisherScreen>
 
   late final _appBarWidth = MediaQuery.of(context).size.width;
   late final _appBarHeight =
-      (_appBarWidth * kBannerAspectRatio).roundToDouble();
+      math.min((_appBarWidth * kBannerAspectRatio), 360).roundToDouble();
 
   void _updateAppBarBlur() {
     if (_scrollController.offset > _appBarHeight) return;
@@ -165,6 +165,8 @@ class _PostPublisherScreenState extends State<PostPublisherScreen>
         type: switch (_tabController.index) {
           1 => 'story',
           2 => 'article',
+          3 => 'question',
+          4 => 'video',
           _ => null,
         },
       );
@@ -565,6 +567,18 @@ class _PostPublisherScreenState extends State<PostPublisherScreen>
                       Tab(
                         icon: Icon(
                           Symbols.article,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      Tab(
+                        icon: Icon(
+                          Symbols.help,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      Tab(
+                        icon: Icon(
+                          Symbols.video_call,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),

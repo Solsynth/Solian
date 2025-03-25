@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -227,7 +228,7 @@ class _UserScreenState extends State<UserScreen>
 
   late final _appBarWidth = MediaQuery.of(context).size.width;
   late final _appBarHeight =
-      (_appBarWidth * kBannerAspectRatio).roundToDouble();
+      math.min((_appBarWidth * kBannerAspectRatio), 360).roundToDouble();
 
   void _updateAppBarBlur() {
     if (_scrollController.offset > _appBarHeight) return;
@@ -489,10 +490,10 @@ class _UserScreenState extends State<UserScreen>
                   ),
                   const Gap(8),
                   Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
                     children: _account!.badges
-                        .map(
-                          (ele) => AccountBadge(badge: ele),
-                        )
+                        .map((ele) => AccountBadge(badge: ele))
                         .toList(),
                   ).padding(horizontal: 8),
                   const Gap(8),

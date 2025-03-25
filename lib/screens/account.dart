@@ -106,7 +106,18 @@ class _AuthorizedAccountScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AccountImage(content: ua.user!.avatar, radius: 28),
+                      GestureDetector(
+                        child: AccountImage(
+                          content: ua.user!.avatar,
+                          radius: 28,
+                        ),
+                        onTap: () {
+                          GoRouter.of(context)
+                              .pushNamed('accountProfilePage', pathParameters: {
+                            'name': ua.user!.name,
+                          });
+                        },
+                      ),
                       _AccountStatusWidget(account: ua.user!),
                     ],
                   ),
