@@ -224,8 +224,10 @@ class _AttachmentListState extends State<AttachmentList> {
                           (widget.data[idx]?.data['ratio'] ?? 1).toDouble(),
                       child: GestureDetector(
                         onTap: () {
-                          if (widget.data[idx]?.mediaType != SnMediaType.image)
+                          if (widget.data[idx]?.mediaType !=
+                              SnMediaType.image) {
                             return;
+                          }
                           context.pushTransparentRoute(
                             AttachmentZoomView(
                               data: widget.data
@@ -246,8 +248,10 @@ class _AttachmentListState extends State<AttachmentList> {
                             Container(
                               decoration: BoxDecoration(
                                 color: backgroundColor,
-                                border:
-                                    Border(top: borderSide, bottom: borderSide),
+                                border: Border.all(
+                                  width: 1,
+                                  color: Theme.of(context).dividerColor,
+                                ),
                                 borderRadius: AttachmentList.kDefaultRadius,
                               ),
                               child: ClipRRect(
@@ -263,8 +267,8 @@ class _AttachmentListState extends State<AttachmentList> {
                               right: 8,
                               bottom: 8,
                               child: Chip(
-                                  label:
-                                      Text('${idx + 1}/${widget.data.length}')),
+                                label: Text('${idx + 1}/${widget.data.length}'),
+                              ),
                             ),
                           ],
                         ),
