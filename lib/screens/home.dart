@@ -396,35 +396,44 @@ class _HomeDashServiceStatusState extends State<_HomeDashServiceStatus> {
                 : switch (_serviceStatus) {
                     ServiceStatus.operational => Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Symbols.check,
                             size: 20,
+                            color: Colors.green[900],
                           ),
                           const Gap(10),
-                          Text('serviceStatusOperational').tr(),
+                          Text('serviceStatusOperational')
+                              .tr()
+                              .textColor(Colors.green[900]),
                         ],
                       ),
                     ServiceStatus.failed => Tooltip(
                         message: 'serviceStatusFailedDescription'.tr(),
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Symbols.dangerous,
                               size: 20,
+                              color: Colors.red[900],
                             ),
                             const Gap(10),
-                            Text('serviceStatusFailed').tr(),
+                            Text('serviceStatusFailed')
+                                .tr()
+                                .textColor(Colors.red[900]),
                           ],
                         ),
                       ),
                     _ => Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Symbols.error,
                             size: 20,
+                            color: Colors.orange[900],
                           ),
                           const Gap(10),
-                          Text('serviceStatusDowngraded').tr(),
+                          Text('serviceStatusDowngraded')
+                              .tr()
+                              .textColor(Colors.orange[900]),
                         ],
                       ),
                   },
