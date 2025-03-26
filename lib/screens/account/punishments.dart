@@ -126,14 +126,20 @@ class _PunishmentsScreenState extends State<PunishmentsScreen> {
                         Text(ele.reason),
                         const Gap(4),
                         Text(
-                          'punishmentCreatedAt'
-                              .tr(args: [DateFormat().format(ele.createdAt)]),
+                          'punishmentCreatedAt'.tr(args: [
+                            DateFormat().format(
+                              ele.createdAt.toLocal(),
+                            )
+                          ]),
                         ).opacity(0.8),
                         Text(
                           ele.expiredAt == null
                               ? 'punishmentExpiredNever'.tr()
-                              : 'punishmentExpiredAt'.tr(
-                                  args: [DateFormat().format(ele.expiredAt!)]),
+                              : 'punishmentExpiredAt'.tr(args: [
+                                  DateFormat().format(
+                                    ele.expiredAt!.toLocal(),
+                                  )
+                                ]),
                         ).opacity(0.8),
                         const Gap(8),
                         if (ele.moderator != null)
