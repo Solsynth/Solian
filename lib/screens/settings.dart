@@ -80,6 +80,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final sn = context.read<SnNetworkProvider>();
     final dt = context.read<DatabaseProvider>();
+    final cfg = context.watch<ConfigProvider>();
+
+    final now = DateTime.now();
 
     return AppScaffold(
       appBar: AppBar(
@@ -741,6 +744,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     GoRouter.of(context).pushNamed('about');
                   },
                 ),
+                if (now.day == 1 && now.month == 4)
+                  CheckboxListTile(
+                    title: Text('settingsAprilFoolFeatures').tr(),
+                    subtitle: Text('settingsAprilFoolFeaturesDescription').tr(),
+                    contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                    secondary: const Icon(Symbols.new_releases),
+                    value: cfg.aprilFoolFeatures,
+                    onChanged: (value) {
+                      cfg.aprilFoolFeatures = value ?? false;
+                      setState(() {});
+                    },
+                  )
               ],
             ),
           ],

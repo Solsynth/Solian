@@ -933,5 +933,7 @@
   "punishmentExpiredAt": "Expired at {}",
   "punishmentExpiredNever": "Never expired",
   "punishmentModerator": "Moderator who made this punishment",
-  "punishmentMadeBySystem": "Made by auto-mod system"
+  "punishmentMadeBySystem": "Made by auto-mod system",
+  "settingsAprilFoolFeatures": "April Fool Features",
+  "settingsAprilFoolFeaturesDescription": "Enable April Fool features during April Fool, this option will only be visible during April Fool."
 }

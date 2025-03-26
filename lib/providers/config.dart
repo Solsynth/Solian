@@ -22,6 +22,7 @@ const kAppCustomFonts = 'app_custom_fonts';
 const kAppMixedFeed = 'app_mixed_feed';
 const kAppAutoTranslate = 'app_auto_translate';
 const kAppHideBottomNav = 'app_hide_bottom_nav';
+const kAppAprilFoolFeatures = 'app_april_fool_features';
 
 const Map<String, FilterQuality> kImageQualityLevel = {
   'settingsImageQualityLowest': FilterQuality.none,
@@ -94,6 +95,15 @@ class ConfigProvider extends ChangeNotifier {
 
   bool get hideBottomNav {
     return prefs.getBool(kAppHideBottomNav) ?? false;
+  }
+
+  bool get aprilFoolFeatures {
+    return prefs.getBool(kAppAprilFoolFeatures) ?? true;
+  }
+
+  set aprilFoolFeatures(bool value) {
+    prefs.setBool(kAppAprilFoolFeatures, value);
+    notifyListeners();
   }
 
   set hideBottomNav(bool value) {

@@ -100,7 +100,7 @@ class NotificationProvider extends ChangeNotifier {
         if (doHaptic) HapticFeedback.mediumImpact();
 
         // April fool notification sfx
-        if (doHaptic) {
+        if (_cfg.prefs.getBool(kAppAprilFoolFeatures) ?? true) {
           final now = DateTime.now();
           if (now.day == 1 && now.month == 4) {
             _notifySoundPlayer.play(

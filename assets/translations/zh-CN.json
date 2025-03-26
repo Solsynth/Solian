@@ -930,5 +930,7 @@
   "punishmentExpiredAt": "到期于 {}",
   "punishmentExpiredNever": "永久生效",
   "punishmentModerator": "责任管理员",
-  "punishmentMadeBySystem": "由系统自动裁决"
+  "punishmentMadeBySystem": "由系统自动裁决",
+  "settingsAprilFoolFeatures": "愚人节特性",
+  "settingsAprilFoolFeaturesDescription": "在愚人节期间启用愚人节特性，该选项只会在愚人节期间显示。"
 }
