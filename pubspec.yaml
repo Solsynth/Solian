@@ -143,6 +143,7 @@ dependencies:
   timelines_plus: ^1.0.6
   latlong2: ^0.9.1
   crypto: ^3.0.6
+  audioplayers: ^6.4.0
 
 dev_dependencies:
   flutter_test:
@@ -180,6 +181,7 @@ flutter:
     - assets/icon/tray-icon.ico
     - assets/icon/tray-icon.png
     - assets/icon/kanban-1st.jpg
+    - assets/audio/notify/
     - assets/translations/
 
   # An image asset can refer to one or more resolution-specific "variants", see

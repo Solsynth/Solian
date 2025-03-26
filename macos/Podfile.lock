@@ -1,4 +1,6 @@
 PODS:
+  - audioplayers_darwin (0.0.1):
+    - FlutterMacOS
   - bitsdojo_window_macos (0.0.1):
     - FlutterMacOS
   - connectivity_plus (0.0.1):
@@ -154,8 +156,6 @@ PODS:
     - FlutterMacOS
   - media_kit_libs_macos_video (1.0.4):
     - FlutterMacOS
-  - media_kit_native_event_loop (1.0.0):
-    - FlutterMacOS
   - media_kit_video (0.0.1):
     - FlutterMacOS
   - nanopb (3.30910.0):
@@ -173,8 +173,6 @@ PODS:
     - FlutterMacOS
   - PromisesObjC (2.4.0)
   - SAMKeychain (1.5.3)
-  - screen_brightness_macos (0.1.0):
-    - FlutterMacOS
   - share_plus (0.0.1):
     - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
@@ -211,11 +209,14 @@ PODS:
     - FlutterMacOS
   - video_compress (0.3.0):
     - FlutterMacOS
+  - volume_controller (0.0.1):
+    - FlutterMacOS
   - wakelock_plus (0.0.1):
     - FlutterMacOS
   - WebRTC-SDK (125.6422.06)
 
 DEPENDENCIES:
+  - audioplayers_darwin (from `Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/macos`)
   - bitsdojo_window_macos (from `Flutter/ephemeral/.symlinks/plugins/bitsdojo_window_macos/macos`)
   - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
   - croppy (from `Flutter/ephemeral/.symlinks/plugins/croppy/macos`)
@@ -238,12 +239,10 @@ DEPENDENCIES:
   - livekit_client (from `Flutter/ephemeral/.symlinks/plugins/livekit_client/macos`)
   - local_notifier (from `Flutter/ephemeral/.symlinks/plugins/local_notifier/macos`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
-  - media_kit_native_event_loop (from `Flutter/ephemeral/.symlinks/plugins/media_kit_native_event_loop/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - pasteboard (from `Flutter/ephemeral/.symlinks/plugins/pasteboard/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
-  - screen_brightness_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_brightness_macos/macos`)
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin`)
@@ -251,6 +250,7 @@ DEPENDENCIES:
   - tray_manager (from `Flutter/ephemeral/.symlinks/plugins/tray_manager/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - video_compress (from `Flutter/ephemeral/.symlinks/plugins/video_compress/macos`)
+  - volume_controller (from `Flutter/ephemeral/.symlinks/plugins/volume_controller/macos`)
   - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
 
 SPEC REPOS:
@@ -273,6 +273,8 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
+  audioplayers_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/macos
   bitsdojo_window_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/bitsdojo_window_macos/macos
   connectivity_plus:
@@ -317,8 +319,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/local_notifier/macos
   media_kit_libs_macos_video:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos
-  media_kit_native_event_loop:
-    :path: Flutter/ephemeral/.symlinks/plugins/media_kit_native_event_loop/macos
   media_kit_video:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos
   package_info_plus:
@@ -327,8 +327,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/pasteboard/macos
   path_provider_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
-  screen_brightness_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/screen_brightness_macos/macos
   share_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
   shared_preferences_foundation:
@@ -343,61 +341,63 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
   video_compress:
     :path: Flutter/ephemeral/.symlinks/plugins/video_compress/macos
+  volume_controller:
+    :path: Flutter/ephemeral/.symlinks/plugins/volume_controller/macos
   wakelock_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
 
 SPEC CHECKSUMS:
-  bitsdojo_window_macos: 44e3b8fe3dd463820e0321f6256c5b1c16bb6a00
-  connectivity_plus: 0a976dfd033b59192912fa3c6c7b54aab5093802
-  croppy: 25a638bd7d05411d8c697f481568f261037694fc
-  device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
-  fast_rsa: 47a50bec1042c8c01726007dc0590a078418f997
-  file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
-  file_saver: 44e6fbf666677faf097302460e214e977fdd977b
-  file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
+  audioplayers_darwin: 761f2948df701d05b5db603220c384fb55720012
+  bitsdojo_window_macos: 7959fb0ca65a3ccda30095c181ecb856fae48ea9
+  connectivity_plus: 4adf20a405e25b42b9c9f87feff8f4b6fde18a4e
+  croppy: d9bfc8c02f3cd1851f669a421df298a474b78f43
+  device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
+  fast_rsa: 940a67b8d8e425f37708189361efc90be7299d66
+  file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
+  file_saver: e35bd97de451dde55ff8c38862ed7ad0f3418d0f
+  file_selector_macos: 6280b52b459ae6c590af5d78fc35c7267a3c4b31
   Firebase: d80354ed7f6df5f9aca55e9eb47cc4b634735eaf
-  firebase_analytics: 75b9d9ea8b21ce77898a3a46910e2051e93db8e1
-  firebase_core: 1b573eac37729348cdc472516991dd7e269ae37e
-  firebase_messaging: 0620038ea399ceae2218c9087fca00a28f576209
+  firebase_analytics: 2c7864ab677e8a178a6dd4126de1d19e9d9a7bf3
+  firebase_core: 3dcdf8453dfb144a023ee70f49e0463b97177f71
+  firebase_messaging: 96fe41b2f8b5bee4e0f21df8d716cb8c9293448c
   FirebaseAnalytics: 4fd42def128146e24e480e89f310e3d8534ea42b
   FirebaseCore: 99fe0c4b44a39f37d99e6404e02009d2db5d718d
   FirebaseCoreInternal: df24ce5af28864660ecbd13596fc8dd3a8c34629
   FirebaseInstallations: 6c963bd2a86aca0481eef4f48f5a4df783ae5917
   FirebaseMessaging: 487b634ccdf6f7b7ff180fdcb2a9935490f764e8
-  flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
-  flutter_timezone: 62400baa441155f2a4144188648f2ff861649747
-  flutter_udid: 2e7b3da4b5fdfba86a396b97898f5fe8f4ec1a52
-  flutter_webrtc: d55fd3f5c75b42940b6b4b2cf376a5797398d1f8
+  flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
+  flutter_timezone: d59eea86178cbd7943cd2431cc2eaa9850f935d8
+  flutter_udid: d26e455e8c06174e6aff476e147defc6cae38495
+  flutter_webrtc: 377dbcebdde6fed0fc40de87bcaaa2bffcec9a88
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
-  gal: 6a522c75909f1244732d4596d11d6a2f86ff37a5
+  gal: baecd024ebfd13c441269ca7404792a7152fde89
   GoogleAppMeasurement: fc0817122bd4d4189164f85374e06773b9561896
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   HotKey: 400beb7caa29054ea8d864c96f5ba7e5b4852277
-  hotkey_manager_macos: 1e2edb0c7ae4fe67108af44a9d3445de41404160
-  in_app_review: a6a031b9acd03c7d103e341aa334adf2c493fb93
-  livekit_client: d03409f83df069a1bb00a4c8dc78c54fb2287262
-  local_notifier: e9506bc66fc70311e8bc7291fb70f743c081e4ff
-  media_kit_libs_macos_video: b3e2bbec2eef97c285f2b1baa7963c67c753fb82
-  media_kit_native_event_loop: 81fd5b45192b72f8b5b69eaf5b540f45777eb8d5
-  media_kit_video: c75b07f14d59706c775778e4dd47dd027de8d1e5
+  hotkey_manager_macos: a4317849af96d2430fa89944d3c58977ca089fbe
+  in_app_review: 0599bccaed5e02f6bed2b0d30d16f86b63ed8638
+  livekit_client: 35690bf9861be6325a6f7d11bb38d50c7c9fed80
+  local_notifier: ebf072651e35ae5e47280ad52e2707375cb2ae4e
+  media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
+  media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
-  package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
-  pasteboard: 9b69dba6fedbb04866be632205d532fe2f6b1d99
-  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  package_info_plus: f0052d280d17aa382b932f399edf32507174e870
+  pasteboard: 278d8100149f940fb795d6b3a74f0720c890ecb7
+  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   SAMKeychain: 483e1c9f32984d50ca961e26818a534283b4cd5c
-  screen_brightness_macos: 2d6d3af2165592d9a55ffcd95b7550970e41ebda
-  share_plus: 1fa619de8392a4398bfaf176d441853922614e89
-  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
-  sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
+  share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
+  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
+  sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   sqlite3: fc1400008a9b3525f5914ed715a5d1af0b8f4983
-  sqlite3_flutter_libs: 487032b9008b28de37c72a3aa66849ef3745f3e6
-  tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
-  url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
-  video_compress: c896234f100791b5fef7f049afa38f6d2ef7b42f
-  wakelock_plus: 4783562c9a43d209c458cb9b30692134af456269
+  sqlite3_flutter_libs: f6acaa2172e6bb3e2e70c771661905080e8ebcf2
+  tray_manager: a104b5c81b578d83f3c3d0f40a997c8b10810166
+  url_launcher_macos: 0fba8ddabfc33ce0a9afe7c5fef5aab3d8d2d673
+  video_compress: 752b161da855df2492dd1a8fa899743cc8fe9534
+  volume_controller: 5c068e6d085c80dadd33fc2c918d2114b775b3dd
+  wakelock_plus: 21ddc249ac4b8d018838dbdabd65c5976c308497
   WebRTC-SDK: 79942c006ea64f6fb48d7da8a4786dfc820bc1db
 
 PODFILE CHECKSUM: c2e95c8c0fe03c5c57e438583cae4cc732296009

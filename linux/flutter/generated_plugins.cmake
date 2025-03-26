@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  audioplayers_linux
   bitsdojo_window_linux
   fast_rsa
   file_saver

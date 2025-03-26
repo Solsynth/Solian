@@ -1,5 +1,7 @@
 PODS:
   - Alamofire (5.10.2)
+  - audioplayers_darwin (0.0.1):
+    - Flutter
   - connectivity_plus (0.0.1):
     - Flutter
   - croppy (0.0.1):
@@ -258,6 +260,7 @@ PODS:
 
 DEPENDENCIES:
   - Alamofire
+  - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - croppy (from `.symlinks/plugins/croppy/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
@@ -322,6 +325,8 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
+  audioplayers_darwin:
+    :path: ".symlinks/plugins/audioplayers_darwin/ios"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
   croppy:
@@ -399,6 +404,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Alamofire: 7193b3b92c74a07f85569e1a6c4f4237291e7496
+  audioplayers_darwin: ccf9c770ee768abb07e26d90af093f7bab1c12ab
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   croppy: 979e8ddc254f4642bffe7d52dc7193354b27ba30
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe

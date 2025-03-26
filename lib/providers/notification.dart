@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -21,6 +22,8 @@ class NotificationProvider extends ChangeNotifier {
   late final UserProvider _ua;
   late final WebSocketProvider _ws;
   late final ConfigProvider _cfg;
+
+  final AudioPlayer _notifySoundPlayer = AudioPlayer(playerId: 'notify-sound');
 
   NotificationProvider(BuildContext context) {
     _sn = context.read<SnNetworkProvider>();
@@ -48,11 +51,13 @@ class NotificationProvider extends ChangeNotifier {
     var deviceUuid = await FlutterUdid.consistentUdid;
 
     if (deviceUuid.isEmpty) {
-      logging.warning('[Push Notification] Unable to active push notifications, couldn\'t get device uuid');
+      logging.warning(
+          '[Push Notification] Unable to active push notifications, couldn\'t get device uuid');
       return;
     } else {
       logging.info('[Push Notification] Device UUID is $deviceUuid');
-      logging.info('[Push Notification] Registering device push notifications...');
+      logging
+          .info('[Push Notification] Registering device push notifications...');
     }
 
     if (Platform.isIOS || Platform.isMacOS) {
@@ -67,10 +72,15 @@ class NotificationProvider extends ChangeNotifier {
     try {
       await _sn.client.post(
         '/cgi/id/notifications/subscription',
-        data: {'provider': provider, 'device_token': token, 'device_id': deviceUuid},
+        data: {
+          'provider': provider,
+          'device_token': token,
+          'device_id': deviceUuid
+        },
       );
     } catch (err) {
-      logging.error('[Push Notification] Unable to register push notifications: $err');
+      logging.error(
+          '[Push Notification] Unable to register push notifications: $err');
     }
   }
 
@@ -89,7 +99,18 @@ class NotificationProvider extends ChangeNotifier {
         final doHaptic = _cfg.prefs.getBool(kAppNotifyWithHaptic) ?? true;
         if (doHaptic) HapticFeedback.mediumImpact();
 
-        if (notification.topic == 'messaging.message' && skippableNotifyChannel != null) {
+        // April fool notification sfx
+        if (doHaptic) {
+          final now = DateTime.now();
+          if (now.day == 1 && now.month == 4) {
+            _notifySoundPlayer.play(
+              AssetSource('audio/notify/metal-pipe.mp3'),
+            );
+          }
+        }
+
+        if (notification.topic == 'messaging.message' &&
+            skippableNotifyChannel != null) {
           if (notification.metadata['channel_id'] != null &&
               notification.metadata['channel_id'] == skippableNotifyChannel) {
             return;
