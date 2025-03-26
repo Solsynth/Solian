@@ -6,6 +6,20 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surface/types/realm.dart';
 
+class AppNavListItem {
+  final String title;
+  final String subtitle;
+  final String screen;
+  final IconData icon;
+
+  const AppNavListItem({
+    required this.title,
+    required this.subtitle,
+    required this.screen,
+    required this.icon,
+  });
+}
+
 class AppNavDestination {
   final String label;
   final String screen;

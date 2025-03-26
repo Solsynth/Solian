@@ -223,3 +223,24 @@ abstract class SnProgramMember with _$SnProgramMember {
   factory SnProgramMember.fromJson(Map<String, Object?> json) =>
       _$SnProgramMemberFromJson(json);
 }
+
+@freezed
+abstract class SnPunishment with _$SnPunishment {
+  const factory SnPunishment({
+    required int id,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required String reason,
+    required int type,
+    @Default({}) Map<String, dynamic> permNodes,
+    required DateTime? expiredAt,
+    required SnAccount? account,
+    required int? accountId,
+    required SnAccount? moderator,
+    required int? moderatorId,
+  }) = _SnPunishment;
+
+  factory SnPunishment.fromJson(Map<String, Object?> json) =>
+      _$SnPunishmentFromJson(json);
+}

@@ -380,3 +380,43 @@ Map<String, dynamic> _$SnProgramMemberToJson(_SnProgramMember instance) =>
       'program': instance.program.toJson(),
       'program_id': instance.programId,
     };
+
+_SnPunishment _$SnPunishmentFromJson(Map<String, dynamic> json) =>
+    _SnPunishment(
+      id: (json['id'] as num).toInt(),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+      reason: json['reason'] as String,
+      type: (json['type'] as num).toInt(),
+      permNodes: json['perm_nodes'] as Map<String, dynamic>? ?? const {},
+      expiredAt: json['expired_at'] == null
+          ? null
+          : DateTime.parse(json['expired_at'] as String),
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      accountId: (json['account_id'] as num?)?.toInt(),
+      moderator: json['moderator'] == null
+          ? null
+          : SnAccount.fromJson(json['moderator'] as Map<String, dynamic>),
+      moderatorId: (json['moderator_id'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$SnPunishmentToJson(_SnPunishment instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+      'reason': instance.reason,
+      'type': instance.type,
+      'perm_nodes': instance.permNodes,
+      'expired_at': instance.expiredAt?.toIso8601String(),
+      'account': instance.account?.toJson(),
+      'account_id': instance.accountId,
+      'moderator': instance.moderator?.toJson(),
+      'moderator_id': instance.moderatorId,
+    };

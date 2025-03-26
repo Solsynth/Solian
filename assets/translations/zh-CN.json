@@ -914,5 +914,21 @@
   "accountProgramLeft": "已离开计划。",
   "accountProgramAlreadyJoined": "已加入",
   "leave": "离开",
-  "attachmentFailedToLoadMedia": "无法加载媒体文件，请稍后重试。若此错误重复出现，可能源文件不存在或者网络连接异常。"
+  "attachmentFailedToLoadMedia": "无法加载媒体文件，请稍后重试。若此错误重复出现，可能源文件不存在或者网络连接异常。",
+  "accountPunishments": "处分",
+  "accountPunishmentsDescription": "查看你帐号的信誉状态。",
+  "punishmentType0": "警告",
+  "punishmentType1": "停权",
+  "punishmentType2": "封禁",
+  "punishmentOverall": "总体状态",
+  "punishmentStatusNormal": "所有功能正常",
+  "punishmentStatusWarned": "所有功能正常，但有警告生效",
+  "punishmentStatusLimited": "部份功能暂时受限，有至少一个停权生效",
+  "punishmentStatusLimitedFully": "所有功能暂时受限，有至少一个完全停权生效",
+  "punishmentStatusBanned": "所有服务终止，已被封禁",
+  "punishmentCreatedAt": "宣布于 {}",
+  "punishmentExpiredAt": "到期于 {}",
+  "punishmentExpiredNever": "永久生效",
+  "punishmentModerator": "责任管理员",
+  "punishmentMadeBySystem": "由系统自动裁决"
 }

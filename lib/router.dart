@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:surface/screens/abuse_report.dart';
 import 'package:surface/screens/account.dart';
-import 'package:surface/screens/account/account_settings.dart';
+import 'package:surface/screens/account/punishments.dart';
+import 'package:surface/screens/account/settings.dart';
 import 'package:surface/screens/account/action_events.dart';
 import 'package:surface/screens/account/badges.dart';
 import 'package:surface/screens/account/contact_methods.dart';
@@ -131,6 +132,11 @@ final _appRoutes = [
     name: 'account',
     builder: (context, state) => const AccountScreen(),
     routes: [
+      GoRoute(
+        path: '/punishments',
+        name: 'accountPunishments',
+        builder: (context, state) => const PunishmentsScreen(),
+      ),
       GoRoute(
         path: '/programs',
         name: 'accountProgram',

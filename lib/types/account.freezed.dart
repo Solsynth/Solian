@@ -4229,4 +4229,461 @@ class __$SnProgramMemberCopyWithImpl<$Res>
   }
 }
 
+/// @nodoc
+mixin _$SnPunishment {
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  String get reason;
+  int get type;
+  Map<String, dynamic> get permNodes;
+  DateTime? get expiredAt;
+  SnAccount? get account;
+  int? get accountId;
+  SnAccount? get moderator;
+  int? get moderatorId;
+
+  /// Create a copy of SnPunishment
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $SnPunishmentCopyWith<SnPunishment> get copyWith =>
+      _$SnPunishmentCopyWithImpl<SnPunishment>(
+          this as SnPunishment, _$identity);
+
+  /// Serializes this SnPunishment to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SnPunishment &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.type, type) || other.type == type) &&
+            const DeepCollectionEquality().equals(other.permNodes, permNodes) &&
+            (identical(other.expiredAt, expiredAt) ||
+                other.expiredAt == expiredAt) &&
+            (identical(other.account, account) || other.account == account) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.moderator, moderator) ||
+                other.moderator == moderator) &&
+            (identical(other.moderatorId, moderatorId) ||
+                other.moderatorId == moderatorId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      reason,
+      type,
+      const DeepCollectionEquality().hash(permNodes),
+      expiredAt,
+      account,
+      accountId,
+      moderator,
+      moderatorId);
+
+  @override
+  String toString() {
+    return 'SnPunishment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, reason: $reason, type: $type, permNodes: $permNodes, expiredAt: $expiredAt, account: $account, accountId: $accountId, moderator: $moderator, moderatorId: $moderatorId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $SnPunishmentCopyWith<$Res> {
+  factory $SnPunishmentCopyWith(
+          SnPunishment value, $Res Function(SnPunishment) _then) =
+      _$SnPunishmentCopyWithImpl;
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String reason,
+      int type,
+      Map<String, dynamic> permNodes,
+      DateTime? expiredAt,
+      SnAccount? account,
+      int? accountId,
+      SnAccount? moderator,
+      int? moderatorId});
+
+  $SnAccountCopyWith<$Res>? get account;
+  $SnAccountCopyWith<$Res>? get moderator;
+}
+
+/// @nodoc
+class _$SnPunishmentCopyWithImpl<$Res> implements $SnPunishmentCopyWith<$Res> {
+  _$SnPunishmentCopyWithImpl(this._self, this._then);
+
+  final SnPunishment _self;
+  final $Res Function(SnPunishment) _then;
+
+  /// Create a copy of SnPunishment
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? reason = null,
+    Object? type = null,
+    Object? permNodes = null,
+    Object? expiredAt = freezed,
+    Object? account = freezed,
+    Object? accountId = freezed,
+    Object? moderator = freezed,
+    Object? moderatorId = freezed,
+  }) {
+    return _then(_self.copyWith(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      reason: null == reason
+          ? _self.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as int,
+      permNodes: null == permNodes
+          ? _self.permNodes
+          : permNodes // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      expiredAt: freezed == expiredAt
+          ? _self.expiredAt
+          : expiredAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      account: freezed == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
+      accountId: freezed == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      moderator: freezed == moderator
+          ? _self.moderator
+          : moderator // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
+      moderatorId: freezed == moderatorId
+          ? _self.moderatorId
+          : moderatorId // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
+  }
+
+  /// Create a copy of SnPunishment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
+
+  /// Create a copy of SnPunishment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get moderator {
+    if (_self.moderator == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.moderator!, (value) {
+      return _then(_self.copyWith(moderator: value));
+    });
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _SnPunishment implements SnPunishment {
+  const _SnPunishment(
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.reason,
+      required this.type,
+      final Map<String, dynamic> permNodes = const {},
+      required this.expiredAt,
+      required this.account,
+      required this.accountId,
+      required this.moderator,
+      required this.moderatorId})
+      : _permNodes = permNodes;
+  factory _SnPunishment.fromJson(Map<String, dynamic> json) =>
+      _$SnPunishmentFromJson(json);
+
+  @override
+  final int id;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+  @override
+  final DateTime? deletedAt;
+  @override
+  final String reason;
+  @override
+  final int type;
+  final Map<String, dynamic> _permNodes;
+  @override
+  @JsonKey()
+  Map<String, dynamic> get permNodes {
+    if (_permNodes is EqualUnmodifiableMapView) return _permNodes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_permNodes);
+  }
+
+  @override
+  final DateTime? expiredAt;
+  @override
+  final SnAccount? account;
+  @override
+  final int? accountId;
+  @override
+  final SnAccount? moderator;
+  @override
+  final int? moderatorId;
+
+  /// Create a copy of SnPunishment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SnPunishmentCopyWith<_SnPunishment> get copyWith =>
+      __$SnPunishmentCopyWithImpl<_SnPunishment>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SnPunishmentToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _SnPunishment &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.type, type) || other.type == type) &&
+            const DeepCollectionEquality()
+                .equals(other._permNodes, _permNodes) &&
+            (identical(other.expiredAt, expiredAt) ||
+                other.expiredAt == expiredAt) &&
+            (identical(other.account, account) || other.account == account) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.moderator, moderator) ||
+                other.moderator == moderator) &&
+            (identical(other.moderatorId, moderatorId) ||
+                other.moderatorId == moderatorId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      reason,
+      type,
+      const DeepCollectionEquality().hash(_permNodes),
+      expiredAt,
+      account,
+      accountId,
+      moderator,
+      moderatorId);
+
+  @override
+  String toString() {
+    return 'SnPunishment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, reason: $reason, type: $type, permNodes: $permNodes, expiredAt: $expiredAt, account: $account, accountId: $accountId, moderator: $moderator, moderatorId: $moderatorId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$SnPunishmentCopyWith<$Res>
+    implements $SnPunishmentCopyWith<$Res> {
+  factory _$SnPunishmentCopyWith(
+          _SnPunishment value, $Res Function(_SnPunishment) _then) =
+      __$SnPunishmentCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String reason,
+      int type,
+      Map<String, dynamic> permNodes,
+      DateTime? expiredAt,
+      SnAccount? account,
+      int? accountId,
+      SnAccount? moderator,
+      int? moderatorId});
+
+  @override
+  $SnAccountCopyWith<$Res>? get account;
+  @override
+  $SnAccountCopyWith<$Res>? get moderator;
+}
+
+/// @nodoc
+class __$SnPunishmentCopyWithImpl<$Res>
+    implements _$SnPunishmentCopyWith<$Res> {
+  __$SnPunishmentCopyWithImpl(this._self, this._then);
+
+  final _SnPunishment _self;
+  final $Res Function(_SnPunishment) _then;
+
+  /// Create a copy of SnPunishment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? reason = null,
+    Object? type = null,
+    Object? permNodes = null,
+    Object? expiredAt = freezed,
+    Object? account = freezed,
+    Object? accountId = freezed,
+    Object? moderator = freezed,
+    Object? moderatorId = freezed,
+  }) {
+    return _then(_SnPunishment(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      reason: null == reason
+          ? _self.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as int,
+      permNodes: null == permNodes
+          ? _self._permNodes
+          : permNodes // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      expiredAt: freezed == expiredAt
+          ? _self.expiredAt
+          : expiredAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      account: freezed == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
+      accountId: freezed == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      moderator: freezed == moderator
+          ? _self.moderator
+          : moderator // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
+      moderatorId: freezed == moderatorId
+          ? _self.moderatorId
+          : moderatorId // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
+  }
+
+  /// Create a copy of SnPunishment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
+
+  /// Create a copy of SnPunishment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get moderator {
+    if (_self.moderator == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.moderator!, (value) {
+      return _then(_self.copyWith(moderator: value));
+    });
+  }
+}
+
 // dart format on

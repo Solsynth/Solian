@@ -10,7 +10,6 @@ import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/account.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/account/account_select.dart';
-import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
@@ -46,7 +45,8 @@ class _FriendScreenState extends State<FriendScreen> {
     try {
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/id/users/me/relations?status=1');
-      _relations = List<SnRelationship>.from(resp.data?.map((e) => SnRelationship.fromJson(e)) ?? []);
+      _relations = List<SnRelationship>.from(
+          resp.data?.map((e) => SnRelationship.fromJson(e)) ?? []);
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -64,7 +64,8 @@ class _FriendScreenState extends State<FriendScreen> {
     try {
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/id/users/me/relations?status=0,3');
-      _requests = List<SnRelationship>.from(resp.data?.map((e) => SnRelationship.fromJson(e)) ?? []);
+      _requests = List<SnRelationship>.from(
+          resp.data?.map((e) => SnRelationship.fromJson(e)) ?? []);
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -82,7 +83,8 @@ class _FriendScreenState extends State<FriendScreen> {
     try {
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/id/users/me/relations?status=2');
-      _blocks = List<SnRelationship>.from(resp.data?.map((e) => SnRelationship.fromJson(e)) ?? []);
+      _blocks = List<SnRelationship>.from(
+          resp.data?.map((e) => SnRelationship.fromJson(e)) ?? []);
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -98,7 +100,8 @@ class _FriendScreenState extends State<FriendScreen> {
 
     try {
       final rel = context.read<SnRelationshipProvider>();
-      await rel.updateRelationship(relation.relatedId, dstStatus, relation.permNodes);
+      await rel.updateRelationship(
+          relation.relatedId, dstStatus, relation.permNodes);
       if (!mounted) return;
       _fetchRelations();
     } catch (err) {
@@ -112,7 +115,8 @@ class _FriendScreenState extends State<FriendScreen> {
   Future<void> _deleteRelation(SnRelationship relation) async {
     final confirm = await context.showConfirmDialog(
       'friendDelete'.tr(args: [relation.related?.nick ?? 'unknown'.tr()]),
-      'friendDeleteDescription'.tr(args: [relation.related?.nick ?? 'unknown'.tr()]),
+      'friendDeleteDescription'
+          .tr(args: [relation.related?.nick ?? 'unknown'.tr()]),
     );
     if (!confirm) return;
     if (!mounted) return;
@@ -133,7 +137,10 @@ class _FriendScreenState extends State<FriendScreen> {
   }
 
   void _showRequests() {
-    showModalBottomSheet(context: context, builder: (context) => _FriendshipListWidget(relations: _requests)).then((
+    showModalBottomSheet(
+            context: context,
+            builder: (context) => _FriendshipListWidget(relations: _requests))
+        .then((
       value,
     ) {
       if (value != null) {
@@ -144,7 +151,9 @@ class _FriendScreenState extends State<FriendScreen> {
   }
 
   void _showBlocks() {
-    showModalBottomSheet(context: context, builder: (context) => _FriendshipListWidget(relations: _blocks)).then((
+    showModalBottomSheet(
+        context: context,
+        builder: (context) => _FriendshipListWidget(relations: _blocks)).then((
       value,
     ) {
       if (value != null) {
@@ -159,7 +168,8 @@ class _FriendScreenState extends State<FriendScreen> {
 
     try {
       final sn = context.read<SnNetworkProvider>();
-      await sn.client.post('/cgi/id/users/me/relations', data: {'related': user.name});
+      await sn.client
+          .post('/cgi/id/users/me/relations', data: {'related': user.name});
       if (!mounted) return;
       context.showSnackbar('friendRequestSent'.tr());
     } catch (err) {
@@ -184,13 +194,19 @@ class _FriendScreenState extends State<FriendScreen> {
 
     if (!ua.isAuthorized) {
       return AppScaffold(
-        appBar: AppBar(leading: PageBackButton(), title: Text('screenFriend').tr()),
+        appBar: AppBar(
+          leading: PageBackButton(),
+          title: Text('screenFriend').tr(),
+        ),
         body: Center(child: UnauthorizedHint()),
       );
     }
 
     return AppScaffold(
-      appBar: AppBar(leading: AutoAppBarLeading(), title: Text('screenFriend').tr()),
+      appBar: AppBar(
+        leading: PageBackButton(),
+        title: Text('screenFriend').tr(),
+      ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Symbols.add),
         onPressed: () async {
@@ -209,7 +225,8 @@ class _FriendScreenState extends State<FriendScreen> {
           if (_requests.isNotEmpty)
             ListTile(
               title: Text('friendRequests').tr(),
-              subtitle: Text('friendRequestsDescription').plural(_requests.length),
+              subtitle:
+                  Text('friendRequestsDescription').plural(_requests.length),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               leading: const Icon(Symbols.group_add),
               trailing: const Icon(Symbols.chevron_right),
@@ -218,19 +235,22 @@ class _FriendScreenState extends State<FriendScreen> {
           if (_blocks.isNotEmpty)
             ListTile(
               title: Text('friendBlocklist').tr(),
-              subtitle: Text('friendBlocklistDescription').plural(_blocks.length),
+              subtitle:
+                  Text('friendBlocklistDescription').plural(_blocks.length),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               leading: const Icon(Symbols.block),
               trailing: const Icon(Symbols.chevron_right),
               onTap: _showBlocks,
             ),
-          if (_requests.isNotEmpty || _blocks.isNotEmpty) const Divider(height: 1),
+          if (_requests.isNotEmpty || _blocks.isNotEmpty)
+            const Divider(height: 1),
           Expanded(
             child: MediaQuery.removePadding(
               context: context,
               removeTop: true,
               child: RefreshIndicator(
-                onRefresh: () => Future.wait([_fetchRelations(), _fetchRequests()]),
+                onRefresh: () =>
+                    Future.wait([_fetchRelations(), _fetchRequests()]),
                 child: ListView.builder(
                   itemCount: _relations.length,
                   itemBuilder: (context, index) {
@@ -254,12 +274,16 @@ class _FriendScreenState extends State<FriendScreen> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 InkWell(
-                                  onTap: _isUpdating ? null : () => _changeRelation(relation, 2),
+                                  onTap: _isUpdating
+                                      ? null
+                                      : () => _changeRelation(relation, 2),
                                   child: Text('friendBlock').tr(),
                                 ),
                                 const Gap(8),
                                 InkWell(
-                                  onTap: _isUpdating ? null : () => _deleteRelation(relation),
+                                  onTap: _isUpdating
+                                      ? null
+                                      : () => _deleteRelation(relation),
                                   child: Text('friendDeleteAction').tr(),
                                 ),
                               ],
@@ -328,7 +352,8 @@ class _FriendshipListWidgetState extends State<_FriendshipListWidget> {
 
     try {
       final rel = context.read<SnRelationshipProvider>();
-      await rel.updateRelationship(relation.relatedId, dstStatus, relation.permNodes);
+      await rel.updateRelationship(
+          relation.relatedId, dstStatus, relation.permNodes);
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (err) {
@@ -342,7 +367,8 @@ class _FriendshipListWidgetState extends State<_FriendshipListWidget> {
   Future<void> _deleteRelation(SnRelationship relation) async {
     final confirm = await context.showConfirmDialog(
       'friendDelete'.tr(args: [relation.related?.nick ?? 'unknown'.tr()]),
-      'friendDeleteDescription'.tr(args: [relation.related?.nick ?? 'unknown'.tr()]),
+      'friendDeleteDescription'
+          .tr(args: [relation.related?.nick ?? 'unknown'.tr()]),
     );
     if (!confirm) return;
     if (!mounted) return;
@@ -382,7 +408,9 @@ class _FriendshipListWidgetState extends State<_FriendshipListWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(kFriendStatus[relation.status] ?? 'unknown').tr().opacity(0.75),
+                Text(kFriendStatus[relation.status] ?? 'unknown')
+                    .tr()
+                    .opacity(0.75),
                 if (relation.status == 0)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -403,7 +431,8 @@ class _FriendshipListWidgetState extends State<_FriendshipListWidget> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       InkWell(
-                        onTap: _isBusy ? null : () => _changeRelation(relation, 1),
+                        onTap:
+                            _isBusy ? null : () => _changeRelation(relation, 1),
                         child: Text('friendUnblock').tr(),
                       ),
                       const Gap(8),

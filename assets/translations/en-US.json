@@ -917,5 +917,21 @@
   "accountProgramAlreadyJoined": "Joined",
   "accountProgramLeft": "Left Program.",
   "leave": "Leave",
-  "attachmentFailedToLoadMedia": "Unable to load media file, please try again later. If this error occurs repeatedly, the source file may not exist or the network connection may be abnormal."
+  "attachmentFailedToLoadMedia": "Unable to load media file, please try again later. If this error occurs repeatedly, the source file may not exist or the network connection may be abnormal.",
+  "accountPunishments": "Punishments",
+  "accountPunishmentsDescription": "View your account's reputation status.",
+  "punishmentType0": "Strike",
+  "punishmentType1": "Limited",
+  "punishmentType2": "Banned",
+  "punishmentOverall": "Overall Status",
+  "punishmentStatusNormal": "All abilities normal",
+  "punishmentStatusWarned": "All abilities normal, but at least one strike is in effect",
+  "punishmentStatusLimited": "Some abilities limited, at least one limited punishment is in effect",
+  "punishmentStatusLimitedFully": "All abilities limited, at least one completely limited punishment is in effect",
+  "punishmentStatusBanned": "All services are terminated, banned",
+  "punishmentCreatedAt": "Applied since {}",
+  "punishmentExpiredAt": "Expired at {}",
+  "punishmentExpiredNever": "Never expired",
+  "punishmentModerator": "Moderator who made this punishment",
+  "punishmentMadeBySystem": "Made by auto-mod system"
 }

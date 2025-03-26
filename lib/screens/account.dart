@@ -8,6 +8,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/database.dart';
+import 'package:surface/providers/navigation.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/providers/websocket.dart';
@@ -21,6 +22,87 @@ import 'package:surface/widgets/universal_image.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
+
+  static const List<AppNavListItem> kNavList = [
+    AppNavListItem(
+      title: "accountPublishers",
+      subtitle: "accountPublishersSubtitle",
+      screen: "accountPublishers",
+      icon: Symbols.face,
+    ),
+    AppNavListItem(
+      title: "accountProgram",
+      subtitle: "accountProgramDescription",
+      screen: "accountProgram",
+      icon: Symbols.communities,
+    ),
+    AppNavListItem(
+      title: "friends",
+      subtitle: "friendsDescription",
+      screen: "friend",
+      icon: Symbols.person,
+    ),
+    AppNavListItem(
+      title: "album",
+      subtitle: "albumDescription",
+      screen: "album",
+      icon: Symbols.photo_library,
+    ),
+    AppNavListItem(
+      title: "stickers",
+      subtitle: "stickersDescription",
+      screen: "stickers",
+      icon: Symbols.emoji_emotions,
+    ),
+    AppNavListItem(
+      title: "accountWallet",
+      subtitle: "accountWalletSubtitle",
+      screen: "accountWallet",
+      icon: Symbols.wallet,
+    ),
+    AppNavListItem(
+      title: "accountBadges",
+      subtitle: "accountBadgesDescription",
+      screen: "accountBadges",
+      icon: Symbols.award_star,
+    ),
+    AppNavListItem(
+      title: "accountKeyPairs",
+      subtitle: "accountKeyPairsDescription",
+      screen: "accountKeyPairs",
+      icon: Symbols.key,
+    ),
+    AppNavListItem(
+      title: "accountPunishments",
+      subtitle: "accountPunishmentsDescription",
+      screen: "accountPunishments",
+      icon: Symbols.credit_score,
+    ),
+    AppNavListItem(
+      title: "accountActionEvent",
+      subtitle: "accountActionEventDescription",
+      screen: "accountActionEvents",
+      icon: Symbols.history,
+    ),
+    AppNavListItem(
+      title: "accountAuthTickets",
+      subtitle: "accountAuthTicketsDescription",
+      screen: "accountAuthTickets",
+      icon: Symbols.confirmation_number,
+    ),
+    AppNavListItem(
+      title: "accountSettings",
+      subtitle: "accountSettingsSubtitle",
+      screen: "accountSettings",
+      icon: Symbols.manage_accounts,
+    ),
+    AppNavListItem(
+      title: "abuseReport",
+      subtitle: "abuseReportActionDescription",
+      screen: "abuseReport",
+      icon: Symbols.flag,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -146,145 +228,42 @@ class _AuthorizedAccountScreen extends StatelessWidget {
             );
           }).padding(all: 20),
         ).padding(horizontal: 8, top: 16, bottom: 4),
-        ListTile(
-          title: Text('accountPublishers').tr(),
-          subtitle: Text('accountPublishersSubtitle').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.face),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('accountPublishers');
-          },
-        ),
-        ListTile(
-          title: Text('accountProgram').tr(),
-          subtitle: Text('accountProgramDescription').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.communities),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('accountProgram');
-          },
-        ),
-        ListTile(
-          title: Text('friends').tr(),
-          subtitle: Text('friendsDescription').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.person),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('friend');
-          },
-        ),
-        ListTile(
-          title: Text('album').tr(),
-          subtitle: Text('albumDescription').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.photo_library),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('album');
-          },
-        ),
-        ListTile(
-          title: Text('stickers').tr(),
-          subtitle: Text('stickersDescription').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.emoji_emotions),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('stickers');
-          },
-        ),
-        ListTile(
-          title: Text('accountWallet').tr(),
-          subtitle: Text('accountWalletSubtitle').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.wallet),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('accountWallet');
-          },
-        ),
-        ListTile(
-          title: Text('accountBadges').tr(),
-          subtitle: Text('accountBadgesDescription').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.award_star),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('accountBadges');
-          },
-        ),
-        ListTile(
-          title: Text('accountKeyPairs').tr(),
-          subtitle: Text('accountKeyPairsDescription').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.key),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('accountKeyPairs');
-          },
-        ),
-        ListTile(
-          title: Text('accountActionEvent').tr(),
-          subtitle: Text('accountActionEventDescription').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.history),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('accountActionEvents');
-          },
-        ),
-        ListTile(
-          title: Text('accountAuthTickets').tr(),
-          subtitle: Text('accountAuthTicketsDescription').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.confirmation_number),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('accountAuthTickets');
-          },
-        ),
-        ListTile(
-          title: Text('accountSettings').tr(),
-          subtitle: Text('accountSettingsSubtitle').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.manage_accounts),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('accountSettings');
-          },
-        ),
-        ListTile(
-          title: Text('abuseReport').tr(),
-          subtitle: Text('abuseReportActionDescription').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.flag),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            GoRouter.of(context).pushNamed('abuseReport');
-          },
-        ),
-        ListTile(
-          title: Text('accountLogout').tr(),
-          subtitle: Text('accountLogoutSubtitle').tr(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.logout),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () async {
-            final confirm = await context.showConfirmDialog(
-              'accountLogoutConfirmTitle'.tr(),
-              'accountLogoutConfirm'.tr(),
-            );
+        for (final item in AccountScreen.kNavList)
+          Tooltip(
+            message: item.subtitle.tr(),
+            child: ListTile(
+              minTileHeight: 48,
+              title: Text(item.title).tr(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: Icon(item.icon),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () {
+                GoRouter.of(context).pushNamed(item.screen);
+              },
+            ),
+          ),
+        Tooltip(
+          message: 'accountLogoutSubtitle'.tr(),
+          child: ListTile(
+            title: Text('accountLogout').tr(),
+            minTileHeight: 48,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+            leading: const Icon(Symbols.logout),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () async {
+              final confirm = await context.showConfirmDialog(
+                'accountLogoutConfirmTitle'.tr(),
+                'accountLogoutConfirm'.tr(),
+              );
 
-            if (!confirm) return;
-            if (!context.mounted) return;
-            ua.logoutUser();
-            final ws = context.read<WebSocketProvider>();
-            ws.disconnect();
-            context.read<DatabaseProvider>().removeDatabase();
-          },
+              if (!confirm) return;
+              if (!context.mounted) return;
+              ua.logoutUser();
+              final ws = context.read<WebSocketProvider>();
+              ws.disconnect();
+              context.read<DatabaseProvider>().removeDatabase();
+            },
+          ),
         ),
       ],
     );
