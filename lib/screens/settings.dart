@@ -352,6 +352,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() {});
                   },
                 ),
+                CheckboxListTile(
+                  value: cfg.soundEffects,
+                  onChanged: (value) {
+                    cfg.soundEffects = value ?? false;
+                    setState(() {});
+                  },
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  title: Text('settingsSoundEffects').tr(),
+                  subtitle: Text('settingsSoundEffectsDescription').tr(),
+                  secondary: const Icon(Symbols.sound_sampler),
+                ),
                 ListTile(
                   leading: const Icon(Symbols.font_download),
                   title: Text('settingsCustomFonts').tr(),

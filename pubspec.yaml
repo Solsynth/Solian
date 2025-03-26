@@ -181,6 +181,7 @@ flutter:
     - assets/icon/tray-icon.ico
     - assets/icon/tray-icon.png
     - assets/icon/kanban-1st.jpg
+    - assets/audio/sfx/
     - assets/audio/notify/
     - assets/translations/
 

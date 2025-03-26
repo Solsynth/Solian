@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:croppy/croppy.dart';
 import 'package:dio/dio.dart';
@@ -345,6 +346,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
         final ct = context.read<ChatChannelProvider>();
         await ct.refreshAvailableChannels();
         _setPhaseText('done');
+        _playIntro();
       }
     } catch (err) {
       if (!mounted) return;
@@ -359,6 +361,17 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   Future<void> _hotkeyInitialization() async {
     if (kIsWeb) return;
     // The quit key has been removed, and the logic of the quit key is moved to system menu bar activator.
+  }
+
+  void _playIntro() async {
+    final cfg = context.read<ConfigProvider>();
+    if (!cfg.soundEffects) return;
+
+    final player = AudioPlayer(playerId: 'launch-intro-player');
+    await player.play(AssetSource('audio/sfx/launch-intro.mp3'), volume: 0.5);
+    player.onPlayerComplete.listen((_) {
+      player.dispose();
+    });
   }
 
   final Menu _appTrayMenu = Menu(

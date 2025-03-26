@@ -935,5 +935,7 @@
   "punishmentModerator": "Moderator who made this punishment",
   "punishmentMadeBySystem": "Made by auto-mod system",
   "settingsAprilFoolFeatures": "April Fool Features",
-  "settingsAprilFoolFeaturesDescription": "Enable April Fool features during April Fool, this option will only be visible during April Fool."
+  "settingsAprilFoolFeaturesDescription": "Enable April Fool features during April Fool, this option will only be visible during April Fool.",
+  "settingsSoundEffects": "Sound Effects",
+  "settingsSoundEffectsDescription": "Enable the sound effects around the app."
 }

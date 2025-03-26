@@ -22,6 +22,7 @@ const kAppCustomFonts = 'app_custom_fonts';
 const kAppMixedFeed = 'app_mixed_feed';
 const kAppAutoTranslate = 'app_auto_translate';
 const kAppHideBottomNav = 'app_hide_bottom_nav';
+const kAppSoundEffects = 'app_sound_effects';
 const kAppAprilFoolFeatures = 'app_april_fool_features';
 
 const Map<String, FilterQuality> kImageQualityLevel = {
@@ -99,6 +100,15 @@ class ConfigProvider extends ChangeNotifier {
 
   bool get aprilFoolFeatures {
     return prefs.getBool(kAppAprilFoolFeatures) ?? true;
+  }
+
+  bool get soundEffects {
+    return prefs.getBool(kAppSoundEffects) ?? true;
+  }
+
+  set soundEffects(bool value) {
+    prefs.setBool(kAppSoundEffects, value);
+    notifyListeners();
   }
 
   set aprilFoolFeatures(bool value) {
