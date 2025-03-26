@@ -937,5 +937,7 @@
   "settingsAprilFoolFeatures": "April Fool Features",
   "settingsAprilFoolFeaturesDescription": "Enable April Fool features during April Fool, this option will only be visible during April Fool.",
   "settingsSoundEffects": "Sound Effects",
-  "settingsSoundEffectsDescription": "Enable the sound effects around the app."
+  "settingsSoundEffectsDescription": "Enable the sound effects around the app.",
+  "settingsResetMemorizedWindowSize": "Reset Window Size",
+  "settingsResetMemorizedWindowSizeDescription": "Reset the memorized window size, and set it to the default size."
 }

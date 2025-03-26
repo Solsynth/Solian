@@ -363,6 +363,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: Text('settingsSoundEffectsDescription').tr(),
                   secondary: const Icon(Symbols.sound_sampler),
                 ),
+                if (!kIsWeb && !(Platform.isAndroid || Platform.isIOS))
+                  ListTile(
+                    leading: const Icon(Symbols.window),
+                    title: Text('settingsResetMemorizedWindowSize').tr(),
+                    subtitle:
+                        Text('settingsResetMemorizedWindowSizeDescription')
+                            .tr(),
+                    trailing: const Icon(Symbols.chevron_right),
+                    contentPadding: const EdgeInsets.only(left: 24, right: 24),
+                    onTap: () {
+                      final prefs = context.read<ConfigProvider>().prefs;
+                      prefs.remove(kAppWindowSize);
+                    },
+                  ),
                 ListTile(
                   leading: const Icon(Symbols.font_download),
                   title: Text('settingsCustomFonts').tr(),

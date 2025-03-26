@@ -24,6 +24,7 @@ const kAppAutoTranslate = 'app_auto_translate';
 const kAppHideBottomNav = 'app_hide_bottom_nav';
 const kAppSoundEffects = 'app_sound_effects';
 const kAppAprilFoolFeatures = 'app_april_fool_features';
+const kAppWindowSize = 'app_window_size';
 
 const Map<String, FilterQuality> kImageQualityLevel = {
   'settingsImageQualityLowest': FilterQuality.none,

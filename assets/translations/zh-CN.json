@@ -934,5 +934,7 @@
   "settingsAprilFoolFeatures": "愚人节特性",
   "settingsAprilFoolFeaturesDescription": "在愚人节期间启用愚人节特性，该选项只会在愚人节期间显示。",
   "settingsSoundEffects": "声音效果",
-  "settingsSoundEffectsDescription": "在一些场合下启用声音特效。"
+  "settingsSoundEffectsDescription": "在一些场合下启用声音特效。",
+  "settingsResetMemorizedWindowSize": "重置窗口大小",
+  "settingsResetMemorizedWindowSizeDescription": "重置记忆的窗口大小，以重新设置为默认大小。"
 }

@@ -75,13 +75,40 @@ void appBackgroundDispatcher() {
   });
 }
 
+// Desktop size tools
+
+Future<Size> _getSavedWindowSize() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? sizeString = prefs.getString(kAppWindowSize);
+
+  if (sizeString != null) {
+    List<String> parts = sizeString.split('x');
+    if (parts.length == 2) {
+      double? width = double.tryParse(parts[0]);
+      double? height = double.tryParse(parts[1]);
+      if (width != null && height != null) {
+        return Size(width, height);
+      }
+    }
+  }
+
+  return const Size(1280, 720); // Default size
+}
+
+Future<void> _saveWindowSize() async {
+  final prefs = await SharedPreferences.getInstance();
+  final size = appWindow.size;
+  await prefs.setString(kAppWindowSize, '${size.width}x${size.height}');
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    final Size savedSize = await _getSavedWindowSize();
     doWhenWindowReady(() {
       appWindow.minSize = Size(480, 640);
-      appWindow.size = Size(1280, 720);
+      appWindow.size = savedSize;
       appWindow.alignment = Alignment.center;
       appWindow.show();
     });
@@ -211,7 +238,9 @@ class _AppDelegate extends StatelessWidget {
       routerConfig: appRouter,
       builder: (context, child) {
         return _AppSplashScreen(
-            key: const Key('global-splash-screen'), child: child!);
+          key: const Key('global-splash-screen'),
+          child: child!,
+        );
       },
     );
   }
@@ -444,6 +473,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   }
 
   void _quitApp() {
+    _saveWindowSize();
     _appLifecycleListener?.dispose();
     if (Platform.isWindows) {
       appWindow.close();
