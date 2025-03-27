@@ -65,10 +65,15 @@ jobs:
           name: build-output-linux
           path: build/linux/x64/release/bundle
       - name: Build AppImage
-        uses: docker://appimagecrafters/appimage-builder:0.8.5
-        with:
-          entrypoint: appimage-builder
-          args: --recipe ./AppImageBuilder.yml --skip-test
+        run: |
+          rm -r Solian.AppDir | true
+          mkdir Solian.AppDir
+          cp -r build/linux/x64/release/bundle/* Solian.AppDir
+          cp -r buildtools/appimage_config/* Solian.AppDir
+          cp assets/icon/icon-light-radius.png Solian.AppDir
+          sudo chmod +x buildtools/appimagetool-x86_64.AppImage
+          sudo chmod +x Solian.AppDir/AppRun
+          ./buildtools/appimagetool-x86_64.AppImage Solian.AppDir
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
