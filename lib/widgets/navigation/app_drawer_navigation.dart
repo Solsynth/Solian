@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:animations/animations.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -11,13 +10,9 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/navigation.dart';
-import 'package:surface/providers/sn_network.dart';
-import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/providers/userinfo.dart';
 import 'package:surface/widgets/account/account_image.dart';
-import 'package:surface/widgets/universal_image.dart';
 import 'package:surface/widgets/version_label.dart';
 
 class AppNavigationDrawer extends StatefulWidget {
@@ -148,166 +143,6 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
           ),
         );
       },
-    );
-  }
-}
-
-class _DrawerContentList extends StatelessWidget {
-  const _DrawerContentList();
-
-  @override
-  Widget build(BuildContext context) {
-    final ct = context.read<ChatChannelProvider>();
-    final sn = context.read<SnNetworkProvider>();
-    final nav = context.watch<NavigationProvider>();
-    final rel = context.watch<SnRealmProvider>();
-
-    return PageTransitionSwitcher(
-      duration: const Duration(milliseconds: 300),
-      transitionBuilder: (Widget child, Animation<double> primaryAnimation,
-          Animation<double> secondaryAnimation) {
-        return SharedAxisTransition(
-          animation: primaryAnimation,
-          secondaryAnimation: secondaryAnimation,
-          fillColor: Colors.transparent,
-          transitionType: SharedAxisTransitionType.horizontal,
-          child: child,
-        );
-      },
-      child: nav.focusedRealm == null
-          ? ListView(
-              key: const Key('realm-list-view'),
-              padding: EdgeInsets.zero,
-              children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Solar Network').bold(),
-                    AppVersionLabel(),
-                  ],
-                ).padding(
-                  horizontal: 32,
-                  vertical: 12,
-                ),
-                ...rel.availableRealms.map((ele) {
-                  return ListTile(
-                    minTileHeight: 48,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                    leading: AccountImage(
-                      content: ele.avatar,
-                      radius: 16,
-                    ),
-                    title: Text(ele.name),
-                    onTap: () {
-                      nav.setFocusedRealm(ele);
-                    },
-                  );
-                }),
-                ListTile(
-                  minTileHeight: 48,
-                  contentPadding: EdgeInsets.only(left: 28, right: 16),
-                  leading: const Icon(Symbols.globe).padding(right: 4),
-                  title: Text('screenRealmDiscovery').tr(),
-                  onTap: () {
-                    GoRouter.of(context).pushNamed('realmDiscovery');
-                    Scaffold.of(context).closeDrawer();
-                  },
-                ),
-              ],
-            )
-          : ListView(
-              key: ValueKey(nav.focusedRealm),
-              padding: EdgeInsets.zero,
-              children: [
-                if (nav.focusedRealm!.banner != null)
-                  AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: AutoResizeUniversalImage(
-                      sn.getAttachmentUrl(
-                        nav.focusedRealm!.banner!,
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ListTile(
-                  minTileHeight: 48,
-                  tileColor: Theme.of(context).colorScheme.surfaceContainer,
-                  contentPadding: EdgeInsets.only(
-                    left: 24,
-                    right: 16,
-                  ),
-                  leading: AccountImage(
-                    content: nav.focusedRealm!.avatar,
-                    radius: 16,
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Symbols.close),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () {
-                      nav.setFocusedRealm(null);
-                    },
-                  ),
-                  title: Text(nav.focusedRealm!.name),
-                  onTap: () {
-                    GoRouter.of(context).goNamed(
-                      'realmDetail',
-                      pathParameters: {
-                        'alias': nav.focusedRealm!.alias,
-                      },
-                    );
-                    Scaffold.of(context).closeDrawer();
-                  },
-                ),
-                ListTile(
-                  minTileHeight: 48,
-                  contentPadding: EdgeInsets.only(
-                    left: 28,
-                    right: 8,
-                  ),
-                  leading: const Icon(Symbols.globe),
-                  title: Text('community').tr(),
-                  onTap: () {
-                    GoRouter.of(context).goNamed(
-                      'realmCommunity',
-                      pathParameters: {
-                        'alias': nav.focusedRealm!.alias,
-                      },
-                    );
-                    Scaffold.of(context).closeDrawer();
-                  },
-                ),
-                if (ct.availableChannels
-                    .where((ele) => ele.realmId == nav.focusedRealm?.id)
-                    .isNotEmpty)
-                  const Divider(height: 1),
-                ...(ct.availableChannels
-                    .where((ele) => ele.realmId == nav.focusedRealm?.id)
-                    .map((ele) {
-                  return ListTile(
-                    minTileHeight: 48,
-                    contentPadding: EdgeInsets.only(
-                      left: 28,
-                      right: 8,
-                    ),
-                    leading: const Icon(Symbols.tag),
-                    title: Text(ele.name),
-                    onTap: () {
-                      GoRouter.of(context).goNamed(
-                        'chatRoom',
-                        pathParameters: {
-                          'scope': ele.realm?.alias ?? 'global',
-                          'alias': ele.alias,
-                        },
-                      );
-                      Scaffold.of(context).closeDrawer();
-                    },
-                  );
-                }))
-              ],
-            ),
     );
   }
 }
