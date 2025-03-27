@@ -26,9 +26,7 @@ class ContextMenuArea extends StatelessWidget {
         final cfg = context.read<ConfigProvider>();
         if (!cfg.drawerIsCollapsed) {
           // Leave padding for side navigation
-          mousePosition = cfg.drawerIsExpanded
-              ? mousePosition.copyWith(dx: mousePosition.dx - 304 * 2)
-              : mousePosition.copyWith(dx: mousePosition.dx - 80 * 2);
+          mousePosition = mousePosition.copyWith(dx: mousePosition.dx - 80 * 2);
         }
       },
       child: GestureDetector(
@@ -40,7 +38,8 @@ class ContextMenuArea extends StatelessWidget {
   }
 
   void _showMenu(BuildContext context, Offset mousePosition) async {
-    final menu = contextMenu.copyWith(position: contextMenu.position ?? mousePosition);
+    final menu =
+        contextMenu.copyWith(position: contextMenu.position ?? mousePosition);
     final value = await showContextMenu(context, contextMenu: menu);
     onItemSelected?.call(value);
   }

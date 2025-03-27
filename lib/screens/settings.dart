@@ -326,20 +326,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 CheckboxListTile(
-                  secondary: const Icon(Symbols.left_panel_close),
-                  title: Text('settingsDrawerPreferCollapse').tr(),
-                  subtitle:
-                      Text('settingsDrawerPreferCollapseDescription').tr(),
-                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                  value: _prefs.getBool(kAppDrawerPreferCollapse) ?? false,
-                  onChanged: (value) {
-                    _prefs.setBool(kAppDrawerPreferCollapse, value ?? false);
-                    final cfg = context.read<ConfigProvider>();
-                    cfg.calcDrawerSize(context);
-                    setState(() {});
-                  },
-                ),
-                CheckboxListTile(
                   secondary: const Icon(Symbols.hide),
                   title: Text('settingsHideBottomNav').tr(),
                   subtitle: Text('settingsHideBottomNavDescription').tr(),

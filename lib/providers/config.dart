@@ -13,7 +13,6 @@ const kNetworkServerStoreKey = 'app_server_url';
 const kAppbarTransparentStoreKey = 'app_bar_transparent';
 const kAppBackgroundStoreKey = 'app_has_background';
 const kAppColorSchemeStoreKey = 'app_color_scheme';
-const kAppDrawerPreferCollapse = 'app_drawer_prefer_collapse';
 const kAppNotifyWithHaptic = 'app_notify_with_haptic';
 const kAppExpandPostLink = 'app_expand_post_link';
 const kAppExpandChatLink = 'app_expand_chat_link';
@@ -47,27 +46,17 @@ class ConfigProvider extends ChangeNotifier {
   }
 
   bool drawerIsCollapsed = false;
-  bool drawerIsExpanded = false;
 
   void calcDrawerSize(BuildContext context, {bool withMediaQuery = false}) {
     bool newDrawerIsCollapsed = false;
-    bool newDrawerIsExpanded = false;
     if (withMediaQuery) {
       newDrawerIsCollapsed = MediaQuery.of(context).size.width < 600;
-      newDrawerIsExpanded = MediaQuery.of(context).size.width >= 601;
     } else {
       final rpb = ResponsiveBreakpoints.of(context);
       newDrawerIsCollapsed = rpb.smallerOrEqualTo(MOBILE);
-      newDrawerIsExpanded = rpb.largerThan(TABLET)
-          ? (prefs.getBool(kAppDrawerPreferCollapse) ?? false)
-              ? false
-              : true
-          : false;
     }
 
-    if (newDrawerIsExpanded != drawerIsExpanded ||
-        newDrawerIsCollapsed != drawerIsCollapsed) {
-      drawerIsExpanded = newDrawerIsExpanded;
+    if (newDrawerIsCollapsed != drawerIsCollapsed) {
       drawerIsCollapsed = newDrawerIsCollapsed;
       notifyListeners();
     }

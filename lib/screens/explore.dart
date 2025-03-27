@@ -244,7 +244,8 @@ class _ExploreScreenState extends State<ExploreScreen>
                         GoRouter.of(context).pushNamed('postShuffle');
                       },
                     ),
-                    const Gap(48),
+                    if (ResponsiveBreakpoints.of(context).largerThan(MOBILE))
+                      const Gap(48),
                     Expanded(
                       child: Center(
                         child: IconButton(

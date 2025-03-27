@@ -13,6 +13,7 @@ import 'package:surface/providers/navigation.dart';
 import 'package:surface/widgets/connection_indicator.dart';
 import 'package:surface/widgets/navigation/app_background.dart';
 import 'package:surface/widgets/navigation/app_bottom_navigation.dart';
+import 'package:surface/widgets/navigation/app_drawer_navigation.dart';
 import 'package:surface/widgets/navigation/app_rail_navigation.dart';
 import 'package:surface/widgets/notify_indicator.dart';
 
@@ -221,6 +222,7 @@ class AppRootScaffold extends StatelessWidget {
         ],
       ),
       drawerEdgeDragWidth: isPopable ? 0 : null,
+      drawer: isCollapseDrawer ? const AppNavigationDrawer() : null,
       bottomNavigationBar:
           isShowBottomNavigation ? AppBottomNavigationBar() : null,
     );

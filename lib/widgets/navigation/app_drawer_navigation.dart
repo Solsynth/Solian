@@ -12,7 +12,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/channel.dart';
-import 'package:surface/providers/config.dart';
 import 'package:surface/providers/navigation.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/sn_realm.dart';
@@ -45,27 +44,18 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
   Widget build(BuildContext context) {
     final ua = context.read<UserProvider>();
     final nav = context.watch<NavigationProvider>();
-    final cfg = context.watch<ConfigProvider>();
-
-    final backgroundColor = cfg.drawerIsExpanded ? Colors.transparent : null;
 
     return ListenableBuilder(
       listenable: nav,
       builder: (context, _) {
         return Drawer(
           elevation: widget.elevation,
-          backgroundColor: backgroundColor,
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(0))),
           child: Column(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (!kIsWeb &&
-                  (Platform.isWindows ||
-                      Platform.isLinux ||
-                      Platform.isMacOS) &&
-                  !cfg.drawerIsExpanded)
+                  (Platform.isWindows || Platform.isLinux || Platform.isMacOS))
                 Container(
                   decoration: BoxDecoration(
                     border: Border(
@@ -78,42 +68,36 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
                   child: WindowTitleBarBox(),
                 ),
               Gap(MediaQuery.of(context).padding.top),
-              Expanded(
-                child: _DrawerContentList(),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Solar Network').bold(),
+                  AppVersionLabel(),
+                ],
+              ).padding(
+                horizontal: 32,
+                vertical: 12,
               ),
-              Row(
-                spacing: 8,
-                children:
-                    nav.destinations.where((ele) => ele.isPinned).mapIndexed(
-                  (idx, ele) {
-                    return Expanded(
-                      child: Tooltip(
-                        message: ele.label.tr(),
-                        child: IconButton(
-                          icon: ele.icon,
-                          color: nav.currentIndex == idx
-                              ? Theme.of(context).colorScheme.onPrimaryContainer
-                              : Theme.of(context).colorScheme.onSurface,
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(
-                              nav.currentIndex == idx
-                                  ? Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer
-                                  : Colors.transparent,
-                            ),
-                          ),
-                          onPressed: () {
-                            GoRouter.of(context).goNamed(ele.screen);
-                            Scaffold.of(context).closeDrawer();
-                            nav.setIndex(idx);
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                ).toList(),
-              ).padding(horizontal: 16, bottom: 8),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    ...nav.destinations.mapIndexed((idx, ele) {
+                      return ListTile(
+                        leading: ele.icon,
+                        title: Text(ele.label).tr(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                        selected: nav.currentIndex == idx,
+                        onTap: () {
+                          GoRouter.of(context).pushNamed(ele.screen);
+                          nav.setIndex(idx);
+                        },
+                      );
+                    })
+                  ],
+                ),
+              ),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: ListTile(
