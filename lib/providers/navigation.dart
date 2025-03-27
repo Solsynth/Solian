@@ -61,11 +61,6 @@ class NavigationProvider extends ChangeNotifier {
       label: 'screenChat',
     ),
     AppNavDestination(
-      icon: Icon(Symbols.account_circle, weight: 400, opticalSize: 20),
-      screen: 'account',
-      label: 'screenAccount',
-    ),
-    AppNavDestination(
       icon: Icon(Symbols.group, weight: 400, opticalSize: 20),
       screen: 'realm',
       label: 'screenRealm',

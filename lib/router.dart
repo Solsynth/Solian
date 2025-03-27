@@ -127,102 +127,111 @@ final _appRoutes = [
       ),
     ],
   ),
-  GoRoute(
-    path: '/account',
-    name: 'account',
-    builder: (context, state) => const AccountScreen(),
+  ShellRoute(
+    builder: (context, state, child) => ResponsiveScaffold(
+      aside: const AccountScreen(),
+      child: child,
+    ),
     routes: [
       GoRoute(
-        path: '/punishments',
-        name: 'accountPunishments',
-        builder: (context, state) => const PunishmentsScreen(),
-      ),
-      GoRoute(
-        path: '/programs',
-        name: 'accountProgram',
-        builder: (context, state) => const AccountProgramScreen(),
-      ),
-      GoRoute(
-        path: '/contacts',
-        name: 'accountContactMethods',
-        builder: (context, state) => const AccountContactMethod(),
-      ),
-      GoRoute(
-        path: '/events',
-        name: 'accountActionEvents',
-        builder: (context, state) => const ActionEventScreen(),
-      ),
-      GoRoute(
-        path: '/tickets',
-        name: 'accountAuthTickets',
-        builder: (context, state) => const AccountAuthTicket(),
-      ),
-      GoRoute(
-        path: '/badges',
-        name: 'accountBadges',
-        builder: (context, state) => const AccountBadgesScreen(),
-      ),
-      GoRoute(
-        path: '/wallet',
-        name: 'accountWallet',
-        builder: (context, state) => const WalletScreen(),
-      ),
-      GoRoute(
-        path: '/keypairs',
-        name: 'accountKeyPairs',
-        builder: (context, state) => const KeyPairScreen(),
-      ),
-      GoRoute(
-        path: '/settings',
-        name: 'accountSettings',
-        builder: (context, state) => AccountSettingsScreen(),
-        routes: [
-          GoRoute(
-            path: '/notify',
-            name: 'accountSettingsNotify',
-            builder: (context, state) => const AccountNotifyPrefsScreen(),
-          ),
-          GoRoute(
-            path: '/auth',
-            name: 'accountSettingsSecurity',
-            builder: (context, state) => const AccountSecurityPrefsScreen(),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: '/settings/factors',
-        name: 'factorSettings',
-        builder: (context, state) => FactorSettingsScreen(),
-      ),
-      GoRoute(
-        path: '/profile/edit',
-        name: 'accountProfileEdit',
-        builder: (context, state) => ProfileEditScreen(),
-      ),
-      GoRoute(
-        path: '/publishers',
-        name: 'accountPublishers',
-        builder: (context, state) => PublisherScreen(),
-      ),
-      GoRoute(
-        path: '/publishers/new',
-        name: 'accountPublisherNew',
-        builder: (context, state) => AccountPublisherNewScreen(),
-      ),
-      GoRoute(
-        path: '/publishers/edit/:name',
-        name: 'accountPublisherEdit',
-        builder: (context, state) => AccountPublisherEditScreen(
-          name: state.pathParameters['name']!,
-        ),
-      ),
-      GoRoute(
-        path: '/profile/:name',
-        name: 'accountProfilePage',
-        pageBuilder: (context, state) => NoTransitionPage(
-          child: UserScreen(name: state.pathParameters['name']!),
-        ),
-      ),
+          path: '/account',
+          name: 'account',
+          builder: (context, state) =>
+              const ResponsiveScaffoldLanding(child: AccountScreen()),
+          routes: [
+            GoRoute(
+              path: '/punishments',
+              name: 'accountPunishments',
+              builder: (context, state) => const PunishmentsScreen(),
+            ),
+            GoRoute(
+              path: '/programs',
+              name: 'accountProgram',
+              builder: (context, state) => const AccountProgramScreen(),
+            ),
+            GoRoute(
+              path: '/contacts',
+              name: 'accountContactMethods',
+              builder: (context, state) => const AccountContactMethod(),
+            ),
+            GoRoute(
+              path: '/events',
+              name: 'accountActionEvents',
+              builder: (context, state) => const ActionEventScreen(),
+            ),
+            GoRoute(
+              path: '/tickets',
+              name: 'accountAuthTickets',
+              builder: (context, state) => const AccountAuthTicket(),
+            ),
+            GoRoute(
+              path: '/badges',
+              name: 'accountBadges',
+              builder: (context, state) => const AccountBadgesScreen(),
+            ),
+            GoRoute(
+              path: '/wallet',
+              name: 'accountWallet',
+              builder: (context, state) => const WalletScreen(),
+            ),
+            GoRoute(
+              path: '/keypairs',
+              name: 'accountKeyPairs',
+              builder: (context, state) => const KeyPairScreen(),
+            ),
+            GoRoute(
+              path: '/settings',
+              name: 'accountSettings',
+              builder: (context, state) => AccountSettingsScreen(),
+              routes: [
+                GoRoute(
+                  path: '/notify',
+                  name: 'accountSettingsNotify',
+                  builder: (context, state) => const AccountNotifyPrefsScreen(),
+                ),
+                GoRoute(
+                  path: '/auth',
+                  name: 'accountSettingsSecurity',
+                  builder: (context, state) =>
+                      const AccountSecurityPrefsScreen(),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: '/settings/factors',
+              name: 'factorSettings',
+              builder: (context, state) => FactorSettingsScreen(),
+            ),
+            GoRoute(
+              path: '/profile/edit',
+              name: 'accountProfileEdit',
+              builder: (context, state) => ProfileEditScreen(),
+            ),
+            GoRoute(
+              path: '/publishers',
+              name: 'accountPublishers',
+              builder: (context, state) => PublisherScreen(),
+            ),
+            GoRoute(
+              path: '/publishers/new',
+              name: 'accountPublisherNew',
+              builder: (context, state) => AccountPublisherNewScreen(),
+            ),
+            GoRoute(
+              path: '/publishers/edit/:name',
+              name: 'accountPublisherEdit',
+              builder: (context, state) => AccountPublisherEditScreen(
+                name: state.pathParameters['name']!,
+              ),
+            ),
+            GoRoute(
+              path: '/profile/:name',
+              name: 'accountProfilePage',
+              pageBuilder: (context, state) => NoTransitionPage(
+                child: UserScreen(name: state.pathParameters['name']!),
+              ),
+            ),
+          ]),
     ],
   ),
   GoRoute(

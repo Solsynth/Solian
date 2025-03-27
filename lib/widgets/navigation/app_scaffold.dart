@@ -13,7 +13,6 @@ import 'package:surface/providers/navigation.dart';
 import 'package:surface/widgets/connection_indicator.dart';
 import 'package:surface/widgets/navigation/app_background.dart';
 import 'package:surface/widgets/navigation/app_bottom_navigation.dart';
-import 'package:surface/widgets/navigation/app_drawer_navigation.dart';
 import 'package:surface/widgets/navigation/app_rail_navigation.dart';
 import 'package:surface/widgets/notify_indicator.dart';
 
@@ -111,7 +110,6 @@ class AppRootScaffold extends StatelessWidget {
     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
 
     final isCollapseDrawer = cfg.drawerIsCollapsed;
-    final isExpandedDrawer = cfg.drawerIsExpanded;
 
     final routeName = GoRouter.of(context)
         .routerDelegate
@@ -132,19 +130,7 @@ class AppRootScaffold extends StatelessWidget {
         ? body
         : Row(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    right: BorderSide(
-                      color: Theme.of(context).dividerColor,
-                      width: 1 / devicePixelRatio,
-                    ),
-                  ),
-                ),
-                child: isExpandedDrawer
-                    ? AppNavigationDrawer(elevation: 0)
-                    : AppRailNavigation(),
-              ),
+              AppRailNavigation(),
               Expanded(child: body),
             ],
           );
@@ -232,10 +218,57 @@ class AppRootScaffold extends StatelessWidget {
             ),
         ],
       ),
-      drawer: !isExpandedDrawer ? AppNavigationDrawer() : null,
       drawerEdgeDragWidth: isPopable ? 0 : null,
       bottomNavigationBar:
           isShowBottomNavigation ? AppBottomNavigationBar() : null,
     );
+  }
+}
+
+class ResponsiveScaffold extends StatelessWidget {
+  final Widget aside;
+  final Widget? child;
+  const ResponsiveScaffold(
+      {super.key, required this.aside, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (ResponsiveBreakpoints.of(context).largerOrEqualTo(TABLET)) {
+      return Row(
+        children: [
+          Flexible(
+            flex: 1,
+            child: aside,
+          ),
+          VerticalDivider(width: 1),
+          if (child != null && child != aside)
+            Flexible(flex: 2, child: child!)
+          else
+            const Flexible(
+              flex: 2,
+              child: ResponsiveScaffoldLanding(child: null),
+            ),
+        ],
+      );
+    }
+
+    return child ?? aside;
+  }
+}
+
+class ResponsiveScaffoldLanding extends StatelessWidget {
+  final Widget? child;
+  const ResponsiveScaffoldLanding({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (ResponsiveBreakpoints.of(context).largerOrEqualTo(TABLET) ||
+        child == null) {
+      return AppScaffold(
+        appBar: AppBar(),
+        body: const SizedBox.shrink(),
+      );
+    }
+    return child!;
   }
 }

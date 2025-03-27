@@ -141,15 +141,6 @@ class AccountScreen extends StatelessWidget {
                 ],
               )
             : null,
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.settings, fill: 1),
-            onPressed: () {
-              GoRouter.of(context).pushNamed('settings');
-            },
-          ),
-          const Gap(8),
-        ],
       ),
       body: SingleChildScrollView(
         child: ua.isAuthorized
