@@ -936,5 +936,7 @@
   "settingsSoundEffects": "声音效果",
   "settingsSoundEffectsDescription": "在一些场合下启用声音特效。",
   "settingsResetMemorizedWindowSize": "重置窗口大小",
-  "settingsResetMemorizedWindowSizeDescription": "重置记忆的窗口大小，以重新设置为默认大小。"
+  "settingsResetMemorizedWindowSizeDescription": "重置记忆的窗口大小，以重新设置为默认大小。",
+  "chatDirect": "私信",
+  "back": "返回"
 }

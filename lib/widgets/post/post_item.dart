@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:animations/animations.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_saver/file_saver.dart';
@@ -26,7 +25,6 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/translation.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
-import 'package:surface/screens/post/post_detail.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/types/post.dart';
 import 'package:surface/types/reaction.dart';
@@ -53,6 +51,7 @@ class OpenablePostItem extends StatelessWidget {
   final bool showMenu;
   final bool showFullPost;
   final bool showExpandableComments;
+  final bool useReplace;
   final double? maxWidth;
   final Function(SnPost data)? onChanged;
   final Function()? onDeleted;
@@ -66,6 +65,7 @@ class OpenablePostItem extends StatelessWidget {
     this.showMenu = true,
     this.showFullPost = false,
     this.showExpandableComments = false,
+    this.useReplace = false,
     this.maxWidth,
     this.onChanged,
     this.onDeleted,
@@ -74,40 +74,32 @@ class OpenablePostItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cfg = context.read<ConfigProvider>();
-
     return Container(
       constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
       child: Center(
-        child: OpenContainer(
-          closedBuilder: (_, __) => Container(
-            constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
-            child: PostItem(
-              data: data,
-              maxWidth: maxWidth,
-              showComments: showComments,
-              showFullPost: showFullPost,
-              showExpandableComments: showExpandableComments,
-              onChanged: onChanged,
-              onDeleted: onDeleted,
-              onSelectAnswer: onSelectAnswer,
-            ),
+        child: GestureDetector(
+          child: PostItem(
+            data: data,
+            maxWidth: maxWidth,
+            showComments: showComments,
+            showFullPost: showFullPost,
+            showExpandableComments: showExpandableComments,
+            onChanged: onChanged,
+            onDeleted: onDeleted,
+            onSelectAnswer: onSelectAnswer,
           ),
-          openBuilder: (_, close) => PostDetailScreen(
-            slug: data.id.toString(),
-            preload: data,
-            onBack: close,
-          ),
-          openColor: Colors.transparent,
-          openElevation: 0,
-          transitionType: ContainerTransitionType.fade,
-          closedElevation: 0,
-          closedColor: Theme.of(context).colorScheme.surface.withOpacity(
-                cfg.prefs.getBool(kAppBackgroundStoreKey) == true ? 0 : 1,
-              ),
-          closedShape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-          ),
+          onTap: () {
+            if (useReplace) {
+              GoRouter.of(context)
+                  .pushReplacementNamed('postDetail', pathParameters: {
+                'slug': data.id.toString(),
+              });
+            } else {
+              GoRouter.of(context).pushNamed('postDetail', pathParameters: {
+                'slug': data.id.toString(),
+              });
+            }
+          },
         ),
       ),
     );

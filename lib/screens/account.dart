@@ -110,6 +110,7 @@ class AccountScreen extends StatelessWidget {
     final sn = context.read<SnNetworkProvider>();
 
     return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         leading: AutoAppBarLeading(),
         title: Text("screenAccount").tr(),
@@ -141,15 +142,6 @@ class AccountScreen extends StatelessWidget {
                 ],
               )
             : null,
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.settings, fill: 1),
-            onPressed: () {
-              GoRouter.of(context).pushNamed('settings');
-            },
-          ),
-          const Gap(8),
-        ],
       ),
       body: SingleChildScrollView(
         child: ua.isAuthorized

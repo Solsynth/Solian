@@ -33,7 +33,8 @@ class _PublisherScreenState extends State<PublisherScreen> {
 
     try {
       final resp = await sn.client.get('/cgi/co/publishers/me');
-      final List<SnPublisher> out = List<SnPublisher>.from(resp.data?.map((e) => SnPublisher.fromJson(e)) ?? []);
+      final List<SnPublisher> out = List<SnPublisher>.from(
+          resp.data?.map((e) => SnPublisher.fromJson(e)) ?? []);
 
       if (!mounted) return;
 
@@ -81,6 +82,7 @@ class _PublisherScreenState extends State<PublisherScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('screenAccountPublishers').tr(),
@@ -93,7 +95,9 @@ class _PublisherScreenState extends State<PublisherScreen> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 24),
             leading: const Icon(Symbols.add_circle),
             onTap: () {
-              GoRouter.of(context).pushNamed('accountPublisherNew').then((value) {
+              GoRouter.of(context)
+                  .pushNamed('accountPublisherNew')
+                  .then((value) {
                 if (value == true) {
                   _publishers.clear();
                   _fetchPublishers();
@@ -119,7 +123,8 @@ class _PublisherScreenState extends State<PublisherScreen> {
                     return ListTile(
                       title: Text(publisher.nick),
                       subtitle: Text('@${publisher.name}'),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16),
                       leading: AccountImage(content: publisher.avatar),
                       trailing: PopupMenuButton(
                         itemBuilder: (BuildContext context) => [

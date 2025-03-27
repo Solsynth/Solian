@@ -4,7 +4,6 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/post.dart';
 import 'package:surface/providers/sn_network.dart';
@@ -30,24 +29,14 @@ class PostCommentQuickAction extends StatelessWidget {
     return Container(
       height: 240,
       constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
-      margin: ResponsiveBreakpoints.of(context).largerThan(MOBILE)
-          ? const EdgeInsets.symmetric(vertical: 8)
-          : EdgeInsets.zero,
       decoration: BoxDecoration(
-        borderRadius: ResponsiveBreakpoints.of(context).largerThan(MOBILE)
-            ? const BorderRadius.all(Radius.circular(8))
-            : BorderRadius.zero,
-        border: ResponsiveBreakpoints.of(context).largerThan(MOBILE)
-            ? Border.all(
-                color: Theme.of(context).dividerColor,
-                width: 1 / devicePixelRatio,
-              )
-            : Border.symmetric(
-                horizontal: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                  width: 1 / devicePixelRatio,
-                ),
-              ),
+        borderRadius: BorderRadius.zero,
+        border: Border.symmetric(
+          horizontal: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 1 / devicePixelRatio,
+          ),
+        ),
       ),
       child: PostMiniEditor(
         postReplyId: parentPost.id,

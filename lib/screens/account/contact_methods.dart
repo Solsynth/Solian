@@ -69,6 +69,7 @@ class _AccountContactMethodState extends State<AccountContactMethod> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('accountContactMethods').tr(),

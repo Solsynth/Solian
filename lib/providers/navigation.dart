@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:surface/types/realm.dart';
 
 class AppNavListItem {
   final String title;
@@ -61,11 +60,6 @@ class NavigationProvider extends ChangeNotifier {
       label: 'screenChat',
     ),
     AppNavDestination(
-      icon: Icon(Symbols.account_circle, weight: 400, opticalSize: 20),
-      screen: 'account',
-      label: 'screenAccount',
-    ),
-    AppNavDestination(
       icon: Icon(Symbols.group, weight: 400, opticalSize: 20),
       screen: 'realm',
       label: 'screenRealm',
@@ -74,6 +68,11 @@ class NavigationProvider extends ChangeNotifier {
       icon: Icon(Symbols.newspaper, weight: 400, opticalSize: 20),
       screen: 'news',
       label: 'screenNews',
+    ),
+    AppNavDestination(
+      icon: Icon(Symbols.settings, weight: 400, opticalSize: 20),
+      screen: 'settings',
+      label: 'screenSettings',
     ),
   ];
   static const List<String> kDefaultPinnedDestination = [
@@ -133,13 +132,6 @@ class NavigationProvider extends ChangeNotifier {
 
   void setIndex(int idx) {
     _currentIndex = idx;
-    notifyListeners();
-  }
-
-  SnRealm? focusedRealm;
-
-  void setFocusedRealm(SnRealm? realm) {
-    focusedRealm = realm;
     notifyListeners();
   }
 }

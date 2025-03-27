@@ -16,7 +16,11 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
   0: ('authFactorPassword', 'authFactorPasswordDescription', Symbols.password),
   1: ('authFactorEmail', 'authFactorEmailDescription', Symbols.email),
   2: ('authFactorTOTP', 'authFactorTOTPDescription', Symbols.timer),
-  3: ('authFactorInAppNotify', 'authFactorInAppNotifyDescription', Symbols.notifications_active),
+  3: (
+    'authFactorInAppNotify',
+    'authFactorInAppNotifyDescription',
+    Symbols.notifications_active
+  ),
 };
 
 class FactorSettingsScreen extends StatefulWidget {
@@ -36,7 +40,10 @@ class _FactorSettingsScreenState extends State<FactorSettingsScreen> {
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/id/users/me/factors');
       _factors = List<SnAuthFactor>.from(
-        resp.data?.map((e) => SnAuthFactor.fromJson(e as Map<String, dynamic>)).toList() ?? [],
+        resp.data
+                ?.map((e) => SnAuthFactor.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [],
       );
     } catch (err) {
       if (!mounted) return;
@@ -55,6 +62,7 @@ class _FactorSettingsScreenState extends State<FactorSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         leading: PageBackButton(),
         title: Text('screenFactorSettings').tr(),
@@ -96,7 +104,8 @@ class _FactorSettingsScreenState extends State<FactorSettingsScreen> {
                     return ListTile(
                       title: Text(kFactorTypes[ele.type]!.$1).tr(),
                       subtitle: Text(kFactorTypes[ele.type]!.$2).tr(),
-                      contentPadding: const EdgeInsets.only(left: 24, right: 12),
+                      contentPadding:
+                          const EdgeInsets.only(left: 24, right: 12),
                       leading: Icon(kFactorTypes[ele.type]!.$3),
                       trailing: IconButton(
                         icon: const Icon(Symbols.close),
@@ -105,14 +114,17 @@ class _FactorSettingsScreenState extends State<FactorSettingsScreen> {
                                 context
                                     .showConfirmDialog(
                                   'authFactorDelete'.tr(),
-                                  'authFactorDeleteDescription'.tr(args: [kFactorTypes[ele.type]!.$1.tr()]),
+                                  'authFactorDeleteDescription'.tr(
+                                      args: [kFactorTypes[ele.type]!.$1.tr()]),
                                 )
                                     .then((val) async {
                                   if (!val) return;
                                   try {
                                     if (!context.mounted) return;
-                                    final sn = context.read<SnNetworkProvider>();
-                                    await sn.client.delete('/cgi/id/users/me/factors/${ele.id}');
+                                    final sn =
+                                        context.read<SnNetworkProvider>();
+                                    await sn.client.delete(
+                                        '/cgi/id/users/me/factors/${ele.id}');
                                     _fetchFactors();
                                   } catch (err) {
                                     if (!context.mounted) return;
@@ -191,7 +203,9 @@ class _FactorNewDialogState extends State<_FactorNewDialog> {
               value: _factorType,
               items: kFactorTypes.entries.map(
                 (ele) {
-                  final contains = widget.currentlyHave.map((ele) => ele.type).contains(ele.key);
+                  final contains = widget.currentlyHave
+                      .map((ele) => ele.type)
+                      .contains(ele.key);
                   return DropdownMenuItem<int>(
                     enabled: !contains,
                     value: ele.key,

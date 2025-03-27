@@ -1,3 +1,5 @@
+import 'package:animations/animations.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
@@ -6,21 +8,22 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
-import 'package:responsive_framework/responsive_framework.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
-import 'package:surface/screens/chat/room.dart';
 import 'package:surface/types/chat.dart';
+import 'package:surface/types/realm.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/account/account_select.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
-import 'package:surface/widgets/navigation/app_background.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:surface/widgets/unauthorized_hint.dart';
+import 'package:surface/widgets/universal_image.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -38,6 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<SnChannel>? _channels;
   Map<int, SnChatMessage>? _lastMessages;
   Map<int, int>? _unreadCounts;
+  Map<int, int>? _unreadCountsGrouped;
 
   Future<void> _fetchWhatsNew() async {
     final sn = context.read<SnNetworkProvider>();
@@ -45,19 +49,48 @@ class _ChatScreenState extends State<ChatScreen> {
     if (resp.data == null) return;
     final List<dynamic> out = resp.data;
     setState(() {
-      _unreadCounts = {for (var v in out) v['channel_id']: v['count']};
+      _unreadCounts ??= {};
+      _unreadCountsGrouped ??= {};
+      for (var v in out) {
+        _unreadCounts![v['channel_id']] = v['count'];
+        final channel =
+            _channels?.firstWhereOrNull((ele) => ele.id == v['channel_id']);
+        if (channel != null) {
+          if (channel.realmId != null) {
+            _unreadCountsGrouped![channel.realmId!] ??= 0;
+            _unreadCountsGrouped![channel.realmId!] =
+                (_unreadCountsGrouped![channel.realmId!]! + v['count']).toInt();
+          }
+          if (channel.type == 1) {
+            _unreadCountsGrouped![0] ??= 0;
+            _unreadCountsGrouped![0] =
+                (_unreadCountsGrouped![0]! + v['count']).toInt();
+          }
+        }
+      }
     });
   }
 
-  void _refreshChannels({bool noRemote = false}) {
+  void _refreshChannels({bool withBoost = false, bool noRemote = false}) {
+    final ct = context.read<ChatChannelProvider>();
     final ua = context.read<UserProvider>();
     if (!ua.isAuthorized) {
       setState(() => _isBusy = false);
       return;
     }
 
+    if (!withBoost) {
+      if (!noRemote) {
+        ct.refreshAvailableChannels();
+      }
+    } else {
+      setState(() {
+        _channels = ct.availableChannels;
+      });
+    }
+
     final chan = context.read<ChatChannelProvider>();
-    chan.fetchChannels(noRemote: noRemote).listen((channels) async {
+    chan.fetchChannels(noRemote: true).listen((channels) async {
       final lastMessages = await chan.getLastMessages(channels);
       _lastMessages = {for (final val in lastMessages) val.channelId: val};
       channels.sort((a, b) {
@@ -99,6 +132,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ..onDone(() {
         if (!mounted) return;
         setState(() => _isBusy = false);
+        _fetchWhatsNew();
       });
   }
 
@@ -130,40 +164,51 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  SnChannel? _focusChannel;
-
   @override
   void initState() {
     super.initState();
-    _refreshChannels();
-    _fetchWhatsNew();
+    _refreshChannels(withBoost: true);
   }
 
   void _onTapChannel(SnChannel channel) {
-    final doExpand = ResponsiveBreakpoints.of(context).largerOrEqualTo(DESKTOP);
-
-    if (doExpand) {
-      setState(() => _focusChannel = channel);
-      return;
+    setState(() => _unreadCounts?[channel.id] = 0);
+    if (ResponsiveScaffold.getIsExpand(context)) {
+      GoRouter.of(context).pushReplacementNamed(
+        'chatRoom',
+        pathParameters: {
+          'scope': channel.realm?.alias ?? 'global',
+          'alias': channel.alias,
+        },
+      ).then((value) {
+        if (mounted) {
+          setState(() => _unreadCounts?[channel.id] = 0);
+          _refreshChannels(noRemote: true);
+        }
+      });
+    } else {
+      GoRouter.of(context).pushNamed(
+        'chatRoom',
+        pathParameters: {
+          'scope': channel.realm?.alias ?? 'global',
+          'alias': channel.alias,
+        },
+      ).then((value) {
+        if (mounted) {
+          setState(() => _unreadCounts?[channel.id] = 0);
+          _refreshChannels(noRemote: true);
+        }
+      });
     }
-    GoRouter.of(context).pushNamed(
-      'chatRoom',
-      pathParameters: {
-        'scope': channel.realm?.alias ?? 'global',
-        'alias': channel.alias,
-      },
-    ).then((value) {
-      if (mounted) {
-        _unreadCounts?[channel.id] = 0;
-        setState(() => _unreadCounts?[channel.id] = 0);
-        _refreshChannels(noRemote: true);
-      }
-    });
   }
+
+  SnRealm? _focusedRealm;
+  bool _isDirect = false;
 
   @override
   Widget build(BuildContext context) {
     final ua = context.read<UserProvider>();
+    final sn = context.read<SnNetworkProvider>();
+    final rel = context.read<SnRealmProvider>();
 
     if (!ua.isAuthorized) {
       return AppScaffold(
@@ -177,10 +222,8 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
 
-    final doExpand = ResponsiveBreakpoints.of(context).largerOrEqualTo(DESKTOP);
-
-    final chatList = AppScaffold(
-      noBackground: doExpand,
+    return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         leading: AutoAppBarLeading(),
         title: Text('screenChat').tr(),
@@ -248,64 +291,198 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           LoadingIndicator(isActive: _isBusy),
-          Expanded(
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
+          if (_channels != null && ResponsiveScaffold.getIsExpand(context))
+            Expanded(
               child: RefreshIndicator(
-                onRefresh: () => Future.wait([
-                  Future.sync(() => _refreshChannels()),
-                  _fetchWhatsNew(),
-                ]),
-                child: ListView.builder(
-                  itemCount: _channels?.length ?? 0,
-                  itemBuilder: (context, idx) {
-                    final channel = _channels![idx];
-                    final lastMessage = _lastMessages?[channel.id];
+                onRefresh: () => Future.sync(() => _refreshChannels()),
+                child: Builder(builder: (context) {
+                  final scopeList = ListView(
+                    key: const Key('realm-list-view'),
+                    padding: EdgeInsets.zero,
+                    children: [
+                      ListTile(
+                        minTileHeight: 48,
+                        leading:
+                            const Icon(Symbols.inbox_text).padding(right: 4),
+                        contentPadding: EdgeInsets.only(left: 24, right: 24),
+                        title: Text('chatDirect').tr(),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            if (_unreadCountsGrouped?[0] != null &&
+                                (_unreadCountsGrouped?[0] ?? 0) > 0)
+                              Badge(
+                                label: Text(
+                                  _unreadCountsGrouped![0].toString(),
+                                ),
+                              ),
+                          ],
+                        ),
+                        onTap: () {
+                          setState(() => _isDirect = true);
+                        },
+                      ),
+                      ...rel.availableRealms.map((ele) {
+                        return ListTile(
+                          minTileHeight: 48,
+                          contentPadding: EdgeInsets.only(left: 20, right: 24),
+                          leading: AccountImage(
+                            content: ele.avatar,
+                            radius: 16,
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              if (_unreadCountsGrouped?[ele.id] != null &&
+                                  (_unreadCountsGrouped?[ele.id] ?? 0) > 0)
+                                Badge(
+                                  label: Text(
+                                    _unreadCountsGrouped![ele.id].toString(),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          title: Text(ele.name),
+                          onTap: () {
+                            setState(() => _focusedRealm = ele);
+                          },
+                        );
+                      }),
+                    ],
+                  );
 
-                    return _ChatChannelEntry(
-                      channel: channel,
-                      lastMessage: lastMessage,
-                      unreadCount: _unreadCounts?[channel.id],
-                      onTap: () {
-                        if (doExpand) {
-                          _unreadCounts?[channel.id] = 0;
-                          setState(() => _focusChannel = channel);
-                          return;
-                        }
-                        _onTapChannel(channel);
-                      },
-                    );
-                  },
+                  final directChatList = ListView(
+                    key: Key('direct-chat-list-view'),
+                    padding: EdgeInsets.zero,
+                    children: [
+                      ListTile(
+                        minTileHeight: 48,
+                        leading: const Icon(Symbols.arrow_left_alt),
+                        contentPadding: EdgeInsets.only(left: 24),
+                        title: Text('back').tr(),
+                        onTap: () {
+                          setState(() => _isDirect = false);
+                        },
+                      ),
+                      const Divider(height: 1),
+                      ..._channels!.where((ele) => ele.type == 1).map(
+                        (ele) {
+                          return _ChatChannelEntry(
+                            channel: ele,
+                            unreadCount: _unreadCounts?[ele.id],
+                            lastMessage: _lastMessages?[ele.id],
+                            isCompact: true,
+                            onTap: () => _onTapChannel(ele),
+                          );
+                        },
+                      )
+                    ],
+                  );
+
+                  final realmScopedChatList = _focusedRealm == null
+                      ? const SizedBox.shrink()
+                      : ListView(
+                          key: ValueKey(_focusedRealm),
+                          padding: EdgeInsets.zero,
+                          children: [
+                            if (_focusedRealm!.banner != null)
+                              AspectRatio(
+                                aspectRatio: 16 / 9,
+                                child: AutoResizeUniversalImage(
+                                  sn.getAttachmentUrl(
+                                    _focusedRealm!.banner!,
+                                  ),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ListTile(
+                              minTileHeight: 48,
+                              tileColor: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer,
+                              leading: AccountImage(
+                                content: _focusedRealm!.avatar,
+                                radius: 16,
+                              ),
+                              contentPadding: EdgeInsets.only(
+                                left: 20,
+                                right: 16,
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Symbols.close),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () {
+                                  setState(() => _focusedRealm = null);
+                                },
+                              ),
+                              title: Text(_focusedRealm!.name),
+                            ),
+                            ...(_channels!
+                                .where(
+                                    (ele) => ele.realmId == _focusedRealm?.id)
+                                .map(
+                              (ele) {
+                                return _ChatChannelEntry(
+                                  channel: ele,
+                                  unreadCount: _unreadCounts?[ele.id],
+                                  lastMessage: _lastMessages?[ele.id],
+                                  onTap: () => _onTapChannel(ele),
+                                  isCompact: true,
+                                );
+                              },
+                            ))
+                          ],
+                        );
+
+                  return PageTransitionSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (Widget child,
+                        Animation<double> primaryAnimation,
+                        Animation<double> secondaryAnimation) {
+                      return SharedAxisTransition(
+                        animation: primaryAnimation,
+                        secondaryAnimation: secondaryAnimation,
+                        fillColor: Colors.transparent,
+                        transitionType: SharedAxisTransitionType.horizontal,
+                        child: child,
+                      );
+                    },
+                    child: (_focusedRealm == null && !_isDirect)
+                        ? scopeList
+                        : _isDirect
+                            ? directChatList
+                            : realmScopedChatList,
+                  );
+                }),
+              ),
+            )
+          else if (_channels != null)
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => Future.sync(() => _refreshChannels()),
+                child: ListView(
+                  key: const Key('chat-list-view'),
+                  padding: EdgeInsets.zero,
+                  children: [
+                    ...(_channels!.map((ele) {
+                      return _ChatChannelEntry(
+                        channel: ele,
+                        unreadCount: _unreadCounts?[ele.id],
+                        lastMessage: _lastMessages?[ele.id],
+                        onTap: () => _onTapChannel(ele),
+                      );
+                    }))
+                  ],
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
-
-    if (doExpand) {
-      return AppBackground(
-        isRoot: true,
-        child: Row(
-          children: [
-            SizedBox(width: 340, child: chatList),
-            const VerticalDivider(width: 1),
-            if (_focusChannel != null)
-              Expanded(
-                child: ChatRoomScreen(
-                  key: ValueKey(_focusChannel!.id),
-                  scope: _focusChannel!.realm?.alias ?? 'global',
-                  alias: _focusChannel!.alias,
-                ),
-              ),
-          ],
-        ),
-      );
-    }
-
-    return chatList;
   }
 }
 
@@ -314,11 +491,13 @@ class _ChatChannelEntry extends StatelessWidget {
   final int? unreadCount;
   final SnChatMessage? lastMessage;
   final Function? onTap;
+  final bool isCompact;
   const _ChatChannelEntry({
     required this.channel,
     this.unreadCount,
     this.lastMessage,
     this.onTap,
+    this.isCompact = false,
   });
 
   @override
@@ -336,6 +515,34 @@ class _ChatChannelEntry extends StatelessWidget {
     final title = otherMember != null
         ? ud.getFromCache(otherMember.accountId)?.nick ?? channel.name
         : channel.name;
+
+    if (isCompact) {
+      return ListTile(
+        minTileHeight: 48,
+        contentPadding:
+            EdgeInsets.only(left: otherMember != null ? 20 : 24, right: 24),
+        leading: otherMember != null
+            ? AccountImage(
+                content: ud.getFromCache(otherMember.accountId)?.avatar,
+                radius: 16,
+              )
+            : const Icon(Symbols.tag),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (unreadCount != null && (unreadCount ?? 0) > 0)
+              Badge(
+                label: Text(unreadCount.toString()),
+              ),
+          ],
+        ),
+        title: Text(title),
+        onTap: () {
+          onTap?.call();
+        },
+      );
+    }
 
     return ListTile(
       title: Row(
@@ -399,7 +606,7 @@ class _ChatChannelEntry extends StatelessWidget {
         content: otherMember != null
             ? ud.getFromCache(otherMember.accountId)?.avatar
             : channel.realm?.avatar,
-        fallbackWidget: const Icon(Symbols.chat, size: 20),
+        fallbackWidget: const Icon(Symbols.tag, size: 20),
       ),
       onTap: () => onTap?.call(),
     );

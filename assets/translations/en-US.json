@@ -939,5 +939,7 @@
   "settingsSoundEffects": "Sound Effects",
   "settingsSoundEffectsDescription": "Enable the sound effects around the app.",
   "settingsResetMemorizedWindowSize": "Reset Window Size",
-  "settingsResetMemorizedWindowSizeDescription": "Reset the memorized window size, and set it to the default size."
+  "settingsResetMemorizedWindowSizeDescription": "Reset the memorized window size, and set it to the default size.",
+  "chatDirect": "Direct Messages",
+  "back": "返回"
 }

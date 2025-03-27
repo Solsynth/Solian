@@ -45,7 +45,9 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppBar(leading: PageBackButton(), title: Text('screenAccountWallet').tr()),
+      noBackground: true,
+      appBar: AppBar(
+          leading: PageBackButton(), title: Text('screenAccountWallet').tr()),
       body: Column(
         children: [
           LoadingIndicator(isActive: _isBusy),
@@ -66,7 +68,9 @@ class _WalletScreenState extends State<WalletScreen> {
                   SizedBox(width: double.infinity),
                   Text(
                     NumberFormat.compactCurrency(
-                      locale: EasyLocalization.of(context)!.currentLocale.toString(),
+                      locale: EasyLocalization.of(context)!
+                          .currentLocale
+                          .toString(),
                       symbol: '${'walletCurrencyShort'.tr()} ',
                       decimalDigits: 2,
                     ).format(double.parse(_wallet!.balance)),
@@ -76,17 +80,21 @@ class _WalletScreenState extends State<WalletScreen> {
                   const Gap(16),
                   Text(
                     NumberFormat.compactCurrency(
-                      locale: EasyLocalization.of(context)!.currentLocale.toString(),
+                      locale: EasyLocalization.of(context)!
+                          .currentLocale
+                          .toString(),
                       symbol: '${'walletCurrencyGoldenShort'.tr()} ',
                       decimalDigits: 2,
                     ).format(double.parse(_wallet!.goldenBalance)),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  Text('walletCurrencyGolden'.plural(double.parse(_wallet!.goldenBalance))),
+                  Text('walletCurrencyGolden'
+                      .plural(double.parse(_wallet!.goldenBalance))),
                 ],
               ).padding(horizontal: 20, vertical: 24),
             ).padding(horizontal: 8, top: 16, bottom: 4),
-          if (_wallet != null) Expanded(child: _WalletTransactionList(myself: _wallet!)),
+          if (_wallet != null)
+            Expanded(child: _WalletTransactionList(myself: _wallet!)),
         ],
       ),
     );
@@ -116,7 +124,10 @@ class _WalletTransactionListState extends State<_WalletTransactionList> {
         queryParameters: {'take': 10, 'offset': _transactions.length},
       );
       _totalCount = resp.data['count'];
-      _transactions.addAll(resp.data['data']?.map((e) => SnTransaction.fromJson(e)).cast<SnTransaction>() ?? []);
+      _transactions.addAll(resp.data['data']
+              ?.map((e) => SnTransaction.fromJson(e))
+              .cast<SnTransaction>() ??
+          []);
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err);
@@ -141,7 +152,8 @@ class _WalletTransactionListState extends State<_WalletTransactionList> {
         child: InfiniteList(
           itemCount: _transactions.length,
           isLoading: _isBusy,
-          hasReachedMax: _totalCount != null && _transactions.length >= _totalCount!,
+          hasReachedMax:
+              _totalCount != null && _transactions.length >= _totalCount!,
           onFetchData: () {
             _fetchTransactions();
           },
@@ -149,7 +161,9 @@ class _WalletTransactionListState extends State<_WalletTransactionList> {
             final ele = _transactions[idx];
             final isIncoming = ele.payeeId == widget.myself.id;
             return ListTile(
-              leading: isIncoming ? const Icon(Symbols.call_received) : const Icon(Symbols.call_made),
+              leading: isIncoming
+                  ? const Icon(Symbols.call_received)
+                  : const Icon(Symbols.call_made),
               title: Text(
                 '${isIncoming ? '+' : '-'}${ele.amount} ${'walletCurrencyShort'.tr()}',
                 style: TextStyle(color: isIncoming ? Colors.green : Colors.red),
@@ -162,12 +176,20 @@ class _WalletTransactionListState extends State<_WalletTransactionList> {
                   Row(
                     children: [
                       Text(
-                        'walletTransactionType${ele.currency.capitalize()}'.tr(),
+                        'walletTransactionType${ele.currency.capitalize()}'
+                            .tr(),
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
-                      Text(' · ').textStyle(Theme.of(context).textTheme.labelSmall!).padding(right: 4),
+                      Text(' · ')
+                          .textStyle(Theme.of(context).textTheme.labelSmall!)
+                          .padding(right: 4),
                       Text(
-                        DateFormat(null, EasyLocalization.of(context)!.currentLocale.toString()).format(ele.createdAt),
+                        DateFormat(
+                                null,
+                                EasyLocalization.of(context)!
+                                    .currentLocale
+                                    .toString())
+                            .format(ele.createdAt),
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ],
@@ -199,33 +221,34 @@ class _CreateWalletWidgetState extends State<_CreateWalletWidget> {
     final TextEditingController passwordController = TextEditingController();
     final password = await showDialog<String?>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text('walletCreate').tr(),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('walletCreatePassword').tr(),
-                const Gap(8),
-                TextField(
-                  autofocus: true,
-                  obscureText: true,
-                  controller: passwordController,
-                  decoration: InputDecoration(labelText: 'fieldPassword'.tr()),
-                ),
-              ],
+      builder: (ctx) => AlertDialog(
+        title: Text('walletCreate').tr(),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('walletCreatePassword').tr(),
+            const Gap(8),
+            TextField(
+              autofocus: true,
+              obscureText: true,
+              controller: passwordController,
+              decoration: InputDecoration(labelText: 'fieldPassword'.tr()),
             ),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text('cancel').tr()),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop(passwordController.text);
-                },
-                child: Text('next').tr(),
-              ),
-            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text('cancel').tr()),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop(passwordController.text);
+            },
+            child: Text('next').tr(),
           ),
+        ],
+      ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       passwordController.dispose();
@@ -257,12 +280,18 @@ class _CreateWalletWidgetState extends State<_CreateWalletWidget> {
             children: [
               CircleAvatar(radius: 28, child: Icon(Symbols.add, size: 28)),
               const Gap(12),
-              Text('walletCreate', style: Theme.of(context).textTheme.titleLarge).tr(),
-              Text('walletCreateSubtitle', style: Theme.of(context).textTheme.bodyMedium).tr(),
+              Text('walletCreate',
+                      style: Theme.of(context).textTheme.titleLarge)
+                  .tr(),
+              Text('walletCreateSubtitle',
+                      style: Theme.of(context).textTheme.bodyMedium)
+                  .tr(),
               const Gap(8),
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(onPressed: _isBusy ? null : () => _createWallet(), child: Text('next').tr()),
+                child: TextButton(
+                    onPressed: _isBusy ? null : () => _createWallet(),
+                    child: Text('next').tr()),
               ),
             ],
           ).padding(horizontal: 20, vertical: 24),

@@ -25,7 +25,8 @@ class _AccountPublisherNewScreenState extends State<AccountPublisherNewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return  AppScaffold(
+    return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('screenAccountPublisherNew').tr(),

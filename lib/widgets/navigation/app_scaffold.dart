@@ -66,7 +66,9 @@ class AppScaffold extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: noBackground
+          ? Colors.transparent
+          : Theme.of(context).scaffoldBackgroundColor,
       body: SizedBox.expand(
         child: noBackground
             ? content
@@ -111,7 +113,6 @@ class AppRootScaffold extends StatelessWidget {
     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
 
     final isCollapseDrawer = cfg.drawerIsCollapsed;
-    final isExpandedDrawer = cfg.drawerIsExpanded;
 
     final routeName = GoRouter.of(context)
         .routerDelegate
@@ -132,19 +133,7 @@ class AppRootScaffold extends StatelessWidget {
         ? body
         : Row(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    right: BorderSide(
-                      color: Theme.of(context).dividerColor,
-                      width: 1 / devicePixelRatio,
-                    ),
-                  ),
-                ),
-                child: isExpandedDrawer
-                    ? AppNavigationDrawer(elevation: 0)
-                    : AppRailNavigation(),
-              ),
+              AppRailNavigation(),
               Expanded(child: body),
             ],
           );
@@ -232,10 +221,72 @@ class AppRootScaffold extends StatelessWidget {
             ),
         ],
       ),
-      drawer: !isExpandedDrawer ? AppNavigationDrawer() : null,
       drawerEdgeDragWidth: isPopable ? 0 : null,
+      drawer: isCollapseDrawer ? const AppNavigationDrawer() : null,
       bottomNavigationBar:
           isShowBottomNavigation ? AppBottomNavigationBar() : null,
     );
+  }
+}
+
+class ResponsiveScaffold extends StatelessWidget {
+  final Widget aside;
+  final Widget? child;
+  final int asideFlex;
+  final int contentFlex;
+  const ResponsiveScaffold({
+    super.key,
+    required this.aside,
+    required this.child,
+    this.asideFlex = 1,
+    this.contentFlex = 2,
+  });
+
+  static bool getIsExpand(BuildContext context) {
+    return ResponsiveBreakpoints.of(context).largerOrEqualTo(TABLET);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (getIsExpand(context)) {
+      return AppBackground(
+        isRoot: true,
+        child: Row(
+          children: [
+            Flexible(
+              flex: asideFlex,
+              child: aside,
+            ),
+            VerticalDivider(width: 1),
+            if (child != null && child != aside)
+              Flexible(flex: contentFlex, child: child!)
+            else
+              Flexible(
+                flex: contentFlex,
+                child: ResponsiveScaffoldLanding(child: null),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return AppBackground(isRoot: true, child: child ?? aside);
+  }
+}
+
+class ResponsiveScaffoldLanding extends StatelessWidget {
+  final Widget? child;
+  const ResponsiveScaffoldLanding({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (ResponsiveScaffold.getIsExpand(context) || child == null) {
+      return AppScaffold(
+        noBackground: true,
+        appBar: AppBar(),
+        body: const SizedBox.shrink(),
+      );
+    }
+    return child!;
   }
 }

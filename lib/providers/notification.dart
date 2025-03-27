@@ -105,6 +105,7 @@ class NotificationProvider extends ChangeNotifier {
           if (now.day == 1 && now.month == 4) {
             _notifySoundPlayer.play(
               AssetSource('audio/notify/metal-pipe.mp3'),
+              volume: 0.6,
             );
           }
         }

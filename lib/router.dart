@@ -72,8 +72,8 @@ final _appRoutes = [
   ),
   GoRoute(
     path: '/posts',
-    name: 'explore',
-    builder: (context, state) => const ExploreScreen(),
+    name: 'posts',
+    builder: (_, __) => const SizedBox.shrink(),
     routes: [
       GoRoute(
         path: '/draft',
@@ -111,156 +111,194 @@ final _appRoutes = [
               state.uri.queryParameters['categories']?.split(','),
         ),
       ),
+    ],
+  ),
+  ShellRoute(
+    builder: (context, state, child) => ResponsiveScaffold(
+      asideFlex: 2,
+      contentFlex: 3,
+      aside: const ExploreScreen(),
+      child: child,
+    ),
+    routes: [
+      GoRoute(
+        path: '/explore',
+        name: 'explore',
+        builder: (context, state) => const ResponsiveScaffoldLanding(
+          child: ExploreScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/posts/:slug',
+        name: 'postDetail',
+        builder: (context, state) => PostDetailScreen(
+          key: ValueKey(state.pathParameters['slug']!),
+          slug: state.pathParameters['slug']!,
+          preload: state.extra as SnPost?,
+        ),
+      ),
       GoRoute(
         path: '/publishers/:name',
         name: 'postPublisher',
         builder: (context, state) =>
             PostPublisherScreen(name: state.pathParameters['name']!),
       ),
-      GoRoute(
-        path: '/:slug',
-        name: 'postDetail',
-        builder: (context, state) => PostDetailScreen(
-          slug: state.pathParameters['slug']!,
-          preload: state.extra as SnPost?,
-        ),
-      ),
     ],
   ),
-  GoRoute(
-    path: '/account',
-    name: 'account',
-    builder: (context, state) => const AccountScreen(),
+  ShellRoute(
+    builder: (context, state, child) => ResponsiveScaffold(
+      aside: const AccountScreen(),
+      child: child,
+    ),
     routes: [
       GoRoute(
-        path: '/punishments',
-        name: 'accountPunishments',
-        builder: (context, state) => const PunishmentsScreen(),
-      ),
-      GoRoute(
-        path: '/programs',
-        name: 'accountProgram',
-        builder: (context, state) => const AccountProgramScreen(),
-      ),
-      GoRoute(
-        path: '/contacts',
-        name: 'accountContactMethods',
-        builder: (context, state) => const AccountContactMethod(),
-      ),
-      GoRoute(
-        path: '/events',
-        name: 'accountActionEvents',
-        builder: (context, state) => const ActionEventScreen(),
-      ),
-      GoRoute(
-        path: '/tickets',
-        name: 'accountAuthTickets',
-        builder: (context, state) => const AccountAuthTicket(),
-      ),
-      GoRoute(
-        path: '/badges',
-        name: 'accountBadges',
-        builder: (context, state) => const AccountBadgesScreen(),
-      ),
-      GoRoute(
-        path: '/wallet',
-        name: 'accountWallet',
-        builder: (context, state) => const WalletScreen(),
-      ),
-      GoRoute(
-        path: '/keypairs',
-        name: 'accountKeyPairs',
-        builder: (context, state) => const KeyPairScreen(),
-      ),
-      GoRoute(
-        path: '/settings',
-        name: 'accountSettings',
-        builder: (context, state) => AccountSettingsScreen(),
+        path: '/account',
+        name: 'account',
+        builder: (context, state) =>
+            const ResponsiveScaffoldLanding(child: AccountScreen()),
         routes: [
           GoRoute(
-            path: '/notify',
-            name: 'accountSettingsNotify',
-            builder: (context, state) => const AccountNotifyPrefsScreen(),
+            path: '/punishments',
+            name: 'accountPunishments',
+            builder: (context, state) => const PunishmentsScreen(),
           ),
           GoRoute(
-            path: '/auth',
-            name: 'accountSettingsSecurity',
-            builder: (context, state) => const AccountSecurityPrefsScreen(),
+            path: '/programs',
+            name: 'accountProgram',
+            builder: (context, state) => const AccountProgramScreen(),
+          ),
+          GoRoute(
+            path: '/contacts',
+            name: 'accountContactMethods',
+            builder: (context, state) => const AccountContactMethod(),
+          ),
+          GoRoute(
+            path: '/events',
+            name: 'accountActionEvents',
+            builder: (context, state) => const ActionEventScreen(),
+          ),
+          GoRoute(
+            path: '/tickets',
+            name: 'accountAuthTickets',
+            builder: (context, state) => const AccountAuthTicket(),
+          ),
+          GoRoute(
+            path: '/badges',
+            name: 'accountBadges',
+            builder: (context, state) => const AccountBadgesScreen(),
+          ),
+          GoRoute(
+            path: '/wallet',
+            name: 'accountWallet',
+            builder: (context, state) => const WalletScreen(),
+          ),
+          GoRoute(
+            path: '/keypairs',
+            name: 'accountKeyPairs',
+            builder: (context, state) => const KeyPairScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: 'accountSettings',
+            builder: (context, state) => AccountSettingsScreen(),
+            routes: [
+              GoRoute(
+                path: '/notify',
+                name: 'accountSettingsNotify',
+                builder: (context, state) => const AccountNotifyPrefsScreen(),
+              ),
+              GoRoute(
+                path: '/auth',
+                name: 'accountSettingsSecurity',
+                builder: (context, state) => const AccountSecurityPrefsScreen(),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/settings/factors',
+            name: 'factorSettings',
+            builder: (context, state) => FactorSettingsScreen(),
+          ),
+          GoRoute(
+            path: '/profile/edit',
+            name: 'accountProfileEdit',
+            builder: (context, state) => ProfileEditScreen(),
+          ),
+          GoRoute(
+            path: '/publishers',
+            name: 'accountPublishers',
+            builder: (context, state) => PublisherScreen(),
+          ),
+          GoRoute(
+            path: '/publishers/new',
+            name: 'accountPublisherNew',
+            builder: (context, state) => AccountPublisherNewScreen(),
+          ),
+          GoRoute(
+            path: '/publishers/edit/:name',
+            name: 'accountPublisherEdit',
+            builder: (context, state) => AccountPublisherEditScreen(
+              name: state.pathParameters['name']!,
+            ),
           ),
         ],
       ),
-      GoRoute(
-        path: '/settings/factors',
-        name: 'factorSettings',
-        builder: (context, state) => FactorSettingsScreen(),
-      ),
-      GoRoute(
-        path: '/profile/edit',
-        name: 'accountProfileEdit',
-        builder: (context, state) => ProfileEditScreen(),
-      ),
-      GoRoute(
-        path: '/publishers',
-        name: 'accountPublishers',
-        builder: (context, state) => PublisherScreen(),
-      ),
-      GoRoute(
-        path: '/publishers/new',
-        name: 'accountPublisherNew',
-        builder: (context, state) => AccountPublisherNewScreen(),
-      ),
-      GoRoute(
-        path: '/publishers/edit/:name',
-        name: 'accountPublisherEdit',
-        builder: (context, state) => AccountPublisherEditScreen(
-          name: state.pathParameters['name']!,
-        ),
-      ),
-      GoRoute(
-        path: '/profile/:name',
-        name: 'accountProfilePage',
-        pageBuilder: (context, state) => NoTransitionPage(
-          child: UserScreen(name: state.pathParameters['name']!),
-        ),
-      ),
     ],
   ),
   GoRoute(
-    path: '/chat',
-    name: 'chat',
-    builder: (context, state) => const ChatScreen(),
+    path: '/accounts/:name',
+    name: 'accountProfilePage',
+    pageBuilder: (context, state) => NoTransitionPage(
+      child: UserScreen(name: state.pathParameters['name']!),
+    ),
+  ),
+  ShellRoute(
+    builder: (context, state, child) =>
+        ResponsiveScaffold(aside: const ChatScreen(), child: child),
     routes: [
       GoRoute(
-        path: '/:scope/:alias',
-        name: 'chatRoom',
-        builder: (context, state) => ChatRoomScreen(
-          scope: state.pathParameters['scope']!,
-          alias: state.pathParameters['alias']!,
-          extra: state.extra as ChatRoomScreenExtra?,
+        path: '/chat',
+        name: 'chat',
+        builder: (context, state) => const ResponsiveScaffoldLanding(
+          child: ChatScreen(),
         ),
-      ),
-      GoRoute(
-        path: '/:scope/:alias/call',
-        name: 'chatCallRoom',
-        builder: (context, state) => CallRoomScreen(
-          scope: state.pathParameters['scope']!,
-          alias: state.pathParameters['alias']!,
-        ),
-      ),
-      GoRoute(
-        path: '/:scope/:alias/detail',
-        name: 'channelDetail',
-        builder: (context, state) => ChannelDetailScreen(
-          scope: state.pathParameters['scope']!,
-          alias: state.pathParameters['alias']!,
-        ),
-      ),
-      GoRoute(
-        path: '/manage',
-        name: 'chatManage',
-        builder: (context, state) => ChatManageScreen(
-          editingChannelAlias: state.uri.queryParameters['editing'],
-        ),
+        routes: [
+          GoRoute(
+            path: '/:scope/:alias',
+            name: 'chatRoom',
+            builder: (context, state) => ChatRoomScreen(
+              key: ValueKey(
+                '${state.pathParameters['scope']!}:${state.pathParameters['alias']!}',
+              ),
+              scope: state.pathParameters['scope']!,
+              alias: state.pathParameters['alias']!,
+              extra: state.extra as ChatRoomScreenExtra?,
+            ),
+          ),
+          GoRoute(
+            path: '/:scope/:alias/call',
+            name: 'chatCallRoom',
+            builder: (context, state) => CallRoomScreen(
+              scope: state.pathParameters['scope']!,
+              alias: state.pathParameters['alias']!,
+            ),
+          ),
+          GoRoute(
+            path: '/:scope/:alias/detail',
+            name: 'channelDetail',
+            builder: (context, state) => ChannelDetailScreen(
+              scope: state.pathParameters['scope']!,
+              alias: state.pathParameters['alias']!,
+            ),
+          ),
+          GoRoute(
+            path: '/manage',
+            name: 'chatManage',
+            builder: (context, state) => ChatManageScreen(
+              editingChannelAlias: state.uri.queryParameters['editing'],
+            ),
+          ),
+        ],
       ),
     ],
   ),

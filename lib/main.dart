@@ -347,7 +347,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
         if (!mounted) return;
         _setPhaseText('keyPair');
         final kp = context.read<KeyPairProvider>();
-        await kp.reloadActive();
+        kp.reloadActive();
         kp.listen();
       } catch (_) {}
       if (ua.isAuthorized) {
@@ -396,8 +396,8 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     final cfg = context.read<ConfigProvider>();
     if (!cfg.soundEffects) return;
 
-    final player = AudioPlayer(playerId: 'launch-intro-player');
-    await player.play(AssetSource('audio/sfx/launch-intro.mp3'), volume: 0.5);
+    final player = AudioPlayer(playerId: 'launch-done-player');
+    await player.play(AssetSource('audio/sfx/launch-done.mp3'), volume: 0.8);
     player.onPlayerComplete.listen((_) {
       player.dispose();
     });
