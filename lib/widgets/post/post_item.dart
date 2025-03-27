@@ -51,6 +51,7 @@ class OpenablePostItem extends StatelessWidget {
   final bool showMenu;
   final bool showFullPost;
   final bool showExpandableComments;
+  final bool useReplace;
   final double? maxWidth;
   final Function(SnPost data)? onChanged;
   final Function()? onDeleted;
@@ -64,6 +65,7 @@ class OpenablePostItem extends StatelessWidget {
     this.showMenu = true,
     this.showFullPost = false,
     this.showExpandableComments = false,
+    this.useReplace = false,
     this.maxWidth,
     this.onChanged,
     this.onDeleted,
@@ -87,9 +89,16 @@ class OpenablePostItem extends StatelessWidget {
             onSelectAnswer: onSelectAnswer,
           ),
           onTap: () {
-            GoRouter.of(context).pushNamed('postDetail', pathParameters: {
-              'slug': data.id.toString(),
-            });
+            if (useReplace) {
+              GoRouter.of(context)
+                  .pushReplacementNamed('postDetail', pathParameters: {
+                'slug': data.id.toString(),
+              });
+            } else {
+              GoRouter.of(context).pushNamed('postDetail', pathParameters: {
+                'slug': data.id.toString(),
+              });
+            }
           },
         ),
       ),

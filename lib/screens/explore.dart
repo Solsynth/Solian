@@ -243,6 +243,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                         GoRouter.of(context).pushNamed('postShuffle');
                       },
                     ),
+                    const Gap(48),
                     Expanded(
                       child: Center(
                         child: IconButton(
@@ -534,6 +535,7 @@ class _PostListWidgetState extends State<_PostListWidget> {
             switch (ele.type) {
               case 'interactive.post':
                 return OpenablePostItem(
+                  useReplace: true,
                   data: SnPost.fromJson(ele.data),
                   maxWidth: 640,
                   onChanged: (data) {

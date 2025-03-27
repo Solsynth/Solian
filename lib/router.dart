@@ -70,10 +70,42 @@ final _appRoutes = [
     name: 'home',
     builder: (context, state) => const HomeScreen(),
   ),
+  ShellRoute(
+    builder: (context, state, child) => ResponsiveScaffold(
+      asideFlex: 2,
+      contentFlex: 3,
+      aside: const ExploreScreen(),
+      child: child,
+    ),
+    routes: [
+      GoRoute(
+        path: '/explore',
+        name: 'explore',
+        builder: (context, state) => const ResponsiveScaffoldLanding(
+          child: ExploreScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/posts/:slug',
+        name: 'postDetail',
+        builder: (context, state) => PostDetailScreen(
+          key: ValueKey(state.pathParameters['slug']!),
+          slug: state.pathParameters['slug']!,
+          preload: state.extra as SnPost?,
+        ),
+      ),
+      GoRoute(
+        path: '/publishers/:name',
+        name: 'postPublisher',
+        builder: (context, state) =>
+            PostPublisherScreen(name: state.pathParameters['name']!),
+      ),
+    ],
+  ),
   GoRoute(
     path: '/posts',
-    name: 'explore',
-    builder: (context, state) => const ExploreScreen(),
+    name: 'posts',
+    builder: (_, __) => const SizedBox.shrink(),
     routes: [
       GoRoute(
         path: '/draft',
@@ -109,20 +141,6 @@ final _appRoutes = [
           initialTags: state.uri.queryParameters['tags']?.split(','),
           initialCategories:
               state.uri.queryParameters['categories']?.split(','),
-        ),
-      ),
-      GoRoute(
-        path: '/publishers/:name',
-        name: 'postPublisher',
-        builder: (context, state) =>
-            PostPublisherScreen(name: state.pathParameters['name']!),
-      ),
-      GoRoute(
-        path: '/:slug',
-        name: 'postDetail',
-        builder: (context, state) => PostDetailScreen(
-          slug: state.pathParameters['slug']!,
-          preload: state.extra as SnPost?,
         ),
       ),
     ],

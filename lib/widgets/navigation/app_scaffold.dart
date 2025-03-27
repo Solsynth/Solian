@@ -228,8 +228,15 @@ class AppRootScaffold extends StatelessWidget {
 class ResponsiveScaffold extends StatelessWidget {
   final Widget aside;
   final Widget? child;
-  const ResponsiveScaffold(
-      {super.key, required this.aside, required this.child});
+  final int asideFlex;
+  final int contentFlex;
+  const ResponsiveScaffold({
+    super.key,
+    required this.aside,
+    required this.child,
+    this.asideFlex = 1,
+    this.contentFlex = 2,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -237,15 +244,15 @@ class ResponsiveScaffold extends StatelessWidget {
       return Row(
         children: [
           Flexible(
-            flex: 1,
+            flex: asideFlex,
             child: aside,
           ),
           VerticalDivider(width: 1),
           if (child != null && child != aside)
-            Flexible(flex: 2, child: child!)
+            Flexible(flex: contentFlex, child: child!)
           else
-            const Flexible(
-              flex: 2,
+            Flexible(
+              flex: contentFlex,
               child: ResponsiveScaffoldLanding(child: null),
             ),
         ],
