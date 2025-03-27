@@ -70,6 +70,7 @@ class _AccountProgramScreenState extends State<AccountProgramScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         title: Text('accountProgram').tr(),
       ),

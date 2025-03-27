@@ -49,7 +49,8 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
         resp.data?.map((e) => SnRealm.fromJson(e)) ?? [],
       );
       if (_editingChannel != null) {
-        _belongToRealm = _realms?.firstWhereOrNull((e) => e.id == _editingChannel!.realmId);
+        _belongToRealm =
+            _realms?.firstWhereOrNull((e) => e.id == _editingChannel!.realmId);
       }
     } catch (err) {
       if (mounted) context.showErrorDialog(err);
@@ -97,7 +98,8 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
       'is_community': _isCommunity,
       if (_editingChannel != null && _belongToRealm == null)
         'new_belongs_realm': 'global'
-      else if (_editingChannel != null && _belongToRealm?.id != _editingChannel?.realm?.id)
+      else if (_editingChannel != null &&
+          _belongToRealm?.id != _editingChannel?.realm?.id)
         'new_belongs_realm': _belongToRealm!.alias,
     };
 
@@ -139,8 +141,11 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
-        title: widget.editingChannelAlias != null ? Text('screenChatManage').tr() : Text('screenChatNew').tr(),
+        title: widget.editingChannelAlias != null
+            ? Text('screenChatManage').tr()
+            : Text('screenChatNew').tr(),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -152,7 +157,8 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
                 leadingPadding: const EdgeInsets.only(left: 10, right: 20),
                 dividerColor: Colors.transparent,
                 content: Text(
-                  'channelEditingNotice'.tr(args: ['#${_editingChannel!.alias}']),
+                  'channelEditingNotice'
+                      .tr(args: ['#${_editingChannel!.alias}']),
                 ),
                 actions: [
                   TextButton(
@@ -192,12 +198,15 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(item.name).textStyle(Theme.of(context).textTheme.bodyMedium!),
+                                    Text(item.name).textStyle(Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium!),
                                     Text(
                                       item.description,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                    ).textStyle(Theme.of(context).textTheme.bodySmall!),
+                                    ).textStyle(
+                                        Theme.of(context).textTheme.bodySmall!),
                                   ],
                                 ),
                               ),
@@ -213,7 +222,8 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
                         CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.transparent,
-                          foregroundColor: Theme.of(context).colorScheme.onSurface,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onSurface,
                           child: const Icon(Symbols.clear),
                         ),
                         const Gap(12),
@@ -222,7 +232,9 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('fieldChatBelongToRealmUnset').tr().textStyle(
+                              Text('fieldChatBelongToRealmUnset')
+                                  .tr()
+                                  .textStyle(
                                     Theme.of(context).textTheme.bodyMedium!,
                                   ),
                             ],
@@ -257,7 +269,8 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
                     helperText: 'fieldChatAliasHint'.tr(),
                     helperMaxLines: 2,
                   ),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ),
                 const Gap(4),
                 TextField(
@@ -266,7 +279,8 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
                     border: const UnderlineInputBorder(),
                     labelText: 'fieldChatName'.tr(),
                   ),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ),
                 const Gap(4),
                 TextField(
@@ -277,7 +291,8 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
                     border: const UnderlineInputBorder(),
                     labelText: 'fieldChatDescription'.tr(),
                   ),
-                  onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ),
                 const Gap(12),
                 CheckboxListTile(

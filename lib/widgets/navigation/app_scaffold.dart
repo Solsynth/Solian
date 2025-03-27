@@ -65,7 +65,9 @@ class AppScaffold extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: noBackground
+          ? Colors.transparent
+          : Theme.of(context).scaffoldBackgroundColor,
       body: SizedBox.expand(
         child: noBackground
             ? content
@@ -238,28 +240,35 @@ class ResponsiveScaffold extends StatelessWidget {
     this.contentFlex = 2,
   });
 
+  static bool getIsExpand(BuildContext context) {
+    return ResponsiveBreakpoints.of(context).largerOrEqualTo(TABLET);
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (ResponsiveBreakpoints.of(context).largerOrEqualTo(TABLET)) {
-      return Row(
-        children: [
-          Flexible(
-            flex: asideFlex,
-            child: aside,
-          ),
-          VerticalDivider(width: 1),
-          if (child != null && child != aside)
-            Flexible(flex: contentFlex, child: child!)
-          else
+    if (getIsExpand(context)) {
+      return AppBackground(
+        isRoot: true,
+        child: Row(
+          children: [
             Flexible(
-              flex: contentFlex,
-              child: ResponsiveScaffoldLanding(child: null),
+              flex: asideFlex,
+              child: aside,
             ),
-        ],
+            VerticalDivider(width: 1),
+            if (child != null && child != aside)
+              Flexible(flex: contentFlex, child: child!)
+            else
+              Flexible(
+                flex: contentFlex,
+                child: ResponsiveScaffoldLanding(child: null),
+              ),
+          ],
+        ),
       );
     }
 
-    return child ?? aside;
+    return AppBackground(isRoot: true, child: child ?? aside);
   }
 }
 
@@ -269,9 +278,9 @@ class ResponsiveScaffoldLanding extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (ResponsiveBreakpoints.of(context).largerOrEqualTo(TABLET) ||
-        child == null) {
+    if (ResponsiveScaffold.getIsExpand(context) || child == null) {
       return AppScaffold(
+        noBackground: true,
         appBar: AppBar(),
         body: const SizedBox.shrink(),
       );

@@ -37,7 +37,8 @@ class _CallRoomScreenState extends State<CallRoomScreen> {
     return Stack(
       children: [
         Container(
-          color: Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.75),
+          color:
+              Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.75),
           child: call.focusTrack != null
               ? InteractiveParticipantWidget(
                   isFixedAvatar: false,
@@ -72,7 +73,8 @@ class _CallRoomScreenState extends State<CallRoomScreen> {
                       color: Theme.of(context).cardColor,
                       participant: track,
                       onTap: () {
-                        if (track.participant.sid != call.focusTrack?.participant.sid) {
+                        if (track.participant.sid !=
+                            call.focusTrack?.participant.sid) {
                           call.setFocusTrack(track);
                         }
                       },
@@ -114,10 +116,14 @@ class _CallRoomScreenState extends State<CallRoomScreen> {
             child: ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(8)),
               child: InteractiveParticipantWidget(
-                color: Theme.of(context).colorScheme.surfaceContainerHigh.withOpacity(0.75),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHigh
+                    .withOpacity(0.75),
                 participant: track,
                 onTap: () {
-                  if (track.participant.sid != call.focusTrack?.participant.sid) {
+                  if (track.participant.sid !=
+                      call.focusTrack?.participant.sid) {
                     call.setFocusTrack(track);
                   }
                 },
@@ -149,6 +155,7 @@ class _CallRoomScreenState extends State<CallRoomScreen> {
         listenable: call,
         builder: (context, _) {
           return AppScaffold(
+            noBackground: true,
             appBar: AppBar(
               title: RichText(
                 textAlign: TextAlign.center,
@@ -183,7 +190,8 @@ class _CallRoomScreenState extends State<CallRoomScreen> {
                         Builder(builder: (context) {
                           final call = context.read<ChatCallProvider>();
                           final connectionQuality =
-                              call.room.localParticipant?.connectionQuality ?? livekit.ConnectionQuality.unknown;
+                              call.room.localParticipant?.connectionQuality ??
+                                  livekit.ConnectionQuality.unknown;
                           return Expanded(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -205,24 +213,35 @@ class _CallRoomScreenState extends State<CallRoomScreen> {
                                   children: [
                                     Text(
                                       {
-                                        livekit.ConnectionState.disconnected: 'callStatusDisconnected'.tr(),
-                                        livekit.ConnectionState.connected: 'callStatusConnected'.tr(),
-                                        livekit.ConnectionState.connecting: 'callStatusConnecting'.tr(),
-                                        livekit.ConnectionState.reconnecting: 'callStatusReconnecting'.tr(),
+                                        livekit.ConnectionState.disconnected:
+                                            'callStatusDisconnected'.tr(),
+                                        livekit.ConnectionState.connected:
+                                            'callStatusConnected'.tr(),
+                                        livekit.ConnectionState.connecting:
+                                            'callStatusConnecting'.tr(),
+                                        livekit.ConnectionState.reconnecting:
+                                            'callStatusReconnecting'.tr(),
                                       }[call.room.connectionState]!,
                                     ),
                                     const Gap(6),
-                                    if (connectionQuality != livekit.ConnectionQuality.unknown)
+                                    if (connectionQuality !=
+                                        livekit.ConnectionQuality.unknown)
                                       Icon(
                                         {
-                                          livekit.ConnectionQuality.excellent: Icons.signal_cellular_alt,
-                                          livekit.ConnectionQuality.good: Icons.signal_cellular_alt_2_bar,
-                                          livekit.ConnectionQuality.poor: Icons.signal_cellular_alt_1_bar,
+                                          livekit.ConnectionQuality.excellent:
+                                              Icons.signal_cellular_alt,
+                                          livekit.ConnectionQuality.good:
+                                              Icons.signal_cellular_alt_2_bar,
+                                          livekit.ConnectionQuality.poor:
+                                              Icons.signal_cellular_alt_1_bar,
                                         }[connectionQuality],
                                         color: {
-                                          livekit.ConnectionQuality.excellent: Colors.green,
-                                          livekit.ConnectionQuality.good: Colors.orange,
-                                          livekit.ConnectionQuality.poor: Colors.red,
+                                          livekit.ConnectionQuality.excellent:
+                                              Colors.green,
+                                          livekit.ConnectionQuality.good:
+                                              Colors.orange,
+                                          livekit.ConnectionQuality.poor:
+                                              Colors.red,
                                         }[connectionQuality],
                                         size: 16,
                                       )
@@ -244,7 +263,9 @@ class _CallRoomScreenState extends State<CallRoomScreen> {
                         Row(
                           children: [
                             IconButton(
-                              icon: _layoutMode == 0 ? const Icon(Icons.view_list) : const Icon(Icons.grid_view),
+                              icon: _layoutMode == 0
+                                  ? const Icon(Icons.view_list)
+                                  : const Icon(Icons.grid_view),
                               onPressed: () {
                                 _switchLayout();
                               },

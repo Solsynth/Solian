@@ -110,6 +110,7 @@ class AccountScreen extends StatelessWidget {
     final sn = context.read<SnNetworkProvider>();
 
     return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         leading: AutoAppBarLeading(),
         title: Text("screenAccount").tr(),

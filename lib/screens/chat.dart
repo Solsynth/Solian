@@ -6,19 +6,16 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 import 'package:surface/providers/channel.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
 import 'package:surface/providers/userinfo.dart';
-import 'package:surface/screens/chat/room.dart';
 import 'package:surface/types/chat.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/account/account_select.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
-import 'package:surface/widgets/navigation/app_background.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:surface/widgets/unauthorized_hint.dart';
 import 'package:uuid/uuid.dart';
@@ -130,8 +127,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  SnChannel? _focusChannel;
-
   @override
   void initState() {
     super.initState();
@@ -140,13 +135,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _onTapChannel(SnChannel channel) {
-    final doExpand = ResponsiveBreakpoints.of(context).largerOrEqualTo(DESKTOP);
-
-    if (doExpand) {
-      setState(() => _focusChannel = channel);
-      return;
-    }
-    GoRouter.of(context).pushNamed(
+    setState(() => _unreadCounts?[channel.id] = 0);
+    GoRouter.of(context).pushReplacementNamed(
       'chatRoom',
       pathParameters: {
         'scope': channel.realm?.alias ?? 'global',
@@ -154,7 +144,6 @@ class _ChatScreenState extends State<ChatScreen> {
       },
     ).then((value) {
       if (mounted) {
-        _unreadCounts?[channel.id] = 0;
         setState(() => _unreadCounts?[channel.id] = 0);
         _refreshChannels(noRemote: true);
       }
@@ -177,10 +166,8 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
 
-    final doExpand = ResponsiveBreakpoints.of(context).largerOrEqualTo(DESKTOP);
-
-    final chatList = AppScaffold(
-      noBackground: doExpand,
+    return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         leading: AutoAppBarLeading(),
         title: Text('screenChat').tr(),
@@ -268,11 +255,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       lastMessage: lastMessage,
                       unreadCount: _unreadCounts?[channel.id],
                       onTap: () {
-                        if (doExpand) {
-                          _unreadCounts?[channel.id] = 0;
-                          setState(() => _focusChannel = channel);
-                          return;
-                        }
                         _onTapChannel(channel);
                       },
                     );
@@ -284,28 +266,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
-
-    if (doExpand) {
-      return AppBackground(
-        isRoot: true,
-        child: Row(
-          children: [
-            SizedBox(width: 340, child: chatList),
-            const VerticalDivider(width: 1),
-            if (_focusChannel != null)
-              Expanded(
-                child: ChatRoomScreen(
-                  key: ValueKey(_focusChannel!.id),
-                  scope: _focusChannel!.realm?.alias ?? 'global',
-                  alias: _focusChannel!.alias,
-                ),
-              ),
-          ],
-        ),
-      );
-    }
-
-    return chatList;
   }
 }
 

@@ -286,6 +286,7 @@ class _PostPublisherScreenState extends State<PostPublisherScreen>
     final sn = context.read<SnNetworkProvider>();
 
     return AppScaffold(
+      noBackground: true,
       body: NestedScrollView(
         controller: _scrollController,
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {

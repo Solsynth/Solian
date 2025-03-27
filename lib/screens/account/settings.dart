@@ -37,6 +37,7 @@ class AccountSettingsScreen extends StatelessWidget {
     final ua = context.watch<UserProvider>();
 
     return AppScaffold(
+      noBackground: true,
       appBar: AppBar(
         leading: PageBackButton(),
         title: Text('screenAccountSettings').tr(),
