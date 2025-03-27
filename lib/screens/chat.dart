@@ -132,6 +132,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ..onDone(() {
         if (!mounted) return;
         setState(() => _isBusy = false);
+        _fetchWhatsNew();
       });
   }
 
@@ -167,7 +168,6 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _refreshChannels(withBoost: true);
-    _fetchWhatsNew();
   }
 
   void _onTapChannel(SnChannel channel) {
@@ -291,13 +291,10 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           LoadingIndicator(isActive: _isBusy),
-          if (_channels != null)
+          if (_channels != null && ResponsiveScaffold.getIsExpand(context))
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () => Future.wait([
-                  Future.sync(() => _refreshChannels()),
-                  _fetchWhatsNew(),
-                ]),
+                onRefresh: () => Future.sync(() => _refreshChannels()),
                 child: Builder(builder: (context) {
                   final scopeList = ListView(
                     key: const Key('realm-list-view'),
@@ -461,6 +458,26 @@ class _ChatScreenState extends State<ChatScreen> {
                             : realmScopedChatList,
                   );
                 }),
+              ),
+            )
+          else if (_channels != null)
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => Future.sync(() => _refreshChannels()),
+                child: ListView(
+                  key: const Key('chat-list-view'),
+                  padding: EdgeInsets.zero,
+                  children: [
+                    ...(_channels!.map((ele) {
+                      return _ChatChannelEntry(
+                        channel: ele,
+                        unreadCount: _unreadCounts?[ele.id],
+                        lastMessage: _lastMessages?[ele.id],
+                        onTap: () => _onTapChannel(ele),
+                      );
+                    }))
+                  ],
+                ),
               ),
             ),
         ],
