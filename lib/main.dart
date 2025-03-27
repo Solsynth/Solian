@@ -347,7 +347,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
         if (!mounted) return;
         _setPhaseText('keyPair');
         final kp = context.read<KeyPairProvider>();
-        await kp.reloadActive();
+        kp.reloadActive();
         kp.listen();
       } catch (_) {}
       if (ua.isAuthorized) {
