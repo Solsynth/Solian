@@ -65,3 +65,8 @@ jobs:
         with:
           name: build-output-linux
           path: build/linux/x64/release/bundle
+      - name: Build AppImage unsing appimage-builder
+        uses: docker://appimagecrafters/appimage-builder:0.8.5
+        with:
+          entrypoint: appimage-builder
+          args: --recipe ./AppImageBuilder.yml --skip-test
