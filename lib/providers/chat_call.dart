@@ -132,6 +132,7 @@ class ChatCallProvider extends ChangeNotifier {
 
   void initRoom() {
     initHardware();
+    final timeout = const Duration(seconds: 60);
     _room = Room(
       roomOptions: RoomOptions(
         dynacast: true,
@@ -156,6 +157,16 @@ class ChatCallProvider extends ChangeNotifier {
         defaultCameraCaptureOptions: CameraCaptureOptions(
           maxFrameRate: 30,
           params: VideoParametersPresets.h1080_169,
+        ),
+      ),
+      connectOptions: ConnectOptions(
+        autoSubscribe: true,
+        timeouts: Timeouts(
+          connection: timeout,
+          debounce: timeout,
+          publish: timeout,
+          peerConnection: timeout,
+          iceRestart: timeout,
         ),
       ),
     );
