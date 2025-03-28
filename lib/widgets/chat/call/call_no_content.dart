@@ -8,12 +8,12 @@ import 'package:surface/widgets/account/account_image.dart';
 class NoContentWidget extends StatefulWidget {
   final SnAccount? userinfo;
   final bool isSpeaking;
-  final bool isFixed;
+  final double? avatarSize;
 
   const NoContentWidget({
     super.key,
     this.userinfo,
-    this.isFixed = false,
+    this.avatarSize,
     required this.isSpeaking,
   });
 
@@ -45,41 +45,35 @@ class _NoContentWidgetState extends State<NoContentWidget>
 
   @override
   Widget build(BuildContext context) {
-    final double radius = widget.isFixed
-        ? 32
-        : math.min(
-            MediaQuery.of(context).size.width * 0.1,
-            MediaQuery.of(context).size.height * 0.1,
-          );
+    final double radius = widget.avatarSize ??
+        math.min(
+          MediaQuery.of(context).size.width * 0.1,
+          MediaQuery.of(context).size.height * 0.1,
+        );
 
-    return Container(
-      alignment: Alignment.center,
-      child: Center(
-        child: Animate(
-          autoPlay: false,
-          controller: _animationController,
-          effects: [
-            CustomEffect(
-              begin: widget.isSpeaking ? 2 : 0,
-              end: 8,
-              curve: Curves.easeInOut,
-              duration: 1250.ms,
-              builder: (context, value, child) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(radius + 8)),
-                  border: value > 0
-                      ? Border.all(color: Colors.green, width: value)
-                      : null,
-                ),
-                child: child,
-              ),
-            )
-          ],
-          child: AccountImage(
-            content: widget.userinfo?.avatar,
-            radius: radius,
+    return Animate(
+      autoPlay: false,
+      controller: _animationController,
+      effects: [
+        CustomEffect(
+          begin: widget.isSpeaking ? 2 : 0,
+          end: 8,
+          curve: Curves.easeInOut,
+          duration: 1250.ms,
+          builder: (context, value, child) => Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(radius + 8)),
+              border: value > 0
+                  ? Border.all(color: Colors.green, width: value)
+                  : null,
+            ),
+            child: child,
           ),
-        ),
+        )
+      ],
+      child: AccountImage(
+        content: widget.userinfo?.avatar,
+        radius: radius,
       ),
     );
   }

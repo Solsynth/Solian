@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_noise_filter/livekit_noise_filter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:surface/providers/sn_network.dart';
@@ -132,9 +133,12 @@ class ChatCallProvider extends ChangeNotifier {
   void initRoom() {
     initHardware();
     _room = Room(
-      roomOptions: const RoomOptions(
+      roomOptions: RoomOptions(
         dynacast: true,
         adaptiveStream: true,
+        defaultAudioCaptureOptions: AudioCaptureOptions(
+          processor: LiveKitNoiseFilter(),
+        ),
         defaultAudioPublishOptions: AudioPublishOptions(
           name: 'call_voice',
           stream: 'call_stream',

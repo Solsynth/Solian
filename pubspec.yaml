@@ -144,6 +144,7 @@ dependencies:
   latlong2: ^0.9.1
   crypto: ^3.0.6
   audioplayers: ^6.4.0
+  livekit_noise_filter: ^0.1.0
 
 dev_dependencies:
   flutter_test:

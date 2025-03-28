@@ -54,11 +54,15 @@ class AccountImage extends StatelessWidget {
                             ))
                         .center(),
                   )
-                : AutoResizeUniversalImage(
+                : UniversalImage(
                     sn.getAttachmentUrl(url),
                     filterQuality: filterQuality,
                     key: Key('attachment-${content.hashCode}'),
                     fit: BoxFit.cover,
+                    width: (radius != null ? radius! : 20) * 2,
+                    height: (radius != null ? radius! : 20) * 2,
+                    cacheWidth: (radius != null ? radius! : 20) * 2,
+                    cacheHeight: (radius != null ? radius! : 20) * 2,
                   ),
           ),
         ),
