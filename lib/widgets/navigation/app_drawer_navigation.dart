@@ -87,6 +87,7 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
                         onTap: () {
                           GoRouter.of(context).pushNamed(ele.screen);
                           nav.setIndex(idx);
+                          Scaffold.of(context).closeDrawer();
                         },
                       );
                     })
