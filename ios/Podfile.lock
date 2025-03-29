@@ -189,6 +189,11 @@ PODS:
     - Flutter
     - flutter_webrtc
     - WebRTC-SDK (= 125.6422.06)
+  - livekit_noise_filter (0.0.1):
+    - Flutter
+    - flutter_webrtc
+    - LiveKitKrispNoiseFilter (= 0.0.7)
+  - LiveKitKrispNoiseFilter (0.0.7)
   - media_kit_libs_ios_video (1.0.4):
     - Flutter
   - media_kit_video (0.0.1):
@@ -283,6 +288,7 @@ DEPENDENCIES:
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - Kingfisher (~> 8.0)
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
+  - livekit_noise_filter (from `.symlinks/plugins/livekit_noise_filter/ios`)
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -315,6 +321,7 @@ SPEC REPOS:
     - GoogleDataTransport
     - GoogleUtilities
     - Kingfisher
+    - LiveKitKrispNoiseFilter
     - nanopb
     - OrderedSet
     - PromisesObjC
@@ -369,6 +376,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/in_app_review/ios"
   livekit_client:
     :path: ".symlinks/plugins/livekit_client/ios"
+  livekit_noise_filter:
+    :path: ".symlinks/plugins/livekit_noise_filter/ios"
   media_kit_libs_ios_video:
     :path: ".symlinks/plugins/media_kit_libs_ios_video/ios"
   media_kit_video:
@@ -438,6 +447,8 @@ SPEC CHECKSUMS:
   in_app_review: 5596fe56fab799e8edb3561c03d053363ab13457
   Kingfisher: 323e5c4ec7983aaace12af655a7b51a7f88a599d
   livekit_client: 08755cabfa4da4ed455642f460cfbb39bc518070
+  livekit_noise_filter: a26aeb1c1eae6db0a023fd2f6ea3ff108c3ecbb0
+  LiveKitKrispNoiseFilter: efe418ceca28163ace0ff222bd2cc02384645d84
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275

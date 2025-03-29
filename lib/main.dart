@@ -397,7 +397,18 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     if (!cfg.soundEffects) return;
 
     final player = AudioPlayer(playerId: 'launch-done-player');
-    await player.play(AssetSource('audio/sfx/launch-done.mp3'), volume: 0.8);
+    await player.play(
+      AssetSource('audio/sfx/launch-done.mp3'),
+      volume: 0.8,
+      ctx: AudioContext(
+        android: AudioContextAndroid(
+          contentType: AndroidContentType.sonification,
+          usageType: AndroidUsageType.notificationEvent,
+        ),
+        iOS: AudioContextIOS(category: AVAudioSessionCategory.ambient),
+      ),
+      mode: PlayerMode.lowLatency,
+    );
     player.onPlayerComplete.listen((_) {
       player.dispose();
     });

@@ -106,6 +106,14 @@ class NotificationProvider extends ChangeNotifier {
             _notifySoundPlayer.play(
               AssetSource('audio/notify/metal-pipe.mp3'),
               volume: 0.6,
+              ctx: AudioContext(
+                android: AudioContextAndroid(
+                  contentType: AndroidContentType.sonification,
+                  usageType: AndroidUsageType.notificationEvent,
+                ),
+                iOS: AudioContextIOS(category: AVAudioSessionCategory.ambient),
+              ),
+              mode: PlayerMode.lowLatency,
             );
           }
         }
