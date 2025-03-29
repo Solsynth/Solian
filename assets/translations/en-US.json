@@ -941,5 +941,8 @@
   "settingsResetMemorizedWindowSize": "Reset Window Size",
   "settingsResetMemorizedWindowSizeDescription": "Reset the memorized window size, and set it to the default size.",
   "chatDirect": "Direct Messages",
-  "back": "返回"
+  "back": "Back",
+  "badgeProgramDeveloper": "Developer Program Member",
+  "badgeProgramStellar": "A Stellar",
+  "badgeProgramModerator": "Community Moderator"
 }

@@ -61,6 +61,21 @@ final Map<String, (String, IconData, Color)> kBadgesMeta = {
     Symbols.thumb_up,
     Colors.lightGreen,
   ),
+  'programs.developers': (
+    'badgeProgramDeveloper',
+    Symbols.code,
+    Colors.blue,
+  ),
+  'programs.stellar': (
+    'badgeProgramStellar',
+    Symbols.family_star,
+    Colors.orange,
+  ),
+  'programs.moderator': (
+    'badgeProgramModerator',
+    Symbols.sword_rose,
+    Colors.blue,
+  ),
 };
 
 class UserScreen extends StatefulWidget {
