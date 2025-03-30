@@ -357,24 +357,24 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
         notify.listen();
         try {
           notify.registerPushNotifications();
+          if (!mounted) return;
+          _setPhaseText('stickers');
+          final sticker = context.read<SnStickerProvider>();
+          await sticker.listSticker();
+          if (!mounted) return;
+          _setPhaseText('userDirectory');
+          final ud = context.read<UserDirectoryProvider>();
+          await ud.loadAccountCache();
+          if (!mounted) return;
+          _setPhaseText('realm');
+          final rm = context.read<SnRealmProvider>();
+          await rm.refreshAvailableRealms();
+          if (!mounted) return;
+          _setPhaseText('chat');
+          final ct = context.read<ChatChannelProvider>();
+          await ct.refreshAvailableChannels();
+          _setPhaseText('done');
         } catch (_) {}
-        if (!mounted) return;
-        _setPhaseText('stickers');
-        final sticker = context.read<SnStickerProvider>();
-        await sticker.listSticker();
-        if (!mounted) return;
-        _setPhaseText('userDirectory');
-        final ud = context.read<UserDirectoryProvider>();
-        await ud.loadAccountCache();
-        if (!mounted) return;
-        _setPhaseText('realm');
-        final rm = context.read<SnRealmProvider>();
-        await rm.refreshAvailableRealms();
-        if (!mounted) return;
-        _setPhaseText('chat');
-        final ct = context.read<ChatChannelProvider>();
-        await ct.refreshAvailableChannels();
-        _setPhaseText('done');
         _playIntro();
       }
     } catch (err) {
