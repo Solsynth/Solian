@@ -11,13 +11,11 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/notification.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/notification.dart';
-import 'package:surface/types/post.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
 import 'package:surface/widgets/markdown_content.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
-import 'package:surface/widgets/post/post_item.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 
 import '../providers/userinfo.dart';
@@ -219,34 +217,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                   'interactive.subscription',
                                 ].contains(nty.topic) &&
                                 nty.metadata['related_post'] != null)
-                              GestureDetector(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(8)),
-                                    border: Border.all(
-                                        color: Theme.of(context).dividerColor,
-                                        width: 1),
+                              TextButton(
+                                style: ButtonStyle(
+                                  padding: WidgetStatePropertyAll(
+                                    EdgeInsets.zero,
                                   ),
-                                  child: PostItem(
-                                    data: SnPost.fromJson(
-                                        nty.metadata['related_post']!),
-                                    showComments: false,
-                                    showReactions: false,
-                                    showMenu: false,
-                                  ).padding(vertical: 4),
+                                  visualDensity: VisualDensity.compact,
                                 ),
-                                onTap: () {
+                                child: Text('postReadMore').tr(),
+                                onPressed: () {
                                   GoRouter.of(context).pushNamed(
                                     'postDetail',
                                     pathParameters: {
-                                      'slug': nty
-                                          .metadata['related_post']!['id']
-                                          .toString()
+                                      'slug': nty.metadata['related_post']['id']
+                                          .toString(),
                                     },
                                   );
                                 },
-                              ).padding(top: 8),
+                              ),
                             const Gap(8),
                             Row(
                               children: [
