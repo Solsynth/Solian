@@ -389,7 +389,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           children: [
                             if (_focusedRealm!.banner != null)
                               AspectRatio(
-                                aspectRatio: 16 / 9,
+                                aspectRatio: 16 / 7,
                                 child: AutoResizeUniversalImage(
                                   sn.getAttachmentUrl(
                                     _focusedRealm!.banner!,

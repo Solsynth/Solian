@@ -274,8 +274,10 @@ class _PostItemState extends State<PostItem> {
     final isParentAuthor = ua.isAuthorized &&
         widget.data.replyTo?.publisher.accountId == ua.user?.id;
 
-    final displayableAttachments = widget.data.preload?.attachments
-        ?.where((ele) =>
+    final displayableAttachments = widget.data.body['attachments']
+        ?.map((e) => SnAttachment.fromJson(e))
+        .cast<SnAttachment>()
+        .where((ele) =>
             ele?.mediaType != SnMediaType.image ||
             widget.data.type != 'article')
         .toList();
@@ -284,7 +286,7 @@ class _PostItemState extends State<PostItem> {
 
     var attachmentSize = math.min(
         MediaQuery.of(context).size.width, widget.maxWidth ?? double.infinity);
-    if ((widget.data.preload?.attachments?.length ?? 0) > 1) {
+    if ((widget.data.body['attachments']?.length ?? 0) > 1) {
       attachmentSize -= 80;
     }
 
@@ -341,7 +343,7 @@ class _PostItemState extends State<PostItem> {
                   ],
                 ),
                 const Gap(8),
-                if (widget.data.preload?.thumbnail != null)
+                if (widget.data.body['thumbnail'] != null)
                   Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
@@ -361,14 +363,14 @@ class _PostItemState extends State<PostItem> {
                         ),
                         child: AutoResizeUniversalImage(
                           sn.getAttachmentUrl(
-                            widget.data.preload!.thumbnail!.rid,
+                            widget.data.body['thumbnail']['rid'],
                           ),
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
                   ),
-                if (widget.data.preload?.video != null)
+                if (widget.data.body['video'] != null)
                   _PostVideoPlayer(data: widget.data).padding(bottom: 8),
                 if (widget.data.type == 'question')
                   _PostQuestionHint(data: widget.data).padding(bottom: 8),
@@ -455,10 +457,10 @@ class _PostItemState extends State<PostItem> {
                     if (widget.data.repostTo != null)
                       _PostQuoteContent(child: widget.data.repostTo!).padding(
                         top: 4,
-                        bottom: widget.data.preload?.attachments?.isNotEmpty ??
-                                false
-                            ? 12
-                            : 0,
+                        bottom:
+                            widget.data.body['attachments'].isNotEmpty ?? false
+                                ? 12
+                                : 0,
                       ),
                   ],
                 ).padding(
@@ -479,11 +481,11 @@ class _PostItemState extends State<PostItem> {
               fit: widget.showFullPost ? BoxFit.cover : BoxFit.contain,
               padding: EdgeInsets.only(left: 12, right: 12),
             ),
-          if (widget.data.preload?.poll != null)
+          if (widget.data.poll != null)
             StyledWidget(Container(
               constraints:
                   BoxConstraints(maxWidth: widget.maxWidth ?? double.infinity),
-              child: PostPoll(poll: widget.data.preload!.poll!),
+              child: PostPoll(poll: widget.data.poll!),
             ))
                 .padding(
                   left: 12,
@@ -585,7 +587,7 @@ class _PostItemState extends State<PostItem> {
                             ),
                           ],
                         ).padding(bottom: widget.showCompactAvatar ? 4 : 0),
-                        if (widget.data.preload?.thumbnail != null)
+                        if (widget.data.body['thumbnail'] != null)
                           Container(
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
@@ -605,14 +607,14 @@ class _PostItemState extends State<PostItem> {
                                 ),
                                 child: AutoResizeUniversalImage(
                                   sn.getAttachmentUrl(
-                                    widget.data.preload!.thumbnail!.rid,
+                                    widget.data.body['thumbnail']['rid'],
                                   ),
                                   fit: BoxFit.cover,
                                 ),
                               ),
                             ),
                           ),
-                        if (widget.data.preload?.video != null)
+                        if (widget.data.body['video'] != null)
                           _PostVideoPlayer(data: widget.data)
                               .padding(bottom: 8),
                         if (widget.data.type == 'question')
@@ -712,7 +714,7 @@ class _PostItemState extends State<PostItem> {
                                       _isTranslated ||
                                       _isTranslating) &&
                                   (widget.data.repostTo != null ||
-                                      (widget.data.preload?.attachments
+                                      (widget.data.body['attachments']
                                               ?.isNotEmpty ??
                                           false))
                               ? 8
@@ -722,7 +724,7 @@ class _PostItemState extends State<PostItem> {
                           _PostQuoteContent(child: widget.data.repostTo!)
                               .padding(
                             bottom:
-                                (widget.data.preload?.attachments?.isNotEmpty ??
+                                (widget.data.body['attachments']?.isNotEmpty ??
                                         false)
                                     ? 8
                                     : 0,
@@ -746,8 +748,8 @@ class _PostItemState extends State<PostItem> {
             padding:
                 EdgeInsets.only(left: widget.showAvatar ? 60 : 12, right: 12),
           ),
-        if (widget.data.preload?.poll != null)
-          PostPoll(poll: widget.data.preload!.poll!).padding(
+        if (widget.data.poll != null)
+          PostPoll(poll: widget.data.poll!).padding(
             left: widget.showAvatar ? 60 : 12,
             right: 12,
             top: 12,
@@ -808,7 +810,7 @@ class PostShareImageWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (data.preload?.thumbnail != null)
+          if (data.body['thumbnail'] != null)
             AspectRatio(
               aspectRatio: 16 / 9,
               child: ClipRRect(
@@ -817,7 +819,7 @@ class PostShareImageWidget extends StatelessWidget {
                   topRight: Radius.circular(8),
                 ),
                 child: AutoResizeUniversalImage(
-                  sn.getAttachmentUrl(data.preload!.thumbnail!.rid),
+                  sn.getAttachmentUrl(data.body['thumbnail']['rid']),
                   fit: BoxFit.cover,
                   filterQuality: FilterQuality.high,
                 ),
@@ -855,9 +857,13 @@ class PostShareImageWidget extends StatelessWidget {
               isRelativeDate: false,
             ).padding(horizontal: 16, bottom: 8),
           if (data.type != 'article' &&
-              (data.preload?.attachments?.isNotEmpty ?? false))
+              (data.body['attachments']?.isNotEmpty ?? false))
             StyledWidget(AttachmentList(
-              data: data.preload!.attachments!,
+              data: data.body['attachments']
+                      ?.map((e) => SnAttachment.fromJson(e))
+                      .cast<SnAttachment>()
+                      .toList() ??
+                  [],
               columned: true,
               fit: BoxFit.contain,
               filterQuality: FilterQuality.high,
@@ -1146,31 +1152,9 @@ class _PostHeadline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isEnlarge) {
-      final sn = context.read<SnNetworkProvider>();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (data.preload?.thumbnail != null)
-            Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                border: Border.all(
-                  color: Theme.of(context).dividerColor,
-                  width: 1,
-                ),
-              ),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  child: AutoResizeUniversalImage(
-                    sn.getAttachmentUrl(data.preload!.thumbnail!.rid),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
           if (data.body['title'] != null || (title?.isNotEmpty ?? false))
             Text(
               title ?? data.body['title'],
@@ -1255,7 +1239,7 @@ class _PostAvatar extends StatelessWidget {
         : null;
 
     return GestureDetector(
-      child: data.preload?.realm == null
+      child: data.realm == null
           ? AccountImage(
               filterQuality: filterQuality,
               content: data.publisher.avatar,
@@ -1271,7 +1255,7 @@ class _PostAvatar extends StatelessWidget {
             )
           : AccountImage(
               filterQuality: filterQuality,
-              content: data.preload!.realm!.avatar,
+              content: data.realm!.avatar,
               radius: isCompact ? 12 : 20,
               borderRadius: isCompact ? 4 : 8,
               badgeOffset: Offset(-6, -4),
@@ -1596,11 +1580,11 @@ class _PostContentHeader extends StatelessWidget {
           Row(
             children: [
               Text(data.publisher.nick).bold(),
-              if (data.preload?.realm != null)
+              if (data.realm != null)
                 const Icon(Symbols.arrow_right, size: 16)
                     .padding(horizontal: 2)
                     .opacity(0.5),
-              if (data.preload?.realm != null) Text(data.preload!.realm!.name),
+              if (data.realm != null) Text(data.realm!.name),
             ],
           ),
           Row(
@@ -1648,7 +1632,11 @@ class _PostContentBody extends StatelessWidget {
           RegExp(r"^:([-\w]+):$").hasMatch(data.body['content'] ?? ''),
       textScaler: isEnlarge ? TextScaler.linear(1.1) : null,
       content: text,
-      attachments: data.preload?.attachments,
+      attachments: data.body['attachments']
+              ?.map((e) => SnAttachment.fromJson(e))
+              .cast<SnAttachment>()
+              .toList() ??
+          [],
     );
 
     if (isSelectable) {
@@ -1706,14 +1694,14 @@ class _PostQuoteContent extends StatelessWidget {
               ],
             ).padding(horizontal: 16),
             if (child.type != 'article' &&
-                (child.preload?.attachments?.isNotEmpty ?? false))
+                (child.body['attachments']?.isNotEmpty ?? false))
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(8),
                   bottomRight: Radius.circular(8),
                 ),
                 child: AttachmentList(
-                  data: child.preload!.attachments!,
+                  data: child.body['attachments']!,
                   maxHeight: 360,
                   minWidth: 640,
                   fit: BoxFit.contain,
@@ -2352,7 +2340,7 @@ class _PostVideoPlayer extends StatelessWidget {
         child: ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           child: AttachmentItem(
-            data: data.preload!.video!,
+            data: data.body['video'],
             heroTag: 'post-video-${data.id}',
           ),
         ),

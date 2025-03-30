@@ -214,7 +214,7 @@ class _AccountPublisherEditScreenState
                     child: ClipRRect(
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
                       child: AspectRatio(
-                        aspectRatio: 16 / 9,
+                        aspectRatio: 16 / 7,
                         child: Container(
                           color: Theme.of(context)
                               .colorScheme

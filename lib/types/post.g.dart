@@ -32,6 +32,9 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
       replyId: (json['reply_id'] as num?)?.toInt(),
       repostId: (json['repost_id'] as num?)?.toInt(),
       realmId: (json['realm_id'] as num?)?.toInt(),
+      realm: json['realm'] == null
+          ? null
+          : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
       replyTo: json['reply_to'] == null
           ? null
           : SnPost.fromJson(json['reply_to'] as Map<String, dynamic>),
@@ -68,12 +71,12 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
           (json['total_aggregated_views'] as num?)?.toInt() ?? 0,
       publisherId: (json['publisher_id'] as num).toInt(),
       pollId: (json['poll_id'] as num?)?.toInt(),
+      poll: json['poll'] == null
+          ? null
+          : SnPoll.fromJson(json['poll'] as Map<String, dynamic>),
       publisher:
           SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
       metric: SnMetric.fromJson(json['metric'] as Map<String, dynamic>),
-      preload: json['preload'] == null
-          ? null
-          : SnPostPreload.fromJson(json['preload'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
@@ -92,6 +95,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
       'reply_id': instance.replyId,
       'repost_id': instance.repostId,
       'realm_id': instance.realmId,
+      'realm': instance.realm?.toJson(),
       'reply_to': instance.replyTo?.toJson(),
       'repost_to': instance.repostTo?.toJson(),
       'visible_users_list': instance.visibleUsersList,
@@ -109,9 +113,9 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
       'total_aggregated_views': instance.totalAggregatedViews,
       'publisher_id': instance.publisherId,
       'poll_id': instance.pollId,
+      'poll': instance.poll?.toJson(),
       'publisher': instance.publisher.toJson(),
       'metric': instance.metric.toJson(),
-      'preload': instance.preload?.toJson(),
     };
 
 _SnPostTag _$SnPostTagFromJson(Map<String, dynamic> json) => _SnPostTag(
@@ -241,6 +245,9 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
       totalDownvote: (json['total_downvote'] as num).toInt(),
       realmId: (json['realm_id'] as num?)?.toInt(),
       accountId: (json['account_id'] as num).toInt(),
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
@@ -259,6 +266,7 @@ Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
       'total_downvote': instance.totalDownvote,
       'realm_id': instance.realmId,
       'account_id': instance.accountId,
+      'account': instance.account?.toJson(),
     };
 
 _SnSubscription _$SnSubscriptionFromJson(Map<String, dynamic> json) =>

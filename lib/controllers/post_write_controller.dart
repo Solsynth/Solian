@@ -241,7 +241,7 @@ class PostWriteController extends ChangeNotifier {
         contentController.text = post.body['content'] ?? '';
         aliasController.text = post.alias ?? '';
         rewardController.text = post.body['reward']?.toString() ?? '';
-        videoAttachment = post.preload?.video;
+        videoAttachment = SnAttachment.fromJson(post.body['video']);
         publishedAt = post.publishedAt;
         publishedUntil = post.publishedUntil;
         visibleUsers = List.from(post.visibleUsersList ?? [], growable: true);
@@ -252,17 +252,21 @@ class PostWriteController extends ChangeNotifier {
         categories =
             List.from(post.categories.map((ele) => ele.alias), growable: true);
         attachments.addAll(
-            post.preload?.attachments?.map((ele) => PostWriteMedia(ele)) ?? []);
-        poll = post.preload?.poll;
+          post.body['attachments']
+                  .where(SnAttachment.fromJson)
+                  ?.map(PostWriteMedia) ??
+              [],
+        );
+        poll = post.poll;
 
         editingDraft = post.isDraft;
 
-        if (post.preload?.thumbnail != null &&
-            (post.preload?.thumbnail?.rid.isNotEmpty ?? false)) {
-          thumbnail = PostWriteMedia(post.preload!.thumbnail);
+        if (post.body['thumbnail'] != null) {
+          thumbnail =
+              PostWriteMedia(SnAttachment.fromJson(post.body['thumbnail']));
         }
-        if (post.preload?.realm != null) {
-          realm = post.preload!.realm!;
+        if (post.realm != null) {
+          realm = post.realm!;
         }
 
         editingPost = post;

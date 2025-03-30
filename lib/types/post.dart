@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:surface/types/account.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/types/poll.dart';
 import 'package:surface/types/realm.dart';
@@ -26,6 +27,7 @@ abstract class SnPost with _$SnPost {
     required int? replyId,
     required int? repostId,
     required int? realmId,
+    required SnRealm? realm,
     required SnPost? replyTo,
     required SnPost? repostTo,
     required List<int>? visibleUsersList,
@@ -43,9 +45,9 @@ abstract class SnPost with _$SnPost {
     @Default(0) int totalAggregatedViews,
     required int publisherId,
     required int? pollId,
+    required SnPoll? poll,
     required SnPublisher publisher,
     required SnMetric metric,
-    SnPostPreload? preload,
   }) = _SnPost;
 
   factory SnPost.fromJson(Map<String, Object?> json) => _$SnPostFromJson(json);
@@ -146,6 +148,7 @@ abstract class SnPublisher with _$SnPublisher {
     required int totalDownvote,
     required int? realmId,
     required int accountId,
+    required SnAccount? account,
   }) = _SnPublisher;
 
   factory SnPublisher.fromJson(Map<String, Object?> json) =>

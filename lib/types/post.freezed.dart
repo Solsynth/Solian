@@ -30,6 +30,7 @@ mixin _$SnPost {
   int? get replyId;
   int? get repostId;
   int? get realmId;
+  SnRealm? get realm;
   SnPost? get replyTo;
   SnPost? get repostTo;
   List<int>? get visibleUsersList;
@@ -47,9 +48,9 @@ mixin _$SnPost {
   int get totalAggregatedViews;
   int get publisherId;
   int? get pollId;
+  SnPoll? get poll;
   SnPublisher get publisher;
   SnMetric get metric;
-  SnPostPreload? get preload;
 
   /// Create a copy of SnPost
   /// with the given fields replaced by the non-null parameter values.
@@ -88,6 +89,7 @@ mixin _$SnPost {
             (identical(other.repostId, repostId) ||
                 other.repostId == repostId) &&
             (identical(other.realmId, realmId) || other.realmId == realmId) &&
+            (identical(other.realm, realm) || other.realm == realm) &&
             (identical(other.replyTo, replyTo) || other.replyTo == replyTo) &&
             (identical(other.repostTo, repostTo) ||
                 other.repostTo == repostTo) &&
@@ -119,10 +121,10 @@ mixin _$SnPost {
             (identical(other.publisherId, publisherId) ||
                 other.publisherId == publisherId) &&
             (identical(other.pollId, pollId) || other.pollId == pollId) &&
+            (identical(other.poll, poll) || other.poll == poll) &&
             (identical(other.publisher, publisher) ||
                 other.publisher == publisher) &&
-            (identical(other.metric, metric) || other.metric == metric) &&
-            (identical(other.preload, preload) || other.preload == preload));
+            (identical(other.metric, metric) || other.metric == metric));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -144,6 +146,7 @@ mixin _$SnPost {
         replyId,
         repostId,
         realmId,
+        realm,
         replyTo,
         repostTo,
         const DeepCollectionEquality().hash(visibleUsersList),
@@ -161,14 +164,14 @@ mixin _$SnPost {
         totalAggregatedViews,
         publisherId,
         pollId,
+        poll,
         publisher,
-        metric,
-        preload
+        metric
       ]);
 
   @override
   String toString() {
-    return 'SnPost(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, body: $body, language: $language, alias: $alias, aliasPrefix: $aliasPrefix, tags: $tags, categories: $categories, replies: $replies, replyId: $replyId, repostId: $repostId, realmId: $realmId, replyTo: $replyTo, repostTo: $repostTo, visibleUsersList: $visibleUsersList, invisibleUsersList: $invisibleUsersList, visibility: $visibility, editedAt: $editedAt, pinnedAt: $pinnedAt, lockedAt: $lockedAt, isDraft: $isDraft, publishedAt: $publishedAt, publishedUntil: $publishedUntil, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, totalViews: $totalViews, totalAggregatedViews: $totalAggregatedViews, publisherId: $publisherId, pollId: $pollId, publisher: $publisher, metric: $metric, preload: $preload)';
+    return 'SnPost(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, body: $body, language: $language, alias: $alias, aliasPrefix: $aliasPrefix, tags: $tags, categories: $categories, replies: $replies, replyId: $replyId, repostId: $repostId, realmId: $realmId, realm: $realm, replyTo: $replyTo, repostTo: $repostTo, visibleUsersList: $visibleUsersList, invisibleUsersList: $invisibleUsersList, visibility: $visibility, editedAt: $editedAt, pinnedAt: $pinnedAt, lockedAt: $lockedAt, isDraft: $isDraft, publishedAt: $publishedAt, publishedUntil: $publishedUntil, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, totalViews: $totalViews, totalAggregatedViews: $totalAggregatedViews, publisherId: $publisherId, pollId: $pollId, poll: $poll, publisher: $publisher, metric: $metric)';
   }
 }
 
@@ -193,6 +196,7 @@ abstract mixin class $SnPostCopyWith<$Res> {
       int? replyId,
       int? repostId,
       int? realmId,
+      SnRealm? realm,
       SnPost? replyTo,
       SnPost? repostTo,
       List<int>? visibleUsersList,
@@ -210,15 +214,16 @@ abstract mixin class $SnPostCopyWith<$Res> {
       int totalAggregatedViews,
       int publisherId,
       int? pollId,
+      SnPoll? poll,
       SnPublisher publisher,
-      SnMetric metric,
-      SnPostPreload? preload});
+      SnMetric metric});
 
+  $SnRealmCopyWith<$Res>? get realm;
   $SnPostCopyWith<$Res>? get replyTo;
   $SnPostCopyWith<$Res>? get repostTo;
+  $SnPollCopyWith<$Res>? get poll;
   $SnPublisherCopyWith<$Res> get publisher;
   $SnMetricCopyWith<$Res> get metric;
-  $SnPostPreloadCopyWith<$Res>? get preload;
 }
 
 /// @nodoc
@@ -248,6 +253,7 @@ class _$SnPostCopyWithImpl<$Res> implements $SnPostCopyWith<$Res> {
     Object? replyId = freezed,
     Object? repostId = freezed,
     Object? realmId = freezed,
+    Object? realm = freezed,
     Object? replyTo = freezed,
     Object? repostTo = freezed,
     Object? visibleUsersList = freezed,
@@ -265,9 +271,9 @@ class _$SnPostCopyWithImpl<$Res> implements $SnPostCopyWith<$Res> {
     Object? totalAggregatedViews = null,
     Object? publisherId = null,
     Object? pollId = freezed,
+    Object? poll = freezed,
     Object? publisher = null,
     Object? metric = null,
-    Object? preload = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -330,6 +336,10 @@ class _$SnPostCopyWithImpl<$Res> implements $SnPostCopyWith<$Res> {
           ? _self.realmId
           : realmId // ignore: cast_nullable_to_non_nullable
               as int?,
+      realm: freezed == realm
+          ? _self.realm
+          : realm // ignore: cast_nullable_to_non_nullable
+              as SnRealm?,
       replyTo: freezed == replyTo
           ? _self.replyTo
           : replyTo // ignore: cast_nullable_to_non_nullable
@@ -398,6 +408,10 @@ class _$SnPostCopyWithImpl<$Res> implements $SnPostCopyWith<$Res> {
           ? _self.pollId
           : pollId // ignore: cast_nullable_to_non_nullable
               as int?,
+      poll: freezed == poll
+          ? _self.poll
+          : poll // ignore: cast_nullable_to_non_nullable
+              as SnPoll?,
       publisher: null == publisher
           ? _self.publisher
           : publisher // ignore: cast_nullable_to_non_nullable
@@ -406,11 +420,21 @@ class _$SnPostCopyWithImpl<$Res> implements $SnPostCopyWith<$Res> {
           ? _self.metric
           : metric // ignore: cast_nullable_to_non_nullable
               as SnMetric,
-      preload: freezed == preload
-          ? _self.preload
-          : preload // ignore: cast_nullable_to_non_nullable
-              as SnPostPreload?,
     ));
+  }
+
+  /// Create a copy of SnPost
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnRealmCopyWith<$Res>? get realm {
+    if (_self.realm == null) {
+      return null;
+    }
+
+    return $SnRealmCopyWith<$Res>(_self.realm!, (value) {
+      return _then(_self.copyWith(realm: value));
+    });
   }
 
   /// Create a copy of SnPost
@@ -445,6 +469,20 @@ class _$SnPostCopyWithImpl<$Res> implements $SnPostCopyWith<$Res> {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
+  $SnPollCopyWith<$Res>? get poll {
+    if (_self.poll == null) {
+      return null;
+    }
+
+    return $SnPollCopyWith<$Res>(_self.poll!, (value) {
+      return _then(_self.copyWith(poll: value));
+    });
+  }
+
+  /// Create a copy of SnPost
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
   $SnPublisherCopyWith<$Res> get publisher {
     return $SnPublisherCopyWith<$Res>(_self.publisher, (value) {
       return _then(_self.copyWith(publisher: value));
@@ -458,20 +496,6 @@ class _$SnPostCopyWithImpl<$Res> implements $SnPostCopyWith<$Res> {
   $SnMetricCopyWith<$Res> get metric {
     return $SnMetricCopyWith<$Res>(_self.metric, (value) {
       return _then(_self.copyWith(metric: value));
-    });
-  }
-
-  /// Create a copy of SnPost
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $SnPostPreloadCopyWith<$Res>? get preload {
-    if (_self.preload == null) {
-      return null;
-    }
-
-    return $SnPostPreloadCopyWith<$Res>(_self.preload!, (value) {
-      return _then(_self.copyWith(preload: value));
     });
   }
 }
@@ -495,6 +519,7 @@ class _SnPost extends SnPost {
       required this.replyId,
       required this.repostId,
       required this.realmId,
+      required this.realm,
       required this.replyTo,
       required this.repostTo,
       required final List<int>? visibleUsersList,
@@ -512,9 +537,9 @@ class _SnPost extends SnPost {
       this.totalAggregatedViews = 0,
       required this.publisherId,
       required this.pollId,
+      required this.poll,
       required this.publisher,
-      required this.metric,
-      this.preload})
+      required this.metric})
       : _body = body,
         _tags = tags,
         _categories = categories,
@@ -583,6 +608,8 @@ class _SnPost extends SnPost {
   @override
   final int? realmId;
   @override
+  final SnRealm? realm;
+  @override
   final SnPost? replyTo;
   @override
   final SnPost? repostTo;
@@ -637,11 +664,11 @@ class _SnPost extends SnPost {
   @override
   final int? pollId;
   @override
+  final SnPoll? poll;
+  @override
   final SnPublisher publisher;
   @override
   final SnMetric metric;
-  @override
-  final SnPostPreload? preload;
 
   /// Create a copy of SnPost
   /// with the given fields replaced by the non-null parameter values.
@@ -685,6 +712,7 @@ class _SnPost extends SnPost {
             (identical(other.repostId, repostId) ||
                 other.repostId == repostId) &&
             (identical(other.realmId, realmId) || other.realmId == realmId) &&
+            (identical(other.realm, realm) || other.realm == realm) &&
             (identical(other.replyTo, replyTo) || other.replyTo == replyTo) &&
             (identical(other.repostTo, repostTo) ||
                 other.repostTo == repostTo) &&
@@ -716,10 +744,10 @@ class _SnPost extends SnPost {
             (identical(other.publisherId, publisherId) ||
                 other.publisherId == publisherId) &&
             (identical(other.pollId, pollId) || other.pollId == pollId) &&
+            (identical(other.poll, poll) || other.poll == poll) &&
             (identical(other.publisher, publisher) ||
                 other.publisher == publisher) &&
-            (identical(other.metric, metric) || other.metric == metric) &&
-            (identical(other.preload, preload) || other.preload == preload));
+            (identical(other.metric, metric) || other.metric == metric));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -741,6 +769,7 @@ class _SnPost extends SnPost {
         replyId,
         repostId,
         realmId,
+        realm,
         replyTo,
         repostTo,
         const DeepCollectionEquality().hash(_visibleUsersList),
@@ -758,14 +787,14 @@ class _SnPost extends SnPost {
         totalAggregatedViews,
         publisherId,
         pollId,
+        poll,
         publisher,
-        metric,
-        preload
+        metric
       ]);
 
   @override
   String toString() {
-    return 'SnPost(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, body: $body, language: $language, alias: $alias, aliasPrefix: $aliasPrefix, tags: $tags, categories: $categories, replies: $replies, replyId: $replyId, repostId: $repostId, realmId: $realmId, replyTo: $replyTo, repostTo: $repostTo, visibleUsersList: $visibleUsersList, invisibleUsersList: $invisibleUsersList, visibility: $visibility, editedAt: $editedAt, pinnedAt: $pinnedAt, lockedAt: $lockedAt, isDraft: $isDraft, publishedAt: $publishedAt, publishedUntil: $publishedUntil, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, totalViews: $totalViews, totalAggregatedViews: $totalAggregatedViews, publisherId: $publisherId, pollId: $pollId, publisher: $publisher, metric: $metric, preload: $preload)';
+    return 'SnPost(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, body: $body, language: $language, alias: $alias, aliasPrefix: $aliasPrefix, tags: $tags, categories: $categories, replies: $replies, replyId: $replyId, repostId: $repostId, realmId: $realmId, realm: $realm, replyTo: $replyTo, repostTo: $repostTo, visibleUsersList: $visibleUsersList, invisibleUsersList: $invisibleUsersList, visibility: $visibility, editedAt: $editedAt, pinnedAt: $pinnedAt, lockedAt: $lockedAt, isDraft: $isDraft, publishedAt: $publishedAt, publishedUntil: $publishedUntil, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, totalViews: $totalViews, totalAggregatedViews: $totalAggregatedViews, publisherId: $publisherId, pollId: $pollId, poll: $poll, publisher: $publisher, metric: $metric)';
   }
 }
 
@@ -791,6 +820,7 @@ abstract mixin class _$SnPostCopyWith<$Res> implements $SnPostCopyWith<$Res> {
       int? replyId,
       int? repostId,
       int? realmId,
+      SnRealm? realm,
       SnPost? replyTo,
       SnPost? repostTo,
       List<int>? visibleUsersList,
@@ -808,20 +838,22 @@ abstract mixin class _$SnPostCopyWith<$Res> implements $SnPostCopyWith<$Res> {
       int totalAggregatedViews,
       int publisherId,
       int? pollId,
+      SnPoll? poll,
       SnPublisher publisher,
-      SnMetric metric,
-      SnPostPreload? preload});
+      SnMetric metric});
 
+  @override
+  $SnRealmCopyWith<$Res>? get realm;
   @override
   $SnPostCopyWith<$Res>? get replyTo;
   @override
   $SnPostCopyWith<$Res>? get repostTo;
   @override
+  $SnPollCopyWith<$Res>? get poll;
+  @override
   $SnPublisherCopyWith<$Res> get publisher;
   @override
   $SnMetricCopyWith<$Res> get metric;
-  @override
-  $SnPostPreloadCopyWith<$Res>? get preload;
 }
 
 /// @nodoc
@@ -851,6 +883,7 @@ class __$SnPostCopyWithImpl<$Res> implements _$SnPostCopyWith<$Res> {
     Object? replyId = freezed,
     Object? repostId = freezed,
     Object? realmId = freezed,
+    Object? realm = freezed,
     Object? replyTo = freezed,
     Object? repostTo = freezed,
     Object? visibleUsersList = freezed,
@@ -868,9 +901,9 @@ class __$SnPostCopyWithImpl<$Res> implements _$SnPostCopyWith<$Res> {
     Object? totalAggregatedViews = null,
     Object? publisherId = null,
     Object? pollId = freezed,
+    Object? poll = freezed,
     Object? publisher = null,
     Object? metric = null,
-    Object? preload = freezed,
   }) {
     return _then(_SnPost(
       id: null == id
@@ -933,6 +966,10 @@ class __$SnPostCopyWithImpl<$Res> implements _$SnPostCopyWith<$Res> {
           ? _self.realmId
           : realmId // ignore: cast_nullable_to_non_nullable
               as int?,
+      realm: freezed == realm
+          ? _self.realm
+          : realm // ignore: cast_nullable_to_non_nullable
+              as SnRealm?,
       replyTo: freezed == replyTo
           ? _self.replyTo
           : replyTo // ignore: cast_nullable_to_non_nullable
@@ -1001,6 +1038,10 @@ class __$SnPostCopyWithImpl<$Res> implements _$SnPostCopyWith<$Res> {
           ? _self.pollId
           : pollId // ignore: cast_nullable_to_non_nullable
               as int?,
+      poll: freezed == poll
+          ? _self.poll
+          : poll // ignore: cast_nullable_to_non_nullable
+              as SnPoll?,
       publisher: null == publisher
           ? _self.publisher
           : publisher // ignore: cast_nullable_to_non_nullable
@@ -1009,11 +1050,21 @@ class __$SnPostCopyWithImpl<$Res> implements _$SnPostCopyWith<$Res> {
           ? _self.metric
           : metric // ignore: cast_nullable_to_non_nullable
               as SnMetric,
-      preload: freezed == preload
-          ? _self.preload
-          : preload // ignore: cast_nullable_to_non_nullable
-              as SnPostPreload?,
     ));
+  }
+
+  /// Create a copy of SnPost
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnRealmCopyWith<$Res>? get realm {
+    if (_self.realm == null) {
+      return null;
+    }
+
+    return $SnRealmCopyWith<$Res>(_self.realm!, (value) {
+      return _then(_self.copyWith(realm: value));
+    });
   }
 
   /// Create a copy of SnPost
@@ -1048,6 +1099,20 @@ class __$SnPostCopyWithImpl<$Res> implements _$SnPostCopyWith<$Res> {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
+  $SnPollCopyWith<$Res>? get poll {
+    if (_self.poll == null) {
+      return null;
+    }
+
+    return $SnPollCopyWith<$Res>(_self.poll!, (value) {
+      return _then(_self.copyWith(poll: value));
+    });
+  }
+
+  /// Create a copy of SnPost
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
   $SnPublisherCopyWith<$Res> get publisher {
     return $SnPublisherCopyWith<$Res>(_self.publisher, (value) {
       return _then(_self.copyWith(publisher: value));
@@ -1061,20 +1126,6 @@ class __$SnPostCopyWithImpl<$Res> implements _$SnPostCopyWith<$Res> {
   $SnMetricCopyWith<$Res> get metric {
     return $SnMetricCopyWith<$Res>(_self.metric, (value) {
       return _then(_self.copyWith(metric: value));
-    });
-  }
-
-  /// Create a copy of SnPost
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $SnPostPreloadCopyWith<$Res>? get preload {
-    if (_self.preload == null) {
-      return null;
-    }
-
-    return $SnPostPreloadCopyWith<$Res>(_self.preload!, (value) {
-      return _then(_self.copyWith(preload: value));
     });
   }
 }
@@ -2465,6 +2516,7 @@ mixin _$SnPublisher {
   int get totalDownvote;
   int? get realmId;
   int get accountId;
+  SnAccount? get account;
 
   /// Create a copy of SnPublisher
   /// with the given fields replaced by the non-null parameter values.
@@ -2501,7 +2553,8 @@ mixin _$SnPublisher {
                 other.totalDownvote == totalDownvote) &&
             (identical(other.realmId, realmId) || other.realmId == realmId) &&
             (identical(other.accountId, accountId) ||
-                other.accountId == accountId));
+                other.accountId == accountId) &&
+            (identical(other.account, account) || other.account == account));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2521,11 +2574,12 @@ mixin _$SnPublisher {
       totalUpvote,
       totalDownvote,
       realmId,
-      accountId);
+      accountId,
+      account);
 
   @override
   String toString() {
-    return 'SnPublisher(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, name: $name, nick: $nick, description: $description, avatar: $avatar, banner: $banner, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, realmId: $realmId, accountId: $accountId)';
+    return 'SnPublisher(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, name: $name, nick: $nick, description: $description, avatar: $avatar, banner: $banner, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, realmId: $realmId, accountId: $accountId, account: $account)';
   }
 }
 
@@ -2549,7 +2603,10 @@ abstract mixin class $SnPublisherCopyWith<$Res> {
       int totalUpvote,
       int totalDownvote,
       int? realmId,
-      int accountId});
+      int accountId,
+      SnAccount? account});
+
+  $SnAccountCopyWith<$Res>? get account;
 }
 
 /// @nodoc
@@ -2578,6 +2635,7 @@ class _$SnPublisherCopyWithImpl<$Res> implements $SnPublisherCopyWith<$Res> {
     Object? totalDownvote = null,
     Object? realmId = freezed,
     Object? accountId = null,
+    Object? account = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -2636,7 +2694,25 @@ class _$SnPublisherCopyWithImpl<$Res> implements $SnPublisherCopyWith<$Res> {
           ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
               as int,
+      account: freezed == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
     ));
+  }
+
+  /// Create a copy of SnPublisher
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
+    });
   }
 }
 
@@ -2657,7 +2733,8 @@ class _SnPublisher implements SnPublisher {
       required this.totalUpvote,
       required this.totalDownvote,
       required this.realmId,
-      required this.accountId});
+      required this.accountId,
+      required this.account});
   factory _SnPublisher.fromJson(Map<String, dynamic> json) =>
       _$SnPublisherFromJson(json);
 
@@ -2689,6 +2766,8 @@ class _SnPublisher implements SnPublisher {
   final int? realmId;
   @override
   final int accountId;
+  @override
+  final SnAccount? account;
 
   /// Create a copy of SnPublisher
   /// with the given fields replaced by the non-null parameter values.
@@ -2730,7 +2809,8 @@ class _SnPublisher implements SnPublisher {
                 other.totalDownvote == totalDownvote) &&
             (identical(other.realmId, realmId) || other.realmId == realmId) &&
             (identical(other.accountId, accountId) ||
-                other.accountId == accountId));
+                other.accountId == accountId) &&
+            (identical(other.account, account) || other.account == account));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2750,11 +2830,12 @@ class _SnPublisher implements SnPublisher {
       totalUpvote,
       totalDownvote,
       realmId,
-      accountId);
+      accountId,
+      account);
 
   @override
   String toString() {
-    return 'SnPublisher(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, name: $name, nick: $nick, description: $description, avatar: $avatar, banner: $banner, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, realmId: $realmId, accountId: $accountId)';
+    return 'SnPublisher(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, type: $type, name: $name, nick: $nick, description: $description, avatar: $avatar, banner: $banner, totalUpvote: $totalUpvote, totalDownvote: $totalDownvote, realmId: $realmId, accountId: $accountId, account: $account)';
   }
 }
 
@@ -2780,7 +2861,11 @@ abstract mixin class _$SnPublisherCopyWith<$Res>
       int totalUpvote,
       int totalDownvote,
       int? realmId,
-      int accountId});
+      int accountId,
+      SnAccount? account});
+
+  @override
+  $SnAccountCopyWith<$Res>? get account;
 }
 
 /// @nodoc
@@ -2809,6 +2894,7 @@ class __$SnPublisherCopyWithImpl<$Res> implements _$SnPublisherCopyWith<$Res> {
     Object? totalDownvote = null,
     Object? realmId = freezed,
     Object? accountId = null,
+    Object? account = freezed,
   }) {
     return _then(_SnPublisher(
       id: null == id
@@ -2867,7 +2953,25 @@ class __$SnPublisherCopyWithImpl<$Res> implements _$SnPublisherCopyWith<$Res> {
           ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
               as int,
+      account: freezed == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
     ));
+  }
+
+  /// Create a copy of SnPublisher
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
+    });
   }
 }
 
