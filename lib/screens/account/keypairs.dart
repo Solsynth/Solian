@@ -37,7 +37,7 @@ class _KeyPairScreenState extends State<KeyPairScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         title: Text('screenKeyPairs').tr(),
       ),

@@ -124,7 +124,7 @@ class _CallRoomScreenState extends State<CallRoomScreen> {
         listenable: call,
         builder: (context, _) {
           return AppScaffold(
-            noBackground: true,
+            noBackground: ResponsiveScaffold.getIsExpand(context),
             appBar: AppBar(
               title: RichText(
                 textAlign: TextAlign.center,

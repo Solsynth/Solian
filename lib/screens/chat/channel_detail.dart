@@ -220,7 +220,7 @@ class _ChannelDetailScreenState extends State<ChannelDetailScreen> {
     final isOwned = ua.isAuthorized && _channel?.accountId == ua.user?.id;
 
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         title: _channel != null ? Text(_channel!.name) : Text('loading').tr(),
       ),

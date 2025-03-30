@@ -26,11 +26,13 @@ class _LinkPreviewWidgetState extends State<LinkPreviewWidget> {
 
   Future<void> _getLinkMeta() async {
     final linkRegex = RegExp(r'https?:\/\/[^\s/$.?#].[^\s]*');
-    final links = linkRegex.allMatches(widget.text).map((e) => e.group(0)).toSet();
+    final links =
+        linkRegex.allMatches(widget.text).map((e) => e.group(0)).toSet();
 
     final lp = context.read<SnLinkPreviewProvider>();
 
-    final List<Future<SnLinkMeta?>> futures = links.where((e) => e != null).map((e) => lp.getLinkMeta(e!)).toList();
+    final List<Future<SnLinkMeta?>> futures =
+        links.where((e) => e != null).map((e) => lp.getLinkMeta(e!)).toList();
     final results = await Future.wait(futures);
 
     _links.addAll(results.where((e) => e != null).map((e) => e!).toList());
@@ -66,7 +68,9 @@ class _LinkPreviewEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(
-        maxWidth: ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE) ? double.infinity : 480,
+        maxWidth: ResponsiveBreakpoints.of(context).smallerOrEqualTo(MOBILE)
+            ? double.infinity
+            : 480,
       ),
       child: GestureDetector(
         child: Card(
@@ -74,16 +78,25 @@ class _LinkPreviewEntry extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (meta.image != null)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 4),
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      child: AutoResizeUniversalImage(
-                        meta.image!.startsWith('//') ? 'https:${meta.image}' : meta.image!,
-                        fit: BoxFit.contain,
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(8),
+                    topRight: Radius.circular(8),
+                  ),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(8)),
+                        child: AutoResizeUniversalImage(
+                          meta.image!.startsWith('//')
+                              ? 'https:${meta.image}'
+                              : meta.image!,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
@@ -98,7 +111,8 @@ class _LinkPreviewEntry extends StatelessWidget {
                         width: 36,
                         height: 36,
                         child: meta.icon!.endsWith('.svg')
-                            ? SvgPicture.network(meta.icon!, width: 36, height: 36)
+                            ? SvgPicture.network(meta.icon!,
+                                width: 36, height: 36)
                             : UniversalImage(
                                 meta.icon!,
                                 noErrorWidget: true,

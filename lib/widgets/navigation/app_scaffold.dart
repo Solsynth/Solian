@@ -282,7 +282,7 @@ class ResponsiveScaffoldLanding extends StatelessWidget {
   Widget build(BuildContext context) {
     if (ResponsiveScaffold.getIsExpand(context) || child == null) {
       return AppScaffold(
-        noBackground: true,
+        noBackground: ResponsiveScaffold.getIsExpand(context),
         appBar: AppBar(),
         body: const SizedBox.shrink(),
       );

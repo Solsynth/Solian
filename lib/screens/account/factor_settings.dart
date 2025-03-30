@@ -62,7 +62,7 @@ class _FactorSettingsScreenState extends State<FactorSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         leading: PageBackButton(),
         title: Text('screenFactorSettings').tr(),

@@ -223,7 +223,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         leading: AutoAppBarLeading(),
         title: Text('screenChat').tr(),

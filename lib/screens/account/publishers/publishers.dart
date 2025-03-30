@@ -82,7 +82,7 @@ class _PublisherScreenState extends State<PublisherScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('screenAccountPublishers').tr(),

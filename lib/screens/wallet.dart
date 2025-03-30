@@ -45,7 +45,7 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
           leading: PageBackButton(), title: Text('screenAccountWallet').tr()),
       body: Column(

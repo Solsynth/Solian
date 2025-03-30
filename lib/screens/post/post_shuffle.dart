@@ -79,6 +79,7 @@ class _PostShuffleScreenState extends State<PostShuffleScreen> {
                               key: ValueKey(ele),
                               data: ele,
                               maxWidth: 640,
+                              useReplace: true,
                               onChanged: (ele) {
                                 _posts[idx] = ele;
                                 setState(() {});

@@ -66,7 +66,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final double maxWidth = _data?.type == 'video' ? double.infinity : 640;
 
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         leading: BackButton(
           onPressed: () {

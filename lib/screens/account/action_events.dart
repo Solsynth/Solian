@@ -59,7 +59,7 @@ class _ActionEventScreenState extends State<ActionEventScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('accountActionEvent').tr(),

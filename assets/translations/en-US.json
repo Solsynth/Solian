@@ -944,5 +944,6 @@
   "back": "Back",
   "badgeProgramDeveloper": "Developer Program Member",
   "badgeProgramStellar": "A Stellar",
-  "badgeProgramModerator": "Community Moderator"
+  "badgeProgramModerator": "Community Moderator",
+  "postEditedHint": "edited"
 }

@@ -70,7 +70,7 @@ class _AccountSecurityPrefsScreenState
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('accountSettingsSecurity').tr(),

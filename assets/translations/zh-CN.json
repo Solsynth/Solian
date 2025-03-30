@@ -941,5 +941,6 @@
   "back": "返回",
   "badgeProgramDeveloper": "开发者计划成员",
   "badgeProgramStellar": "一颗恒星",
-  "badgeProgramModerator": "社区管理员"
+  "badgeProgramModerator": "社区管理员",
+  "postEditedHint": "已编辑"
 }

@@ -91,7 +91,7 @@ class _AccountAuthTicketState extends State<AccountAuthTicket> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('accountAuthTickets').tr(),

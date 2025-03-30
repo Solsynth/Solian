@@ -70,7 +70,7 @@ class _AccountBadgesScreenState extends State<AccountBadgesScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         title: Text('screenAccountBadges').tr(),
       ),

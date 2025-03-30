@@ -196,7 +196,7 @@ class _AccountPublisherEditScreenState
     final sn = context.read<SnNetworkProvider>();
 
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
           leading: PageBackButton(),
           title: Text('screenAccountPublisherEdit').tr()),

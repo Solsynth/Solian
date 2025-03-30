@@ -304,7 +304,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final ud = context.read<UserDirectoryProvider>();
 
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         title: Text(
           _channel?.type == 1

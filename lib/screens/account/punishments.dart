@@ -55,7 +55,7 @@ class _PunishmentsScreenState extends State<PunishmentsScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         title: Text('accountPunishments').tr(),
         leading: PageBackButton(),

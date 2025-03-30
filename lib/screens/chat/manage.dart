@@ -141,7 +141,7 @@ class _ChatManageScreenState extends State<ChatManageScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
         title: widget.editingChannelAlias != null
             ? Text('screenChatManage').tr()

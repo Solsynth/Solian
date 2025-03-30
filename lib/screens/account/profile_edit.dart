@@ -244,7 +244,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final sn = context.read<SnNetworkProvider>();
 
     return AppScaffold(
-      noBackground: true,
+      noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
           leading: const PageBackButton(),
           title: Text('screenAccountProfileEdit').tr()),

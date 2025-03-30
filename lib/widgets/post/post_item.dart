@@ -1552,6 +1552,7 @@ class _PostContentHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isCompact) {
       return Row(
+        spacing: 4,
         children: [
           Flexible(
             child: Text(
@@ -1559,7 +1560,6 @@ class _PostContentHeader extends StatelessWidget {
               maxLines: 1,
             ).bold(),
           ),
-          const Gap(4),
           Flexible(
             child: Text(
               isRelativeDate
@@ -1571,6 +1571,10 @@ class _PostContentHeader extends StatelessWidget {
               overflow: TextOverflow.fade,
             ).fontSize(13).opacity(0.8),
           ),
+          if (data.editedAt != null)
+            Flexible(
+              child: Text('postEditedHint').tr().fontSize(13).opacity(0.8),
+            )
         ],
       );
     } else {
@@ -1588,12 +1592,12 @@ class _PostContentHeader extends StatelessWidget {
             ],
           ),
           Row(
+            spacing: 4,
             children: [
               Text(
                 '@${data.publisher.name}',
                 maxLines: 1,
               ).fontSize(13),
-              const Gap(4),
               Text(
                 isRelativeDate
                     ? RelativeTime(context)
@@ -1603,6 +1607,8 @@ class _PostContentHeader extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.fade,
               ).fontSize(13),
+              if (data.editedAt != null)
+                Text('postEditedHint').tr().fontSize(13),
             ],
           ).opacity(0.8),
         ],
