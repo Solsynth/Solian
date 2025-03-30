@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:surface/types/account.dart';
 
 part 'attachment.freezed.dart';
 
@@ -39,6 +40,7 @@ abstract class SnAttachment with _$SnAttachment {
     required int? refId,
     required SnAttachmentPool? pool,
     required int? poolId,
+    required SnAccount? account,
     required int accountId,
     int? thumbnailId,
     SnAttachment? thumbnail,
@@ -49,7 +51,8 @@ abstract class SnAttachment with _$SnAttachment {
     @Default({}) Map<String, dynamic> metadata,
   }) = _SnAttachment;
 
-  factory SnAttachment.fromJson(Map<String, Object?> json) => _$SnAttachmentFromJson(json);
+  factory SnAttachment.fromJson(Map<String, Object?> json) =>
+      _$SnAttachmentFromJson(json);
 
   Map<String, dynamic> get data => {
         ...metadata,
@@ -85,7 +88,8 @@ abstract class SnAttachmentFragment with _$SnAttachmentFragment {
     @Default([]) List<String> fileChunksMissing,
   }) = _SnAttachmentFragment;
 
-  factory SnAttachmentFragment.fromJson(Map<String, Object?> json) => _$SnAttachmentFragmentFromJson(json);
+  factory SnAttachmentFragment.fromJson(Map<String, Object?> json) =>
+      _$SnAttachmentFragmentFromJson(json);
 
   SnMediaType get mediaType => switch (mimetype.split('/').firstOrNull) {
         'image' => SnMediaType.image,
@@ -109,7 +113,8 @@ abstract class SnAttachmentPool with _$SnAttachmentPool {
     required int? accountId,
   }) = _SnAttachmentPool;
 
-  factory SnAttachmentPool.fromJson(Map<String, Object?> json) => _$SnAttachmentPoolFromJson(json);
+  factory SnAttachmentPool.fromJson(Map<String, Object?> json) =>
+      _$SnAttachmentPoolFromJson(json);
 }
 
 @freezed
@@ -122,7 +127,8 @@ abstract class SnAttachmentDestination with _$SnAttachmentDestination {
     required bool isBoost,
   }) = _SnAttachmentDestination;
 
-  factory SnAttachmentDestination.fromJson(Map<String, Object?> json) => _$SnAttachmentDestinationFromJson(json);
+  factory SnAttachmentDestination.fromJson(Map<String, Object?> json) =>
+      _$SnAttachmentDestinationFromJson(json);
 }
 
 @freezed
@@ -139,7 +145,8 @@ abstract class SnAttachmentBoost with _$SnAttachmentBoost {
     required int account,
   }) = _SnAttachmentBoost;
 
-  factory SnAttachmentBoost.fromJson(Map<String, Object?> json) => _$SnAttachmentBoostFromJson(json);
+  factory SnAttachmentBoost.fromJson(Map<String, Object?> json) =>
+      _$SnAttachmentBoostFromJson(json);
 }
 
 @freezed
@@ -158,7 +165,8 @@ abstract class SnSticker with _$SnSticker {
     required int accountId,
   }) = _SnSticker;
 
-  factory SnSticker.fromJson(Map<String, Object?> json) => _$SnStickerFromJson(json);
+  factory SnSticker.fromJson(Map<String, Object?> json) =>
+      _$SnStickerFromJson(json);
 }
 
 @freezed
@@ -175,7 +183,8 @@ abstract class SnStickerPack with _$SnStickerPack {
     required int accountId,
   }) = _SnStickerPack;
 
-  factory SnStickerPack.fromJson(Map<String, Object?> json) => _$SnStickerPackFromJson(json);
+  factory SnStickerPack.fromJson(Map<String, Object?> json) =>
+      _$SnStickerPackFromJson(json);
 }
 
 @freezed
@@ -186,5 +195,6 @@ abstract class SnAttachmentBilling with _$SnAttachmentBilling {
     required double includedRatio,
   }) = _SnAttachmentBilling;
 
-  factory SnAttachmentBilling.fromJson(Map<String, Object?> json) => _$SnAttachmentBillingFromJson(json);
+  factory SnAttachmentBilling.fromJson(Map<String, Object?> json) =>
+      _$SnAttachmentBillingFromJson(json);
 }

@@ -17,4 +17,5 @@ const Map<String, ReactInfo> kTemplateReactions = {
   'party': ReactInfo(icon: '🎉', attitude: 1),
   'joy': ReactInfo(icon: '🤣', attitude: 1),
   'pray': ReactInfo(icon: '🙏', attitude: 1),
+  'heart': ReactInfo(icon: '❤️', attitude: 1),
 };

@@ -16,7 +16,6 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
-import 'package:surface/providers/user_directory.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/dialog.dart';
@@ -418,8 +417,7 @@ class _AttachmentZoomDetailPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ud = context.read<UserDirectoryProvider>();
-    final account = ud.getFromCache(data.accountId);
+    final account = data.account!;
 
     const tableGap = TableRow(
       children: [
@@ -461,12 +459,12 @@ class _AttachmentZoomDetailPopup extends StatelessWidget {
                           children: [
                             if (data.accountId > 0)
                               AccountImage(
-                                content: account?.avatar,
+                                content: account.avatar,
                                 radius: 8,
                               ),
                             const Gap(8),
                             Text(data.accountId > 0
-                                ? account?.nick ?? 'unknown'.tr()
+                                ? account.nick
                                 : 'unknown'.tr()),
                             const Gap(8),
                             Text('#${data.accountId}',

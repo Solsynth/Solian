@@ -39,6 +39,9 @@ _SnAttachment _$SnAttachmentFromJson(Map<String, dynamic> json) =>
           ? null
           : SnAttachmentPool.fromJson(json['pool'] as Map<String, dynamic>),
       poolId: (json['pool_id'] as num?)?.toInt(),
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       accountId: (json['account_id'] as num).toInt(),
       thumbnailId: (json['thumbnail_id'] as num?)?.toInt(),
       thumbnail: json['thumbnail'] == null
@@ -82,6 +85,7 @@ Map<String, dynamic> _$SnAttachmentToJson(_SnAttachment instance) =>
       'ref_id': instance.refId,
       'pool': instance.pool?.toJson(),
       'pool_id': instance.poolId,
+      'account': instance.account?.toJson(),
       'account_id': instance.accountId,
       'thumbnail_id': instance.thumbnailId,
       'thumbnail': instance.thumbnail?.toJson(),

@@ -179,57 +179,54 @@ class _PostCommentListPopupState extends State<PostCommentListPopup> {
     final ua = context.watch<UserProvider>();
     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
 
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.85,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(Symbols.comment, size: 24),
-              const Gap(16),
-              Text('postCommentsDetailed')
-                  .plural(widget.commentCount)
-                  .textStyle(Theme.of(context).textTheme.titleLarge!),
-            ],
-          ).padding(horizontal: 20, top: 16, bottom: 12),
-          Expanded(
-            child: CustomScrollView(
-              slivers: [
-                if (ua.isAuthorized)
-                  SliverToBoxAdapter(
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      height: 240,
-                      decoration: BoxDecoration(
-                        border: Border.symmetric(
-                          horizontal: BorderSide(
-                            color: Theme.of(context).dividerColor,
-                            width: 1 / devicePixelRatio,
-                          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(Symbols.comment, size: 24),
+            const Gap(16),
+            Text('postCommentsDetailed')
+                .plural(widget.commentCount)
+                .textStyle(Theme.of(context).textTheme.titleLarge!),
+          ],
+        ).padding(horizontal: 20, top: 16, bottom: 12),
+        Expanded(
+          child: CustomScrollView(
+            slivers: [
+              if (ua.isAuthorized)
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    height: 240,
+                    decoration: BoxDecoration(
+                      border: Border.symmetric(
+                        horizontal: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                          width: 1 / devicePixelRatio,
                         ),
                       ),
-                      child: PostMiniEditor(
-                        postReplyId: widget.post.id,
-                        onPost: () {
-                          _childListKey.currentState!.refresh();
-                        },
-                        onExpand: () {
-                          Navigator.pop(context);
-                        },
-                      ),
+                    ),
+                    child: PostMiniEditor(
+                      postReplyId: widget.post.id,
+                      onPost: () {
+                        _childListKey.currentState!.refresh();
+                      },
+                      onExpand: () {
+                        Navigator.pop(context);
+                      },
                     ),
                   ),
-                PostCommentSliverList(
-                  parentPost: widget.post,
-                  key: _childListKey,
                 ),
-              ],
-            ),
+              PostCommentSliverList(
+                parentPost: widget.post,
+                key: _childListKey,
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

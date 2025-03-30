@@ -2056,8 +2056,6 @@ class _PostFeaturedCommentState extends State<_PostFeaturedComment> {
           onTap: () {
             showModalBottomSheet(
               context: context,
-              useRootNavigator: true,
-              isScrollControlled: true,
               builder: (context) => PostCommentListPopup(
                 post: widget.data,
                 commentCount: widget.data.metric.replyCount,

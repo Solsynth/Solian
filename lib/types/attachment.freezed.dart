@@ -38,6 +38,7 @@ mixin _$SnAttachment {
   int? get refId;
   SnAttachmentPool? get pool;
   int? get poolId;
+  SnAccount? get account;
   int get accountId;
   int? get thumbnailId;
   SnAttachment? get thumbnail;
@@ -98,6 +99,7 @@ mixin _$SnAttachment {
             (identical(other.refId, refId) || other.refId == refId) &&
             (identical(other.pool, pool) || other.pool == pool) &&
             (identical(other.poolId, poolId) || other.poolId == poolId) &&
+            (identical(other.account, account) || other.account == account) &&
             (identical(other.accountId, accountId) ||
                 other.accountId == accountId) &&
             (identical(other.thumbnailId, thumbnailId) ||
@@ -140,6 +142,7 @@ mixin _$SnAttachment {
         refId,
         pool,
         poolId,
+        account,
         accountId,
         thumbnailId,
         thumbnail,
@@ -152,7 +155,7 @@ mixin _$SnAttachment {
 
   @override
   String toString() {
-    return 'SnAttachment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, rid: $rid, uuid: $uuid, size: $size, name: $name, alt: $alt, mimetype: $mimetype, hash: $hash, destination: $destination, refCount: $refCount, contentRating: $contentRating, qualityRating: $qualityRating, cleanedAt: $cleanedAt, isAnalyzed: $isAnalyzed, isSelfRef: $isSelfRef, isIndexable: $isIndexable, ref: $ref, refId: $refId, pool: $pool, poolId: $poolId, accountId: $accountId, thumbnailId: $thumbnailId, thumbnail: $thumbnail, compressedId: $compressedId, compressed: $compressed, boosts: $boosts, usermeta: $usermeta, metadata: $metadata)';
+    return 'SnAttachment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, rid: $rid, uuid: $uuid, size: $size, name: $name, alt: $alt, mimetype: $mimetype, hash: $hash, destination: $destination, refCount: $refCount, contentRating: $contentRating, qualityRating: $qualityRating, cleanedAt: $cleanedAt, isAnalyzed: $isAnalyzed, isSelfRef: $isSelfRef, isIndexable: $isIndexable, ref: $ref, refId: $refId, pool: $pool, poolId: $poolId, account: $account, accountId: $accountId, thumbnailId: $thumbnailId, thumbnail: $thumbnail, compressedId: $compressedId, compressed: $compressed, boosts: $boosts, usermeta: $usermeta, metadata: $metadata)';
   }
 }
 
@@ -186,6 +189,7 @@ abstract mixin class $SnAttachmentCopyWith<$Res> {
       int? refId,
       SnAttachmentPool? pool,
       int? poolId,
+      SnAccount? account,
       int accountId,
       int? thumbnailId,
       SnAttachment? thumbnail,
@@ -197,6 +201,7 @@ abstract mixin class $SnAttachmentCopyWith<$Res> {
 
   $SnAttachmentCopyWith<$Res>? get ref;
   $SnAttachmentPoolCopyWith<$Res>? get pool;
+  $SnAccountCopyWith<$Res>? get account;
   $SnAttachmentCopyWith<$Res>? get thumbnail;
   $SnAttachmentCopyWith<$Res>? get compressed;
 }
@@ -236,6 +241,7 @@ class _$SnAttachmentCopyWithImpl<$Res> implements $SnAttachmentCopyWith<$Res> {
     Object? refId = freezed,
     Object? pool = freezed,
     Object? poolId = freezed,
+    Object? account = freezed,
     Object? accountId = null,
     Object? thumbnailId = freezed,
     Object? thumbnail = freezed,
@@ -338,6 +344,10 @@ class _$SnAttachmentCopyWithImpl<$Res> implements $SnAttachmentCopyWith<$Res> {
           ? _self.poolId
           : poolId // ignore: cast_nullable_to_non_nullable
               as int?,
+      account: freezed == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
       accountId: null == accountId
           ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
@@ -405,6 +415,20 @@ class _$SnAttachmentCopyWithImpl<$Res> implements $SnAttachmentCopyWith<$Res> {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
+
+  /// Create a copy of SnAttachment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
   $SnAttachmentCopyWith<$Res>? get thumbnail {
     if (_self.thumbnail == null) {
       return null;
@@ -457,6 +481,7 @@ class _SnAttachment extends SnAttachment {
       required this.refId,
       required this.pool,
       required this.poolId,
+      required this.account,
       required this.accountId,
       this.thumbnailId,
       this.thumbnail,
@@ -520,6 +545,8 @@ class _SnAttachment extends SnAttachment {
   final SnAttachmentPool? pool;
   @override
   final int? poolId;
+  @override
+  final SnAccount? account;
   @override
   final int accountId;
   @override
@@ -612,6 +639,7 @@ class _SnAttachment extends SnAttachment {
             (identical(other.refId, refId) || other.refId == refId) &&
             (identical(other.pool, pool) || other.pool == pool) &&
             (identical(other.poolId, poolId) || other.poolId == poolId) &&
+            (identical(other.account, account) || other.account == account) &&
             (identical(other.accountId, accountId) ||
                 other.accountId == accountId) &&
             (identical(other.thumbnailId, thumbnailId) ||
@@ -654,6 +682,7 @@ class _SnAttachment extends SnAttachment {
         refId,
         pool,
         poolId,
+        account,
         accountId,
         thumbnailId,
         thumbnail,
@@ -666,7 +695,7 @@ class _SnAttachment extends SnAttachment {
 
   @override
   String toString() {
-    return 'SnAttachment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, rid: $rid, uuid: $uuid, size: $size, name: $name, alt: $alt, mimetype: $mimetype, hash: $hash, destination: $destination, refCount: $refCount, contentRating: $contentRating, qualityRating: $qualityRating, cleanedAt: $cleanedAt, isAnalyzed: $isAnalyzed, isSelfRef: $isSelfRef, isIndexable: $isIndexable, ref: $ref, refId: $refId, pool: $pool, poolId: $poolId, accountId: $accountId, thumbnailId: $thumbnailId, thumbnail: $thumbnail, compressedId: $compressedId, compressed: $compressed, boosts: $boosts, usermeta: $usermeta, metadata: $metadata)';
+    return 'SnAttachment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, rid: $rid, uuid: $uuid, size: $size, name: $name, alt: $alt, mimetype: $mimetype, hash: $hash, destination: $destination, refCount: $refCount, contentRating: $contentRating, qualityRating: $qualityRating, cleanedAt: $cleanedAt, isAnalyzed: $isAnalyzed, isSelfRef: $isSelfRef, isIndexable: $isIndexable, ref: $ref, refId: $refId, pool: $pool, poolId: $poolId, account: $account, accountId: $accountId, thumbnailId: $thumbnailId, thumbnail: $thumbnail, compressedId: $compressedId, compressed: $compressed, boosts: $boosts, usermeta: $usermeta, metadata: $metadata)';
   }
 }
 
@@ -702,6 +731,7 @@ abstract mixin class _$SnAttachmentCopyWith<$Res>
       int? refId,
       SnAttachmentPool? pool,
       int? poolId,
+      SnAccount? account,
       int accountId,
       int? thumbnailId,
       SnAttachment? thumbnail,
@@ -715,6 +745,8 @@ abstract mixin class _$SnAttachmentCopyWith<$Res>
   $SnAttachmentCopyWith<$Res>? get ref;
   @override
   $SnAttachmentPoolCopyWith<$Res>? get pool;
+  @override
+  $SnAccountCopyWith<$Res>? get account;
   @override
   $SnAttachmentCopyWith<$Res>? get thumbnail;
   @override
@@ -757,6 +789,7 @@ class __$SnAttachmentCopyWithImpl<$Res>
     Object? refId = freezed,
     Object? pool = freezed,
     Object? poolId = freezed,
+    Object? account = freezed,
     Object? accountId = null,
     Object? thumbnailId = freezed,
     Object? thumbnail = freezed,
@@ -859,6 +892,10 @@ class __$SnAttachmentCopyWithImpl<$Res>
           ? _self.poolId
           : poolId // ignore: cast_nullable_to_non_nullable
               as int?,
+      account: freezed == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as SnAccount?,
       accountId: null == accountId
           ? _self.accountId
           : accountId // ignore: cast_nullable_to_non_nullable
@@ -919,6 +956,20 @@ class __$SnAttachmentCopyWithImpl<$Res>
 
     return $SnAttachmentPoolCopyWith<$Res>(_self.pool!, (value) {
       return _then(_self.copyWith(pool: value));
+    });
+  }
+
+  /// Create a copy of SnAttachment
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+      return null;
+    }
+
+    return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
     });
   }
 
