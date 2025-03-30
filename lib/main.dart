@@ -467,15 +467,22 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
           AppLifecycleListener(onExitRequested: _onExitRequested);
     }
 
-    _trayInitialization();
-    _hotkeyInitialization();
-    _notifyInitialization();
-    _initialize().then((_) {
-      _postInitialization();
-      _tryRequestRating();
-      _checkForUpdate();
-      setState(() => _isBusy = false);
-    });
+    try {
+      _trayInitialization();
+      _hotkeyInitialization();
+      _notifyInitialization();
+      _initialize().then((_) {
+        _postInitialization();
+        _tryRequestRating();
+        _checkForUpdate();
+        setState(() => _isBusy = false);
+      }).catchError((err) {
+        logging.error('[Bootstrap] Unable to initialize app', err);
+        setState(() => _isBusy = false);
+      });
+    } catch (err) {
+      logging.error('[Bootstrap] Unable to initialize (pre-stage) app', err);
+    }
   }
 
   Future<AppExitResponse> _onExitRequested() async {
