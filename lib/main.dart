@@ -405,9 +405,12 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
     final cfg = context.read<ConfigProvider>();
     if (!cfg.soundEffects) return;
 
+    final date = DateTime.now();
     final player = AudioPlayer(playerId: 'launch-done-player');
     await player.play(
-      AssetSource('audio/sfx/launch-done.mp3'),
+      (cfg.aprilFoolFeatures && date.month == 4 && date.day == 1)
+          ? AssetSource('audio/sfx/launch-intro.mp3')
+          : AssetSource('audio/sfx/launch-done.mp3'),
       volume: 0.8,
       ctx: AudioContext(
         android: AudioContextAndroid(
