@@ -945,5 +945,8 @@
   "badgeProgramDeveloper": "Developer Program Member",
   "badgeProgramStellar": "A Stellar",
   "badgeProgramModerator": "Community Moderator",
-  "postEditedHint": "edited"
+  "postEditedHint": "edited",
+  "splashScreenServer": "Server",
+  "splashScreenServerName": "Potato",
+  "splashScreenCaption": "Trying to establishing connection with HyperNet™"
 }

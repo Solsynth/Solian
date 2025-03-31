@@ -942,5 +942,8 @@
   "badgeProgramDeveloper": "开发者计划成员",
   "badgeProgramStellar": "一颗恒星",
   "badgeProgramModerator": "社区管理员",
-  "postEditedHint": "已编辑"
+  "postEditedHint": "已编辑",
+  "splashScreenServer": "服务器",
+  "splashScreenServerName": "土豆",
+  "splashScreenCaption": "正在尝试与 HyperNet™ 取得太阳链连接"
 }

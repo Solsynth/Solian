@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -49,6 +50,7 @@ import 'package:surface/router.dart';
 import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/menu_bar.dart';
+import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:surface/widgets/version_label.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:version/version.dart';
@@ -57,6 +59,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:local_notifier/local_notifier.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 @pragma('vm:entry-point')
 void appBackgroundDispatcher() {
@@ -257,6 +260,7 @@ class _AppSplashScreen extends StatefulWidget {
 
 class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
   bool _isBusy = false;
+  double _initPercentage = 0;
   String _phaseText = 'appInitStarting';
 
   void _tryRequestRating() async {
@@ -331,20 +335,24 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
       // The Network initialization must be done after the HomeWidget initialization
       // The Network initialization will save the server url to the HomeWidget
       // The Network initialization will also save initialize the Config, so it not need to be initialized again
+      _initPercentage = 0.1;
       _setPhaseText('network');
       final sn = context.read<SnNetworkProvider>();
       await sn.initializeUserAgent();
       await sn.setConfigWithNative();
       if (!mounted) return;
+      _initPercentage = 0.2;
       _setPhaseText('userdata');
       final ua = context.read<UserProvider>();
       await ua.initialize();
       if (!mounted) return;
+      _initPercentage = 0.3;
       _setPhaseText('websocket');
       final ws = context.read<WebSocketProvider>();
       await ws.tryConnect();
       try {
         if (!mounted) return;
+        _initPercentage = 0.9;
         _setPhaseText('keyPair');
         final kp = context.read<KeyPairProvider>();
         kp.reloadActive();
@@ -373,6 +381,7 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
           _setPhaseText('chat');
           final ct = context.read<ChatChannelProvider>();
           await ct.refreshAvailableChannels();
+          _initPercentage = 1;
           _setPhaseText('done');
         } catch (_) {}
         _playIntro();
@@ -573,51 +582,246 @@ class _AppSplashScreenState extends State<_AppSplashScreen> with TrayListener {
             });
             return SizeChangedLayoutNotifier(
               child: _isBusy
-                  ? Material(
-                      key: Key('app-splash-screen-$_isBusy'),
-                      child: Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: AssetImage('assets/icon/kanban-1st.jpg'),
-                                fit: BoxFit.cover,
-                                opacity: 0.1,
-                              ),
-                              color: Theme.of(context).colorScheme.surface,
-                              backgroundBlendMode: BlendMode.darken,
-                            ),
-                          ),
-                          Center(
-                            child: Container(
-                              constraints: const BoxConstraints(maxWidth: 240),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Image.asset(
-                                    'assets/icon/icon.png',
-                                    width: 64,
-                                    height: 64,
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                  Text('Solar Network').bold(),
-                                  AppVersionLabel(),
-                                  Gap(8),
-                                  Text(_phaseText, textAlign: TextAlign.center),
-                                  Gap(16),
-                                  const LinearProgressIndicator(),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                  ? _AppLoadingScreen(
+                      isBusy: _isBusy,
+                      initPercentage: _initPercentage,
+                      phaseText: _phaseText,
                     )
                   : widget.child,
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _AppLoadingScreen extends StatelessWidget {
+  const _AppLoadingScreen({
+    required this.isBusy,
+    required this.initPercentage,
+    required this.phaseText,
+  });
+
+  final bool isBusy;
+  final double initPercentage;
+  final String phaseText;
+
+  @override
+  Widget build(BuildContext context) {
+    if (ResponsiveScaffold.getIsExpand(context)) {
+      return Material(
+        key: Key('app-splash-screen-$isBusy'),
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/icon/kanban-1st.jpg'),
+                  fit: BoxFit.cover,
+                  opacity: 0.1,
+                ),
+                color: Theme.of(context).colorScheme.surface,
+                backgroundBlendMode: BlendMode.darken,
+              ),
+            ),
+            Center(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: initPercentage),
+                      duration: Duration(milliseconds: 300),
+                      builder: (context, value, _) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${(value * 100).toStringAsFixed(0)}%')
+                              .padding(left: 32, bottom: 4),
+                          LinearProgressIndicator(
+                            value: value,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(0),
+                            ),
+                            stopIndicatorColor: Colors.transparent,
+                            backgroundColor: Colors.transparent,
+                          ),
+                          const Gap(24),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: initPercentage),
+                      duration: Duration(milliseconds: 300),
+                      builder: (context, value, _) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('${(value * 100).toStringAsFixed(0)}%')
+                              .padding(right: 32, bottom: 4),
+                          Transform.flip(
+                            flipX: true,
+                            child: LinearProgressIndicator(
+                              value: value,
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(0),
+                              ),
+                              stopIndicatorColor: Colors.transparent,
+                              backgroundColor: Colors.transparent,
+                            ),
+                          ),
+                          const Gap(24),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 240, minWidth: 160),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                decoration: BoxDecoration(
+                  color:
+                      Theme.of(context).colorScheme.surface.withOpacity(0.85),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor,
+                    width: 3,
+                  ),
+                  borderRadius: const BorderRadius.all(Radius.circular(12)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'splashScreenServer',
+                      style: GoogleFonts.notoSerifHk(height: 1, fontSize: 11),
+                      textAlign: TextAlign.center,
+                    ).tr().opacity(0.85),
+                    Text(
+                      'splashScreenServerName',
+                      style: GoogleFonts.notoSerifHk(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ).tr().opacity(0.85),
+                    Text.rich(
+                      TextSpan(
+                        text: '#',
+                        style: GoogleFonts.notoSerifHk(),
+                        children: [
+                          TextSpan(
+                            text: '0',
+                            style: GoogleFonts.notoSerifHk(
+                              fontSize: 80,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ).padding(vertical: 16),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: MediaQuery.of(context).size.height * 0.2,
+              child: Column(
+                children: [
+                  Text(
+                    phaseText,
+                    textAlign: TextAlign.center,
+                  ),
+                  AnimateWidgetExtensions(Text(
+                    'splashScreenCaption',
+                    textAlign: TextAlign.center,
+                  ).tr())
+                      .animate(onPlay: (e) => e.repeat())
+                      .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+                      .then()
+                      .fadeOut(
+                        duration: 500.ms,
+                        delay: 1000.ms,
+                        curve: Curves.easeIn,
+                      ),
+                ],
+              ),
+            ),
+            Positioned(
+              bottom: 8,
+              left: 16,
+              right: 16,
+              child: Row(
+                children: [
+                  Image.asset(
+                    'assets/icon/icon.png',
+                    width: 40,
+                    height: 40,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ).padding(all: 4),
+                  const Gap(4),
+                  Text('Solar Network').bold(),
+                  Expanded(child: const SizedBox()),
+                  AppVersionLabel(),
+                  const Gap(12),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Material(
+      key: Key('app-splash-screen-$isBusy'),
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/icon/kanban-1st.jpg'),
+                fit: BoxFit.cover,
+                opacity: 0.1,
+              ),
+              color: Theme.of(context).colorScheme.surface,
+              backgroundBlendMode: BlendMode.darken,
+            ),
+          ),
+          Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 240),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/icon/icon.png',
+                    width: 64,
+                    height: 64,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  Text('Solar Network').bold(),
+                  AppVersionLabel(),
+                  Gap(8),
+                  Text(phaseText, textAlign: TextAlign.center),
+                  Gap(16),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: initPercentage),
+                    duration: Duration(milliseconds: 300),
+                    builder: (context, value, _) =>
+                        LinearProgressIndicator(value: value),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
