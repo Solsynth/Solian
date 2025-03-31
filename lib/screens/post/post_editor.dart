@@ -346,9 +346,15 @@ class _PostEditorScreenState extends State<PostEditorScreen>
                     children: [
                       const Icon(Icons.edit, size: 16),
                       const Gap(10),
-                      Text('postEditingNotice').tr(args: [
-                        '@${_writeController.editingPost!.publisher.name}'
-                      ]),
+                      Expanded(
+                        child: Text(
+                          'postEditingNotice',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ).tr(args: [
+                          '@${_writeController.editingPost!.publisher.name}'
+                        ]),
+                      ),
                     ],
                   ),
                 ),

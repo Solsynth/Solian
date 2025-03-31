@@ -152,7 +152,7 @@ class KeyPairProvider {
 
   Future<SnKeyPair?> reloadActive({bool autoEnroll = true}) async {
     final kp = await (_dt.db.snLocalKeyPair.select()
-          ..where((e) => e.accountId.equals(_ua.user!.id))
+          ..where((e) => e.accountId.equals(_ua.user?.id ?? 0))
           ..where((e) => e.privateKey.isNotNull())
           ..where((e) => e.isActive.equals(true))
           ..limit(1))

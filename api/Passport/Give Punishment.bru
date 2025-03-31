@@ -1,0 +1,19 @@
+meta {
+  name: Give Punishment
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{endpoint}}/cgi/id/punishments
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "reason": "侮辱 Solar Network 商标，煽动颠覆中华羊国政权，制造不实信息，传播谣言，制造恐慌，寻衅滋事。",
+    "type": 0,
+    "account_id": 5
+  }
+}

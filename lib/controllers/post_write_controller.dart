@@ -241,7 +241,9 @@ class PostWriteController extends ChangeNotifier {
         contentController.text = post.body['content'] ?? '';
         aliasController.text = post.alias ?? '';
         rewardController.text = post.body['reward']?.toString() ?? '';
-        videoAttachment = SnAttachment.fromJson(post.body['video']);
+        videoAttachment = post.body['video'] != null
+            ? SnAttachment.fromJson(post.body['video'])
+            : null;
         publishedAt = post.publishedAt;
         publishedUntil = post.publishedUntil;
         visibleUsers = List.from(post.visibleUsersList ?? [], growable: true);
@@ -253,7 +255,7 @@ class PostWriteController extends ChangeNotifier {
             List.from(post.categories.map((ele) => ele.alias), growable: true);
         attachments.addAll(
           post.body['attachments']
-                  .where(SnAttachment.fromJson)
+                  ?.where((ele) => SnAttachment.fromJson(ele))
                   ?.map(PostWriteMedia) ??
               [],
         );
