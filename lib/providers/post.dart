@@ -33,11 +33,14 @@ class SnPostContentProvider {
   }
 
   Future<List<SnFeedEntry>> getFeed({int take = 20, DateTime? cursor}) async {
-    final resp =
-        await _sn.client.get('/cgi/co/recommendations/feed', queryParameters: {
-      'take': take,
-      if (cursor != null) 'cursor': cursor.toUtc().millisecondsSinceEpoch,
-    });
+    final resp = await _sn.client.get(
+      '/cgi/co/recommendations/feed',
+      queryParameters: {
+        'take': take,
+        if (cursor != null) 'cursor': cursor.toUtc().millisecondsSinceEpoch,
+      },
+      options: Options(headers: {'X-API-Version': '2'}),
+    );
     final List<SnFeedEntry> out =
         List.from(resp.data.map((ele) => SnFeedEntry.fromJson(ele)));
 
