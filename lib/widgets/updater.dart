@@ -25,7 +25,7 @@ class VersionUpdatePopup extends StatelessWidget {
 
     if (Platform.isAndroid) {
       final model = UpdateModel(
-        'https://files.solsynth.dev/d/production01/solian/app-arm64-v8a-release.apk',
+        'https://files.solsynth.dev/d/c1/solian/app-arm64-v8a-release.apk',
         'solian-app-release-${config.updatableVersion!}.apk',
         'ic_launcher',
         'https://apps.apple.com/us/app/solian/id6499032345',
