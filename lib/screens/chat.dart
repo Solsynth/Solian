@@ -171,7 +171,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _onTapChannel(SnChannel channel) {
-    setState(() => _unreadCounts?[channel.id] = 0);
+    setState(() {
+      _unreadCounts?[channel.id] = 0;
+      if (channel.realmId != null) {
+        _unreadCountsGrouped?[channel.realmId!] =
+            (_unreadCountsGrouped?[channel.realmId!] ?? 0) -
+                (_unreadCounts?[channel.id] ?? 0);
+      }
+      if (channel.type == 1) {
+        _unreadCountsGrouped?[0] =
+            (_unreadCountsGrouped?[0] ?? 0) - (_unreadCounts?[channel.id] ?? 0);
+      }
+    });
     if (ResponsiveScaffold.getIsExpand(context)) {
       GoRouter.of(context).pushReplacementNamed(
         'chatRoom',
@@ -180,9 +191,8 @@ class _ChatScreenState extends State<ChatScreen> {
           'alias': channel.alias,
         },
       ).then((value) {
-        if (mounted) {
-          setState(() => _unreadCounts?[channel.id] = 0);
-          _refreshChannels(noRemote: true);
+        if (mounted && value == true) {
+          _refreshChannels();
         }
       });
     } else {
@@ -193,9 +203,8 @@ class _ChatScreenState extends State<ChatScreen> {
           'alias': channel.alias,
         },
       ).then((value) {
-        if (mounted) {
-          setState(() => _unreadCounts?[channel.id] = 0);
-          _refreshChannels(noRemote: true);
+        if (mounted && value == true) {
+          _refreshChannels();
         }
       });
     }
