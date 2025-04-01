@@ -64,7 +64,7 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
   Future<void> _saveToAlbum(int idx) async {
     final sn = context.read<SnNetworkProvider>();
     final item = widget.data.elementAt(idx);
-    final url = sn.getAttachmentUrl(item.rid);
+    final url = sn.getAttachmentUrl(item.rid, preview: false);
 
     if (kIsWeb || Platform.isLinux) {
       await launchUrlString(url);

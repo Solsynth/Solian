@@ -17,59 +17,59 @@ PODS:
     - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
-  - Firebase/Analytics (11.8.0):
+  - Firebase/Analytics (11.10.0):
     - Firebase/Core
-  - Firebase/Core (11.8.0):
+  - Firebase/Core (11.10.0):
     - Firebase/CoreOnly
-    - FirebaseAnalytics (~> 11.8.0)
-  - Firebase/CoreOnly (11.8.0):
-    - FirebaseCore (~> 11.8.0)
-  - Firebase/Messaging (11.8.0):
+    - FirebaseAnalytics (~> 11.10.0)
+  - Firebase/CoreOnly (11.10.0):
+    - FirebaseCore (~> 11.10.0)
+  - Firebase/Messaging (11.10.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 11.8.0)
-  - firebase_analytics (11.4.4):
-    - Firebase/Analytics (= 11.8.0)
+    - FirebaseMessaging (~> 11.10.0)
+  - firebase_analytics (11.4.5):
+    - Firebase/Analytics (= 11.10.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_core (3.12.1):
-    - Firebase/CoreOnly (~> 11.8.0)
+  - firebase_core (3.13.0):
+    - Firebase/CoreOnly (~> 11.10.0)
     - FlutterMacOS
-  - firebase_messaging (15.2.4):
-    - Firebase/CoreOnly (~> 11.8.0)
-    - Firebase/Messaging (~> 11.8.0)
+  - firebase_messaging (15.2.5):
+    - Firebase/CoreOnly (~> 11.10.0)
+    - Firebase/Messaging (~> 11.10.0)
     - firebase_core
     - FlutterMacOS
-  - FirebaseAnalytics (11.8.0):
-    - FirebaseAnalytics/AdIdSupport (= 11.8.0)
-    - FirebaseCore (~> 11.8.0)
+  - FirebaseAnalytics (11.10.0):
+    - FirebaseAnalytics/AdIdSupport (= 11.10.0)
+    - FirebaseCore (~> 11.10.0)
     - FirebaseInstallations (~> 11.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
     - GoogleUtilities/MethodSwizzler (~> 8.0)
     - GoogleUtilities/Network (~> 8.0)
     - "GoogleUtilities/NSData+zlib (~> 8.0)"
     - nanopb (~> 3.30910.0)
-  - FirebaseAnalytics/AdIdSupport (11.8.0):
-    - FirebaseCore (~> 11.8.0)
+  - FirebaseAnalytics/AdIdSupport (11.10.0):
+    - FirebaseCore (~> 11.10.0)
     - FirebaseInstallations (~> 11.0)
-    - GoogleAppMeasurement (= 11.8.0)
+    - GoogleAppMeasurement (= 11.10.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
     - GoogleUtilities/MethodSwizzler (~> 8.0)
     - GoogleUtilities/Network (~> 8.0)
     - "GoogleUtilities/NSData+zlib (~> 8.0)"
     - nanopb (~> 3.30910.0)
-  - FirebaseCore (11.8.1):
-    - FirebaseCoreInternal (~> 11.8.0)
+  - FirebaseCore (11.10.0):
+    - FirebaseCoreInternal (~> 11.10.0)
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/Logger (~> 8.0)
-  - FirebaseCoreInternal (11.8.0):
+  - FirebaseCoreInternal (11.10.0):
     - "GoogleUtilities/NSData+zlib (~> 8.0)"
-  - FirebaseInstallations (11.8.0):
-    - FirebaseCore (~> 11.8.0)
+  - FirebaseInstallations (11.10.0):
+    - FirebaseCore (~> 11.10.0)
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - PromisesObjC (~> 2.4)
-  - FirebaseMessaging (11.8.0):
-    - FirebaseCore (~> 11.8.0)
+  - FirebaseMessaging (11.10.0):
+    - FirebaseCore (~> 11.10.0)
     - FirebaseInstallations (~> 11.0)
     - GoogleDataTransport (~> 10.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
@@ -92,21 +92,21 @@ PODS:
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
-  - GoogleAppMeasurement (11.8.0):
-    - GoogleAppMeasurement/AdIdSupport (= 11.8.0)
+  - GoogleAppMeasurement (11.10.0):
+    - GoogleAppMeasurement/AdIdSupport (= 11.10.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
     - GoogleUtilities/MethodSwizzler (~> 8.0)
     - GoogleUtilities/Network (~> 8.0)
     - "GoogleUtilities/NSData+zlib (~> 8.0)"
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/AdIdSupport (11.8.0):
-    - GoogleAppMeasurement/WithoutAdIdSupport (= 11.8.0)
+  - GoogleAppMeasurement/AdIdSupport (11.10.0):
+    - GoogleAppMeasurement/WithoutAdIdSupport (= 11.10.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
     - GoogleUtilities/MethodSwizzler (~> 8.0)
     - GoogleUtilities/Network (~> 8.0)
     - "GoogleUtilities/NSData+zlib (~> 8.0)"
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/WithoutAdIdSupport (11.8.0):
+  - GoogleAppMeasurement/WithoutAdIdSupport (11.10.0):
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
     - GoogleUtilities/MethodSwizzler (~> 8.0)
     - GoogleUtilities/Network (~> 8.0)
@@ -365,22 +365,22 @@ SPEC CHECKSUMS:
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_saver: e35bd97de451dde55ff8c38862ed7ad0f3418d0f
   file_selector_macos: 6280b52b459ae6c590af5d78fc35c7267a3c4b31
-  Firebase: d80354ed7f6df5f9aca55e9eb47cc4b634735eaf
-  firebase_analytics: 2c7864ab677e8a178a6dd4126de1d19e9d9a7bf3
-  firebase_core: 3dcdf8453dfb144a023ee70f49e0463b97177f71
-  firebase_messaging: 96fe41b2f8b5bee4e0f21df8d716cb8c9293448c
-  FirebaseAnalytics: 4fd42def128146e24e480e89f310e3d8534ea42b
-  FirebaseCore: 99fe0c4b44a39f37d99e6404e02009d2db5d718d
-  FirebaseCoreInternal: df24ce5af28864660ecbd13596fc8dd3a8c34629
-  FirebaseInstallations: 6c963bd2a86aca0481eef4f48f5a4df783ae5917
-  FirebaseMessaging: 487b634ccdf6f7b7ff180fdcb2a9935490f764e8
+  Firebase: 1fe1c0a7d9aaea32efe01fbea5f0ebd8d70e53a2
+  firebase_analytics: 5f4b20b5f700bcae2f800c69a63e79d937d0daa9
+  firebase_core: efd50ad8177dc489af1b9163a560359cf1b30597
+  firebase_messaging: acf2566068a55d7eb8cddfee5b094754070a5b88
+  FirebaseAnalytics: 4e42333f02cf78ed93703a5c36f36dd518aebdef
+  FirebaseCore: 8344daef5e2661eb004b177488d6f9f0f24251b7
+  FirebaseCoreInternal: ef4505d2afb1d0ebbc33162cb3795382904b5679
+  FirebaseInstallations: 9980995bdd06ec8081dfb6ab364162bdd64245c3
+  FirebaseMessaging: 2b9f56aa4ed286e1f0ce2ee1d413aabb8f9f5cb9
   flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
   flutter_timezone: d59eea86178cbd7943cd2431cc2eaa9850f935d8
   flutter_udid: d26e455e8c06174e6aff476e147defc6cae38495
   flutter_webrtc: 377dbcebdde6fed0fc40de87bcaaa2bffcec9a88
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   gal: baecd024ebfd13c441269ca7404792a7152fde89
-  GoogleAppMeasurement: fc0817122bd4d4189164f85374e06773b9561896
+  GoogleAppMeasurement: 36684bfb3ee034e2b42b4321eb19da3a1b81e65d
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   HotKey: 400beb7caa29054ea8d864c96f5ba7e5b4852277
