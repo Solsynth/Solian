@@ -12,7 +12,6 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:popover/popover.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:relative_time/relative_time.dart';
@@ -1274,20 +1273,11 @@ class _PostAvatar extends StatelessWidget {
               ),
             ),
       onTap: () {
-        showPopover(
-          backgroundColor: Theme.of(context).colorScheme.surface,
+        showModalBottomSheet(
           context: context,
-          transition: PopoverTransition.other,
-          bodyBuilder: (context) => SizedBox(
-            width: math.min(400, MediaQuery.of(context).size.width - 10),
-            child: PublisherPopoverCard(
-              data: data.publisher,
-            ),
+          builder: (context) => PublisherPopoverCard(
+            data: data.publisher,
           ),
-          direction: PopoverDirection.bottom,
-          arrowHeight: 5,
-          arrowWidth: 15,
-          arrowDxOffset: -190,
         );
       },
     );

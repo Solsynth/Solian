@@ -107,74 +107,7 @@ class _PunishmentsScreenState extends State<PunishmentsScreen> {
                 itemCount: _punishments?.length ?? 0,
                 itemBuilder: (context, index) {
                   final ele = _punishments![index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(horizontal: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(kPunishmentIcons[ele.type], size: 20),
-                            const Gap(6),
-                            Expanded(
-                              child: Text('punishmentType${ele.type}')
-                                  .tr()
-                                  .fontSize(16)
-                                  .bold(),
-                            ),
-                          ],
-                        ),
-                        Text(ele.reason),
-                        const Gap(4),
-                        Text(
-                          'punishmentCreatedAt'.tr(args: [
-                            DateFormat().format(
-                              ele.createdAt.toLocal(),
-                            )
-                          ]),
-                        ).opacity(0.8),
-                        Text(
-                          ele.expiredAt == null
-                              ? 'punishmentExpiredNever'.tr()
-                              : 'punishmentExpiredAt'.tr(args: [
-                                  DateFormat().format(
-                                    ele.expiredAt!.toLocal(),
-                                  )
-                                ]),
-                        ).opacity(0.8),
-                        const Gap(8),
-                        if (ele.moderator != null)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('punishmentModerator').tr().opacity(0.75),
-                              InkWell(
-                                child: Row(
-                                  children: [
-                                    AccountImage(
-                                      content: ele.moderator!.avatar,
-                                      radius: 8,
-                                    ),
-                                    const Gap(4),
-                                    Text(ele.moderator?.nick ?? 'unknown'),
-                                  ],
-                                ),
-                                onTap: () {
-                                  GoRouter.of(context).pushNamed(
-                                    'accountProfilePage',
-                                    pathParameters: {
-                                      'name': ele.moderator!.name,
-                                    },
-                                  );
-                                },
-                              ),
-                            ],
-                          )
-                        else
-                          Text('punishmentMadeBySystem').tr().opacity(0.75),
-                      ],
-                    ).padding(horizontal: 24, vertical: 16),
-                  );
+                  return PunishmentInfoCard(ele: ele);
                 },
                 separatorBuilder: (_, __) => const Gap(8),
               ),
@@ -182,6 +115,85 @@ class _PunishmentsScreenState extends State<PunishmentsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class PunishmentInfoCard extends StatelessWidget {
+  const PunishmentInfoCard({
+    super.key,
+    required this.ele,
+  });
+
+  final SnPunishment ele;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(kPunishmentIcons[ele.type], size: 20),
+              const Gap(6),
+              Expanded(
+                child:
+                    Text('punishmentType${ele.type}').tr().fontSize(16).bold(),
+              ),
+            ],
+          ),
+          Text(ele.reason),
+          const Gap(4),
+          Text(
+            'punishmentCreatedAt'.tr(args: [
+              DateFormat().format(
+                ele.createdAt.toLocal(),
+              )
+            ]),
+          ).opacity(0.8),
+          Text(
+            ele.expiredAt == null
+                ? 'punishmentExpiredNever'.tr()
+                : 'punishmentExpiredAt'.tr(args: [
+                    DateFormat().format(
+                      ele.expiredAt!.toLocal(),
+                    )
+                  ]),
+          ).opacity(0.8),
+          const Gap(8),
+          if (ele.moderator != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('punishmentModerator').tr().opacity(0.75),
+                InkWell(
+                  child: Row(
+                    children: [
+                      AccountImage(
+                        content: ele.moderator!.avatar,
+                        radius: 8,
+                      ),
+                      const Gap(4),
+                      Text(ele.moderator?.nick ?? 'unknown'),
+                    ],
+                  ),
+                  onTap: () {
+                    GoRouter.of(context).pushNamed(
+                      'accountProfilePage',
+                      pathParameters: {
+                        'name': ele.moderator!.name,
+                      },
+                    );
+                  },
+                ),
+              ],
+            )
+          else
+            Text('punishmentMadeBySystem').tr().opacity(0.75),
+        ],
+      ).padding(horizontal: 24, vertical: 16),
     );
   }
 }

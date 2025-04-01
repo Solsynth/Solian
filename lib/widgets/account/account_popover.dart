@@ -39,7 +39,9 @@ class AccountPopoverCard extends StatelessWidget {
                   ),
                 ),
               ),
-            ).padding(all: 16),
+            ).padding(all: 16)
+          else
+            const Gap(16),
           // Top padding
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +91,9 @@ class AccountPopoverCard extends StatelessWidget {
               data.profile?.description ?? '',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-            ).padding(horizontal: 26, bottom: 8),
+            ).padding(horizontal: 26, bottom: 8)
+          else
+            const Gap(12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

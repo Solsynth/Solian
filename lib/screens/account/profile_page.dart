@@ -15,6 +15,7 @@ import 'package:surface/providers/experience.dart';
 import 'package:surface/providers/relationship.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/screens/abuse_report.dart';
+import 'package:surface/screens/account/punishments.dart';
 import 'package:surface/types/account.dart';
 import 'package:surface/types/check_in.dart';
 import 'package:surface/types/post.dart';
@@ -457,7 +458,7 @@ class _UserScreenState extends State<UserScreen>
                     ],
                   ).padding(right: 8),
                   if (_account!.profile!.description.isNotEmpty)
-                    const Gap(12)
+                    const Gap(4)
                   else
                     const Gap(8),
                   if (_account!.profile!.description.isNotEmpty)
@@ -503,14 +504,15 @@ class _UserScreenState extends State<UserScreen>
                       ],
                     ).padding(vertical: 8, horizontal: 12),
                   ),
-                  const Gap(8),
-                  Wrap(
-                    spacing: 4,
-                    runSpacing: 4,
-                    children: _account!.badges
-                        .map((ele) => AccountBadge(badge: ele))
-                        .toList(),
-                  ).padding(horizontal: 8),
+                  if (_account!.badges.isNotEmpty) const Gap(8),
+                  if (_account!.badges.isNotEmpty)
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: _account!.badges
+                          .map((ele) => AccountBadge(badge: ele))
+                          .toList(),
+                    ).padding(horizontal: 8),
                   const Gap(8),
                   Column(
                     children: [
@@ -618,6 +620,17 @@ class _UserScreenState extends State<UserScreen>
                   ).padding(horizontal: 8),
                 ],
               ).padding(all: 16),
+            ),
+          if (_account?.punishments.isNotEmpty ?? false)
+            SliverToBoxAdapter(child: const Divider()),
+          if (_account?.punishments.isNotEmpty ?? false)
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  for (final ele in _account!.punishments)
+                    PunishmentInfoCard(ele: ele),
+                ],
+              ),
             ),
           if (_account?.profile?.links.isNotEmpty ?? false)
             SliverToBoxAdapter(child: const Divider()),
