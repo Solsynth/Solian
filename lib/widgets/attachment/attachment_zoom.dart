@@ -181,7 +181,10 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                             scaleState == PhotoViewScaleState.initial);
                       },
                       imageProvider: UniversalImage.provider(
-                        sn.getAttachmentUrl(widget.data.first.rid),
+                        sn.getAttachmentUrl(
+                          widget.data.first.rid,
+                          preview: false,
+                        ),
                       ),
                     ),
                   );
@@ -199,7 +202,10 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                         widget.heroTags?.elementAt(idx) ?? uuid.v4();
                     return PhotoViewGalleryPageOptions(
                       imageProvider: UniversalImage.provider(
-                        sn.getAttachmentUrl(widget.data.elementAt(idx).rid),
+                        sn.getAttachmentUrl(
+                          widget.data.elementAt(idx).rid,
+                          preview: false,
+                        ),
                       ),
                       heroAttributes: PhotoViewHeroAttributes(
                         tag: 'attachment-${widget.data.first.rid}-$heroTag',

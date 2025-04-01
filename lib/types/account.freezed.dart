@@ -29,6 +29,7 @@ mixin _$SnAccount {
   String get language;
   SnAccountProfile? get profile;
   List<SnAccountBadge> get badges;
+  List<SnPunishment> get punishments;
   DateTime? get suspendedAt;
   int? get affiliatedId;
   int? get affiliatedTo;
@@ -69,6 +70,8 @@ mixin _$SnAccount {
                 other.language == language) &&
             (identical(other.profile, profile) || other.profile == profile) &&
             const DeepCollectionEquality().equals(other.badges, badges) &&
+            const DeepCollectionEquality()
+                .equals(other.punishments, punishments) &&
             (identical(other.suspendedAt, suspendedAt) ||
                 other.suspendedAt == suspendedAt) &&
             (identical(other.affiliatedId, affiliatedId) ||
@@ -99,6 +102,7 @@ mixin _$SnAccount {
         language,
         profile,
         const DeepCollectionEquality().hash(badges),
+        const DeepCollectionEquality().hash(punishments),
         suspendedAt,
         affiliatedId,
         affiliatedTo,
@@ -108,7 +112,7 @@ mixin _$SnAccount {
 
   @override
   String toString() {
-    return 'SnAccount(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, confirmedAt: $confirmedAt, contacts: $contacts, avatar: $avatar, banner: $banner, name: $name, nick: $nick, permNodes: $permNodes, language: $language, profile: $profile, badges: $badges, suspendedAt: $suspendedAt, affiliatedId: $affiliatedId, affiliatedTo: $affiliatedTo, automatedBy: $automatedBy, automatedId: $automatedId)';
+    return 'SnAccount(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, confirmedAt: $confirmedAt, contacts: $contacts, avatar: $avatar, banner: $banner, name: $name, nick: $nick, permNodes: $permNodes, language: $language, profile: $profile, badges: $badges, punishments: $punishments, suspendedAt: $suspendedAt, affiliatedId: $affiliatedId, affiliatedTo: $affiliatedTo, automatedBy: $automatedBy, automatedId: $automatedId)';
   }
 }
 
@@ -132,6 +136,7 @@ abstract mixin class $SnAccountCopyWith<$Res> {
       String language,
       SnAccountProfile? profile,
       List<SnAccountBadge> badges,
+      List<SnPunishment> punishments,
       DateTime? suspendedAt,
       int? affiliatedId,
       int? affiliatedTo,
@@ -167,6 +172,7 @@ class _$SnAccountCopyWithImpl<$Res> implements $SnAccountCopyWith<$Res> {
     Object? language = null,
     Object? profile = freezed,
     Object? badges = null,
+    Object? punishments = null,
     Object? suspendedAt = freezed,
     Object? affiliatedId = freezed,
     Object? affiliatedTo = freezed,
@@ -230,6 +236,10 @@ class _$SnAccountCopyWithImpl<$Res> implements $SnAccountCopyWith<$Res> {
           ? _self.badges
           : badges // ignore: cast_nullable_to_non_nullable
               as List<SnAccountBadge>,
+      punishments: null == punishments
+          ? _self.punishments
+          : punishments // ignore: cast_nullable_to_non_nullable
+              as List<SnPunishment>,
       suspendedAt: freezed == suspendedAt
           ? _self.suspendedAt
           : suspendedAt // ignore: cast_nullable_to_non_nullable
@@ -286,6 +296,7 @@ class _SnAccount extends SnAccount {
       required this.language,
       required this.profile,
       final List<SnAccountBadge> badges = const [],
+      final List<SnPunishment> punishments = const [],
       required this.suspendedAt,
       required this.affiliatedId,
       required this.affiliatedTo,
@@ -294,6 +305,7 @@ class _SnAccount extends SnAccount {
       : _contacts = contacts,
         _permNodes = permNodes,
         _badges = badges,
+        _punishments = punishments,
         super._();
   factory _SnAccount.fromJson(Map<String, dynamic> json) =>
       _$SnAccountFromJson(json);
@@ -350,6 +362,15 @@ class _SnAccount extends SnAccount {
     return EqualUnmodifiableListView(_badges);
   }
 
+  final List<SnPunishment> _punishments;
+  @override
+  @JsonKey()
+  List<SnPunishment> get punishments {
+    if (_punishments is EqualUnmodifiableListView) return _punishments;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_punishments);
+  }
+
   @override
   final DateTime? suspendedAt;
   @override
@@ -401,6 +422,8 @@ class _SnAccount extends SnAccount {
                 other.language == language) &&
             (identical(other.profile, profile) || other.profile == profile) &&
             const DeepCollectionEquality().equals(other._badges, _badges) &&
+            const DeepCollectionEquality()
+                .equals(other._punishments, _punishments) &&
             (identical(other.suspendedAt, suspendedAt) ||
                 other.suspendedAt == suspendedAt) &&
             (identical(other.affiliatedId, affiliatedId) ||
@@ -431,6 +454,7 @@ class _SnAccount extends SnAccount {
         language,
         profile,
         const DeepCollectionEquality().hash(_badges),
+        const DeepCollectionEquality().hash(_punishments),
         suspendedAt,
         affiliatedId,
         affiliatedTo,
@@ -440,7 +464,7 @@ class _SnAccount extends SnAccount {
 
   @override
   String toString() {
-    return 'SnAccount(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, confirmedAt: $confirmedAt, contacts: $contacts, avatar: $avatar, banner: $banner, name: $name, nick: $nick, permNodes: $permNodes, language: $language, profile: $profile, badges: $badges, suspendedAt: $suspendedAt, affiliatedId: $affiliatedId, affiliatedTo: $affiliatedTo, automatedBy: $automatedBy, automatedId: $automatedId)';
+    return 'SnAccount(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, confirmedAt: $confirmedAt, contacts: $contacts, avatar: $avatar, banner: $banner, name: $name, nick: $nick, permNodes: $permNodes, language: $language, profile: $profile, badges: $badges, punishments: $punishments, suspendedAt: $suspendedAt, affiliatedId: $affiliatedId, affiliatedTo: $affiliatedTo, automatedBy: $automatedBy, automatedId: $automatedId)';
   }
 }
 
@@ -467,6 +491,7 @@ abstract mixin class _$SnAccountCopyWith<$Res>
       String language,
       SnAccountProfile? profile,
       List<SnAccountBadge> badges,
+      List<SnPunishment> punishments,
       DateTime? suspendedAt,
       int? affiliatedId,
       int? affiliatedTo,
@@ -503,6 +528,7 @@ class __$SnAccountCopyWithImpl<$Res> implements _$SnAccountCopyWith<$Res> {
     Object? language = null,
     Object? profile = freezed,
     Object? badges = null,
+    Object? punishments = null,
     Object? suspendedAt = freezed,
     Object? affiliatedId = freezed,
     Object? affiliatedTo = freezed,
@@ -566,6 +592,10 @@ class __$SnAccountCopyWithImpl<$Res> implements _$SnAccountCopyWith<$Res> {
           ? _self._badges
           : badges // ignore: cast_nullable_to_non_nullable
               as List<SnAccountBadge>,
+      punishments: null == punishments
+          ? _self._punishments
+          : punishments // ignore: cast_nullable_to_non_nullable
+              as List<SnPunishment>,
       suspendedAt: freezed == suspendedAt
           ? _self.suspendedAt
           : suspendedAt // ignore: cast_nullable_to_non_nullable

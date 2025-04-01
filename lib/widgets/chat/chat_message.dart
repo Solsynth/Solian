@@ -1,11 +1,8 @@
-import 'dart:math' as math;
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:gap/gap.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:popover/popover.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/config.dart';
@@ -120,20 +117,9 @@ class ChatMessage extends StatelessWidget {
                       ),
                       onTap: () {
                         if (user == null) return;
-                        showPopover(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surface,
+                        showModalBottomSheet(
                           context: context,
-                          transition: PopoverTransition.other,
-                          bodyBuilder: (context) => SizedBox(
-                            width: math.min(
-                                400, MediaQuery.of(context).size.width - 10),
-                            child: AccountPopoverCard(data: user),
-                          ),
-                          direction: PopoverDirection.bottom,
-                          arrowHeight: 5,
-                          arrowWidth: 15,
-                          arrowDxOffset: -190,
+                          builder: (context) => AccountPopoverCard(data: user),
                         );
                       },
                     )

@@ -170,17 +170,30 @@ class _AttachmentListState extends State<AttachmentList> {
               child: Column(
                 children: widget.data
                     .mapIndexed(
-                      (idx, ele) => GestureDetector(
-                        child: AspectRatio(
-                          aspectRatio: ele?.data['ratio']?.toDouble() ?? 1,
-                          child: Container(
-                            constraints: constraints,
-                            child: AttachmentItem(
-                              data: ele,
-                              heroTag: heroTags[idx],
-                              fit: BoxFit.cover,
-                              filterQuality: widget.filterQuality,
-                            ),
+                      (idx, ele) => AspectRatio(
+                        aspectRatio: ele?.data['ratio']?.toDouble() ?? 1,
+                        child: Container(
+                          constraints: constraints,
+                          child: AttachmentItem(
+                            data: ele,
+                            heroTag: heroTags[idx],
+                            fit: BoxFit.cover,
+                            filterQuality: widget.filterQuality,
+                            onZoom: () {
+                              context.pushTransparentRoute(
+                                AttachmentZoomView(
+                                  data: widget.data
+                                      .where((ele) =>
+                                          ele != null &&
+                                          ele.mediaType == SnMediaType.image)
+                                      .cast(),
+                                  initialIndex: idx,
+                                  heroTags: heroTags,
+                                ),
+                                backgroundColor: Colors.black.withOpacity(0.7),
+                                rootNavigator: true,
+                              );
+                            },
                           ),
                         ),
                       ),
@@ -211,56 +224,52 @@ class _AttachmentListState extends State<AttachmentList> {
                     child: AspectRatio(
                       aspectRatio:
                           (widget.data[idx]?.data['ratio'] ?? 1).toDouble(),
-                      child: GestureDetector(
-                        onTap: () {
-                          if (widget.data[idx]?.mediaType !=
-                              SnMediaType.image) {
-                            return;
-                          }
-                          context.pushTransparentRoute(
-                            AttachmentZoomView(
-                              data: widget.data
-                                  .where((ele) =>
-                                      ele != null &&
-                                      ele.mediaType == SnMediaType.image)
-                                  .cast(),
-                              initialIndex: idx,
-                              heroTags: heroTags,
-                            ),
-                            backgroundColor: Colors.black.withOpacity(0.7),
-                            rootNavigator: true,
-                          );
-                        },
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: backgroundColor,
-                                border: Border.all(
-                                  width: 1,
-                                  color: Theme.of(context).dividerColor,
-                                ),
-                                borderRadius: AttachmentList.kDefaultRadius,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: backgroundColor,
+                              border: Border.all(
+                                width: 1,
+                                color: Theme.of(context).dividerColor,
                               ),
-                              child: ClipRRect(
-                                borderRadius: AttachmentList.kDefaultRadius,
-                                child: AttachmentItem(
-                                  data: widget.data[idx],
-                                  heroTag: heroTags[idx],
-                                  filterQuality: widget.filterQuality,
-                                ),
+                              borderRadius: AttachmentList.kDefaultRadius,
+                            ),
+                            child: ClipRRect(
+                              borderRadius: AttachmentList.kDefaultRadius,
+                              child: AttachmentItem(
+                                data: widget.data[idx],
+                                heroTag: heroTags[idx],
+                                filterQuality: widget.filterQuality,
+                                onZoom: () {
+                                  context.pushTransparentRoute(
+                                    AttachmentZoomView(
+                                      data: widget.data
+                                          .where((ele) =>
+                                              ele != null &&
+                                              ele.mediaType ==
+                                                  SnMediaType.image)
+                                          .cast(),
+                                      initialIndex: idx,
+                                      heroTags: heroTags,
+                                    ),
+                                    backgroundColor:
+                                        Colors.black.withOpacity(0.7),
+                                    rootNavigator: true,
+                                  );
+                                },
                               ),
                             ),
-                            Positioned(
-                              right: 8,
-                              bottom: 8,
-                              child: Chip(
-                                label: Text('${idx + 1}/${widget.data.length}'),
-                              ),
+                          ),
+                          Positioned(
+                            right: 8,
+                            bottom: 8,
+                            child: Chip(
+                              label: Text('${idx + 1}/${widget.data.length}'),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   );

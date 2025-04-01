@@ -22,6 +22,7 @@ abstract class SnAccount with _$SnAccount {
     required String language,
     required SnAccountProfile? profile,
     @Default([]) List<SnAccountBadge> badges,
+    @Default([]) List<SnPunishment> punishments,
     required DateTime? suspendedAt,
     required int? affiliatedId,
     required int? affiliatedTo,

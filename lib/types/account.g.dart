@@ -32,6 +32,10 @@ _SnAccount _$SnAccountFromJson(Map<String, dynamic> json) => _SnAccount(
               ?.map((e) => SnAccountBadge.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      punishments: (json['punishments'] as List<dynamic>?)
+              ?.map((e) => SnPunishment.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       suspendedAt: json['suspended_at'] == null
           ? null
           : DateTime.parse(json['suspended_at'] as String),
@@ -57,6 +61,7 @@ Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
       'language': instance.language,
       'profile': instance.profile?.toJson(),
       'badges': instance.badges.map((e) => e.toJson()).toList(),
+      'punishments': instance.punishments.map((e) => e.toJson()).toList(),
       'suspended_at': instance.suspendedAt?.toIso8601String(),
       'affiliated_id': instance.affiliatedId,
       'affiliated_to': instance.affiliatedTo,

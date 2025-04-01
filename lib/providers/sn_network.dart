@@ -249,8 +249,11 @@ class SnNetworkProvider {
     return null;
   }
 
-  String getAttachmentUrl(String ky) {
+  String getAttachmentUrl(String ky, {bool preview = true}) {
     if (ky.startsWith("http")) return ky;
+    if (!preview) {
+      return '${client.options.baseUrl}/cgi/uc/attachments/$ky?preview=false';
+    }
     return '${client.options.baseUrl}/cgi/uc/attachments/$ky';
   }
 
