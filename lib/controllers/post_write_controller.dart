@@ -255,8 +255,9 @@ class PostWriteController extends ChangeNotifier {
             List.from(post.categories.map((ele) => ele.alias), growable: true);
         attachments.addAll(
           post.body['attachments']
-                  ?.where((ele) => SnAttachment.fromJson(ele))
-                  ?.map(PostWriteMedia) ??
+                  ?.map((ele) => SnAttachment.fromJson(ele))
+                  ?.map((ele) => PostWriteMedia(ele))
+                  ?.cast<PostWriteMedia>() ??
               [],
         );
         poll = post.poll;

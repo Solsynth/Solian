@@ -11,7 +11,6 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/notification.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/notification.dart';
-import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
 import 'package:surface/widgets/markdown_content.dart';
@@ -156,7 +155,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     return AppScaffold(
       appBar: AppBar(
-        leading: AutoAppBarLeading(),
+        leading: PageBackButton(),
         title: Text('screenNotification').tr(),
         actions: [
           IconButton(

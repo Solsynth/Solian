@@ -100,6 +100,7 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
                   contentPadding: EdgeInsets.symmetric(horizontal: 24),
                   leading: AccountImage(
                     content: ua.user?.avatar,
+                    backgroundColor: Colors.transparent,
                     fallbackWidget:
                         ua.isAuthorized ? null : const Icon(Symbols.login),
                   ),
@@ -122,15 +123,6 @@ class _AppNavigationDrawerState extends State<AppNavigationDrawer> {
                             Scaffold.of(context).closeDrawer();
                           },
                         ),
-                      IconButton(
-                        icon: const Icon(Symbols.settings, fill: 1),
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () {
-                          GoRouter.of(context).pushNamed('settings');
-                          Scaffold.of(context).closeDrawer();
-                        },
-                      ),
                     ],
                   ),
                   onTap: () {
