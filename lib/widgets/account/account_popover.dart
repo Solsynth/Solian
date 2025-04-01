@@ -60,7 +60,7 @@ class AccountPopoverCard extends StatelessWidget {
             IconButton(
               onPressed: () {
                 Navigator.pop(context);
-                GoRouter.of(context).pushNamed(
+                GoRouter.of(context).pushReplacementNamed(
                   'accountProfilePage',
                   pathParameters: {'name': data.name},
                 );

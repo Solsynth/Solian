@@ -25,6 +25,7 @@ class AttachmentItem extends StatelessWidget {
   final String? heroTag;
   final BoxFit fit;
   final FilterQuality? filterQuality;
+  final Function? onZoom;
 
   const AttachmentItem({
     super.key,
@@ -32,6 +33,7 @@ class AttachmentItem extends StatelessWidget {
     required this.data,
     required this.heroTag,
     this.filterQuality,
+    this.onZoom,
   });
 
   Widget _buildContent(BuildContext context) {
@@ -94,7 +96,14 @@ class AttachmentItem extends StatelessWidget {
       });
     }
 
-    return _buildContent(context);
+    return GestureDetector(
+      child: _buildContent(context),
+      onTap: () {
+        if (data?.mimetype.startsWith('image') ?? false) {
+          onZoom?.call();
+        }
+      },
+    );
   }
 }
 
