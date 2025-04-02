@@ -303,6 +303,7 @@ class _PostPublisherScreenState extends State<PostPublisherScreen>
                     ),
                     child: SliverAppBar(
                       expandedHeight: _appBarHeight,
+                      leading: const PageBackButton(),
                       title: _publisher == null
                           ? Text('loading').tr()
                           : RichText(

@@ -1,19 +1,21 @@
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:path/path.dart' show withoutExtension;
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/attachment.dart';
-import 'package:surface/widgets/attachment/attachment_zoom.dart';
 import 'package:surface/widgets/attachment/attachment_item.dart';
+import 'package:surface/widgets/attachment/attachment_zoom.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:uuid/uuid.dart';
+import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 
 class AlbumScreen extends StatefulWidget {
   const AlbumScreen({super.key});
@@ -48,6 +50,8 @@ class _AlbumScreenState extends State<AlbumScreen> {
   Future<void> _fetchAttachments() async {
     setState(() => _isBusy = true);
 
+    final ua = context.read<UserProvider>();
+
     const uuid = Uuid();
 
     try {
@@ -55,10 +59,11 @@ class _AlbumScreenState extends State<AlbumScreen> {
       final resp = await sn.client.get('/cgi/uc/attachments', queryParameters: {
         'take': 10,
         'offset': _attachments.length,
+        'author': ua.user?.name,
       });
       final attachments = List<SnAttachment>.from(
         resp.data['data']?.map((e) => SnAttachment.fromJson(e)) ?? [],
-      ).where((e) => e.mimetype.startsWith('image')).toList();
+      );
       _attachments.addAll(attachments);
       _heroTags.addAll(_attachments.map((_) => uuid.v4()));
 
@@ -97,94 +102,127 @@ class _AlbumScreenState extends State<AlbumScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          SliverAppBar(
-            leading: PageBackButton(),
-            title: Text('screenAlbum').tr(),
-          ),
-          SliverToBoxAdapter(
-            child: Card(
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: CircularProgressIndicator(
-                      value: _billing?.includedRatio ?? 0,
-                      strokeWidth: 8,
-                      backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainerHigh,
+      appBar: AppBar(
+        leading: PageBackButton(),
+        title: Text('screenAlbum').tr(),
+      ),
+      body: Column(
+        children: [
+          Card(
+            margin: EdgeInsets.zero,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: CircularProgressIndicator(
+                    value: _billing?.includedRatio ?? 0,
+                    strokeWidth: 8,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainerHigh,
+                  ),
+                ).padding(all: 12),
+                const Gap(24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('attachmentBillingUploaded').tr().bold(),
+                      Text(
+                        (_billing?.currentBytes ?? 0).formatBytes(decimals: 4),
+                        style: GoogleFonts.robotoMono(),
+                      ),
+                      Text('attachmentBillingDiscount').tr().bold(),
+                      Text(
+                        '${(_billing?.discountFileSize ?? 0).formatBytes(decimals: 2)} · ${((_billing?.includedRatio ?? 0) * 100).toStringAsFixed(2)}%',
+                        style: GoogleFonts.robotoMono(),
+                      ),
+                    ],
+                  ),
+                ),
+                Tooltip(
+                  message: 'attachmentBillingHint'.tr(),
+                  child: IconButton(
+                    icon: const Icon(Symbols.info),
+                    onPressed: () {},
+                  ),
+                ),
+              ],
+            ).padding(horizontal: 24, vertical: 8),
+          ).padding(horizontal: 8, top: 8),
+          Expanded(
+            child: InfiniteList(
+              padding: EdgeInsets.only(top: 8),
+              itemCount: _attachments.length,
+              isLoading: _isBusy,
+              hasReachedMax:
+                  _totalCount != null && _attachments.length >= _totalCount!,
+              onFetchData: _fetchAttachments,
+              itemBuilder: (context, index) {
+                final ele = _attachments[index];
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      child: AspectRatio(
+                        aspectRatio: (ele.data['ratio'] ?? 1).toDouble(),
+                        child: AttachmentItem(
+                          data: ele,
+                          heroTag: _heroTags[index],
+                          onZoom: () {
+                            context.pushTransparentRoute(
+                              AttachmentZoomView(
+                                data: [ele],
+                              ),
+                              backgroundColor: Colors.black.withOpacity(0.7),
+                              rootNavigator: true,
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                  ).padding(all: 12),
-                  const Gap(24),
-                  Expanded(
-                    child: Column(
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('attachmentBillingUploaded').tr().bold(),
-                        Text(
-                          (_billing?.currentBytes ?? 0)
-                              .formatBytes(decimals: 4),
-                          style: GoogleFonts.robotoMono(),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(ele.name),
+                              if (ele.alt != withoutExtension(ele.name))
+                                Text(ele.alt),
+                              Text(DateFormat().format(ele.createdAt)),
+                              const Gap(4),
+                              Text(ele.size.formatBytes()).fontSize(12),
+                            ],
+                          ).padding(horizontal: 16, vertical: 12),
                         ),
-                        Text('attachmentBillingDiscount').tr().bold(),
-                        Text(
-                          '${(_billing?.discountFileSize ?? 0).formatBytes(decimals: 2)} · ${((_billing?.includedRatio ?? 0) * 100).toStringAsFixed(2)}%',
-                          style: GoogleFonts.robotoMono(),
+                        Padding(
+                          padding: EdgeInsets.only(left: 12, right: 12, top: 4),
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Symbols.info),
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) => AttachmentZoomDetailPopup(
+                                  data: ele,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  Tooltip(
-                    message: 'attachmentBillingHint'.tr(),
-                    child: IconButton(
-                      icon: const Icon(Symbols.info),
-                      onPressed: () {},
-                    ),
-                  ),
-                ],
-              ).padding(horizontal: 24, vertical: 8),
+                  ],
+                );
+              },
+              separatorBuilder: (_, __) => const Gap(8),
             ),
-          ),
-          SliverMasonryGrid.extent(
-            childCount: _attachments.length,
-            maxCrossAxisExtent: 320,
-            mainAxisSpacing: 4,
-            crossAxisSpacing: 4,
-            itemBuilder: (context, idx) {
-              final attachment = _attachments[idx];
-              return GestureDetector(
-                child: ClipRRect(
-                  child: AspectRatio(
-                    aspectRatio: attachment.metadata['ratio']?.toDouble() ?? 1,
-                    child: AttachmentItem(
-                      data: attachment,
-                      heroTag: _heroTags[idx],
-                    ),
-                  ),
-                ),
-                onTap: () {
-                  context.pushTransparentRoute(
-                    AttachmentZoomView(
-                      data: [attachment],
-                      heroTags: [_heroTags[idx]],
-                    ),
-                    backgroundColor: Colors.black.withOpacity(0.7),
-                    rootNavigator: true,
-                  );
-                },
-              );
-            },
-          ),
-          if (_isBusy)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: const CircularProgressIndicator(),
-              ).center(),
-            ),
+          )
         ],
       ),
     );

@@ -373,7 +373,7 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
                             _showDetail = true;
                             showModalBottomSheet(
                               context: context,
-                              builder: (context) => _AttachmentZoomDetailPopup(
+                              builder: (context) => AttachmentZoomDetailPopup(
                                 data: widget.data.elementAt(_page),
                               ),
                             ).then((_) {
@@ -403,7 +403,7 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
             _showDetail = true;
             showModalBottomSheet(
               context: context,
-              builder: (context) => _AttachmentZoomDetailPopup(
+              builder: (context) => AttachmentZoomDetailPopup(
                 data: widget.data.elementAt(_page),
               ),
             ).then((_) {
@@ -416,10 +416,10 @@ class _AttachmentZoomViewState extends State<AttachmentZoomView> {
   }
 }
 
-class _AttachmentZoomDetailPopup extends StatelessWidget {
+class AttachmentZoomDetailPopup extends StatelessWidget {
   final SnAttachment data;
 
-  const _AttachmentZoomDetailPopup({required this.data});
+  const AttachmentZoomDetailPopup({required this.data});
 
   @override
   Widget build(BuildContext context) {

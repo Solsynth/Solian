@@ -15,7 +15,6 @@ import 'package:surface/providers/websocket.dart';
 import 'package:surface/types/account.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/account/account_status.dart';
-import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:surface/widgets/universal_image.dart';
@@ -112,7 +111,7 @@ class AccountScreen extends StatelessWidget {
     return AppScaffold(
       noBackground: ResponsiveScaffold.getIsExpand(context),
       appBar: AppBar(
-        leading: AutoAppBarLeading(),
+        leading: const PageBackButton(),
         title: Text("screenAccount").tr(),
         flexibleSpace: ua.user != null && ua.user!.banner.isNotEmpty
             ? Stack(
