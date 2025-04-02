@@ -1,3 +1,4 @@
+// ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 import 'dart:ui_web' as ui;
 import 'package:easy_localization/easy_localization.dart';
@@ -32,7 +33,7 @@ class _CaptchaScreenState extends State<CaptchaScreen> {
     });
 
     final iframe = html.IFrameElement()
-      ..src = '${context.read<ConfigProvider>().serverUrl}/captcha?redirect_uri=web'
+      ..src = '${context.read<ConfigProvider>().serverUrl}/captcha'
       ..style.border = 'none'
       ..width = '100%'
       ..height = '100%';
@@ -40,7 +41,7 @@ class _CaptchaScreenState extends State<CaptchaScreen> {
     html.document.body!.append(iframe);
     ui.platformViewRegistry.registerViewFactory(
       'captcha-iframe',
-          (int viewId) => iframe,
+      (int viewId) => iframe,
     );
   }
 
