@@ -40,6 +40,7 @@ class UnauthorizedHint extends StatelessWidget {
           GoRouter.of(context).pushNamed('authLogin').then((value) {
             if (value == true && context.mounted) {
               final ua = context.read<UserProvider>();
+              ua.refreshUser();
               context.showSnackbar('loginSuccess'.tr(args: [
                 '@${ua.user?.name} (${ua.user?.nick})',
               ]));
