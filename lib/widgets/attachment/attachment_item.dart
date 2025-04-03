@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/logger.dart';
 import 'package:surface/providers/sn_network.dart';
+import 'package:surface/providers/userinfo.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/widgets/universal_image.dart';
 import 'package:uuid/uuid.dart';
@@ -228,6 +229,7 @@ class _AttachmentItemContentVideoState
     setState(() => _showContent = true);
     MediaKit.ensureInitialized();
     final sn = context.read<SnNetworkProvider>();
+    final ua = context.read<UserProvider>();
     final url = _showOriginal
         ? sn.getAttachmentUrl(widget.data.rid)
         : sn.getAttachmentUrl(widget.data.compressed!.rid);
@@ -240,6 +242,7 @@ class _AttachmentItemContentVideoState
       logging.info('[MediaPlayer] Miss cache: $url');
       final fileStream = DefaultCacheManager().getFileStream(
         url,
+        headers: {'Authorization': 'Bearer ${await ua.atk}'},
         withProgress: true,
       );
       await for (var fileInfo in fileStream) {
@@ -499,6 +502,7 @@ class _AttachmentItemContentAudioState
     setState(() => _showContent = true);
     MediaKit.ensureInitialized();
     final sn = context.read<SnNetworkProvider>();
+    final ua = context.read<UserProvider>();
     final url = sn.getAttachmentUrl(widget.data.rid);
     _audioPlayer = Player();
 
@@ -508,6 +512,7 @@ class _AttachmentItemContentAudioState
       logging.info('[MediaPlayer] Miss cache: $url');
       final fileStream = DefaultCacheManager().getFileStream(
         url,
+        headers: {'Authorization': 'Bearer ${await ua.atk}'},
         withProgress: true,
       );
       await for (var fileInfo in fileStream) {
