@@ -1001,10 +1001,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_webrtc
-      sha256: b832dc76c0d1577f14aaf35e9c38d4ed7667cbc89c492b7bf4505d8d5f62e08b
+      sha256: "4f0d6e248f178e617f249b6a2f432b5981e3300c2896fc8d476fc2aa1f525547"
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.12+hotfix.1"
+    version: "0.13.1"
   freezed:
     dependency: "direct dev"
     description:
@@ -1377,18 +1377,18 @@ packages:
     dependency: "direct main"
     description:
       name: livekit_client
-      sha256: "7f489fa415253d8d99c649b7efc95a733c5e5ac38dcfb02362ced99feb139376"
+      sha256: caff013563dc034b9858380318dd341c8bab453fc1a033405c3ab8677d91225c
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.1"
+    version: "2.4.2+hotfix.1"
   livekit_noise_filter:
     dependency: "direct main"
     description:
       name: livekit_noise_filter
-      sha256: "398bfd1cc63ada9dee9fd7ea415e2fc1e51e091a6d217aad3649b882c35c7fcb"
+      sha256: "667fd572bc45f18f09cf9764b6d323ee816905fd3afaf40e1e701ea2de8fd567"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0"
+    version: "0.1.0+hotfix.1"
   local_notifier:
     dependency: "direct main"
     description:

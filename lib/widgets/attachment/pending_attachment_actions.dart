@@ -21,6 +21,7 @@ import 'package:surface/widgets/attachment/attachment_zoom.dart';
 import 'package:surface/widgets/attachment/pending_attachment_alt.dart';
 import 'package:surface/widgets/attachment/pending_attachment_boost.dart';
 import 'package:surface/widgets/attachment/pending_attachment_compress.dart';
+import 'package:surface/widgets/attachment/pending_attachment_rating.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
 
@@ -139,6 +140,17 @@ class _PendingAttachmentActionSheetState
     final result = await showDialog<SnAttachment?>(
       context: context,
       builder: (context) => PendingAttachmentAltDialog(media: widget.media),
+    );
+    if (result == null) return;
+
+    if (!mounted) return;
+    Navigator.pop(context, PostWriteMedia(result));
+  }
+
+  Future<void> _setRating() async {
+    final result = await showDialog<SnAttachment?>(
+      context: context,
+      builder: (context) => PendingAttachmentRateDialog(media: widget.media),
     );
     if (result == null) return;
 
@@ -287,6 +299,13 @@ class _PendingAttachmentActionSheetState
                   contentPadding: EdgeInsets.symmetric(horizontal: 24),
                   title: Text('attachmentSetAlt').tr(),
                   onTap: () => _setAlt(),
+                ),
+                ListTile(
+                  minTileHeight: 48,
+                  leading: const Icon(Symbols.star),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                  title: Text('attachmentRating').tr(),
+                  onTap: () => _setRating(),
                 ),
                 ListTile(
                   minTileHeight: 48,

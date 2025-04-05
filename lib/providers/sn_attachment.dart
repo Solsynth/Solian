@@ -311,6 +311,23 @@ class SnAttachmentProvider {
     return out;
   }
 
+  Future<SnAttachment> rateOne(
+    SnAttachment item, {
+    int? content,
+    int? quality,
+  }) async {
+    final resp = await _sn.client.put(
+      '/cgi/uc/attachments/${item.id}/rating',
+      data: {
+        'content_rating': content ?? item.contentRating,
+        'quality_rating': quality ?? item.qualityRating,
+      },
+    );
+    final out = SnAttachment.fromJson(resp.data);
+    _saveToLocal([out]);
+    return out;
+  }
+
   Future<void> _saveToLocal(Iterable<SnAttachment> out) async {
     for (final ele in out) {
       if (!ele.isAnalyzed || ele.destination == 0) continue;
