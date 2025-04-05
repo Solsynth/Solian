@@ -160,6 +160,7 @@ class _LoginCheckScreenState extends State<_LoginCheckScreen> {
       sn.setTokenPair(atk, rtk);
       if (!mounted) return;
       final user = context.read<UserProvider>();
+      user.isAuthorized = true;
       await user.refreshUser();
       if (!mounted) return;
       final ws = context.read<WebSocketProvider>();
