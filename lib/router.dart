@@ -407,4 +407,10 @@ final appRouter = GoRouter(
       ),
     ),
   ],
+  onException: (context, state, router) {
+    if (state.error is GoException) {
+      router.goNamed('/');
+    }
+  },
+  navigatorKey: GlobalKey(),
 );
