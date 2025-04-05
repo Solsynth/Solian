@@ -23,6 +23,7 @@ _SnAttachment _$SnAttachmentFromJson(Map<String, dynamic> json) =>
       hash: json['hash'] as String,
       destination: (json['destination'] as num).toInt(),
       refCount: (json['ref_count'] as num).toInt(),
+      refUrl: json['ref_url'] as String?,
       contentRating: (json['content_rating'] as num?)?.toInt() ?? 0,
       qualityRating: (json['quality_rating'] as num?)?.toInt() ?? 0,
       cleanedAt: json['cleaned_at'] == null
@@ -75,6 +76,7 @@ Map<String, dynamic> _$SnAttachmentToJson(_SnAttachment instance) =>
       'hash': instance.hash,
       'destination': instance.destination,
       'ref_count': instance.refCount,
+      'ref_url': instance.refUrl,
       'content_rating': instance.contentRating,
       'quality_rating': instance.qualityRating,
       'cleaned_at': instance.cleanedAt?.toIso8601String(),

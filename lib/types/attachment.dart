@@ -30,6 +30,7 @@ abstract class SnAttachment with _$SnAttachment {
     required String hash,
     required int destination,
     required int refCount,
+    String? refUrl,
     @Default(0) int contentRating,
     @Default(0) int qualityRating,
     required DateTime? cleanedAt,

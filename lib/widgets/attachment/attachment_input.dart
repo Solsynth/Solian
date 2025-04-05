@@ -63,7 +63,8 @@ class _AttachmentInputDialogState extends State<AttachmentInputDialog> {
       }
     } else if (_file != null) {
       try {
-        final place = await attach.chunkedUploadInitialize(await _file!.length(), _file!.name, widget.pool, null);
+        final place = await attach.chunkedUploadInitialize(
+            await _file!.length(), _file!.name, widget.pool, null);
 
         final attachment = await attach.chunkedUploadParts(
           _file!,
@@ -109,11 +110,17 @@ class _AttachmentInputDialogState extends State<AttachmentInputDialog> {
             child: Column(
               children: [
                 ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   leading: const Icon(Symbols.add_photo_alternate),
                   trailing: const Icon(Symbols.chevron_right),
                   title: Text('addAttachmentFromAlbum').tr(),
-                  subtitle: _file == null ? Text('unset').tr() : Text('waitingForUpload').tr(),
+                  subtitle: _file == null
+                      ? Text('unset').tr()
+                      : Text('waitingForUpload').tr(),
                   onTap: () {
                     _pickMedia();
                   },

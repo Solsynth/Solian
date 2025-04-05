@@ -10,10 +10,12 @@ class PendingAttachmentAltDialog extends StatefulWidget {
   const PendingAttachmentAltDialog({super.key, required this.media});
 
   @override
-  State<PendingAttachmentAltDialog> createState() => _PendingAttachmentAltDialogState();
+  State<PendingAttachmentAltDialog> createState() =>
+      _PendingAttachmentAltDialogState();
 }
 
-class _PendingAttachmentAltDialogState extends State<PendingAttachmentAltDialog> {
+class _PendingAttachmentAltDialogState
+    extends State<PendingAttachmentAltDialog> {
   final _contentController = TextEditingController();
 
   @override
@@ -63,7 +65,7 @@ class _PendingAttachmentAltDialogState extends State<PendingAttachmentAltDialog>
             controller: _contentController,
             decoration: InputDecoration(
               labelText: 'fieldAttachmentAlt'.tr(),
-              border: const UnderlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
             onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           ),
@@ -71,9 +73,11 @@ class _PendingAttachmentAltDialogState extends State<PendingAttachmentAltDialog>
       ),
       actions: [
         TextButton(
-          onPressed: _isBusy ? null : () {
-            Navigator.pop(context);
-          },
+          onPressed: _isBusy
+              ? null
+              : () {
+                  Navigator.pop(context);
+                },
           child: Text('dialogDismiss'.tr()),
         ),
         TextButton(

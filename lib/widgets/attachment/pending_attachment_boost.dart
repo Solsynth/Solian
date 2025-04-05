@@ -14,10 +14,12 @@ class PendingAttachmentBoostDialog extends StatefulWidget {
   const PendingAttachmentBoostDialog({super.key, required this.media});
 
   @override
-  State<PendingAttachmentBoostDialog> createState() => _PendingAttachmentBoostDialogState();
+  State<PendingAttachmentBoostDialog> createState() =>
+      _PendingAttachmentBoostDialogState();
 }
 
-class _PendingAttachmentBoostDialogState extends State<PendingAttachmentBoostDialog> {
+class _PendingAttachmentBoostDialogState
+    extends State<PendingAttachmentBoostDialog> {
   List<SnAttachmentDestination>? _regions;
   SnAttachmentDestination? _selectedRegion;
 
@@ -84,17 +86,23 @@ class _PendingAttachmentBoostDialogState extends State<PendingAttachmentBoostDia
                     children: _regions!.map(
                       (ele) {
                         return RadioListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                          ),
                           title: Text(ele.label).tr(),
                           subtitle: Text(
                             'attachmentDestinationRegion${ele.region}'.trExists()
-                                ? 'attachmentDestinationRegion${ele.region}'.tr()
+                                ? 'attachmentDestinationRegion${ele.region}'
+                                    .tr()
                                 : ele.region,
                           ),
                           selected: _selectedRegion == ele,
                           value: ele,
                           groupValue: _selectedRegion,
                           onChanged: (value) {
-                            if (value != null) setState(() => _selectedRegion = value);
+                            if (value != null) {
+                              setState(() => _selectedRegion = value);
+                            }
                           },
                         );
                       },
@@ -105,9 +113,11 @@ class _PendingAttachmentBoostDialogState extends State<PendingAttachmentBoostDia
       ),
       actions: [
         TextButton(
-          onPressed: _isBusy ? null : () {
-            Navigator.pop(context);
-          },
+          onPressed: _isBusy
+              ? null
+              : () {
+                  Navigator.pop(context);
+                },
           child: Text('dialogDismiss'.tr()),
         ),
         TextButton(

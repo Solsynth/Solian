@@ -28,6 +28,7 @@ mixin _$SnAttachment {
   String get hash;
   int get destination;
   int get refCount;
+  String? get refUrl;
   int get contentRating;
   int get qualityRating;
   DateTime? get cleanedAt;
@@ -83,6 +84,7 @@ mixin _$SnAttachment {
                 other.destination == destination) &&
             (identical(other.refCount, refCount) ||
                 other.refCount == refCount) &&
+            (identical(other.refUrl, refUrl) || other.refUrl == refUrl) &&
             (identical(other.contentRating, contentRating) ||
                 other.contentRating == contentRating) &&
             (identical(other.qualityRating, qualityRating) ||
@@ -132,6 +134,7 @@ mixin _$SnAttachment {
         hash,
         destination,
         refCount,
+        refUrl,
         contentRating,
         qualityRating,
         cleanedAt,
@@ -155,7 +158,7 @@ mixin _$SnAttachment {
 
   @override
   String toString() {
-    return 'SnAttachment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, rid: $rid, uuid: $uuid, size: $size, name: $name, alt: $alt, mimetype: $mimetype, hash: $hash, destination: $destination, refCount: $refCount, contentRating: $contentRating, qualityRating: $qualityRating, cleanedAt: $cleanedAt, isAnalyzed: $isAnalyzed, isSelfRef: $isSelfRef, isIndexable: $isIndexable, ref: $ref, refId: $refId, pool: $pool, poolId: $poolId, account: $account, accountId: $accountId, thumbnailId: $thumbnailId, thumbnail: $thumbnail, compressedId: $compressedId, compressed: $compressed, boosts: $boosts, usermeta: $usermeta, metadata: $metadata)';
+    return 'SnAttachment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, rid: $rid, uuid: $uuid, size: $size, name: $name, alt: $alt, mimetype: $mimetype, hash: $hash, destination: $destination, refCount: $refCount, refUrl: $refUrl, contentRating: $contentRating, qualityRating: $qualityRating, cleanedAt: $cleanedAt, isAnalyzed: $isAnalyzed, isSelfRef: $isSelfRef, isIndexable: $isIndexable, ref: $ref, refId: $refId, pool: $pool, poolId: $poolId, account: $account, accountId: $accountId, thumbnailId: $thumbnailId, thumbnail: $thumbnail, compressedId: $compressedId, compressed: $compressed, boosts: $boosts, usermeta: $usermeta, metadata: $metadata)';
   }
 }
 
@@ -179,6 +182,7 @@ abstract mixin class $SnAttachmentCopyWith<$Res> {
       String hash,
       int destination,
       int refCount,
+      String? refUrl,
       int contentRating,
       int qualityRating,
       DateTime? cleanedAt,
@@ -231,6 +235,7 @@ class _$SnAttachmentCopyWithImpl<$Res> implements $SnAttachmentCopyWith<$Res> {
     Object? hash = null,
     Object? destination = null,
     Object? refCount = null,
+    Object? refUrl = freezed,
     Object? contentRating = null,
     Object? qualityRating = null,
     Object? cleanedAt = freezed,
@@ -304,6 +309,10 @@ class _$SnAttachmentCopyWithImpl<$Res> implements $SnAttachmentCopyWith<$Res> {
           ? _self.refCount
           : refCount // ignore: cast_nullable_to_non_nullable
               as int,
+      refUrl: freezed == refUrl
+          ? _self.refUrl
+          : refUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       contentRating: null == contentRating
           ? _self.contentRating
           : contentRating // ignore: cast_nullable_to_non_nullable
@@ -471,6 +480,7 @@ class _SnAttachment extends SnAttachment {
       required this.hash,
       required this.destination,
       required this.refCount,
+      this.refUrl,
       this.contentRating = 0,
       this.qualityRating = 0,
       required this.cleanedAt,
@@ -523,6 +533,8 @@ class _SnAttachment extends SnAttachment {
   final int destination;
   @override
   final int refCount;
+  @override
+  final String? refUrl;
   @override
   @JsonKey()
   final int contentRating;
@@ -623,6 +635,7 @@ class _SnAttachment extends SnAttachment {
                 other.destination == destination) &&
             (identical(other.refCount, refCount) ||
                 other.refCount == refCount) &&
+            (identical(other.refUrl, refUrl) || other.refUrl == refUrl) &&
             (identical(other.contentRating, contentRating) ||
                 other.contentRating == contentRating) &&
             (identical(other.qualityRating, qualityRating) ||
@@ -672,6 +685,7 @@ class _SnAttachment extends SnAttachment {
         hash,
         destination,
         refCount,
+        refUrl,
         contentRating,
         qualityRating,
         cleanedAt,
@@ -695,7 +709,7 @@ class _SnAttachment extends SnAttachment {
 
   @override
   String toString() {
-    return 'SnAttachment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, rid: $rid, uuid: $uuid, size: $size, name: $name, alt: $alt, mimetype: $mimetype, hash: $hash, destination: $destination, refCount: $refCount, contentRating: $contentRating, qualityRating: $qualityRating, cleanedAt: $cleanedAt, isAnalyzed: $isAnalyzed, isSelfRef: $isSelfRef, isIndexable: $isIndexable, ref: $ref, refId: $refId, pool: $pool, poolId: $poolId, account: $account, accountId: $accountId, thumbnailId: $thumbnailId, thumbnail: $thumbnail, compressedId: $compressedId, compressed: $compressed, boosts: $boosts, usermeta: $usermeta, metadata: $metadata)';
+    return 'SnAttachment(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, rid: $rid, uuid: $uuid, size: $size, name: $name, alt: $alt, mimetype: $mimetype, hash: $hash, destination: $destination, refCount: $refCount, refUrl: $refUrl, contentRating: $contentRating, qualityRating: $qualityRating, cleanedAt: $cleanedAt, isAnalyzed: $isAnalyzed, isSelfRef: $isSelfRef, isIndexable: $isIndexable, ref: $ref, refId: $refId, pool: $pool, poolId: $poolId, account: $account, accountId: $accountId, thumbnailId: $thumbnailId, thumbnail: $thumbnail, compressedId: $compressedId, compressed: $compressed, boosts: $boosts, usermeta: $usermeta, metadata: $metadata)';
   }
 }
 
@@ -721,6 +735,7 @@ abstract mixin class _$SnAttachmentCopyWith<$Res>
       String hash,
       int destination,
       int refCount,
+      String? refUrl,
       int contentRating,
       int qualityRating,
       DateTime? cleanedAt,
@@ -779,6 +794,7 @@ class __$SnAttachmentCopyWithImpl<$Res>
     Object? hash = null,
     Object? destination = null,
     Object? refCount = null,
+    Object? refUrl = freezed,
     Object? contentRating = null,
     Object? qualityRating = null,
     Object? cleanedAt = freezed,
@@ -852,6 +868,10 @@ class __$SnAttachmentCopyWithImpl<$Res>
           ? _self.refCount
           : refCount // ignore: cast_nullable_to_non_nullable
               as int,
+      refUrl: freezed == refUrl
+          ? _self.refUrl
+          : refUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       contentRating: null == contentRating
           ? _self.contentRating
           : contentRating // ignore: cast_nullable_to_non_nullable

@@ -945,5 +945,8 @@
   "postEditedHint": "已编辑",
   "splashScreenServer": "服务器",
   "splashScreenServerName": "土豆",
-  "splashScreenCaption": "正在尝试与 HyperNet™ 取得太阳链连接"
+  "splashScreenCaption": "正在尝试与 HyperNet™ 取得太阳链连接",
+  "attachmentEditor": "附件编辑器",
+  "attachmentEditorUnUploadHint": "该附件未上传，元数据编辑不可用，同时你可以裁剪本附件。",
+  "attachmentEditorUploadHint": "该附件已上传。"
 }

@@ -948,5 +948,8 @@
   "postEditedHint": "edited",
   "splashScreenServer": "Server",
   "splashScreenServerName": "Potato",
-  "splashScreenCaption": "Trying to establishing connection with HyperNet™"
+  "splashScreenCaption": "Trying to establishing connection with HyperNet™",
+  "attachmentEditor": "Attachment editor",
+  "attachmentEditorUnUploadHint": "This attachment is not uploaded, metadata editing is unavailable, and you can crop this attachment.",
+  "attachmentEditorUploadHint": "This attachment is uploaded."
 }

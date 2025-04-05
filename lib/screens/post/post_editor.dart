@@ -458,7 +458,9 @@ class _PostEditorScreenState extends State<PostEditorScreen>
                           isBusy: _writeController.isBusy,
                           onUpload: (int idx) async {
                             await _writeController.uploadSingleAttachment(
-                                context, idx);
+                              context,
+                              idx,
+                            );
                           },
                           onInsertLink: (int idx) async {
                             _writeController.contentController.text +=

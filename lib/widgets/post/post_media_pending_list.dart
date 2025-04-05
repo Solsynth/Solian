@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'dart:io';
 import 'dart:ui';
 
@@ -22,9 +24,9 @@ import 'package:surface/providers/sn_network.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/widgets/attachment/attachment_input.dart';
 import 'package:surface/widgets/attachment/attachment_zoom.dart';
+import 'package:surface/widgets/attachment/pending_attachment_actions.dart';
 import 'package:surface/widgets/attachment/pending_attachment_alt.dart';
 import 'package:surface/widgets/attachment/pending_attachment_boost.dart';
-import 'package:surface/widgets/context_menu.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/universal_image.dart';
 
@@ -50,232 +52,6 @@ class PostMediaPendingList extends StatelessWidget {
     this.onUpdateBusy,
   });
 
-  Future<void> _cropImage(BuildContext context, int idx) async {
-    final media = attachments[idx];
-    final result = (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
-        ? await showCupertinoImageCropper(
-            // ignore: use_build_context_synchronously
-            context,
-            // ignore: use_build_context_synchronously
-            imageProvider: media.getImageProvider(context)!,
-          )
-        : await showMaterialImageCropper(
-            // ignore: use_build_context_synchronously
-            context,
-            // ignore: use_build_context_synchronously
-            imageProvider: media.getImageProvider(context)!,
-          );
-
-    if (result == null) return;
-
-    final rawBytes =
-        (await result.uiImage.toByteData(format: ImageByteFormat.png))!
-            .buffer
-            .asUint8List();
-
-    if (onUpdate != null) {
-      final updatedMedia = PostWriteMedia.fromBytes(
-        rawBytes,
-        media.name,
-        media.type,
-      );
-      await onUpdate!(idx, updatedMedia);
-    }
-  }
-
-  Future<void> _setThumbnail(BuildContext context, int idx) async {
-    if (idx == -1) {
-      // Thumbnail only can set on video or audio. And thumbnail of the post must be an image, so it's not possible to set thumbnail on the post thumbnail.
-      return;
-    } else if (attachments[idx].attachment == null) {
-      return;
-    }
-
-    final thumbnail = await showDialog<SnAttachment?>(
-      context: context,
-      builder: (context) => AttachmentInputDialog(
-        title: 'attachmentSetThumbnail'.tr(),
-        pool: 'interactive',
-        analyzeNow: true,
-      ),
-    );
-    if (thumbnail == null) return;
-    if (!context.mounted) return;
-
-    try {
-      final attach = context.read<SnAttachmentProvider>();
-      final newAttach = await attach.updateOne(
-        attachments[idx].attachment!,
-        thumbnailId: thumbnail.id,
-      );
-      onUpdate!(idx, PostWriteMedia(newAttach));
-    } catch (err) {
-      if (!context.mounted) return;
-      context.showErrorDialog(err);
-    }
-  }
-
-  Future<void> _deleteAttachment(BuildContext context, int idx) async {
-    final media = attachments[idx];
-    if (media.attachment == null) return;
-
-    try {
-      onUpdateBusy?.call(true);
-      final sn = context.read<SnNetworkProvider>();
-      await sn.client.delete('/cgi/uc/attachments/${media.attachment!.id}');
-      onRemove!(idx);
-    } catch (err) {
-      if (!context.mounted) return;
-      context.showErrorDialog(err);
-    } finally {
-      onUpdateBusy?.call(false);
-    }
-  }
-
-  Future<void> _createBoost(BuildContext context, int idx) async {
-    if (attachments[idx].attachment == null) return;
-
-    final result = await showDialog<SnAttachmentBoost?>(
-      context: context,
-      builder: (context) =>
-          PendingAttachmentBoostDialog(media: attachments[idx]),
-    );
-    if (result == null) return;
-
-    final newAttach = attachments[idx].attachment!.copyWith(
-      boosts: [...attachments[idx].attachment!.boosts, result],
-    );
-    final newMedia = PostWriteMedia(newAttach);
-
-    onUpdate!(idx, newMedia);
-  }
-
-  Future<void> _compressVideo(BuildContext context, int idx) async {
-    final result = await showDialog<PostWriteMedia?>(
-      context: context,
-      builder: (context) => PendingVideoCompressDialog(media: attachments[idx]),
-    );
-    if (result == null) return;
-
-    onUpdate!(idx, result);
-  }
-
-  Future<void> _setAlt(BuildContext context, int idx) async {
-    final result = await showDialog<SnAttachment?>(
-      context: context,
-      builder: (context) => PendingAttachmentAltDialog(media: attachments[idx]),
-    );
-    if (result == null) return;
-
-    onUpdate!(idx, PostWriteMedia(result));
-  }
-
-  ContextMenu _createContextMenu(
-      BuildContext context, int idx, PostWriteMedia media) {
-    final canCompressVideo =
-        !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
-    return ContextMenu(
-      entries: [
-        if (media.attachment == null &&
-            media.type == SnMediaType.video &&
-            canCompressVideo)
-          MenuItem(
-            label: 'attachmentCompressVideo'.tr(),
-            icon: Symbols.compress,
-            onSelected: () {
-              _compressVideo(context, idx);
-            },
-          ),
-        if (media.attachment != null)
-          MenuItem(
-            label: 'attachmentSetAlt'.tr(),
-            icon: Symbols.description,
-            onSelected: () {
-              _setAlt(context, idx);
-            },
-          ),
-        if (media.attachment != null)
-          MenuItem(
-            label: 'attachmentBoost'.tr(),
-            icon: Symbols.bolt,
-            onSelected: () {
-              _createBoost(context, idx);
-            },
-          ),
-        if (media.attachment != null && media.type == SnMediaType.video)
-          MenuItem(
-            label: 'attachmentSetThumbnail'.tr(),
-            icon: Symbols.image,
-            onSelected: () {
-              _setThumbnail(context, idx);
-            },
-          ),
-        if (media.attachment == null && onUpload != null)
-          MenuItem(
-              label: 'attachmentUpload'.tr(),
-              icon: Symbols.upload,
-              onSelected: () {
-                onUpload!(idx);
-              }),
-        if (media.attachment != null && onInsertLink != null)
-          MenuItem(
-            label: 'attachmentInsertLink'.tr(),
-            icon: Symbols.add_link,
-            onSelected: () {
-              onInsertLink!(idx);
-            },
-          ),
-        if (media.type == SnMediaType.image && media.attachment != null)
-          MenuItem(
-            label: 'preview'.tr(),
-            icon: Symbols.preview,
-            onSelected: () {
-              context.pushTransparentRoute(
-                AttachmentZoomView(data: [media.attachment!]),
-                rootNavigator: true,
-              );
-            },
-          ),
-        if (media.type == SnMediaType.image && media.attachment == null)
-          MenuItem(
-            label: 'crop'.tr(),
-            icon: Symbols.crop,
-            onSelected: () => _cropImage(context, idx),
-          ),
-        if (media.attachment != null)
-          MenuItem(
-            label: 'attachmentCopyRandomId'.tr(),
-            icon: Symbols.content_copy,
-            onSelected: () {
-              Clipboard.setData(ClipboardData(text: media.attachment!.rid));
-            },
-          ),
-        if (media.attachment != null && onRemove != null)
-          MenuItem(
-            label: 'delete'.tr(),
-            icon: Symbols.delete,
-            onSelected: isBusy ? null : () => _deleteAttachment(context, idx),
-          ),
-        if (media.attachment == null && onRemove != null)
-          MenuItem(
-            label: 'delete'.tr(),
-            icon: Symbols.delete,
-            onSelected: () {
-              onRemove!(idx);
-            },
-          )
-        else if (onRemove != null)
-          MenuItem(
-            label: 'unlink'.tr(),
-            icon: Symbols.link_off,
-            onSelected: () {
-              onRemove!(idx);
-            },
-          ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -287,9 +63,27 @@ class PostMediaPendingList extends StatelessWidget {
         itemCount: attachments.length,
         itemBuilder: (context, idx) {
           final media = attachments[idx];
-          return ContextMenuArea(
-            contextMenu: _createContextMenu(context, idx, media),
+          return GestureDetector(
             child: _PostMediaPendingItem(media: media),
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => PendingAttachmentActionSheet(
+                  media: media,
+                ),
+              ).then((value) async {
+                if (value is PostWriteMedia) {
+                  await onUpdate!(idx, value);
+                }
+                if (value == 'link') {
+                  onInsertLink!(idx);
+                } else if (value == false) {
+                  onRemove!(idx);
+                } else if (value == true) {
+                  onUpload!(idx);
+                }
+              });
+            },
           );
         },
       ),
@@ -300,9 +94,7 @@ class PostMediaPendingList extends StatelessWidget {
 class _PostMediaPendingItem extends StatelessWidget {
   final PostWriteMedia media;
 
-  const _PostMediaPendingItem({
-    required this.media,
-  });
+  const _PostMediaPendingItem({required this.media});
 
   @override
   Widget build(BuildContext context) {
@@ -321,34 +113,36 @@ class _PostMediaPendingItem extends StatelessWidget {
             AspectRatio(
               aspectRatio: 1,
               child: switch (media.type) {
-                SnMediaType.image =>
-                  LayoutBuilder(builder: (context, constraints) {
-                    return Image(
-                      image: media.getImageProvider(
-                        context,
-                        width:
-                            (constraints.maxWidth * devicePixelRatio).round(),
-                        height:
-                            (constraints.maxHeight * devicePixelRatio).round(),
-                      )!,
-                      fit: BoxFit.contain,
-                    );
-                  }),
+                SnMediaType.image => LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Image(
+                        image: media.getImageProvider(
+                          context,
+                          width:
+                              (constraints.maxWidth * devicePixelRatio).round(),
+                          height: (constraints.maxHeight * devicePixelRatio)
+                              .round(),
+                        )!,
+                        fit: BoxFit.contain,
+                      );
+                    },
+                  ),
                 SnMediaType.video => Stack(
                     fit: StackFit.expand,
                     children: [
                       if (media.attachment?.thumbnail != null)
                         AutoResizeUniversalImage(sn.getAttachmentUrl(
                             media.attachment!.thumbnail!.rid)),
-                      const Icon(Symbols.videocam,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
+                      const Icon(
+                        Symbols.videocam,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
                               offset: Offset(1, 1),
                               blurRadius: 8.0,
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ]),
+                              color: Color.fromARGB(255, 0, 0, 0))
+                        ],
+                      ),
                     ],
                   ),
                 SnMediaType.audio => Stack(
@@ -357,15 +151,16 @@ class _PostMediaPendingItem extends StatelessWidget {
                       if (media.attachment?.thumbnail != null)
                         AutoResizeUniversalImage(sn.getAttachmentUrl(
                             media.attachment!.thumbnail!.rid)),
-                      const Icon(Symbols.audio_file,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
+                      const Icon(
+                        Symbols.audio_file,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
                               offset: Offset(1, 1),
                               blurRadius: 8.0,
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ]),
+                              color: Color.fromARGB(255, 0, 0, 0))
+                        ],
+                      ),
                     ],
                   ),
                 _ => Container(
@@ -387,11 +182,8 @@ class _PostMediaPendingItem extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (media.attachment != null)
-                            Text(
-                              media.attachment!.alt,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            )
+                            Text(media.attachment!.alt,
+                                maxLines: 1, overflow: TextOverflow.ellipsis)
                           else if (media.file != null)
                             Text(media.file!.name,
                                 maxLines: 1, overflow: TextOverflow.ellipsis)
@@ -468,11 +260,8 @@ class AddPostMediaButton extends StatelessWidget {
   final VisualDensity? visualDensity;
   final Function(Iterable<PostWriteMedia>) onAdd;
 
-  const AddPostMediaButton({
-    super.key,
-    required this.onAdd,
-    this.visualDensity,
-  });
+  const AddPostMediaButton(
+      {super.key, required this.onAdd, this.visualDensity});
 
   void _takeMedia(bool isVideo) async {
     final picker = ImagePicker();
@@ -487,17 +276,13 @@ class AddPostMediaButton extends StatelessWidget {
     final picker = ImagePicker();
     final result = await picker.pickMultipleMedia();
     if (result.isEmpty) return;
-    onAdd(
-      result.map((e) => PostWriteMedia.fromFile(e)),
-    );
+    onAdd(result.map((e) => PostWriteMedia.fromFile(e)));
   }
 
   void _selectFile() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.any);
     if (result == null) return;
-    onAdd(
-      result.files.map((e) => PostWriteMedia.fromFile(e.xFile)),
-    );
+    onAdd(result.files.map((e) => PostWriteMedia.fromFile(e.xFile)));
   }
 
   void _pasteMedia() async {
@@ -505,10 +290,7 @@ class AddPostMediaButton extends StatelessWidget {
     if (imageBytes == null) return;
     onAdd([
       PostWriteMedia.fromBytes(
-        imageBytes,
-        'attachmentPastedImage'.tr(),
-        SnMediaType.image,
-      ),
+          imageBytes, 'attachmentPastedImage'.tr(), SnMediaType.image)
     ]);
   }
 
@@ -556,19 +338,15 @@ class AddPostMediaButton extends StatelessWidget {
     final attach = context.read<SnAttachmentProvider>();
     final attachment = await attach.getOne(randomId);
 
-    onAdd([
-      PostWriteMedia(attachment),
-    ]);
+    onAdd([PostWriteMedia(attachment)]);
   }
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton(
       style: ButtonStyle(visualDensity: visualDensity),
-      icon: Icon(
-        Symbols.add_photo_alternate,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      icon: Icon(Symbols.add_photo_alternate,
+          color: Theme.of(context).colorScheme.primary),
       itemBuilder: (context) => [
         if (!kIsWeb &&
             !Platform.isLinux &&
@@ -595,7 +373,7 @@ class AddPostMediaButton extends StatelessWidget {
               children: [
                 const Icon(Symbols.videocam),
                 const Gap(16),
-                Text('addAttachmentFromCameraVideo').tr(),
+                Text('addAttachmentFromCameraVideo').tr()
               ],
             ),
             onTap: () {
@@ -607,7 +385,7 @@ class AddPostMediaButton extends StatelessWidget {
             children: [
               const Icon(Symbols.photo_library),
               const Gap(16),
-              Text('addAttachmentFromAlbum').tr(),
+              Text('addAttachmentFromAlbum').tr()
             ],
           ),
           onTap: () {
@@ -619,7 +397,7 @@ class AddPostMediaButton extends StatelessWidget {
             children: [
               const Icon(Symbols.file_upload),
               const Gap(16),
-              Text('addAttachmentFromFiles').tr(),
+              Text('addAttachmentFromFiles').tr()
             ],
           ),
           onTap: () {
@@ -627,13 +405,11 @@ class AddPostMediaButton extends StatelessWidget {
           },
         ),
         PopupMenuItem(
-          child: Row(
-            children: [
-              const Icon(Symbols.link),
-              const Gap(16),
-              Text('addAttachmentFromRandomId').tr(),
-            ],
-          ),
+          child: Row(children: [
+            const Icon(Symbols.link),
+            const Gap(16),
+            Text('addAttachmentFromRandomId').tr()
+          ]),
           onTap: () {
             _linkRandomId(context);
           },
@@ -643,7 +419,7 @@ class AddPostMediaButton extends StatelessWidget {
             children: [
               const Icon(Symbols.content_paste),
               const Gap(16),
-              Text('addAttachmentFromClipboard').tr(),
+              Text('addAttachmentFromClipboard').tr()
             ],
           ),
           onTap: () {
