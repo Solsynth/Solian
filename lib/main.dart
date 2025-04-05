@@ -26,7 +26,6 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/firebase_options.dart';
 import 'package:surface/logger.dart';
 import 'package:surface/providers/channel.dart';
-import 'package:surface/providers/chat_call.dart';
 import 'package:surface/providers/config.dart';
 import 'package:surface/providers/database.dart';
 import 'package:surface/providers/keypair.dart';
@@ -198,7 +197,6 @@ class SolianApp extends StatelessWidget {
             Provider(create: (ctx) => KeyPairProvider(ctx)),
             ChangeNotifierProvider(create: (ctx) => NotificationProvider(ctx)),
             ChangeNotifierProvider(create: (ctx) => ChatChannelProvider(ctx)),
-            ChangeNotifierProvider(create: (ctx) => ChatCallProvider(ctx)),
             Provider(create: (ctx) => SnTranslator()),
 
             // Additional helper layer

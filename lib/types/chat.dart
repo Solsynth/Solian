@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:livekit_client/livekit_client.dart';
 import 'package:surface/types/account.dart';
 import 'package:surface/types/attachment.dart';
 import 'package:surface/types/realm.dart';
@@ -115,25 +114,4 @@ abstract class SnChatCall with _$SnChatCall {
 
   factory SnChatCall.fromJson(Map<String, dynamic> json) =>
       _$SnChatCallFromJson(json);
-}
-
-// Call stuff
-
-enum ParticipantStatsType {
-  unknown,
-  localAudioSender,
-  localVideoSender,
-  remoteAudioReceiver,
-  remoteVideoReceiver,
-}
-
-class ParticipantTrack {
-  ParticipantTrack(
-      {required this.participant,
-      required this.videoTrack,
-      required this.isScreenShare});
-
-  VideoTrack? videoTrack;
-  Participant participant;
-  bool isScreenShare;
 }

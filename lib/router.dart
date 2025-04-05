@@ -22,7 +22,6 @@ import 'package:surface/screens/album.dart';
 import 'package:surface/screens/auth/login.dart';
 import 'package:surface/screens/auth/register.dart';
 import 'package:surface/screens/chat.dart';
-import 'package:surface/screens/chat/call_room.dart';
 import 'package:surface/screens/chat/channel_detail.dart';
 import 'package:surface/screens/chat/manage.dart';
 import 'package:surface/screens/chat/room.dart';
@@ -262,14 +261,6 @@ final _appRoutes = [
               scope: state.pathParameters['scope']!,
               alias: state.pathParameters['alias']!,
               extra: state.extra as ChatRoomScreenExtra?,
-            ),
-          ),
-          GoRoute(
-            path: '/:scope/:alias/call',
-            name: 'chatCallRoom',
-            builder: (context, state) => CallRoomScreen(
-              scope: state.pathParameters['scope']!,
-              alias: state.pathParameters['alias']!,
             ),
           ),
           GoRoute(

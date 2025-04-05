@@ -122,12 +122,11 @@ PODS:
   - flutter_udid (0.0.1):
     - Flutter
     - SAMKeychain
-  - flutter_webrtc (0.12.6):
-    - Flutter
-    - WebRTC-SDK (= 125.6422.06)
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
+  - Giphy (2.2.12):
+    - libwebp
   - GoogleAppMeasurement (11.10.0):
     - GoogleAppMeasurement/AdIdSupport (= 11.10.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
@@ -184,16 +183,26 @@ PODS:
     - Flutter
   - in_app_review (2.0.0):
     - Flutter
+  - jitsi_meet_flutter_sdk (11.1.1):
+    - Flutter
+    - JitsiMeetSDK (= 11.1.1)
+  - JitsiMeetSDK (11.1.1):
+    - Giphy (= 2.2.12)
+    - JitsiWebRTC (~> 124.0)
+  - JitsiWebRTC (124.0.2)
   - Kingfisher (8.3.1)
-  - livekit_client (2.4.2):
-    - Flutter
-    - flutter_webrtc
-    - WebRTC-SDK (= 125.6422.06)
-  - livekit_noise_filter (0.0.1):
-    - Flutter
-    - flutter_webrtc
-    - LiveKitKrispNoiseFilter (= 0.0.7)
-  - LiveKitKrispNoiseFilter (0.0.7)
+  - libwebp (1.5.0):
+    - libwebp/demux (= 1.5.0)
+    - libwebp/mux (= 1.5.0)
+    - libwebp/sharpyuv (= 1.5.0)
+    - libwebp/webp (= 1.5.0)
+  - libwebp/demux (1.5.0):
+    - libwebp/webp
+  - libwebp/mux (1.5.0):
+    - libwebp/demux
+  - libwebp/sharpyuv (1.5.0)
+  - libwebp/webp (1.5.0):
+    - libwebp/sharpyuv
   - media_kit_libs_ios_video (1.0.4):
     - Flutter
   - media_kit_video (0.0.1):
@@ -259,7 +268,6 @@ PODS:
     - Flutter
   - wakelock_plus (0.0.1):
     - Flutter
-  - WebRTC-SDK (125.6422.06)
   - workmanager (0.0.1):
     - Flutter
 
@@ -281,14 +289,12 @@ DEPENDENCIES:
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - flutter_timezone (from `.symlinks/plugins/flutter_timezone/ios`)
   - flutter_udid (from `.symlinks/plugins/flutter_udid/ios`)
-  - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - gal (from `.symlinks/plugins/gal/darwin`)
   - home_widget (from `.symlinks/plugins/home_widget/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
+  - jitsi_meet_flutter_sdk (from `.symlinks/plugins/jitsi_meet_flutter_sdk/ios`)
   - Kingfisher (~> 8.0)
-  - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
-  - livekit_noise_filter (from `.symlinks/plugins/livekit_noise_filter/ios`)
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -317,11 +323,14 @@ SPEC REPOS:
     - FirebaseCoreInternal
     - FirebaseInstallations
     - FirebaseMessaging
+    - Giphy
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
+    - JitsiMeetSDK
+    - JitsiWebRTC
     - Kingfisher
-    - LiveKitKrispNoiseFilter
+    - libwebp
     - nanopb
     - OrderedSet
     - PromisesObjC
@@ -329,7 +338,6 @@ SPEC REPOS:
     - SDWebImage
     - sqlite3
     - SwiftyGif
-    - WebRTC-SDK
 
 EXTERNAL SOURCES:
   audioplayers_darwin:
@@ -364,8 +372,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_timezone/ios"
   flutter_udid:
     :path: ".symlinks/plugins/flutter_udid/ios"
-  flutter_webrtc:
-    :path: ".symlinks/plugins/flutter_webrtc/ios"
   gal:
     :path: ".symlinks/plugins/gal/darwin"
   home_widget:
@@ -374,10 +380,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   in_app_review:
     :path: ".symlinks/plugins/in_app_review/ios"
-  livekit_client:
-    :path: ".symlinks/plugins/livekit_client/ios"
-  livekit_noise_filter:
-    :path: ".symlinks/plugins/livekit_noise_filter/ios"
+  jitsi_meet_flutter_sdk:
+    :path: ".symlinks/plugins/jitsi_meet_flutter_sdk/ios"
   media_kit_libs_ios_video:
     :path: ".symlinks/plugins/media_kit_libs_ios_video/ios"
   media_kit_video:
@@ -437,18 +441,19 @@ SPEC CHECKSUMS:
   flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
   flutter_timezone: 7c838e17ffd4645d261e87037e5bebf6d38fe544
   flutter_udid: f7c3884e6ec2951efe4f9de082257fc77c4d15e9
-  flutter_webrtc: 57f32415b8744e806f9c2a96ccdb60c6a627ba33
   gal: baecd024ebfd13c441269ca7404792a7152fde89
+  Giphy: 83628960ed04e1c3428ff1b4fb2b027f65e82f50
   GoogleAppMeasurement: 36684bfb3ee034e2b42b4321eb19da3a1b81e65d
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   home_widget: f169fc41fd807b4d46ab6615dc44d62adbf9f64f
   image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
   in_app_review: 5596fe56fab799e8edb3561c03d053363ab13457
+  jitsi_meet_flutter_sdk: 0283a60730922d608fbad9872e07afdd5bb3578a
+  JitsiMeetSDK: 4e1c269aaaed8f2cb7b0fff2d3c00f08359b170e
+  JitsiWebRTC: b47805ab5668be38e7ee60e2258f49badfe8e1d0
   Kingfisher: 3204d23de16b5ea53541c44ca5a8efb55741dec3
-  livekit_client: 78bb2ff0d409268886804151d4fc9e006093e6ce
-  livekit_noise_filter: a26aeb1c1eae6db0a023fd2f6ea3ff108c3ecbb0
-  LiveKitKrispNoiseFilter: efe418ceca28163ace0ff222bd2cc02384645d84
+  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
@@ -471,9 +476,8 @@ SPEC CHECKSUMS:
   video_compress: f2133a07762889d67f0711ac831faa26f956980e
   volume_controller: 3657a1f65bedb98fa41ff7dc5793537919f31b12
   wakelock_plus: 04623e3f525556020ebd4034310f20fe7fda8b49
-  WebRTC-SDK: 79942c006ea64f6fb48d7da8a4786dfc820bc1db
   workmanager: 01be2de7f184bd15de93a1812936a2b7f42ef07e
 
-PODFILE CHECKSUM: 9b244e02f87527430136c8d21cbdcf1cd586b6bc
+PODFILE CHECKSUM: d278ce52a331dda323590121247d2046cd085ae7
 
 COCOAPODS: 1.16.2

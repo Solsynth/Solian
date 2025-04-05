@@ -2,18 +2,17 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jitsi_meet_flutter_sdk/jitsi_meet_flutter_sdk.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/controllers/chat_message_controller.dart';
 import 'package:surface/controllers/post_write_controller.dart';
 import 'package:surface/providers/channel.dart';
-import 'package:surface/providers/chat_call.dart';
 import 'package:surface/providers/notification.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/user_directory.dart';
@@ -21,7 +20,6 @@ import 'package:surface/providers/userinfo.dart';
 import 'package:surface/providers/websocket.dart';
 import 'package:surface/types/chat.dart';
 import 'package:surface/types/websocket.dart';
-import 'package:surface/widgets/chat/call/call_prejoin.dart';
 import 'package:surface/widgets/chat/chat_message.dart';
 import 'package:surface/widgets/chat/chat_message_input.dart';
 import 'package:surface/widgets/chat/chat_typing_indicator.dart';
@@ -51,13 +49,11 @@ class ChatRoomScreen extends StatefulWidget {
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   bool _isBusy = false;
-  bool _isCalling = false;
   bool _isJoining = false;
 
   SnChannel? _channel;
   SnChannelMember? _currentMember;
   SnChannelMember? _otherMember;
-  SnChatCall? _ongoingCall;
 
   final GlobalKey<ChatMessageInputState> _inputGlobalKey = GlobalKey();
   late final ChatMessageController _messageController;
@@ -139,88 +135,25 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
-  Future<void> _fetchOngoingCall() async {
-    setState(() => _isCalling = true);
-
-    try {
-      final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get(
-        '/cgi/im/channels/${_messageController.channel!.keyPath}/calls/ongoing',
-        options: Options(
-          validateStatus: (status) => status != null && status < 500,
-          receiveTimeout: const Duration(seconds: 60),
-          sendTimeout: const Duration(seconds: 60),
-        ),
-      );
-      if (resp.statusCode == 200) {
-        _ongoingCall = SnChatCall.fromJson(resp.data);
-      }
-    } catch (err) {
-      if (!mounted) return;
-      context.showErrorDialog(err);
-    } finally {
-      setState(() => _isCalling = false);
-    }
-  }
-
-  Future<void> _makeCall() async {
-    setState(() => _isCalling = true);
-
-    try {
-      final sn = context.read<SnNetworkProvider>();
-      await sn.client.post(
-        '/cgi/im/channels/${_messageController.channel!.keyPath}/calls',
-        options: Options(
-          sendTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
-        ),
-      );
-    } catch (err) {
-      if (!mounted) return;
-      if (_ongoingCall == null) {
-        // ignore the error because the call is already ongoing
-        context.showErrorDialog(err);
-      }
-    } finally {
-      setState(() => _isCalling = false);
-    }
-  }
-
-  Future<void> _endCall() async {
-    setState(() => _isCalling = true);
-
-    try {
-      final sn = context.read<SnNetworkProvider>();
-      await sn.client.delete(
-        '/cgi/im/channels/${_messageController.channel!.keyPath}/calls/ongoing',
-      );
-    } catch (err) {
-      if (!mounted) return;
-      context.showErrorDialog(err);
-    } finally {
-      setState(() => _isCalling = false);
-    }
-  }
-
   Future<void> _onCallJoin() async {
-    await showModalBottomSheet(
-      context: context,
-      builder: (context) => ChatCallPrejoinPopup(
-        ongoingCall: _ongoingCall!,
-        channel: _channel!,
-        onJoin: _onCallResume,
+    final sn = context.read<SnNetworkProvider>();
+    final ua = context.read<UserProvider>();
+    final meet = JitsiMeet();
+    final confOpts = JitsiMeetConferenceOptions(
+      room: 'sn-chat-${_channel!.id}',
+      serverURL:
+          'https://meet.element.io', // TODO fetch this as config from remote
+      configOverrides: {
+        "subject": _channel!.name,
+      },
+      userInfo: JitsiMeetUserInfo(
+        avatar: ua.user!.avatar.isNotEmpty
+            ? sn.getAttachmentUrl(ua.user!.avatar)
+            : null,
+        displayName: _currentMember!.nick ?? ua.user!.nick,
       ),
     );
-  }
-
-  void _onCallResume() {
-    GoRouter.of(context).pushNamed(
-      'chatCallRoom',
-      pathParameters: {
-        'scope': _channel!.realm?.alias ?? 'global',
-        'alias': _channel!.alias,
-      },
-    );
+    meet.join(confOpts);
   }
 
   bool _checkMessageMergeable(SnChatMessage? a, SnChatMessage? b) {
@@ -248,10 +181,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         });
       }
 
-      await Future.wait([
-        _messageController.checkUpdate(),
-        _fetchOngoingCall(),
-      ]);
+      await _messageController.checkUpdate();
     });
   }
 
@@ -260,23 +190,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     super.initState();
     _messageController = ChatMessageController(context);
     _initializeChat();
-
-    _wsSubscription = _ws.pk.stream.listen((event) {
-      switch (event.method) {
-        case 'calls.new':
-          final payload = SnChatCall.fromJson(event.payload!);
-          if (payload.channelId == _channel?.id) {
-            setState(() => _ongoingCall = payload);
-          }
-          break;
-        case 'calls.end':
-          final payload = SnChatCall.fromJson(event.payload!);
-          if (payload.channelId == _channel?.id) {
-            setState(() => _ongoingCall = null);
-          }
-          break;
-      }
-    });
   }
 
   @override
@@ -300,7 +213,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final call = context.watch<ChatCallProvider>();
     final ud = context.read<UserDirectoryProvider>();
 
     return AppScaffold(
@@ -324,14 +236,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             ),
           if (_currentMember != null)
             IconButton(
-              icon: _ongoingCall == null
-                  ? const Icon(Symbols.call)
-                  : const Icon(Symbols.call_end),
-              onPressed: _isCalling
-                  ? null
-                  : _ongoingCall == null
-                      ? _makeCall
-                      : _endCall,
+              icon: const Icon(Symbols.video_call),
+              onPressed: _onCallJoin,
             ),
           IconButton(
             icon: const Icon(Symbols.more_vert),
@@ -359,28 +265,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               LoadingIndicator(
                 isActive: _isBusy || _messageController.isAggressiveLoading,
               ),
-              SingleChildScrollView(
-                physics: const NeverScrollableScrollPhysics(),
-                child: MaterialBanner(
-                  dividerColor: Colors.transparent,
-                  leading: const Icon(Symbols.call_received),
-                  content: Text('callOngoingNotice').tr().padding(top: 2),
-                  actions: [
-                    if (call.current == null)
-                      TextButton(
-                        onPressed: _onCallJoin,
-                        child: Text('callJoin').tr(),
-                      )
-                    else if (call.current?.channelId == _channel?.id)
-                      TextButton(
-                        onPressed: _onCallResume,
-                        child: Text('callResume').tr(),
-                      )
-                  ],
-                ),
-              ).height(_ongoingCall != null ? 54 : 0, animate: true).animate(
-                  const Duration(milliseconds: 300),
-                  Curves.fastLinearToSlowEaseIn),
               if (_currentMember == null && !_isBusy)
                 Expanded(
                   child: Center(
