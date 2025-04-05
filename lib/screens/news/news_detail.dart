@@ -24,13 +24,13 @@ class NewsDetailScreen extends StatefulWidget {
 }
 
 class _NewsDetailScreenState extends State<NewsDetailScreen> {
-  SnNewsArticle? _article;
+  SnSubscriptionItem? _article;
 
   Future<void> _fetchArticle() async {
     try {
       final sn = context.read<SnNetworkProvider>();
       final resp = await sn.client.get('/cgi/re/news/${widget.hash}');
-      _article = SnNewsArticle.fromJson(resp.data);
+      _article = SnSubscriptionItem.fromJson(resp.data);
     } catch (err) {
       if (!mounted) return;
       context.showErrorDialog(err).then((_) {

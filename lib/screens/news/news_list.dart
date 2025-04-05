@@ -66,7 +66,8 @@ class _NewsScreenState extends State<NewsScreen> {
           headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
             return <Widget>[
               SliverOverlapAbsorber(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                handle:
+                    NestedScrollView.sliverOverlapAbsorberHandleFor(context),
                 sliver: SliverAppBar(
                   leading: AutoAppBarLeading(),
                   title: Text('screenNews').tr(),
@@ -75,10 +76,13 @@ class _NewsScreenState extends State<NewsScreen> {
                   bottom: TabBar(
                     isScrollable: true,
                     tabs: [
-                      Tab(child: Text('newsAllSources'.tr()).textColor(Theme.of(context).appBarTheme.foregroundColor)),
+                      Tab(
+                          child: Text('newsAllSources'.tr()).textColor(
+                              Theme.of(context).appBarTheme.foregroundColor)),
                       for (final source in _sources!)
                         Tab(
-                          child: Text(source.label).textColor(Theme.of(context).appBarTheme.foregroundColor),
+                          child: Text(source.label).textColor(
+                              Theme.of(context).appBarTheme.foregroundColor),
                         ),
                     ],
                   ),
@@ -116,7 +120,7 @@ class _NewsArticleListWidgetState extends State<_NewsArticleListWidget> {
   bool _isBusy = false;
 
   int? _totalCount;
-  final List<SnNewsArticle> _articles = List.empty(growable: true);
+  final List<SnSubscriptionItem> _articles = List.empty(growable: true);
 
   Future<void> _fetchArticles() async {
     setState(() => _isBusy = true);
@@ -129,8 +133,8 @@ class _NewsArticleListWidgetState extends State<_NewsArticleListWidget> {
         if (widget.source != null) 'source': widget.source,
       });
       _totalCount = resp.data['count'];
-      _articles.addAll(List<SnNewsArticle>.from(
-        resp.data['data']?.map((e) => SnNewsArticle.fromJson(e)) ?? [],
+      _articles.addAll(List<SnSubscriptionItem>.from(
+        resp.data['data']?.map((e) => SnSubscriptionItem.fromJson(e)) ?? [],
       ));
     } catch (err) {
       if (!mounted) return;
@@ -159,7 +163,8 @@ class _NewsArticleListWidgetState extends State<_NewsArticleListWidget> {
             child: InfiniteList(
               isLoading: _isBusy,
               itemCount: _articles.length,
-              hasReachedMax: _totalCount != null && _articles.length >= _totalCount!,
+              hasReachedMax:
+                  _totalCount != null && _articles.length >= _totalCount!,
               onFetchData: () {
                 _fetchArticles();
               },
@@ -184,7 +189,8 @@ class _NewsArticleListWidgetState extends State<_NewsArticleListWidget> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (article.thumbnail.isNotEmpty && !article.thumbnail.endsWith('.svg'))
+                        if (article.thumbnail.isNotEmpty &&
+                            !article.thumbnail.endsWith('.svg'))
                           ClipRRect(
                             borderRadius: BorderRadius.only(
                               topRight: Radius.circular(8),
@@ -193,7 +199,9 @@ class _NewsArticleListWidgetState extends State<_NewsArticleListWidget> {
                             child: AspectRatio(
                               aspectRatio: 16 / 9,
                               child: Container(
-                                color: Theme.of(context).colorScheme.surfaceContainer,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainer,
                                 child: AutoResizeUniversalImage(
                                   article.thumbnail.startsWith('http')
                                       ? article.thumbnail
@@ -203,25 +211,38 @@ class _NewsArticleListWidgetState extends State<_NewsArticleListWidget> {
                             ),
                           ),
                         const Gap(16),
-                        Text(article.title).textStyle(Theme.of(context).textTheme.titleLarge!).padding(horizontal: 16),
+                        Text(article.title)
+                            .textStyle(Theme.of(context).textTheme.titleLarge!)
+                            .padding(horizontal: 16),
                         const Gap(8),
-                        Text(htmlDescription.children.map((ele) => ele.text.trim()).join())
+                        Text(htmlDescription.children
+                                .map((ele) => ele.text.trim())
+                                .join())
                             .textStyle(Theme.of(context).textTheme.bodyMedium!)
                             .padding(horizontal: 16),
                         const Gap(8),
                         Row(
                           spacing: 2,
                           children: [
-                            Text(widget.allSources.where((x) => x.id == article.source).first.label)
-                                .textStyle(Theme.of(context).textTheme.bodySmall!),
+                            Text(widget.allSources
+                                    .where((x) => x.id == article.feedId)
+                                    .first
+                                    .label)
+                                .textStyle(
+                                    Theme.of(context).textTheme.bodySmall!),
                           ],
                         ).opacity(0.75).padding(horizontal: 16),
                         Row(
                           spacing: 2,
                           children: [
-                            Text(DateFormat().format(date)).textStyle(Theme.of(context).textTheme.bodySmall!),
-                            Text(' · ').textStyle(Theme.of(context).textTheme.bodySmall!).bold(),
-                            Text(RelativeTime(context).format(date)).textStyle(Theme.of(context).textTheme.bodySmall!),
+                            Text(DateFormat().format(date)).textStyle(
+                                Theme.of(context).textTheme.bodySmall!),
+                            Text(' · ')
+                                .textStyle(
+                                    Theme.of(context).textTheme.bodySmall!)
+                                .bold(),
+                            Text(RelativeTime(context).format(date)).textStyle(
+                                Theme.of(context).textTheme.bodySmall!),
                           ],
                         ).opacity(0.75).padding(horizontal: 16),
                         const Gap(16),

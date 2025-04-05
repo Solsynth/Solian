@@ -17,10 +17,9 @@ import 'package:surface/types/realm.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/app_bar_leading.dart';
 import 'package:surface/widgets/dialog.dart';
-import 'package:surface/widgets/feed/feed_news.dart';
+import 'package:surface/widgets/feed/feed_reader.dart';
 import 'package:surface/widgets/feed/feed_unknown.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
-import 'package:surface/widgets/post/fediverse_post_item.dart';
 import 'package:surface/widgets/post/post_item.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 
@@ -549,12 +548,7 @@ class _PostListWidgetState extends State<_PostListWidget> {
                     refreshPosts();
                   },
                 );
-              case 'fediverse.post':
-                return FediversePostWidget(
-                  data: SnFediversePost.fromJson(ele.data),
-                  maxWidth: 640,
-                );
-              case 'reader.news':
+              case 'reader.feed':
                 return Center(
                   child: Container(
                     constraints: BoxConstraints(maxWidth: 640),

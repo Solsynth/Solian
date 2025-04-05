@@ -252,42 +252,43 @@ class __$SnNewsSourceCopyWithImpl<$Res>
 }
 
 /// @nodoc
-mixin _$SnNewsArticle {
+mixin _$SnSubscriptionItem {
   int get id;
   DateTime get createdAt;
   DateTime get updatedAt;
-  dynamic get deletedAt;
+  DateTime? get deletedAt;
   String get thumbnail;
   String get title;
   String get description;
   String get content;
   String get url;
   String get hash;
-  String get source;
+  int get feedId;
   DateTime? get publishedAt;
 
-  /// Create a copy of SnNewsArticle
+  /// Create a copy of SnSubscriptionItem
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  $SnNewsArticleCopyWith<SnNewsArticle> get copyWith =>
-      _$SnNewsArticleCopyWithImpl<SnNewsArticle>(
-          this as SnNewsArticle, _$identity);
+  $SnSubscriptionItemCopyWith<SnSubscriptionItem> get copyWith =>
+      _$SnSubscriptionItemCopyWithImpl<SnSubscriptionItem>(
+          this as SnSubscriptionItem, _$identity);
 
-  /// Serializes this SnNewsArticle to a JSON map.
+  /// Serializes this SnSubscriptionItem to a JSON map.
   Map<String, dynamic> toJson();
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is SnNewsArticle &&
+            other is SnSubscriptionItem &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
-            const DeepCollectionEquality().equals(other.deletedAt, deletedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
             (identical(other.thumbnail, thumbnail) ||
                 other.thumbnail == thumbnail) &&
             (identical(other.title, title) || other.title == title) &&
@@ -296,7 +297,7 @@ mixin _$SnNewsArticle {
             (identical(other.content, content) || other.content == content) &&
             (identical(other.url, url) || other.url == url) &&
             (identical(other.hash, hash) || other.hash == hash) &&
-            (identical(other.source, source) || other.source == source) &&
+            (identical(other.feedId, feedId) || other.feedId == feedId) &&
             (identical(other.publishedAt, publishedAt) ||
                 other.publishedAt == publishedAt));
   }
@@ -308,52 +309,52 @@ mixin _$SnNewsArticle {
       id,
       createdAt,
       updatedAt,
-      const DeepCollectionEquality().hash(deletedAt),
+      deletedAt,
       thumbnail,
       title,
       description,
       content,
       url,
       hash,
-      source,
+      feedId,
       publishedAt);
 
   @override
   String toString() {
-    return 'SnNewsArticle(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, thumbnail: $thumbnail, title: $title, description: $description, content: $content, url: $url, hash: $hash, source: $source, publishedAt: $publishedAt)';
+    return 'SnSubscriptionItem(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, thumbnail: $thumbnail, title: $title, description: $description, content: $content, url: $url, hash: $hash, feedId: $feedId, publishedAt: $publishedAt)';
   }
 }
 
 /// @nodoc
-abstract mixin class $SnNewsArticleCopyWith<$Res> {
-  factory $SnNewsArticleCopyWith(
-          SnNewsArticle value, $Res Function(SnNewsArticle) _then) =
-      _$SnNewsArticleCopyWithImpl;
+abstract mixin class $SnSubscriptionItemCopyWith<$Res> {
+  factory $SnSubscriptionItemCopyWith(
+          SnSubscriptionItem value, $Res Function(SnSubscriptionItem) _then) =
+      _$SnSubscriptionItemCopyWithImpl;
   @useResult
   $Res call(
       {int id,
       DateTime createdAt,
       DateTime updatedAt,
-      dynamic deletedAt,
+      DateTime? deletedAt,
       String thumbnail,
       String title,
       String description,
       String content,
       String url,
       String hash,
-      String source,
+      int feedId,
       DateTime? publishedAt});
 }
 
 /// @nodoc
-class _$SnNewsArticleCopyWithImpl<$Res>
-    implements $SnNewsArticleCopyWith<$Res> {
-  _$SnNewsArticleCopyWithImpl(this._self, this._then);
+class _$SnSubscriptionItemCopyWithImpl<$Res>
+    implements $SnSubscriptionItemCopyWith<$Res> {
+  _$SnSubscriptionItemCopyWithImpl(this._self, this._then);
 
-  final SnNewsArticle _self;
-  final $Res Function(SnNewsArticle) _then;
+  final SnSubscriptionItem _self;
+  final $Res Function(SnSubscriptionItem) _then;
 
-  /// Create a copy of SnNewsArticle
+  /// Create a copy of SnSubscriptionItem
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -368,7 +369,7 @@ class _$SnNewsArticleCopyWithImpl<$Res>
     Object? content = null,
     Object? url = null,
     Object? hash = null,
-    Object? source = null,
+    Object? feedId = null,
     Object? publishedAt = freezed,
   }) {
     return _then(_self.copyWith(
@@ -387,7 +388,7 @@ class _$SnNewsArticleCopyWithImpl<$Res>
       deletedAt: freezed == deletedAt
           ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as DateTime?,
       thumbnail: null == thumbnail
           ? _self.thumbnail
           : thumbnail // ignore: cast_nullable_to_non_nullable
@@ -412,10 +413,10 @@ class _$SnNewsArticleCopyWithImpl<$Res>
           ? _self.hash
           : hash // ignore: cast_nullable_to_non_nullable
               as String,
-      source: null == source
-          ? _self.source
-          : source // ignore: cast_nullable_to_non_nullable
-              as String,
+      feedId: null == feedId
+          ? _self.feedId
+          : feedId // ignore: cast_nullable_to_non_nullable
+              as int,
       publishedAt: freezed == publishedAt
           ? _self.publishedAt
           : publishedAt // ignore: cast_nullable_to_non_nullable
@@ -426,8 +427,8 @@ class _$SnNewsArticleCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _SnNewsArticle implements SnNewsArticle {
-  const _SnNewsArticle(
+class _SnSubscriptionItem implements SnSubscriptionItem {
+  const _SnSubscriptionItem(
       {required this.id,
       required this.createdAt,
       required this.updatedAt,
@@ -438,10 +439,10 @@ class _SnNewsArticle implements SnNewsArticle {
       required this.content,
       required this.url,
       required this.hash,
-      required this.source,
+      required this.feedId,
       required this.publishedAt});
-  factory _SnNewsArticle.fromJson(Map<String, dynamic> json) =>
-      _$SnNewsArticleFromJson(json);
+  factory _SnSubscriptionItem.fromJson(Map<String, dynamic> json) =>
+      _$SnSubscriptionItemFromJson(json);
 
   @override
   final int id;
@@ -450,7 +451,7 @@ class _SnNewsArticle implements SnNewsArticle {
   @override
   final DateTime updatedAt;
   @override
-  final dynamic deletedAt;
+  final DateTime? deletedAt;
   @override
   final String thumbnail;
   @override
@@ -464,21 +465,21 @@ class _SnNewsArticle implements SnNewsArticle {
   @override
   final String hash;
   @override
-  final String source;
+  final int feedId;
   @override
   final DateTime? publishedAt;
 
-  /// Create a copy of SnNewsArticle
+  /// Create a copy of SnSubscriptionItem
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  _$SnNewsArticleCopyWith<_SnNewsArticle> get copyWith =>
-      __$SnNewsArticleCopyWithImpl<_SnNewsArticle>(this, _$identity);
+  _$SnSubscriptionItemCopyWith<_SnSubscriptionItem> get copyWith =>
+      __$SnSubscriptionItemCopyWithImpl<_SnSubscriptionItem>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$SnNewsArticleToJson(
+    return _$SnSubscriptionItemToJson(
       this,
     );
   }
@@ -487,13 +488,14 @@ class _SnNewsArticle implements SnNewsArticle {
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _SnNewsArticle &&
+            other is _SnSubscriptionItem &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
-            const DeepCollectionEquality().equals(other.deletedAt, deletedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
             (identical(other.thumbnail, thumbnail) ||
                 other.thumbnail == thumbnail) &&
             (identical(other.title, title) || other.title == title) &&
@@ -502,7 +504,7 @@ class _SnNewsArticle implements SnNewsArticle {
             (identical(other.content, content) || other.content == content) &&
             (identical(other.url, url) || other.url == url) &&
             (identical(other.hash, hash) || other.hash == hash) &&
-            (identical(other.source, source) || other.source == source) &&
+            (identical(other.feedId, feedId) || other.feedId == feedId) &&
             (identical(other.publishedAt, publishedAt) ||
                 other.publishedAt == publishedAt));
   }
@@ -514,54 +516,54 @@ class _SnNewsArticle implements SnNewsArticle {
       id,
       createdAt,
       updatedAt,
-      const DeepCollectionEquality().hash(deletedAt),
+      deletedAt,
       thumbnail,
       title,
       description,
       content,
       url,
       hash,
-      source,
+      feedId,
       publishedAt);
 
   @override
   String toString() {
-    return 'SnNewsArticle(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, thumbnail: $thumbnail, title: $title, description: $description, content: $content, url: $url, hash: $hash, source: $source, publishedAt: $publishedAt)';
+    return 'SnSubscriptionItem(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, thumbnail: $thumbnail, title: $title, description: $description, content: $content, url: $url, hash: $hash, feedId: $feedId, publishedAt: $publishedAt)';
   }
 }
 
 /// @nodoc
-abstract mixin class _$SnNewsArticleCopyWith<$Res>
-    implements $SnNewsArticleCopyWith<$Res> {
-  factory _$SnNewsArticleCopyWith(
-          _SnNewsArticle value, $Res Function(_SnNewsArticle) _then) =
-      __$SnNewsArticleCopyWithImpl;
+abstract mixin class _$SnSubscriptionItemCopyWith<$Res>
+    implements $SnSubscriptionItemCopyWith<$Res> {
+  factory _$SnSubscriptionItemCopyWith(
+          _SnSubscriptionItem value, $Res Function(_SnSubscriptionItem) _then) =
+      __$SnSubscriptionItemCopyWithImpl;
   @override
   @useResult
   $Res call(
       {int id,
       DateTime createdAt,
       DateTime updatedAt,
-      dynamic deletedAt,
+      DateTime? deletedAt,
       String thumbnail,
       String title,
       String description,
       String content,
       String url,
       String hash,
-      String source,
+      int feedId,
       DateTime? publishedAt});
 }
 
 /// @nodoc
-class __$SnNewsArticleCopyWithImpl<$Res>
-    implements _$SnNewsArticleCopyWith<$Res> {
-  __$SnNewsArticleCopyWithImpl(this._self, this._then);
+class __$SnSubscriptionItemCopyWithImpl<$Res>
+    implements _$SnSubscriptionItemCopyWith<$Res> {
+  __$SnSubscriptionItemCopyWithImpl(this._self, this._then);
 
-  final _SnNewsArticle _self;
-  final $Res Function(_SnNewsArticle) _then;
+  final _SnSubscriptionItem _self;
+  final $Res Function(_SnSubscriptionItem) _then;
 
-  /// Create a copy of SnNewsArticle
+  /// Create a copy of SnSubscriptionItem
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -576,10 +578,10 @@ class __$SnNewsArticleCopyWithImpl<$Res>
     Object? content = null,
     Object? url = null,
     Object? hash = null,
-    Object? source = null,
+    Object? feedId = null,
     Object? publishedAt = freezed,
   }) {
-    return _then(_SnNewsArticle(
+    return _then(_SnSubscriptionItem(
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -595,7 +597,7 @@ class __$SnNewsArticleCopyWithImpl<$Res>
       deletedAt: freezed == deletedAt
           ? _self.deletedAt
           : deletedAt // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as DateTime?,
       thumbnail: null == thumbnail
           ? _self.thumbnail
           : thumbnail // ignore: cast_nullable_to_non_nullable
@@ -620,10 +622,10 @@ class __$SnNewsArticleCopyWithImpl<$Res>
           ? _self.hash
           : hash // ignore: cast_nullable_to_non_nullable
               as String,
-      source: null == source
-          ? _self.source
-          : source // ignore: cast_nullable_to_non_nullable
-              as String,
+      feedId: null == feedId
+          ? _self.feedId
+          : feedId // ignore: cast_nullable_to_non_nullable
+              as int,
       publishedAt: freezed == publishedAt
           ? _self.publishedAt
           : publishedAt // ignore: cast_nullable_to_non_nullable
