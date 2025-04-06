@@ -14,22 +14,22 @@ import 'package:surface/widgets/navigation/app_scaffold.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-class NewsDetailScreen extends StatefulWidget {
-  final String hash;
+class ReaderPageScreen extends StatefulWidget {
+  final String id;
 
-  const NewsDetailScreen({super.key, required this.hash});
+  const ReaderPageScreen({super.key, required this.id});
 
   @override
-  State<NewsDetailScreen> createState() => _NewsDetailScreenState();
+  State<ReaderPageScreen> createState() => _ReaderPageScreenState();
 }
 
-class _NewsDetailScreenState extends State<NewsDetailScreen> {
+class _ReaderPageScreenState extends State<ReaderPageScreen> {
   SnSubscriptionItem? _article;
 
   Future<void> _fetchArticle() async {
     try {
       final sn = context.read<SnNetworkProvider>();
-      final resp = await sn.client.get('/cgi/re/news/${widget.hash}');
+      final resp = await sn.client.get('/cgi/re/subscriptions/${widget.id}');
       _article = SnSubscriptionItem.fromJson(resp.data);
     } catch (err) {
       if (!mounted) return;

@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -26,6 +28,7 @@ import 'package:surface/widgets/chat/chat_typing_indicator.dart';
 import 'package:surface/widgets/dialog.dart';
 import 'package:surface/widgets/loading_indicator.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 
 class ChatRoomScreenExtra {
@@ -135,7 +138,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
-  Future<void> _onCallJoin() async {
+  Future<void> _joinCall() async {
+    if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) {
+      return await _joinCallWeb();
+    }
     final sn = context.read<SnNetworkProvider>();
     final ua = context.read<UserProvider>();
     final meet = JitsiMeet();
@@ -154,6 +160,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
     );
     meet.join(confOpts);
+  }
+
+  Future<void> _joinCallWeb() async {
+    final sn = context.read<SnNetworkProvider>();
+    final ua = context.read<UserProvider>();
+    final url =
+        '${sn.client.options.baseUrl}/meet/${_channel!.id}?tk=${await ua.atk}';
+    launchUrlString(url);
   }
 
   bool _checkMessageMergeable(SnChatMessage? a, SnChatMessage? b) {
@@ -237,7 +251,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           if (_currentMember != null)
             IconButton(
               icon: const Icon(Symbols.video_call),
-              onPressed: _onCallJoin,
+              onPressed: _joinCall,
+              onLongPress: _joinCallWeb,
             ),
           IconButton(
             icon: const Icon(Symbols.more_vert),

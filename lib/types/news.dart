@@ -4,18 +4,23 @@ part 'news.freezed.dart';
 part 'news.g.dart';
 
 @freezed
-abstract class SnNewsSource with _$SnNewsSource {
-  const factory SnNewsSource({
-    required String id,
-    required String label,
-    required String type,
-    required String source,
-    required int depth,
-    required bool enabled,
-  }) = _SnNewsSource;
+abstract class SnSubscriptionFeed with _$SnSubscriptionFeed {
+  const factory SnSubscriptionFeed({
+    required int id,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+    required String url,
+    required bool isEnabled,
+    required bool isFullContent,
+    required int pullInterval,
+    required String adapter,
+    required int? accountId,
+    required DateTime? lastFetchedAt,
+  }) = _SnSubscriptionFeed;
 
-  factory SnNewsSource.fromJson(Map<String, dynamic> json) =>
-      _$SnNewsSourceFromJson(json);
+  factory SnSubscriptionFeed.fromJson(Map<String, dynamic> json) =>
+      _$SnSubscriptionFeedFromJson(json);
 }
 
 @freezed
@@ -32,6 +37,7 @@ abstract class SnSubscriptionItem with _$SnSubscriptionItem {
     required String url,
     required String hash,
     required int feedId,
+    required SnSubscriptionFeed feed,
     required DateTime? publishedAt,
   }) = _SnSubscriptionItem;
 

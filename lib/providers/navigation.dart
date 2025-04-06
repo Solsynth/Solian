@@ -65,11 +65,6 @@ class NavigationProvider extends ChangeNotifier {
       label: 'screenRealm',
     ),
     AppNavDestination(
-      icon: Icon(Symbols.newspaper, weight: 400, opticalSize: 20),
-      screen: 'news',
-      label: 'screenNews',
-    ),
-    AppNavDestination(
       icon: Icon(Symbols.settings, weight: 400, opticalSize: 20),
       screen: 'settings',
       label: 'screenSettings',

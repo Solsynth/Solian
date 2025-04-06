@@ -465,7 +465,7 @@ class _PostListWidgetState extends State<_PostListWidget> {
     final pt = context.read<SnPostContentProvider>();
     final result = await pt.getFeed(
       cursor: _feed
-          .where((ele) => !['reader.news'].contains(ele.type))
+          .where((ele) => !['reader.feed'].contains(ele.type))
           .lastOrNull
           ?.createdAt,
     );

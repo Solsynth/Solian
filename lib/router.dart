@@ -29,8 +29,7 @@ import 'package:surface/screens/explore.dart';
 import 'package:surface/screens/friend.dart';
 import 'package:surface/screens/home.dart';
 import 'package:surface/screens/logging.dart';
-import 'package:surface/screens/news/news_detail.dart';
-import 'package:surface/screens/news/news_list.dart';
+import 'package:surface/screens/feed/feed_detail.dart';
 import 'package:surface/screens/notification.dart';
 import 'package:surface/screens/post/post_detail.dart';
 import 'package:surface/screens/post/post_draft.dart';
@@ -123,6 +122,13 @@ final _appRoutes = [
           key: ValueKey(state.pathParameters['slug']!),
           slug: state.pathParameters['slug']!,
           preload: state.extra as SnPost?,
+        ),
+      ),
+      GoRoute(
+        path: '/pages/:id',
+        name: 'readerFeedDetail',
+        builder: (context, state) => ReaderPageScreen(
+          id: state.pathParameters['id']!,
         ),
       ),
       GoRoute(
@@ -311,20 +317,6 @@ final _appRoutes = [
         name: 'realmDetail',
         builder: (context, state) =>
             RealmDetailScreen(alias: state.pathParameters['alias']!),
-      ),
-    ],
-  ),
-  GoRoute(
-    path: '/news',
-    name: 'news',
-    builder: (context, state) => const NewsScreen(),
-    routes: [
-      GoRoute(
-        path: '/:hash',
-        name: 'newsDetail',
-        builder: (context, state) => NewsDetailScreen(
-          hash: state.pathParameters['hash']!,
-        ),
       ),
     ],
   ),

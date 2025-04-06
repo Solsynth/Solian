@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/types/news.dart';
@@ -15,10 +16,7 @@ class NewsFeedEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     final ele = SnSubscriptionItem.fromJson(data.data);
 
-    return Card(
-      elevation: 0,
-      color: Colors.transparent,
-      margin: EdgeInsets.zero,
+    return InkWell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,11 +51,17 @@ class NewsFeedEntry extends StatelessWidget {
               Text(ele.description),
               Text(DateFormat().format(ele.createdAt.toLocal()))
                   .tr()
+                  .fontSize(13)
                   .opacity(0.8),
             ],
-          ).padding(horizontal: 16),
+          ).padding(horizontal: 16, vertical: 4),
         ],
       ),
+      onTap: () {
+        GoRouter.of(context).pushNamed('readerFeedDetail', pathParameters: {
+          'id': ele.id.toString(),
+        });
+      },
     );
   }
 }

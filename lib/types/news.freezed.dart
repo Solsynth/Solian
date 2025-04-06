@@ -14,149 +14,224 @@ part of 'news.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$SnNewsSource {
-  String get id;
-  String get label;
-  String get type;
-  String get source;
-  int get depth;
-  bool get enabled;
+mixin _$SnSubscriptionFeed {
+  int get id;
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime? get deletedAt;
+  String get url;
+  bool get isEnabled;
+  bool get isFullContent;
+  int get pullInterval;
+  String get adapter;
+  int? get accountId;
+  DateTime? get lastFetchedAt;
 
-  /// Create a copy of SnNewsSource
+  /// Create a copy of SnSubscriptionFeed
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  $SnNewsSourceCopyWith<SnNewsSource> get copyWith =>
-      _$SnNewsSourceCopyWithImpl<SnNewsSource>(
-          this as SnNewsSource, _$identity);
+  $SnSubscriptionFeedCopyWith<SnSubscriptionFeed> get copyWith =>
+      _$SnSubscriptionFeedCopyWithImpl<SnSubscriptionFeed>(
+          this as SnSubscriptionFeed, _$identity);
 
-  /// Serializes this SnNewsSource to a JSON map.
+  /// Serializes this SnSubscriptionFeed to a JSON map.
   Map<String, dynamic> toJson();
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is SnNewsSource &&
+            other is SnSubscriptionFeed &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.label, label) || other.label == label) &&
-            (identical(other.type, type) || other.type == type) &&
-            (identical(other.source, source) || other.source == source) &&
-            (identical(other.depth, depth) || other.depth == depth) &&
-            (identical(other.enabled, enabled) || other.enabled == enabled));
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.url, url) || other.url == url) &&
+            (identical(other.isEnabled, isEnabled) ||
+                other.isEnabled == isEnabled) &&
+            (identical(other.isFullContent, isFullContent) ||
+                other.isFullContent == isFullContent) &&
+            (identical(other.pullInterval, pullInterval) ||
+                other.pullInterval == pullInterval) &&
+            (identical(other.adapter, adapter) || other.adapter == adapter) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.lastFetchedAt, lastFetchedAt) ||
+                other.lastFetchedAt == lastFetchedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, label, type, source, depth, enabled);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      url,
+      isEnabled,
+      isFullContent,
+      pullInterval,
+      adapter,
+      accountId,
+      lastFetchedAt);
 
   @override
   String toString() {
-    return 'SnNewsSource(id: $id, label: $label, type: $type, source: $source, depth: $depth, enabled: $enabled)';
+    return 'SnSubscriptionFeed(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, url: $url, isEnabled: $isEnabled, isFullContent: $isFullContent, pullInterval: $pullInterval, adapter: $adapter, accountId: $accountId, lastFetchedAt: $lastFetchedAt)';
   }
 }
 
 /// @nodoc
-abstract mixin class $SnNewsSourceCopyWith<$Res> {
-  factory $SnNewsSourceCopyWith(
-          SnNewsSource value, $Res Function(SnNewsSource) _then) =
-      _$SnNewsSourceCopyWithImpl;
+abstract mixin class $SnSubscriptionFeedCopyWith<$Res> {
+  factory $SnSubscriptionFeedCopyWith(
+          SnSubscriptionFeed value, $Res Function(SnSubscriptionFeed) _then) =
+      _$SnSubscriptionFeedCopyWithImpl;
   @useResult
   $Res call(
-      {String id,
-      String label,
-      String type,
-      String source,
-      int depth,
-      bool enabled});
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String url,
+      bool isEnabled,
+      bool isFullContent,
+      int pullInterval,
+      String adapter,
+      int? accountId,
+      DateTime? lastFetchedAt});
 }
 
 /// @nodoc
-class _$SnNewsSourceCopyWithImpl<$Res> implements $SnNewsSourceCopyWith<$Res> {
-  _$SnNewsSourceCopyWithImpl(this._self, this._then);
+class _$SnSubscriptionFeedCopyWithImpl<$Res>
+    implements $SnSubscriptionFeedCopyWith<$Res> {
+  _$SnSubscriptionFeedCopyWithImpl(this._self, this._then);
 
-  final SnNewsSource _self;
-  final $Res Function(SnNewsSource) _then;
+  final SnSubscriptionFeed _self;
+  final $Res Function(SnSubscriptionFeed) _then;
 
-  /// Create a copy of SnNewsSource
+  /// Create a copy of SnSubscriptionFeed
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = null,
-    Object? label = null,
-    Object? type = null,
-    Object? source = null,
-    Object? depth = null,
-    Object? enabled = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? url = null,
+    Object? isEnabled = null,
+    Object? isFullContent = null,
+    Object? pullInterval = null,
+    Object? adapter = null,
+    Object? accountId = freezed,
+    Object? lastFetchedAt = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      label: null == label
-          ? _self.label
-          : label // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
-      source: null == source
-          ? _self.source
-          : source // ignore: cast_nullable_to_non_nullable
-              as String,
-      depth: null == depth
-          ? _self.depth
-          : depth // ignore: cast_nullable_to_non_nullable
               as int,
-      enabled: null == enabled
-          ? _self.enabled
-          : enabled // ignore: cast_nullable_to_non_nullable
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      url: null == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+      isEnabled: null == isEnabled
+          ? _self.isEnabled
+          : isEnabled // ignore: cast_nullable_to_non_nullable
               as bool,
+      isFullContent: null == isFullContent
+          ? _self.isFullContent
+          : isFullContent // ignore: cast_nullable_to_non_nullable
+              as bool,
+      pullInterval: null == pullInterval
+          ? _self.pullInterval
+          : pullInterval // ignore: cast_nullable_to_non_nullable
+              as int,
+      adapter: null == adapter
+          ? _self.adapter
+          : adapter // ignore: cast_nullable_to_non_nullable
+              as String,
+      accountId: freezed == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      lastFetchedAt: freezed == lastFetchedAt
+          ? _self.lastFetchedAt
+          : lastFetchedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _SnNewsSource implements SnNewsSource {
-  const _SnNewsSource(
+class _SnSubscriptionFeed implements SnSubscriptionFeed {
+  const _SnSubscriptionFeed(
       {required this.id,
-      required this.label,
-      required this.type,
-      required this.source,
-      required this.depth,
-      required this.enabled});
-  factory _SnNewsSource.fromJson(Map<String, dynamic> json) =>
-      _$SnNewsSourceFromJson(json);
+      required this.createdAt,
+      required this.updatedAt,
+      required this.deletedAt,
+      required this.url,
+      required this.isEnabled,
+      required this.isFullContent,
+      required this.pullInterval,
+      required this.adapter,
+      required this.accountId,
+      required this.lastFetchedAt});
+  factory _SnSubscriptionFeed.fromJson(Map<String, dynamic> json) =>
+      _$SnSubscriptionFeedFromJson(json);
 
   @override
-  final String id;
+  final int id;
   @override
-  final String label;
+  final DateTime createdAt;
   @override
-  final String type;
+  final DateTime updatedAt;
   @override
-  final String source;
+  final DateTime? deletedAt;
   @override
-  final int depth;
+  final String url;
   @override
-  final bool enabled;
+  final bool isEnabled;
+  @override
+  final bool isFullContent;
+  @override
+  final int pullInterval;
+  @override
+  final String adapter;
+  @override
+  final int? accountId;
+  @override
+  final DateTime? lastFetchedAt;
 
-  /// Create a copy of SnNewsSource
+  /// Create a copy of SnSubscriptionFeed
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  _$SnNewsSourceCopyWith<_SnNewsSource> get copyWith =>
-      __$SnNewsSourceCopyWithImpl<_SnNewsSource>(this, _$identity);
+  _$SnSubscriptionFeedCopyWith<_SnSubscriptionFeed> get copyWith =>
+      __$SnSubscriptionFeedCopyWithImpl<_SnSubscriptionFeed>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$SnNewsSourceToJson(
+    return _$SnSubscriptionFeedToJson(
       this,
     );
   }
@@ -165,88 +240,142 @@ class _SnNewsSource implements SnNewsSource {
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _SnNewsSource &&
+            other is _SnSubscriptionFeed &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.label, label) || other.label == label) &&
-            (identical(other.type, type) || other.type == type) &&
-            (identical(other.source, source) || other.source == source) &&
-            (identical(other.depth, depth) || other.depth == depth) &&
-            (identical(other.enabled, enabled) || other.enabled == enabled));
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.url, url) || other.url == url) &&
+            (identical(other.isEnabled, isEnabled) ||
+                other.isEnabled == isEnabled) &&
+            (identical(other.isFullContent, isFullContent) ||
+                other.isFullContent == isFullContent) &&
+            (identical(other.pullInterval, pullInterval) ||
+                other.pullInterval == pullInterval) &&
+            (identical(other.adapter, adapter) || other.adapter == adapter) &&
+            (identical(other.accountId, accountId) ||
+                other.accountId == accountId) &&
+            (identical(other.lastFetchedAt, lastFetchedAt) ||
+                other.lastFetchedAt == lastFetchedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, label, type, source, depth, enabled);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      url,
+      isEnabled,
+      isFullContent,
+      pullInterval,
+      adapter,
+      accountId,
+      lastFetchedAt);
 
   @override
   String toString() {
-    return 'SnNewsSource(id: $id, label: $label, type: $type, source: $source, depth: $depth, enabled: $enabled)';
+    return 'SnSubscriptionFeed(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, url: $url, isEnabled: $isEnabled, isFullContent: $isFullContent, pullInterval: $pullInterval, adapter: $adapter, accountId: $accountId, lastFetchedAt: $lastFetchedAt)';
   }
 }
 
 /// @nodoc
-abstract mixin class _$SnNewsSourceCopyWith<$Res>
-    implements $SnNewsSourceCopyWith<$Res> {
-  factory _$SnNewsSourceCopyWith(
-          _SnNewsSource value, $Res Function(_SnNewsSource) _then) =
-      __$SnNewsSourceCopyWithImpl;
+abstract mixin class _$SnSubscriptionFeedCopyWith<$Res>
+    implements $SnSubscriptionFeedCopyWith<$Res> {
+  factory _$SnSubscriptionFeedCopyWith(
+          _SnSubscriptionFeed value, $Res Function(_SnSubscriptionFeed) _then) =
+      __$SnSubscriptionFeedCopyWithImpl;
   @override
   @useResult
   $Res call(
-      {String id,
-      String label,
-      String type,
-      String source,
-      int depth,
-      bool enabled});
+      {int id,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? deletedAt,
+      String url,
+      bool isEnabled,
+      bool isFullContent,
+      int pullInterval,
+      String adapter,
+      int? accountId,
+      DateTime? lastFetchedAt});
 }
 
 /// @nodoc
-class __$SnNewsSourceCopyWithImpl<$Res>
-    implements _$SnNewsSourceCopyWith<$Res> {
-  __$SnNewsSourceCopyWithImpl(this._self, this._then);
+class __$SnSubscriptionFeedCopyWithImpl<$Res>
+    implements _$SnSubscriptionFeedCopyWith<$Res> {
+  __$SnSubscriptionFeedCopyWithImpl(this._self, this._then);
 
-  final _SnNewsSource _self;
-  final $Res Function(_SnNewsSource) _then;
+  final _SnSubscriptionFeed _self;
+  final $Res Function(_SnSubscriptionFeed) _then;
 
-  /// Create a copy of SnNewsSource
+  /// Create a copy of SnSubscriptionFeed
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $Res call({
     Object? id = null,
-    Object? label = null,
-    Object? type = null,
-    Object? source = null,
-    Object? depth = null,
-    Object? enabled = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+    Object? deletedAt = freezed,
+    Object? url = null,
+    Object? isEnabled = null,
+    Object? isFullContent = null,
+    Object? pullInterval = null,
+    Object? adapter = null,
+    Object? accountId = freezed,
+    Object? lastFetchedAt = freezed,
   }) {
-    return _then(_SnNewsSource(
+    return _then(_SnSubscriptionFeed(
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      label: null == label
-          ? _self.label
-          : label // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
-      source: null == source
-          ? _self.source
-          : source // ignore: cast_nullable_to_non_nullable
-              as String,
-      depth: null == depth
-          ? _self.depth
-          : depth // ignore: cast_nullable_to_non_nullable
               as int,
-      enabled: null == enabled
-          ? _self.enabled
-          : enabled // ignore: cast_nullable_to_non_nullable
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      deletedAt: freezed == deletedAt
+          ? _self.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      url: null == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+      isEnabled: null == isEnabled
+          ? _self.isEnabled
+          : isEnabled // ignore: cast_nullable_to_non_nullable
               as bool,
+      isFullContent: null == isFullContent
+          ? _self.isFullContent
+          : isFullContent // ignore: cast_nullable_to_non_nullable
+              as bool,
+      pullInterval: null == pullInterval
+          ? _self.pullInterval
+          : pullInterval // ignore: cast_nullable_to_non_nullable
+              as int,
+      adapter: null == adapter
+          ? _self.adapter
+          : adapter // ignore: cast_nullable_to_non_nullable
+              as String,
+      accountId: freezed == accountId
+          ? _self.accountId
+          : accountId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      lastFetchedAt: freezed == lastFetchedAt
+          ? _self.lastFetchedAt
+          : lastFetchedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -264,6 +393,7 @@ mixin _$SnSubscriptionItem {
   String get url;
   String get hash;
   int get feedId;
+  SnSubscriptionFeed get feed;
   DateTime? get publishedAt;
 
   /// Create a copy of SnSubscriptionItem
@@ -298,6 +428,7 @@ mixin _$SnSubscriptionItem {
             (identical(other.url, url) || other.url == url) &&
             (identical(other.hash, hash) || other.hash == hash) &&
             (identical(other.feedId, feedId) || other.feedId == feedId) &&
+            (identical(other.feed, feed) || other.feed == feed) &&
             (identical(other.publishedAt, publishedAt) ||
                 other.publishedAt == publishedAt));
   }
@@ -317,11 +448,12 @@ mixin _$SnSubscriptionItem {
       url,
       hash,
       feedId,
+      feed,
       publishedAt);
 
   @override
   String toString() {
-    return 'SnSubscriptionItem(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, thumbnail: $thumbnail, title: $title, description: $description, content: $content, url: $url, hash: $hash, feedId: $feedId, publishedAt: $publishedAt)';
+    return 'SnSubscriptionItem(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, thumbnail: $thumbnail, title: $title, description: $description, content: $content, url: $url, hash: $hash, feedId: $feedId, feed: $feed, publishedAt: $publishedAt)';
   }
 }
 
@@ -343,7 +475,10 @@ abstract mixin class $SnSubscriptionItemCopyWith<$Res> {
       String url,
       String hash,
       int feedId,
+      SnSubscriptionFeed feed,
       DateTime? publishedAt});
+
+  $SnSubscriptionFeedCopyWith<$Res> get feed;
 }
 
 /// @nodoc
@@ -370,6 +505,7 @@ class _$SnSubscriptionItemCopyWithImpl<$Res>
     Object? url = null,
     Object? hash = null,
     Object? feedId = null,
+    Object? feed = null,
     Object? publishedAt = freezed,
   }) {
     return _then(_self.copyWith(
@@ -417,11 +553,25 @@ class _$SnSubscriptionItemCopyWithImpl<$Res>
           ? _self.feedId
           : feedId // ignore: cast_nullable_to_non_nullable
               as int,
+      feed: null == feed
+          ? _self.feed
+          : feed // ignore: cast_nullable_to_non_nullable
+              as SnSubscriptionFeed,
       publishedAt: freezed == publishedAt
           ? _self.publishedAt
           : publishedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
     ));
+  }
+
+  /// Create a copy of SnSubscriptionItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnSubscriptionFeedCopyWith<$Res> get feed {
+    return $SnSubscriptionFeedCopyWith<$Res>(_self.feed, (value) {
+      return _then(_self.copyWith(feed: value));
+    });
   }
 }
 
@@ -440,6 +590,7 @@ class _SnSubscriptionItem implements SnSubscriptionItem {
       required this.url,
       required this.hash,
       required this.feedId,
+      required this.feed,
       required this.publishedAt});
   factory _SnSubscriptionItem.fromJson(Map<String, dynamic> json) =>
       _$SnSubscriptionItemFromJson(json);
@@ -466,6 +617,8 @@ class _SnSubscriptionItem implements SnSubscriptionItem {
   final String hash;
   @override
   final int feedId;
+  @override
+  final SnSubscriptionFeed feed;
   @override
   final DateTime? publishedAt;
 
@@ -505,6 +658,7 @@ class _SnSubscriptionItem implements SnSubscriptionItem {
             (identical(other.url, url) || other.url == url) &&
             (identical(other.hash, hash) || other.hash == hash) &&
             (identical(other.feedId, feedId) || other.feedId == feedId) &&
+            (identical(other.feed, feed) || other.feed == feed) &&
             (identical(other.publishedAt, publishedAt) ||
                 other.publishedAt == publishedAt));
   }
@@ -524,11 +678,12 @@ class _SnSubscriptionItem implements SnSubscriptionItem {
       url,
       hash,
       feedId,
+      feed,
       publishedAt);
 
   @override
   String toString() {
-    return 'SnSubscriptionItem(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, thumbnail: $thumbnail, title: $title, description: $description, content: $content, url: $url, hash: $hash, feedId: $feedId, publishedAt: $publishedAt)';
+    return 'SnSubscriptionItem(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, thumbnail: $thumbnail, title: $title, description: $description, content: $content, url: $url, hash: $hash, feedId: $feedId, feed: $feed, publishedAt: $publishedAt)';
   }
 }
 
@@ -552,7 +707,11 @@ abstract mixin class _$SnSubscriptionItemCopyWith<$Res>
       String url,
       String hash,
       int feedId,
+      SnSubscriptionFeed feed,
       DateTime? publishedAt});
+
+  @override
+  $SnSubscriptionFeedCopyWith<$Res> get feed;
 }
 
 /// @nodoc
@@ -579,6 +738,7 @@ class __$SnSubscriptionItemCopyWithImpl<$Res>
     Object? url = null,
     Object? hash = null,
     Object? feedId = null,
+    Object? feed = null,
     Object? publishedAt = freezed,
   }) {
     return _then(_SnSubscriptionItem(
@@ -626,11 +786,25 @@ class __$SnSubscriptionItemCopyWithImpl<$Res>
           ? _self.feedId
           : feedId // ignore: cast_nullable_to_non_nullable
               as int,
+      feed: null == feed
+          ? _self.feed
+          : feed // ignore: cast_nullable_to_non_nullable
+              as SnSubscriptionFeed,
       publishedAt: freezed == publishedAt
           ? _self.publishedAt
           : publishedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
     ));
+  }
+
+  /// Create a copy of SnSubscriptionItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SnSubscriptionFeedCopyWith<$Res> get feed {
+    return $SnSubscriptionFeedCopyWith<$Res>(_self.feed, (value) {
+      return _then(_self.copyWith(feed: value));
+    });
   }
 }
 
