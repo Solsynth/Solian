@@ -1118,8 +1118,6 @@ class _PostVideoEditor extends StatefulWidget {
 }
 
 class _PostVideoEditorState extends State<_PostVideoEditor> {
-  String? _renderer;
-
   final TextEditingController _streamUrlController = TextEditingController();
 
   void _selectVideo() async {
@@ -1295,15 +1293,6 @@ class _PostVideoEditorState extends State<_PostVideoEditor> {
                   value: widget.controller.videoLive,
                   onChanged: (value) =>
                       widget.controller.setVideoLive(value ?? false),
-                ),
-                CheckboxListTile(
-                  secondary: const Icon(Symbols.web),
-                  title: Text('postVideoRendererWeb').tr(),
-                  subtitle: Text('postVideoRendererWebDescription').tr(),
-                  value: _renderer == 'web',
-                  onChanged: (value) => setState(
-                    () => _renderer = (value ?? false) ? 'web' : null,
-                  ),
                 ),
               ],
             ),

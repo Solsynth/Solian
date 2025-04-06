@@ -243,9 +243,13 @@ class PostWriteController extends ChangeNotifier {
         contentController.text = post.body['content'] ?? '';
         aliasController.text = post.alias ?? '';
         rewardController.text = post.body['reward']?.toString() ?? '';
-        videoAttachment = post.body['video'] != null
-            ? SnAttachment.fromJson(post.body['video'])
-            : null;
+        if (post.body['video'] != null) {
+          if (post.body['video'] is String) {
+            videoUrl = post.body['video'];
+          } else {
+            videoAttachment = SnAttachment.fromJson(post.body['video']);
+          }
+        }
         publishedAt = post.publishedAt;
         publishedUntil = post.publishedUntil;
         visibleUsers = List.from(post.visibleUsersList ?? [], growable: true);
@@ -264,6 +268,7 @@ class PostWriteController extends ChangeNotifier {
         );
         poll = post.poll;
 
+        videoLive = post.body['is_live'] ?? false;
         editingDraft = post.isDraft;
 
         if (post.body['thumbnail'] != null) {
@@ -604,6 +609,7 @@ class PostWriteController extends ChangeNotifier {
             'video': videoUrl.isNotEmpty ? videoUrl : videoAttachment!.rid,
           if (poll != null) 'poll': poll!.id,
           if (realm != null) 'realm': realm!.id,
+          if (videoLive) 'is_live': videoLive,
           'is_draft': saveAsDraft,
         },
         onSendProgress: (count, total) {
