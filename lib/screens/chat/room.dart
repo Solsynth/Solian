@@ -147,8 +147,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final meet = JitsiMeet();
     final confOpts = JitsiMeetConferenceOptions(
       room: 'sn-chat-${_channel!.alias}-${_channel!.id}',
-      serverURL:
-          'https://meet.element.io', // TODO fetch this as config from remote
+      serverURL: 'https://meet.element.io',
       configOverrides: {
         "subject": _channel!.name,
       },

@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Grant access to Calander help us to shows Solar Calander with your own events.</string>
 	<key>AppGroupId</key>
 	<string>group.solsynth.solian</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
