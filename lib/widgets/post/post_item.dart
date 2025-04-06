@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -41,6 +42,7 @@ import 'package:surface/widgets/post/post_poll.dart';
 import 'package:surface/widgets/post/post_reaction.dart';
 import 'package:surface/widgets/post/publisher_popover.dart';
 import 'package:surface/widgets/universal_image.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:xml/xml.dart';
 
 class OpenablePostItem extends StatelessWidget {
@@ -2321,24 +2323,48 @@ class _PostVideoPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-          width: 1,
-        ),
-      ),
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
-          child: AttachmentItem(
-            data: data.body['video'],
-            heroTag: 'post-video-${data.id}',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            border: Border.all(
+              color: Theme.of(context).dividerColor,
+              width: 1,
+            ),
+          ),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              child: (data.body['video'] is String)
+                  ? InAppWebView(
+                      initialUrlRequest: URLRequest(
+                        url: WebUri(data.body['video']),
+                      ),
+                    )
+                  : AttachmentItem(
+                      data: data.body['video'],
+                      heroTag: 'post-video-${data.id}',
+                    ),
+            ),
           ),
         ),
-      ),
+        if (data.body['video'] is String)
+          InkWell(
+            child: Row(
+              children: [
+                const Icon(Symbols.launch, size: 16),
+                const Gap(6),
+                Text('openInBrowser').tr(),
+              ],
+            ).opacity(0.8),
+            onTap: () {
+              launchUrlString(data.body['video']);
+            },
+          ).padding(top: 4),
+      ],
     );
   }
 }

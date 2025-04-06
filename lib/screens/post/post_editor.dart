@@ -1105,7 +1105,7 @@ class _PostQuestionEditor extends StatelessWidget {
   }
 }
 
-class _PostVideoEditor extends StatelessWidget {
+class _PostVideoEditor extends StatefulWidget {
   final PostWriteController controller;
   final Function? onTapPublisher;
   final Function? onTapRealm;
@@ -1113,7 +1113,16 @@ class _PostVideoEditor extends StatelessWidget {
   const _PostVideoEditor(
       {required this.controller, this.onTapPublisher, this.onTapRealm});
 
-  void _selectVideo(BuildContext context) async {
+  @override
+  State<_PostVideoEditor> createState() => _PostVideoEditorState();
+}
+
+class _PostVideoEditorState extends State<_PostVideoEditor> {
+  String? _renderer;
+
+  final TextEditingController _streamUrlController = TextEditingController();
+
+  void _selectVideo() async {
     final video = await showDialog<SnAttachment?>(
       context: context,
       builder: (context) => AttachmentInputDialog(
@@ -1124,7 +1133,25 @@ class _PostVideoEditor extends StatelessWidget {
     );
     if (!context.mounted) return;
     if (video == null) return;
-    controller.setVideoAttachment(video);
+    widget.controller.setVideoAttachment(video);
+  }
+
+  @override
+  void initState() {
+    _streamUrlController.addListener(() {
+      if (_streamUrlController.text.isEmpty) {
+        widget.controller.setVideoUrl('');
+      } else {
+        widget.controller.setVideoUrl(_streamUrlController.text);
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _streamUrlController.dispose();
+    super.dispose();
   }
 
   @override
@@ -1142,10 +1169,10 @@ class _PostVideoEditor extends StatelessWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(24)),
                 child: GestureDetector(
                   onTap: () {
-                    onTapPublisher?.call();
+                    widget.onTapPublisher?.call();
                   },
                   child: AccountImage(
-                    content: controller.publisher?.avatar,
+                    content: widget.controller.publisher?.avatar,
                   ),
                 ),
               ),
@@ -1155,10 +1182,10 @@ class _PostVideoEditor extends StatelessWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(24)),
                 child: GestureDetector(
                   onTap: () {
-                    onTapRealm?.call();
+                    widget.onTapRealm?.call();
                   },
                   child: AccountImage(
-                    content: controller.realm?.avatar,
+                    content: widget.controller.realm?.avatar,
                     fallbackWidget: const Icon(Symbols.globe, size: 20),
                     radius: 14,
                   ),
@@ -1171,7 +1198,7 @@ class _PostVideoEditor extends StatelessWidget {
               children: [
                 const Gap(6),
                 TextField(
-                  controller: controller.titleController,
+                  controller: widget.controller.titleController,
                   decoration: InputDecoration.collapsed(
                     hintText: 'fieldPostTitle'.tr(),
                     border: InputBorder.none,
@@ -1182,7 +1209,7 @@ class _PostVideoEditor extends StatelessWidget {
                 ).padding(horizontal: 16),
                 const Gap(8),
                 TextField(
-                  controller: controller.descriptionController,
+                  controller: widget.controller.descriptionController,
                   decoration: InputDecoration.collapsed(
                     hintText: 'fieldPostDescription'.tr(),
                     border: InputBorder.none,
@@ -1194,56 +1221,88 @@ class _PostVideoEditor extends StatelessWidget {
                       FocusManager.instance.primaryFocus?.unfocus(),
                 ).padding(horizontal: 16),
                 const Gap(12),
-                Container(
-                  margin: const EdgeInsets.only(left: 16, right: 16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Theme.of(context).dividerColor),
-                  ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: controller.videoAttachment == null
-                        ? () => _selectVideo(context)
-                        : () {
-                            showModalBottomSheet(
-                              context: context,
-                              builder: (context) =>
-                                  PendingAttachmentActionSheet(
-                                media: PostWriteMedia(
-                                  controller.videoAttachment!,
+                if (widget.controller.videoLive)
+                  TextField(
+                    controller: _streamUrlController,
+                    decoration: InputDecoration(
+                      labelText: 'fieldPostVideoStreamUrl'.tr(),
+                      helperText: 'fieldPostVideoStreamUrlDescription'.tr(),
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                  ).padding(horizontal: 12)
+                else
+                  Container(
+                    margin: const EdgeInsets.only(left: 16, right: 16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Theme.of(context).dividerColor),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: widget.controller.videoAttachment == null
+                          ? () => _selectVideo()
+                          : () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) =>
+                                    PendingAttachmentActionSheet(
+                                  media: PostWriteMedia(
+                                    widget.controller.videoAttachment!,
+                                  ),
+                                ),
+                              ).then((value) async {
+                                if (value is PostWriteMedia) {
+                                  widget.controller
+                                      .setVideoAttachment(value.attachment);
+                                } else if (value == false) {
+                                  widget.controller.setVideoAttachment(null);
+                                }
+                              });
+                            },
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: widget.controller.videoAttachment == null
+                            ? Center(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.add),
+                                    const Gap(4),
+                                    Text('postVideoUpload'.tr()),
+                                  ],
+                                ),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: AttachmentItem(
+                                  data: widget.controller.videoAttachment!,
+                                  heroTag: const Uuid().v4(),
                                 ),
                               ),
-                            ).then((value) async {
-                              if (value is PostWriteMedia) {
-                                controller.setVideoAttachment(value.attachment);
-                              } else if (value == false) {
-                                controller.setVideoAttachment(null);
-                              }
-                            });
-                          },
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: controller.videoAttachment == null
-                          ? Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.add),
-                                  const Gap(4),
-                                  Text('postVideoUpload'.tr()),
-                                ],
-                              ),
-                            )
-                          : ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: AttachmentItem(
-                                data: controller.videoAttachment!,
-                                heroTag: const Uuid().v4(),
-                              ),
-                            ),
+                      ),
                     ),
+                  ),
+                const Gap(8),
+                CheckboxListTile(
+                  secondary: const Icon(Symbols.live_tv),
+                  title: Text('postVideoLive').tr(),
+                  subtitle: Text('postVideoLiveDescription').tr(),
+                  value: widget.controller.videoLive,
+                  onChanged: (value) =>
+                      widget.controller.setVideoLive(value ?? false),
+                ),
+                CheckboxListTile(
+                  secondary: const Icon(Symbols.web),
+                  title: Text('postVideoRendererWeb').tr(),
+                  subtitle: Text('postVideoRendererWebDescription').tr(),
+                  value: _renderer == 'web',
+                  onChanged: (value) => setState(
+                    () => _renderer = (value ?? false) ? 'web' : null,
                   ),
                 ),
               ],

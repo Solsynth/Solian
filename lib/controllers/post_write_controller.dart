@@ -219,6 +219,8 @@ class PostWriteController extends ChangeNotifier {
   List<PostWriteMedia> attachments = List.empty(growable: true);
   DateTime? publishedAt, publishedUntil;
   SnAttachment? videoAttachment;
+  String videoUrl = '';
+  bool videoLive = false;
   SnPoll? poll;
 
   Future<void> fetchRelatedPost(
@@ -445,8 +447,9 @@ class PostWriteController extends ChangeNotifier {
       titleController.text = data['title'] ?? '';
       descriptionController.text = data['description'] ?? '';
       rewardController.text = data['reward']?.toString() ?? '';
-      if (data['thumbnail'] != null)
+      if (data['thumbnail'] != null) {
         thumbnail = PostWriteMedia(SnAttachment.fromJson(data['thumbnail']));
+      }
       attachments.addAll(data['attachments']
           .map((ele) => PostWriteMedia(SnAttachment.fromJson(ele)))
           .cast<PostWriteMedia>());
@@ -455,10 +458,12 @@ class PostWriteController extends ChangeNotifier {
       visibility = data['visibility'];
       visibleUsers = List.from(data['visible_users_list'] ?? []);
       invisibleUsers = List.from(data['invisible_users_list'] ?? []);
-      if (data['published_at'] != null)
+      if (data['published_at'] != null) {
         publishedAt = DateTime.tryParse(data['published_at'])?.toLocal();
-      if (data['published_until'] != null)
+      }
+      if (data['published_until'] != null) {
         publishedUntil = DateTime.tryParse(data['published_until'])?.toLocal();
+      }
       replyingPost =
           data['reply_to'] != null ? SnPost.fromJson(data['reply_to']) : null;
       repostingPost =
@@ -595,7 +600,8 @@ class PostWriteController extends ChangeNotifier {
           if (replyingPost != null) 'reply_to': replyingPost!.id,
           if (repostingPost != null) 'repost_to': repostingPost!.id,
           if (reward != null) 'reward': reward,
-          if (videoAttachment != null) 'video': videoAttachment!.rid,
+          if (videoAttachment != null || videoUrl.isNotEmpty)
+            'video': videoUrl.isNotEmpty ? videoUrl : videoAttachment!.rid,
           if (poll != null) 'poll': poll!.id,
           if (realm != null) 'realm': realm!.id,
           'is_draft': saveAsDraft,
@@ -735,6 +741,15 @@ class PostWriteController extends ChangeNotifier {
 
   void setVideoAttachment(SnAttachment? value) {
     videoAttachment = value;
+    notifyListeners();
+  }
+
+  void setVideoUrl(String value) {
+    videoUrl = value;
+  }
+
+  void setVideoLive(bool value) {
+    videoLive = value;
     notifyListeners();
   }
 

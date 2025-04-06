@@ -543,6 +543,7 @@
   "attachmentSaved": "Saved to album",
   "attachmentSavedDesktop": "Saved to Downloads folder",
   "openInAlbum": "Open in album",
+  "openInBrowser": "Open in browser",
   "postAbuseReport": "Report Post",
   "postAbuseReportDescription": "Report posts that violate our user agreement and community guidelines to help us improve the content on Solar Network. Please describe how this post violates the relevant rules. Do not include any sensitive information. We will process your report within 24 hours.",
   "abuseReport": "Abuse Report",
@@ -958,5 +959,11 @@
   "attachmentReferenceLink": "Use external attachment",
   "fieldAttachmentReferenceLink": "Reference Link",
   "attachmentReferenceLinkDescription": "It will be used as the source file of the attachment. The link needs to allow cross-origin access.",
-  "fieldAttachmentMimetype": "Mimetype"
+  "fieldAttachmentMimetype": "Mimetype",
+  "postVideoLive": "Live Stream",
+  "postVideoLiveDescription": "This is a live video, you can embed the source site by yourself.",
+  "postVideoRendererWeb": "WebView Rendering", 
+  "postVideoRendererWebDescription": "Use WebView to render the content",
+  "fieldPostVideoStreamUrl": "Live Stream URL",
+  "fieldPostVideoStreamUrlDescription": "Live stream URL, can be HLS or webpage; use webpage renderer if you want to embed the webpage."
 }

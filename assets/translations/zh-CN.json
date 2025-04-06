@@ -541,6 +541,7 @@
   "attachmentSaved": "已保存到相册",
   "attachmentSavedDesktop": "已保存到下载目录",
   "openInAlbum": "在相册中打开",
+  "openInBrowser": "在浏览器中打开",
   "postAbuseReport": "检举帖子",
   "postAbuseReportDescription": "检举不符合我们用户协议以及社区准则的帖子，来帮助我们更好的维护 Solar Network 上的内容。请在下面描述该帖子如何违反我么的相关规定。请勿填写任何敏感信息。我们将会在 24 小时内处理您的检举。",
   "abuseReport": "检举",
@@ -955,5 +956,11 @@
   "attachmentReferenceLink": "引用外部附件",
   "fieldAttachmentReferenceLink": "引用连接",
   "attachmentReferenceLinkDescription": "作为附件的源文件。需要链接允许跨域访问。",
-  "fieldAttachmentMimetype": "文件类型"
+  "fieldAttachmentMimetype": "文件类型",
+  "postVideoLive": "直播",
+  "postVideoLiveDescription": "这是一条直播影片，允许用户自行嵌入源站。",
+  "postVideoRendererWeb": "网页渲染器", 
+  "postVideoRendererWebDescription": "使用 WebView 渲染内容。",
+  "fieldPostVideoStreamUrl": "直播流地址",
+  "fieldPostVideoStreamUrlDescription": "直播流地址，可以为 HLS，或者网页；使用网页嵌入请启用网页渲染器。"
 }
