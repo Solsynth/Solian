@@ -951,5 +951,9 @@
   "attachmentEditorUploadHint": "该附件已上传。",
   "attachmentRating": "评级",
   "fieldAttachmentRating": "内容分级",
-  "fieldAttachmentQuality": "质量评分"
+  "fieldAttachmentQuality": "质量评分",
+  "attachmentReferenceLink": "引用外部附件",
+  "fieldAttachmentReferenceLink": "引用连接",
+  "attachmentReferenceLinkDescription": "作为附件的源文件。需要链接允许跨域访问。",
+  "fieldAttachmentMimetype": "文件类型"
 }

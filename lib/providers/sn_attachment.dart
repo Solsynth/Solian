@@ -120,6 +120,25 @@ class SnAttachmentProvider {
     'webp': 'image/webp',
   };
 
+  Future<SnAttachment> createWithReferenceLink(
+    String url,
+    String pool,
+    Map<String, dynamic>? metadata, {
+    String? mimetype,
+  }) async {
+    final resp = await _sn.client.post(
+      '/cgi/uc/attachments/referenced',
+      data: {
+        'url': url,
+        'pool': pool,
+        'metadata': metadata,
+        if (mimetype != null) 'mimetype': mimetype,
+      },
+    );
+
+    return SnAttachment.fromJson(resp.data);
+  }
+
   Future<SnAttachment> directUploadOne(
     Uint8List data,
     String filename,

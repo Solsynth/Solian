@@ -27,7 +27,12 @@ import 'package:surface/widgets/loading_indicator.dart';
 
 class PendingAttachmentActionSheet extends StatefulWidget {
   final PostWriteMedia media;
-  const PendingAttachmentActionSheet({super.key, required this.media});
+  final bool canInsertLink;
+  const PendingAttachmentActionSheet({
+    super.key,
+    required this.media,
+    this.canInsertLink = true,
+  });
 
   @override
   State<PendingAttachmentActionSheet> createState() =>
@@ -270,15 +275,16 @@ class _PendingAttachmentActionSheetState
                     Navigator.pop(context);
                   },
                 ),
-                ListTile(
-                  minTileHeight: 48,
-                  leading: const Icon(Symbols.add_link),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                  title: Text('attachmentInsertLink').tr(),
-                  onTap: () {
-                    Navigator.pop(context, 'link');
-                  },
-                ),
+                if (widget.canInsertLink)
+                  ListTile(
+                    minTileHeight: 48,
+                    leading: const Icon(Symbols.add_link),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                    title: Text('attachmentInsertLink').tr(),
+                    onTap: () {
+                      Navigator.pop(context, 'link');
+                    },
+                  ),
                 ListTile(
                   minTileHeight: 48,
                   leading: const Icon(Symbols.bolt),

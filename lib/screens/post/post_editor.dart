@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
@@ -16,7 +15,6 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:surface/controllers/post_write_controller.dart';
 import 'package:surface/providers/config.dart';
-import 'package:surface/providers/sn_attachment.dart';
 import 'package:surface/providers/sn_network.dart';
 import 'package:surface/providers/sn_realm.dart';
 import 'package:surface/types/attachment.dart';
@@ -25,8 +23,7 @@ import 'package:surface/types/realm.dart';
 import 'package:surface/widgets/account/account_image.dart';
 import 'package:surface/widgets/attachment/attachment_input.dart';
 import 'package:surface/widgets/attachment/attachment_item.dart';
-import 'package:surface/widgets/attachment/pending_attachment_alt.dart';
-import 'package:surface/widgets/attachment/pending_attachment_boost.dart';
+import 'package:surface/widgets/attachment/pending_attachment_actions.dart';
 import 'package:surface/widgets/loading_indicator.dart';
 import 'package:surface/widgets/markdown_content.dart';
 import 'package:surface/widgets/navigation/app_scaffold.dart';
@@ -1130,77 +1127,6 @@ class _PostVideoEditor extends StatelessWidget {
     controller.setVideoAttachment(video);
   }
 
-  void _setAlt(BuildContext context) async {
-    if (controller.videoAttachment == null) return;
-
-    final result = await showDialog<SnAttachment?>(
-      context: context,
-      builder: (context) => PendingAttachmentAltDialog(
-          media: PostWriteMedia(controller.videoAttachment)),
-    );
-    if (result == null) return;
-
-    controller.setVideoAttachment(result);
-  }
-
-  Future<void> _createBoost(BuildContext context) async {
-    if (controller.videoAttachment == null) return;
-
-    final result = await showDialog<SnAttachmentBoost?>(
-      context: context,
-      builder: (context) => PendingAttachmentBoostDialog(
-          media: PostWriteMedia(controller.videoAttachment)),
-    );
-    if (result == null) return;
-
-    final newAttach = controller.videoAttachment!.copyWith(
-      boosts: [...controller.videoAttachment!.boosts, result],
-    );
-
-    controller.setVideoAttachment(newAttach);
-  }
-
-  void _setThumbnail(BuildContext context) async {
-    if (controller.videoAttachment == null) return;
-
-    final thumbnail = await showDialog<SnAttachment?>(
-      context: context,
-      builder: (context) => AttachmentInputDialog(
-        title: 'attachmentSetThumbnail'.tr(),
-        pool: 'interactive',
-        analyzeNow: true,
-      ),
-    );
-    if (thumbnail == null) return;
-    if (!context.mounted) return;
-
-    try {
-      final attach = context.read<SnAttachmentProvider>();
-      final newAttach = await attach.updateOne(
-        controller.videoAttachment!,
-        thumbnailId: thumbnail.id,
-      );
-      controller.setVideoAttachment(newAttach);
-    } catch (err) {
-      if (!context.mounted) return;
-      context.showErrorDialog(err);
-    }
-  }
-
-  Future<void> _deleteAttachment(BuildContext context) async {
-    if (controller.videoAttachment == null) return;
-
-    try {
-      final sn = context.read<SnNetworkProvider>();
-      await sn.client
-          .delete('/cgi/uc/attachments/${controller.videoAttachment!.id}');
-      controller.setVideoAttachment(null);
-    } catch (err) {
-      if (!context.mounted) return;
-      context.showErrorDialog(err);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1274,80 +1200,49 @@ class _PostVideoEditor extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Theme.of(context).dividerColor),
                   ),
-                  child: ContextMenuRegion(
-                    contextMenu: ContextMenu(
-                      entries: [
-                        MenuItem(
-                          label: 'attachmentSetAlt'.tr(),
-                          icon: Symbols.description,
-                          onSelected: () {
-                            _setAlt(context);
-                          },
-                        ),
-                        MenuItem(
-                          label: 'attachmentBoost'.tr(),
-                          icon: Symbols.bolt,
-                          onSelected: () {
-                            _createBoost(context);
-                          },
-                        ),
-                        MenuItem(
-                          label: 'attachmentSetThumbnail'.tr(),
-                          icon: Symbols.image,
-                          onSelected: () {
-                            _setThumbnail(context);
-                          },
-                        ),
-                        MenuItem(
-                          label: 'attachmentCopyRandomId'.tr(),
-                          icon: Symbols.content_copy,
-                          onSelected: () {
-                            Clipboard.setData(ClipboardData(
-                                text: controller.videoAttachment!.rid));
-                          },
-                        ),
-                        MenuItem(
-                          label: 'delete'.tr(),
-                          icon: Symbols.delete,
-                          onSelected: () => _deleteAttachment(context),
-                        ),
-                        MenuItem(
-                          label: 'unlink'.tr(),
-                          icon: Symbols.link_off,
-                          onSelected: () {
-                            controller.setVideoAttachment(null);
-                          },
-                        ),
-                      ],
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: controller.videoAttachment == null
-                          ? () => _selectVideo(context)
-                          : null,
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: controller.videoAttachment == null
-                            ? Center(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.add),
-                                    const Gap(4),
-                                    Text('postVideoUpload'.tr()),
-                                  ],
-                                ),
-                              )
-                            : ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: AttachmentItem(
-                                  data: controller.videoAttachment!,
-                                  heroTag: const Uuid().v4(),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: controller.videoAttachment == null
+                        ? () => _selectVideo(context)
+                        : () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) =>
+                                  PendingAttachmentActionSheet(
+                                media: PostWriteMedia(
+                                  controller.videoAttachment!,
                                 ),
                               ),
-                      ),
+                            ).then((value) async {
+                              if (value is PostWriteMedia) {
+                                controller.setVideoAttachment(value.attachment);
+                              } else if (value == false) {
+                                controller.setVideoAttachment(null);
+                              }
+                            });
+                          },
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: controller.videoAttachment == null
+                          ? Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.add),
+                                  const Gap(4),
+                                  Text('postVideoUpload'.tr()),
+                                ],
+                              ),
+                            )
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: AttachmentItem(
+                                data: controller.videoAttachment!,
+                                heroTag: const Uuid().v4(),
+                              ),
+                            ),
                     ),
                   ),
                 ),

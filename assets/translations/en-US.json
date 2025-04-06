@@ -954,5 +954,9 @@
   "attachmentEditorUploadHint": "This attachment is uploaded.",
   "attachmentRating": "Rating",
   "fieldAttachmentRating": "Content Rating",
-  "fieldAttachmentQuality": "Quality Rating"
+  "fieldAttachmentQuality": "Quality Rating",
+  "attachmentReferenceLink": "Use external attachment",
+  "fieldAttachmentReferenceLink": "Reference Link",
+  "attachmentReferenceLinkDescription": "It will be used as the source file of the attachment. The link needs to allow cross-origin access.",
+  "fieldAttachmentMimetype": "Mimetype"
 }

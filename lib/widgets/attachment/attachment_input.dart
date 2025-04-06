@@ -12,6 +12,9 @@ import 'package:surface/widgets/dialog.dart';
 class AttachmentInputDialog extends StatefulWidget {
   final String? title;
   final bool? analyzeNow;
+  final bool canPickMedia;
+  final bool canReferenceLink;
+  final bool canRandomId;
   final SnMediaType? mediaType;
   final String pool;
 
@@ -21,6 +24,9 @@ class AttachmentInputDialog extends StatefulWidget {
     required this.pool,
     this.analyzeNow = false,
     this.mediaType = SnMediaType.image,
+    this.canPickMedia = true,
+    this.canReferenceLink = true,
+    this.canRandomId = true,
   });
 
   @override
@@ -29,6 +35,8 @@ class AttachmentInputDialog extends StatefulWidget {
 
 class _AttachmentInputDialogState extends State<AttachmentInputDialog> {
   final _randomIdController = TextEditingController();
+  final _referenceLinkController = TextEditingController();
+  final _referenceMimetypeController = TextEditingController();
 
   XFile? _file;
   double? _progress;
@@ -55,6 +63,22 @@ class _AttachmentInputDialogState extends State<AttachmentInputDialog> {
     if (_randomIdController.text.isNotEmpty) {
       try {
         final attachment = await attach.getOne(_randomIdController.text);
+        if (!mounted) return;
+        Navigator.pop(context, attachment);
+      } catch (err) {
+        if (!mounted) return;
+        context.showErrorDialog(err);
+      }
+    } else if (_referenceLinkController.text.isNotEmpty) {
+      try {
+        final attachment = await attach.createWithReferenceLink(
+          _referenceLinkController.text,
+          widget.pool,
+          null,
+          mimetype: _referenceMimetypeController.text.isNotEmpty
+              ? _referenceMimetypeController.text
+              : null,
+        );
         if (!mounted) return;
         Navigator.pop(context, attachment);
       } catch (err) {
@@ -90,44 +114,98 @@ class _AttachmentInputDialogState extends State<AttachmentInputDialog> {
     return AlertDialog(
       title: Text(widget.title ?? 'attachmentInputDialog'.tr()),
       content: Column(
+        spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('attachmentInputUseRandomId').tr().fontSize(14),
-          const Gap(8),
-          TextField(
-            controller: _randomIdController,
-            decoration: InputDecoration(
-              labelText: 'fieldAttachmentRandomId'.tr(),
-              border: const UnderlineInputBorder(),
-              isDense: true,
-            ),
-            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-          ),
-          const Gap(24),
-          Text('attachmentInputNew').tr().fontSize(14),
-          Card(
-            child: Column(
+          if (_file == null &&
+              _referenceLinkController.text.isEmpty &&
+              widget.canRandomId)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ListTile(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                Text('attachmentInputUseRandomId').tr().fontSize(14),
+                const Gap(8),
+                TextField(
+                  controller: _randomIdController,
+                  decoration: InputDecoration(
+                    labelText: 'fieldAttachmentRandomId'.tr(),
+                    border: const OutlineInputBorder(),
+                    isDense: true,
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  leading: const Icon(Symbols.add_photo_alternate),
-                  trailing: const Icon(Symbols.chevron_right),
-                  title: Text('addAttachmentFromAlbum').tr(),
-                  subtitle: _file == null
-                      ? Text('unset').tr()
-                      : Text('waitingForUpload').tr(),
-                  onTap: () {
-                    _pickMedia();
-                  },
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ),
               ],
             ),
-          ),
+          if (_file == null &&
+              _referenceLinkController.text.isEmpty &&
+              widget.canReferenceLink)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('attachmentReferenceLink').tr().fontSize(14),
+                const Gap(8),
+                TextField(
+                  controller: _referenceLinkController,
+                  decoration: InputDecoration(
+                    labelText: 'fieldAttachmentReferenceLink'.tr(),
+                    helperText: 'attachmentReferenceLinkDescription'.tr(),
+                    helperMaxLines: 3,
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                ),
+                const Gap(8),
+                TextField(
+                  controller: _referenceLinkController,
+                  decoration: InputDecoration(
+                    labelText: 'fieldAttachmentMimetype'.tr(),
+                    helperText: 'class/type',
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                ),
+              ],
+            ),
+          if (_referenceLinkController.text.isEmpty &&
+              _randomIdController.text.isEmpty &&
+              widget.canPickMedia)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('attachmentInputNew').tr().fontSize(14),
+                Card(
+                  margin: EdgeInsets.only(top: 8),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        leading: const Icon(Symbols.add_photo_alternate),
+                        trailing: const Icon(Symbols.chevron_right),
+                        title: Text('addAttachmentFromAlbum').tr(),
+                        subtitle: _file == null
+                            ? Text('unset').tr()
+                            : Text('waitingForUpload').tr(),
+                        onTap: () {
+                          _pickMedia();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           if (_isBusy)
             LinearProgressIndicator(
               value: _progress,
