@@ -146,7 +146,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final ua = context.read<UserProvider>();
     final meet = JitsiMeet();
     final confOpts = JitsiMeetConferenceOptions(
-      room: 'sn-chat-${_channel!.id}',
+      room: 'sn-chat-${_channel!.alias}-${_channel!.id}',
       serverURL:
           'https://meet.element.io', // TODO fetch this as config from remote
       configOverrides: {
@@ -166,7 +166,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final sn = context.read<SnNetworkProvider>();
     final ua = context.read<UserProvider>();
     final url =
-        '${sn.client.options.baseUrl}/meet/${_channel!.id}?tk=${await ua.atk}';
+        '${sn.client.options.baseUrl}/meet/${_channel!.alias}-${_channel!.id}?tk=${await ua.atk}';
     launchUrlString(url);
   }
 
