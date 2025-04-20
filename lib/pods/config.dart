@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const kAtkStoreKey = 'nex_user_atk';
 const kRtkStoreKey = 'nex_user_rtk';
 
-const kNetworkServerDefault = 'https://api.sn.solsynth.dev';
+const kNetworkServerDefault = 'http://localhost:5071';
 const kNetworkServerStoreKey = 'app_server_url';
 
 const kAppbarTransparentStoreKey = 'app_bar_transparent';
