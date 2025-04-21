@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
+import 'package:island/widgets/post/post_item.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 import 'package:dio/dio.dart';
 import 'package:island/pods/network.dart';
@@ -20,14 +21,16 @@ class ExploreScreen extends ConsumerWidget {
       body: postAsync.when(
         data:
             (controller) => InfiniteList(
+              padding: EdgeInsets.zero,
               itemCount: controller.posts.length,
               isLoading: controller.isLoading,
               hasReachedMax: controller.hasReachedMax,
               onFetchData: controller.fetchMore,
               itemBuilder: (context, index) {
                 final post = controller.posts[index];
-                return ListTile(title: Text(post.content));
+                return PostItem(item: post);
               },
+              separatorBuilder: (_, __) => const Divider(height: 1),
             ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
