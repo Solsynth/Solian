@@ -40,8 +40,8 @@ class ExploreScreen extends ConsumerWidget {
 }
 
 final postListProvider = FutureProvider<_PostListController>((ref) async {
-  final dio = ref.watch(dioProvider);
-  final controller = _PostListController(dio);
+  final client = ref.watch(apiClientProvider);
+  final controller = _PostListController(client);
   await controller.fetchMore();
   return controller;
 });

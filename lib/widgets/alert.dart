@@ -8,3 +8,12 @@ void showErrorAlert(dynamic err) async {
     iconStyle: IconStyle.error,
   );
 }
+
+void showInfoAlert(String message, String title) async {
+  FlutterPlatformAlert.showAlert(
+    windowTitle: title,
+    text: message,
+    alertStyle: AlertButtonStyle.ok,
+    iconStyle: IconStyle.information,
+  );
+}

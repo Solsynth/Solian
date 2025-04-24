@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 
 class UniversalVideo extends StatelessWidget {
   final String uri;
-  const UniversalVideo({super.key, required this.uri});
+  final double aspectRatio;
+  const UniversalVideo({
+    super.key,
+    required this.uri,
+    required this.aspectRatio,
+  });
 
   @override
   Widget build(BuildContext context) {

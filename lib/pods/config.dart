@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const kAtkStoreKey = 'nex_user_atk';
-const kRtkStoreKey = 'nex_user_rtk';
+const kTokenPairStoreKey = 'dyn_user_tk';
 
 const kNetworkServerDefault = 'http://localhost:5071';
 const kNetworkServerStoreKey = 'app_server_url';

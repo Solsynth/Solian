@@ -7,5 +7,10 @@ class AppRouter extends RootStackRouter {
   RouteType get defaultRouteType => RouteType.adaptive();
 
   @override
-  List<AutoRoute> get routes => [AutoRoute(page: ExploreRoute.page, path: '/')];
+  List<AutoRoute> get routes => [
+    AutoRoute(page: ExploreRoute.page, path: '/'),
+    AutoRoute(page: AccountRoute.page, path: '/account'),
+    AutoRoute(page: LoginRoute.page, path: '/auth/login'),
+    AutoRoute(page: CreateAccountRoute.page, path: '/auth/create-account'),
+  ];
 }

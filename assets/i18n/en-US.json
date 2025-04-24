@@ -1,0 +1,25 @@
+{
+  "login": "Login",
+  "forgotPassword": "Forgot password",
+  "loginPickFactor": "Pick a factor",
+  "loginMultiFactor": {
+    "one": "{} step left",
+    "other": "{} steps left"
+  },
+  "loginEnterPassword": "Enter the code",
+  "loginSuccess": "Logged in as {}",
+  "loginGreeting": "Welcome back!",
+  "username": "Username",
+  "usernameLookupHint": "We also take your email address.",
+  "unknown": "Unknown",
+  "termAcceptNextWithAgree": "By continuing, you agree to our terms of services and other terms and conditions.",
+  "termAcceptLink": "Check them out",
+  "loginResetPasswordHint": "Provide your username to receive a password reset link.",
+  "password": "Password",
+  "next": "Next",
+  "createAccount": "Create an Account", 
+  "nickname": "Nickname",
+  "email": "Email",
+  "fieldCannotBeEmpty": "This field cannot be empty.",
+  "fieldEmailAddressMustBeValid": "The email address must be valid."
+}

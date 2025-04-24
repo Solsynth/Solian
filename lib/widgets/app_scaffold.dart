@@ -4,6 +4,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:island/route.dart';
+import 'package:island/route.gr.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +14,8 @@ import 'package:styled_widget/styled_widget.dart';
 
 class WindowScaffold extends StatelessWidget {
   final Widget child;
-  const WindowScaffold({super.key, required this.child});
+  final AppRouter router;
+  const WindowScaffold({super.key, required this.child, required this.router});
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +79,29 @@ class WindowScaffold extends StatelessWidget {
         ),
       );
     }
-    return child;
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      body: SizedBox.expand(child: child),
+      key: rootScaffoldKey,
+      bottomNavigationBar: NavigationBar(
+        destinations: [
+          NavigationDestination(icon: Icon(MdiIcons.compass), label: 'Explore'),
+          NavigationDestination(icon: Icon(MdiIcons.account), label: 'Account'),
+        ],
+        onDestinationSelected: (idx) {
+          switch (idx) {
+            case 0:
+              router.replace(ExploreRoute());
+              break;
+            case 1:
+              router.replace(AccountRoute());
+              break;
+          }
+        },
+      ),
+    );
   }
 }
 
