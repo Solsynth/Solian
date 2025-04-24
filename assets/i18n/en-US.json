@@ -21,5 +21,6 @@
   "nickname": "Nickname",
   "email": "Email",
   "fieldCannotBeEmpty": "This field cannot be empty.",
-  "fieldEmailAddressMustBeValid": "The email address must be valid."
+  "fieldEmailAddressMustBeValid": "The email address must be valid.",
+  "logout": "Logout"
 }

@@ -9,7 +9,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -83,7 +83,7 @@ class CreateAccountScreen extends HookConsumerWidget {
                       alignment: Alignment.centerLeft,
                       child: CircleAvatar(
                         radius: 26,
-                        child: Icon(MdiIcons.accountPlus, size: 28),
+                        child: const Icon(LucideIcons.userPlus, size: 28),
                       ).padding(bottom: 8),
                     ),
                     Text(
@@ -223,7 +223,10 @@ class CreateAccountScreen extends HookConsumerWidget {
                                     children: [
                                       Text('termAcceptLink').tr(),
                                       const Gap(4),
-                                      Icon(MdiIcons.launch, size: 14),
+                                      const Icon(
+                                        LucideIcons.externalLink,
+                                        size: 14,
+                                      ),
                                     ],
                                   ),
                                   onTap: () {
@@ -250,7 +253,7 @@ class CreateAccountScreen extends HookConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text("next").tr(),
-                            Icon(MdiIcons.chevronRight),
+                            const Icon(LucideIcons.chevronRight),
                           ],
                         ),
                       ),

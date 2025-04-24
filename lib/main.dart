@@ -1,13 +1,14 @@
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/theme.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/route.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,12 +49,21 @@ void main() async {
 
 final _appRouter = AppRouter();
 
-class IslandApp extends ConsumerWidget {
+class IslandApp extends HookConsumerWidget {
   const IslandApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(themeProvider);
+
+    useEffect(() {
+      final userNotifier = ref.read(userInfoProvider.notifier);
+      Future(() {
+        userNotifier.fetchUser();
+        print('user fetched');
+      });
+      return null;
+    }, []);
 
     return MaterialApp.router(
       theme: theme?.light,

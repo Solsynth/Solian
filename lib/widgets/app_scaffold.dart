@@ -4,9 +4,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.dart';
 import 'package:island/route.gr.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,28 +81,54 @@ class WindowScaffold extends StatelessWidget {
         ),
       );
     }
+
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: SizedBox.expand(child: child),
       key: rootScaffoldKey,
-      bottomNavigationBar: NavigationBar(
-        destinations: [
-          NavigationDestination(icon: Icon(MdiIcons.compass), label: 'Explore'),
-          NavigationDestination(icon: Icon(MdiIcons.account), label: 'Account'),
-        ],
-        onDestinationSelected: (idx) {
-          switch (idx) {
-            case 0:
-              router.replace(ExploreRoute());
-              break;
-            case 1:
-              router.replace(AccountRoute());
-              break;
-          }
-        },
-      ),
+      bottomNavigationBar:
+          router.current.meta['bottomNav'] == true || router.currentPath == '/'
+              ? AppBottomNavigationBar(router: router)
+              : null,
+    );
+  }
+}
+
+class AppBottomNavigationBar extends HookConsumerWidget {
+  const AppBottomNavigationBar({super.key, required this.router});
+
+  final AppRouter router;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final destination = useState(0);
+
+    return NavigationBar(
+      selectedIndex: destination.value,
+      destinations: [
+        NavigationDestination(
+          icon: Icon(LucideIcons.compass),
+          label: 'Explore',
+        ),
+        NavigationDestination(
+          icon: Icon(LucideIcons.userCircle),
+          label: 'Account',
+        ),
+      ],
+      onDestinationSelected: (idx) {
+        switch (idx) {
+          case 0:
+            destination.value = idx;
+            router.replace(ExploreRoute());
+            break;
+          case 1:
+            destination.value = idx;
+            router.replace(AccountRoute());
+            break;
+        }
+      },
     );
   }
 }

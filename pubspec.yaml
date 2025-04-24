@@ -63,13 +63,13 @@ dependencies:
   media_kit_libs_video: ^1.0.6
   flutter_cache_manager: ^3.4.1
   flutter_platform_alert: ^0.7.0
-  material_design_icons_flutter: ^7.0.7296
   email_validator: ^3.0.0
   easy_localization: ^3.0.7+1
   flutter_inappwebview: ^6.1.5
   animations: ^2.0.11
   package_info_plus: ^8.3.0
   device_info_plus: ^11.4.0
+  lucide_icons: ^0.257.0
 
 dev_dependencies:
   flutter_test:

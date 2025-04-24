@@ -8,9 +8,10 @@ import 'package:gap/gap.dart';
 import 'package:island/models/auth.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -128,7 +129,8 @@ class _LoginCheckScreen extends HookConsumerWidget {
         setTokenPair(ref.watch(sharedPreferencesProvider), atk, rtk);
         ref.invalidate(tokenPairProvider);
         if (!context.mounted) return;
-        // TODO userinfo
+        final userNotifier = ref.read(userInfoProvider.notifier);
+        userNotifier.fetchUser();
         Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -145,7 +147,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
           alignment: Alignment.centerLeft,
           child: CircleAvatar(
             radius: 26,
-            child: Icon(MdiIcons.formTextboxPassword, size: 28),
+            child: const Icon(LucideIcons.squareAsterisk, size: 28),
           ).padding(bottom: 8),
         ),
         Text(
@@ -178,7 +180,10 @@ class _LoginCheckScreen extends HookConsumerWidget {
               onPressed: isBusy.value ? null : () => performCheckTicket(),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [Text('next').tr(), Icon(MdiIcons.chevronRight)],
+                children: [
+                  Text('next').tr(),
+                  const Icon(LucideIcons.chevronRight),
+                ],
               ),
             ),
           ],
@@ -242,7 +247,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
           alignment: Alignment.centerLeft,
           child: CircleAvatar(
             radius: 26,
-            child: Icon(MdiIcons.security, size: 28),
+            child: const Icon(LucideIcons.lock, size: 28),
           ).padding(bottom: 8),
         ),
         Text(
@@ -260,7 +265,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(8)),
                         ),
-                        secondary: Icon(MdiIcons.fileQuestion),
+                        secondary: const Icon(LucideIcons.shieldQuestion),
                         title: Text('unknown').tr(),
                         enabled: !ticket!.blacklistFactors.contains(x.id),
                         value: factorPicked.value == x.id,
@@ -288,7 +293,10 @@ class _LoginPickerScreen extends HookConsumerWidget {
               onPressed: isBusy.value ? null : () => performGetFactorCode(),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [Text('next'.tr()), Icon(MdiIcons.chevronRight)],
+                children: [
+                  Text('next'.tr()),
+                  const Icon(LucideIcons.chevronRight),
+                ],
               ),
             ),
           ],
@@ -375,7 +383,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
           alignment: Alignment.centerLeft,
           child: CircleAvatar(
             radius: 26,
-            child: Icon(MdiIcons.login, size: 28),
+            child: const Icon(LucideIcons.logIn, size: 28),
           ).padding(bottom: 8),
         ),
         Text(
@@ -409,7 +417,10 @@ class _LoginLookupScreen extends HookConsumerWidget {
               onPressed: isBusy.value ? null : () => performNewTicket(),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [Text('next').tr(), Icon(MdiIcons.chevronRight)],
+                children: [
+                  Text('next').tr(),
+                  const Icon(LucideIcons.chevronRight),
+                ],
               ),
             ),
           ],
@@ -440,7 +451,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
                         children: [
                           Text('termAcceptLink'.tr()),
                           const Gap(4),
-                          Icon(MdiIcons.launch, size: 14),
+                          const Icon(LucideIcons.externalLink, size: 14),
                         ],
                       ),
                       onTap: () {

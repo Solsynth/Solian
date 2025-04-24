@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import 'image.dart';
 import 'video.dart';
@@ -35,7 +35,7 @@ class CloudFileWidget extends ConsumerWidget {
           ),
         );
       default:
-        return Placeholder();
+        return Text('Unable render for ${item.mimeType}');
     }
   }
 }
@@ -56,7 +56,7 @@ class ProfilePictureWidget extends ConsumerWidget {
         color: Theme.of(context).colorScheme.primaryContainer,
         child:
             item == null
-                ? Icon(MdiIcons.account)
+                ? Icon(LucideIcons.userCircle)
                 : CloudFileWidget(item: item!),
       ),
     );
