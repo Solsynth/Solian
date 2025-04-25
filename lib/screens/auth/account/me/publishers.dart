@@ -78,6 +78,30 @@ class ManagedPublisherScreen extends HookConsumerWidget {
                             children: [
                               IconButton(
                                 padding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                                icon: Icon(LucideIcons.trash, size: 16),
+                                onPressed: () {
+                                  showConfirmAlert(
+                                    'deletePublisherHint'.tr(),
+                                    'deletePublisher'.tr(
+                                      args: ['@${value[item].name}'],
+                                    ),
+                                  ).then((confirm) {
+                                    if (confirm) {
+                                      final client = ref.watch(
+                                        apiClientProvider,
+                                      );
+                                      client.delete(
+                                        '/publishers/${value[item].name}',
+                                      );
+                                      ref.invalidate(publishersManagedProvider);
+                                    }
+                                  });
+                                },
+                              ),
+                              IconButton(
+                                padding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
                                 icon: Icon(LucideIcons.edit, size: 16),
                                 onPressed: () {
                                   context.router
