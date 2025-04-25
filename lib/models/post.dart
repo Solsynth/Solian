@@ -8,10 +8,10 @@ part 'post.g.dart';
 abstract class SnPost with _$SnPost {
   const factory SnPost({
     required int id,
-    required String title,
-    required String description,
-    required dynamic language,
-    required dynamic editedAt,
+    required String? title,
+    required String? description,
+    required String? language,
+    required DateTime? editedAt,
     required DateTime publishedAt,
     required int visibility,
     required String content,

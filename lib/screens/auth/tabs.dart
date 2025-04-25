@@ -14,7 +14,6 @@ class TabsScreen extends StatelessWidget {
       builder: (context, child, _) {
         final tabsRouter = AutoTabsRouter.of(context);
         return Scaffold(
-          extendBody: true,
           extendBodyBehindAppBar: true,
           backgroundColor: Colors.transparent,
           body: child,

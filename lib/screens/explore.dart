@@ -1,9 +1,11 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 import 'package:dio/dio.dart';
 import 'package:island/pods/network.dart';
@@ -18,10 +20,24 @@ class ExploreScreen extends ConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(title: const Text('Explore')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.router.push(PostComposeRoute()).then((value) {
+            if (value != null) {
+              ref.invalidate(postListProvider);
+            }
+          });
+        },
+        child: const Icon(LucideIcons.pencil),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: postAsync.when(
         data:
             (controller) => RefreshIndicator(
-              onRefresh: controller.refresh,
+              onRefresh:
+                  () => Future.sync((() {
+                    ref.invalidate(postListProvider);
+                  })),
               child: InfiniteList(
                 padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).padding.bottom,
@@ -44,7 +60,7 @@ class ExploreScreen extends ConsumerWidget {
                 child: Text('Error: $e', textAlign: TextAlign.center),
               ),
               onTap: () {
-                postAsync.value?.refresh();
+                ref.invalidate(postListProvider);
               },
             ),
       ),
@@ -69,13 +85,6 @@ class _PostListController {
   int offset = 0;
   final int take = 20;
   int total = 0;
-
-  Future<void> refresh() async {
-    hasReachedMax = false;
-    offset = 0;
-    posts.clear();
-    await fetchMore();
-  }
 
   Future<void> fetchMore() async {
     if (isLoading || hasReachedMax) return;

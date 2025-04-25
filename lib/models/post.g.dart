@@ -8,10 +8,13 @@ part of 'post.dart';
 
 _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   id: (json['id'] as num).toInt(),
-  title: json['title'] as String,
-  description: json['description'] as String,
-  language: json['language'],
-  editedAt: json['edited_at'],
+  title: json['title'] as String?,
+  description: json['description'] as String?,
+  language: json['language'] as String?,
+  editedAt:
+      json['edited_at'] == null
+          ? null
+          : DateTime.parse(json['edited_at'] as String),
   publishedAt: DateTime.parse(json['published_at'] as String),
   visibility: (json['visibility'] as num).toInt(),
   content: json['content'] as String,
@@ -47,7 +50,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'title': instance.title,
   'description': instance.description,
   'language': instance.language,
-  'edited_at': instance.editedAt,
+  'edited_at': instance.editedAt?.toIso8601String(),
   'published_at': instance.publishedAt.toIso8601String(),
   'visibility': instance.visibility,
   'content': instance.content,

@@ -27,5 +27,6 @@ class AppRouter extends RootStackRouter {
       page: EditPublisherRoute.page,
       path: '/account/me/publishers/:id',
     ),
+    AutoRoute(page: PostComposeRoute.page, path: '/posts/compose'),
   ];
 }
