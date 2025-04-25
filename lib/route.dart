@@ -21,5 +21,11 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: CreateAccountRoute.page, path: '/auth/create-account'),
     AutoRoute(page: MyselfProfileRoute.page, path: '/account/me'),
     AutoRoute(page: UpdateProfileRoute.page, path: '/account/me/update'),
+    AutoRoute(page: ManagedPublisherRoute.page, path: '/account/me/publishers'),
+    AutoRoute(page: NewPublisherRoute.page, path: '/account/me/publishers/new'),
+    AutoRoute(
+      page: EditPublisherRoute.page,
+      path: '/account/me/publishers/:id',
+    ),
   ];
 }

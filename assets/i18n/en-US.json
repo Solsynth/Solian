@@ -27,6 +27,13 @@
   "logout": "Logout",
   "updateYourProfile": "Edit Profile",
   "accountBasicInfo": "Basic Info",
-  "accountProfile": "Profile",
-  "saveChanges": "Save Changes"
+  "saveChanges": "Save Changes",
+  "publishers": "Publishers",
+  "managedPublisher": "Managed Publishers",
+  "createPublisher": "Create a Publisher",
+  "editPublisher": "Edit a Publisher",
+  "syncPublisher": "Use Account Data",
+  "create": "Create",
+  "edit": "Edit",
+  "delete": "Delete"
 }

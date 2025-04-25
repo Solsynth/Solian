@@ -20,20 +20,33 @@ class ExploreScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Explore')),
       body: postAsync.when(
         data:
-            (controller) => InfiniteList(
-              padding: EdgeInsets.zero,
-              itemCount: controller.posts.length,
-              isLoading: controller.isLoading,
-              hasReachedMax: controller.hasReachedMax,
-              onFetchData: controller.fetchMore,
-              itemBuilder: (context, index) {
-                final post = controller.posts[index];
-                return PostItem(item: post);
-              },
-              separatorBuilder: (_, __) => const Divider(height: 1),
+            (controller) => RefreshIndicator(
+              onRefresh: controller.refresh,
+              child: InfiniteList(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom,
+                ),
+                itemCount: controller.posts.length,
+                isLoading: controller.isLoading,
+                hasReachedMax: controller.hasReachedMax,
+                onFetchData: controller.fetchMore,
+                itemBuilder: (context, index) {
+                  final post = controller.posts[index];
+                  return PostItem(item: post);
+                },
+                separatorBuilder: (_, __) => const Divider(height: 1),
+              ),
             ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error:
+            (e, _) => GestureDetector(
+              child: Center(
+                child: Text('Error: $e', textAlign: TextAlign.center),
+              ),
+              onTap: () {
+                postAsync.value?.refresh();
+              },
+            ),
       ),
     );
   }
@@ -56,6 +69,13 @@ class _PostListController {
   int offset = 0;
   final int take = 20;
   int total = 0;
+
+  Future<void> refresh() async {
+    hasReachedMax = false;
+    offset = 0;
+    posts.clear();
+    await fetchMore();
+  }
 
   Future<void> fetchMore() async {
     if (isLoading || hasReachedMax) return;

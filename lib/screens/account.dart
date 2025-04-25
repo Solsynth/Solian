@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
@@ -71,34 +72,42 @@ class AccountScreen extends HookConsumerWidget {
                   ).padding(horizontal: 16, vertical: 16),
                 ],
               ),
+            ).padding(horizontal: 8),
+            const Gap(8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(LucideIcons.bookOpen),
+              trailing: const Icon(LucideIcons.chevronRight),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('managedPublisher').tr(),
+              onTap: () {
+                context.router.push(ManagedPublisherRoute());
+              },
             ),
             ListTile(
+              minTileHeight: 48,
               leading: const Icon(LucideIcons.edit),
               trailing: const Icon(LucideIcons.chevronRight),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('accountProfile').tr(),
-              subtitle: Text('Update your profile.'),
+              title: Text('updateYourProfile').tr(),
               onTap: () {
                 context.router.push(UpdateProfileRoute());
               },
             ),
+            const Divider(height: 1).padding(vertical: 4),
             ListTile(
+              minTileHeight: 48,
               leading: const Icon(LucideIcons.logOut),
               trailing: const Icon(LucideIcons.chevronRight),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('logout').tr(),
-              subtitle: Text('Log out of your account.'),
               onTap: () {
                 final userNotifier = ref.read(userInfoProvider.notifier);
                 userNotifier.logOut();
               },
             ),
           ],
-        ).padding(
-          horizontal: 8,
-          top: 8,
-          bottom: MediaQuery.of(context).padding.bottom,
-        ),
+        ).padding(top: 8, bottom: MediaQuery.of(context).padding.bottom),
       ),
     );
   }

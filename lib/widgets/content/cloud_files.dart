@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 import 'image.dart';
 import 'video.dart';
@@ -43,11 +44,10 @@ class CloudFileWidget extends ConsumerWidget {
 class ProfilePictureWidget extends ConsumerWidget {
   final SnCloudFile? item;
   final double radius;
-  const ProfilePictureWidget({super.key, required this.item, this.radius = 24});
+  const ProfilePictureWidget({super.key, required this.item, this.radius = 20});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (item == null) return const SizedBox.shrink();
     return ClipRRect(
       borderRadius: BorderRadius.all(Radius.circular(radius)),
       child: Container(
@@ -56,7 +56,7 @@ class ProfilePictureWidget extends ConsumerWidget {
         color: Theme.of(context).colorScheme.primaryContainer,
         child:
             item == null
-                ? Icon(LucideIcons.userCircle)
+                ? Icon(LucideIcons.userCircle, size: radius).center()
                 : CloudFileWidget(item: item!),
       ),
     );

@@ -17,3 +17,13 @@ void showInfoAlert(String message, String title) async {
     iconStyle: IconStyle.information,
   );
 }
+
+Future<bool> showConfirmAlert(String message, String title) async {
+  final result = await FlutterPlatformAlert.showAlert(
+    windowTitle: title,
+    text: message,
+    alertStyle: AlertButtonStyle.okCancel,
+    iconStyle: IconStyle.question,
+  );
+  return result == AlertButton.okButton;
+}

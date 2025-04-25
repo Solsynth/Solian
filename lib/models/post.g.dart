@@ -16,7 +16,7 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   visibility: (json['visibility'] as num).toInt(),
   content: json['content'] as String,
   type: (json['type'] as num).toInt(),
-  meta: json['meta'],
+  meta: json['meta'] as Map<String, dynamic>?,
   viewsUnique: (json['views_unique'] as num).toInt(),
   viewsTotal: (json['views_total'] as num).toInt(),
   upvotes: (json['upvotes'] as num).toInt(),
@@ -81,8 +81,14 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
   name: json['name'] as String,
   nick: json['nick'] as String,
   bio: json['bio'] as String,
-  picture: SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
-  background: SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+  picture:
+      json['picture'] == null
+          ? null
+          : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
+  background:
+      json['background'] == null
+          ? null
+          : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
   accountId: (json['account_id'] as num).toInt(),
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -99,8 +105,8 @@ Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
       'name': instance.name,
       'nick': instance.nick,
       'bio': instance.bio,
-      'picture': instance.picture.toJson(),
-      'background': instance.background.toJson(),
+      'picture': instance.picture?.toJson(),
+      'background': instance.background?.toJson(),
       'account_id': instance.accountId,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
