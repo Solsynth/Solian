@@ -1,8 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_platform_alert/flutter_platform_alert.dart';
 
 void showErrorAlert(dynamic err) async {
   FlutterPlatformAlert.showAlert(
-    windowTitle: 'Something went wrong...',
+    windowTitle: 'somethingWentWrong'.tr(),
     text: err.toString(),
     alertStyle: AlertButtonStyle.ok,
     iconStyle: IconStyle.error,
