@@ -15,7 +15,10 @@ _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
   mimeType: json['mime_type'] as String?,
   hash: json['hash'] as String?,
   size: (json['size'] as num).toInt(),
-  uploadedAt: DateTime.parse(json['uploaded_at'] as String),
+  uploadedAt:
+      json['uploaded_at'] == null
+          ? null
+          : DateTime.parse(json['uploaded_at'] as String),
   uploadedTo: json['uploaded_to'] as String?,
   usedCount: (json['used_count'] as num).toInt(),
   createdAt: DateTime.parse(json['created_at'] as String),
@@ -36,7 +39,7 @@ Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
       'mime_type': instance.mimeType,
       'hash': instance.hash,
       'size': instance.size,
-      'uploaded_at': instance.uploadedAt.toIso8601String(),
+      'uploaded_at': instance.uploadedAt?.toIso8601String(),
       'uploaded_to': instance.uploadedTo,
       'used_count': instance.usedCount,
       'created_at': instance.createdAt.toIso8601String(),

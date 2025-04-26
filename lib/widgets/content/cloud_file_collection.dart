@@ -44,7 +44,10 @@ class CloudFileList extends StatelessWidget {
 
     if (allImages) {
       return ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
+        constraints: BoxConstraints(
+          maxHeight: maxHeight,
+          minWidth: double.infinity,
+        ),
         child: AspectRatio(
           aspectRatio: calculateAspectRatio(),
           child: CarouselView(
@@ -60,7 +63,10 @@ class CloudFileList extends StatelessWidget {
     }
 
     return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
+      constraints: BoxConstraints(
+        maxHeight: maxHeight,
+        minWidth: double.infinity,
+      ),
       child: AspectRatio(
         aspectRatio: calculateAspectRatio(),
         child: ListView.separated(

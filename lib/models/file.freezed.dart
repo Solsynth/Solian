@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnCloudFile {
 
- String get id; String get name; String? get description; Map<String, dynamic>? get fileMeta; Map<String, dynamic>? get userMeta; String? get mimeType; String? get hash; int get size; DateTime get uploadedAt; String? get uploadedTo; int get usedCount; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get name; String? get description; Map<String, dynamic>? get fileMeta; Map<String, dynamic>? get userMeta; String? get mimeType; String? get hash; int get size; DateTime? get uploadedAt; String? get uploadedTo; int get usedCount; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnCloudFile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -49,7 +49,7 @@ abstract mixin class $SnCloudFileCopyWith<$Res>  {
   factory $SnCloudFileCopyWith(SnCloudFile value, $Res Function(SnCloudFile) _then) = _$SnCloudFileCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String? description, Map<String, dynamic>? fileMeta, Map<String, dynamic>? userMeta, String? mimeType, String? hash, int size, DateTime uploadedAt, String? uploadedTo, int usedCount, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String name, String? description, Map<String, dynamic>? fileMeta, Map<String, dynamic>? userMeta, String? mimeType, String? hash, int size, DateTime? uploadedAt, String? uploadedTo, int usedCount, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -66,7 +66,7 @@ class _$SnCloudFileCopyWithImpl<$Res>
 
 /// Create a copy of SnCloudFile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? fileMeta = freezed,Object? userMeta = freezed,Object? mimeType = freezed,Object? hash = freezed,Object? size = null,Object? uploadedAt = null,Object? uploadedTo = freezed,Object? usedCount = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? fileMeta = freezed,Object? userMeta = freezed,Object? mimeType = freezed,Object? hash = freezed,Object? size = null,Object? uploadedAt = freezed,Object? uploadedTo = freezed,Object? usedCount = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -76,8 +76,8 @@ as Map<String, dynamic>?,userMeta: freezed == userMeta ? _self.userMeta : userMe
 as Map<String, dynamic>?,mimeType: freezed == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
 as String?,hash: freezed == hash ? _self.hash : hash // ignore: cast_nullable_to_non_nullable
 as String?,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
-as int,uploadedAt: null == uploadedAt ? _self.uploadedAt : uploadedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,uploadedTo: freezed == uploadedTo ? _self.uploadedTo : uploadedTo // ignore: cast_nullable_to_non_nullable
+as int,uploadedAt: freezed == uploadedAt ? _self.uploadedAt : uploadedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,uploadedTo: freezed == uploadedTo ? _self.uploadedTo : uploadedTo // ignore: cast_nullable_to_non_nullable
 as String?,usedCount: null == usedCount ? _self.usedCount : usedCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -120,7 +120,7 @@ class _SnCloudFile implements SnCloudFile {
 @override final  String? mimeType;
 @override final  String? hash;
 @override final  int size;
-@override final  DateTime uploadedAt;
+@override final  DateTime? uploadedAt;
 @override final  String? uploadedTo;
 @override final  int usedCount;
 @override final  DateTime createdAt;
@@ -160,7 +160,7 @@ abstract mixin class _$SnCloudFileCopyWith<$Res> implements $SnCloudFileCopyWith
   factory _$SnCloudFileCopyWith(_SnCloudFile value, $Res Function(_SnCloudFile) _then) = __$SnCloudFileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String? description, Map<String, dynamic>? fileMeta, Map<String, dynamic>? userMeta, String? mimeType, String? hash, int size, DateTime uploadedAt, String? uploadedTo, int usedCount, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String name, String? description, Map<String, dynamic>? fileMeta, Map<String, dynamic>? userMeta, String? mimeType, String? hash, int size, DateTime? uploadedAt, String? uploadedTo, int usedCount, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -177,7 +177,7 @@ class __$SnCloudFileCopyWithImpl<$Res>
 
 /// Create a copy of SnCloudFile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? fileMeta = freezed,Object? userMeta = freezed,Object? mimeType = freezed,Object? hash = freezed,Object? size = null,Object? uploadedAt = null,Object? uploadedTo = freezed,Object? usedCount = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? fileMeta = freezed,Object? userMeta = freezed,Object? mimeType = freezed,Object? hash = freezed,Object? size = null,Object? uploadedAt = freezed,Object? uploadedTo = freezed,Object? usedCount = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnCloudFile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -187,8 +187,8 @@ as Map<String, dynamic>?,userMeta: freezed == userMeta ? _self._userMeta : userM
 as Map<String, dynamic>?,mimeType: freezed == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
 as String?,hash: freezed == hash ? _self.hash : hash // ignore: cast_nullable_to_non_nullable
 as String?,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
-as int,uploadedAt: null == uploadedAt ? _self.uploadedAt : uploadedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,uploadedTo: freezed == uploadedTo ? _self.uploadedTo : uploadedTo // ignore: cast_nullable_to_non_nullable
+as int,uploadedAt: freezed == uploadedAt ? _self.uploadedAt : uploadedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,uploadedTo: freezed == uploadedTo ? _self.uploadedTo : uploadedTo // ignore: cast_nullable_to_non_nullable
 as String?,usedCount: null == usedCount ? _self.usedCount : usedCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

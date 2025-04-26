@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/theme.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
@@ -12,6 +13,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/route.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +28,14 @@ void main() async {
       appWindow.alignment = Alignment.center;
       appWindow.show();
     });
+  }
+
+  if (!kIsWeb && Platform.isAndroid) {
+    final ImagePickerPlatform imagePickerImplementation =
+        ImagePickerPlatform.instance;
+    if (imagePickerImplementation is ImagePickerAndroid) {
+      imagePickerImplementation.useAndroidPhotoPicker = true;
+    }
   }
 
   runApp(

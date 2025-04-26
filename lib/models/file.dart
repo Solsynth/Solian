@@ -14,7 +14,7 @@ abstract class SnCloudFile with _$SnCloudFile {
     required String? mimeType,
     required String? hash,
     required int size,
-    required DateTime uploadedAt,
+    required DateTime? uploadedAt,
     required String? uploadedTo,
     required int usedCount,
     required DateTime createdAt,
