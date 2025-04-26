@@ -185,8 +185,8 @@ class PostComposeScreen extends HookConsumerWidget {
         );
 
         final client = ref.watch(apiClientProvider);
-        await client.post(
-          '/posts',
+        await client.request(
+          originalPost == null ? '/posts' : '/posts/${originalPost!.id}',
           data: {
             'content': contentController.text,
             'attachments':
@@ -195,7 +195,10 @@ class PostComposeScreen extends HookConsumerWidget {
                     .map((e) => e.data.id)
                     .toList(),
           },
-          options: Options(headers: {'X-Pub': currentPublisher.value?.name}),
+          options: Options(
+            headers: {'X-Pub': currentPublisher.value?.name},
+            method: originalPost == null ? 'POST' : 'PATCH',
+          ),
         );
         if (context.mounted) {
           context.maybePop(true);
@@ -223,6 +226,8 @@ class PostComposeScreen extends HookConsumerWidget {
                         strokeWidth: 2.5,
                       ),
                     ).center()
+                    : originalPost != null
+                    ? const Icon(LucideIcons.edit)
                     : const Icon(LucideIcons.upload),
           ),
           const Gap(8),
@@ -357,7 +362,8 @@ class _AttachmentPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1,
+      aspectRatio:
+          (item.isOnCloud ? (item.data.fileMeta?['ratio'] ?? 1) : 1).toDouble(),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Stack(
@@ -485,7 +491,7 @@ class _AttachmentPreview extends StatelessWidget {
                       color: Colors.black.withOpacity(0.5),
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       child:
-                          (item is SnCloudFile)
+                          (item.isOnCloud)
                               ? Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
