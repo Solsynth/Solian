@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -12,6 +13,7 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/account/me/publishers.dart';
+import 'package:island/screens/posts/detail.dart';
 import 'package:island/services/file.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -20,8 +22,33 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
+class PostEditScreen extends HookConsumerWidget {
+  final int id;
+  const PostEditScreen({super.key, @PathParam('id') required this.id});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final post = ref.watch(postProvider(id));
+    return post.when(
+      data: (post) => PostComposeScreen(originalPost: post),
+      loading:
+          () => AppScaffold(
+            appBar: AppBar(leading: const PageBackButton()),
+            body: const Center(child: CircularProgressIndicator()),
+          ),
+      error:
+          (e, _) => AppScaffold(
+            appBar: AppBar(leading: const PageBackButton()),
+            body: Text('Error: $e', textAlign: TextAlign.center),
+          ),
+    );
+  }
+}
+
+@RoutePage()
 class PostComposeScreen extends HookConsumerWidget {
-  const PostComposeScreen({super.key});
+  final SnPost? originalPost;
+  const PostComposeScreen({super.key, this.originalPost});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,10 +64,29 @@ class PostComposeScreen extends HookConsumerWidget {
     }, [publishers]);
 
     // Contains the XFile, ByteData, or SnCloudFile
-    final attachments = useState<List<UniversalFile>>([]);
-    final contentController = useTextEditingController();
-    final titleController = useTextEditingController();
-    final descriptionController = useTextEditingController();
+    final attachments = useState<List<UniversalFile>>(
+      originalPost?.attachments
+              .map(
+                (e) => UniversalFile(
+                  data: e,
+                  type: switch (e.mimeType?.split('/').firstOrNull) {
+                    'image' => UniversalFileType.image,
+                    'video' => UniversalFileType.video,
+                    'audio' => UniversalFileType.audio,
+                    _ => UniversalFileType.file,
+                  },
+                ),
+              )
+              .toList() ??
+          [],
+    );
+    final contentController = useTextEditingController(
+      text: originalPost?.content,
+    );
+    final titleController = useTextEditingController(text: originalPost?.title);
+    final descriptionController = useTextEditingController(
+      text: originalPost?.description,
+    );
 
     final submitting = useState(false);
 
@@ -149,6 +195,7 @@ class PostComposeScreen extends HookConsumerWidget {
                     .map((e) => e.data.id)
                     .toList(),
           },
+          options: Options(headers: {'X-Pub': currentPublisher.value?.name}),
         );
         if (context.mounted) {
           context.maybePop(true);
