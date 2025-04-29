@@ -10,6 +10,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -23,20 +24,20 @@ class CreateAccountScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(GlobalKey<FormState>.new, const []);
 
-    final email = useState('');
-    final username = useState('');
-    final nickname = useState('');
-    final password = useState('');
+    final emailController = useTextEditingController();
+    final usernameController = useTextEditingController();
+    final nicknameController = useTextEditingController();
+    final passwordController = useTextEditingController();
+
+    void showPostCreateModal() {
+      showCupertinoModalBottomSheet(
+        context: context,
+        builder: (context) => _PostCreateModal(),
+      );
+    }
 
     void performAction() async {
       if (!formKey.currentState!.validate()) return;
-
-      if (email.value.isEmpty ||
-          username.value.isEmpty ||
-          nickname.value.isEmpty ||
-          password.value.isEmpty) {
-        return;
-      }
 
       final captchaTk = await Navigator.of(
         context,
@@ -48,19 +49,19 @@ class CreateAccountScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/users',
+          '/accounts',
           data: {
-            'name': username.value,
-            'nick': nickname.value,
-            'email': email.value,
-            'password': password.value,
+            'name': usernameController.text,
+            'nick': nicknameController.text,
+            'email': emailController.text,
+            'password': passwordController.text,
             'language': EasyLocalization.of(context)!.currentLocale.toString(),
             'captcha_token': captchaTk,
           },
         );
 
         if (!context.mounted) return;
-        context.router.replace(CreateAccountRoute());
+        showPostCreateModal();
       } catch (err) {
         showErrorAlert(err);
       }
@@ -99,7 +100,7 @@ class CreateAccountScreen extends HookConsumerWidget {
                       child: Column(
                         children: [
                           TextFormField(
-                            initialValue: username.value,
+                            controller: usernameController,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'fieldCannotBeEmpty'.tr();
@@ -108,12 +109,12 @@ class CreateAccountScreen extends HookConsumerWidget {
                             },
                             autocorrect: false,
                             enableSuggestions: false,
-                            onSaved: (val) => username.value = val ?? '',
                             autofillHints: const [AutofillHints.username],
                             decoration: InputDecoration(
                               isDense: true,
                               border: const UnderlineInputBorder(),
                               labelText: 'username'.tr(),
+                              helperText: 'usernameCannotChangeHint'.tr(),
                             ),
                             onTapOutside:
                                 (_) =>
@@ -122,7 +123,7 @@ class CreateAccountScreen extends HookConsumerWidget {
                           ),
                           const Gap(12),
                           TextFormField(
-                            initialValue: nickname.value,
+                            controller: nicknameController,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'fieldCannotBeEmpty'.tr();
@@ -130,8 +131,6 @@ class CreateAccountScreen extends HookConsumerWidget {
                               return null;
                             },
                             autocorrect: false,
-                            enableSuggestions: false,
-                            onSaved: (val) => nickname.value = val ?? '',
                             autofillHints: const [AutofillHints.nickname],
                             decoration: InputDecoration(
                               isDense: true,
@@ -145,7 +144,7 @@ class CreateAccountScreen extends HookConsumerWidget {
                           ),
                           const Gap(12),
                           TextFormField(
-                            initialValue: email.value,
+                            controller: emailController,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'fieldCannotBeEmpty'.tr();
@@ -157,7 +156,6 @@ class CreateAccountScreen extends HookConsumerWidget {
                             },
                             autocorrect: false,
                             enableSuggestions: false,
-                            onSaved: (val) => email.value = val ?? '',
                             autofillHints: const [AutofillHints.email],
                             decoration: InputDecoration(
                               isDense: true,
@@ -171,7 +169,7 @@ class CreateAccountScreen extends HookConsumerWidget {
                           ),
                           const Gap(12),
                           TextFormField(
-                            initialValue: password.value,
+                            controller: passwordController,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'fieldCannotBeEmpty'.tr();
@@ -181,7 +179,6 @@ class CreateAccountScreen extends HookConsumerWidget {
                             obscureText: true,
                             autocorrect: false,
                             enableSuggestions: false,
-                            onSaved: (val) => password.value = val ?? '',
                             autofillHints: const [AutofillHints.password],
                             decoration: InputDecoration(
                               isDense: true,
@@ -245,9 +242,7 @@ class CreateAccountScreen extends HookConsumerWidget {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          if (formKey.currentState?.validate() ?? false) {
-                            performAction();
-                          }
+                          performAction();
                         },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -263,6 +258,60 @@ class CreateAccountScreen extends HookConsumerWidget {
               ),
             ),
           ).padding(all: 24).center(),
+    );
+  }
+}
+
+class _PostCreateModal extends HookConsumerWidget {
+  const _PostCreateModal();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('🎉').fontSize(32),
+              Text(
+                'postCreateAccountTitle'.tr(),
+                textAlign: TextAlign.center,
+              ).fontSize(17),
+              const Gap(18),
+              Text('postCreateAccountNext').tr().fontSize(19).bold(),
+              const Gap(4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 6,
+                children: [
+                  Text('\u2022'),
+                  Expanded(child: Text('postCreateAccountNext1').tr()),
+                ],
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 6,
+                children: [
+                  Text('\u2022'),
+                  Expanded(child: Text('postCreateAccountNext2').tr()),
+                ],
+              ),
+              const Gap(6),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.router.replace(LoginRoute());
+                },
+                child: Text('login'.tr()),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

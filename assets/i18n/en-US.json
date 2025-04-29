@@ -27,6 +27,7 @@
   "logout": "Logout",
   "updateYourProfile": "Edit Profile",
   "accountBasicInfo": "Basic Info",
+  "accountProfile": "Your Profile",
   "saveChanges": "Save Changes",
   "publishers": "Publishers",
   "managedPublisher": "Managed Publishers",
@@ -41,5 +42,9 @@
   "somethingWentWrong": "Something went wrong...",
   "deletePost": "Delete Post",
   "deletePostHint": "Are you sure to delete this post?",
-  "copyLink": "Copy Link"
+  "copyLink": "Copy Link",
+  "postCreateAccountTitle": "Thanks for joining!",
+  "postCreateAccountNext": "What's next?",
+  "postCreateAccountNext1": "Go to your email inbox and receive the account activation email.",
+  "postCreateAccountNext2": "Log in to your account and start exploring the Solar Network!"
 }

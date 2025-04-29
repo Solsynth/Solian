@@ -67,17 +67,22 @@ final apiClientProvider = Provider<Dio>((ref) {
         RequestOptions options,
         RequestInterceptorHandler handler,
       ) async {
-        final atk = await getFreshAtk(
-          ref.watch(tokenPairProvider),
-          ref.watch(serverUrlProvider),
-          onRefreshed: (atk, rtk) {
-            setTokenPair(ref.watch(sharedPreferencesProvider), atk, rtk);
-            ref.invalidate(tokenPairProvider);
-          },
-        );
-        if (atk != null) {
-          options.headers['Authorization'] = 'Bearer $atk';
+        try {
+          final atk = await getFreshAtk(
+            ref.watch(tokenPairProvider),
+            ref.watch(serverUrlProvider),
+            onRefreshed: (atk, rtk) {
+              setTokenPair(ref.watch(sharedPreferencesProvider), atk, rtk);
+              ref.invalidate(tokenPairProvider);
+            },
+          );
+          if (atk != null) {
+            options.headers['Authorization'] = 'Bearer $atk';
+          }
+        } catch (err) {
+          // ignore
         }
+
         final userAgent = ref.watch(userAgentProvider);
         if (userAgent.value != null) {
           options.headers['User-Agent'] = userAgent.value;
