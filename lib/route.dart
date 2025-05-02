@@ -15,6 +15,7 @@ class AppRouter extends RootStackRouter {
       children: [
         AutoRoute(page: ExploreRoute.page, path: 'explore'),
         AutoRoute(page: AccountRoute.page, path: 'account'),
+        AutoRoute(page: RealmListRoute.page, path: 'realms'),
       ],
     ),
     AutoRoute(page: LoginRoute.page, path: '/auth/login'),
@@ -25,10 +26,12 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: NewPublisherRoute.page, path: '/account/me/publishers/new'),
     AutoRoute(
       page: EditPublisherRoute.page,
-      path: '/account/me/publishers/:id',
+      path: '/account/me/publishers/:id/edit',
     ),
     AutoRoute(page: PostComposeRoute.page, path: '/posts/compose'),
     AutoRoute(page: PostDetailRoute.page, path: '/posts/:id'),
     AutoRoute(page: PostEditRoute.page, path: '/posts/:id/edit'),
+    AutoRoute(page: NewRealmRoute.page, path: '/realms/new'),
+    AutoRoute(page: EditRealmRoute.page, path: '/realms/:slug/edit'),
   ];
 }

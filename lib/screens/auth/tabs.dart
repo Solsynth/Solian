@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -10,7 +11,7 @@ class TabsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AutoTabsRouter.pageView(
-      routes: const [ExploreRoute(), AccountRoute()],
+      routes: const [ExploreRoute(), RealmListRoute(), AccountRoute()],
       builder: (context, child, _) {
         final tabsRouter = AutoTabsRouter.of(context);
         return Scaffold(
@@ -22,11 +23,15 @@ class TabsScreen extends StatelessWidget {
             onDestinationSelected: tabsRouter.setActiveIndex,
             destinations: [
               NavigationDestination(
-                label: 'Explore',
+                label: 'explore'.tr(),
                 icon: const Icon(Symbols.explore),
               ),
               NavigationDestination(
-                label: 'Account',
+                label: 'realms'.tr(),
+                icon: const Icon(Symbols.workspaces),
+              ),
+              NavigationDestination(
+                label: 'account'.tr(),
                 icon: const Icon(Symbols.account_circle),
               ),
             ],

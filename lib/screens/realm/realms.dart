@@ -6,11 +6,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
-import 'package:island/models/post.dart';
+import 'package:island/models/realm.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/screens/account/me/publishers.dart';
 import 'package:island/services/file.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -19,47 +19,36 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'publishers.g.dart';
+part 'realms.g.dart';
 
 @riverpod
-Future<List<SnPublisher>> publishersManaged(Ref ref) async {
+Future<List<SnRealm>> realmsJoined(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/publishers');
-  return resp.data
-      .map((e) => SnPublisher.fromJson(e))
-      .cast<SnPublisher>()
-      .toList();
+  final resp = await client.get('/realms');
+  return resp.data.map((e) => SnRealm.fromJson(e)).cast<SnRealm>().toList();
 }
 
 @RoutePage()
-class ManagedPublisherScreen extends HookConsumerWidget {
-  const ManagedPublisherScreen({super.key});
+class RealmListScreen extends HookConsumerWidget {
+  const RealmListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final publishers = ref.watch(publishersManagedProvider);
+    final realms = ref.watch(realmsJoinedProvider);
 
     return AppScaffold(
-      appBar: AppBar(
-        title: Text('publishers').tr(),
-        leading: const PageBackButton(),
+      appBar: AppBar(title: const Text('realms').tr()),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Symbols.add),
+        onPressed: () {
+          context.router.push(NewRealmRoute());
+        },
       ),
       body: RefreshIndicator(
-        child: publishers.when(
+        child: realms.when(
           data:
               (value) => Column(
                 children: [
-                  ListTile(
-                    leading: const Icon(Symbols.add),
-                    title: Text('createPublisher').tr(),
-                    subtitle: Text('createPublisherHint').tr(),
-                    trailing: const Icon(Symbols.chevron_right),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                    onTap: () {
-                      context.router.push(NewPublisherRoute());
-                    },
-                  ),
-                  const Divider(height: 1),
                   Expanded(
                     child: ListView.builder(
                       padding: EdgeInsets.only(
@@ -70,9 +59,10 @@ class ManagedPublisherScreen extends HookConsumerWidget {
                         return ListTile(
                           leading: ProfilePictureWidget(
                             item: value[item].picture,
+                            fallbackIcon: Symbols.group,
                           ),
-                          title: Text(value[item].nick),
-                          subtitle: Text('@${value[item].name}'),
+                          title: Text(value[item].name),
+                          subtitle: Text(value[item].description),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -82,17 +72,15 @@ class ManagedPublisherScreen extends HookConsumerWidget {
                                 icon: Icon(Symbols.delete),
                                 onPressed: () {
                                   showConfirmAlert(
-                                    'deletePublisherHint'.tr(),
-                                    'deletePublisher'.tr(
-                                      args: ['@${value[item].name}'],
-                                    ),
+                                    'deleteRealmHint'.tr(),
+                                    'deleteRealm'.tr(args: [value[item].name]),
                                   ).then((confirm) {
                                     if (confirm) {
                                       final client = ref.watch(
                                         apiClientProvider,
                                       );
                                       client.delete(
-                                        '/publishers/${value[item].name}',
+                                        '/realms/${value[item].slug}',
                                       );
                                       ref.invalidate(publishersManagedProvider);
                                     }
@@ -106,15 +94,11 @@ class ManagedPublisherScreen extends HookConsumerWidget {
                                 onPressed: () {
                                   context.router
                                       .push(
-                                        EditPublisherRoute(
-                                          name: value[item].name,
-                                        ),
+                                        EditRealmRoute(slug: value[item].slug),
                                       )
                                       .then((value) {
                                         if (value != null) {
-                                          ref.invalidate(
-                                            publishersManagedProvider,
-                                          );
+                                          ref.invalidate(realmsJoinedProvider);
                                         }
                                       });
                                 },
@@ -135,38 +119,38 @@ class ManagedPublisherScreen extends HookConsumerWidget {
                   child: Text('Error: $e', textAlign: TextAlign.center),
                 ),
                 onTap: () {
-                  ref.invalidate(publishersManagedProvider);
+                  ref.invalidate(realmsJoinedProvider);
                 },
               ),
         ),
-        onRefresh: () => ref.refresh(publishersManagedProvider.future),
+        onRefresh: () => ref.refresh(realmsJoinedProvider.future),
       ),
     );
   }
 }
 
 @riverpod
-Future<SnPublisher?> publisher(Ref ref, String? identifier) async {
+Future<SnRealm?> realm(Ref ref, String? identifier) async {
   if (identifier == null) return null;
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/publishers/$identifier');
-  return SnPublisher.fromJson(resp.data);
+  final resp = await client.get('/realms/$identifier');
+  return SnRealm.fromJson(resp.data);
 }
 
 @RoutePage()
-class NewPublisherScreen extends StatelessWidget {
-  const NewPublisherScreen({super.key});
+class NewRealmScreen extends StatelessWidget {
+  const NewRealmScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return EditPublisherScreen(key: key);
+    return const EditRealmScreen();
   }
 }
 
 @RoutePage()
-class EditPublisherScreen extends HookConsumerWidget {
-  final String? name;
-  const EditPublisherScreen({super.key, @PathParam('id') this.name});
+class EditRealmScreen extends HookConsumerWidget {
+  final String? slug;
+  const EditRealmScreen({super.key, @PathParam('slug') this.slug});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -174,6 +158,25 @@ class EditPublisherScreen extends HookConsumerWidget {
 
     final picture = useState<SnCloudFile?>(null);
     final background = useState<SnCloudFile?>(null);
+
+    final slugController = useTextEditingController();
+    final nameController = useTextEditingController();
+    final descriptionController = useTextEditingController();
+
+    final formKey = useMemoized(GlobalKey<FormState>.new, const []);
+
+    final realm = ref.watch(realmProvider(slug));
+
+    useEffect(() {
+      if (realm.value != null) {
+        picture.value = realm.value!.picture;
+        background.value = realm.value!.background;
+        slugController.text = realm.value!.slug;
+        nameController.text = realm.value!.name;
+        descriptionController.text = realm.value!.description;
+      }
+      return null;
+    }, [realm]);
 
     void setPicture(String position) async {
       final result = await ref
@@ -217,28 +220,6 @@ class EditPublisherScreen extends HookConsumerWidget {
       }
     }
 
-    final publisher = ref.watch(publisherProvider(name));
-
-    final formKey = useMemoized(GlobalKey<FormState>.new, const []);
-    final nameController = useTextEditingController(
-      text: publisher.value?.name,
-    );
-    final nickController = useTextEditingController(
-      text: publisher.value?.nick,
-    );
-    final bioController = useTextEditingController(text: publisher.value?.bio);
-
-    useEffect(() {
-      if (publisher.value != null) {
-        picture.value = publisher.value!.picture;
-        background.value = publisher.value!.background;
-        nameController.text = publisher.value!.name;
-        nickController.text = publisher.value!.nick;
-        bioController.text = publisher.value!.bio;
-      }
-      return null;
-    }, [publisher]);
-
     Future<void> performAction() async {
       if (!formKey.currentState!.validate()) return;
 
@@ -246,18 +227,18 @@ class EditPublisherScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         final resp = await client.request(
-          name == null ? '/publishers/individual' : '/publishers/$name',
+          slug == null ? '/realms' : '/realms/$slug',
           data: {
+            'slug': slugController.text,
             'name': nameController.text,
-            'nick': nickController.text,
-            'bio': bioController.text,
-            'picture_id': picture.value?.id,
+            'description': descriptionController.text,
             'background_id': background.value?.id,
+            'picture_id': picture.value?.id,
           },
-          options: Options(method: name == null ? 'POST' : 'PATCH'),
+          options: Options(method: slug == null ? 'POST' : 'PATCH'),
         );
         if (context.mounted) {
-          context.maybePop(SnPublisher.fromJson(resp.data));
+          context.maybePop(SnRealm.fromJson(resp.data));
         }
       } catch (err) {
         showErrorAlert(err);
@@ -268,7 +249,7 @@ class EditPublisherScreen extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
-        title: Text(name == null ? 'createPublisher' : 'editPublisher').tr(),
+        title: Text(slug == null ? 'createRealm'.tr() : 'editRealm'.tr()),
         leading: const PageBackButton(),
       ),
       body: Column(
@@ -301,6 +282,7 @@ class EditPublisherScreen extends HookConsumerWidget {
                     child: ProfilePictureWidget(
                       item: picture.value,
                       radius: 40,
+                      fallbackIcon: Symbols.group,
                     ),
                     onTap: () {
                       setPicture('picture');
@@ -313,58 +295,42 @@ class EditPublisherScreen extends HookConsumerWidget {
           Form(
             key: formKey,
             child: Column(
-              spacing: 16,
               crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 16,
               children: [
                 TextFormField(
-                  controller: nameController,
+                  controller: slugController,
                   decoration: InputDecoration(
-                    labelText: 'username'.tr(),
-                    helperText: 'usernameCannotChangeHint'.tr(),
-                    prefixText: '@',
+                    labelText: 'slug'.tr(),
+                    helperText: 'slugHint'.tr(),
                   ),
-                  readOnly: name != null,
                   onTapOutside:
                       (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
                 TextFormField(
-                  controller: nickController,
-                  decoration: InputDecoration(labelText: 'nickname'.tr()),
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: 'name'.tr()),
                   onTapOutside:
                       (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
                 TextFormField(
-                  controller: bioController,
-                  decoration: InputDecoration(labelText: 'bio'.tr()),
+                  controller: descriptionController,
+                  decoration: InputDecoration(labelText: 'description'.tr()),
                   minLines: 3,
                   maxLines: null,
                   onTapOutside:
                       (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () {
-                        final user = ref.watch(userInfoProvider);
-                        nameController.text = user.value!.name;
-                        nickController.text = user.value!.nick;
-                        bioController.text = user.value!.profile.bio ?? '';
-                        picture.value = user.value!.profile.picture;
-                        background.value = user.value!.profile.background;
-                      },
-                      label: Text('syncPublisher'.tr()),
-                      icon: const Icon(Symbols.link),
-                    ),
-                    TextButton.icon(
-                      onPressed: submitting.value ? null : performAction,
-                      label: Text('saveChanges'.tr()),
-                      icon: const Icon(Symbols.save),
-                    ),
-                  ],
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: submitting.value ? null : performAction,
+                    label: Text('saveChanges'.tr()),
+                    icon: const Icon(Symbols.save),
+                  ),
                 ),
               ],
-            ).padding(horizontal: 24),
+            ).padding(all: 24),
           ),
         ],
       ),

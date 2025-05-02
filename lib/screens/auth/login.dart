@@ -19,6 +19,17 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+final Map<int, (String, String, IconData)> kFactorTypes = {
+  0: ('authFactorPassword', 'authFactorPasswordDescription', Symbols.password),
+  1: ('authFactorEmail', 'authFactorEmailDescription', Symbols.email),
+  2: ('authFactorTOTP', 'authFactorTOTPDescription', Symbols.timer),
+  3: (
+    'authFactorInAppNotify',
+    'authFactorInAppNotifyDescription',
+    Symbols.notifications_active,
+  ),
+};
+
 @RoutePage()
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
@@ -274,8 +285,10 @@ class _LoginPickerScreen extends HookConsumerWidget {
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(8)),
                         ),
-                        secondary: const Icon(Symbols.question_mark),
-                        title: Text('unknown').tr(),
+                        secondary: Icon(
+                          kFactorTypes[x.type]?.$3 ?? Symbols.question_mark,
+                        ),
+                        title: Text(kFactorTypes[x.type]?.$1 ?? 'unknown').tr(),
                         enabled: !ticket!.blacklistFactors.contains(x.id),
                         value: factorPicked.value == x.id,
                         onChanged: (value) {

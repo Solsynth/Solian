@@ -39,10 +39,12 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   tags: json['tags'] as List<dynamic>,
   categories: json['categories'] as List<dynamic>,
   collections: json['collections'] as List<dynamic>,
-  empty: json['empty'] as bool,
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt: json['deleted_at'],
+  deletedAt:
+      json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
 );
 
 Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
@@ -72,10 +74,9 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'tags': instance.tags,
   'categories': instance.categories,
   'collections': instance.collections,
-  'empty': instance.empty,
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt.toIso8601String(),
-  'deleted_at': instance.deletedAt,
+  'deleted_at': instance.deletedAt?.toIso8601String(),
 };
 
 _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(

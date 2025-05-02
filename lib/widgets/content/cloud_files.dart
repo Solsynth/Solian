@@ -44,7 +44,13 @@ class CloudFileWidget extends ConsumerWidget {
 class ProfilePictureWidget extends ConsumerWidget {
   final SnCloudFile? item;
   final double radius;
-  const ProfilePictureWidget({super.key, required this.item, this.radius = 20});
+  final IconData? fallbackIcon;
+  const ProfilePictureWidget({
+    super.key,
+    required this.item,
+    this.radius = 20,
+    this.fallbackIcon,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,7 +62,10 @@ class ProfilePictureWidget extends ConsumerWidget {
         color: Theme.of(context).colorScheme.primaryContainer,
         child:
             item == null
-                ? Icon(Symbols.account_circle, size: radius).center()
+                ? Icon(
+                  fallbackIcon ?? Symbols.account_circle,
+                  size: radius,
+                ).center()
                 : CloudFileWidget(item: item!),
       ),
     );

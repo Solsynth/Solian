@@ -1,8 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -29,7 +32,7 @@ class AccountScreen extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (user.value!.profile.background != null)
+                  if (user.value?.profile.background != null)
                     ClipRRect(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(8),
@@ -94,7 +97,20 @@ class AccountScreen extends HookConsumerWidget {
                 context.router.push(UpdateProfileRoute());
               },
             ),
-            const Divider(height: 1).padding(vertical: 4),
+            if (kDebugMode) const Divider(height: 1).padding(vertical: 8),
+            if (kDebugMode)
+              ListTile(
+                minTileHeight: 48,
+                leading: const Icon(Symbols.copy_all),
+                trailing: const Icon(Symbols.chevron_right),
+                contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                title: Text('Copy access token'),
+                onTap: () async {
+                  final tk = ref.watch(tokenPairProvider);
+                  Clipboard.setData(ClipboardData(text: tk!.accessToken));
+                },
+              ),
+            const Divider(height: 1).padding(vertical: 8),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.logout),

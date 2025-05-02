@@ -33,10 +33,9 @@ abstract class SnPost with _$SnPost {
     required List<dynamic> tags,
     required List<dynamic> categories,
     required List<dynamic> collections,
-    required bool empty,
     required DateTime createdAt,
     required DateTime updatedAt,
-    required dynamic deletedAt,
+    required DateTime? deletedAt,
   }) = _SnPost;
 
   factory SnPost.fromJson(Map<String, dynamic> json) => _$SnPostFromJson(json);
