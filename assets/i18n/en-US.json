@@ -89,5 +89,6 @@
   "permissionModerator": "Moderator",
   "permissionMember": "Member",
   "reply": "Reply",
-  "forward": "Forward"
+  "forward": "Forward",
+  "edited": "Edited"
 }

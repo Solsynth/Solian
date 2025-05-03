@@ -441,6 +441,7 @@ class MessageRepository {
       await _database.saveMessage(_database.messageToCompanion(message));
       return message;
     } catch (e) {
+      if (e is DioException) return null;
       // Handle errors
       rethrow;
     }

@@ -472,6 +472,22 @@ class ChatRoomScreen extends HookConsumerWidget {
                                           case _MessageBubbleAction.edit:
                                             messageEditingTo.value =
                                                 message.toRemoteMessage();
+                                            messageController.text =
+                                                messageEditingTo
+                                                    .value
+                                                    ?.content ??
+                                                '';
+                                            attachments.value =
+                                                messageEditingTo
+                                                    .value!
+                                                    .attachments
+                                                    .map(
+                                                      (e) =>
+                                                          UniversalFile.fromAttachment(
+                                                            e,
+                                                          ),
+                                                    )
+                                                    .toList();
                                           case _MessageBubbleAction.forward:
                                             messageForwardingTo.value =
                                                 message.toRemoteMessage();
@@ -659,11 +675,14 @@ class _MessageBubble extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final messagesNotifier = ref.watch(
-      messagesProvider(message.roomId).notifier,
-    );
-
-    final textColor = isCurrentUser ? Colors.white : Colors.black;
+    final textColor =
+        isCurrentUser
+            ? Theme.of(context).colorScheme.onPrimaryContainer
+            : Theme.of(context).colorScheme.onSurfaceVariant;
+    final containerColor =
+        isCurrentUser
+            ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+            : Theme.of(context).colorScheme.surfaceContainer;
 
     return ContextMenuWidget(
       menuProvider: (_) {
@@ -709,6 +728,7 @@ class _MessageBubble extends HookConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment:
                 isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
@@ -731,12 +751,7 @@ class _MessageBubble extends HookConsumerWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        isCurrentUser
-                            ? Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.8)
-                            : Colors.grey.shade200,
+                    color: containerColor,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -760,15 +775,24 @@ class _MessageBubble extends HookConsumerWidget {
                       ),
                       const Gap(4),
                       Row(
+                        spacing: 4,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             DateFormat.Hm().format(message.createdAt.toLocal()),
                             style: TextStyle(fontSize: 10, color: textColor),
                           ),
-                          const Gap(4),
+                          if (message.toRemoteMessage().editedAt != null)
+                            Text(
+                              'edited'.tr().toLowerCase(),
+                              style: TextStyle(fontSize: 10, color: textColor),
+                            ),
                           if (isCurrentUser)
-                            _buildStatusIcon(context, message.status),
+                            _buildStatusIcon(
+                              context,
+                              message.status,
+                              textColor,
+                            ),
                         ],
                       ),
                     ],
@@ -794,12 +818,16 @@ class _MessageBubble extends HookConsumerWidget {
     );
   }
 
-  Widget _buildStatusIcon(BuildContext context, MessageStatus status) {
+  Widget _buildStatusIcon(
+    BuildContext context,
+    MessageStatus status,
+    Color textColor,
+  ) {
     switch (status) {
       case MessageStatus.pending:
-        return const Icon(Icons.access_time, size: 12, color: Colors.white70);
+        return Icon(Icons.access_time, size: 12, color: textColor);
       case MessageStatus.sent:
-        return const Icon(Icons.check, size: 12, color: Colors.white70);
+        return Icon(Icons.check, size: 12, color: textColor);
       case MessageStatus.failed:
         return Consumer(
           builder:
@@ -850,7 +878,9 @@ class _MessageQuoteWidget extends HookConsumerWidget {
             borderRadius: BorderRadius.all(Radius.circular(8)),
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.2),
+              color: Theme.of(
+                context,
+              ).colorScheme.primaryFixedDim.withOpacity(0.4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

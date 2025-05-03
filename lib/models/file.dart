@@ -16,6 +16,18 @@ abstract class UniversalFile with _$UniversalFile {
 
   bool get isOnCloud => data is SnCloudFile;
   bool get isOnDevice => !isOnCloud;
+
+  factory UniversalFile.fromAttachment(SnCloudFile attachment) {
+    return UniversalFile(
+      data: attachment,
+      type: switch (attachment.mimeType?.split('/').firstOrNull) {
+        'image' => UniversalFileType.image,
+        'audio' => UniversalFileType.audio,
+        'video' => UniversalFileType.video,
+        _ => UniversalFileType.file,
+      },
+    );
+  }
 }
 
 @freezed
