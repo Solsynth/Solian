@@ -85,6 +85,9 @@ dependencies:
   web_socket_channel: ^3.0.3
   flutter_quill: ^11.4.0
   material_symbols_icons: ^4.2815.0
+  drift: ^2.26.0
+  drift_flutter: ^0.2.4
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:
@@ -103,6 +106,7 @@ dev_dependencies:
   riverpod_generator: ^2.6.5
   custom_lint: ^0.7.5
   riverpod_lint: ^2.6.5
+  drift_dev: ^2.26.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

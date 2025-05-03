@@ -75,5 +75,6 @@
   "editChatRoom": "Edit a Room",
   "chat": "Chat",
   "chatMessageHint": "Message in {}",
-  "chatDirectMessageHint": "Message to {}"
+  "chatDirectMessageHint": "Message to {}",
+  "loading": "Loading..."
 }
