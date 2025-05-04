@@ -3,7 +3,6 @@ import 'package:island/database/drift_db.dart';
 import 'package:island/database/message.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/models/file.dart';
-import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:uuid/uuid.dart';
@@ -181,6 +180,7 @@ class MessageRepository {
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
     SnChatMessage? editingTo,
+    Function(LocalChatMessage)? onPending,
   }) async {
     // Generate a unique nonce for this message
     final nonce = const Uuid().v4();
@@ -205,6 +205,7 @@ class MessageRepository {
     // Store in memory and database
     pendingMessages[localMessage.id] = localMessage;
     await _database.saveMessage(_database.messageToCompanion(localMessage));
+    onPending?.call(localMessage);
 
     try {
       var cloudAttachments = List.empty(growable: true);

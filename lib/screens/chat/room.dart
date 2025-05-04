@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -124,6 +123,7 @@ class MessagesNotifier
       );
       if (atk == null) throw Exception("Unauthorized");
 
+      LocalChatMessage? pendingMessage;
       final messageTask = repository.sendMessage(
         atk,
         baseUrl,
@@ -134,21 +134,19 @@ class MessagesNotifier
         replyingTo: replyingTo,
         forwardingTo: forwardingTo,
         editingTo: editingTo,
+        onPending: (pending) {
+          pendingMessage = pending;
+          final currentMessages = state.value ?? [];
+          state = AsyncValue.data([pending, ...currentMessages]);
+        },
       );
-      final pendingMessage = repository.pendingMessages.values.firstWhereOrNull(
-        (m) => m.roomId == _roomId && m.nonce == nonce,
-      );
-      if (pendingMessage != null) {
-        final currentMessages = state.value ?? [];
-        state = AsyncValue.data([pendingMessage, ...currentMessages]);
-      }
 
       final message = await messageTask;
 
       final updatedMessages = state.value ?? [];
       if (pendingMessage != null) {
         final index = updatedMessages.indexWhere(
-          (m) => m.id == pendingMessage.id,
+          (m) => m.id == pendingMessage!.id,
         );
         if (index >= 0) {
           final newList = [...updatedMessages];
@@ -415,7 +413,8 @@ class ChatRoomScreen extends HookConsumerWidget {
     }
 
     void sendMessage() {
-      if (messageController.text.trim().isNotEmpty) {
+      if (messageController.text.trim().isNotEmpty ||
+          attachments.value.isNotEmpty) {
         messagesNotifier.sendMessage(
           messageController.text.trim(),
           attachments.value,
@@ -572,8 +571,8 @@ class ChatRoomScreen extends HookConsumerWidget {
                   messageEditingTo: messageEditingTo.value,
                   messageReplyingTo: messageReplyingTo.value,
                   messageForwardingTo: messageForwardingTo.value,
-                  onPickFile: (bool isVideo) {
-                    if (isVideo) {
+                  onPickFile: (bool isPhoto) {
+                    if (isPhoto) {
                       pickPhotoMedia();
                     } else {
                       pickVideoMedia();
@@ -617,7 +616,7 @@ class _ChatInput extends StatelessWidget {
   final SnChat chatRoom;
   final VoidCallback onSend;
   final VoidCallback onClear;
-  final Function(bool isVideo) onPickFile;
+  final Function(bool isPhoto) onPickFile;
   final SnChatMessage? messageReplyingTo;
   final SnChatMessage? messageForwardingTo;
   final SnChatMessage? messageEditingTo;
@@ -730,7 +729,7 @@ class _ChatInput extends StatelessWidget {
                           ),
                         ),
                         PopupMenuItem(
-                          onTap: () => onPickFile(true),
+                          onTap: () => onPickFile(false),
                           child: Row(
                             spacing: 12,
                             children: [
@@ -887,10 +886,12 @@ class _MessageBubble extends HookConsumerWidget {
                           textColor: textColor,
                           isReply: false,
                         ),
-                      Text(
-                        message.toRemoteMessage().content ?? '',
-                        style: TextStyle(color: textColor),
-                      ),
+                      if (message.toRemoteMessage().content?.isNotEmpty ??
+                          false)
+                        Text(
+                          message.toRemoteMessage().content!,
+                          style: TextStyle(color: textColor),
+                        ),
                       if (message.toRemoteMessage().attachments.isNotEmpty)
                         CloudFileList(
                           files: message.toRemoteMessage().attachments,
@@ -1026,10 +1027,12 @@ class _MessageQuoteWidget extends HookConsumerWidget {
                         ).textColor(textColor).bold(),
                       ],
                     ),
-                  Text(
-                    snapshot.data!.toRemoteMessage().content ?? "",
-                    style: TextStyle(color: textColor),
-                  ),
+                  if (snapshot.data!.toRemoteMessage().content?.isNotEmpty ??
+                      false)
+                    Text(
+                      snapshot.data!.toRemoteMessage().content!,
+                      style: TextStyle(color: textColor),
+                    ),
                 ],
               ),
             ),
