@@ -461,7 +461,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                             ),
                   ),
                   Text(
-                    room!.type == 1
+                    room.type == 1
                         ? room.members!.first.account.nick
                         : room.name,
                   ).fontSize(19),
@@ -991,11 +991,10 @@ class _MessageQuoteWidget extends HookConsumerWidget {
   final bool isReply;
 
   const _MessageQuoteWidget({
-    Key? key,
     required this.message,
     required this.textColor,
     required this.isReply,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

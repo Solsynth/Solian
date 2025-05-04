@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_runtime_check_with_js_interop_types
+
 import 'dart:ui_web' as ui;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,7 +17,7 @@ class CaptchaScreen extends HookConsumerWidget {
         final message = event.data as String;
         if (message.startsWith("captcha_tk=")) {
           String token = message.replaceFirst("captcha_tk=", "");
-          Navigator.pop(context, token);
+          if (context.mounted) Navigator.pop(context, token);
         }
       }
     });
@@ -37,7 +39,6 @@ class CaptchaScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useCallback(() {
-      print('use callback runs once');
       final serverUrl = ref.watch(serverUrlProvider);
       _setupWebListener(context, serverUrl);
     }, []);

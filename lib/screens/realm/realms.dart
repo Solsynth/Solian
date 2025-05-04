@@ -10,7 +10,6 @@ import 'package:island/models/realm.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/screens/account/me/publishers.dart';
 import 'package:island/services/file.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -55,7 +53,7 @@ class ChatListScreen extends HookConsumerWidget {
       final client = ref.read(apiClientProvider);
       try {
         await client.post('/chat/direct', data: {'related_user_id': result.id});
-        ref.refresh(chatroomsJoinedProvider.future);
+        ref.invalidate(chatroomsJoinedProvider);
       } catch (err) {
         showErrorAlert(err);
       }
@@ -116,7 +114,7 @@ class ChatListScreen extends HookConsumerWidget {
                 onPressed: () {
                   context.pushRoute(NewChatRoute()).then((value) {
                     if (value != null) {
-                      ref.refresh(chatroomsJoinedProvider.future);
+                      ref.invalidate(chatroomsJoinedProvider);
                     }
                   });
                 },
@@ -466,7 +464,7 @@ class _ChatInvitesSheet extends HookConsumerWidget {
                       minimumSize: const Size(36, 36),
                     ),
                     onPressed: () {
-                      ref.refresh(chatroomInvitesProvider.future);
+                      ref.invalidate(chatroomInvitesProvider);
                     },
                   ),
                   IconButton(
