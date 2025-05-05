@@ -95,7 +95,8 @@ class ChatDetailScreen extends HookConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.people, shadows: [iconShadow]),
                       onPressed: () {
-                        showCupertinoModalBottomSheet(
+                        showModalBottomSheet(
+                          isScrollControlled: true,
                           context: context,
                           builder:
                               (context) => _ChatMemberListSheet(roomId: id),
@@ -263,7 +264,8 @@ class _ChatMemberListSheet extends HookConsumerWidget {
     }, []);
 
     Future<void> invitePerson() async {
-      final result = await showCupertinoModalBottomSheet(
+      final result = await showModalBottomSheet(
+        isScrollControlled: true,
         context: context,
         builder: (context) => const AccountPickerSheet(),
       );
@@ -285,111 +287,96 @@ class _ChatMemberListSheet extends HookConsumerWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                top: 16,
-                left: 20,
-                right: 16,
-                bottom: 12,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'members'.plural(memberState.total),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.5,
-                    ),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
+            child: Row(
+              children: [
+                Text(
+                  'members'.plural(memberState.total),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
                   ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Symbols.person_add),
-                    onPressed: invitePerson,
-                    style: IconButton.styleFrom(
-                      minimumSize: const Size(36, 36),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Symbols.refresh),
-                    onPressed: () {
-                      memberNotifier.reset();
-                      memberNotifier.loadMore();
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Symbols.close),
-                    onPressed: () => Navigator.pop(context),
-                    style: IconButton.styleFrom(
-                      minimumSize: const Size(36, 36),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Symbols.person_add),
+                  onPressed: invitePerson,
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.refresh),
+                  onPressed: () {
+                    memberNotifier.reset();
+                    memberNotifier.loadMore();
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.close),
+                  onPressed: () => Navigator.pop(context),
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+              ],
             ),
-            const Divider(height: 1),
-            Expanded(
-              child:
-                  memberState.error != null
-                      ? Center(child: Text(memberState.error!))
-                      : ListView.builder(
-                        itemCount: memberState.members.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == memberState.members.length) {
-                            if (memberState.isLoading) {
-                              return const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
-                            if (memberState.members.length <
-                                memberState.total) {
-                              memberNotifier.loadMore(
-                                offset: memberState.members.length,
-                              );
-                            }
-                            return const SizedBox.shrink();
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child:
+                memberState.error != null
+                    ? Center(child: Text(memberState.error!))
+                    : ListView.builder(
+                      itemCount: memberState.members.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == memberState.members.length) {
+                          if (memberState.isLoading) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
                           }
+                          if (memberState.members.length < memberState.total) {
+                            memberNotifier.loadMore(
+                              offset: memberState.members.length,
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        }
 
-                          final member = memberState.members[index];
-                          return ListTile(
-                            leading: ProfilePictureWidget(
-                              fileId: member.account.profile.pictureId,
-                            ),
-                            title: Row(
-                              spacing: 6,
-                              children: [
-                                Flexible(child: Text(member.account.nick)),
-                                if (member.joinedAt == null)
-                                  const Icon(Symbols.pending_actions, size: 20),
-                              ],
-                            ),
-                            subtitle: Row(
-                              children: [
-                                Text(
-                                  member.role >= 100
-                                      ? 'permissionOwner'
-                                      : member.role >= 50
-                                      ? 'permissionModerator'
-                                      : 'permissionMember',
-                                ).tr(),
-                                Text('·').bold().padding(horizontal: 6),
-                                Expanded(
-                                  child: Text("@${member.account.name}"),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-            ),
-          ],
-        ),
+                        final member = memberState.members[index];
+                        return ListTile(
+                          leading: ProfilePictureWidget(
+                            fileId: member.account.profile.pictureId,
+                          ),
+                          title: Row(
+                            spacing: 6,
+                            children: [
+                              Flexible(child: Text(member.account.nick)),
+                              if (member.joinedAt == null)
+                                const Icon(Symbols.pending_actions, size: 20),
+                            ],
+                          ),
+                          subtitle: Row(
+                            children: [
+                              Text(
+                                member.role >= 100
+                                    ? 'permissionOwner'
+                                    : member.role >= 50
+                                    ? 'permissionModerator'
+                                    : 'permissionMember',
+                              ).tr(),
+                              Text('·').bold().padding(horizontal: 6),
+                              Expanded(child: Text("@${member.account.name}")),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+          ),
+        ],
       ),
     );
   }

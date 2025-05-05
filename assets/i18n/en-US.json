@@ -94,5 +94,14 @@
   "edited": "Edited",
   "addVideo": "Add video",
   "addPhoto": "Add photo",
-  "createDirectMessage": "New direct message"
+  "createDirectMessage": "New direct message",
+  "react": "React",
+  "reactions": {
+    "zero": "Reactions",
+    "one": "{} reaction",
+    "other": "{} reactions"
+  },
+  "reactionPositive": "Postive",
+  "reactionNegative": "Negative",
+  "reactionNeutral": "Neutral"
 }

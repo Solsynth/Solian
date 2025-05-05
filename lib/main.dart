@@ -6,7 +6,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/firebase_options.dart';
@@ -101,7 +100,6 @@ class IslandApp extends HookConsumerWidget {
       supportedLocales: context.supportedLocales,
       localizationsDelegates: [
         ...context.localizationDelegates,
-        FlutterQuillLocalizations.delegate,
       ], // this contains the cupertino one
       locale: context.locale,
       builder: (context, child) {

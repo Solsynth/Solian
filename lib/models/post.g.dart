@@ -17,7 +17,7 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
           : DateTime.parse(json['edited_at'] as String),
   publishedAt: DateTime.parse(json['published_at'] as String),
   visibility: (json['visibility'] as num).toInt(),
-  content: json['content'] as List<dynamic>?,
+  content: json['content'] as String?,
   type: (json['type'] as num).toInt(),
   meta: json['meta'] as Map<String, dynamic>?,
   viewsUnique: (json['views_unique'] as num).toInt(),
@@ -35,6 +35,11 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
           .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
           .toList(),
   publisher: SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
+  reactionsCount:
+      (json['reactions_count'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, (e as num).toInt()),
+      ) ??
+      const {},
   reactions: json['reactions'] as List<dynamic>,
   tags: json['tags'] as List<dynamic>,
   categories: json['categories'] as List<dynamic>,
@@ -70,6 +75,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'forwarded_post': instance.forwardedPost,
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
   'publisher': instance.publisher.toJson(),
+  'reactions_count': instance.reactionsCount,
   'reactions': instance.reactions,
   'tags': instance.tags,
   'categories': instance.categories,

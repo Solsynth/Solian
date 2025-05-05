@@ -47,60 +47,56 @@ class AccountPickerSheet extends HookConsumerWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.4,
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: TextField(
-                controller: searchController,
-                onChanged: onSearchChanged,
-                decoration: const InputDecoration(
-                  hintText: 'Search accounts...',
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 16,
-                  ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: TextField(
+              controller: searchController,
+              onChanged: onSearchChanged,
+              decoration: const InputDecoration(
+                hintText: 'Search accounts...',
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 16,
                 ),
-                autofocus: true,
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
               ),
+              autofocus: true,
+              onTapOutside:
+                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
             ),
-            Expanded(
-              child: Consumer(
-                builder: (context, ref, child) {
-                  final searchResult = ref.watch(
-                    searchAccountsProvider(query: searchController.text),
-                  );
+          ),
+          Expanded(
+            child: Consumer(
+              builder: (context, ref, child) {
+                final searchResult = ref.watch(
+                  searchAccountsProvider(query: searchController.text),
+                );
 
-                  return searchResult.when(
-                    data:
-                        (accounts) => ListView.builder(
-                          itemCount: accounts.length,
-                          itemBuilder: (context, index) {
-                            final account = accounts[index];
-                            return ListTile(
-                              leading: ProfilePictureWidget(
-                                fileId: account.profile.pictureId,
-                              ),
-                              title: Text(account.nick),
-                              subtitle: Text('@${account.name}'),
-                              onTap: () => Navigator.of(context).pop(account),
-                            );
-                          },
-                        ),
-                    loading:
-                        () => const Center(child: CircularProgressIndicator()),
-                    error:
-                        (error, stack) => Center(child: Text('Error: $error')),
-                  );
-                },
-              ),
+                return searchResult.when(
+                  data:
+                      (accounts) => ListView.builder(
+                        itemCount: accounts.length,
+                        itemBuilder: (context, index) {
+                          final account = accounts[index];
+                          return ListTile(
+                            leading: ProfilePictureWidget(
+                              fileId: account.profile.pictureId,
+                            ),
+                            title: Text(account.nick),
+                            subtitle: Text('@${account.name}'),
+                            onTap: () => Navigator.of(context).pop(account),
+                          );
+                        },
+                      ),
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(child: Text('Error: $error')),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -30,7 +30,8 @@ class CreateAccountScreen extends HookConsumerWidget {
     final passwordController = useTextEditingController();
 
     void showPostCreateModal() {
-      showCupertinoModalBottomSheet(
+      showModalBottomSheet(
+        isScrollControlled: true,
         context: context,
         builder: (context) => _PostCreateModal(),
       );
@@ -265,48 +266,45 @@ class _PostCreateModal extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 280),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('🎉').fontSize(32),
-              Text(
-                'postCreateAccountTitle'.tr(),
-                textAlign: TextAlign.center,
-              ).fontSize(17),
-              const Gap(18),
-              Text('postCreateAccountNext').tr().fontSize(19).bold(),
-              const Gap(4),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 6,
-                children: [
-                  Text('\u2022'),
-                  Expanded(child: Text('postCreateAccountNext1').tr()),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 6,
-                children: [
-                  Text('\u2022'),
-                  Expanded(child: Text('postCreateAccountNext2').tr()),
-                ],
-              ),
-              const Gap(6),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  context.router.replace(LoginRoute());
-                },
-                child: Text('login'.tr()),
-              ),
-            ],
-          ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 280),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('🎉').fontSize(32),
+            Text(
+              'postCreateAccountTitle'.tr(),
+              textAlign: TextAlign.center,
+            ).fontSize(17),
+            const Gap(18),
+            Text('postCreateAccountNext').tr().fontSize(19).bold(),
+            const Gap(4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 6,
+              children: [
+                Text('\u2022'),
+                Expanded(child: Text('postCreateAccountNext1').tr()),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 6,
+              children: [
+                Text('\u2022'),
+                Expanded(child: Text('postCreateAccountNext2').tr()),
+              ],
+            ),
+            const Gap(6),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.router.replace(LoginRoute());
+              },
+              child: Text('login'.tr()),
+            ),
+          ],
         ),
       ),
     );

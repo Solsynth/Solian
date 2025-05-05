@@ -359,102 +359,90 @@ class _RealmInviteSheet extends HookConsumerWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                top: 16,
-                left: 20,
-                right: 16,
-                bottom: 12,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'invites'.tr(),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.5,
-                    ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
+            child: Row(
+              children: [
+                Text(
+                  'invites'.tr(),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
                   ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Symbols.refresh),
-                    style: IconButton.styleFrom(
-                      minimumSize: const Size(36, 36),
-                    ),
-                    onPressed: () {
-                      ref.invalidate(realmInvitesProvider);
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Symbols.close),
-                    onPressed: () => Navigator.pop(context),
-                    style: IconButton.styleFrom(
-                      minimumSize: const Size(36, 36),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Symbols.refresh),
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                  onPressed: () {
+                    ref.invalidate(realmInvitesProvider);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.close),
+                  onPressed: () => Navigator.pop(context),
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+              ],
             ),
-            const Divider(height: 1),
-            Expanded(
-              child: invites.when(
-                data:
-                    (items) =>
-                        items.isEmpty
-                            ? Center(
-                              child:
-                                  Text(
-                                    'invitesEmpty',
-                                    textAlign: TextAlign.center,
-                                  ).tr(),
-                            )
-                            : ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: items.length,
-                              itemBuilder: (context, index) {
-                                final invite = items[index];
-                                return ListTile(
-                                  leading: ProfilePictureWidget(
-                                    fileId: invite.realm!.pictureId,
-                                    radius: 24,
-                                    fallbackIcon: Symbols.group,
-                                  ),
-                                  title: Text(invite.realm!.name),
-                                  subtitle:
-                                      Text(
-                                        invite.role >= 100
-                                            ? 'permissionOwner'
-                                            : invite.role >= 50
-                                            ? 'permissionModerator'
-                                            : 'permissionMember',
-                                      ).tr(),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Symbols.check),
-                                        onPressed: () => acceptInvite(invite),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Symbols.close),
-                                        onPressed: () => declineInvite(invite),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(child: Text('Error: $error')),
-              ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: invites.when(
+              data:
+                  (items) =>
+                      items.isEmpty
+                          ? Center(
+                            child:
+                                Text(
+                                  'invitesEmpty',
+                                  textAlign: TextAlign.center,
+                                ).tr(),
+                          )
+                          : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: items.length,
+                            itemBuilder: (context, index) {
+                              final invite = items[index];
+                              return ListTile(
+                                leading: ProfilePictureWidget(
+                                  fileId: invite.realm!.pictureId,
+                                  radius: 24,
+                                  fallbackIcon: Symbols.group,
+                                ),
+                                title: Text(invite.realm!.name),
+                                subtitle:
+                                    Text(
+                                      invite.role >= 100
+                                          ? 'permissionOwner'
+                                          : invite.role >= 50
+                                          ? 'permissionModerator'
+                                          : 'permissionMember',
+                                    ).tr(),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Symbols.check),
+                                      onPressed: () => acceptInvite(invite),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Symbols.close),
+                                      onPressed: () => declineInvite(invite),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

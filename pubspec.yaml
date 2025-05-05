@@ -83,13 +83,13 @@ dependencies:
   flutter_udid: ^4.0.0
   firebase_core: ^3.13.0
   web_socket_channel: ^3.0.3
-  flutter_quill: ^11.4.0
   material_symbols_icons: ^4.2815.0
   drift: ^2.26.0
   drift_flutter: ^0.2.4
   path: ^1.9.1
   collection: ^1.19.1
   flutter_expandable_fab: ^2.5.0
+  markdown_editor_plus: ^0.2.15
 
 dev_dependencies:
   flutter_test:

@@ -16,7 +16,8 @@ class ExploreScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final postAsync = ref.watch(postListProvider);
+    final posts = ref.watch(postListProvider);
+    final postsNotifier = ref.watch(postListProvider.notifier);
 
     return AppScaffold(
       appBar: AppBar(title: const Text('Explore')),
@@ -32,60 +33,48 @@ class ExploreScreen extends ConsumerWidget {
         child: const Icon(Symbols.edit),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: postAsync.when(
-        data:
-            (controller) => RefreshIndicator(
-              onRefresh:
-                  () => Future.sync((() {
-                    ref.invalidate(postListProvider);
-                  })),
-              child: InfiniteList(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).padding.bottom,
-                ),
-                itemCount: controller.posts.length,
-                isLoading: controller.isLoading,
-                hasReachedMax: controller.hasReachedMax,
-                onFetchData: controller.fetchMore,
-                itemBuilder: (context, index) {
-                  final post = controller.posts[index];
-                  return PostItem(
-                    item: post,
-                    onRefresh: (_) {
-                      ref.invalidate(postListProvider);
-                    },
-                  );
-                },
-                separatorBuilder: (_, __) => const Divider(height: 1),
-              ),
-            ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (e, _) => GestureDetector(
-              child: Center(
-                child: Text('Error: $e', textAlign: TextAlign.center),
-              ),
-              onTap: () {
+      body: RefreshIndicator(
+        onRefresh:
+            () => Future.sync((() {
+              ref.invalidate(postListProvider);
+            })),
+        child: InfiniteList(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+          itemCount: posts.length,
+          isLoading: postsNotifier.isLoading,
+          hasReachedMax: postsNotifier.hasReachedMax,
+          onFetchData: postsNotifier.fetchMore,
+          itemBuilder: (context, index) {
+            final post = posts[index];
+            return PostItem(
+              item: post,
+              onRefresh: (_) {
                 ref.invalidate(postListProvider);
               },
-            ),
+              onUpdate: (post) {
+                postsNotifier.updateOne(index, post);
+              },
+            );
+          },
+          separatorBuilder: (_, __) => const Divider(height: 1),
+        ),
       ),
     );
   }
 }
 
-final postListProvider = FutureProvider<_PostListController>((ref) async {
-  final client = ref.watch(apiClientProvider);
-  final controller = _PostListController(client);
-  await controller.fetchMore();
-  return controller;
-});
+final postListProvider =
+    StateNotifierProvider<_PostListController, List<SnPost>>((ref) {
+      final client = ref.watch(apiClientProvider);
+      return _PostListController(client);
+    });
 
-class _PostListController {
-  _PostListController(this._dio);
+class _PostListController extends StateNotifier<List<SnPost>> {
+  _PostListController(this._dio) : super([]);
 
   final Dio _dio;
-  final List<SnPost> posts = [];
   bool isLoading = false;
   bool hasReachedMax = false;
   int offset = 0;
@@ -109,10 +98,16 @@ class _PostListController {
     final headerTotal = int.tryParse(response.headers['x-total']?.first ?? '');
     if (headerTotal != null) total = headerTotal;
 
-    posts.addAll(fetched);
+    state = [...state, ...fetched];
     offset += fetched.length;
-    if (posts.length >= total) hasReachedMax = true;
+    if (state.length >= total) hasReachedMax = true;
 
     isLoading = false;
+  }
+
+  void updateOne(int index, SnPost post) {
+    final updatedPosts = [...state];
+    updatedPosts[index] = post;
+    state = updatedPosts;
   }
 }

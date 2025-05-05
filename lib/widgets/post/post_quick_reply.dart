@@ -70,7 +70,8 @@ class PostQuickReply extends HookConsumerWidget {
                   radius: 16,
                 ),
                 onTap: () {
-                  showCupertinoModalBottomSheet(
+                  showModalBottomSheet(
+                    isScrollControlled: true,
                     context: context,
                     builder: (context) => PublisherModal(),
                   ).then((value) {
