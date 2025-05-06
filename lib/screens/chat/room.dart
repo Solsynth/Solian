@@ -10,11 +10,13 @@ import 'package:island/database/message_repository.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/pods/message.dart';
+import 'package:island/pods/database.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/screens/posts/compose.dart';
+import 'package:island/services/rtc.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -471,6 +473,21 @@ class ChatRoomScreen extends HookConsumerWidget {
           error: (_, __) => const Text('Error'),
         ),
         actions: [
+          IconButton(
+            onPressed: () {
+              final user = ref.watch(userInfoProvider);
+              if (currentlyJoined) {
+                leaveRealtimeChat(chatRoom.value!);
+              } else {
+                joinRealtimeChat(
+                  ref.watch(apiClientProvider),
+                  chatRoom.value!,
+                  user.value!,
+                );
+              }
+            },
+            icon: const Icon(Symbols.video_call),
+          ),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {

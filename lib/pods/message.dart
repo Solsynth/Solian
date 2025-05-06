@@ -2,15 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/database/drift_db.dart';
+import 'package:island/pods/database.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-
-final databaseProvider = Provider<AppDatabase>((ref) {
-  final db = AppDatabase();
-  ref.onDispose(() => db.close());
-  return db;
-});
 
 Future<void> resetDatabase(WidgetRef ref) async {
   if (kIsWeb) return;

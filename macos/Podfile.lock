@@ -1,6 +1,8 @@
 PODS:
   - bitsdojo_window_macos (0.0.1):
     - FlutterMacOS
+  - croppy (0.0.1):
+    - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
   - file_picker (0.0.1):
@@ -94,8 +96,6 @@ PODS:
     - Flutter
     - FlutterMacOS
   - PromisesObjC (2.4.0)
-  - quill_native_bridge_macos (0.0.1):
-    - FlutterMacOS
   - SAMKeychain (1.5.3)
   - shared_preferences_foundation (0.0.1):
     - Flutter
@@ -127,6 +127,10 @@ PODS:
     - sqlite3/rtree
   - super_native_extensions (0.0.1):
     - FlutterMacOS
+  - tencent_rtc_sdk (10.4):
+    - FlutterMacOS
+    - TXLiteAVSDK_TRTC_Mac (~> 12.3.16995)
+  - TXLiteAVSDK_TRTC_Mac (12.3.16995)
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
   - volume_controller (0.0.1):
@@ -136,6 +140,7 @@ PODS:
 
 DEPENDENCIES:
   - bitsdojo_window_macos (from `Flutter/ephemeral/.symlinks/plugins/bitsdojo_window_macos/macos`)
+  - croppy (from `Flutter/ephemeral/.symlinks/plugins/croppy/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
@@ -150,11 +155,11 @@ DEPENDENCIES:
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
-  - quill_native_bridge_macos (from `Flutter/ephemeral/.symlinks/plugins/quill_native_bridge_macos/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin`)
   - sqlite3_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin`)
   - super_native_extensions (from `Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos`)
+  - tencent_rtc_sdk (from `Flutter/ephemeral/.symlinks/plugins/tencent_rtc_sdk/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - volume_controller (from `Flutter/ephemeral/.symlinks/plugins/volume_controller/macos`)
   - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
@@ -173,10 +178,13 @@ SPEC REPOS:
     - PromisesObjC
     - SAMKeychain
     - sqlite3
+    - TXLiteAVSDK_TRTC_Mac
 
 EXTERNAL SOURCES:
   bitsdojo_window_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/bitsdojo_window_macos/macos
+  croppy:
+    :path: Flutter/ephemeral/.symlinks/plugins/croppy/macos
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
   file_picker:
@@ -205,8 +213,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   path_provider_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
-  quill_native_bridge_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/quill_native_bridge_macos/macos
   shared_preferences_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
   sqflite_darwin:
@@ -215,6 +221,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin
   super_native_extensions:
     :path: Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos
+  tencent_rtc_sdk:
+    :path: Flutter/ephemeral/.symlinks/plugins/tencent_rtc_sdk/macos
   url_launcher_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
   volume_controller:
@@ -224,6 +232,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   bitsdojo_window_macos: 7959fb0ca65a3ccda30095c181ecb856fae48ea9
+  croppy: d9bfc8c02f3cd1851f669a421df298a474b78f43
   device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_selector_macos: 6280b52b459ae6c590af5d78fc35c7267a3c4b31
@@ -248,13 +257,14 @@ SPEC CHECKSUMS:
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  quill_native_bridge_macos: 2b005cb56902bb740e0cd9620aa399dfac6b4882
   SAMKeychain: 483e1c9f32984d50ca961e26818a534283b4cd5c
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   sqlite3: fc1400008a9b3525f5914ed715a5d1af0b8f4983
   sqlite3_flutter_libs: f6acaa2172e6bb3e2e70c771661905080e8ebcf2
   super_native_extensions: c2795d6d9aedf4a79fae25cb6160b71b50549189
+  tencent_rtc_sdk: bedbb2bcdf50f5cff9b551d19ed7228391ba1a5c
+  TXLiteAVSDK_TRTC_Mac: bd4218d0415c950913f8f893267e18dd4333f633
   url_launcher_macos: 0fba8ddabfc33ce0a9afe7c5fef5aab3d8d2d673
   volume_controller: 5c068e6d085c80dadd33fc2c918d2114b775b3dd
   wakelock_plus: 21ddc249ac4b8d018838dbdabd65c5976c308497

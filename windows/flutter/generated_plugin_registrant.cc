@@ -17,6 +17,7 @@
 #include <media_kit_video/media_kit_video_plugin_c_api.h>
 #include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <super_native_extensions/super_native_extensions_plugin_c_api.h>
+#include <tencent_rtc_sdk/trtc_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <volume_controller/volume_controller_plugin_c_api.h>
 
@@ -43,6 +44,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("Sqlite3FlutterLibsPlugin"));
   SuperNativeExtensionsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("SuperNativeExtensionsPluginCApi"));
+  TrtcPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("TrtcPluginCApi"));
   UrlLauncherWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
   VolumeControllerPluginCApiRegisterWithRegistrar(

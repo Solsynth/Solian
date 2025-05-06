@@ -1,17 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:island/database/message.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
 part 'drift_db.g.dart';
 
 // Define the database
 @DriftDatabase(tables: [ChatMessages])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase(super.e);
 
   @override
   int get schemaVersion => 1;
@@ -74,13 +70,4 @@ class AppDatabase extends _$AppDatabase {
       nonce: dbMessage.nonce,
     );
   }
-}
-
-// Helper to open the database connection
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'solar_network_data.sqlite'));
-    return NativeDatabase(file);
-  });
 }

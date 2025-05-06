@@ -91,6 +91,7 @@ dependencies:
   flutter_expandable_fab: ^2.5.0
   markdown_editor_plus: ^0.2.15
   croppy: ^1.3.6
+  tencent_rtc_sdk: ^12.3.6
 
 dev_dependencies:
   flutter_test:

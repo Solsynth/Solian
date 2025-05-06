@@ -165,6 +165,14 @@ PODS:
   - super_native_extensions (0.0.1):
     - Flutter
   - SwiftyGif (5.4.5)
+  - tencent_rtc_sdk (0.0.1):
+    - Flutter
+    - TXCustomBeautyProcesserPlugin (= 1.0.2)
+    - TXLiteAVSDK_Professional (~> 12.3.16995)
+  - TXCustomBeautyProcesserPlugin (1.0.2)
+  - TXLiteAVSDK_Professional (12.3.16995):
+    - TXLiteAVSDK_Professional/Professional (= 12.3.16995)
+  - TXLiteAVSDK_Professional/Professional (12.3.16995)
   - url_launcher_ios (0.0.1):
     - Flutter
   - volume_controller (0.0.1):
@@ -193,6 +201,7 @@ DEPENDENCIES:
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
   - super_native_extensions (from `.symlinks/plugins/super_native_extensions/ios`)
+  - tencent_rtc_sdk (from `.symlinks/plugins/tencent_rtc_sdk/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - volume_controller (from `.symlinks/plugins/volume_controller/ios`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
@@ -216,6 +225,8 @@ SPEC REPOS:
     - SDWebImage
     - sqlite3
     - SwiftyGif
+    - TXCustomBeautyProcesserPlugin
+    - TXLiteAVSDK_Professional
 
 EXTERNAL SOURCES:
   croppy:
@@ -256,6 +267,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
   super_native_extensions:
     :path: ".symlinks/plugins/super_native_extensions/ios"
+  tencent_rtc_sdk:
+    :path: ".symlinks/plugins/tencent_rtc_sdk/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   volume_controller:
@@ -300,6 +313,9 @@ SPEC CHECKSUMS:
   sqlite3_flutter_libs: f6acaa2172e6bb3e2e70c771661905080e8ebcf2
   super_native_extensions: b763c02dc3a8fd078389f410bf15149179020cb4
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
+  tencent_rtc_sdk: 13f066e69b87068b4cf3df90ad04097eb8773ae2
+  TXCustomBeautyProcesserPlugin: 099393b941cb40eda12b3a80bf6c0319957b1cfd
+  TXLiteAVSDK_Professional: 6e8fa18eeb0e52e6bbbcd97bab9ec9fbdc828df3
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
   volume_controller: 3657a1f65bedb98fa41ff7dc5793537919f31b12
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556

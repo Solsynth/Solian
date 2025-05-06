@@ -124,3 +124,14 @@ abstract class MessageSyncResponse with _$MessageSyncResponse {
   factory MessageSyncResponse.fromJson(Map<String, dynamic> json) =>
       _$MessageSyncResponseFromJson(json);
 }
+
+@freezed
+abstract class ChatRealtimeJoinResponse with _$ChatRealtimeJoinResponse {
+  const factory ChatRealtimeJoinResponse({
+    required String token,
+    required Map<String, dynamic> config,
+  }) = _ChatRealtimeJoinResponse;
+
+  factory ChatRealtimeJoinResponse.fromJson(Map<String, dynamic> json) =>
+      _$ChatRealtimeJoinResponseFromJson(json);
+}

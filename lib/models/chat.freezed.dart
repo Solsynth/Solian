@@ -1181,4 +1181,146 @@ as DateTime,
 
 }
 
+
+/// @nodoc
+mixin _$ChatRealtimeJoinResponse {
+
+ String get token; Map<String, dynamic> get config;
+/// Create a copy of ChatRealtimeJoinResponse
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ChatRealtimeJoinResponseCopyWith<ChatRealtimeJoinResponse> get copyWith => _$ChatRealtimeJoinResponseCopyWithImpl<ChatRealtimeJoinResponse>(this as ChatRealtimeJoinResponse, _$identity);
+
+  /// Serializes this ChatRealtimeJoinResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatRealtimeJoinResponse&&(identical(other.token, token) || other.token == token)&&const DeepCollectionEquality().equals(other.config, config));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,token,const DeepCollectionEquality().hash(config));
+
+@override
+String toString() {
+  return 'ChatRealtimeJoinResponse(token: $token, config: $config)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ChatRealtimeJoinResponseCopyWith<$Res>  {
+  factory $ChatRealtimeJoinResponseCopyWith(ChatRealtimeJoinResponse value, $Res Function(ChatRealtimeJoinResponse) _then) = _$ChatRealtimeJoinResponseCopyWithImpl;
+@useResult
+$Res call({
+ String token, Map<String, dynamic> config
+});
+
+
+
+
+}
+/// @nodoc
+class _$ChatRealtimeJoinResponseCopyWithImpl<$Res>
+    implements $ChatRealtimeJoinResponseCopyWith<$Res> {
+  _$ChatRealtimeJoinResponseCopyWithImpl(this._self, this._then);
+
+  final ChatRealtimeJoinResponse _self;
+  final $Res Function(ChatRealtimeJoinResponse) _then;
+
+/// Create a copy of ChatRealtimeJoinResponse
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? token = null,Object? config = null,}) {
+  return _then(_self.copyWith(
+token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
+as String,config: null == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,
+  ));
+}
+
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _ChatRealtimeJoinResponse implements ChatRealtimeJoinResponse {
+  const _ChatRealtimeJoinResponse({required this.token, required final  Map<String, dynamic> config}): _config = config;
+  factory _ChatRealtimeJoinResponse.fromJson(Map<String, dynamic> json) => _$ChatRealtimeJoinResponseFromJson(json);
+
+@override final  String token;
+ final  Map<String, dynamic> _config;
+@override Map<String, dynamic> get config {
+  if (_config is EqualUnmodifiableMapView) return _config;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_config);
+}
+
+
+/// Create a copy of ChatRealtimeJoinResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ChatRealtimeJoinResponseCopyWith<_ChatRealtimeJoinResponse> get copyWith => __$ChatRealtimeJoinResponseCopyWithImpl<_ChatRealtimeJoinResponse>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ChatRealtimeJoinResponseToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatRealtimeJoinResponse&&(identical(other.token, token) || other.token == token)&&const DeepCollectionEquality().equals(other._config, _config));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,token,const DeepCollectionEquality().hash(_config));
+
+@override
+String toString() {
+  return 'ChatRealtimeJoinResponse(token: $token, config: $config)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ChatRealtimeJoinResponseCopyWith<$Res> implements $ChatRealtimeJoinResponseCopyWith<$Res> {
+  factory _$ChatRealtimeJoinResponseCopyWith(_ChatRealtimeJoinResponse value, $Res Function(_ChatRealtimeJoinResponse) _then) = __$ChatRealtimeJoinResponseCopyWithImpl;
+@override @useResult
+$Res call({
+ String token, Map<String, dynamic> config
+});
+
+
+
+
+}
+/// @nodoc
+class __$ChatRealtimeJoinResponseCopyWithImpl<$Res>
+    implements _$ChatRealtimeJoinResponseCopyWith<$Res> {
+  __$ChatRealtimeJoinResponseCopyWithImpl(this._self, this._then);
+
+  final _ChatRealtimeJoinResponse _self;
+  final $Res Function(_ChatRealtimeJoinResponse) _then;
+
+/// Create a copy of ChatRealtimeJoinResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? token = null,Object? config = null,}) {
+  return _then(_ChatRealtimeJoinResponse(
+token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
+as String,config: null == config ? _self._config : config // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,
+  ));
+}
+
+
+}
+
 // dart format on

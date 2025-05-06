@@ -14,6 +14,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   media_kit_video
   sqlite3_flutter_libs
   super_native_extensions
+  tencent_rtc_sdk
   url_launcher_windows
   volume_controller
 )

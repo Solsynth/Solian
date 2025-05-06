@@ -223,3 +223,14 @@ Map<String, dynamic> _$MessageSyncResponseToJson(
   'changes': instance.changes.map((e) => e.toJson()).toList(),
   'current_timestamp': instance.currentTimestamp.toIso8601String(),
 };
+
+_ChatRealtimeJoinResponse _$ChatRealtimeJoinResponseFromJson(
+  Map<String, dynamic> json,
+) => _ChatRealtimeJoinResponse(
+  token: json['token'] as String,
+  config: json['config'] as Map<String, dynamic>,
+);
+
+Map<String, dynamic> _$ChatRealtimeJoinResponseToJson(
+  _ChatRealtimeJoinResponse instance,
+) => <String, dynamic>{'token': instance.token, 'config': instance.config};

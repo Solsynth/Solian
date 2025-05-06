@@ -1738,6 +1738,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  tencent_rtc_sdk:
+    dependency: "direct main"
+    description:
+      name: tencent_rtc_sdk
+      sha256: "0ec7f3a32c443573a0509d06bf390e11a709fca338a46645c1d4dbc3f17f029a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "12.3.6"
   term_glyph:
     dependency: transitive
     description:

@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -258,6 +259,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userInfoProvider);
     final websocketState = ref.watch(websocketStateProvider);
     final indicatorHeight = MediaQuery.of(context).padding.top + 60;
 
@@ -277,7 +279,10 @@ class _WebSocketIndicator extends HookConsumerWidget {
 
     return AnimatedPositioned(
       duration: Duration(milliseconds: 1850),
-      top: websocketState == WebSocketState.connected() ? -indicatorHeight : 0,
+      top:
+          !user.hasValue || websocketState == WebSocketState.connected()
+              ? -indicatorHeight
+              : 0,
       curve: Curves.fastLinearToSlowEaseIn,
       left: 0,
       right: 0,
