@@ -1,0 +1,31 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'event_calendar.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+String _$myselfAccountEventCalendarHash() =>
+    r'd3faad342d5104e87ff6597ab459e65cb5f4ef97';
+
+/// See also [myselfAccountEventCalendar].
+@ProviderFor(myselfAccountEventCalendar)
+final myselfAccountEventCalendarProvider =
+    AutoDisposeFutureProvider<List<SnEventCalendarEntry>>.internal(
+      myselfAccountEventCalendar,
+      name: r'myselfAccountEventCalendarProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$myselfAccountEventCalendarHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef MyselfAccountEventCalendarRef =
+    AutoDisposeFutureProviderRef<List<SnEventCalendarEntry>>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

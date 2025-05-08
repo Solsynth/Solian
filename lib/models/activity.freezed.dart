@@ -513,4 +513,173 @@ as String,
 
 }
 
+
+/// @nodoc
+mixin _$SnEventCalendarEntry {
+
+ DateTime get date; SnCheckInResult? get checkInResult; List<dynamic> get statuses;
+/// Create a copy of SnEventCalendarEntry
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnEventCalendarEntryCopyWith<SnEventCalendarEntry> get copyWith => _$SnEventCalendarEntryCopyWithImpl<SnEventCalendarEntry>(this as SnEventCalendarEntry, _$identity);
+
+  /// Serializes this SnEventCalendarEntry to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnEventCalendarEntry&&(identical(other.date, date) || other.date == date)&&(identical(other.checkInResult, checkInResult) || other.checkInResult == checkInResult)&&const DeepCollectionEquality().equals(other.statuses, statuses));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,date,checkInResult,const DeepCollectionEquality().hash(statuses));
+
+@override
+String toString() {
+  return 'SnEventCalendarEntry(date: $date, checkInResult: $checkInResult, statuses: $statuses)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnEventCalendarEntryCopyWith<$Res>  {
+  factory $SnEventCalendarEntryCopyWith(SnEventCalendarEntry value, $Res Function(SnEventCalendarEntry) _then) = _$SnEventCalendarEntryCopyWithImpl;
+@useResult
+$Res call({
+ DateTime date, SnCheckInResult? checkInResult, List<dynamic> statuses
+});
+
+
+$SnCheckInResultCopyWith<$Res>? get checkInResult;
+
+}
+/// @nodoc
+class _$SnEventCalendarEntryCopyWithImpl<$Res>
+    implements $SnEventCalendarEntryCopyWith<$Res> {
+  _$SnEventCalendarEntryCopyWithImpl(this._self, this._then);
+
+  final SnEventCalendarEntry _self;
+  final $Res Function(SnEventCalendarEntry) _then;
+
+/// Create a copy of SnEventCalendarEntry
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? checkInResult = freezed,Object? statuses = null,}) {
+  return _then(_self.copyWith(
+date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime,checkInResult: freezed == checkInResult ? _self.checkInResult : checkInResult // ignore: cast_nullable_to_non_nullable
+as SnCheckInResult?,statuses: null == statuses ? _self.statuses : statuses // ignore: cast_nullable_to_non_nullable
+as List<dynamic>,
+  ));
+}
+/// Create a copy of SnEventCalendarEntry
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCheckInResultCopyWith<$Res>? get checkInResult {
+    if (_self.checkInResult == null) {
+    return null;
+  }
+
+  return $SnCheckInResultCopyWith<$Res>(_self.checkInResult!, (value) {
+    return _then(_self.copyWith(checkInResult: value));
+  });
+}
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnEventCalendarEntry implements SnEventCalendarEntry {
+  const _SnEventCalendarEntry({required this.date, required this.checkInResult, required final  List<dynamic> statuses}): _statuses = statuses;
+  factory _SnEventCalendarEntry.fromJson(Map<String, dynamic> json) => _$SnEventCalendarEntryFromJson(json);
+
+@override final  DateTime date;
+@override final  SnCheckInResult? checkInResult;
+ final  List<dynamic> _statuses;
+@override List<dynamic> get statuses {
+  if (_statuses is EqualUnmodifiableListView) return _statuses;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_statuses);
+}
+
+
+/// Create a copy of SnEventCalendarEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnEventCalendarEntryCopyWith<_SnEventCalendarEntry> get copyWith => __$SnEventCalendarEntryCopyWithImpl<_SnEventCalendarEntry>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnEventCalendarEntryToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnEventCalendarEntry&&(identical(other.date, date) || other.date == date)&&(identical(other.checkInResult, checkInResult) || other.checkInResult == checkInResult)&&const DeepCollectionEquality().equals(other._statuses, _statuses));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,date,checkInResult,const DeepCollectionEquality().hash(_statuses));
+
+@override
+String toString() {
+  return 'SnEventCalendarEntry(date: $date, checkInResult: $checkInResult, statuses: $statuses)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnEventCalendarEntryCopyWith<$Res> implements $SnEventCalendarEntryCopyWith<$Res> {
+  factory _$SnEventCalendarEntryCopyWith(_SnEventCalendarEntry value, $Res Function(_SnEventCalendarEntry) _then) = __$SnEventCalendarEntryCopyWithImpl;
+@override @useResult
+$Res call({
+ DateTime date, SnCheckInResult? checkInResult, List<dynamic> statuses
+});
+
+
+@override $SnCheckInResultCopyWith<$Res>? get checkInResult;
+
+}
+/// @nodoc
+class __$SnEventCalendarEntryCopyWithImpl<$Res>
+    implements _$SnEventCalendarEntryCopyWith<$Res> {
+  __$SnEventCalendarEntryCopyWithImpl(this._self, this._then);
+
+  final _SnEventCalendarEntry _self;
+  final $Res Function(_SnEventCalendarEntry) _then;
+
+/// Create a copy of SnEventCalendarEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? checkInResult = freezed,Object? statuses = null,}) {
+  return _then(_SnEventCalendarEntry(
+date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime,checkInResult: freezed == checkInResult ? _self.checkInResult : checkInResult // ignore: cast_nullable_to_non_nullable
+as SnCheckInResult?,statuses: null == statuses ? _self._statuses : statuses // ignore: cast_nullable_to_non_nullable
+as List<dynamic>,
+  ));
+}
+
+/// Create a copy of SnEventCalendarEntry
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCheckInResultCopyWith<$Res>? get checkInResult {
+    if (_self.checkInResult == null) {
+    return null;
+  }
+
+  return $SnCheckInResultCopyWith<$Res>(_self.checkInResult!, (value) {
+    return _then(_self.copyWith(checkInResult: value));
+  });
+}
+}
+
 // dart format on

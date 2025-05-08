@@ -1,9 +1,12 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/route.gr.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -32,6 +35,16 @@ class CheckInWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final todayResult = ref.watch(checkInResultTodayProvider);
+
+    Future<void> checkIn() async {
+      final client = ref.read(apiClientProvider);
+      try {
+        await client.post('/accounts/me/check-in');
+        ref.invalidate(checkInResultTodayProvider);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
 
     return Card(
       margin: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
@@ -83,7 +96,7 @@ class CheckInWidget extends HookConsumerWidget {
                               (e) => '${e.isPositive ? '宜' : '忌'} ${e.title}',
                             )
                             .join('  ·  '),
-                      ).tr().fontSize(11),
+                      ).fontSize(11),
                     ],
                   );
                 },
@@ -100,7 +113,13 @@ class CheckInWidget extends HookConsumerWidget {
             ),
           ),
           IconButton.outlined(
-            onPressed: () {},
+            onPressed: () {
+              if (todayResult.valueOrNull == null) {
+                checkIn();
+              } else {
+                context.router.push(MyselfEventCalendarRoute());
+              }
+            },
             icon: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               child: todayResult.when(

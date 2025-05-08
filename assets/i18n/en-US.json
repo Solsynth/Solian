@@ -113,5 +113,7 @@
   "checkInResultLevel1": "Bad Luck",
   "checkInResultLevel2": "A Normal Day",
   "checkInResultLevel3": "Good Luck",
-  "checkInResultLevel4": "Best Luck"
+  "checkInResultLevel4": "Best Luck",
+  "eventCalander": "Event Calander",
+  "eventCalanderEmpty": "No events on that day."
 }

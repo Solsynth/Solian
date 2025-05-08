@@ -51,3 +51,15 @@ abstract class SnFortuneTip with _$SnFortuneTip {
   factory SnFortuneTip.fromJson(Map<String, dynamic> json) =>
       _$SnFortuneTipFromJson(json);
 }
+
+@freezed
+abstract class SnEventCalendarEntry with _$SnEventCalendarEntry {
+  const factory SnEventCalendarEntry({
+    required DateTime date,
+    required SnCheckInResult? checkInResult,
+    required List<dynamic> statuses,
+  }) = _SnEventCalendarEntry;
+
+  factory SnEventCalendarEntry.fromJson(Map<String, dynamic> json) =>
+      _$SnEventCalendarEntryFromJson(json);
+}

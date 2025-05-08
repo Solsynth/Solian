@@ -12,42 +12,26 @@
 import 'package:auto_route/auto_route.dart' as _i18;
 import 'package:flutter/material.dart' as _i19;
 import 'package:island/models/post.dart' as _i20;
-import 'package:island/screens/account.dart' as _i3;
+import 'package:island/screens/account.dart' as _i2;
 import 'package:island/screens/account/me.dart' as _i12;
-import 'package:island/screens/account/me/event_calendar.dart' as _i1;
-import 'package:island/screens/account/me/publishers.dart' as _i8;
+import 'package:island/screens/account/me/event_calendar.dart' as _i11;
+import 'package:island/screens/account/me/publishers.dart' as _i7;
 import 'package:island/screens/account/me/update.dart' as _i17;
-import 'package:island/screens/account/profile.dart' as _i2;
-import 'package:island/screens/auth/create_account.dart' as _i7;
-import 'package:island/screens/auth/login.dart' as _i11;
+import 'package:island/screens/account/profile.dart' as _i1;
+import 'package:island/screens/auth/create_account.dart' as _i6;
+import 'package:island/screens/auth/login.dart' as _i10;
 import 'package:island/screens/auth/tabs.dart' as _i16;
-import 'package:island/screens/chat/chat.dart' as _i5;
-import 'package:island/screens/chat/room.dart' as _i6;
-import 'package:island/screens/chat/room_detail.dart' as _i4;
-import 'package:island/screens/explore.dart' as _i10;
+import 'package:island/screens/chat/chat.dart' as _i4;
+import 'package:island/screens/chat/room.dart' as _i5;
+import 'package:island/screens/chat/room_detail.dart' as _i3;
+import 'package:island/screens/explore.dart' as _i9;
 import 'package:island/screens/posts/compose.dart' as _i13;
 import 'package:island/screens/posts/detail.dart' as _i14;
 import 'package:island/screens/realm/detail.dart' as _i15;
-import 'package:island/screens/realm/realms.dart' as _i9;
+import 'package:island/screens/realm/realms.dart' as _i8;
 
 /// generated route for
-/// [_i1.AccountEventCalendar]
-class AccountEventCalendar extends _i18.PageRouteInfo<void> {
-  const AccountEventCalendar({List<_i18.PageRouteInfo>? children})
-    : super(AccountEventCalendar.name, initialChildren: children);
-
-  static const String name = 'AccountEventCalendar';
-
-  static _i18.PageInfo page = _i18.PageInfo(
-    name,
-    builder: (data) {
-      return const _i1.AccountEventCalendar();
-    },
-  );
-}
-
-/// generated route for
-/// [_i2.AccountProfileScreen]
+/// [_i1.AccountProfileScreen]
 class AccountProfileRoute extends _i18.PageRouteInfo<AccountProfileRouteArgs> {
   AccountProfileRoute({
     _i19.Key? key,
@@ -70,7 +54,7 @@ class AccountProfileRoute extends _i18.PageRouteInfo<AccountProfileRouteArgs> {
         orElse:
             () => AccountProfileRouteArgs(name: pathParams.getString('name')),
       );
-      return _i2.AccountProfileScreen(key: args.key, name: args.name);
+      return _i1.AccountProfileScreen(key: args.key, name: args.name);
     },
   );
 }
@@ -89,7 +73,7 @@ class AccountProfileRouteArgs {
 }
 
 /// generated route for
-/// [_i3.AccountScreen]
+/// [_i2.AccountScreen]
 class AccountRoute extends _i18.PageRouteInfo<void> {
   const AccountRoute({List<_i18.PageRouteInfo>? children})
     : super(AccountRoute.name, initialChildren: children);
@@ -99,13 +83,13 @@ class AccountRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i3.AccountScreen();
+      return const _i2.AccountScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i4.ChatDetailScreen]
+/// [_i3.ChatDetailScreen]
 class ChatDetailRoute extends _i18.PageRouteInfo<ChatDetailRouteArgs> {
   ChatDetailRoute({
     _i19.Key? key,
@@ -127,7 +111,7 @@ class ChatDetailRoute extends _i18.PageRouteInfo<ChatDetailRouteArgs> {
       final args = data.argsAs<ChatDetailRouteArgs>(
         orElse: () => ChatDetailRouteArgs(id: pathParams.getInt('id')),
       );
-      return _i4.ChatDetailScreen(key: args.key, id: args.id);
+      return _i3.ChatDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -146,7 +130,7 @@ class ChatDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i5.ChatListScreen]
+/// [_i4.ChatListScreen]
 class ChatListRoute extends _i18.PageRouteInfo<void> {
   const ChatListRoute({List<_i18.PageRouteInfo>? children})
     : super(ChatListRoute.name, initialChildren: children);
@@ -156,13 +140,13 @@ class ChatListRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i5.ChatListScreen();
+      return const _i4.ChatListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i6.ChatRoomScreen]
+/// [_i5.ChatRoomScreen]
 class ChatRoomRoute extends _i18.PageRouteInfo<ChatRoomRouteArgs> {
   ChatRoomRoute({
     _i19.Key? key,
@@ -184,7 +168,7 @@ class ChatRoomRoute extends _i18.PageRouteInfo<ChatRoomRouteArgs> {
       final args = data.argsAs<ChatRoomRouteArgs>(
         orElse: () => ChatRoomRouteArgs(id: pathParams.getInt('id')),
       );
-      return _i6.ChatRoomScreen(key: args.key, id: args.id);
+      return _i5.ChatRoomScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -203,7 +187,7 @@ class ChatRoomRouteArgs {
 }
 
 /// generated route for
-/// [_i7.CreateAccountScreen]
+/// [_i6.CreateAccountScreen]
 class CreateAccountRoute extends _i18.PageRouteInfo<void> {
   const CreateAccountRoute({List<_i18.PageRouteInfo>? children})
     : super(CreateAccountRoute.name, initialChildren: children);
@@ -213,13 +197,13 @@ class CreateAccountRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i7.CreateAccountScreen();
+      return const _i6.CreateAccountScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i5.EditChatScreen]
+/// [_i4.EditChatScreen]
 class EditChatRoute extends _i18.PageRouteInfo<EditChatRouteArgs> {
   EditChatRoute({_i19.Key? key, int? id, List<_i18.PageRouteInfo>? children})
     : super(
@@ -238,7 +222,7 @@ class EditChatRoute extends _i18.PageRouteInfo<EditChatRouteArgs> {
       final args = data.argsAs<EditChatRouteArgs>(
         orElse: () => EditChatRouteArgs(id: pathParams.optInt('id')),
       );
-      return _i5.EditChatScreen(key: args.key, id: args.id);
+      return _i4.EditChatScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -257,7 +241,7 @@ class EditChatRouteArgs {
 }
 
 /// generated route for
-/// [_i8.EditPublisherScreen]
+/// [_i7.EditPublisherScreen]
 class EditPublisherRoute extends _i18.PageRouteInfo<EditPublisherRouteArgs> {
   EditPublisherRoute({
     _i19.Key? key,
@@ -279,7 +263,7 @@ class EditPublisherRoute extends _i18.PageRouteInfo<EditPublisherRouteArgs> {
       final args = data.argsAs<EditPublisherRouteArgs>(
         orElse: () => EditPublisherRouteArgs(name: pathParams.optString('id')),
       );
-      return _i8.EditPublisherScreen(key: args.key, name: args.name);
+      return _i7.EditPublisherScreen(key: args.key, name: args.name);
     },
   );
 }
@@ -298,7 +282,7 @@ class EditPublisherRouteArgs {
 }
 
 /// generated route for
-/// [_i9.EditRealmScreen]
+/// [_i8.EditRealmScreen]
 class EditRealmRoute extends _i18.PageRouteInfo<EditRealmRouteArgs> {
   EditRealmRoute({
     _i19.Key? key,
@@ -320,7 +304,7 @@ class EditRealmRoute extends _i18.PageRouteInfo<EditRealmRouteArgs> {
       final args = data.argsAs<EditRealmRouteArgs>(
         orElse: () => EditRealmRouteArgs(slug: pathParams.optString('slug')),
       );
-      return _i9.EditRealmScreen(key: args.key, slug: args.slug);
+      return _i8.EditRealmScreen(key: args.key, slug: args.slug);
     },
   );
 }
@@ -339,7 +323,7 @@ class EditRealmRouteArgs {
 }
 
 /// generated route for
-/// [_i10.ExploreScreen]
+/// [_i9.ExploreScreen]
 class ExploreRoute extends _i18.PageRouteInfo<void> {
   const ExploreRoute({List<_i18.PageRouteInfo>? children})
     : super(ExploreRoute.name, initialChildren: children);
@@ -349,13 +333,13 @@ class ExploreRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i10.ExploreScreen();
+      return const _i9.ExploreScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i11.LoginScreen]
+/// [_i10.LoginScreen]
 class LoginRoute extends _i18.PageRouteInfo<void> {
   const LoginRoute({List<_i18.PageRouteInfo>? children})
     : super(LoginRoute.name, initialChildren: children);
@@ -365,13 +349,13 @@ class LoginRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i11.LoginScreen();
+      return const _i10.LoginScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i8.ManagedPublisherScreen]
+/// [_i7.ManagedPublisherScreen]
 class ManagedPublisherRoute extends _i18.PageRouteInfo<void> {
   const ManagedPublisherRoute({List<_i18.PageRouteInfo>? children})
     : super(ManagedPublisherRoute.name, initialChildren: children);
@@ -381,7 +365,23 @@ class ManagedPublisherRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i8.ManagedPublisherScreen();
+      return const _i7.ManagedPublisherScreen();
+    },
+  );
+}
+
+/// generated route for
+/// [_i11.MyselfEventCalendarScreen]
+class MyselfEventCalendarRoute extends _i18.PageRouteInfo<void> {
+  const MyselfEventCalendarRoute({List<_i18.PageRouteInfo>? children})
+    : super(MyselfEventCalendarRoute.name, initialChildren: children);
+
+  static const String name = 'MyselfEventCalendarRoute';
+
+  static _i18.PageInfo page = _i18.PageInfo(
+    name,
+    builder: (data) {
+      return const _i11.MyselfEventCalendarScreen();
     },
   );
 }
@@ -403,7 +403,7 @@ class MyselfProfileRoute extends _i18.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i5.NewChatScreen]
+/// [_i4.NewChatScreen]
 class NewChatRoute extends _i18.PageRouteInfo<void> {
   const NewChatRoute({List<_i18.PageRouteInfo>? children})
     : super(NewChatRoute.name, initialChildren: children);
@@ -413,13 +413,13 @@ class NewChatRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i5.NewChatScreen();
+      return const _i4.NewChatScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i8.NewPublisherScreen]
+/// [_i7.NewPublisherScreen]
 class NewPublisherRoute extends _i18.PageRouteInfo<void> {
   const NewPublisherRoute({List<_i18.PageRouteInfo>? children})
     : super(NewPublisherRoute.name, initialChildren: children);
@@ -429,13 +429,13 @@ class NewPublisherRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i8.NewPublisherScreen();
+      return const _i7.NewPublisherScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i9.NewRealmScreen]
+/// [_i8.NewRealmScreen]
 class NewRealmRoute extends _i18.PageRouteInfo<void> {
   const NewRealmRoute({List<_i18.PageRouteInfo>? children})
     : super(NewRealmRoute.name, initialChildren: children);
@@ -445,7 +445,7 @@ class NewRealmRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i9.NewRealmScreen();
+      return const _i8.NewRealmScreen();
     },
   );
 }
@@ -616,7 +616,7 @@ class RealmDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i9.RealmListScreen]
+/// [_i8.RealmListScreen]
 class RealmListRoute extends _i18.PageRouteInfo<void> {
   const RealmListRoute({List<_i18.PageRouteInfo>? children})
     : super(RealmListRoute.name, initialChildren: children);
@@ -626,7 +626,7 @@ class RealmListRoute extends _i18.PageRouteInfo<void> {
   static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i9.RealmListScreen();
+      return const _i8.RealmListScreen();
     },
   );
 }

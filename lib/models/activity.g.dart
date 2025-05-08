@@ -79,3 +79,24 @@ Map<String, dynamic> _$SnFortuneTipToJson(_SnFortuneTip instance) =>
       'title': instance.title,
       'content': instance.content,
     };
+
+_SnEventCalendarEntry _$SnEventCalendarEntryFromJson(
+  Map<String, dynamic> json,
+) => _SnEventCalendarEntry(
+  date: DateTime.parse(json['date'] as String),
+  checkInResult:
+      json['check_in_result'] == null
+          ? null
+          : SnCheckInResult.fromJson(
+            json['check_in_result'] as Map<String, dynamic>,
+          ),
+  statuses: json['statuses'] as List<dynamic>,
+);
+
+Map<String, dynamic> _$SnEventCalendarEntryToJson(
+  _SnEventCalendarEntry instance,
+) => <String, dynamic>{
+  'date': instance.date.toIso8601String(),
+  'check_in_result': instance.checkInResult?.toJson(),
+  'statuses': instance.statuses,
+};
