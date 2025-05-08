@@ -22,3 +22,32 @@ abstract class SnActivity with _$SnActivity {
   factory SnActivity.fromJson(Map<String, dynamic> json) =>
       _$SnActivityFromJson(json);
 }
+
+@freezed
+abstract class SnCheckInResult with _$SnCheckInResult {
+  const factory SnCheckInResult({
+    required String id,
+    required int level,
+    required List<SnFortuneTip> tips,
+    required int accountId,
+    required SnAccount? account,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnCheckInResult;
+
+  factory SnCheckInResult.fromJson(Map<String, dynamic> json) =>
+      _$SnCheckInResultFromJson(json);
+}
+
+@freezed
+abstract class SnFortuneTip with _$SnFortuneTip {
+  const factory SnFortuneTip({
+    required bool isPositive,
+    required String title,
+    required String content,
+  }) = _SnFortuneTip;
+
+  factory SnFortuneTip.fromJson(Map<String, dynamic> json) =>
+      _$SnFortuneTipFromJson(json);
+}

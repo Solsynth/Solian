@@ -106,5 +106,12 @@
   "reactionNeutral": "Neutral",
   "connectionConnected": "Connected",
   "connectionDisconnected": "Disconnected",
-  "connectionReconnecting": "Reconnecting"
+  "connectionReconnecting": "Reconnecting",
+  "checkInNone": "Not checked-in yet",
+  "checkInNoneHint": "Get your fortune tips and daily rewards by checking in.",
+  "checkInResultLevel0": "Wrost Luck",
+  "checkInResultLevel1": "Bad Luck",
+  "checkInResultLevel2": "A Normal Day",
+  "checkInResultLevel3": "Good Luck",
+  "checkInResultLevel4": "Best Luck"
 }

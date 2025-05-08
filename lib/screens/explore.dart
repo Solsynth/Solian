@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/activity.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
+import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
@@ -18,6 +20,7 @@ class ExploreScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userInfoProvider);
     final posts = ref.watch(activityListProvider);
     final postsNotifier = ref.watch(activityListProvider.notifier);
 
@@ -39,6 +42,7 @@ class ExploreScreen extends ConsumerWidget {
         onRefresh: () => postsNotifier.refresh(),
         child: CustomScrollView(
           slivers: [
+            if (user.hasValue) SliverToBoxAdapter(child: CheckInWidget()),
             SliverInfiniteList(
               itemCount: posts.length,
               isLoading: postsNotifier.isLoading,

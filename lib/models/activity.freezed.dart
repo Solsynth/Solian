@@ -190,4 +190,327 @@ $SnAccountCopyWith<$Res> get account {
 }
 }
 
+
+/// @nodoc
+mixin _$SnCheckInResult {
+
+ String get id; int get level; List<SnFortuneTip> get tips; int get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnCheckInResult
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnCheckInResultCopyWith<SnCheckInResult> get copyWith => _$SnCheckInResultCopyWithImpl<SnCheckInResult>(this as SnCheckInResult, _$identity);
+
+  /// Serializes this SnCheckInResult to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnCheckInResult&&(identical(other.id, id) || other.id == id)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other.tips, tips)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,level,const DeepCollectionEquality().hash(tips),accountId,account,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnCheckInResult(id: $id, level: $level, tips: $tips, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnCheckInResultCopyWith<$Res>  {
+  factory $SnCheckInResultCopyWith(SnCheckInResult value, $Res Function(SnCheckInResult) _then) = _$SnCheckInResultCopyWithImpl;
+@useResult
+$Res call({
+ String id, int level, List<SnFortuneTip> tips, int accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+$SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class _$SnCheckInResultCopyWithImpl<$Res>
+    implements $SnCheckInResultCopyWith<$Res> {
+  _$SnCheckInResultCopyWithImpl(this._self, this._then);
+
+  final SnCheckInResult _self;
+  final $Res Function(SnCheckInResult) _then;
+
+/// Create a copy of SnCheckInResult
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? level = null,Object? tips = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
+as int,tips: null == tips ? _self.tips : tips // ignore: cast_nullable_to_non_nullable
+as List<SnFortuneTip>,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as int,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of SnCheckInResult
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnCheckInResult implements SnCheckInResult {
+  const _SnCheckInResult({required this.id, required this.level, required final  List<SnFortuneTip> tips, required this.accountId, required this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _tips = tips;
+  factory _SnCheckInResult.fromJson(Map<String, dynamic> json) => _$SnCheckInResultFromJson(json);
+
+@override final  String id;
+@override final  int level;
+ final  List<SnFortuneTip> _tips;
+@override List<SnFortuneTip> get tips {
+  if (_tips is EqualUnmodifiableListView) return _tips;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_tips);
+}
+
+@override final  int accountId;
+@override final  SnAccount? account;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnCheckInResult
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnCheckInResultCopyWith<_SnCheckInResult> get copyWith => __$SnCheckInResultCopyWithImpl<_SnCheckInResult>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnCheckInResultToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnCheckInResult&&(identical(other.id, id) || other.id == id)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other._tips, _tips)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,level,const DeepCollectionEquality().hash(_tips),accountId,account,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnCheckInResult(id: $id, level: $level, tips: $tips, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnCheckInResultCopyWith<$Res> implements $SnCheckInResultCopyWith<$Res> {
+  factory _$SnCheckInResultCopyWith(_SnCheckInResult value, $Res Function(_SnCheckInResult) _then) = __$SnCheckInResultCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, int level, List<SnFortuneTip> tips, int accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+@override $SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class __$SnCheckInResultCopyWithImpl<$Res>
+    implements _$SnCheckInResultCopyWith<$Res> {
+  __$SnCheckInResultCopyWithImpl(this._self, this._then);
+
+  final _SnCheckInResult _self;
+  final $Res Function(_SnCheckInResult) _then;
+
+/// Create a copy of SnCheckInResult
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? level = null,Object? tips = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnCheckInResult(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
+as int,tips: null == tips ? _self._tips : tips // ignore: cast_nullable_to_non_nullable
+as List<SnFortuneTip>,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as int,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of SnCheckInResult
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$SnFortuneTip {
+
+ bool get isPositive; String get title; String get content;
+/// Create a copy of SnFortuneTip
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnFortuneTipCopyWith<SnFortuneTip> get copyWith => _$SnFortuneTipCopyWithImpl<SnFortuneTip>(this as SnFortuneTip, _$identity);
+
+  /// Serializes this SnFortuneTip to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFortuneTip&&(identical(other.isPositive, isPositive) || other.isPositive == isPositive)&&(identical(other.title, title) || other.title == title)&&(identical(other.content, content) || other.content == content));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,isPositive,title,content);
+
+@override
+String toString() {
+  return 'SnFortuneTip(isPositive: $isPositive, title: $title, content: $content)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnFortuneTipCopyWith<$Res>  {
+  factory $SnFortuneTipCopyWith(SnFortuneTip value, $Res Function(SnFortuneTip) _then) = _$SnFortuneTipCopyWithImpl;
+@useResult
+$Res call({
+ bool isPositive, String title, String content
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnFortuneTipCopyWithImpl<$Res>
+    implements $SnFortuneTipCopyWith<$Res> {
+  _$SnFortuneTipCopyWithImpl(this._self, this._then);
+
+  final SnFortuneTip _self;
+  final $Res Function(SnFortuneTip) _then;
+
+/// Create a copy of SnFortuneTip
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? isPositive = null,Object? title = null,Object? content = null,}) {
+  return _then(_self.copyWith(
+isPositive: null == isPositive ? _self.isPositive : isPositive // ignore: cast_nullable_to_non_nullable
+as bool,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnFortuneTip implements SnFortuneTip {
+  const _SnFortuneTip({required this.isPositive, required this.title, required this.content});
+  factory _SnFortuneTip.fromJson(Map<String, dynamic> json) => _$SnFortuneTipFromJson(json);
+
+@override final  bool isPositive;
+@override final  String title;
+@override final  String content;
+
+/// Create a copy of SnFortuneTip
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnFortuneTipCopyWith<_SnFortuneTip> get copyWith => __$SnFortuneTipCopyWithImpl<_SnFortuneTip>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnFortuneTipToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFortuneTip&&(identical(other.isPositive, isPositive) || other.isPositive == isPositive)&&(identical(other.title, title) || other.title == title)&&(identical(other.content, content) || other.content == content));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,isPositive,title,content);
+
+@override
+String toString() {
+  return 'SnFortuneTip(isPositive: $isPositive, title: $title, content: $content)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnFortuneTipCopyWith<$Res> implements $SnFortuneTipCopyWith<$Res> {
+  factory _$SnFortuneTipCopyWith(_SnFortuneTip value, $Res Function(_SnFortuneTip) _then) = __$SnFortuneTipCopyWithImpl;
+@override @useResult
+$Res call({
+ bool isPositive, String title, String content
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnFortuneTipCopyWithImpl<$Res>
+    implements _$SnFortuneTipCopyWith<$Res> {
+  __$SnFortuneTipCopyWithImpl(this._self, this._then);
+
+  final _SnFortuneTip _self;
+  final $Res Function(_SnFortuneTip) _then;
+
+/// Create a copy of SnFortuneTip
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? isPositive = null,Object? title = null,Object? content = null,}) {
+  return _then(_SnFortuneTip(
+isPositive: null == isPositive ? _self.isPositive : isPositive // ignore: cast_nullable_to_non_nullable
+as bool,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
 // dart format on
