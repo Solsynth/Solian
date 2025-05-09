@@ -1,12 +1,17 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/screens/auth/captcha.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -42,6 +47,20 @@ class CheckInWidget extends HookConsumerWidget {
         await client.post('/accounts/me/check-in');
         ref.invalidate(checkInResultTodayProvider);
       } catch (err) {
+        if (err is DioException) {
+          if (err.response?.statusCode == 423 && context.mounted) {
+            final captchaTk = await Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => CaptchaScreen()));
+            if (captchaTk == null) return;
+            await client.post(
+              '/accounts/me/check-in',
+              data: jsonEncode(captchaTk),
+            );
+            ref.invalidate(checkInResultTodayProvider);
+            return;
+          }
+        }
         showErrorAlert(err);
       }
     }
@@ -153,5 +172,50 @@ class _CheckInNoneWidget extends StatelessWidget {
         Text('checkInNoneHint').tr().fontSize(11),
       ],
     );
+  }
+}
+
+class CheckInActivityWidget extends StatelessWidget {
+  final SnActivity item;
+  const CheckInActivityWidget({super.key, required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final result = SnCheckInResult.fromJson(item.data);
+    return Row(
+      spacing: 12,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ProfilePictureWidget(
+          fileId: result.account!.profile.pictureId,
+          radius: 12,
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Symbols.local_fire_department, size: 14),
+                  const Gap(4),
+                  Text('checkIn').fontSize(11).tr(),
+                ],
+              ).opacity(0.85),
+              Text('checkInActivityTitle')
+                  .tr(
+                    args: [
+                      result.account!.nick,
+                      DateFormat.yMd().format(result.createdAt),
+                      'checkInResultLevel${result.level}'.tr(),
+                    ],
+                  )
+                  .fontSize(13)
+                  .padding(left: 2),
+            ],
+          ),
+        ),
+      ],
+    ).padding(horizontal: 16, vertical: 12);
   }
 }

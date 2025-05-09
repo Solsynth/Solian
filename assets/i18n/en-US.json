@@ -107,6 +107,7 @@
   "connectionConnected": "Connected",
   "connectionDisconnected": "Disconnected",
   "connectionReconnecting": "Reconnecting",
+  "checkIn": "Check In",
   "checkInNone": "Not checked-in yet",
   "checkInNoneHint": "Get your fortune tips and daily rewards by checking in.",
   "checkInResultLevel0": "Wrost Luck",
@@ -114,6 +115,7 @@
   "checkInResultLevel2": "A Normal Day",
   "checkInResultLevel3": "Good Luck",
   "checkInResultLevel4": "Best Luck",
+  "checkInActivityTitle": "{} checked in on {} and got a {}",
   "eventCalander": "Event Calander",
   "eventCalanderEmpty": "No events on that day."
 }

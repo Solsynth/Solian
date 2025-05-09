@@ -64,6 +64,8 @@ class ExploreScreen extends ConsumerWidget {
                         );
                       },
                     );
+                  case 'accounts.check-in':
+                    return CheckInActivityWidget(item: item);
                   default:
                     return Placeholder();
                 }
