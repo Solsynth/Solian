@@ -145,6 +145,17 @@ class AccountScreen extends HookConsumerWidget {
                 context.router.push(UpdateProfileRoute());
               },
             ),
+            const Divider(height: 1).padding(vertical: 8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.settings),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('appSettings').tr(),
+              onTap: () {
+                context.router.push(SettingsRoute());
+              },
+            ),
             if (kDebugMode) const Divider(height: 1).padding(vertical: 8),
             if (kDebugMode)
               ListTile(

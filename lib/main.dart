@@ -54,7 +54,11 @@ void main() async {
       child: Directionality(
         textDirection: TextDirection.ltr,
         child: EasyLocalization(
-          supportedLocales: [Locale('en', 'US')],
+          supportedLocales: [
+            Locale('en', 'US'),
+            Locale('zh', 'CN'),
+            Locale('zh', 'TW'),
+          ],
           path: 'assets/i18n',
           fallbackLocale: Locale('en', 'US'),
           useFallbackTranslations: true,

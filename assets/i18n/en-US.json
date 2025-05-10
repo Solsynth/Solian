@@ -116,6 +116,11 @@
   "checkInResultLevel2": "A Normal Day",
   "checkInResultLevel3": "Good Luck",
   "checkInResultLevel4": "Best Luck",
+  "checkInResultLevelShort0": "Wrost",
+  "checkInResultLevelShort1": "Bad",
+  "checkInResultLevelShort2": "Normal",
+  "checkInResultLevelShort3": "Good",
+  "checkInResultLevelShort4": "Best",
   "checkInActivityTitle": "{} checked in on {} and got a {}",
   "eventCalander": "Event Calander",
   "eventCalanderEmpty": "No events on that day.",
@@ -141,5 +146,10 @@
   "offline": "Offline",
   "status": "Status",
   "statusActivityTitle": "{} is {} {}",
-  "statusActivityEndedTitle": "{} is {} {} until {}"
+  "statusActivityEndedTitle": "{} is {} {} until {}",
+  "appSettings": "App Settings",
+  "settings": "Settings",
+  "language": "Language",
+  "settingsDisplayLanguage": "Display Language",
+  "languageFollowSystem": "Follow System"
 }

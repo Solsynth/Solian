@@ -127,7 +127,17 @@ class PostItem extends HookConsumerWidget {
                 ],
               ),
               if (item.attachments.isNotEmpty)
-                CloudFileList(files: item.attachments),
+                Container(
+                  margin: EdgeInsets.only(left: 48),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Theme.of(context).dividerColor,
+                      width: 1,
+                    ),
+                  ),
+                  child: CloudFileList(files: item.attachments),
+                ),
               PostReactionList(
                 parentId: item.id,
                 reactions: item.reactionsCount,

@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -26,7 +27,7 @@ class ExploreScreen extends ConsumerWidget {
     final postsNotifier = ref.watch(activityListProvider.notifier);
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Explore')),
+      appBar: AppBar(title: const Text('explore').tr()),
       floatingActionButton: FloatingActionButton(
         heroTag: Key("explore-page-fab"),
         onPressed: () {
