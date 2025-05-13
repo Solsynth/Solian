@@ -272,7 +272,11 @@ class EditPublisherScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         final resp = await client.request(
-          name == null ? '/publishers/individual' : '/publishers/$name',
+          name == null
+              ? currentRealm.value == null
+                  ? '/publishers/individual'
+                  : '/publishers/organization/${currentRealm.value!.slug}'
+              : '/publishers/$name',
           data: {
             'name': nameController.text,
             'nick': nickController.text,

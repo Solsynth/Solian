@@ -1,37 +1,37 @@
-import 'package:auto_route/auto_route.dart';
+import 'package:auto_route/annotations.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/post/post_list.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'profile.g.dart';
+part 'pub_profile.g.dart';
 
 @riverpod
-Future<SnAccount> account(Ref ref, String uname) async {
+Future<SnPublisher> publisher(Ref ref, String uname) async {
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/accounts/$uname");
-  return SnAccount.fromJson(resp.data);
+  final resp = await apiClient.get("/publishers/$uname");
+  return SnPublisher.fromJson(resp.data);
 }
 
 @RoutePage()
-class AccountProfileScreen extends HookConsumerWidget {
+class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
-  const AccountProfileScreen({
+  const PublisherProfileScreen({
     super.key,
     @PathParam("name") required this.name,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final account = ref.watch(accountProvider(name));
+    final publisher = ref.watch(publisherProvider(name));
 
     final iconShadow = Shadow(
       color: Colors.black54,
@@ -39,7 +39,7 @@ class AccountProfileScreen extends HookConsumerWidget {
       offset: Offset(1.0, 1.0),
     );
 
-    return account.when(
+    return publisher.when(
       data:
           (data) => AppScaffold(
             body: CustomScrollView(
@@ -50,10 +50,8 @@ class AccountProfileScreen extends HookConsumerWidget {
                   leading: PageBackButton(shadows: [iconShadow]),
                   flexibleSpace: FlexibleSpaceBar(
                     background:
-                        data.profile.backgroundId != null
-                            ? CloudImageWidget(
-                              fileId: data.profile.backgroundId!,
-                            )
+                        data.backgroundId != null
+                            ? CloudImageWidget(fileId: data.backgroundId!)
                             : Container(
                               color:
                                   Theme.of(context).appBarTheme.backgroundColor,
@@ -72,10 +70,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: 20,
                     children: [
-                      ProfilePictureWidget(
-                        fileId: data.profile.pictureId!,
-                        radius: 32,
-                      ),
+                      ProfilePictureWidget(fileId: data.pictureId!, radius: 32),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -89,37 +84,39 @@ class AccountProfileScreen extends HookConsumerWidget {
                                 ).fontSize(14).opacity(0.85),
                               ],
                             ),
-                            AccountStatusWidget(
-                              uname: name,
-                              padding: EdgeInsets.zero,
-                            ),
+                            if (data.publisherType == 0)
+                              AccountStatusWidget(
+                                uname: name,
+                                padding: EdgeInsets.zero,
+                              ),
                           ],
                         ),
                       ),
                     ],
-                  ).padding(horizontal: 24, top: 24, bottom: 8),
+                  ).padding(horizontal: 24, top: 24, bottom: 24),
                 ),
-                if (data.badges.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: BadgeList(
-                      badges: data.badges,
-                    ).padding(horizontal: 24, bottom: 24),
-                  )
-                else
-                  const Gap(16),
-                SliverToBoxAdapter(
-                  child: const Divider(height: 1).padding(bottom: 24),
-                ),
-                if (data.profile.bio != null && data.profile.bio!.isNotEmpty)
+                // if (data.badges.isNotEmpty)
+                //   SliverToBoxAdapter(
+                //     child: BadgeList(
+                //       badges: data.badges,
+                //     ).padding(horizontal: 24, bottom: 24),
+                //   )
+                // else
+                //   const Gap(16),
+                SliverToBoxAdapter(child: const Divider(height: 1)),
+                if (data.bio.isNotEmpty)
                   SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text('bio').tr().bold(),
-                        Text(data.profile.bio!),
-                      ],
-                    ).padding(horizontal: 24),
+                      children: [Text('bio').tr().bold(), Text(data.bio)],
+                    ).padding(horizontal: 24, top: 24),
                   ),
+                if (data.bio.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: const Divider(height: 1).padding(top: 24),
+                  ),
+                SliverPostList(pubName: name),
+                SliverGap(MediaQuery.of(context).padding.bottom + 16),
               ],
             ),
           ),
