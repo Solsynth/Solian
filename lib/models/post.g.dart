@@ -144,3 +144,19 @@ Map<String, dynamic> _$SnPublisherStatsToJson(_SnPublisherStats instance) =>
       'upvote_received': instance.upvoteReceived,
       'downvote_received': instance.downvoteReceived,
     };
+
+_SnSubscriptionStatus _$SnSubscriptionStatusFromJson(
+  Map<String, dynamic> json,
+) => _SnSubscriptionStatus(
+  isSubscribed: json['is_subscribed'] as bool,
+  publisherId: (json['publisher_id'] as num).toInt(),
+  publisherName: json['publisher_name'] as String,
+);
+
+Map<String, dynamic> _$SnSubscriptionStatusToJson(
+  _SnSubscriptionStatus instance,
+) => <String, dynamic>{
+  'is_subscribed': instance.isSubscribed,
+  'publisher_id': instance.publisherId,
+  'publisher_name': instance.publisherName,
+};

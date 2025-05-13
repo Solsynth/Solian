@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/post/post_item.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 
 // State class to hold posts and pagination info

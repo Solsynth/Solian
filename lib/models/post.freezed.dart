@@ -656,6 +656,145 @@ as int,
 
 }
 
+
+/// @nodoc
+mixin _$SnSubscriptionStatus {
+
+ bool get isSubscribed; int get publisherId; String get publisherName;
+/// Create a copy of SnSubscriptionStatus
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnSubscriptionStatusCopyWith<SnSubscriptionStatus> get copyWith => _$SnSubscriptionStatusCopyWithImpl<SnSubscriptionStatus>(this as SnSubscriptionStatus, _$identity);
+
+  /// Serializes this SnSubscriptionStatus to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSubscriptionStatus&&(identical(other.isSubscribed, isSubscribed) || other.isSubscribed == isSubscribed)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisherName, publisherName) || other.publisherName == publisherName));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,isSubscribed,publisherId,publisherName);
+
+@override
+String toString() {
+  return 'SnSubscriptionStatus(isSubscribed: $isSubscribed, publisherId: $publisherId, publisherName: $publisherName)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnSubscriptionStatusCopyWith<$Res>  {
+  factory $SnSubscriptionStatusCopyWith(SnSubscriptionStatus value, $Res Function(SnSubscriptionStatus) _then) = _$SnSubscriptionStatusCopyWithImpl;
+@useResult
+$Res call({
+ bool isSubscribed, int publisherId, String publisherName
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnSubscriptionStatusCopyWithImpl<$Res>
+    implements $SnSubscriptionStatusCopyWith<$Res> {
+  _$SnSubscriptionStatusCopyWithImpl(this._self, this._then);
+
+  final SnSubscriptionStatus _self;
+  final $Res Function(SnSubscriptionStatus) _then;
+
+/// Create a copy of SnSubscriptionStatus
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? isSubscribed = null,Object? publisherId = null,Object? publisherName = null,}) {
+  return _then(_self.copyWith(
+isSubscribed: null == isSubscribed ? _self.isSubscribed : isSubscribed // ignore: cast_nullable_to_non_nullable
+as bool,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as int,publisherName: null == publisherName ? _self.publisherName : publisherName // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnSubscriptionStatus implements SnSubscriptionStatus {
+  const _SnSubscriptionStatus({required this.isSubscribed, required this.publisherId, required this.publisherName});
+  factory _SnSubscriptionStatus.fromJson(Map<String, dynamic> json) => _$SnSubscriptionStatusFromJson(json);
+
+@override final  bool isSubscribed;
+@override final  int publisherId;
+@override final  String publisherName;
+
+/// Create a copy of SnSubscriptionStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnSubscriptionStatusCopyWith<_SnSubscriptionStatus> get copyWith => __$SnSubscriptionStatusCopyWithImpl<_SnSubscriptionStatus>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnSubscriptionStatusToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSubscriptionStatus&&(identical(other.isSubscribed, isSubscribed) || other.isSubscribed == isSubscribed)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisherName, publisherName) || other.publisherName == publisherName));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,isSubscribed,publisherId,publisherName);
+
+@override
+String toString() {
+  return 'SnSubscriptionStatus(isSubscribed: $isSubscribed, publisherId: $publisherId, publisherName: $publisherName)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnSubscriptionStatusCopyWith<$Res> implements $SnSubscriptionStatusCopyWith<$Res> {
+  factory _$SnSubscriptionStatusCopyWith(_SnSubscriptionStatus value, $Res Function(_SnSubscriptionStatus) _then) = __$SnSubscriptionStatusCopyWithImpl;
+@override @useResult
+$Res call({
+ bool isSubscribed, int publisherId, String publisherName
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnSubscriptionStatusCopyWithImpl<$Res>
+    implements _$SnSubscriptionStatusCopyWith<$Res> {
+  __$SnSubscriptionStatusCopyWithImpl(this._self, this._then);
+
+  final _SnSubscriptionStatus _self;
+  final $Res Function(_SnSubscriptionStatus) _then;
+
+/// Create a copy of SnSubscriptionStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? isSubscribed = null,Object? publisherId = null,Object? publisherName = null,}) {
+  return _then(_SnSubscriptionStatus(
+isSubscribed: null == isSubscribed ? _self.isSubscribed : isSubscribed // ignore: cast_nullable_to_non_nullable
+as bool,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as int,publisherName: null == publisherName ? _self.publisherName : publisherName // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
 /// @nodoc
 mixin _$ReactInfo {
 

@@ -145,5 +145,259 @@ class _PublisherProviderElement
   String get uname => (origin as PublisherProvider).uname;
 }
 
+String _$publisherBadgesHash() => r'69a5bbc9e1528da65ae8b1e5e6c4f57c3dcf4071';
+
+/// See also [publisherBadges].
+@ProviderFor(publisherBadges)
+const publisherBadgesProvider = PublisherBadgesFamily();
+
+/// See also [publisherBadges].
+class PublisherBadgesFamily extends Family<AsyncValue<List<SnAccountBadge>>> {
+  /// See also [publisherBadges].
+  const PublisherBadgesFamily();
+
+  /// See also [publisherBadges].
+  PublisherBadgesProvider call(String pubName) {
+    return PublisherBadgesProvider(pubName);
+  }
+
+  @override
+  PublisherBadgesProvider getProviderOverride(
+    covariant PublisherBadgesProvider provider,
+  ) {
+    return call(provider.pubName);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'publisherBadgesProvider';
+}
+
+/// See also [publisherBadges].
+class PublisherBadgesProvider
+    extends AutoDisposeFutureProvider<List<SnAccountBadge>> {
+  /// See also [publisherBadges].
+  PublisherBadgesProvider(String pubName)
+    : this._internal(
+        (ref) => publisherBadges(ref as PublisherBadgesRef, pubName),
+        from: publisherBadgesProvider,
+        name: r'publisherBadgesProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$publisherBadgesHash,
+        dependencies: PublisherBadgesFamily._dependencies,
+        allTransitiveDependencies:
+            PublisherBadgesFamily._allTransitiveDependencies,
+        pubName: pubName,
+      );
+
+  PublisherBadgesProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.pubName,
+  }) : super.internal();
+
+  final String pubName;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<SnAccountBadge>> Function(PublisherBadgesRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PublisherBadgesProvider._internal(
+        (ref) => create(ref as PublisherBadgesRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        pubName: pubName,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<SnAccountBadge>> createElement() {
+    return _PublisherBadgesProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherBadgesProvider && other.pubName == pubName;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, pubName.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PublisherBadgesRef on AutoDisposeFutureProviderRef<List<SnAccountBadge>> {
+  /// The parameter `pubName` of this provider.
+  String get pubName;
+}
+
+class _PublisherBadgesProviderElement
+    extends AutoDisposeFutureProviderElement<List<SnAccountBadge>>
+    with PublisherBadgesRef {
+  _PublisherBadgesProviderElement(super.provider);
+
+  @override
+  String get pubName => (origin as PublisherBadgesProvider).pubName;
+}
+
+String _$publisherSubscriptionStatusHash() =>
+    r'4eb6741c40775c814e71b6a98b8f1e2d84bf7e30';
+
+/// See also [publisherSubscriptionStatus].
+@ProviderFor(publisherSubscriptionStatus)
+const publisherSubscriptionStatusProvider = PublisherSubscriptionStatusFamily();
+
+/// See also [publisherSubscriptionStatus].
+class PublisherSubscriptionStatusFamily
+    extends Family<AsyncValue<SnSubscriptionStatus>> {
+  /// See also [publisherSubscriptionStatus].
+  const PublisherSubscriptionStatusFamily();
+
+  /// See also [publisherSubscriptionStatus].
+  PublisherSubscriptionStatusProvider call(String pubName) {
+    return PublisherSubscriptionStatusProvider(pubName);
+  }
+
+  @override
+  PublisherSubscriptionStatusProvider getProviderOverride(
+    covariant PublisherSubscriptionStatusProvider provider,
+  ) {
+    return call(provider.pubName);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'publisherSubscriptionStatusProvider';
+}
+
+/// See also [publisherSubscriptionStatus].
+class PublisherSubscriptionStatusProvider
+    extends AutoDisposeFutureProvider<SnSubscriptionStatus> {
+  /// See also [publisherSubscriptionStatus].
+  PublisherSubscriptionStatusProvider(String pubName)
+    : this._internal(
+        (ref) => publisherSubscriptionStatus(
+          ref as PublisherSubscriptionStatusRef,
+          pubName,
+        ),
+        from: publisherSubscriptionStatusProvider,
+        name: r'publisherSubscriptionStatusProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$publisherSubscriptionStatusHash,
+        dependencies: PublisherSubscriptionStatusFamily._dependencies,
+        allTransitiveDependencies:
+            PublisherSubscriptionStatusFamily._allTransitiveDependencies,
+        pubName: pubName,
+      );
+
+  PublisherSubscriptionStatusProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.pubName,
+  }) : super.internal();
+
+  final String pubName;
+
+  @override
+  Override overrideWith(
+    FutureOr<SnSubscriptionStatus> Function(
+      PublisherSubscriptionStatusRef provider,
+    )
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PublisherSubscriptionStatusProvider._internal(
+        (ref) => create(ref as PublisherSubscriptionStatusRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        pubName: pubName,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<SnSubscriptionStatus> createElement() {
+    return _PublisherSubscriptionStatusProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherSubscriptionStatusProvider &&
+        other.pubName == pubName;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, pubName.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PublisherSubscriptionStatusRef
+    on AutoDisposeFutureProviderRef<SnSubscriptionStatus> {
+  /// The parameter `pubName` of this provider.
+  String get pubName;
+}
+
+class _PublisherSubscriptionStatusProviderElement
+    extends AutoDisposeFutureProviderElement<SnSubscriptionStatus>
+    with PublisherSubscriptionStatusRef {
+  _PublisherSubscriptionStatusProviderElement(super.provider);
+
+  @override
+  String get pubName => (origin as PublisherSubscriptionStatusProvider).pubName;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -21,6 +21,15 @@ Future<SnAccount> account(Ref ref, String uname) async {
   return SnAccount.fromJson(resp.data);
 }
 
+@riverpod
+Future<List<SnAccountBadge>> accountBadges(Ref ref, String uname) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get("/accounts/$uname/badges");
+  return List<SnAccountBadge>.from(
+    resp.data.map((x) => SnAccountBadge.fromJson(x)),
+  );
+}
+
 @RoutePage()
 class AccountProfileScreen extends HookConsumerWidget {
   final String name;

@@ -79,6 +79,18 @@ abstract class SnPublisherStats with _$SnPublisherStats {
 }
 
 @freezed
+abstract class SnSubscriptionStatus with _$SnSubscriptionStatus {
+  const factory SnSubscriptionStatus({
+    required bool isSubscribed,
+    required int publisherId,
+    required String publisherName,
+  }) = _SnSubscriptionStatus;
+
+  factory SnSubscriptionStatus.fromJson(Map<String, dynamic> json) =>
+      _$SnSubscriptionStatusFromJson(json);
+}
+
+@freezed
 abstract class ReactInfo with _$ReactInfo {
   const factory ReactInfo({required String icon, required int attitude}) =
       _ReactInfo;
