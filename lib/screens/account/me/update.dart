@@ -30,7 +30,10 @@ class UpdateProfileScreen extends HookConsumerWidget {
       var result = await ref
           .read(imagePickerProvider)
           .pickImage(source: ImageSource.gallery);
-      if (result == null) return;
+      if (result == null) {
+        if (context.mounted) hideLoadingModal(context);
+        return;
+      }
       if (!context.mounted) return;
       hideLoadingModal(context);
       result = await cropImage(

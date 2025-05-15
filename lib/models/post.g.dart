@@ -96,7 +96,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
 
 _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
   id: json['id'] as String,
-  publisherType: (json['publisher_type'] as num).toInt(),
+  type: (json['type'] as num).toInt(),
   name: json['name'] as String,
   nick: json['nick'] as String,
   bio: json['bio'] as String,
@@ -122,7 +122,7 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
 Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'publisher_type': instance.publisherType,
+      'type': instance.type,
       'name': instance.name,
       'nick': instance.nick,
       'bio': instance.bio,

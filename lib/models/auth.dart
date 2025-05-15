@@ -21,7 +21,7 @@ abstract class SnAuthChallenge with _$SnAuthChallenge {
     required DateTime expiredAt,
     required int stepRemain,
     required int stepTotal,
-    required List<int> blacklistFactors,
+    required List<String> blacklistFactors,
     required List<String> audiences,
     required List<String> scopes,
     required String ipAddress,

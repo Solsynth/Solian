@@ -19,6 +19,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: ChatListRoute.page, path: 'chat'),
       ],
     ),
+    AutoRoute(page: WalletRoute.page, path: '/wallet'),
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
     AutoRoute(page: LoginRoute.page, path: '/auth/login'),
     AutoRoute(page: CreateAccountRoute.page, path: '/auth/create-account'),

@@ -199,7 +199,10 @@ class EditPublisherScreen extends HookConsumerWidget {
             CropAspectRatio(height: 1, width: 1),
         ],
       );
-      if (result == null) return;
+      if (result == null) {
+        if (context.mounted) hideLoadingModal(context);
+        return;
+      }
       if (!context.mounted) return;
       showLoadingModal(context);
 

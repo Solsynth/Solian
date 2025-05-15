@@ -1,108 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:dio/dio.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/post/post_item.dart';
-import 'package:very_good_infinite_list/very_good_infinite_list.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
-// State class to hold posts and pagination info
-class PostListState {
-  final List<SnPost> posts;
-  final bool isLoading;
-  final String? error;
-  final int total;
-  final bool hasMore;
+part 'post_list.g.dart';
 
-  const PostListState({
-    this.posts = const [],
-    this.isLoading = false,
-    this.error,
-    this.total = 0,
-    this.hasMore = true,
-  });
-
-  PostListState copyWith({
-    List<SnPost>? posts,
-    bool? isLoading,
-    String? error,
-    int? total,
-    bool? hasMore,
-  }) {
-    return PostListState(
-      posts: posts ?? this.posts,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-      total: total ?? this.total,
-      hasMore: hasMore ?? this.hasMore,
-    );
-  }
-}
-
-// Provider for managing post list state
-final postListProvider =
-    StateNotifierProvider.family<PostListNotifier, PostListState, String?>((
-      ref,
-      pubName,
-    ) {
-      final dio = ref.watch(apiClientProvider);
-      return PostListNotifier(dio, pubName);
-    });
-
-class PostListNotifier extends StateNotifier<PostListState> {
-  final Dio _dio;
-  final String? pubName;
+@riverpod
+class PostListNotifier extends _$PostListNotifier
+    with CursorPagingNotifierMixin<SnPost> {
   static const int _pageSize = 20;
 
-  PostListNotifier(this._dio, this.pubName) : super(const PostListState()) {
-    loadInitialPosts();
-  }
+  PostListNotifier({this.pubName});
 
-  Future<void> loadInitialPosts() async {
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      final result = await _fetchPosts(0);
-      state = PostListState(
-        posts: result.posts,
-        total: result.total,
-        hasMore: result.posts.length < result.total,
-        isLoading: false,
-      );
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-    }
-  }
+  final String? pubName;
 
-  Future<void> loadMorePosts() async {
-    if (state.isLoading || !state.hasMore) return;
+  @override
+  Future<CursorPagingData<SnPost>> build() => fetch(cursor: null);
 
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      final result = await _fetchPosts(state.posts.length);
-      state = state.copyWith(
-        posts: [...state.posts, ...result.posts],
-        total: result.total,
-        hasMore: state.posts.length + result.posts.length < result.total,
-        isLoading: false,
-      );
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-    }
-  }
+  @override
+  Future<CursorPagingData<SnPost>> fetch({required String? cursor}) async {
+    final client = ref.read(apiClientProvider);
+    final offset = cursor == null ? 0 : int.parse(cursor);
 
-  Future<({List<SnPost> posts, int total})> _fetchPosts(int offset) async {
     final queryParams = {
       'offset': offset,
       'take': _pageSize,
       if (pubName != null) 'pub': pubName,
     };
 
-    final response = await _dio.get('/posts', queryParameters: queryParams);
+    final response = await client.get('/posts', queryParameters: queryParams);
     final total = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
     final posts = data.map((json) => SnPost.fromJson(json)).toList();
 
-    return (posts: posts, total: total);
+    final hasMore = offset + posts.length < total;
+    final nextCursor = hasMore ? (offset + posts.length).toString() : null;
+
+    return CursorPagingData(
+      items: posts,
+      hasMore: hasMore,
+      nextCursor: nextCursor,
+    );
   }
 }
 
@@ -112,18 +53,26 @@ class SliverPostList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(postListProvider(pubName));
-    final notifier = ref.read(postListProvider(pubName).notifier);
+    return PagingHelperView(
+      provider: postListNotifierProvider,
+      futureRefreshable: postListNotifierProvider.future,
+      notifierRefreshable: postListNotifierProvider.notifier,
+      contentBuilder:
+          (data, widgetCount, endItemView) => SliverList.builder(
+            itemCount: widgetCount,
+            itemBuilder: (context, index) {
+              if (index == widgetCount - 1) {
+                return endItemView;
+              }
 
-    return SliverInfiniteList(
-      onFetchData: notifier.loadMorePosts,
-      itemCount: state.posts.length,
-      hasReachedMax: !state.hasMore,
-      isLoading: state.isLoading,
-      itemBuilder: (context, index) {
-        return PostItem(item: state.posts[index]);
-      },
-      separatorBuilder: (_, __) => const Divider(height: 1),
+              return Column(
+                children: [
+                  PostItem(item: data.items[index]),
+                  const Divider(height: 1),
+                ],
+              );
+            },
+          ),
     );
   }
 }

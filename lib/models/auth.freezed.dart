@@ -152,7 +152,7 @@ as String,
 /// @nodoc
 mixin _$SnAuthChallenge {
 
- String get id; DateTime get expiredAt; int get stepRemain; int get stepTotal; List<int> get blacklistFactors; List<String> get audiences; List<String> get scopes; String get ipAddress; String get userAgent; String? get deviceId; String? get nonce; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; DateTime get expiredAt; int get stepRemain; int get stepTotal; List<String> get blacklistFactors; List<String> get audiences; List<String> get scopes; String get ipAddress; String get userAgent; String? get deviceId; String? get nonce; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAuthChallenge
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -185,7 +185,7 @@ abstract mixin class $SnAuthChallengeCopyWith<$Res>  {
   factory $SnAuthChallengeCopyWith(SnAuthChallenge value, $Res Function(SnAuthChallenge) _then) = _$SnAuthChallengeCopyWithImpl;
 @useResult
 $Res call({
- String id, DateTime expiredAt, int stepRemain, int stepTotal, List<int> blacklistFactors, List<String> audiences, List<String> scopes, String ipAddress, String userAgent, String? deviceId, String? nonce, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime expiredAt, int stepRemain, int stepTotal, List<String> blacklistFactors, List<String> audiences, List<String> scopes, String ipAddress, String userAgent, String? deviceId, String? nonce, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -209,7 +209,7 @@ as String,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: 
 as DateTime,stepRemain: null == stepRemain ? _self.stepRemain : stepRemain // ignore: cast_nullable_to_non_nullable
 as int,stepTotal: null == stepTotal ? _self.stepTotal : stepTotal // ignore: cast_nullable_to_non_nullable
 as int,blacklistFactors: null == blacklistFactors ? _self.blacklistFactors : blacklistFactors // ignore: cast_nullable_to_non_nullable
-as List<int>,audiences: null == audiences ? _self.audiences : audiences // ignore: cast_nullable_to_non_nullable
+as List<String>,audiences: null == audiences ? _self.audiences : audiences // ignore: cast_nullable_to_non_nullable
 as List<String>,scopes: null == scopes ? _self.scopes : scopes // ignore: cast_nullable_to_non_nullable
 as List<String>,ipAddress: null == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
 as String,userAgent: null == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable
@@ -229,15 +229,15 @@ as DateTime?,
 @JsonSerializable()
 
 class _SnAuthChallenge implements SnAuthChallenge {
-  const _SnAuthChallenge({required this.id, required this.expiredAt, required this.stepRemain, required this.stepTotal, required final  List<int> blacklistFactors, required final  List<String> audiences, required final  List<String> scopes, required this.ipAddress, required this.userAgent, required this.deviceId, required this.nonce, required this.createdAt, required this.updatedAt, required this.deletedAt}): _blacklistFactors = blacklistFactors,_audiences = audiences,_scopes = scopes;
+  const _SnAuthChallenge({required this.id, required this.expiredAt, required this.stepRemain, required this.stepTotal, required final  List<String> blacklistFactors, required final  List<String> audiences, required final  List<String> scopes, required this.ipAddress, required this.userAgent, required this.deviceId, required this.nonce, required this.createdAt, required this.updatedAt, required this.deletedAt}): _blacklistFactors = blacklistFactors,_audiences = audiences,_scopes = scopes;
   factory _SnAuthChallenge.fromJson(Map<String, dynamic> json) => _$SnAuthChallengeFromJson(json);
 
 @override final  String id;
 @override final  DateTime expiredAt;
 @override final  int stepRemain;
 @override final  int stepTotal;
- final  List<int> _blacklistFactors;
-@override List<int> get blacklistFactors {
+ final  List<String> _blacklistFactors;
+@override List<String> get blacklistFactors {
   if (_blacklistFactors is EqualUnmodifiableListView) return _blacklistFactors;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_blacklistFactors);
@@ -298,7 +298,7 @@ abstract mixin class _$SnAuthChallengeCopyWith<$Res> implements $SnAuthChallenge
   factory _$SnAuthChallengeCopyWith(_SnAuthChallenge value, $Res Function(_SnAuthChallenge) _then) = __$SnAuthChallengeCopyWithImpl;
 @override @useResult
 $Res call({
- String id, DateTime expiredAt, int stepRemain, int stepTotal, List<int> blacklistFactors, List<String> audiences, List<String> scopes, String ipAddress, String userAgent, String? deviceId, String? nonce, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime expiredAt, int stepRemain, int stepTotal, List<String> blacklistFactors, List<String> audiences, List<String> scopes, String ipAddress, String userAgent, String? deviceId, String? nonce, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -322,7 +322,7 @@ as String,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: 
 as DateTime,stepRemain: null == stepRemain ? _self.stepRemain : stepRemain // ignore: cast_nullable_to_non_nullable
 as int,stepTotal: null == stepTotal ? _self.stepTotal : stepTotal // ignore: cast_nullable_to_non_nullable
 as int,blacklistFactors: null == blacklistFactors ? _self._blacklistFactors : blacklistFactors // ignore: cast_nullable_to_non_nullable
-as List<int>,audiences: null == audiences ? _self._audiences : audiences // ignore: cast_nullable_to_non_nullable
+as List<String>,audiences: null == audiences ? _self._audiences : audiences // ignore: cast_nullable_to_non_nullable
 as List<String>,scopes: null == scopes ? _self._scopes : scopes // ignore: cast_nullable_to_non_nullable
 as List<String>,ipAddress: null == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
 as String,userAgent: null == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable

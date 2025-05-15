@@ -46,7 +46,7 @@ abstract class SnPost with _$SnPost {
 abstract class SnPublisher with _$SnPublisher {
   const factory SnPublisher({
     required String id,
-    required int publisherType,
+    required int type,
     required String name,
     required String nick,
     required String bio,

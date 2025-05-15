@@ -206,5 +206,11 @@
   "developerBadgeName": "Developer",
   "developerBadgeDescription": "Contributing to Solar Network's development",
   "translatorBadgeName": "Translator",
-  "translatorBadgeDescription": "Helping translate Solar Network into different languages"
+  "translatorBadgeDescription": "Helping translate Solar Network into different languages",
+  "wallet": "Wallet",
+  "walletCurrencyPoints": "New Solar Points",
+  "walletCurrencyShortPoints": "NSP",
+  "walletCurrencyGolds": "The Solar Dollars",
+  "walletCurrencyShortGolds": "TSD",
+  "retry": "Retry"
 }

@@ -26,7 +26,7 @@ _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
       stepTotal: (json['step_total'] as num).toInt(),
       blacklistFactors:
           (json['blacklist_factors'] as List<dynamic>)
-              .map((e) => (e as num).toInt())
+              .map((e) => e as String)
               .toList(),
       audiences:
           (json['audiences'] as List<dynamic>).map((e) => e as String).toList(),
