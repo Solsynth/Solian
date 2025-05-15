@@ -59,3 +59,44 @@ Map<String, dynamic> _$SnWalletPocketToJson(_SnWalletPocket instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_SnTransaction _$SnTransactionFromJson(Map<String, dynamic> json) =>
+    _SnTransaction(
+      id: json['id'] as String,
+      currency: json['currency'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      remarks: json['remarks'] as String?,
+      type: (json['type'] as num).toInt(),
+      payerWalletId: json['payer_wallet_id'] as String?,
+      payerWallet:
+          json['payer_wallet'] == null
+              ? null
+              : SnWallet.fromJson(json['payer_wallet'] as Map<String, dynamic>),
+      payeeWalletId: json['payee_wallet_id'] as String?,
+      payeeWallet:
+          json['payee_wallet'] == null
+              ? null
+              : SnWallet.fromJson(json['payee_wallet'] as Map<String, dynamic>),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnTransactionToJson(_SnTransaction instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'currency': instance.currency,
+      'amount': instance.amount,
+      'remarks': instance.remarks,
+      'type': instance.type,
+      'payer_wallet_id': instance.payerWalletId,
+      'payer_wallet': instance.payerWallet?.toJson(),
+      'payee_wallet_id': instance.payeeWalletId,
+      'payee_wallet': instance.payeeWallet?.toJson(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };

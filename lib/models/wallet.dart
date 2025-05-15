@@ -35,3 +35,24 @@ abstract class SnWalletPocket with _$SnWalletPocket {
   factory SnWalletPocket.fromJson(Map<String, dynamic> json) =>
       _$SnWalletPocketFromJson(json);
 }
+
+@freezed
+abstract class SnTransaction with _$SnTransaction {
+  const factory SnTransaction({
+    required String id,
+    required String currency,
+    required double amount,
+    required String? remarks,
+    required int type,
+    required String? payerWalletId,
+    required SnWallet? payerWallet,
+    required String? payeeWalletId,
+    required SnWallet? payeeWallet,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnTransaction;
+
+  factory SnTransaction.fromJson(Map<String, dynamic> json) =>
+      _$SnTransactionFromJson(json);
+}
