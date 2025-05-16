@@ -19,9 +19,9 @@ import 'package:island/pods/network.dart';
 part 'relationship.g.dart';
 
 @riverpod
-Future<List<SnRelationship>> sendFriendRequest(Ref ref) async {
+Future<List<SnRelationship>> sentFriendRequest(Ref ref) async {
   final client = ref.read(apiClientProvider);
-  final resp = await client.post('/relationships/requests');
+  final resp = await client.get('/relationships/requests');
   return resp.data
       .map((e) => SnRelationship.fromJson(e))
       .cast<SnRelationship>()
@@ -99,7 +99,7 @@ class RelationshipScreen extends HookConsumerWidget {
 
       final client = ref.read(apiClientProvider);
       await client.post('/relationships/${result.id}/friends');
-      relationshipNotifier.forceRefresh();
+      ref.invalidate(sentFriendRequestProvider);
     }
 
     final submitting = useState(false);
@@ -136,7 +136,7 @@ class RelationshipScreen extends HookConsumerWidget {
     }
 
     final user = ref.watch(userInfoProvider);
-    final requests = ref.watch(sendFriendRequestProvider);
+    final requests = ref.watch(sentFriendRequestProvider);
 
     return AppScaffold(
       appBar: AppBar(title: Text('relationships').tr()),
@@ -151,12 +151,19 @@ class RelationshipScreen extends HookConsumerWidget {
           ),
           if (requests.hasValue && requests.value!.isNotEmpty)
             ListTile(
-              leading: const Icon(Symbols.add),
+              leading: const Icon(Symbols.send),
               title: Text('friendSentRequest').tr(),
               subtitle: Text(
                 'friendSentRequestHint'.plural(requests.value!.length),
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              onTap: () {
+                showModalBottomSheet(
+                  isScrollControlled: true,
+                  context: context,
+                  builder: (context) => const _SentFriendRequestsSheet(),
+                );
+              },
             ),
           const Divider(height: 1),
           Expanded(
@@ -261,6 +268,128 @@ class RelationshipScreen extends HookConsumerWidget {
                       );
                     },
                   ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SentFriendRequestsSheet extends HookConsumerWidget {
+  const _SentFriendRequestsSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final requests = ref.watch(sentFriendRequestProvider);
+
+    Future<void> cancelRequest(SnRelationship request) async {
+      try {
+        final client = ref.read(apiClientProvider);
+        await client.delete('/relationships/${request.accountId}/friends');
+        ref.invalidate(sentFriendRequestProvider);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              top: 16,
+              left: 20,
+              right: 16,
+              bottom: 12,
+            ),
+            child: Row(
+              children: [
+                Text(
+                  'friendSentRequest'.tr(),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Symbols.refresh),
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                  onPressed: () {
+                    ref.invalidate(sentFriendRequestProvider);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.close),
+                  onPressed: () => Navigator.pop(context),
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: requests.when(
+              data:
+                  (items) =>
+                      items.isEmpty
+                          ? Center(
+                            child: Text(
+                              'friendSentRequestEmpty'.tr(),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                          : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: items.length,
+                            itemBuilder: (context, index) {
+                              final request = items[index];
+                              final account = request.related;
+                              return ListTile(
+                                leading: ProfilePictureWidget(
+                                  fileId: account.profile.pictureId,
+                                ),
+                                title: Text(account.nick),
+                                subtitle: Text('@${account.name}'),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (request.expiredAt != null)
+                                      Badge(
+                                        label: Text(
+                                          'requestExpiredIn'.tr(
+                                            args: [
+                                              RelativeTime(
+                                                context,
+                                              ).format(request.expiredAt!),
+                                            ],
+                                          ),
+                                        ),
+                                        backgroundColor:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.tertiary,
+                                        textColor:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onTertiary,
+                                      ),
+                                    IconButton(
+                                      icon: const Icon(Symbols.close),
+                                      onPressed: () => cancelRequest(request),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
             ),
           ),
         ],

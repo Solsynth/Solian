@@ -222,6 +222,7 @@
   "friendRequestDeclined": "Declined friend request from {}",
   "requestExpiredIn": "Expired in {}",
   "friendSentRequest": "Sent Friend Requests",
+  "friendSentRequestEmpty": "No sent friend requests",
   "friendSentRequestHint": {
     "one": "{} friend request sent",
     "other": "{} friend requests sent"

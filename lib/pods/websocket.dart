@@ -14,7 +14,7 @@ part 'websocket.freezed.dart';
 part 'websocket.g.dart';
 
 @freezed
-class WebSocketState with _$WebSocketState {
+abstract class WebSocketState with _$WebSocketState {
   const factory WebSocketState.connected() = _Connected;
   const factory WebSocketState.connecting() = _Connecting;
   const factory WebSocketState.disconnected() = _Disconnected;
@@ -72,9 +72,7 @@ class WebSocketService {
     log('[WebSocket] Trying connecting to $url');
     try {
       if (kIsWeb) {
-        _channel = WebSocketChannel.connect(
-          Uri.parse(url)..queryParameters['tk'] = atk,
-        );
+        _channel = WebSocketChannel.connect(Uri.parse('$url?tk=$atk'));
       } else {
         _channel = IOWebSocketChannel.connect(
           Uri.parse(url),

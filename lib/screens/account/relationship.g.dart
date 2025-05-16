@@ -6,25 +6,25 @@ part of 'relationship.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sendFriendRequestHash() => r'0fc0a3866b64df8b547f831fdb7db47929e2c9ff';
+String _$sentFriendRequestHash() => r'cb134439280d361af585c3108fdd12543ac84130';
 
-/// See also [sendFriendRequest].
-@ProviderFor(sendFriendRequest)
-final sendFriendRequestProvider =
+/// See also [sentFriendRequest].
+@ProviderFor(sentFriendRequest)
+final sentFriendRequestProvider =
     AutoDisposeFutureProvider<List<SnRelationship>>.internal(
-      sendFriendRequest,
-      name: r'sendFriendRequestProvider',
+      sentFriendRequest,
+      name: r'sentFriendRequestProvider',
       debugGetCreateSourceHash:
           const bool.fromEnvironment('dart.vm.product')
               ? null
-              : _$sendFriendRequestHash,
+              : _$sentFriendRequestHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef SendFriendRequestRef =
+typedef SentFriendRequestRef =
     AutoDisposeFutureProviderRef<List<SnRelationship>>;
 String _$relationshipListNotifierHash() =>
     r'ad352e8b10641820d5acac27b26ad1bb0b59b67f';

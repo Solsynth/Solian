@@ -13,11 +13,17 @@ part of 'websocket.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$WebSocketState {
+mixin _$WebSocketState implements DiagnosticableTreeMixin {
 
 
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'WebSocketState'))
+    ;
+}
 
 @override
 bool operator ==(Object other) {
@@ -29,7 +35,7 @@ bool operator ==(Object other) {
 int get hashCode => runtimeType.hashCode;
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState()';
 }
 
@@ -45,7 +51,7 @@ $WebSocketStateCopyWith(WebSocketState _, $Res Function(WebSocketState) __);
 /// @nodoc
 
 
-class _Connected implements WebSocketState {
+class _Connected with DiagnosticableTreeMixin implements WebSocketState {
   const _Connected();
   
 
@@ -53,6 +59,12 @@ class _Connected implements WebSocketState {
 
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'WebSocketState.connected'))
+    ;
+}
 
 @override
 bool operator ==(Object other) {
@@ -64,7 +76,7 @@ bool operator ==(Object other) {
 int get hashCode => runtimeType.hashCode;
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState.connected()';
 }
 
@@ -77,7 +89,7 @@ String toString() {
 /// @nodoc
 
 
-class _Connecting implements WebSocketState {
+class _Connecting with DiagnosticableTreeMixin implements WebSocketState {
   const _Connecting();
   
 
@@ -85,6 +97,12 @@ class _Connecting implements WebSocketState {
 
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'WebSocketState.connecting'))
+    ;
+}
 
 @override
 bool operator ==(Object other) {
@@ -96,7 +114,7 @@ bool operator ==(Object other) {
 int get hashCode => runtimeType.hashCode;
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState.connecting()';
 }
 
@@ -109,7 +127,7 @@ String toString() {
 /// @nodoc
 
 
-class _Disconnected implements WebSocketState {
+class _Disconnected with DiagnosticableTreeMixin implements WebSocketState {
   const _Disconnected();
   
 
@@ -117,6 +135,12 @@ class _Disconnected implements WebSocketState {
 
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'WebSocketState.disconnected'))
+    ;
+}
 
 @override
 bool operator ==(Object other) {
@@ -128,7 +152,7 @@ bool operator ==(Object other) {
 int get hashCode => runtimeType.hashCode;
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState.disconnected()';
 }
 
@@ -141,7 +165,7 @@ String toString() {
 /// @nodoc
 
 
-class _Error implements WebSocketState {
+class _Error with DiagnosticableTreeMixin implements WebSocketState {
   const _Error(this.message);
   
 
@@ -154,6 +178,12 @@ class _Error implements WebSocketState {
 _$ErrorCopyWith<_Error> get copyWith => __$ErrorCopyWithImpl<_Error>(this, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'WebSocketState.error'))
+    ..add(DiagnosticsProperty('message', message));
+}
 
 @override
 bool operator ==(Object other) {
@@ -165,7 +195,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,message);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState.error(message: $message)';
 }
 
@@ -206,7 +236,7 @@ as String,
 
 
 /// @nodoc
-mixin _$WebSocketPacket {
+mixin _$WebSocketPacket implements DiagnosticableTreeMixin {
 
  String get type; Map<String, dynamic>? get data; String? get errorMessage;
 /// Create a copy of WebSocketPacket
@@ -218,6 +248,12 @@ $WebSocketPacketCopyWith<WebSocketPacket> get copyWith => _$WebSocketPacketCopyW
   /// Serializes this WebSocketPacket to a JSON map.
   Map<String, dynamic> toJson();
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'WebSocketPacket'))
+    ..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('data', data))..add(DiagnosticsProperty('errorMessage', errorMessage));
+}
 
 @override
 bool operator ==(Object other) {
@@ -229,7 +265,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(data),errorMessage);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketPacket(type: $type, data: $data, errorMessage: $errorMessage)';
 }
 
@@ -273,7 +309,7 @@ as String?,
 /// @nodoc
 @JsonSerializable()
 
-class _WebSocketPacket implements WebSocketPacket {
+class _WebSocketPacket with DiagnosticableTreeMixin implements WebSocketPacket {
   const _WebSocketPacket({required this.type, required final  Map<String, dynamic>? data, required this.errorMessage}): _data = data;
   factory _WebSocketPacket.fromJson(Map<String, dynamic> json) => _$WebSocketPacketFromJson(json);
 
@@ -299,6 +335,12 @@ _$WebSocketPacketCopyWith<_WebSocketPacket> get copyWith => __$WebSocketPacketCo
 Map<String, dynamic> toJson() {
   return _$WebSocketPacketToJson(this, );
 }
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'WebSocketPacket'))
+    ..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('data', data))..add(DiagnosticsProperty('errorMessage', errorMessage));
+}
 
 @override
 bool operator ==(Object other) {
@@ -310,7 +352,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(_data),errorMessage);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketPacket(type: $type, data: $data, errorMessage: $errorMessage)';
 }
 
