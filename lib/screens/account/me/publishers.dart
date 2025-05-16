@@ -59,7 +59,11 @@ class ManagedPublisherScreen extends HookConsumerWidget {
                     trailing: const Icon(Symbols.chevron_right),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                     onTap: () {
-                      context.router.push(NewPublisherRoute());
+                      context.router.push(NewPublisherRoute()).then((value) {
+                        if (value != null) {
+                          ref.invalidate(publishersManagedProvider);
+                        }
+                      });
                     },
                   ),
                   const Divider(height: 1),

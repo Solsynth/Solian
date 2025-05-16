@@ -154,7 +154,6 @@
   "language": "Language",
   "settingsDisplayLanguage": "Display Language",
   "languageFollowSystem": "Follow System",
-  "publisherUnselected": "Unselected",
   "postsCreatedCount": "Posts",
   "stickerPacksCreatedCount": "Sticker Packs",
   "stickersCreatedCount": "Stickers",
@@ -212,5 +211,6 @@
   "walletCurrencyShortPoints": "NSP",
   "walletCurrencyGolds": "The Solar Dollars",
   "walletCurrencyShortGolds": "TSD",
-  "retry": "Retry"
+  "retry": "Retry",
+  "creatorHubUnselectedHint": "Pick / create a publisher to get started."
 }

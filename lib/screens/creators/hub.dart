@@ -79,8 +79,11 @@ class CreatorHubScreen extends HookConsumerWidget {
               hint: CircleAvatar(
                 radius: 16,
                 child: Icon(
-                  Symbols.unknown_med,
-                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  Symbols.person,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSecondaryContainer.withOpacity(0.9),
+                  fill: 1,
                 ),
               ).center().padding(right: 8),
               items: [...publishersMenu],
@@ -129,27 +132,75 @@ class CreatorHubScreen extends HookConsumerWidget {
       body: publisherStats.when(
         data:
             (stats) => SingleChildScrollView(
-              child: Column(
-                children: [
-                  if (stats != null)
-                    _PublisherStatsWidget(
-                      stats: stats,
-                    ).padding(vertical: 12, horizontal: 12),
-                  if (currentPublisher.value != null)
-                    ListTile(
-                      minTileHeight: 48,
-                      title: Text('stickers').tr(),
-                      trailing: Icon(Symbols.chevron_right),
-                      leading: const Icon(Symbols.sticky_note),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                      onTap: () {
-                        context.router.push(
-                          StickersRoute(pubName: currentPublisher.value!.name),
-                        );
-                      },
-                    ),
-                ],
-              ),
+              child:
+                  currentPublisher.value == null
+                      ? Column(
+                        children: [
+                          const Gap(24),
+                          const Icon(Symbols.info, size: 32).padding(bottom: 4),
+                          Text(
+                            'creatorHubUnselectedHint',
+                            textAlign: TextAlign.center,
+                          ).tr(),
+                          const Gap(24),
+                          const Divider(height: 1),
+                          ...(publishers.value?.map(
+                                (publisher) => ListTile(
+                                  leading: ProfilePictureWidget(
+                                    fileId: publisher.pictureId,
+                                  ),
+                                  title: Text(publisher.nick),
+                                  subtitle: Text('@${publisher.name}'),
+                                  onTap: () {
+                                    currentPublisher.value = publisher;
+                                  },
+                                ),
+                              ) ??
+                              []),
+                          ListTile(
+                            leading: const CircleAvatar(
+                              child: Icon(Symbols.add),
+                            ),
+                            title: Text('createPublisher').tr(),
+                            subtitle: Text('createPublisherHint').tr(),
+                            trailing: const Icon(Symbols.chevron_right),
+                            onTap: () {
+                              context.router.push(NewPublisherRoute()).then((
+                                value,
+                              ) {
+                                if (value != null) {
+                                  ref.invalidate(publishersManagedProvider);
+                                }
+                              });
+                            },
+                          ),
+                        ],
+                      )
+                      : Column(
+                        children: [
+                          if (stats != null)
+                            _PublisherStatsWidget(
+                              stats: stats,
+                            ).padding(vertical: 12, horizontal: 12),
+                          if (currentPublisher.value != null)
+                            ListTile(
+                              minTileHeight: 48,
+                              title: Text('stickers').tr(),
+                              trailing: Icon(Symbols.chevron_right),
+                              leading: const Icon(Symbols.sticky_note),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              onTap: () {
+                                context.router.push(
+                                  StickersRoute(
+                                    pubName: currentPublisher.value!.name,
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
             ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => const SizedBox.shrink(),
