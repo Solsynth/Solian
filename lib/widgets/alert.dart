@@ -53,7 +53,7 @@ void showLoadingModal(BuildContext context) {
             color: Colors.black54,
             child: Center(
               child: Material(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 elevation: 4,
                 child: Column(

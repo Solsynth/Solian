@@ -471,6 +471,12 @@ class ChatRoomScreen extends HookConsumerWidget {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Symbols.video_call),
+            onPressed: () {
+              showInfoAlert('Oops', 'Not implemented yet...');
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
               context.router.push(ChatDetailRoute(id: id));

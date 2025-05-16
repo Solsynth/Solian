@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -10,14 +11,17 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/models/file.dart';
+import 'package:island/models/realm.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/file.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/realms/selection_dropdown.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -34,6 +38,8 @@ Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
       .toList();
 }
 
+final chatFabKey = GlobalKey<ExpandableFabState>();
+
 @RoutePage()
 class ChatListScreen extends HookConsumerWidget {
   const ChatListScreen({super.key});
@@ -41,8 +47,6 @@ class ChatListScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chats = ref.watch(chatroomsJoinedProvider);
-
-    final fabKey = useMemoized(() => GlobalKey<ExpandableFabState>(), []);
 
     Future<void> createDirectMessage() async {
       final result = await showModalBottomSheet(
@@ -78,7 +82,7 @@ class ChatListScreen extends HookConsumerWidget {
       ),
       floatingActionButtonLocation: ExpandableFab.location,
       floatingActionButton: ExpandableFab(
-        key: fabKey,
+        key: chatFabKey,
         distance: 75,
         type: ExpandableFabType.up,
         childrenAnimation: ExpandableFabAnimation.none,
@@ -88,7 +92,7 @@ class ChatListScreen extends HookConsumerWidget {
           ).colorScheme.surface.withAlpha((255 * 0.5).round()),
         ),
         openButtonBuilder: RotateFloatingActionButtonBuilder(
-          child: const Icon(Symbols.add, size: 28),
+          child: const Icon(Icons.add),
           fabSize: ExpandableFabSize.regular,
           foregroundColor:
               Theme.of(context).floatingActionButtonTheme.foregroundColor,
@@ -96,8 +100,7 @@ class ChatListScreen extends HookConsumerWidget {
               Theme.of(context).floatingActionButtonTheme.backgroundColor,
         ),
         closeButtonBuilder: DefaultFloatingActionButtonBuilder(
-          heroTag: Key("chat-page-fab"),
-          child: const Icon(Symbols.close, size: 28),
+          child: const Icon(Icons.close),
           fabSize: ExpandableFabSize.regular,
           foregroundColor:
               Theme.of(context).floatingActionButtonTheme.foregroundColor,
@@ -113,6 +116,7 @@ class ChatListScreen extends HookConsumerWidget {
                 heroTag: null,
                 tooltip: 'createChatRoom'.tr(),
                 onPressed: () {
+                  chatFabKey.currentState?.toggle();
                   context.pushRoute(NewChatRoute()).then((value) {
                     if (value != null) {
                       ref.invalidate(chatroomsJoinedProvider);
@@ -130,7 +134,10 @@ class ChatListScreen extends HookConsumerWidget {
               FloatingActionButton(
                 heroTag: null,
                 tooltip: 'createDirectMessage'.tr(),
-                onPressed: createDirectMessage,
+                onPressed: () {
+                  chatFabKey.currentState?.toggle();
+                  createDirectMessage();
+                },
                 child: const Icon(Symbols.communication),
               ),
             ],
@@ -234,12 +241,18 @@ class EditChatScreen extends HookConsumerWidget {
 
     final chat = ref.watch(chatroomProvider(id));
 
+    final joinedRealms = ref.watch(realmsJoinedProvider);
+    final currentRealm = useState<SnRealm?>(null);
+
     useEffect(() {
       if (chat.value != null) {
         nameController.text = chat.value!.name;
         descriptionController.text = chat.value!.description;
         picture.value = chat.value!.picture;
         background.value = chat.value!.background;
+        currentRealm.value = joinedRealms.value?.firstWhereOrNull(
+          (realm) => realm.id == chat.value!.realmId,
+        );
       }
       return;
     }, [chat]);
@@ -322,6 +335,7 @@ class EditChatScreen extends HookConsumerWidget {
             'description': descriptionController.text,
             'background_id': background.value?.id,
             'picture_id': picture.value?.id,
+            'realm_id': currentRealm.value?.id,
           },
           options: Options(method: id == null ? 'POST' : 'PATCH'),
         );
@@ -342,6 +356,19 @@ class EditChatScreen extends HookConsumerWidget {
       ),
       body: Column(
         children: [
+          RealmSelectionDropdown(
+            value: currentRealm.value,
+            realms: joinedRealms.when(
+              data: (realms) => realms,
+              loading: () => [],
+              error: (_, __) => [],
+            ),
+            onChanged: (SnRealm? value) {
+              currentRealm.value = value;
+            },
+            isLoading: joinedRealms.isLoading,
+            error: joinedRealms.error?.toString(),
+          ),
           AspectRatio(
             aspectRatio: 16 / 7,
             child: Stack(

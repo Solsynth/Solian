@@ -58,6 +58,7 @@ abstract class SnPublisher with _$SnPublisher {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    required String? realmId,
   }) = _SnPublisher;
 
   factory SnPublisher.fromJson(Map<String, dynamic> json) =>

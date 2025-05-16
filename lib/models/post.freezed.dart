@@ -370,7 +370,7 @@ $SnPublisherCopyWith<$Res> get publisher {
 /// @nodoc
 mixin _$SnPublisher {
 
- String get id; int get type; String get name; String get nick; String get bio; String? get pictureId; SnCloudFile? get picture; String? get backgroundId; SnCloudFile? get background; String? get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; int get type; String get name; String get nick; String get bio; String? get pictureId; SnCloudFile? get picture; String? get backgroundId; SnCloudFile? get background; String? get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String? get realmId;
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -383,16 +383,16 @@ $SnPublisherCopyWith<SnPublisher> get copyWith => _$SnPublisherCopyWithImpl<SnPu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.pictureId, pictureId) || other.pictureId == pictureId)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.backgroundId, backgroundId) || other.backgroundId == backgroundId)&&(identical(other.background, background) || other.background == background)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.pictureId, pictureId) || other.pictureId == pictureId)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.backgroundId, backgroundId) || other.backgroundId == backgroundId)&&(identical(other.background, background) || other.background == background)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,pictureId,picture,backgroundId,background,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,pictureId,picture,backgroundId,background,accountId,createdAt,updatedAt,deletedAt,realmId);
 
 @override
 String toString() {
-  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, pictureId: $pictureId, picture: $picture, backgroundId: $backgroundId, background: $background, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, pictureId: $pictureId, picture: $picture, backgroundId: $backgroundId, background: $background, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId)';
 }
 
 
@@ -403,7 +403,7 @@ abstract mixin class $SnPublisherCopyWith<$Res>  {
   factory $SnPublisherCopyWith(SnPublisher value, $Res Function(SnPublisher) _then) = _$SnPublisherCopyWithImpl;
 @useResult
 $Res call({
- String id, int type, String name, String nick, String bio, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, String? accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int type, String name, String nick, String bio, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, String? accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String? realmId
 });
 
 
@@ -420,7 +420,7 @@ class _$SnPublisherCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? accountId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? accountId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? realmId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -435,7 +435,8 @@ as SnCloudFile?,accountId: freezed == accountId ? _self.accountId : accountId //
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 /// Create a copy of SnPublisher
@@ -470,7 +471,7 @@ $SnCloudFileCopyWith<$Res>? get background {
 @JsonSerializable()
 
 class _SnPublisher implements SnPublisher {
-  const _SnPublisher({required this.id, required this.type, required this.name, required this.nick, required this.bio, required this.pictureId, required this.picture, required this.backgroundId, required this.background, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnPublisher({required this.id, required this.type, required this.name, required this.nick, required this.bio, required this.pictureId, required this.picture, required this.backgroundId, required this.background, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.realmId});
   factory _SnPublisher.fromJson(Map<String, dynamic> json) => _$SnPublisherFromJson(json);
 
 @override final  String id;
@@ -486,6 +487,7 @@ class _SnPublisher implements SnPublisher {
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
+@override final  String? realmId;
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
@@ -500,16 +502,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.pictureId, pictureId) || other.pictureId == pictureId)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.backgroundId, backgroundId) || other.backgroundId == backgroundId)&&(identical(other.background, background) || other.background == background)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.pictureId, pictureId) || other.pictureId == pictureId)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.backgroundId, backgroundId) || other.backgroundId == backgroundId)&&(identical(other.background, background) || other.background == background)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,pictureId,picture,backgroundId,background,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,pictureId,picture,backgroundId,background,accountId,createdAt,updatedAt,deletedAt,realmId);
 
 @override
 String toString() {
-  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, pictureId: $pictureId, picture: $picture, backgroundId: $backgroundId, background: $background, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, pictureId: $pictureId, picture: $picture, backgroundId: $backgroundId, background: $background, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId)';
 }
 
 
@@ -520,7 +522,7 @@ abstract mixin class _$SnPublisherCopyWith<$Res> implements $SnPublisherCopyWith
   factory _$SnPublisherCopyWith(_SnPublisher value, $Res Function(_SnPublisher) _then) = __$SnPublisherCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int type, String name, String nick, String bio, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, String? accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int type, String name, String nick, String bio, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, String? accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String? realmId
 });
 
 
@@ -537,7 +539,7 @@ class __$SnPublisherCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? accountId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? accountId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? realmId = freezed,}) {
   return _then(_SnPublisher(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -552,7 +554,8 @@ as SnCloudFile?,accountId: freezed == accountId ? _self.accountId : accountId //
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

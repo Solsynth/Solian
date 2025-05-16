@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:dio/dio.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -18,6 +18,7 @@ import 'package:island/services/file.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/realms/selection_dropdown.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -268,6 +269,9 @@ class EditPublisherScreen extends HookConsumerWidget {
         nameController.text = publisher.value!.name;
         nickController.text = publisher.value!.nick;
         bioController.text = publisher.value!.bio;
+        currentRealm.value = joinedRealms.value?.firstWhereOrNull(
+          (realm) => realm.id == publisher.value!.realmId,
+        );
       }
       return null;
     }, [publisher]);
@@ -310,54 +314,18 @@ class EditPublisherScreen extends HookConsumerWidget {
       ),
       body: Column(
         children: [
-          DropdownButtonHideUnderline(
-            child: DropdownButton2<SnRealm?>(
-              isExpanded: true,
-              hint: Text('realmSelection').tr(),
-              value: currentRealm.value,
-              items: [
-                DropdownMenuItem<SnRealm?>(
-                  value: null,
-                  child: Row(
-                    spacing: 12,
-                    children: [
-                      CircleAvatar(radius: 16, child: Icon(Symbols.person)),
-                      Text('publisherIndividual').tr(),
-                    ],
-                  ),
-                ),
-                ...joinedRealms.when(
-                  data:
-                      (realms) =>
-                          realms
-                              .map(
-                                (realm) => DropdownMenuItem<SnRealm?>(
-                                  value: realm,
-                                  child: Row(
-                                    spacing: 12,
-                                    children: [
-                                      ProfilePictureWidget(
-                                        fileId: realm.pictureId,
-                                        fallbackIcon: Symbols.workspaces,
-                                        radius: 16,
-                                      ),
-                                      Text(realm.name),
-                                    ],
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                  loading: () => [],
-                  error: (_, __) => [],
-                ),
-              ],
-              onChanged: (SnRealm? value) {
-                currentRealm.value = value;
-              },
-              buttonStyleData: ButtonStyleData(
-                padding: const EdgeInsets.only(left: 4, right: 16),
-              ),
+          RealmSelectionDropdown(
+            value: currentRealm.value,
+            realms: joinedRealms.when(
+              data: (realms) => realms,
+              loading: () => [],
+              error: (_, __) => [],
             ),
+            onChanged: (SnRealm? value) {
+              currentRealm.value = value;
+            },
+            isLoading: joinedRealms.isLoading,
+            error: joinedRealms.error?.toString(),
           ),
           AspectRatio(
             aspectRatio: 16 / 7,
