@@ -10,6 +10,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/widgets/account/status.dart';
+import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -91,6 +92,11 @@ class AccountScreen extends HookConsumerWidget {
                   AccountStatusCreationWidget(uname: user.value!.name),
                 ],
               ),
+            ).padding(horizontal: 8),
+            LevelingProgressCard(
+              level: user.value!.profile.level,
+              experience: user.value!.profile.experience,
+              progress: user.value!.profile.levelingProgress,
             ).padding(horizontal: 8),
             Row(
               children: [

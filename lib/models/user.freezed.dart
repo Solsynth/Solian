@@ -200,7 +200,7 @@ $SnAccountProfileCopyWith<$Res> get profile {
 /// @nodoc
 mixin _$SnAccountProfile {
 
- String get id; String? get firstName; String? get middleName; String? get lastName; String? get bio; String? get pictureId; SnCloudFile? get picture; String? get backgroundId; SnCloudFile? get background; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String? get firstName; String? get middleName; String? get lastName; String? get bio; String? get pictureId; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; String? get backgroundId; SnCloudFile? get background; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -213,16 +213,16 @@ $SnAccountProfileCopyWith<SnAccountProfile> get copyWith => _$SnAccountProfileCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.pictureId, pictureId) || other.pictureId == pictureId)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.backgroundId, backgroundId) || other.backgroundId == backgroundId)&&(identical(other.background, background) || other.background == background)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.pictureId, pictureId) || other.pictureId == pictureId)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.backgroundId, backgroundId) || other.backgroundId == backgroundId)&&(identical(other.background, background) || other.background == background)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,middleName,lastName,bio,pictureId,picture,backgroundId,background,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,firstName,middleName,lastName,bio,pictureId,experience,level,levelingProgress,picture,backgroundId,background,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, pictureId: $pictureId, picture: $picture, backgroundId: $backgroundId, background: $background, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, pictureId: $pictureId, experience: $experience, level: $level, levelingProgress: $levelingProgress, picture: $picture, backgroundId: $backgroundId, background: $background, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -233,7 +233,7 @@ abstract mixin class $SnAccountProfileCopyWith<$Res>  {
   factory $SnAccountProfileCopyWith(SnAccountProfile value, $Res Function(SnAccountProfile) _then) = _$SnAccountProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String? firstName, String? middleName, String? lastName, String? bio, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? firstName, String? middleName, String? lastName, String? bio, String? pictureId, int experience, int level, double levelingProgress, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -250,7 +250,7 @@ class _$SnAccountProfileCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = freezed,Object? middleName = freezed,Object? lastName = freezed,Object? bio = freezed,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = freezed,Object? middleName = freezed,Object? lastName = freezed,Object? bio = freezed,Object? pictureId = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -258,7 +258,10 @@ as String?,middleName: freezed == middleName ? _self.middleName : middleName // 
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String?,bio: freezed == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
 as String?,pictureId: freezed == pictureId ? _self.pictureId : pictureId // ignore: cast_nullable_to_non_nullable
-as String?,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
+as String?,experience: null == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
+as int,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
+as int,levelingProgress: null == levelingProgress ? _self.levelingProgress : levelingProgress // ignore: cast_nullable_to_non_nullable
+as double,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,backgroundId: freezed == backgroundId ? _self.backgroundId : backgroundId // ignore: cast_nullable_to_non_nullable
 as String?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -299,7 +302,7 @@ $SnCloudFileCopyWith<$Res>? get background {
 @JsonSerializable()
 
 class _SnAccountProfile implements SnAccountProfile {
-  const _SnAccountProfile({required this.id, required this.firstName, required this.middleName, required this.lastName, required this.bio, required this.pictureId, required this.picture, required this.backgroundId, required this.background, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnAccountProfile({required this.id, required this.firstName, required this.middleName, required this.lastName, required this.bio, required this.pictureId, required this.experience, required this.level, required this.levelingProgress, required this.picture, required this.backgroundId, required this.background, required this.createdAt, required this.updatedAt, required this.deletedAt});
   factory _SnAccountProfile.fromJson(Map<String, dynamic> json) => _$SnAccountProfileFromJson(json);
 
 @override final  String id;
@@ -308,6 +311,9 @@ class _SnAccountProfile implements SnAccountProfile {
 @override final  String? lastName;
 @override final  String? bio;
 @override final  String? pictureId;
+@override final  int experience;
+@override final  int level;
+@override final  double levelingProgress;
 @override final  SnCloudFile? picture;
 @override final  String? backgroundId;
 @override final  SnCloudFile? background;
@@ -328,16 +334,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.pictureId, pictureId) || other.pictureId == pictureId)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.backgroundId, backgroundId) || other.backgroundId == backgroundId)&&(identical(other.background, background) || other.background == background)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.pictureId, pictureId) || other.pictureId == pictureId)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.backgroundId, backgroundId) || other.backgroundId == backgroundId)&&(identical(other.background, background) || other.background == background)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,middleName,lastName,bio,pictureId,picture,backgroundId,background,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,firstName,middleName,lastName,bio,pictureId,experience,level,levelingProgress,picture,backgroundId,background,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, pictureId: $pictureId, picture: $picture, backgroundId: $backgroundId, background: $background, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, pictureId: $pictureId, experience: $experience, level: $level, levelingProgress: $levelingProgress, picture: $picture, backgroundId: $backgroundId, background: $background, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -348,7 +354,7 @@ abstract mixin class _$SnAccountProfileCopyWith<$Res> implements $SnAccountProfi
   factory _$SnAccountProfileCopyWith(_SnAccountProfile value, $Res Function(_SnAccountProfile) _then) = __$SnAccountProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? firstName, String? middleName, String? lastName, String? bio, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? firstName, String? middleName, String? lastName, String? bio, String? pictureId, int experience, int level, double levelingProgress, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -365,7 +371,7 @@ class __$SnAccountProfileCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = freezed,Object? middleName = freezed,Object? lastName = freezed,Object? bio = freezed,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = freezed,Object? middleName = freezed,Object? lastName = freezed,Object? bio = freezed,Object? pictureId = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAccountProfile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -373,7 +379,10 @@ as String?,middleName: freezed == middleName ? _self.middleName : middleName // 
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String?,bio: freezed == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
 as String?,pictureId: freezed == pictureId ? _self.pictureId : pictureId // ignore: cast_nullable_to_non_nullable
-as String?,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
+as String?,experience: null == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
+as int,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
+as int,levelingProgress: null == levelingProgress ? _self.levelingProgress : levelingProgress // ignore: cast_nullable_to_non_nullable
+as double,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,backgroundId: freezed == backgroundId ? _self.backgroundId : backgroundId // ignore: cast_nullable_to_non_nullable
 as String?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

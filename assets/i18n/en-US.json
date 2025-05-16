@@ -230,5 +230,8 @@
   "friendSentRequestHint": {
     "one": "{} friend request sent",
     "other": "{} friend requests sent"
-  }
+  },
+  "levelingProgress": "Leveling Progress",
+  "levelingProgressExperience": "{} EXP",
+  "levelingProgressLevel": "Level {}"
 }

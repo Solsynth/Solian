@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <!--
+  <head>
+    <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
 
@@ -14,29 +14,135 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-  <base href="$FLUTTER_BASE_HREF">
+    <base href="$FLUTTER_BASE_HREF" />
 
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+    <meta charset="UTF-8" />
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
+    <meta name="description" content="A new Flutter project." />
 
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="island">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+    <!-- iOS meta tags & icons -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="island" />
+    <link rel="apple-touch-icon" href="icons/Icon-192.png" />
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png" />
 
-  <title>island</title>
-  <link rel="manifest" href="manifest.json">
-</head>
-<body>
-  <script src="https://unpkg.com/sweetalert@2.1.2/dist/sweetalert.min.js" async></script>
-  <script src="flutter_bootstrap.js" async></script>
-  <script>
-    document.oncontextmenu = (evt) => evt.preventDefault();
-  </script>
-</body>
+    <title>island</title>
+    <link rel="manifest" href="manifest.json" />
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+      
+      html,
+      body {
+        font-family: "Rubik", sans-serif;
+      }
+
+      .swal-overlay {
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .swal-modal {
+        background-color: #1a1a1a;
+        border-radius: 28px;
+        padding: 24px;
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .swal-title {
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: 500;
+        margin: 0 0 8px 0;
+      }
+
+      .swal-text {
+        color: rgba(255, 255, 255, 0.87);
+        font-size: 16px;
+        line-height: 1.5;
+        text-align: center;
+        margin: 12px 0;
+      }
+
+      .swal-button {
+        padding: 10px 24px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        text-transform: uppercase;
+        transition: background-color 0.2s;
+        margin: 0 8px;
+        border: none;
+        outline: none;
+      }
+
+      .swal-button--confirm {
+        background-color: #6750A4;
+        color: #ffffff;
+      }
+
+      .swal-button--confirm:hover {
+        background-color: #7c65b5;
+      }
+
+      .swal-button--cancel {
+        background-color: transparent;
+        color: #6750A4;
+      }
+
+      .swal-button--cancel:hover {
+        background-color: rgba(103, 80, 164, 0.08);
+      }
+
+      .swal-icon {
+        border-color: #6750A4;
+        margin: 12px auto;
+      }
+
+      .swal-icon--success__line {
+        background-color: #6750A4;
+      }
+
+      .swal-icon--success__ring {
+        border-color: #6750A4;
+      }
+
+      .swal-icon--warning {
+        border-color: #F2B824;
+      }
+
+      .swal-icon--warning__body, 
+      .swal-icon--warning__dot {
+        background-color: #F2B824;
+      }
+
+      .swal-icon--error {
+        border-color: #DC362E;
+      }
+
+      .swal-icon--error__line {
+        background-color: #DC362E;
+      }
+
+      .swal-footer {
+        margin-top: 16px;
+        padding: 0;
+        border: none;
+        text-align: right;
+      }
+
+    </style>
+  </head>
+  <body>
+    <script
+      src="https://unpkg.com/sweetalert@2.1.2/dist/sweetalert.min.js"
+      async
+    ></script>
+    <script src="flutter_bootstrap.js" async></script>
+    <script>
+      document.oncontextmenu = (evt) => evt.preventDefault();
+    </script>
+  </body>
 </html>

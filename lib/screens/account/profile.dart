@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/account/badge.dart';
+import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -115,7 +116,14 @@ class AccountProfileScreen extends HookConsumerWidget {
                     ).padding(horizontal: 24, bottom: 24),
                   )
                 else
-                  const Gap(16),
+                  const SliverGap(4),
+                SliverToBoxAdapter(
+                  child: LevelingProgressCard(
+                    level: data.profile.level,
+                    experience: data.profile.experience,
+                    progress: data.profile.levelingProgress,
+                  ).padding(horizontal: 20, bottom: 24),
+                ),
                 SliverToBoxAdapter(
                   child: const Divider(height: 1).padding(bottom: 24),
                 ),
