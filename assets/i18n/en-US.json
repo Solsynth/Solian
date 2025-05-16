@@ -80,6 +80,7 @@
   "chat": "Chat",
   "chatMessageHint": "Message in {}",
   "chatDirectMessageHint": "Message to {}",
+  "directMessage": "Direct Message",
   "loading": "Loading...",
   "descriptionNone": "No description yet.",
   "invites": "Invites",

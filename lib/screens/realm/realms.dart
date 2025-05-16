@@ -36,13 +36,28 @@ class RealmListScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final realms = ref.watch(realmsJoinedProvider);
+    final realmInvites = ref.watch(realmInvitesProvider);
 
     return AppScaffold(
       appBar: AppBar(
         title: const Text('realms').tr(),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.email),
+            icon: Badge(
+              label: Text(
+                realmInvites.when(
+                  data: (invites) => invites.length.toString(),
+                  error: (_, __) => '0',
+                  loading: () => '0',
+                ),
+              ),
+              isLabelVisible: realmInvites.when(
+                data: (invites) => invites.isNotEmpty,
+                error: (_, __) => false,
+                loading: () => false,
+              ),
+              child: const Icon(Symbols.email),
+            ),
             onPressed: () {
               showModalBottomSheet(
                 context: context,

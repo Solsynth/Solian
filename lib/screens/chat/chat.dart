@@ -28,6 +28,50 @@ import 'package:styled_widget/styled_widget.dart';
 
 part 'chat.g.dart';
 
+class ChatRoomListTile extends StatelessWidget {
+  final SnChatRoom room;
+  final bool isDirect;
+  final Widget? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const ChatRoomListTile({
+    super.key,
+    required this.room,
+    this.isDirect = false,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading:
+          isDirect
+              ? ProfilePictureWidget(
+                fileId: room.members!.first.account.profile.pictureId,
+              )
+              : room.pictureId == null
+              ? CircleAvatar(child: Text(room.name[0].toUpperCase()))
+              : ProfilePictureWidget(fileId: room.pictureId),
+      title: Text(isDirect ? room.members!.first.account.nick : room.name),
+      subtitle:
+          subtitle != null
+              ? subtitle!
+              : isDirect
+              ? Text('@${room.members!.first.account.name}')
+              : Text(room.description),
+      trailing: trailing,
+      onTap:
+          onTap ??
+          () {
+            context.pushRoute(ChatRoomRoute(id: room.id));
+          },
+    );
+  }
+}
+
 @riverpod
 Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
   final client = ref.watch(apiClientProvider);
@@ -47,6 +91,7 @@ class ChatListScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chats = ref.watch(chatroomsJoinedProvider);
+    final chatInvites = ref.watch(chatroomInvitesProvider);
 
     Future<void> createDirectMessage() async {
       final result = await showModalBottomSheet(
@@ -68,7 +113,21 @@ class ChatListScreen extends HookConsumerWidget {
         title: Text('chat').tr(),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.email),
+            icon: Badge(
+              label: Text(
+                chatInvites.when(
+                  data: (invites) => invites.length.toString(),
+                  error: (_, __) => '0',
+                  loading: () => '0',
+                ),
+              ),
+              isLabelVisible: chatInvites.when(
+                data: (invites) => invites.isNotEmpty,
+                error: (_, __) => false,
+                loading: () => false,
+              ),
+              child: const Icon(Symbols.email),
+            ),
             onPressed: () {
               showModalBottomSheet(
                 isScrollControlled: true,
@@ -156,31 +215,7 @@ class ChatListScreen extends HookConsumerWidget {
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
-                  if (item.type == 1) {
-                    return ListTile(
-                      leading: ProfilePictureWidget(
-                        fileId: item.members!.first.account.profile.pictureId,
-                      ),
-                      title: Text(item.members!.first.account.nick),
-                      subtitle: Text("An direct message"),
-                      onTap: () {
-                        context.pushRoute(ChatRoomRoute(id: item.id));
-                      },
-                    );
-                  }
-                  return ListTile(
-                    leading:
-                        item.pictureId == null
-                            ? CircleAvatar(
-                              child: Text(item.name[0].toUpperCase()),
-                            )
-                            : ProfilePictureWidget(fileId: item.pictureId),
-                    title: Text(item.name),
-                    subtitle: Text(item.description),
-                    onTap: () {
-                      context.pushRoute(ChatRoomRoute(id: item.id));
-                    },
-                  );
+                  return ChatRoomListTile(room: item, isDirect: item.type == 1);
                 },
               ),
             ),
@@ -535,21 +570,36 @@ class _ChatInvitesSheet extends HookConsumerWidget {
                             itemCount: items.length,
                             itemBuilder: (context, index) {
                               final invite = items[index];
-                              return ListTile(
-                                leading: ProfilePictureWidget(
-                                  fileId: invite.chatRoom!.pictureId,
-                                  radius: 24,
-                                  fallbackIcon: Symbols.group,
+                              return ChatRoomListTile(
+                                room: invite.chatRoom!,
+                                isDirect: invite.chatRoom!.type == 1,
+                                subtitle: Row(
+                                  spacing: 6,
+                                  children: [
+                                    Flexible(
+                                      child:
+                                          Text(
+                                            invite.role >= 100
+                                                ? 'permissionOwner'
+                                                : invite.role >= 50
+                                                ? 'permissionModerator'
+                                                : 'permissionMember',
+                                          ).tr(),
+                                    ),
+                                    if (invite.chatRoom!.type == 1)
+                                      Badge(
+                                        label: Text('directMessage').tr(),
+                                        backgroundColor:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                        textColor:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimary,
+                                      ),
+                                  ],
                                 ),
-                                title: Text(invite.chatRoom!.name),
-                                subtitle:
-                                    Text(
-                                      invite.role >= 100
-                                          ? 'permissionOwner'
-                                          : invite.role >= 50
-                                          ? 'permissionModerator'
-                                          : 'permissionMember',
-                                    ).tr(),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
