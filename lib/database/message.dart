@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:island/models/chat.dart';
+import 'package:island/models/file.dart';
 
 class ChatMessages extends Table {
   TextColumn get id => text()();
@@ -23,6 +24,7 @@ class LocalChatMessage {
   final DateTime createdAt;
   MessageStatus status;
   final String? nonce;
+  List<UniversalFile>? localAttachments;
 
   LocalChatMessage({
     required this.id,
@@ -30,8 +32,9 @@ class LocalChatMessage {
     required this.senderId,
     required this.data,
     required this.createdAt,
+    required this.nonce,
     required this.status,
-    this.nonce,
+    this.localAttachments,
   });
 
   SnChatMessage toRemoteMessage() {

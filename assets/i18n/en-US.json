@@ -236,5 +236,6 @@
   },
   "levelingProgress": "Leveling Progress",
   "levelingProgressExperience": "{} EXP",
-  "levelingProgressLevel": "Level {}"
+  "levelingProgressLevel": "Level {}",
+  "fileUploadingProgress": "Uploading file #{}: {}%"
 }

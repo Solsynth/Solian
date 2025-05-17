@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/file.dart';
@@ -7,7 +9,13 @@ import 'package:styled_widget/styled_widget.dart';
 class CloudFileList extends StatelessWidget {
   final List<SnCloudFile> files;
   final double maxHeight;
-  const CloudFileList({super.key, required this.files, this.maxHeight = 360});
+  final double maxWidth;
+  const CloudFileList({
+    super.key,
+    required this.files,
+    this.maxHeight = 360,
+    this.maxWidth = double.infinity,
+  });
 
   double calculateAspectRatio() {
     double total = 0;
@@ -44,14 +52,14 @@ class CloudFileList extends StatelessWidget {
 
     if (allImages) {
       return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: maxHeight,
-          minWidth: double.infinity,
-        ),
+        constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
         child: AspectRatio(
           aspectRatio: calculateAspectRatio(),
           child: CarouselView(
-            itemExtent: MediaQuery.of(context).size.width * 0.85,
+            itemExtent: math.min(
+              MediaQuery.of(context).size.width * 0.85,
+              maxWidth * 0.85,
+            ),
             itemSnapping: true,
             shape: RoundedRectangleBorder(
               borderRadius: const BorderRadius.all(Radius.circular(16)),
@@ -63,10 +71,7 @@ class CloudFileList extends StatelessWidget {
     }
 
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: maxHeight,
-        minWidth: double.infinity,
-      ),
+      constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
       child: AspectRatio(
         aspectRatio: calculateAspectRatio(),
         child: ListView.separated(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,10 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 import 'package:uuid/uuid.dart';
 import 'chat.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'room.g.dart';
 
 final messageRepositoryProvider =
     FutureProvider.family<MessageRepository, String>((ref, roomId) async {
@@ -33,29 +38,22 @@ final messageRepositoryProvider =
       return MessageRepository(room!, identity!, apiClient, database);
     });
 
-// Provider for messages with pagination
-final messagesProvider = StateNotifierProvider.family<
-  MessagesNotifier,
-  AsyncValue<List<LocalChatMessage>>,
-  String
->((ref, roomId) => MessagesNotifier(ref, roomId));
-
-class MessagesNotifier
-    extends StateNotifier<AsyncValue<List<LocalChatMessage>>> {
-  final Ref _ref;
-  final String _roomId;
+@riverpod
+class MessagesNotifier extends _$MessagesNotifier {
+  late final String _roomId;
   int _currentPage = 0;
   static const int _pageSize = 20;
   bool _hasMore = true;
 
-  MessagesNotifier(this._ref, this._roomId)
-    : super(const AsyncValue.loading()) {
-    loadInitial();
+  @override
+  FutureOr<List<LocalChatMessage>> build(String roomId) async {
+    _roomId = roomId;
+    return await loadInitial();
   }
 
-  Future<void> loadInitial() async {
+  Future<List<LocalChatMessage>> loadInitial() async {
     try {
-      final repository = await _ref.read(
+      final repository = await ref.read(
         messageRepositoryProvider(_roomId).future,
       );
       final synced = await repository.syncMessages();
@@ -64,11 +62,11 @@ class MessagesNotifier
         take: _pageSize,
         synced: synced,
       );
-      state = AsyncValue.data(messages);
       _currentPage = 0;
       _hasMore = messages.length == _pageSize;
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      return messages;
+    } catch (_) {
+      rethrow;
     }
   }
 
@@ -78,7 +76,7 @@ class MessagesNotifier
     try {
       final currentMessages = state.value ?? [];
       _currentPage++;
-      final repository = await _ref.read(
+      final repository = await ref.read(
         messageRepositoryProvider(_roomId).future,
       );
       final newMessages = await repository.listMessages(
@@ -100,61 +98,49 @@ class MessagesNotifier
   Future<void> sendMessage(
     String content,
     List<UniversalFile> attachments, {
-    SnChatMessage? replyingTo,
-    SnChatMessage? forwardingTo,
     SnChatMessage? editingTo,
+    SnChatMessage? forwardingTo,
+    SnChatMessage? replyingTo,
+    Function(String, Map<int, double>)? onProgress,
   }) async {
     try {
-      final repository = await _ref.read(
+      final repository = await ref.read(
         messageRepositoryProvider(_roomId).future,
       );
-
-      final nonce = const Uuid().v4();
-
-      final baseUrl = _ref.read(serverUrlProvider);
+      final baseUrl = ref.read(serverUrlProvider);
       final atk = await getFreshAtk(
-        _ref.watch(tokenPairProvider),
+        ref.watch(tokenPairProvider),
         baseUrl,
         onRefreshed: (atk, rtk) {
-          setTokenPair(_ref.watch(sharedPreferencesProvider), atk, rtk);
-          _ref.invalidate(tokenPairProvider);
+          setTokenPair(ref.watch(sharedPreferencesProvider), atk, rtk);
+          ref.invalidate(tokenPairProvider);
         },
       );
-      if (atk == null) throw Exception("Unauthorized");
+      if (atk == null) throw ArgumentError('Access token is null');
 
-      LocalChatMessage? pendingMessage;
-      final messageTask = repository.sendMessage(
+      final currentMessages = state.value ?? [];
+      await repository.sendMessage(
         atk,
         baseUrl,
         _roomId,
         content,
-        nonce,
+        const Uuid().v4(),
         attachments: attachments,
-        replyingTo: replyingTo,
-        forwardingTo: forwardingTo,
         editingTo: editingTo,
+        forwardingTo: forwardingTo,
+        replyingTo: replyingTo,
         onPending: (pending) {
-          pendingMessage = pending;
-          final currentMessages = state.value ?? [];
           state = AsyncValue.data([pending, ...currentMessages]);
         },
+        onProgress: onProgress,
       );
 
-      final message = await messageTask;
-
-      final updatedMessages = state.value ?? [];
-      if (pendingMessage != null) {
-        final index = updatedMessages.indexWhere(
-          (m) => m.id == pendingMessage!.id,
-        );
-        if (index >= 0) {
-          final newList = [...updatedMessages];
-          newList[index] = message;
-          state = AsyncValue.data(newList);
-        }
-      } else {
-        state = AsyncValue.data([message, ...updatedMessages]);
-      }
+      // Refresh messages
+      final messages = await repository.listMessages(
+        offset: 0,
+        take: _pageSize,
+      );
+      state = AsyncValue.data(messages);
     } catch (err) {
       showErrorAlert(err);
     }
@@ -162,7 +148,7 @@ class MessagesNotifier
 
   Future<void> retryMessage(String pendingMessageId) async {
     try {
-      final repository = await _ref.read(
+      final repository = await ref.read(
         messageRepositoryProvider(_roomId).future,
       );
       final updatedMessage = await repository.retryMessage(pendingMessageId);
@@ -182,7 +168,7 @@ class MessagesNotifier
 
   Future<void> receiveMessage(SnChatMessage remoteMessage) async {
     try {
-      final repository = await _ref.read(
+      final repository = await ref.read(
         messageRepositoryProvider(_roomId).future,
       );
 
@@ -217,7 +203,7 @@ class MessagesNotifier
 
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {
     try {
-      final repository = await _ref.read(
+      final repository = await ref.read(
         messageRepositoryProvider(_roomId).future,
       );
 
@@ -246,7 +232,7 @@ class MessagesNotifier
 
   Future<void> receiveMessageDeletion(String messageId) async {
     try {
-      final repository = await _ref.read(
+      final repository = await ref.read(
         messageRepositoryProvider(_roomId).future,
       );
 
@@ -265,41 +251,9 @@ class MessagesNotifier
     }
   }
 
-  Future<void> updateMessage(
-    String messageId,
-    String content, {
-    List<SnCloudFile>? attachments,
-    Map<String, dynamic>? meta,
-  }) async {
-    try {
-      final repository = await _ref.read(
-        messageRepositoryProvider(_roomId).future,
-      );
-
-      final updatedMessage = await repository.updateMessage(
-        messageId,
-        content,
-        attachments: attachments,
-        meta: meta,
-      );
-
-      // Update the message in the list
-      final currentMessages = state.value ?? [];
-      final index = currentMessages.indexWhere((m) => m.id == messageId);
-
-      if (index >= 0) {
-        final newList = [...currentMessages];
-        newList[index] = updatedMessage;
-        state = AsyncValue.data(newList);
-      }
-    } catch (err) {
-      showErrorAlert(err);
-    }
-  }
-
   Future<void> deleteMessage(String messageId) async {
     try {
-      final repository = await _ref.read(
+      final repository = await ref.read(
         messageRepositoryProvider(_roomId).future,
       );
 
@@ -320,7 +274,7 @@ class MessagesNotifier
 
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
     try {
-      final repository = await _ref.read(
+      final repository = await ref.read(
         messageRepositoryProvider(_roomId).future,
       );
       return await repository.getMessageById(messageId);
@@ -340,8 +294,8 @@ class ChatRoomScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatRoom = ref.watch(chatroomProvider(id));
     final chatIdentity = ref.watch(chatroomIdentityProvider(id));
-    final messages = ref.watch(messagesProvider(id));
-    final messagesNotifier = ref.read(messagesProvider(id).notifier);
+    final messages = ref.watch(messagesNotifierProvider(id));
+    final messagesNotifier = ref.read(messagesNotifierProvider(id).notifier);
     final ws = ref.watch(websocketProvider);
 
     final messageController = useTextEditingController();
@@ -350,6 +304,8 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messageReplyingTo = useState<SnChatMessage?>(null);
     final messageForwardingTo = useState<SnChatMessage?>(null);
     final messageEditingTo = useState<SnChatMessage?>(null);
+    final attachments = useState<List<UniversalFile>>([]);
+    final attachmentProgress = useState<Map<String, Map<int, double>>>({});
 
     // Add scroll listener for pagination
     useEffect(() {
@@ -385,8 +341,6 @@ class ChatRoomScreen extends HookConsumerWidget {
       return () => subscription.cancel();
     }, [ws, chatRoom]);
 
-    final attachments = useState<List<UniversalFile>>([]);
-
     Future<void> pickPhotoMedia() async {
       final result = await ref
           .watch(imagePickerProvider)
@@ -420,6 +374,12 @@ class ChatRoomScreen extends HookConsumerWidget {
           editingTo: messageEditingTo.value,
           forwardingTo: messageForwardingTo.value,
           replyingTo: messageReplyingTo.value,
+          onProgress: (messageId, progress) {
+            attachmentProgress.value = {
+              ...attachmentProgress.value,
+              messageId: progress,
+            };
+          },
         );
         messageController.clear();
         messageEditingTo.value = null;
@@ -542,12 +502,15 @@ class ChatRoomScreen extends HookConsumerWidget {
                                                 message.toRemoteMessage();
                                         }
                                       },
+                                      progress:
+                                          attachmentProgress.value[message.id],
                                     ),
                                 loading:
                                     () => _MessageBubble(
                                       message: message,
                                       isCurrentUser: false,
                                       onAction: null,
+                                      progress: null,
                                     ),
                                 error: (_, __) => const SizedBox.shrink(),
                               );
@@ -804,11 +767,13 @@ class _MessageBubble extends HookConsumerWidget {
   final LocalChatMessage message;
   final bool isCurrentUser;
   final Function(String action)? onAction;
+  final Map<int, double>? progress;
 
   const _MessageBubble({
     required this.message,
     required this.isCurrentUser,
     required this.onAction,
+    required this.progress,
   });
 
   @override
@@ -914,9 +879,58 @@ class _MessageBubble extends HookConsumerWidget {
                           style: TextStyle(color: textColor),
                         ),
                       if (message.toRemoteMessage().attachments.isNotEmpty)
-                        CloudFileList(
-                          files: message.toRemoteMessage().attachments,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            CloudFileList(
+                              files: message.toRemoteMessage().attachments,
+                              maxWidth: MediaQuery.of(context).size.width * 0.8,
+                            ),
+                          ],
                         ).padding(top: 4),
+                      if (progress != null && progress!.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 8,
+                          children: [
+                            if ((message
+                                    .toRemoteMessage()
+                                    .content
+                                    ?.isNotEmpty ??
+                                false))
+                              const Gap(0),
+                            for (var entry in progress!.entries)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'fileUploadingProgress'.tr(
+                                      args: [
+                                        (entry.key + 1).toString(),
+                                        entry.value.toStringAsFixed(1),
+                                      ],
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: textColor.withOpacity(0.8),
+                                    ),
+                                  ),
+                                  const Gap(4),
+                                  LinearProgressIndicator(
+                                    value: entry.value / 100,
+                                    backgroundColor:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.surfaceVariant,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            const Gap(0),
+                          ],
+                        ),
                       const Gap(4),
                       Row(
                         spacing: 4,
@@ -978,7 +992,7 @@ class _MessageBubble extends HookConsumerWidget {
               (context, ref, _) => GestureDetector(
                 onTap: () {
                   ref
-                      .read(messagesProvider(message.roomId).notifier)
+                      .read(messagesNotifierProvider(message.roomId).notifier)
                       .retryMessage(message.id);
                 },
                 child: const Icon(
@@ -1006,7 +1020,7 @@ class _MessageQuoteWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final messagesNotifier = ref.watch(
-      messagesProvider(message.roomId).notifier,
+      messagesNotifierProvider(message.roomId).notifier,
     );
 
     return FutureBuilder<LocalChatMessage?>(
