@@ -442,10 +442,12 @@ class ChatRoomScreen extends HookConsumerWidget {
                     height: 26,
                     width: 26,
                     child:
-                        room!.type == 1
-                            ? ProfilePictureWidget(
-                              fileId:
-                                  room.members!.first.account.profile.pictureId,
+                        (room!.type == 1 && room.pictureId == null)
+                            ? SplitAvatarWidget(
+                              filesId:
+                                  room.members!
+                                      .map((e) => e.account.profile.pictureId)
+                                      .toList(),
                             )
                             : room.pictureId != null
                             ? ProfilePictureWidget(
@@ -454,15 +456,15 @@ class ChatRoomScreen extends HookConsumerWidget {
                             )
                             : CircleAvatar(
                               child: Text(
-                                room.name[0].toUpperCase(),
+                                room.name![0].toUpperCase(),
                                 style: const TextStyle(fontSize: 12),
                               ),
                             ),
                   ),
                   Text(
-                    room.type == 1
-                        ? room.members!.first.account.nick
-                        : room.name,
+                    (room.type == 1 && room.name == null)
+                        ? room.members!.map((e) => e.account.nick).join(', ')
+                        : room.name!,
                   ).fontSize(19),
                 ],
               ),
@@ -763,7 +765,7 @@ class _ChatInput extends StatelessWidget {
                               ? 'chatDirectMessageHint'.tr(
                                 args: [chatRoom.members!.first.account.nick],
                               )
-                              : 'chatMessageHint'.tr(args: [chatRoom.name]),
+                              : 'chatMessageHint'.tr(args: [chatRoom.name!]),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(

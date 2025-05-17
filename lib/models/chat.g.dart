@@ -8,8 +8,8 @@ part of 'chat.dart';
 
 _SnChatRoom _$SnChatRoomFromJson(Map<String, dynamic> json) => _SnChatRoom(
   id: json['id'] as String,
-  name: json['name'] as String,
-  description: json['description'] as String,
+  name: json['name'] as String?,
+  description: json['description'] as String?,
   type: (json['type'] as num).toInt(),
   isPublic: json['is_public'] as bool,
   pictureId: json['picture_id'] as String?,

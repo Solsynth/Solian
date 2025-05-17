@@ -4,7 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class ResponseErrorWidget extends StatelessWidget {
-  final Error error;
+  final dynamic error;
   final VoidCallback onRetry;
   const ResponseErrorWidget({
     super.key,
@@ -18,13 +18,13 @@ class ResponseErrorWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Icon(Symbols.error_outline, size: 48),
-        const Gap(16),
+        const Gap(4),
         Text(
           error.toString(),
           textAlign: TextAlign.center,
           style: const TextStyle(color: Color(0xFF757575)),
         ),
-        const SizedBox(height: 16),
+        const Gap(8),
         TextButton(onPressed: onRetry, child: const Text('retry').tr()),
       ],
     );

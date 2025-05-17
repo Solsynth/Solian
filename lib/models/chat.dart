@@ -10,8 +10,8 @@ part 'chat.g.dart';
 abstract class SnChatRoom with _$SnChatRoom {
   const factory SnChatRoom({
     required String id,
-    required String name,
-    required String description,
+    required String? name,
+    required String? description,
     required int type,
     required bool isPublic,
     required String? pictureId,

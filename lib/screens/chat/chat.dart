@@ -4,7 +4,6 @@ import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -48,20 +47,27 @@ class ChatRoomListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading:
-          isDirect
-              ? ProfilePictureWidget(
-                fileId: room.members!.first.account.profile.pictureId,
+          (isDirect && room.pictureId == null)
+              ? SplitAvatarWidget(
+                filesId:
+                    room.members!
+                        .map((e) => e.account.profile.pictureId)
+                        .toList(),
               )
               : room.pictureId == null
-              ? CircleAvatar(child: Text(room.name[0].toUpperCase()))
+              ? CircleAvatar(child: Text(room.name![0].toUpperCase()))
               : ProfilePictureWidget(fileId: room.pictureId),
-      title: Text(isDirect ? room.members!.first.account.nick : room.name),
+      title: Text(
+        (isDirect && room.name == null)
+            ? room.members!.map((e) => e.account.nick).join(', ')
+            : room.name!,
+      ),
       subtitle:
           subtitle != null
               ? subtitle!
-              : isDirect
-              ? Text('@${room.members!.first.account.name}')
-              : Text(room.description),
+              : (isDirect && room.description == null)
+              ? Text(room.members!.map((e) => '@${e.account.name}').join(', '))
+              : Text(room.description ?? 'descriptionNone'.tr()),
       trailing: trailing,
       onTap:
           onTap ??
@@ -81,8 +87,6 @@ Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
       .cast<SnChatRoom>()
       .toList();
 }
-
-final chatFabKey = GlobalKey<ExpandableFabState>();
 
 @RoutePage()
 class ChatListScreen extends HookConsumerWidget {
@@ -139,69 +143,41 @@ class ChatListScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      floatingActionButtonLocation: ExpandableFab.location,
-      floatingActionButton: ExpandableFab(
-        key: chatFabKey,
-        distance: 75,
-        type: ExpandableFabType.up,
-        childrenAnimation: ExpandableFabAnimation.none,
-        overlayStyle: ExpandableFabOverlayStyle(
-          color: Theme.of(
-            context,
-          ).colorScheme.surface.withAlpha((255 * 0.5).round()),
-        ),
-        openButtonBuilder: RotateFloatingActionButtonBuilder(
-          child: const Icon(Icons.add),
-          fabSize: ExpandableFabSize.regular,
-          foregroundColor:
-              Theme.of(context).floatingActionButtonTheme.foregroundColor,
-          backgroundColor:
-              Theme.of(context).floatingActionButtonTheme.backgroundColor,
-        ),
-        closeButtonBuilder: DefaultFloatingActionButtonBuilder(
-          child: const Icon(Icons.close),
-          fabSize: ExpandableFabSize.regular,
-          foregroundColor:
-              Theme.of(context).floatingActionButtonTheme.foregroundColor,
-          backgroundColor:
-              Theme.of(context).floatingActionButtonTheme.backgroundColor,
-        ),
-        children: [
-          Row(
-            children: [
-              Text('createChatRoom').tr(),
-              const Gap(20),
-              FloatingActionButton(
-                heroTag: null,
-                tooltip: 'createChatRoom'.tr(),
-                onPressed: () {
-                  chatFabKey.currentState?.toggle();
-                  context.pushRoute(NewChatRoute()).then((value) {
-                    if (value != null) {
-                      ref.invalidate(chatroomsJoinedProvider);
-                    }
-                  });
-                },
-                child: const Icon(Symbols.chat_add_on),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Text('createDirectMessage').tr(),
-              const Gap(20),
-              FloatingActionButton(
-                heroTag: null,
-                tooltip: 'createDirectMessage'.tr(),
-                onPressed: () {
-                  chatFabKey.currentState?.toggle();
-                  createDirectMessage();
-                },
-                child: const Icon(Symbols.communication),
-              ),
-            ],
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            builder:
+                (context) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ListTile(
+                      title: Text('createChatRoom').tr(),
+                      leading: const Icon(Symbols.add),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.pushRoute(NewChatRoute()).then((value) {
+                          if (value != null) {
+                            ref.invalidate(chatroomsJoinedProvider);
+                          }
+                        });
+                      },
+                    ),
+                    ListTile(
+                      title: Text('createDirectMessage').tr(),
+                      leading: const Icon(Symbols.person),
+                      onTap: () {
+                        Navigator.pop(context);
+                        createDirectMessage();
+                      },
+                    ),
+                    Gap(MediaQuery.of(context).padding.bottom + 16),
+                  ],
+                ),
+          );
+        },
+        child: const Icon(Symbols.add),
       ),
       body: chats.when(
         data:
@@ -281,8 +257,8 @@ class EditChatScreen extends HookConsumerWidget {
 
     useEffect(() {
       if (chat.value != null) {
-        nameController.text = chat.value!.name;
-        descriptionController.text = chat.value!.description;
+        nameController.text = chat.value!.name ?? '';
+        descriptionController.text = chat.value!.description ?? '';
         picture.value = chat.value!.picture;
         background.value = chat.value!.background;
         currentRealm.value = joinedRealms.value?.firstWhereOrNull(

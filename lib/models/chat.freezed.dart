@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnChatRoom {
 
- String get id; String get name; String get description; int get type; bool get isPublic; String? get pictureId; SnCloudFile? get picture; String? get backgroundId; SnCloudFile? get background; String? get realmId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members;
+ String get id; String? get name; String? get description; int get type; bool get isPublic; String? get pictureId; SnCloudFile? get picture; String? get backgroundId; SnCloudFile? get background; String? get realmId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members;
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -49,7 +49,7 @@ abstract mixin class $SnChatRoomCopyWith<$Res>  {
   factory $SnChatRoomCopyWith(SnChatRoom value, $Res Function(SnChatRoom) _then) = _$SnChatRoomCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String description, int type, bool isPublic, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
+ String id, String? name, String? description, int type, bool isPublic, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
 });
 
 
@@ -66,12 +66,12 @@ class _$SnChatRoomCopyWithImpl<$Res>
 
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? type = null,Object? isPublic = null,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? realmId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? type = null,Object? isPublic = null,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? realmId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
 as bool,pictureId: freezed == pictureId ? _self.pictureId : pictureId // ignore: cast_nullable_to_non_nullable
 as String?,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
@@ -134,8 +134,8 @@ class _SnChatRoom implements SnChatRoom {
   factory _SnChatRoom.fromJson(Map<String, dynamic> json) => _$SnChatRoomFromJson(json);
 
 @override final  String id;
-@override final  String name;
-@override final  String description;
+@override final  String? name;
+@override final  String? description;
 @override final  int type;
 @override final  bool isPublic;
 @override final  String? pictureId;
@@ -190,7 +190,7 @@ abstract mixin class _$SnChatRoomCopyWith<$Res> implements $SnChatRoomCopyWith<$
   factory _$SnChatRoomCopyWith(_SnChatRoom value, $Res Function(_SnChatRoom) _then) = __$SnChatRoomCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String description, int type, bool isPublic, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
+ String id, String? name, String? description, int type, bool isPublic, String? pictureId, SnCloudFile? picture, String? backgroundId, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
 });
 
 
@@ -207,12 +207,12 @@ class __$SnChatRoomCopyWithImpl<$Res>
 
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? type = null,Object? isPublic = null,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? realmId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? type = null,Object? isPublic = null,Object? pictureId = freezed,Object? picture = freezed,Object? backgroundId = freezed,Object? background = freezed,Object? realmId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,}) {
   return _then(_SnChatRoom(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
 as bool,pictureId: freezed == pictureId ? _self.pictureId : pictureId // ignore: cast_nullable_to_non_nullable
 as String?,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable

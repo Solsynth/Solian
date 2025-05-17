@@ -54,14 +54,20 @@ class ChatDetailScreen extends HookConsumerWidget {
                   leading: PageBackButton(shadows: [iconShadow]),
                   flexibleSpace: FlexibleSpaceBar(
                     background:
-                        currentRoom!.type == 1 &&
+                        (currentRoom!.type == 1 &&
+                                currentRoom.backgroundId != null)
+                            ? CloudImageWidget(
+                              fileId: currentRoom.backgroundId!,
+                            )
+                            : (currentRoom.type == 1 &&
+                                currentRoom.members!.length == 1 &&
                                 currentRoom
                                         .members!
                                         .first
                                         .account
                                         .profile
                                         .backgroundId !=
-                                    null
+                                    null)
                             ? CloudImageWidget(
                               fileId:
                                   currentRoom
@@ -81,9 +87,11 @@ class ChatDetailScreen extends HookConsumerWidget {
                                   Theme.of(context).appBarTheme.backgroundColor,
                             ),
                     title: Text(
-                      currentRoom.type == 1
-                          ? currentRoom.members!.first.account.nick
-                          : currentRoom.name,
+                      (currentRoom.type == 1 && currentRoom.name == null)
+                          ? currentRoom.members!
+                              .map((e) => e.account.name)
+                              .join(', ')
+                          : currentRoom.name!,
                       style: TextStyle(
                         color: Theme.of(context).appBarTheme.foregroundColor,
                         shadows: [iconShadow],
@@ -114,7 +122,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          currentRoom.description,
+                          currentRoom.description ?? 'descriptionNone'.tr(),
                           style: const TextStyle(fontSize: 16),
                         ),
                       ],

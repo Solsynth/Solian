@@ -73,7 +73,11 @@ class RealmListScreen extends HookConsumerWidget {
         heroTag: Key("realms-page-fab"),
         child: const Icon(Symbols.add),
         onPressed: () {
-          context.router.push(NewRealmRoute());
+          context.router.push(NewRealmRoute()).then((value) {
+            if (value != null) {
+              ref.invalidate(realmsJoinedProvider);
+            }
+          });
         },
       ),
       body: RefreshIndicator(

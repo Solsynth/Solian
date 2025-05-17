@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -149,7 +150,11 @@ class WalletScreen extends HookConsumerWidget {
             ],
           );
         },
-        error: (error, stackTrace) => Center(child: Text('Error: $error')),
+        error:
+            (error, stackTrace) => ResponseErrorWidget(
+              error: error,
+              onRetry: () => ref.invalidate(walletCurrentProvider),
+            ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
     );

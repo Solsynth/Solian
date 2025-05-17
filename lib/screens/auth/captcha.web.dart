@@ -23,6 +23,7 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
         final message = event.data as String;
         if (message.startsWith("captcha_tk=")) {
           String token = message.replaceFirst("captcha_tk=", "");
+          // ignore: use_build_context_synchronously
           if (context.mounted) Navigator.pop(context, token);
         }
       }
