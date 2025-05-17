@@ -11,6 +11,7 @@ class ChatMessages extends Table {
   TextColumn get data => text()();
   DateTimeColumn get createdAt => dateTime()();
   IntColumn get status => intEnum<MessageStatus>()();
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -25,6 +26,7 @@ class LocalChatMessage {
   MessageStatus status;
   final String? nonce;
   List<UniversalFile>? localAttachments;
+  bool isRead;
 
   LocalChatMessage({
     required this.id,
@@ -35,6 +37,7 @@ class LocalChatMessage {
     required this.nonce,
     required this.status,
     this.localAttachments,
+    this.isRead = false,
   });
 
   SnChatMessage toRemoteMessage() {
@@ -45,6 +48,7 @@ class LocalChatMessage {
     SnChatMessage message,
     MessageStatus status, {
     String? nonce,
+    bool isRead = false,
   }) {
     return LocalChatMessage(
       id: message.id,
@@ -54,6 +58,7 @@ class LocalChatMessage {
       createdAt: message.createdAt,
       status: status,
       nonce: nonce ?? message.nonce,
+      isRead: isRead,
     );
   }
 }

@@ -457,4 +457,12 @@ class MessageRepository {
       rethrow;
     }
   }
+
+  Future<void> markMessageAsRead(String messageId) async {
+    try {
+      await _database.markMessageAsRead(messageId);
+    } catch (e) {
+      showErrorAlert(e);
+    }
+  }
 }

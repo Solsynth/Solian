@@ -310,7 +310,7 @@ as String?,
 @JsonSerializable()
 
 class _WebSocketPacket with DiagnosticableTreeMixin implements WebSocketPacket {
-  const _WebSocketPacket({required this.type, required final  Map<String, dynamic>? data, required this.errorMessage}): _data = data;
+  const _WebSocketPacket({required this.type, required final  Map<String, dynamic>? data, this.errorMessage}): _data = data;
   factory _WebSocketPacket.fromJson(Map<String, dynamic> json) => _$WebSocketPacketFromJson(json);
 
 @override final  String type;

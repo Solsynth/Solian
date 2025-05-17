@@ -26,7 +26,7 @@ abstract class WebSocketPacket with _$WebSocketPacket {
   const factory WebSocketPacket({
     required String type,
     required Map<String, dynamic>? data,
-    required String? errorMessage,
+    String? errorMessage,
   }) = _WebSocketPacket;
 
   factory WebSocketPacket.fromJson(Map<String, dynamic> json) =>
@@ -87,7 +87,9 @@ class WebSocketService {
               data is Uint8List ? utf8.decode(data) : data.toString();
           final packet = WebSocketPacket.fromJson(jsonDecode(dataStr));
           _streamController.sink.add(packet);
-          log("[WebSocket] Received packet: ${packet.type}");
+          log(
+            "[WebSocket] Received packet: ${packet.type} ${packet.errorMessage}",
+          );
         },
         onDone: () {
           log('[WebSocket] Connection closed, attempting to reconnect...');

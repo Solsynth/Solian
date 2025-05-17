@@ -87,6 +87,19 @@ class $ChatMessagesTable extends ChatMessages
         type: DriftSqlType.int,
         requiredDuringInsert: true,
       ).withConverter<MessageStatus>($ChatMessagesTable.$converterstatus);
+  static const VerificationMeta _isReadMeta = const VerificationMeta('isRead');
+  @override
+  late final GeneratedColumn<bool> isRead = GeneratedColumn<bool>(
+    'is_read',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_read" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -97,6 +110,7 @@ class $ChatMessagesTable extends ChatMessages
     data,
     createdAt,
     status,
+    isRead,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -159,6 +173,12 @@ class $ChatMessagesTable extends ChatMessages
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('is_read')) {
+      context.handle(
+        _isReadMeta,
+        isRead.isAcceptableOrUnknown(data['is_read']!, _isReadMeta),
+      );
+    }
     return context;
   }
 
@@ -207,6 +227,11 @@ class $ChatMessagesTable extends ChatMessages
           data['${effectivePrefix}status'],
         )!,
       ),
+      isRead:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_read'],
+          )!,
     );
   }
 
@@ -228,6 +253,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
   final String data;
   final DateTime createdAt;
   final MessageStatus status;
+  final bool isRead;
   const ChatMessage({
     required this.id,
     required this.roomId,
@@ -237,6 +263,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     required this.data,
     required this.createdAt,
     required this.status,
+    required this.isRead,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -257,6 +284,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
         $ChatMessagesTable.$converterstatus.toSql(status),
       );
     }
+    map['is_read'] = Variable<bool>(isRead);
     return map;
   }
 
@@ -274,6 +302,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       data: Value(data),
       createdAt: Value(createdAt),
       status: Value(status),
+      isRead: Value(isRead),
     );
   }
 
@@ -293,6 +322,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       status: $ChatMessagesTable.$converterstatus.fromJson(
         serializer.fromJson<int>(json['status']),
       ),
+      isRead: serializer.fromJson<bool>(json['isRead']),
     );
   }
   @override
@@ -309,6 +339,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       'status': serializer.toJson<int>(
         $ChatMessagesTable.$converterstatus.toJson(status),
       ),
+      'isRead': serializer.toJson<bool>(isRead),
     };
   }
 
@@ -321,6 +352,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     String? data,
     DateTime? createdAt,
     MessageStatus? status,
+    bool? isRead,
   }) => ChatMessage(
     id: id ?? this.id,
     roomId: roomId ?? this.roomId,
@@ -330,6 +362,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     data: data ?? this.data,
     createdAt: createdAt ?? this.createdAt,
     status: status ?? this.status,
+    isRead: isRead ?? this.isRead,
   );
   ChatMessage copyWithCompanion(ChatMessagesCompanion data) {
     return ChatMessage(
@@ -341,6 +374,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       data: data.data.present ? data.data.value : this.data,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       status: data.status.present ? data.status.value : this.status,
+      isRead: data.isRead.present ? data.isRead.value : this.isRead,
     );
   }
 
@@ -354,7 +388,8 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
           ..write('nonce: $nonce, ')
           ..write('data: $data, ')
           ..write('createdAt: $createdAt, ')
-          ..write('status: $status')
+          ..write('status: $status, ')
+          ..write('isRead: $isRead')
           ..write(')'))
         .toString();
   }
@@ -369,6 +404,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     data,
     createdAt,
     status,
+    isRead,
   );
   @override
   bool operator ==(Object other) =>
@@ -381,7 +417,8 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
           other.nonce == this.nonce &&
           other.data == this.data &&
           other.createdAt == this.createdAt &&
-          other.status == this.status);
+          other.status == this.status &&
+          other.isRead == this.isRead);
 }
 
 class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
@@ -393,6 +430,7 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
   final Value<String> data;
   final Value<DateTime> createdAt;
   final Value<MessageStatus> status;
+  final Value<bool> isRead;
   final Value<int> rowid;
   const ChatMessagesCompanion({
     this.id = const Value.absent(),
@@ -403,6 +441,7 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     this.data = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.status = const Value.absent(),
+    this.isRead = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChatMessagesCompanion.insert({
@@ -414,6 +453,7 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     required String data,
     required DateTime createdAt,
     required MessageStatus status,
+    this.isRead = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        roomId = Value(roomId),
@@ -430,6 +470,7 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     Expression<String>? data,
     Expression<DateTime>? createdAt,
     Expression<int>? status,
+    Expression<bool>? isRead,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -441,6 +482,7 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
       if (data != null) 'data': data,
       if (createdAt != null) 'created_at': createdAt,
       if (status != null) 'status': status,
+      if (isRead != null) 'is_read': isRead,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -454,6 +496,7 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     Value<String>? data,
     Value<DateTime>? createdAt,
     Value<MessageStatus>? status,
+    Value<bool>? isRead,
     Value<int>? rowid,
   }) {
     return ChatMessagesCompanion(
@@ -465,6 +508,7 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
       data: data ?? this.data,
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
+      isRead: isRead ?? this.isRead,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -498,6 +542,9 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
         $ChatMessagesTable.$converterstatus.toSql(status.value),
       );
     }
+    if (isRead.present) {
+      map['is_read'] = Variable<bool>(isRead.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -515,6 +562,7 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
           ..write('data: $data, ')
           ..write('createdAt: $createdAt, ')
           ..write('status: $status, ')
+          ..write('isRead: $isRead, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -542,6 +590,7 @@ typedef $$ChatMessagesTableCreateCompanionBuilder =
       required String data,
       required DateTime createdAt,
       required MessageStatus status,
+      Value<bool> isRead,
       Value<int> rowid,
     });
 typedef $$ChatMessagesTableUpdateCompanionBuilder =
@@ -554,6 +603,7 @@ typedef $$ChatMessagesTableUpdateCompanionBuilder =
       Value<String> data,
       Value<DateTime> createdAt,
       Value<MessageStatus> status,
+      Value<bool> isRead,
       Value<int> rowid,
     });
 
@@ -606,6 +656,11 @@ class $$ChatMessagesTableFilterComposer
     column: $table.status,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnFilters<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$ChatMessagesTableOrderingComposer
@@ -656,6 +711,11 @@ class $$ChatMessagesTableOrderingComposer
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ChatMessagesTableAnnotationComposer
@@ -690,6 +750,9 @@ class $$ChatMessagesTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<MessageStatus, int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRead =>
+      $composableBuilder(column: $table.isRead, builder: (column) => column);
 }
 
 class $$ChatMessagesTableTableManager
@@ -732,6 +795,7 @@ class $$ChatMessagesTableTableManager
                 Value<String> data = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<MessageStatus> status = const Value.absent(),
+                Value<bool> isRead = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatMessagesCompanion(
                 id: id,
@@ -742,6 +806,7 @@ class $$ChatMessagesTableTableManager
                 data: data,
                 createdAt: createdAt,
                 status: status,
+                isRead: isRead,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -754,6 +819,7 @@ class $$ChatMessagesTableTableManager
                 required String data,
                 required DateTime createdAt,
                 required MessageStatus status,
+                Value<bool> isRead = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatMessagesCompanion.insert(
                 id: id,
@@ -764,6 +830,7 @@ class $$ChatMessagesTableTableManager
                 data: data,
                 createdAt: createdAt,
                 status: status,
+                isRead: isRead,
                 rowid: rowid,
               ),
           withReferenceMapper:

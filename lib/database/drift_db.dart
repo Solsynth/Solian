@@ -10,7 +10,20 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (Migrator m) async {
+      await m.createAll();
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 2) {
+        // Add isRead column with default value false
+        await m.addColumn(chatMessages, chatMessages.isRead);
+      }
+    },
+  );
 
   // Methods for chat messages
   Future<List<ChatMessage>> getMessagesForRoom(
@@ -40,6 +53,12 @@ class AppDatabase extends _$AppDatabase {
     )).write(ChatMessagesCompanion(status: Value(status)));
   }
 
+  Future<int> markMessageAsRead(String id) {
+    return (update(chatMessages)..where(
+      (m) => m.id.equals(id),
+    )).write(ChatMessagesCompanion(isRead: const Value(true)));
+  }
+
   Future<int> deleteMessage(String id) {
     return (delete(chatMessages)..where((m) => m.id.equals(id))).go();
   }
@@ -55,6 +74,7 @@ class AppDatabase extends _$AppDatabase {
       data: Value(jsonEncode(message.data)),
       createdAt: Value(message.createdAt),
       status: Value(message.status),
+      isRead: Value(message.isRead),
     );
   }
 
@@ -68,6 +88,7 @@ class AppDatabase extends _$AppDatabase {
       createdAt: dbMessage.createdAt,
       status: dbMessage.status,
       nonce: dbMessage.nonce,
+      isRead: dbMessage.isRead,
     );
   }
 }

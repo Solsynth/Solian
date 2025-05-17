@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ import 'package:island/screens/posts/compose.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/chat/message_bubble.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:uuid/uuid.dart';
@@ -306,6 +308,30 @@ class ChatRoomScreen extends HookConsumerWidget {
     final attachments = useState<List<UniversalFile>>([]);
     final attachmentProgress = useState<Map<String, Map<int, double>>>({});
 
+    // Function to send read receipt
+    void sendReadReceipt(String messageId) async {
+      // Get message from repository to check read status
+      final repository = await ref.read(messageRepositoryProvider(id).future);
+      final message = await repository.getMessageById(messageId);
+
+      // Skip if message is already marked as read
+      if (message?.isRead ?? false) return;
+
+      // Send websocket packet
+      final wsState = ref.read(websocketStateProvider.notifier);
+      wsState.sendMessage(
+        jsonEncode(
+          WebSocketPacket(
+            type: 'messages.read',
+            data: {'chat_room_id': id, 'message_id': messageId},
+          ),
+        ),
+      );
+
+      // Mark as read in local database
+      await repository.markMessageAsRead(messageId);
+    }
+
     // Add scroll listener for pagination
     useEffect(() {
       void onScroll() {
@@ -319,7 +345,6 @@ class ChatRoomScreen extends HookConsumerWidget {
       return () => scrollController.removeListener(onScroll);
     }, [scrollController]);
 
-    // Add websocket listener
     // Add websocket listener for new messages
     useEffect(() {
       void onMessage(WebSocketPacket pkt) {
@@ -329,6 +354,8 @@ class ChatRoomScreen extends HookConsumerWidget {
         switch (pkt.type) {
           case 'messages.new':
             messagesNotifier.receiveMessage(message);
+            // Send read receipt for new message
+            sendReadReceipt(message.id);
           case 'messages.update':
             messagesNotifier.receiveMessageUpdate(message);
           case 'messages.delete':
@@ -428,7 +455,11 @@ class ChatRoomScreen extends HookConsumerWidget {
                 ],
               ),
           loading: () => const Text('Loading...'),
-          error: (_, __) => const Text('Error'),
+          error:
+              (err, __) => ResponseErrorWidget(
+                error: err,
+                onRetry: () => messagesNotifier.loadInitial(),
+              ),
         ),
         actions: [
           IconButton(
@@ -468,6 +499,8 @@ class ChatRoomScreen extends HookConsumerWidget {
                               final isLastInGroup =
                                   nextMessage == null ||
                                   nextMessage.senderId != message.senderId;
+
+                              sendReadReceipt(message.id);
 
                               return chatIdentity.when(
                                 skipError: true,
@@ -527,17 +560,9 @@ class ChatRoomScreen extends HookConsumerWidget {
                           ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error:
-                  (error, stack) => Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('Error: $error'),
-                        ElevatedButton(
-                          onPressed: () => messagesNotifier.loadInitial(),
-                          child: Text('Retry'.tr()),
-                        ),
-                      ],
-                    ),
+                  (error, _) => ResponseErrorWidget(
+                    error: error,
+                    onRetry: () => messagesNotifier.loadInitial(),
                   ),
             ),
           ),
