@@ -417,10 +417,11 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 64,
         title: chatRoom.when(
           data:
-              (room) => Row(
-                spacing: 8,
+              (room) => Column(
+                spacing: 4,
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -451,7 +452,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                     (room.type == 1 && room.name == null)
                         ? room.members!.map((e) => e.account.nick).join(', ')
                         : room.name!,
-                  ).fontSize(19),
+                  ).fontSize(15),
                 ],
               ),
           loading: () => const Text('Loading...'),

@@ -237,5 +237,10 @@
   "levelingProgress": "Leveling Progress",
   "levelingProgressExperience": "{} EXP",
   "levelingProgressLevel": "Level {}",
-  "fileUploadingProgress": "Uploading file #{}: {}%"
+  "fileUploadingProgress": "Uploading file #{}: {}%",
+  "removeChatMember": "Remove Chat Room Member",
+  "removeChatMemberHint": "Are you sure to remove this member from the room?",
+  "memberRole": "Member Role",
+  "memberRoleHint": "Greater number has higher permission.",
+  "memberRoleEdit": "Edit role for @{}"
 }
