@@ -146,6 +146,8 @@ class TabsNavigationWidget extends HookConsumerWidget {
       bottomNavigationBar:
           !useHorizontalLayout && isTabRoute
               ? NavigationBar(
+                height: 56,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
                 selectedIndex: activeIndex,
                 onDestinationSelected: (index) {
                   router.replace(routes[index]);

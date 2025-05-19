@@ -1,5 +1,6 @@
 {
   "login": "Login",
+  "loginDescription": "Existing user? We're welcome you back!",
   "forgotPassword": "Forgot password",
   "loginPickFactor": "Pick a factor",
   "loginMultiFactor": {
@@ -19,6 +20,7 @@
   "password": "Password",
   "next": "Next",
   "createAccount": "Create an Account",
+  "createAccountDescription": "New to here? We got you covered!",
   "nickname": "Nickname",
   "email": "Email",
   "bio": "Bio",
@@ -252,5 +254,9 @@
   "leaveChatRoom": "Leave Chat Room",
   "leaveChatRoomHint": "Are you sure to leave this chat room?",
   "leaveRealm": "Leave Realm",
-  "leaveRealmHint": "Are you sure to leave this realm?"
+  "leaveRealmHint": "Are you sure to leave this realm?",
+  "walletNotFound": "Wallet not found",
+  "walletCreateHint": "You don't have a wallet yet. Create one to start using the Solar Network eWallet.",
+  "walletCreate": "Create a Wallet",
+  "settingsServerUrl": "Server URL"
 }

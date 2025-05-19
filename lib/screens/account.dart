@@ -267,30 +267,66 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppBar(title: const Text('Account')),
-      body: Column(
-        children: <Widget>[
-          ListTile(
-            leading: const Icon(Symbols.person_add),
-            trailing: const Icon(Symbols.chevron_right),
-            title: Text('createAccount').tr(),
-            subtitle: Text('New to here? We got you covered!'),
-            contentPadding: EdgeInsets.symmetric(horizontal: 24),
-            onTap: () {
-              context.router.push(CreateAccountRoute());
-            },
-          ),
-          ListTile(
-            leading: const Icon(Symbols.login),
-            trailing: const Icon(Symbols.chevron_right),
-            subtitle: Text('Existing user? We\'re welcome you back!'),
-            contentPadding: EdgeInsets.symmetric(horizontal: 24),
-            title: Text('login').tr(),
-            onTap: () {
-              context.router.push(LoginRoute());
-            },
-          ),
-        ],
-      ),
+      body:
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Card(
+                    child: InkWell(
+                      onTap: () {
+                        context.router.push(CreateAccountRoute());
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Icon(Symbols.person_add, size: 48),
+                            const SizedBox(height: 8),
+                            Text('createAccount').tr().bold(),
+                            Text('createAccountDescription').tr(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Gap(8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Card(
+                    child: InkWell(
+                      onTap: () {
+                        context.router.push(LoginRoute());
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Icon(Symbols.login, size: 48),
+                            const SizedBox(height: 8),
+                            Text('login').tr().bold(),
+                            Text('loginDescription').tr(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Gap(8),
+                TextButton(
+                  onPressed: () {
+                    context.router.push(SettingsRoute());
+                  },
+                  child: Text('appSettings').tr(),
+                ).center(),
+              ],
+            ),
+          ).center(),
     );
   }
 }

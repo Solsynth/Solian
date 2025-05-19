@@ -6,11 +6,11 @@ part of 'wallet.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$walletCurrentHash() => r'9123af148c4a27e079bbe90c7d4e41d08e408a39';
+String _$walletCurrentHash() => r'94e6f3776ce15679d17238e372660c365c9b1028';
 
 /// See also [walletCurrent].
 @ProviderFor(walletCurrent)
-final walletCurrentProvider = AutoDisposeFutureProvider<SnWallet>.internal(
+final walletCurrentProvider = AutoDisposeFutureProvider<SnWallet?>.internal(
   walletCurrent,
   name: r'walletCurrentProvider',
   debugGetCreateSourceHash:
@@ -23,7 +23,7 @@ final walletCurrentProvider = AutoDisposeFutureProvider<SnWallet>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef WalletCurrentRef = AutoDisposeFutureProviderRef<SnWallet>;
+typedef WalletCurrentRef = AutoDisposeFutureProviderRef<SnWallet?>;
 String _$transactionListNotifierHash() =>
     r'148ffb0ee9e3be3b92de432f314d8ee2f09e9a24';
 

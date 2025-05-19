@@ -1,10 +1,12 @@
 import 'package:auto_route/annotations.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -14,10 +16,17 @@ import 'package:styled_widget/styled_widget.dart';
 part 'wallet.g.dart';
 
 @riverpod
-Future<SnWallet> walletCurrent(Ref ref) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/wallets');
-  return SnWallet.fromJson(resp.data);
+Future<SnWallet?> walletCurrent(Ref ref) async {
+  try {
+    final apiClient = ref.watch(apiClientProvider);
+    final resp = await apiClient.get('/wallets');
+    return SnWallet.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null;
+    }
+    rethrow;
+  }
 }
 
 const Map<String, IconData> kCurrencyIconData = {
@@ -71,6 +80,16 @@ class WalletScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final wallet = ref.watch(walletCurrentProvider);
 
+    Future<void> createWallet() async {
+      final client = ref.read(apiClientProvider);
+      try {
+        await client.post('/wallets');
+        ref.invalidate(walletCurrentProvider);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
     String getCurrencyTranslationKey(String currency, {bool isShort = false}) {
       return 'walletCurrency${isShort ? 'Short' : ''}${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}';
     }
@@ -79,6 +98,19 @@ class WalletScreen extends HookConsumerWidget {
       appBar: AppBar(title: Text('wallet').tr()),
       body: wallet.when(
         data: (data) {
+          if (data == null) {
+            return Column(
+              children: [
+                Text('walletNotFound').tr(),
+                Text('walletCreateHint').tr(),
+                TextButton(
+                  onPressed: createWallet,
+                  child: Text('walletCreate').tr(),
+                ),
+              ],
+            );
+          }
+
           return Column(
             children: [
               Column(

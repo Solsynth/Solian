@@ -16,6 +16,7 @@ import 'package:island/services/file.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -480,7 +481,11 @@ class _RealmInviteSheet extends HookConsumerWidget {
                             },
                           ),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $error')),
+              error:
+                  (error, _) => ResponseErrorWidget(
+                    error: error,
+                    onRetry: () => ref.invalidate(realmInvitesProvider),
+                  ),
             ),
           ),
         ],

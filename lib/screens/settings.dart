@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/pods/config.dart';
 
 @RoutePage()
 class SettingsScreen extends HookConsumerWidget {
@@ -14,6 +15,10 @@ class SettingsScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final serverUrl = ref.watch(serverUrlProvider);
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final controller = TextEditingController(text: serverUrl);
+
     return AppScaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: SingleChildScrollView(
@@ -58,6 +63,43 @@ class SettingsScreen extends HookConsumerWidget {
                     width: 160,
                   ),
                   menuItemStyleData: const MenuItemStyleData(height: 40),
+                ),
+              ),
+            ),
+            ListTile(
+              isThreeLine: true,
+              minLeadingWidth: 48,
+              title: Text('settingsServerUrl').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.link),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    hintText: kNetworkServerDefault,
+                    suffixIcon: IconButton(
+                      icon: const Icon(Symbols.restart_alt),
+                      onPressed: () {
+                        controller.text = kNetworkServerDefault;
+                        prefs.setString(
+                          kNetworkServerStoreKey,
+                          kNetworkServerDefault,
+                        );
+                        ref.invalidate(serverUrlProvider);
+                      },
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    isDense: true,
+                  ),
+                  onSubmitted: (value) {
+                    if (value.isNotEmpty) {
+                      prefs.setString(kNetworkServerStoreKey, value);
+                      ref.invalidate(serverUrlProvider);
+                    }
+                  },
                 ),
               ),
             ),

@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const kTokenPairStoreKey = 'dyn_user_tk';
 
-const kNetworkServerDefault = 'http://localhost:5071';
+const kNetworkServerDefault = 'https://ppa.solian.app';
 const kNetworkServerStoreKey = 'app_server_url';
 
 const kAppbarTransparentStoreKey = 'app_bar_transparent';
