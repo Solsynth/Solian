@@ -97,6 +97,7 @@ dependencies:
   avatar_stack: ^3.0.0
   markdown_widget: ^2.3.2+8
   visibility_detector: ^0.4.0+2
+  flutter_native_splash: ^2.4.6
 
 dev_dependencies:
   flutter_test:
@@ -116,6 +117,7 @@ dev_dependencies:
   custom_lint: ^0.7.5
   riverpod_lint: ^2.6.5
   drift_dev: ^2.26.0
+  flutter_launcher_icons: ^0.14.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -154,3 +156,31 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/icon.png"
+  min_sdk_android: 21
+  image_path_ios_dark_transparent: "assets/icons/icon-dark.png"
+  remove_alpha_ios: true
+  desaturate_tinted_to_grayscale_ios: true
+  background_color_ios: "#ffffff"
+  web:
+    generate: true
+    image_path: "assets/icons/icon.png"
+    background_color: "#ffffff"
+    theme_color: "#7d80ba"
+  windows:
+    generate: true
+    image_path: "assets/icons/icon.png"
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: "assets/icons/icon-padded.png"
+
+flutter_native_splash:
+  image: "assets/icons/icon.png"
+  image_dark: "assets/icons/icon-dark.png"
+  color: "#ffffff"
+  color_dark: "#121212"

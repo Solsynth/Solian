@@ -23,9 +23,11 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
@@ -48,6 +50,8 @@ void main() async {
       imagePickerImplementation.useAndroidPhotoPicker = true;
     }
   }
+
+  FlutterNativeSplash.remove();
 
   runApp(
     ProviderScope(

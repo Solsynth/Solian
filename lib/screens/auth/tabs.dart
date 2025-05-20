@@ -103,30 +103,33 @@ class TabsNavigationWidget extends HookConsumerWidget {
           useHorizontalLayout
               ? Row(
                 children: [
-                  Column(
-                    children: [
-                      Gap(MediaQuery.of(context).padding.top + 8),
-                      Expanded(
-                        child: NavigationRail(
-                          extended: useExpandableLayout,
-                          selectedIndex: activeIndex,
-                          onDestinationSelected: (index) {
-                            router.replace(routes[index]);
-                          },
-                          // labelType: NavigationRailLabelType.all,
-                          destinations:
-                              destinations
-                                  .map(
-                                    (d) => NavigationRailDestination(
-                                      icon: d.icon,
-                                      label: Text(d.label),
-                                    ),
-                                  )
-                                  .toList(),
+                  ColoredBox(
+                    color: Theme.of(context).colorScheme.surface,
+                    child: Column(
+                      children: [
+                        Gap(MediaQuery.of(context).padding.top + 8),
+                        Expanded(
+                          child: NavigationRail(
+                            extended: useExpandableLayout,
+                            selectedIndex: activeIndex,
+                            onDestinationSelected: (index) {
+                              router.replace(routes[index]);
+                            },
+                            // labelType: NavigationRailLabelType.all,
+                            destinations:
+                                destinations
+                                    .map(
+                                      (d) => NavigationRailDestination(
+                                        icon: d.icon,
+                                        label: Text(d.label),
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
                         ),
-                      ),
-                      Gap(MediaQuery.of(context).padding.bottom + 8),
-                    ],
+                        Gap(MediaQuery.of(context).padding.bottom + 8),
+                      ],
+                    ),
                   ),
                   VerticalDivider(
                     color: Theme.of(context).dividerColor,
