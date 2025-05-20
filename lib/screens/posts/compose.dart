@@ -14,14 +14,13 @@ import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/screens/account/me/publishers.dart';
+import 'package:island/screens/creators/publishers.dart';
 import 'package:island/screens/posts/detail.dart';
 import 'package:island/services/file.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
-import 'package:markdown_editor_plus/widgets/markdown_auto_preview.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -291,15 +290,14 @@ class PostComposeScreen extends HookConsumerWidget {
                               (_) =>
                                   FocusManager.instance.primaryFocus?.unfocus(),
                         ),
-                        const Gap(12),
-                        TapRegion(
-                          child: MarkdownAutoPreview(
-                            controller: contentController,
-                            emojiConvert: true,
+                        const Gap(8),
+                        TextField(
+                          controller: contentController,
+                          style: TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
                             hintText: 'postPlaceholder'.tr(),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                            ),
+                            isDense: true,
                           ),
                           onTapOutside:
                               (_) =>
@@ -343,7 +341,7 @@ class PostComposeScreen extends HookConsumerWidget {
             ).padding(horizontal: 16),
           ),
           Material(
-            elevation: 2,
+            elevation: 4,
             child: Row(
               children: [
                 IconButton(
@@ -358,7 +356,7 @@ class PostComposeScreen extends HookConsumerWidget {
                 ),
               ],
             ).padding(
-              bottom: MediaQuery.of(context).padding.bottom,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
               horizontal: 16,
               top: 8,
             ),

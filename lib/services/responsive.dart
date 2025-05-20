@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
-const kWideScreenWidth = 768;
-const kWiderScreenWidth = 1024;
-const kWidescreenWidth = 1280;
+const kWideScreenWidth = 768.0;
+const kWiderScreenWidth = 1024.0;
+const kWidescreenWidth = 1280.0;
 
 bool isWideScreen(BuildContext context) {
   return MediaQuery.of(context).size.width > kWideScreenWidth;

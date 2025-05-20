@@ -37,6 +37,30 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: ChatDetailRoute.page, path: ':id/detail'),
       ],
     ),
+    AutoRoute(
+      page: CreatorHubShellRoute.page,
+      path: '/creators',
+      children: [
+        AutoRoute(page: CreatorHubRoute.page, path: ''),
+        AutoRoute(page: StickersRoute.page, path: ':name/stickers'),
+        AutoRoute(page: NewStickerPacksRoute.page, path: ':name/stickers/new'),
+        AutoRoute(
+          page: EditStickerPacksRoute.page,
+          path: ':name/stickers/:packId/edit',
+        ),
+        AutoRoute(
+          page: StickerPackDetailRoute.page,
+          path: ':name/stickers/:packId',
+        ),
+        AutoRoute(page: NewStickersRoute.page, path: ':name/stickers/new'),
+        AutoRoute(
+          page: EditStickersRoute.page,
+          path: ':name/stickers/:id/edit',
+        ),
+        AutoRoute(page: NewPublisherRoute.page, path: 'new'),
+        AutoRoute(page: EditPublisherRoute.page, path: ':name/edit'),
+      ],
+    ),
     AutoRoute(page: LoginRoute.page, path: '/auth/login'),
     AutoRoute(page: CreateAccountRoute.page, path: '/auth/create-account'),
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
@@ -46,27 +70,5 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: NewRealmRoute.page, path: '/realms/new'),
     AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
     AutoRoute(page: EditRealmRoute.page, path: '/realms/:slug/edit'),
-    AutoRoute(page: CreatorHubRoute.page, path: '/creators'),
-    AutoRoute(page: StickersRoute.page, path: '/creators/:name/stickers'),
-    AutoRoute(
-      page: NewStickerPacksRoute.page,
-      path: '/creators/:name/stickers/new',
-    ),
-    AutoRoute(
-      page: EditStickerPacksRoute.page,
-      path: '/creators/:name/stickers/:packId/edit',
-    ),
-    AutoRoute(
-      page: StickerPackDetailRoute.page,
-      path: '/creators/:name/stickers/:packId',
-    ),
-    AutoRoute(
-      page: NewStickersRoute.page,
-      path: '/creators/:name/stickers/new',
-    ),
-    AutoRoute(
-      page: EditStickersRoute.page,
-      path: '/creators/:name/stickers/:id/edit',
-    ),
   ];
 }

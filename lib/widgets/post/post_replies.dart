@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/response.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:very_good_infinite_list/very_good_infinite_list.dart';
 
@@ -14,6 +16,7 @@ class PostRepliesList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final postAsync = ref.watch(postRepliesProvider(postId));
+    final isWide = isWideScreen(context);
 
     return RefreshIndicator(
       onRefresh:
@@ -37,7 +40,10 @@ class PostRepliesList extends HookConsumerWidget {
                 onFetchData: controller.fetchMore,
                 itemBuilder: (context, index) {
                   final post = controller.posts[index];
-                  return PostItem(item: post);
+                  return PostItem(
+                    item: post,
+                    backgroundColor: isWide ? Colors.transparent : null,
+                  );
                 },
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 emptyBuilder: (context) {
@@ -55,11 +61,9 @@ class PostRepliesList extends HookConsumerWidget {
             ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error:
-            (e, _) => GestureDetector(
-              child: Center(
-                child: Text('Error: $e', textAlign: TextAlign.center),
-              ),
-              onTap: () {
+            (e, _) => ResponseErrorWidget(
+              error: e,
+              onRetry: () {
                 ref.invalidate(postRepliesProvider(postId));
               },
             ),

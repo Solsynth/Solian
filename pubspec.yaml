@@ -96,6 +96,7 @@ dependencies:
   crypto: ^3.0.6
   avatar_stack: ^3.0.0
   markdown_widget: ^2.3.2+8
+  visibility_detector: ^0.4.0+2
 
 dev_dependencies:
   flutter_test:

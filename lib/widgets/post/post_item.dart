@@ -17,6 +17,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
 class PostItem extends HookConsumerWidget {
+  final Color? backgroundColor;
   final SnPost item;
   final EdgeInsets? padding;
   final bool isOpenable;
@@ -25,6 +26,7 @@ class PostItem extends HookConsumerWidget {
   const PostItem({
     super.key,
     required this.item,
+    this.backgroundColor,
     this.padding,
     this.isOpenable = true,
     this.onRefresh,
@@ -96,6 +98,7 @@ class PostItem extends HookConsumerWidget {
         );
       },
       child: Material(
+        color: backgroundColor,
         child: Padding(
           padding: renderingPadding,
           child: Column(

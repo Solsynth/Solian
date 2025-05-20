@@ -106,38 +106,25 @@ class TabsNavigationWidget extends HookConsumerWidget {
                   Column(
                     children: [
                       Gap(MediaQuery.of(context).padding.top + 8),
-                      if (useExpandableLayout)
-                        Expanded(
-                          child: NavigationDrawer(
-                            backgroundColor: Colors.transparent,
-                            children: [
-                              for (final destination in destinations)
-                                NavigationDrawerDestination(
-                                  label: Text(destination.label),
-                                  icon: destination.icon,
-                                ),
-                            ],
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: NavigationRail(
-                            selectedIndex: activeIndex,
-                            onDestinationSelected: (index) {
-                              router.replace(routes[index]);
-                            },
-                            labelType: NavigationRailLabelType.all,
-                            destinations:
-                                destinations
-                                    .map(
-                                      (d) => NavigationRailDestination(
-                                        icon: d.icon,
-                                        label: Text(d.label),
-                                      ),
-                                    )
-                                    .toList(),
-                          ),
+                      Expanded(
+                        child: NavigationRail(
+                          extended: useExpandableLayout,
+                          selectedIndex: activeIndex,
+                          onDestinationSelected: (index) {
+                            router.replace(routes[index]);
+                          },
+                          // labelType: NavigationRailLabelType.all,
+                          destinations:
+                              destinations
+                                  .map(
+                                    (d) => NavigationRailDestination(
+                                      icon: d.icon,
+                                      label: Text(d.label),
+                                    ),
+                                  )
+                                  .toList(),
                         ),
+                      ),
                       Gap(MediaQuery.of(context).padding.bottom + 8),
                     ],
                   ),

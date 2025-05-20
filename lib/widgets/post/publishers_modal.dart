@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/screens/account/me/publishers.dart';
+import 'package:island/screens/creators/publishers.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:styled_widget/styled_widget.dart';
 

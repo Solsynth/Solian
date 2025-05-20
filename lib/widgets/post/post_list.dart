@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/content/paging_helper_ext.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -53,7 +54,7 @@ class SliverPostList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return PagingHelperView(
+    return PagingHelperSliverView(
       provider: postListNotifierProvider,
       futureRefreshable: postListNotifierProvider.future,
       notifierRefreshable: postListNotifierProvider.notifier,

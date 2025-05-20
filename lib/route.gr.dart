@@ -16,7 +16,6 @@ import 'package:island/models/post.dart' as _i29;
 import 'package:island/route.dart' as _i30;
 import 'package:island/screens/account.dart' as _i2;
 import 'package:island/screens/account/me/event_calendar.dart' as _i15;
-import 'package:island/screens/account/me/publishers.dart' as _i9;
 import 'package:island/screens/account/me/settings.dart' as _i3;
 import 'package:island/screens/account/me/update.dart' as _i24;
 import 'package:island/screens/account/profile.dart' as _i1;
@@ -28,6 +27,7 @@ import 'package:island/screens/chat/chat.dart' as _i5;
 import 'package:island/screens/chat/room.dart' as _i6;
 import 'package:island/screens/chat/room_detail.dart' as _i4;
 import 'package:island/screens/creators/hub.dart' as _i8;
+import 'package:island/screens/creators/publishers.dart' as _i9;
 import 'package:island/screens/creators/stickers/pack_detail.dart' as _i12;
 import 'package:island/screens/creators/stickers/stickers.dart' as _i11;
 import 'package:island/screens/explore.dart' as _i13;
@@ -308,16 +308,55 @@ class CreateAccountRoute extends _i26.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i8.CreatorHubScreen]
-class CreatorHubRoute extends _i26.PageRouteInfo<void> {
-  const CreatorHubRoute({List<_i26.PageRouteInfo>? children})
-    : super(CreatorHubRoute.name, initialChildren: children);
+class CreatorHubRoute extends _i26.PageRouteInfo<CreatorHubRouteArgs> {
+  CreatorHubRoute({
+    _i27.Key? key,
+    bool isAside = false,
+    List<_i26.PageRouteInfo>? children,
+  }) : super(
+         CreatorHubRoute.name,
+         args: CreatorHubRouteArgs(key: key, isAside: isAside),
+         initialChildren: children,
+       );
 
   static const String name = 'CreatorHubRoute';
 
   static _i26.PageInfo page = _i26.PageInfo(
     name,
     builder: (data) {
-      return const _i8.CreatorHubScreen();
+      final args = data.argsAs<CreatorHubRouteArgs>(
+        orElse: () => const CreatorHubRouteArgs(),
+      );
+      return _i8.CreatorHubScreen(key: args.key, isAside: args.isAside);
+    },
+  );
+}
+
+class CreatorHubRouteArgs {
+  const CreatorHubRouteArgs({this.key, this.isAside = false});
+
+  final _i27.Key? key;
+
+  final bool isAside;
+
+  @override
+  String toString() {
+    return 'CreatorHubRouteArgs{key: $key, isAside: $isAside}';
+  }
+}
+
+/// generated route for
+/// [_i8.CreatorHubShellScreen]
+class CreatorHubShellRoute extends _i26.PageRouteInfo<void> {
+  const CreatorHubShellRoute({List<_i26.PageRouteInfo>? children})
+    : super(CreatorHubShellRoute.name, initialChildren: children);
+
+  static const String name = 'CreatorHubShellRoute';
+
+  static _i26.PageInfo page = _i26.PageInfo(
+    name,
+    builder: (data) {
+      return const _i8.CreatorHubShellScreen();
     },
   );
 }
@@ -587,22 +626,6 @@ class LoginRoute extends _i26.PageRouteInfo<void> {
     name,
     builder: (data) {
       return const _i14.LoginScreen();
-    },
-  );
-}
-
-/// generated route for
-/// [_i9.ManagedPublisherScreen]
-class ManagedPublisherRoute extends _i26.PageRouteInfo<void> {
-  const ManagedPublisherRoute({List<_i26.PageRouteInfo>? children})
-    : super(ManagedPublisherRoute.name, initialChildren: children);
-
-  static const String name = 'ManagedPublisherRoute';
-
-  static _i26.PageInfo page = _i26.PageInfo(
-    name,
-    builder: (data) {
-      return const _i9.ManagedPublisherScreen();
     },
   );
 }

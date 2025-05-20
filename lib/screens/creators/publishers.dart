@@ -12,7 +12,6 @@ import 'package:island/models/realm.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/file.dart';
 import 'package:island/widgets/alert.dart';
@@ -33,124 +32,6 @@ Future<List<SnPublisher>> publishersManaged(Ref ref) async {
       .map((e) => SnPublisher.fromJson(e))
       .cast<SnPublisher>()
       .toList();
-}
-
-@RoutePage()
-class ManagedPublisherScreen extends HookConsumerWidget {
-  const ManagedPublisherScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final publishers = ref.watch(publishersManagedProvider);
-
-    return AppScaffold(
-      appBar: AppBar(
-        title: Text('publishers').tr(),
-        leading: const PageBackButton(),
-      ),
-      body: RefreshIndicator(
-        child: publishers.when(
-          data:
-              (value) => Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Symbols.add),
-                    title: Text('createPublisher').tr(),
-                    subtitle: Text('createPublisherHint').tr(),
-                    trailing: const Icon(Symbols.chevron_right),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                    onTap: () {
-                      context.router.push(NewPublisherRoute()).then((value) {
-                        if (value != null) {
-                          ref.invalidate(publishersManagedProvider);
-                        }
-                      });
-                    },
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: ListView.builder(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).padding.bottom,
-                      ),
-                      itemCount: value.length,
-                      itemBuilder: (context, item) {
-                        return ListTile(
-                          leading: ProfilePictureWidget(
-                            fileId: value[item].pictureId,
-                          ),
-                          title: Text(value[item].nick),
-                          subtitle: Text('@${value[item].name}'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                padding: EdgeInsets.zero,
-                                visualDensity: VisualDensity.compact,
-                                icon: Icon(Symbols.delete),
-                                onPressed: () {
-                                  showConfirmAlert(
-                                    'deletePublisherHint'.tr(),
-                                    'deletePublisher'.tr(
-                                      args: ['@${value[item].name}'],
-                                    ),
-                                  ).then((confirm) {
-                                    if (confirm) {
-                                      final client = ref.watch(
-                                        apiClientProvider,
-                                      );
-                                      client.delete(
-                                        '/publishers/${value[item].name}',
-                                      );
-                                      ref.invalidate(publishersManagedProvider);
-                                    }
-                                  });
-                                },
-                              ),
-                              IconButton(
-                                padding: EdgeInsets.zero,
-                                visualDensity: VisualDensity.compact,
-                                icon: Icon(Symbols.edit),
-                                onPressed: () {
-                                  context.router
-                                      .push(
-                                        EditPublisherRoute(
-                                          name: value[item].name,
-                                        ),
-                                      )
-                                      .then((value) {
-                                        if (value != null) {
-                                          ref.invalidate(
-                                            publishersManagedProvider,
-                                          );
-                                        }
-                                      });
-                                },
-                              ),
-                            ],
-                          ),
-                          contentPadding: EdgeInsets.only(left: 16, right: 14),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error:
-              (e, _) => GestureDetector(
-                child: Center(
-                  child: Text('Error: $e', textAlign: TextAlign.center),
-                ),
-                onTap: () {
-                  ref.invalidate(publishersManagedProvider);
-                },
-              ),
-        ),
-        onRefresh: () => ref.refresh(publishersManagedProvider.future),
-      ),
-    );
-  }
 }
 
 @riverpod

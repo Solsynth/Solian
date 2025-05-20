@@ -42,7 +42,7 @@
   "update": "Update",
   "edit": "Edit",
   "delete": "Delete",
-  "deletePublisher": "Delete Publisher {}",
+  "deletePublisher": "Delete Publisher",
   "deletePublisherHint": "Are you sure to delete this publisher? This will also deleted all the post and collections under this publisher.",
   "somethingWentWrong": "Something went wrong...",
   "deletePost": "Delete Post",
@@ -260,5 +260,6 @@
   "walletCreate": "Create a Wallet",
   "settingsServerUrl": "Server URL",
   "settingsApplied": "The settings has been applied.",
-  "notifications": "Notifications"
+  "notifications": "Notifications",
+  "posts": "Posts"
 }

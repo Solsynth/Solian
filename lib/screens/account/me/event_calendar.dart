@@ -64,133 +64,135 @@ class MyselfEventCalendarScreen extends HookConsumerWidget {
         leading: const PageBackButton(),
         title: Text('eventCalander').tr(),
       ),
-      body: Column(
-        children: [
-          TableCalendar(
-            locale: EasyLocalization.of(context)!.locale.toString(),
-            firstDay: DateTime.now().add(Duration(days: -3650)),
-            lastDay: DateTime.now().add(Duration(days: 3650)),
-            focusedDay: DateTime.utc(
-              selectedYear.value,
-              selectedMonth.value,
-              DateTime.now().day,
-            ),
-            calendarFormat: CalendarFormat.month,
-            selectedDayPredicate: (day) {
-              return isSameDay(selectedDay.value, day);
-            },
-            onDaySelected: (value, _) {
-              selectedDay.value = value;
-            },
-            onPageChanged: (focusedDay) {
-              selectedMonth.value = focusedDay.month;
-              selectedYear.value = focusedDay.year;
-            },
-            eventLoader: (day) {
-              return events.value
-                      ?.where((e) => isSameDay(e.date, day))
-                      .expand((e) => [...e.statuses, e.checkInResult])
-                      .where((e) => e != null)
-                      .toList() ??
-                  [];
-            },
-            calendarBuilders: CalendarBuilders(
-              dowBuilder: (context, day) {
-                final text = DateFormat.EEEEE().format(day);
-                return Center(child: Text(text));
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            TableCalendar(
+              locale: EasyLocalization.of(context)!.locale.toString(),
+              firstDay: DateTime.now().add(Duration(days: -3650)),
+              lastDay: DateTime.now().add(Duration(days: 3650)),
+              focusedDay: DateTime.utc(
+                selectedYear.value,
+                selectedMonth.value,
+                DateTime.now().day,
+              ),
+              calendarFormat: CalendarFormat.month,
+              selectedDayPredicate: (day) {
+                return isSameDay(selectedDay.value, day);
               },
-              markerBuilder: (context, day, events) {
-                var checkInResult =
-                    events.whereType<SnCheckInResult>().firstOrNull;
-                if (checkInResult != null) {
-                  return Positioned(
-                    top: 32,
-                    child: Text(
-                      ['大凶', '凶', '中平', '吉', '大吉'][checkInResult.level],
-                      style: TextStyle(
-                        fontSize: 9,
-                        color:
-                            isSameDay(selectedDay.value, day)
-                                ? Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer
-                                : isSameDay(DateTime.now(), day)
-                                ? Theme.of(
-                                  context,
-                                ).colorScheme.onSecondaryContainer
-                                : Theme.of(context).colorScheme.onSurface,
+              onDaySelected: (value, _) {
+                selectedDay.value = value;
+              },
+              onPageChanged: (focusedDay) {
+                selectedMonth.value = focusedDay.month;
+                selectedYear.value = focusedDay.year;
+              },
+              eventLoader: (day) {
+                return events.value
+                        ?.where((e) => isSameDay(e.date, day))
+                        .expand((e) => [...e.statuses, e.checkInResult])
+                        .where((e) => e != null)
+                        .toList() ??
+                    [];
+              },
+              calendarBuilders: CalendarBuilders(
+                dowBuilder: (context, day) {
+                  final text = DateFormat.EEEEE().format(day);
+                  return Center(child: Text(text));
+                },
+                markerBuilder: (context, day, events) {
+                  var checkInResult =
+                      events.whereType<SnCheckInResult>().firstOrNull;
+                  if (checkInResult != null) {
+                    return Positioned(
+                      top: 32,
+                      child: Text(
+                        ['大凶', '凶', '中平', '吉', '大吉'][checkInResult.level],
+                        style: TextStyle(
+                          fontSize: 9,
+                          color:
+                              isSameDay(selectedDay.value, day)
+                                  ? Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer
+                                  : isSameDay(DateTime.now(), day)
+                                  ? Theme.of(
+                                    context,
+                                  ).colorScheme.onSecondaryContainer
+                                  : Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                    ),
-                  );
-                }
-                return null;
-              },
+                    );
+                  }
+                  return null;
+                },
+              ),
             ),
-          ),
-          const Divider(height: 1).padding(top: 8),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: Builder(
-              builder: (context) {
-                final event =
-                    events.value
-                        ?.where((e) => isSameDay(e.date, selectedDay.value))
-                        .firstOrNull;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(DateFormat.EEEE().format(selectedDay.value))
-                        .fontSize(16)
-                        .bold()
-                        .textColor(
-                          Theme.of(context).colorScheme.onSecondaryContainer,
-                        ),
-                    Text(DateFormat.yMd().format(selectedDay.value))
-                        .fontSize(12)
-                        .textColor(
-                          Theme.of(context).colorScheme.onSecondaryContainer,
-                        ),
-                    const Gap(16),
-                    if (event?.checkInResult != null)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'checkInResultLevel${event!.checkInResult!.level}',
-                          ).tr().fontSize(16).bold(),
-                          for (final tip in event.checkInResult!.tips)
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 8,
-                              children: [
-                                Icon(
-                                  Symbols.circle,
-                                  size: 12,
-                                  fill: 1,
-                                ).padding(top: 4, right: 4),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(tip.title).bold(),
-                                      Text(tip.content),
-                                    ],
+            const Divider(height: 1).padding(top: 8),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: Builder(
+                builder: (context) {
+                  final event =
+                      events.value
+                          ?.where((e) => isSameDay(e.date, selectedDay.value))
+                          .firstOrNull;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(DateFormat.EEEE().format(selectedDay.value))
+                          .fontSize(16)
+                          .bold()
+                          .textColor(
+                            Theme.of(context).colorScheme.onSecondaryContainer,
+                          ),
+                      Text(DateFormat.yMd().format(selectedDay.value))
+                          .fontSize(12)
+                          .textColor(
+                            Theme.of(context).colorScheme.onSecondaryContainer,
+                          ),
+                      const Gap(16),
+                      if (event?.checkInResult != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'checkInResultLevel${event!.checkInResult!.level}',
+                            ).tr().fontSize(16).bold(),
+                            for (final tip in event.checkInResult!.tips)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 8,
+                                children: [
+                                  Icon(
+                                    Symbols.circle,
+                                    size: 12,
+                                    fill: 1,
+                                  ).padding(top: 4, right: 4),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(tip.title).bold(),
+                                        Text(tip.content),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ).padding(top: 8),
-                        ],
-                      ),
-                    if (event?.checkInResult == null &&
-                        (event?.statuses.isEmpty ?? true))
-                      Text('eventCalanderEmpty').tr(),
-                  ],
-                ).padding(vertical: 24, horizontal: 24);
-              },
+                                ],
+                              ).padding(top: 8),
+                          ],
+                        ),
+                      if (event?.checkInResult == null &&
+                          (event?.statuses.isEmpty ?? true))
+                        Text('eventCalanderEmpty').tr(),
+                    ],
+                  ).padding(vertical: 24, horizontal: 24);
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

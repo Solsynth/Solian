@@ -1,11 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
@@ -25,8 +26,9 @@ class ExploreScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userInfoProvider);
     final activitiesNotifier = ref.watch(activityListNotifierProvider.notifier);
+
+    final isWide = isWideScreen(context);
 
     return TourTriggerWidget(
       child: AppScaffold(
@@ -50,57 +52,113 @@ class ExploreScreen extends ConsumerWidget {
             futureRefreshable: activityListNotifierProvider.future,
             notifierRefreshable: activityListNotifierProvider.notifier,
             contentBuilder:
-                (data, widgetCount, endItemView) => CustomScrollView(
-                  slivers: [
-                    if (user.hasValue)
-                      SliverToBoxAdapter(child: CheckInWidget()),
-                    SliverList.builder(
-                      itemCount: widgetCount,
-                      itemBuilder: (context, index) {
-                        if (index == widgetCount - 1) {
-                          return endItemView;
-                        }
-
-                        final item = data.items[index];
-                        if (item.data == null) return const SizedBox.shrink();
-                        Widget itemWidget;
-
-                        switch (item.type) {
-                          case 'posts.new':
-                            itemWidget = PostItem(
-                              item: SnPost.fromJson(item.data),
-                              onRefresh: (_) {
-                                activitiesNotifier.forceRefresh();
-                              },
-                              onUpdate: (post) {
-                                activitiesNotifier.updateOne(
-                                  index,
-                                  item.copyWith(data: post.toJson()),
-                                );
-                              },
-                            );
-                            break;
-                          case 'accounts.check-in':
-                            itemWidget = CheckInActivityWidget(item: item);
-                            break;
-                          case 'accounts.status':
-                            itemWidget = StatusActivityWidget(item: item);
-                            break;
-                          default:
-                            itemWidget = const Placeholder();
-                        }
-
-                        return Column(
-                          children: [itemWidget, const Divider(height: 1)],
-                        );
-                      },
+                (data, widgetCount, endItemView) => Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: kWideScreenWidth - 160,
                     ),
-                    SliverGap(MediaQuery.of(context).padding.bottom + 16),
-                  ],
+                    child:
+                        isWide
+                            ? Card(
+                              elevation: 8,
+                              margin: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  topRight: Radius.circular(16),
+                                ),
+                              ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerLow
+                                  .withOpacity(0.8),
+                              child: _ActivityListView(
+                                data: data,
+                                widgetCount: widgetCount,
+                                endItemView: endItemView,
+                                activitiesNotifier: activitiesNotifier,
+                              ),
+                            )
+                            : _ActivityListView(
+                              data: data,
+                              widgetCount: widgetCount,
+                              endItemView: endItemView,
+                              activitiesNotifier: activitiesNotifier,
+                            ),
+                  ),
                 ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ActivityListView extends HookConsumerWidget {
+  final CursorPagingData<SnActivity> data;
+  final int widgetCount;
+  final Widget endItemView;
+  final ActivityListNotifier activitiesNotifier;
+
+  const _ActivityListView({
+    required this.data,
+    required this.widgetCount,
+    required this.endItemView,
+    required this.activitiesNotifier,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userInfoProvider);
+
+    return CustomScrollView(
+      slivers: [
+        if (user.hasValue) SliverToBoxAdapter(child: CheckInWidget()),
+        SliverList.builder(
+          itemCount: widgetCount,
+          itemBuilder: (context, index) {
+            if (index == widgetCount - 1) {
+              return endItemView;
+            }
+
+            final item = data.items[index];
+            if (item.data == null) {
+              return const SizedBox.shrink();
+            }
+            Widget itemWidget;
+
+            switch (item.type) {
+              case 'posts.new':
+                itemWidget = PostItem(
+                  backgroundColor:
+                      isWideScreen(context) ? Colors.transparent : null,
+                  item: SnPost.fromJson(item.data),
+                  onRefresh: (_) {
+                    activitiesNotifier.forceRefresh();
+                  },
+                  onUpdate: (post) {
+                    activitiesNotifier.updateOne(
+                      index,
+                      item.copyWith(data: post.toJson()),
+                    );
+                  },
+                );
+                break;
+              case 'accounts.check-in':
+                itemWidget = CheckInActivityWidget(item: item);
+                break;
+              case 'accounts.status':
+                itemWidget = StatusActivityWidget(item: item);
+                break;
+              default:
+                itemWidget = const Placeholder();
+            }
+
+            return Column(children: [itemWidget, const Divider(height: 1)]);
+          },
+        ),
+        SliverGap(MediaQuery.of(context).padding.bottom + 16),
+      ],
     );
   }
 }

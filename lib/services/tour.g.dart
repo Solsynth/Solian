@@ -7,7 +7,7 @@ part of 'tour.dart';
 // **************************************************************************
 
 String _$tourStatusNotifierHash() =>
-    r'040aac2d7cf6d14e539c1b04cf311421ee133ed3';
+    r'ee712e1f8010311df8f24838814ab5c451f9e593';
 
 /// See also [TourStatusNotifier].
 @ProviderFor(TourStatusNotifier)

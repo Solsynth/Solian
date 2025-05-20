@@ -8,7 +8,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/screens/account/me/publishers.dart';
+import 'package:island/screens/creators/publishers.dart';
+import 'package:island/services/responsive.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -26,15 +28,67 @@ Future<SnPublisherStats?> publisherStats(Ref ref, String? uname) async {
 }
 
 @RoutePage()
+class CreatorHubShellScreen extends StatelessWidget {
+  const CreatorHubShellScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isWide = isWideScreen(context);
+    if (isWide) {
+      return Row(
+        children: [
+          SizedBox(width: 360, child: const CreatorHubScreen(isAside: true)),
+          const VerticalDivider(width: 1),
+          Expanded(child: AutoRouter()),
+        ],
+      );
+    }
+    return AutoRouter();
+  }
+}
+
+@RoutePage()
 class CreatorHubScreen extends HookConsumerWidget {
-  const CreatorHubScreen({super.key});
+  final bool isAside;
+  const CreatorHubScreen({super.key, this.isAside = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isWide = isWideScreen(context);
+    if (isWide && !isAside) {
+      return Container(color: Theme.of(context).colorScheme.surface);
+    }
+
     final publishers = ref.watch(publishersManagedProvider);
     final currentPublisher = useState<SnPublisher?>(
       publishers.value?.firstOrNull,
     );
+
+    void updatePublisher() {
+      context.router
+          .push(EditPublisherRoute(name: currentPublisher.value!.name))
+          .then((value) async {
+            if (value == null) return;
+            final data = await ref.refresh(publishersManagedProvider.future);
+            currentPublisher.value =
+                data
+                    .where((e) => e.id == currentPublisher.value!.id)
+                    .firstOrNull;
+          });
+    }
+
+    void deletePublisher() {
+      showConfirmAlert('deletePublisherHint'.tr(), 'deletePublisher'.tr()).then(
+        (confirm) {
+          if (confirm) {
+            final client = ref.watch(apiClientProvider);
+            client.delete('/publishers/${currentPublisher.value!.name}');
+            ref.invalidate(publishersManagedProvider);
+            currentPublisher.value = null;
+          }
+        },
+      );
+    }
 
     final List<DropdownMenuItem<SnPublisher>> publishersMenu = publishers.when(
       data:
@@ -184,23 +238,56 @@ class CreatorHubScreen extends HookConsumerWidget {
                             _PublisherStatsWidget(
                               stats: stats,
                             ).padding(vertical: 12, horizontal: 12),
-                          if (currentPublisher.value != null)
-                            ListTile(
-                              minTileHeight: 48,
-                              title: Text('stickers').tr(),
-                              trailing: Icon(Symbols.chevron_right),
-                              leading: const Icon(Symbols.sticky_note),
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              onTap: () {
-                                context.router.push(
-                                  StickersRoute(
-                                    pubName: currentPublisher.value!.name,
-                                  ),
-                                );
-                              },
+                          ListTile(
+                            minTileHeight: 48,
+                            title: Text('stickers').tr(),
+                            trailing: Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.ar_stickers),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
                             ),
+                            onTap: () {
+                              context.router.push(
+                                StickersRoute(
+                                  pubName: currentPublisher.value!.name,
+                                ),
+                              );
+                            },
+                          ),
+                          ListTile(
+                            minTileHeight: 48,
+                            title: Text('posts').tr(),
+                            trailing: Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.sticky_note_2),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                          ),
+                          Divider(height: 1).padding(vertical: 8),
+                          ListTile(
+                            minTileHeight: 48,
+                            title: Text('editPublisher').tr(),
+                            trailing: Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.edit),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            onTap: () {
+                              updatePublisher();
+                            },
+                          ),
+                          ListTile(
+                            minTileHeight: 48,
+                            title: Text('deletePublisher').tr(),
+                            trailing: Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.delete),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            onTap: () {
+                              deletePublisher();
+                            },
+                          ),
                         ],
                       ),
             ),
