@@ -11,7 +11,9 @@ void showSnackBar(
   String message, {
   SnackBarAction? action,
 }) {
-  showSnackBar(context, message, action: action);
+  ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message), action: action));
 }
 
 void clearSnackBar(BuildContext context) {

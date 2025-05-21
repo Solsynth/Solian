@@ -471,14 +471,14 @@ $SnCloudFileCopyWith<$Res>? get background {
 @JsonSerializable()
 
 class _SnPublisher implements SnPublisher {
-  const _SnPublisher({required this.id, required this.type, required this.name, required this.nick, required this.bio, required this.pictureId, required this.picture, required this.backgroundId, required this.background, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.realmId});
+  const _SnPublisher({required this.id, required this.type, required this.name, required this.nick, this.bio = '', required this.pictureId, required this.picture, required this.backgroundId, required this.background, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.realmId});
   factory _SnPublisher.fromJson(Map<String, dynamic> json) => _$SnPublisherFromJson(json);
 
 @override final  String id;
 @override final  int type;
 @override final  String name;
 @override final  String nick;
-@override final  String bio;
+@override@JsonKey() final  String bio;
 @override final  String? pictureId;
 @override final  SnCloudFile? picture;
 @override final  String? backgroundId;

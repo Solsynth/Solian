@@ -46,7 +46,7 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
       firstName: json['first_name'] as String?,
       middleName: json['middle_name'] as String?,
       lastName: json['last_name'] as String?,
-      bio: json['bio'] as String?,
+      bio: json['bio'] as String? ?? '',
       pictureId: json['picture_id'] as String?,
       experience: (json['experience'] as num).toInt(),
       level: (json['level'] as num).toInt(),

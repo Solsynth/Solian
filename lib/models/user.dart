@@ -30,7 +30,7 @@ abstract class SnAccountProfile with _$SnAccountProfile {
     required String? firstName,
     required String? middleName,
     required String? lastName,
-    required String? bio,
+    @Default('') String bio,
     required String? pictureId,
     required int experience,
     required int level,

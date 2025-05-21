@@ -49,7 +49,7 @@ abstract class SnPublisher with _$SnPublisher {
     required int type,
     required String name,
     required String nick,
-    required String bio,
+    @Default('') String bio,
     required String? pictureId,
     required SnCloudFile? picture,
     required String? backgroundId,

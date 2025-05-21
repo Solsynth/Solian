@@ -99,7 +99,7 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
   type: (json['type'] as num).toInt(),
   name: json['name'] as String,
   nick: json['nick'] as String,
-  bio: json['bio'] as String,
+  bio: json['bio'] as String? ?? '',
   pictureId: json['picture_id'] as String?,
   picture:
       json['picture'] == null
