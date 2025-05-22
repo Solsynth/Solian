@@ -94,6 +94,7 @@ class RealmListScreen extends HookConsumerWidget {
                       itemCount: value.length,
                       itemBuilder: (context, item) {
                         return ListTile(
+                          isThreeLine: true,
                           leading: ProfilePictureWidget(
                             fileId: value[item].pictureId,
                             fallbackIcon: Symbols.group,
@@ -105,7 +106,12 @@ class RealmListScreen extends HookConsumerWidget {
                               RealmDetailRoute(slug: value[item].slug),
                             );
                           },
-                          contentPadding: EdgeInsets.only(left: 16, right: 14),
+                          contentPadding: EdgeInsets.only(
+                            left: 16,
+                            right: 14,
+                            top: 8,
+                            bottom: 8,
+                          ),
                         );
                       },
                     ),

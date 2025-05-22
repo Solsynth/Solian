@@ -113,7 +113,9 @@ class AccountScreen extends HookConsumerWidget {
                               ],
                             ),
                             Text(
-                              user.value!.profile.bio ?? 'No description yet.',
+                              (user.value!.profile.bio.isNotEmpty)
+                                  ? user.value!.profile.bio
+                                  : 'No description yet.',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -146,7 +148,7 @@ class AccountScreen extends HookConsumerWidget {
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {
-                        context.router.push(CreatorHubRoute());
+                        context.router.push(CreatorHubShellRoute());
                       },
                     ),
                   ).height(140),

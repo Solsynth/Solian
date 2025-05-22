@@ -99,15 +99,19 @@ class WalletScreen extends HookConsumerWidget {
       body: wallet.when(
         data: (data) {
           if (data == null) {
-            return Column(
-              children: [
-                Text('walletNotFound').tr(),
-                Text('walletCreateHint').tr(),
-                TextButton(
-                  onPressed: createWallet,
-                  child: Text('walletCreate').tr(),
-                ),
-              ],
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 280),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('walletNotFound').tr().fontSize(16).bold(),
+                  Text('walletCreateHint', textAlign: TextAlign.center).tr(),
+                  TextButton(
+                    onPressed: createWallet,
+                    child: Text('walletCreate').tr(),
+                  ),
+                ],
+              ),
             );
           }
 

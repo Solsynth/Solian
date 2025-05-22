@@ -68,8 +68,11 @@ class ChatRoomListTile extends StatelessWidget {
           subtitle != null
               ? subtitle!
               : (isDirect && room.description == null)
-              ? Text(room.members!.map((e) => '@${e.account.name}').join(', '))
-              : Text(room.description ?? 'descriptionNone'.tr()),
+              ? Text(
+                room.members!.map((e) => '@${e.account.name}').join(', '),
+                maxLines: 1,
+              )
+              : Text(room.description ?? 'descriptionNone'.tr(), maxLines: 1),
       trailing: trailing,
       onTap: onTap,
     );

@@ -124,6 +124,7 @@ class CreatorHubScreen extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
+        leading: !isWide ? const PageBackButton() : null,
         title: Text('creatorHub').tr(),
         actions: [
           DropdownButtonHideUnderline(
