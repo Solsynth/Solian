@@ -271,5 +271,12 @@
   "unreadMessages": {
     "one": "{} unread message",
     "other": "{} unread messages"
-  }
+  },
+  "settingsRealmCompactView": "Compact Realm View",
+  "settingsMixedFeed": "Mixed Feed",
+  "settingsAutoTranslate": "Auto Translate",
+  "settingsHideBottomNav": "Hide Bottom Navigation",
+  "settingsSoundEffects": "Sound Effects",
+  "settingsAprilFoolFeatures": "April Fool Features",
+  "settingsEnterToSend": "Enter to Send"
 }

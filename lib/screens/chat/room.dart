@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -676,7 +677,7 @@ class ChatRoomScreen extends HookConsumerWidget {
   }
 }
 
-class _ChatInput extends StatelessWidget {
+class _ChatInput extends ConsumerWidget {
   final TextEditingController messageController;
   final SnChatRoom chatRoom;
   final VoidCallback onSend;
@@ -705,8 +706,26 @@ class _ChatInput extends StatelessWidget {
     required this.onMoveAttachment,
   });
 
+  void _handleKeyPress(BuildContext context, WidgetRef ref, RawKeyEvent event) {
+    if (event is! RawKeyDownEvent) return;
+
+    final enterToSend = ref.read(appSettingsProvider).enterToSend;
+    final isEnter = event.logicalKey == LogicalKeyboardKey.enter;
+    final isModifierPressed = event.isMetaPressed || event.isControlPressed;
+
+    if (isEnter) {
+      if (enterToSend && !isModifierPressed) {
+        onSend();
+      } else if (!enterToSend && isModifierPressed) {
+        onSend();
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enterToSend = ref.watch(appSettingsProvider).enterToSend;
+
     return Material(
       elevation: 8,
       color: Theme.of(context).colorScheme.surface,
@@ -806,30 +825,42 @@ class _ChatInput extends StatelessWidget {
                       ],
                 ),
                 Expanded(
-                  child: TextField(
-                    controller: messageController,
-                    decoration: InputDecoration(
-                      hintText:
-                          (chatRoom.type == 1 && chatRoom.name == null)
-                              ? 'chatDirectMessageHint'.tr(
-                                args: [
-                                  chatRoom.members!
-                                      .map((e) => e.account.nick)
-                                      .join(', '),
-                                ],
-                              )
-                              : 'chatMessageHint'.tr(args: [chatRoom.name!]),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
+                  child: RawKeyboardListener(
+                    focusNode: FocusNode(),
+                    onKey: (event) => _handleKeyPress(context, ref, event),
+                    child: TextField(
+                      controller: messageController,
+                      inputFormatters: [
+                        if (enterToSend)
+                          TextInputFormatter.withFunction((oldValue, newValue) {
+                            if (newValue.text.endsWith('\n')) {
+                              return oldValue;
+                            }
+                            return newValue;
+                          }),
+                      ],
+                      decoration: InputDecoration(
+                        hintText:
+                            (chatRoom.type == 1 && chatRoom.name == null)
+                                ? 'chatDirectMessageHint'.tr(
+                                  args: [
+                                    chatRoom.members!
+                                        .map((e) => e.account.nick)
+                                        .join(', '),
+                                  ],
+                                )
+                                : 'chatMessageHint'.tr(args: [chatRoom.name!]),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                       ),
+                      maxLines: null,
+                      onTapOutside:
+                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     ),
-                    maxLines: null,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    onSubmitted: (_) => onSend(),
                   ),
                 ),
                 IconButton(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+part 'config.freezed.dart';
 
 const kTokenPairStoreKey = 'dyn_user_tk';
 
@@ -21,6 +24,7 @@ const kAppHideBottomNav = 'app_hide_bottom_nav';
 const kAppSoundEffects = 'app_sound_effects';
 const kAppAprilFoolFeatures = 'app_april_fool_features';
 const kAppWindowSize = 'app_window_size';
+const kAppEnterToSend = 'app_enter_to_send';
 
 const Map<String, FilterQuality> kImageQualityLevel = {
   'settingsImageQualityLowest': FilterQuality.none,
@@ -46,40 +50,17 @@ final serverUrlProvider = Provider<String>((ref) {
   return prefs.getString(kNetworkServerStoreKey) ?? kNetworkServerDefault;
 });
 
-class AppSettings {
-  final bool realmCompactView;
-  final bool mixedFeed;
-  final bool autoTranslate;
-  final bool hideBottomNav;
-  final bool soundEffects;
-  final bool aprilFoolFeatures;
-
-  AppSettings({
-    required this.realmCompactView,
-    required this.mixedFeed,
-    required this.autoTranslate,
-    required this.hideBottomNav,
-    required this.soundEffects,
-    required this.aprilFoolFeatures,
-  });
-
-  AppSettings copyWith({
-    bool? realmCompactView,
-    bool? mixedFeed,
-    bool? autoTranslate,
-    bool? hideBottomNav,
-    bool? soundEffects,
-    bool? aprilFoolFeatures,
-  }) {
-    return AppSettings(
-      realmCompactView: realmCompactView ?? this.realmCompactView,
-      mixedFeed: mixedFeed ?? this.mixedFeed,
-      autoTranslate: autoTranslate ?? this.autoTranslate,
-      hideBottomNav: hideBottomNav ?? this.hideBottomNav,
-      soundEffects: soundEffects ?? this.soundEffects,
-      aprilFoolFeatures: aprilFoolFeatures ?? this.aprilFoolFeatures,
-    );
-  }
+@freezed
+abstract class AppSettings with _$AppSettings {
+  const factory AppSettings({
+    required bool realmCompactView,
+    required bool mixedFeed,
+    required bool autoTranslate,
+    required bool hideBottomNav,
+    required bool soundEffects,
+    required bool aprilFoolFeatures,
+    required bool enterToSend,
+  }) = _AppSettings;
 }
 
 class AppSettingsNotifier extends StateNotifier<AppSettings> {
@@ -94,6 +75,7 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
           hideBottomNav: prefs.getBool(kAppHideBottomNav) ?? false,
           soundEffects: prefs.getBool(kAppSoundEffects) ?? true,
           aprilFoolFeatures: prefs.getBool(kAppAprilFoolFeatures) ?? true,
+          enterToSend: prefs.getBool(kAppEnterToSend) ?? true,
         ),
       );
 
@@ -125,6 +107,11 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
   void setAprilFoolFeatures(bool value) {
     prefs.setBool(kAppAprilFoolFeatures, value);
     state = state.copyWith(aprilFoolFeatures: value);
+  }
+
+  void setEnterToSend(bool value) {
+    prefs.setBool(kAppEnterToSend, value);
+    state = state.copyWith(enterToSend: value);
   }
 }
 

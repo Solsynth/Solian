@@ -26,6 +26,7 @@ class SettingsScreen extends HookConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final prefs = ref.watch(sharedPreferencesProvider);
     final controller = TextEditingController(text: serverUrl);
+    final settings = ref.watch(appSettingsProvider);
 
     final docBasepath = useState<String?>(null);
 
@@ -174,6 +175,99 @@ class SettingsScreen extends HookConsumerWidget {
                   );
                 },
               ),
+            const Divider(),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsRealmCompactView').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.view_compact),
+              trailing: Switch(
+                value: settings.realmCompactView,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setRealmCompactView(value);
+                },
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsMixedFeed').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.merge),
+              trailing: Switch(
+                value: settings.mixedFeed,
+                onChanged: (value) {
+                  ref.read(appSettingsProvider.notifier).setMixedFeed(value);
+                },
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsAutoTranslate').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.translate),
+              trailing: Switch(
+                value: settings.autoTranslate,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setAutoTranslate(value);
+                },
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsHideBottomNav').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.navigation),
+              trailing: Switch(
+                value: settings.hideBottomNav,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setHideBottomNav(value);
+                },
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsSoundEffects').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.volume_up),
+              trailing: Switch(
+                value: settings.soundEffects,
+                onChanged: (value) {
+                  ref.read(appSettingsProvider.notifier).setSoundEffects(value);
+                },
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsAprilFoolFeatures').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.celebration),
+              trailing: Switch(
+                value: settings.aprilFoolFeatures,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setAprilFoolFeatures(value);
+                },
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsEnterToSend').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.send),
+              trailing: Switch(
+                value: settings.enterToSend,
+                onChanged: (value) {
+                  ref.read(appSettingsProvider.notifier).setEnterToSend(value);
+                },
+              ),
+            ),
           ],
         ),
       ),

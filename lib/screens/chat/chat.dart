@@ -93,9 +93,12 @@ class ChatRoomListTile extends HookConsumerWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
-                  Text(
-                    RelativeTime(context).format(data.lastMessage.createdAt),
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      RelativeTime(context).format(data.lastMessage.createdAt),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
                 ],
               ),
@@ -117,41 +120,31 @@ class ChatRoomListTile extends HookConsumerWidget {
       );
     }
 
-    Widget buildTrailing() {
-      if (trailing != null) return trailing!;
-
-      return summary.when(
-        data: (data) {
-          if (data == null || data.unreadCount == 0) {
-            return const SizedBox.shrink();
-          }
-
-          return Badge(label: Text(data.unreadCount.toString()));
-        },
-        loading: () => const SizedBox.shrink(),
-        error: (_, __) => const SizedBox.shrink(),
-      );
-    }
-
     return ListTile(
-      leading:
-          (isDirect && room.pictureId == null)
-              ? SplitAvatarWidget(
-                filesId:
-                    room.members!
-                        .map((e) => e.account.profile.pictureId)
-                        .toList(),
-              )
-              : room.pictureId == null
-              ? CircleAvatar(child: Text(room.name![0].toUpperCase()))
-              : ProfilePictureWidget(fileId: room.pictureId),
+      leading: Badge(
+        isLabelVisible: summary.when(
+          data: (data) => (data?.unreadCount ?? 0) > 0,
+          loading: () => false,
+          error: (_, __) => false,
+        ),
+        child:
+            (isDirect && room.pictureId == null)
+                ? SplitAvatarWidget(
+                  filesId:
+                      room.members!
+                          .map((e) => e.account.profile.pictureId)
+                          .toList(),
+                )
+                : room.pictureId == null
+                ? CircleAvatar(child: Text(room.name![0].toUpperCase()))
+                : ProfilePictureWidget(fileId: room.pictureId),
+      ),
       title: Text(
         (isDirect && room.name == null)
             ? room.members!.map((e) => e.account.nick).join(', ')
             : room.name ?? '',
       ),
       subtitle: buildSubtitle(),
-      trailing: buildTrailing(),
       onTap: () async {
         // Clear unread count if there are unread messages
         final summary = await ref.read(chatSummaryProvider.future);
