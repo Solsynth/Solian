@@ -16,7 +16,7 @@ const List<Tour> kAllTours = [
 ];
 
 @freezed
-abstract class Tour with _$Tour {
+sealed class Tour with _$Tour {
   const Tour._();
 
   const factory Tour({required String id, required bool isStartup}) = _Tour;

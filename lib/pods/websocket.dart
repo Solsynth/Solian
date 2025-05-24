@@ -14,7 +14,7 @@ part 'websocket.freezed.dart';
 part 'websocket.g.dart';
 
 @freezed
-abstract class WebSocketState with _$WebSocketState {
+sealed class WebSocketState with _$WebSocketState {
   const factory WebSocketState.connected() = _Connected;
   const factory WebSocketState.connecting() = _Connecting;
   const factory WebSocketState.disconnected() = _Disconnected;
@@ -22,7 +22,7 @@ abstract class WebSocketState with _$WebSocketState {
 }
 
 @freezed
-abstract class WebSocketPacket with _$WebSocketPacket {
+sealed class WebSocketPacket with _$WebSocketPacket {
   const factory WebSocketPacket({
     required String type,
     required Map<String, dynamic>? data,

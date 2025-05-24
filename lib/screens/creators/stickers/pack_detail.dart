@@ -310,7 +310,7 @@ class _StickerPackActionMenu extends HookConsumerWidget {
 }
 
 @freezed
-abstract class StickerWithPackQuery with _$StickerWithPackQuery {
+sealed class StickerWithPackQuery with _$StickerWithPackQuery {
   const factory StickerWithPackQuery({
     required String packId,
     required String id,

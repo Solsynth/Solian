@@ -6,7 +6,7 @@ part 'sticker.freezed.dart';
 part 'sticker.g.dart';
 
 @freezed
-abstract class SnSticker with _$SnSticker {
+sealed class SnSticker with _$SnSticker {
   const factory SnSticker({
     required String id,
     required String slug,
@@ -24,7 +24,7 @@ abstract class SnSticker with _$SnSticker {
 }
 
 @freezed
-abstract class SnStickerPack with _$SnStickerPack {
+sealed class SnStickerPack with _$SnStickerPack {
   const factory SnStickerPack({
     required String id,
     required String name,

@@ -17,7 +17,7 @@ part 'event_calendar.g.dart';
 part 'event_calendar.freezed.dart';
 
 @freezed
-abstract class EventCalendarQuery with _$EventCalendarQuery {
+sealed class EventCalendarQuery with _$EventCalendarQuery {
   const factory EventCalendarQuery({
     required String? uname,
     required int year,

@@ -229,7 +229,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
 }
 
 @freezed
-abstract class ChatRoomMemberState with _$ChatRoomMemberState {
+sealed class ChatRoomMemberState with _$ChatRoomMemberState {
   const factory ChatRoomMemberState({
     required List<SnChatMember> members,
     required bool isLoading,

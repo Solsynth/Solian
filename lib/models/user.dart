@@ -5,7 +5,7 @@ part 'user.freezed.dart';
 part 'user.g.dart';
 
 @freezed
-abstract class SnAccount with _$SnAccount {
+sealed class SnAccount with _$SnAccount {
   const factory SnAccount({
     required String id,
     required String name,
@@ -24,7 +24,7 @@ abstract class SnAccount with _$SnAccount {
 }
 
 @freezed
-abstract class SnAccountProfile with _$SnAccountProfile {
+sealed class SnAccountProfile with _$SnAccountProfile {
   const factory SnAccountProfile({
     required String id,
     required String? firstName,
@@ -48,7 +48,7 @@ abstract class SnAccountProfile with _$SnAccountProfile {
 }
 
 @freezed
-abstract class SnAccountStatus with _$SnAccountStatus {
+sealed class SnAccountStatus with _$SnAccountStatus {
   const factory SnAccountStatus({
     required String id,
     required int attitude,
@@ -69,7 +69,7 @@ abstract class SnAccountStatus with _$SnAccountStatus {
 }
 
 @freezed
-abstract class SnAccountBadge with _$SnAccountBadge {
+sealed class SnAccountBadge with _$SnAccountBadge {
   const factory SnAccountBadge({
     required String id,
     required String type,
@@ -88,7 +88,7 @@ abstract class SnAccountBadge with _$SnAccountBadge {
 }
 
 @freezed
-abstract class SnNotification with _$SnNotification {
+sealed class SnNotification with _$SnNotification {
   const factory SnNotification({
     required DateTime createdAt,
     required DateTime updatedAt,

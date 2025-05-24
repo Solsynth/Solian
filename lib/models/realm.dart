@@ -6,7 +6,7 @@ part 'realm.freezed.dart';
 part 'realm.g.dart';
 
 @freezed
-abstract class SnRealm with _$SnRealm {
+sealed class SnRealm with _$SnRealm {
   const factory SnRealm({
     required String id,
     required String slug,
@@ -31,7 +31,7 @@ abstract class SnRealm with _$SnRealm {
 }
 
 @freezed
-abstract class SnRealmMember with _$SnRealmMember {
+sealed class SnRealmMember with _$SnRealmMember {
   const factory SnRealmMember({
     required String realmId,
     required SnRealm? realm,

@@ -5,7 +5,7 @@ part 'wallet.freezed.dart';
 part 'wallet.g.dart';
 
 @freezed
-abstract class SnWallet with _$SnWallet {
+sealed class SnWallet with _$SnWallet {
   const factory SnWallet({
     required String id,
     required List<SnWalletPocket> pockets,
@@ -21,7 +21,7 @@ abstract class SnWallet with _$SnWallet {
 }
 
 @freezed
-abstract class SnWalletPocket with _$SnWalletPocket {
+sealed class SnWalletPocket with _$SnWalletPocket {
   const factory SnWalletPocket({
     required String id,
     required String currency,
@@ -37,7 +37,7 @@ abstract class SnWalletPocket with _$SnWalletPocket {
 }
 
 @freezed
-abstract class SnTransaction with _$SnTransaction {
+sealed class SnTransaction with _$SnTransaction {
   const factory SnTransaction({
     required String id,
     required String currency,

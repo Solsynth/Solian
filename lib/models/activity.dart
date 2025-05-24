@@ -5,7 +5,7 @@ part 'activity.freezed.dart';
 part 'activity.g.dart';
 
 @freezed
-abstract class SnActivity with _$SnActivity {
+sealed class SnActivity with _$SnActivity {
   const factory SnActivity({
     required String id,
     required String type,
@@ -24,7 +24,7 @@ abstract class SnActivity with _$SnActivity {
 }
 
 @freezed
-abstract class SnCheckInResult with _$SnCheckInResult {
+sealed class SnCheckInResult with _$SnCheckInResult {
   const factory SnCheckInResult({
     required String id,
     required int level,
@@ -41,7 +41,7 @@ abstract class SnCheckInResult with _$SnCheckInResult {
 }
 
 @freezed
-abstract class SnFortuneTip with _$SnFortuneTip {
+sealed class SnFortuneTip with _$SnFortuneTip {
   const factory SnFortuneTip({
     required bool isPositive,
     required String title,
@@ -53,7 +53,7 @@ abstract class SnFortuneTip with _$SnFortuneTip {
 }
 
 @freezed
-abstract class SnEventCalendarEntry with _$SnEventCalendarEntry {
+sealed class SnEventCalendarEntry with _$SnEventCalendarEntry {
   const factory SnEventCalendarEntry({
     required DateTime date,
     required SnCheckInResult? checkInResult,

@@ -64,7 +64,12 @@ class PostDetailScreen extends HookConsumerWidget {
                 child: Material(
                   elevation: 2,
                   color: Colors.transparent,
-                  child: PostQuickReply(parent: post).padding(
+                  child: PostQuickReply(
+                    parent: post,
+                    onPosted: () {
+                      ref.invalidate(postRepliesNotifierProvider(id));
+                    },
+                  ).padding(
                     bottom: MediaQuery.of(context).padding.bottom + 16,
                     top: 16,
                     horizontal: 16,

@@ -6,7 +6,7 @@ part 'relationship.freezed.dart';
 part 'relationship.g.dart';
 
 @freezed
-abstract class SnRelationship with _$SnRelationship {
+sealed class SnRelationship with _$SnRelationship {
   const factory SnRelationship({
     required DateTime? createdAt,
     required DateTime? updatedAt,

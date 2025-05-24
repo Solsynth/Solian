@@ -6,7 +6,7 @@ part 'file.g.dart';
 enum UniversalFileType { image, video, audio, file }
 
 @freezed
-abstract class UniversalFile with _$UniversalFile {
+sealed class UniversalFile with _$UniversalFile {
   const UniversalFile._();
 
   const factory UniversalFile({
@@ -31,7 +31,7 @@ abstract class UniversalFile with _$UniversalFile {
 }
 
 @freezed
-abstract class SnCloudFile with _$SnCloudFile {
+sealed class SnCloudFile with _$SnCloudFile {
   const factory SnCloudFile({
     required String id,
     required String name,

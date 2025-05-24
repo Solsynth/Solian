@@ -7,7 +7,7 @@ part 'chat.freezed.dart';
 part 'chat.g.dart';
 
 @freezed
-abstract class SnChatRoom with _$SnChatRoom {
+sealed class SnChatRoom with _$SnChatRoom {
   const factory SnChatRoom({
     required String id,
     required String? name,
@@ -31,7 +31,7 @@ abstract class SnChatRoom with _$SnChatRoom {
 }
 
 @freezed
-abstract class SnChatMessage with _$SnChatMessage {
+sealed class SnChatMessage with _$SnChatMessage {
   const factory SnChatMessage({
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -56,7 +56,7 @@ abstract class SnChatMessage with _$SnChatMessage {
 }
 
 @freezed
-abstract class SnChatReaction with _$SnChatReaction {
+sealed class SnChatReaction with _$SnChatReaction {
   const factory SnChatReaction({
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -74,7 +74,7 @@ abstract class SnChatReaction with _$SnChatReaction {
 }
 
 @freezed
-abstract class SnChatMember with _$SnChatMember {
+sealed class SnChatMember with _$SnChatMember {
   const factory SnChatMember({
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -96,7 +96,7 @@ abstract class SnChatMember with _$SnChatMember {
 }
 
 @freezed
-abstract class SnChatSummary with _$SnChatSummary {
+sealed class SnChatSummary with _$SnChatSummary {
   const factory SnChatSummary({
     required int unreadCount,
     required SnChatMessage lastMessage,
@@ -113,7 +113,7 @@ class MessageChangeAction {
 }
 
 @freezed
-abstract class MessageChange with _$MessageChange {
+sealed class MessageChange with _$MessageChange {
   const factory MessageChange({
     required String messageId,
     required String action,
@@ -126,7 +126,7 @@ abstract class MessageChange with _$MessageChange {
 }
 
 @freezed
-abstract class MessageSyncResponse with _$MessageSyncResponse {
+sealed class MessageSyncResponse with _$MessageSyncResponse {
   const factory MessageSyncResponse({
     @Default([]) List<MessageChange> changes,
     required DateTime currentTimestamp,
@@ -137,7 +137,7 @@ abstract class MessageSyncResponse with _$MessageSyncResponse {
 }
 
 @freezed
-abstract class ChatRealtimeJoinResponse with _$ChatRealtimeJoinResponse {
+sealed class ChatRealtimeJoinResponse with _$ChatRealtimeJoinResponse {
   const factory ChatRealtimeJoinResponse({
     required String token,
     required Map<String, dynamic> config,

@@ -51,7 +51,7 @@ final serverUrlProvider = Provider<String>((ref) {
 });
 
 @freezed
-abstract class AppSettings with _$AppSettings {
+sealed class AppSettings with _$AppSettings {
   const factory AppSettings({
     required bool autoTranslate,
     required bool soundEffects,

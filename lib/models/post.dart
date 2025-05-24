@@ -5,7 +5,7 @@ part 'post.freezed.dart';
 part 'post.g.dart';
 
 @freezed
-abstract class SnPost with _$SnPost {
+sealed class SnPost with _$SnPost {
   const factory SnPost({
     required String id,
     required String? title,
@@ -43,7 +43,7 @@ abstract class SnPost with _$SnPost {
 }
 
 @freezed
-abstract class SnPublisher with _$SnPublisher {
+sealed class SnPublisher with _$SnPublisher {
   const factory SnPublisher({
     required String id,
     required int type,
@@ -66,7 +66,7 @@ abstract class SnPublisher with _$SnPublisher {
 }
 
 @freezed
-abstract class SnPublisherStats with _$SnPublisherStats {
+sealed class SnPublisherStats with _$SnPublisherStats {
   const factory SnPublisherStats({
     required int postsCreated,
     required int stickerPacksCreated,
@@ -80,7 +80,7 @@ abstract class SnPublisherStats with _$SnPublisherStats {
 }
 
 @freezed
-abstract class SnSubscriptionStatus with _$SnSubscriptionStatus {
+sealed class SnSubscriptionStatus with _$SnSubscriptionStatus {
   const factory SnSubscriptionStatus({
     required bool isSubscribed,
     required int publisherId,
@@ -92,7 +92,7 @@ abstract class SnSubscriptionStatus with _$SnSubscriptionStatus {
 }
 
 @freezed
-abstract class ReactInfo with _$ReactInfo {
+sealed class ReactInfo with _$ReactInfo {
   const factory ReactInfo({required String icon, required int attitude}) =
       _ReactInfo;
 }

@@ -4,7 +4,7 @@ part 'auth.freezed.dart';
 part 'auth.g.dart';
 
 @freezed
-abstract class AppTokenPair with _$AppTokenPair {
+sealed class AppTokenPair with _$AppTokenPair {
   const factory AppTokenPair({
     required String accessToken,
     required String refreshToken,
@@ -15,7 +15,7 @@ abstract class AppTokenPair with _$AppTokenPair {
 }
 
 @freezed
-abstract class SnAuthChallenge with _$SnAuthChallenge {
+sealed class SnAuthChallenge with _$SnAuthChallenge {
   const factory SnAuthChallenge({
     required String id,
     required DateTime expiredAt,
@@ -38,7 +38,7 @@ abstract class SnAuthChallenge with _$SnAuthChallenge {
 }
 
 @freezed
-abstract class SnAuthFactor with _$SnAuthFactor {
+sealed class SnAuthFactor with _$SnAuthFactor {
   const factory SnAuthFactor({
     required String id,
     required int type,
