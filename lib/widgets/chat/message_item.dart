@@ -418,7 +418,7 @@ class _MessageItemContent extends StatelessWidget {
   }
 
   static bool hasContent(SnChatMessage item) {
-    return item.type == 'text' && (item.content?.isNotEmpty ?? false);
+    return item.type != 'text' || (item.content?.isNotEmpty ?? false);
   }
 }
 
