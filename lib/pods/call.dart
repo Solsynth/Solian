@@ -1,5 +1,6 @@
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/chat/chat.dart';
+import 'package:island/widgets/chat/call_button.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'dart:async';
@@ -11,6 +12,14 @@ import 'package:island/pods/websocket.dart';
 part 'call.g.dart';
 part 'call.freezed.dart';
 
+String formatDuration(Duration duration) {
+  String negativeSign = duration.isNegative ? '-' : '';
+  String twoDigits(int n) => n.toString().padLeft(2, "0");
+  String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60).abs());
+  String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60).abs());
+  return "$negativeSign${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+}
+
 @freezed
 sealed class CallState with _$CallState {
   const factory CallState({
@@ -18,6 +27,7 @@ sealed class CallState with _$CallState {
     required bool isMicrophoneEnabled,
     required bool isCameraEnabled,
     required bool isScreenSharing,
+    @Default(Duration(seconds: 0)) Duration duration,
     String? error,
   }) = _CallState;
 }
@@ -53,6 +63,8 @@ class CallNotifier extends _$CallNotifier {
   List<CallParticipantLive> get participants =>
       List.unmodifiable(_participants);
   LocalParticipant? get localParticipant => _localParticipant;
+
+  Timer? _durationTimer;
 
   @override
   CallState build() {
@@ -219,8 +231,16 @@ class CallNotifier extends _$CallNotifier {
 
   Future<void> joinRoom(String roomId) async {
     _roomId = roomId;
+    if (_room != null) {
+      await _room!.disconnect();
+      await _room!.dispose();
+      _room = null;
+      _localParticipant = null;
+      _participants = [];
+    }
     try {
       final apiClient = ref.read(apiClientProvider);
+      final ongoingCall = await ref.read(ongoingCallProvider(roomId).future);
       final response = await apiClient.get('/chat/realtime/$roomId/join');
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
@@ -229,6 +249,19 @@ class CallNotifier extends _$CallNotifier {
         final participants = joinResponse.participants;
         final String endpoint = joinResponse.endpoint;
         final String token = joinResponse.token;
+
+        // Setup duration timer
+        _durationTimer?.cancel();
+        _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          state = state.copyWith(
+            duration: Duration(
+              milliseconds:
+                  (DateTime.now().millisecondsSinceEpoch -
+                      (ongoingCall?.createdAt.millisecondsSinceEpoch ?? 0)),
+            ),
+          );
+        });
+
         // Connect to LiveKit
         _room = Room();
 
@@ -314,5 +347,6 @@ class CallNotifier extends _$CallNotifier {
     _roomListener?.dispose();
     _room?.removeListener(_onRoomChange);
     _room?.dispose();
+    _durationTimer?.cancel();
   }
 }

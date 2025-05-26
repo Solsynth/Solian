@@ -284,7 +284,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppBar(title: const Text('Account')),
+      appBar: AppBar(title: const Text('account').tr()),
       body:
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 360),

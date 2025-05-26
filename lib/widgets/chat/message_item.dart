@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/database/message.dart';
 import 'package:island/models/chat.dart';
+import 'package:island/pods/call.dart';
 import 'package:island/screens/chat/room.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
@@ -429,14 +430,6 @@ class _MessageContentCall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String formatDuration(Duration duration) {
-      final hours = duration.inHours;
-      final minutes = duration.inMinutes.remainder(60);
-      final seconds = duration.inSeconds.remainder(60);
-      return '${hours == 0 ? '' : '$hours hours '}'
-          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    }
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

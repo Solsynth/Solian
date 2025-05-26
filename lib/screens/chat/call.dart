@@ -5,11 +5,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/call.dart';
-import 'package:island/pods/userinfo.dart';
-import 'package:island/screens/chat/chat.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/call_button.dart';
+import 'package:island/widgets/chat/call_overlay.dart';
 import 'package:island/widgets/chat/call_participant_tile.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -22,8 +21,6 @@ class CallScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ongoingCall = ref.watch(ongoingCallProvider(roomId));
-    final userInfo = ref.watch(userInfoProvider);
-    final chatRoom = ref.watch(chatroomProvider(roomId));
     final callState = ref.watch(callNotifierProvider);
     final callNotifier = ref.read(callNotifierProvider.notifier);
 
@@ -31,10 +28,6 @@ class CallScreen extends HookConsumerWidget {
       callNotifier.joinRoom(roomId);
       return null;
     }, []);
-
-    final actionButtonStyle = ButtonStyle(
-      minimumSize: const MaterialStatePropertyAll(Size(24, 24)),
-    );
 
     final viewMode = useState<String>('grid');
 
@@ -74,20 +67,12 @@ class CallScreen extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              chatRoom.whenOrNull()?.name ?? 'loading'.tr(),
+              ongoingCall.value?.room.name ?? 'call'.tr(),
               style: const TextStyle(fontSize: 16),
             ),
             Text(
               callState.isConnected
-                  ? Duration(
-                    milliseconds:
-                        (DateTime.now().millisecondsSinceEpoch -
-                            (ongoingCall
-                                    .value
-                                    ?.createdAt
-                                    .millisecondsSinceEpoch ??
-                                0)),
-                  ).toString()
+                  ? formatDuration(callState.duration)
                   : 'Connecting',
               style: const TextStyle(fontSize: 14),
             ),
@@ -131,78 +116,6 @@ class CallScreen extends HookConsumerWidget {
               )
               : Column(
                 children: [
-                  Card(
-                    margin: const EdgeInsets.only(left: 12, right: 12, top: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Builder(
-                                builder: (context) {
-                                  if (callNotifier.localParticipant == null) {
-                                    return CircularProgressIndicator().center();
-                                  }
-                                  return SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child:
-                                        SpeakingRippleAvatar(
-                                          isSpeaking:
-                                              callNotifier
-                                                  .localParticipant!
-                                                  .isSpeaking,
-                                          audioLevel:
-                                              callNotifier
-                                                  .localParticipant!
-                                                  .audioLevel,
-                                          pictureId:
-                                              userInfo.value?.profile.pictureId,
-                                          size: 36,
-                                        ).center(),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            callState.isMicrophoneEnabled
-                                ? Icons.mic
-                                : Icons.mic_off,
-                          ),
-                          onPressed: () {
-                            callNotifier.toggleMicrophone();
-                          },
-                          style: actionButtonStyle,
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            callState.isCameraEnabled
-                                ? Icons.videocam
-                                : Icons.videocam_off,
-                          ),
-                          onPressed: () {
-                            callNotifier.toggleCamera();
-                          },
-                          style: actionButtonStyle,
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            callState.isScreenSharing
-                                ? Icons.stop_screen_share
-                                : Icons.screen_share,
-                          ),
-                          onPressed: () {
-                            callNotifier.toggleScreenShare();
-                          },
-                          style: actionButtonStyle,
-                        ),
-                      ],
-                    ).padding(all: 16),
-                  ),
                   Expanded(
                     child: Builder(
                       builder: (context) {
@@ -374,6 +287,8 @@ class CallScreen extends HookConsumerWidget {
                       },
                     ),
                   ),
+                  CallControlsBar(),
+                  Gap(MediaQuery.of(context).padding.bottom + 16),
                 ],
               ),
     );

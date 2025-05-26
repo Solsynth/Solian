@@ -316,7 +316,7 @@ class PostComposeScreen extends HookConsumerWidget {
                         TextField(
                           controller: titleController,
                           decoration: InputDecoration.collapsed(
-                            hintText: 'Title',
+                            hintText: 'title'.tr(),
                           ),
                           style: TextStyle(fontSize: 16),
                           onTapOutside:
@@ -326,7 +326,7 @@ class PostComposeScreen extends HookConsumerWidget {
                         TextField(
                           controller: descriptionController,
                           decoration: InputDecoration.collapsed(
-                            hintText: 'Description',
+                            hintText: 'description'.tr(),
                           ),
                           style: TextStyle(fontSize: 16),
                           onTapOutside:

@@ -52,6 +52,7 @@ class WebSocketService {
   Future<void> connect(Ref ref) async {
     _ref = ref;
 
+    _statusStreamController.sink.add(WebSocketState.connecting());
     final baseUrl = ref.watch(serverUrlProvider);
     final atk = await getFreshAtk(
       ref.watch(tokenPairProvider),

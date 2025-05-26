@@ -22,6 +22,7 @@ import 'package:island/screens/posts/compose.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/chat/call_overlay.dart';
 import 'package:island/widgets/chat/message_item.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/response.dart';
@@ -352,6 +353,10 @@ class ChatRoomScreen extends HookConsumerWidget {
         if (message.chatRoomId != chatRoom.value?.id) return;
         switch (pkt.type) {
           case 'messages.new':
+            if (message.type.startsWith('call')) {
+              // Handle the ongoing call.
+              ref.invalidate(ongoingCallProvider(message.chatRoomId));
+            }
             messagesNotifier.receiveMessage(message);
             // Send read receipt for new message
             sendReadReceipt();
@@ -525,152 +530,166 @@ class ChatRoomScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: messages.when(
-              data:
-                  (messageList) =>
-                      messageList.isEmpty
-                          ? Center(child: Text('No messages yet'.tr()))
-                          : SuperListView.builder(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            controller: scrollController,
-                            reverse: true, // Show newest messages at the bottom
-                            itemCount: messageList.length,
-                            itemBuilder: (context, index) {
-                              final message = messageList[index];
-                              final nextMessage =
-                                  index < messageList.length - 1
-                                      ? messageList[index + 1]
-                                      : null;
-                              final isLastInGroup =
-                                  nextMessage == null ||
-                                  nextMessage.senderId != message.senderId ||
-                                  nextMessage.createdAt
-                                          .difference(message.createdAt)
-                                          .inMinutes
-                                          .abs() >
-                                      3;
+          Column(
+            children: [
+              Expanded(
+                child: messages.when(
+                  data:
+                      (messageList) =>
+                          messageList.isEmpty
+                              ? Center(child: Text('No messages yet'.tr()))
+                              : SuperListView.builder(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                controller: scrollController,
+                                reverse:
+                                    true, // Show newest messages at the bottom
+                                itemCount: messageList.length,
+                                itemBuilder: (context, index) {
+                                  final message = messageList[index];
+                                  final nextMessage =
+                                      index < messageList.length - 1
+                                          ? messageList[index + 1]
+                                          : null;
+                                  final isLastInGroup =
+                                      nextMessage == null ||
+                                      nextMessage.senderId !=
+                                          message.senderId ||
+                                      nextMessage.createdAt
+                                              .difference(message.createdAt)
+                                              .inMinutes
+                                              .abs() >
+                                          3;
 
-                              return chatIdentity.when(
-                                skipError: true,
-                                data:
-                                    (identity) => MessageItem(
-                                      message: message,
-                                      isCurrentUser:
-                                          identity?.id == message.senderId,
-                                      onAction: (action) {
-                                        switch (action) {
-                                          case MessageItemAction.delete:
-                                            messagesNotifier.deleteMessage(
-                                              message.id,
-                                            );
-                                          case MessageItemAction.edit:
-                                            messageEditingTo.value =
-                                                message.toRemoteMessage();
-                                            messageController.text =
-                                                messageEditingTo
-                                                    .value
-                                                    ?.content ??
-                                                '';
-                                            attachments.value =
-                                                messageEditingTo
-                                                    .value!
-                                                    .attachments
-                                                    .map(
-                                                      (e) =>
-                                                          UniversalFile.fromAttachment(
-                                                            e,
-                                                          ),
-                                                    )
-                                                    .toList();
-                                          case MessageItemAction.forward:
-                                            messageForwardingTo.value =
-                                                message.toRemoteMessage();
-                                          case MessageItemAction.reply:
-                                            messageReplyingTo.value =
-                                                message.toRemoteMessage();
-                                        }
-                                      },
-                                      progress:
-                                          attachmentProgress.value[message.id],
-                                      showAvatar: isLastInGroup,
-                                    ),
-                                loading:
-                                    () => MessageItem(
-                                      message: message,
-                                      isCurrentUser: false,
-                                      onAction: null,
-                                      progress: null,
-                                      showAvatar: false,
-                                    ),
-                                error: (_, __) => const SizedBox.shrink(),
-                              );
-                            },
-                          ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error:
-                  (error, _) => ResponseErrorWidget(
-                    error: error,
-                    onRetry: () => messagesNotifier.loadInitial(),
-                  ),
-            ),
-          ),
-          chatRoom.when(
-            data:
-                (room) => _ChatInput(
-                  messageController: messageController,
-                  chatRoom: room!,
-                  onSend: sendMessage,
-                  onClear: () {
-                    if (messageEditingTo.value != null) {
-                      attachments.value.clear();
-                      messageController.clear();
-                    }
-                    messageEditingTo.value = null;
-                    messageReplyingTo.value = null;
-                    messageForwardingTo.value = null;
-                  },
-                  messageEditingTo: messageEditingTo.value,
-                  messageReplyingTo: messageReplyingTo.value,
-                  messageForwardingTo: messageForwardingTo.value,
-                  onPickFile: (bool isPhoto) {
-                    if (isPhoto) {
-                      pickPhotoMedia();
-                    } else {
-                      pickVideoMedia();
-                    }
-                  },
-                  attachments: attachments.value,
-                  onUploadAttachment: (_) {
-                    // not going to do anything, only upload when send the message
-                  },
-                  onDeleteAttachment: (index) async {
-                    final attachment = attachments.value[index];
-                    if (attachment.isOnCloud) {
-                      final client = ref.watch(apiClientProvider);
-                      await client.delete('/files/${attachment.data.id}');
-                    }
-                    final clone = List.of(attachments.value);
-                    clone.removeAt(index);
-                    attachments.value = clone;
-                  },
-                  onMoveAttachment: (idx, delta) {
-                    if (idx + delta < 0 ||
-                        idx + delta >= attachments.value.length) {
-                      return;
-                    }
-                    final clone = List.of(attachments.value);
-                    clone.insert(idx + delta, clone.removeAt(idx));
-                    attachments.value = clone;
-                  },
-                  onAttachmentsChanged: (newAttachments) {
-                    attachments.value = newAttachments;
-                  },
+                                  return chatIdentity.when(
+                                    skipError: true,
+                                    data:
+                                        (identity) => MessageItem(
+                                          message: message,
+                                          isCurrentUser:
+                                              identity?.id == message.senderId,
+                                          onAction: (action) {
+                                            switch (action) {
+                                              case MessageItemAction.delete:
+                                                messagesNotifier.deleteMessage(
+                                                  message.id,
+                                                );
+                                              case MessageItemAction.edit:
+                                                messageEditingTo.value =
+                                                    message.toRemoteMessage();
+                                                messageController.text =
+                                                    messageEditingTo
+                                                        .value
+                                                        ?.content ??
+                                                    '';
+                                                attachments.value =
+                                                    messageEditingTo
+                                                        .value!
+                                                        .attachments
+                                                        .map(
+                                                          (e) =>
+                                                              UniversalFile.fromAttachment(
+                                                                e,
+                                                              ),
+                                                        )
+                                                        .toList();
+                                              case MessageItemAction.forward:
+                                                messageForwardingTo.value =
+                                                    message.toRemoteMessage();
+                                              case MessageItemAction.reply:
+                                                messageReplyingTo.value =
+                                                    message.toRemoteMessage();
+                                            }
+                                          },
+                                          progress:
+                                              attachmentProgress.value[message
+                                                  .id],
+                                          showAvatar: isLastInGroup,
+                                        ),
+                                    loading:
+                                        () => MessageItem(
+                                          message: message,
+                                          isCurrentUser: false,
+                                          onAction: null,
+                                          progress: null,
+                                          showAvatar: false,
+                                        ),
+                                    error: (_, __) => const SizedBox.shrink(),
+                                  );
+                                },
+                              ),
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error:
+                      (error, _) => ResponseErrorWidget(
+                        error: error,
+                        onRetry: () => messagesNotifier.loadInitial(),
+                      ),
                 ),
-            error: (_, __) => const SizedBox.shrink(),
-            loading: () => const SizedBox.shrink(),
+              ),
+              chatRoom.when(
+                data:
+                    (room) => _ChatInput(
+                      messageController: messageController,
+                      chatRoom: room!,
+                      onSend: sendMessage,
+                      onClear: () {
+                        if (messageEditingTo.value != null) {
+                          attachments.value.clear();
+                          messageController.clear();
+                        }
+                        messageEditingTo.value = null;
+                        messageReplyingTo.value = null;
+                        messageForwardingTo.value = null;
+                      },
+                      messageEditingTo: messageEditingTo.value,
+                      messageReplyingTo: messageReplyingTo.value,
+                      messageForwardingTo: messageForwardingTo.value,
+                      onPickFile: (bool isPhoto) {
+                        if (isPhoto) {
+                          pickPhotoMedia();
+                        } else {
+                          pickVideoMedia();
+                        }
+                      },
+                      attachments: attachments.value,
+                      onUploadAttachment: (_) {
+                        // not going to do anything, only upload when send the message
+                      },
+                      onDeleteAttachment: (index) async {
+                        final attachment = attachments.value[index];
+                        if (attachment.isOnCloud) {
+                          final client = ref.watch(apiClientProvider);
+                          await client.delete('/files/${attachment.data.id}');
+                        }
+                        final clone = List.of(attachments.value);
+                        clone.removeAt(index);
+                        attachments.value = clone;
+                      },
+                      onMoveAttachment: (idx, delta) {
+                        if (idx + delta < 0 ||
+                            idx + delta >= attachments.value.length) {
+                          return;
+                        }
+                        final clone = List.of(attachments.value);
+                        clone.insert(idx + delta, clone.removeAt(idx));
+                        attachments.value = clone;
+                      },
+                      onAttachmentsChanged: (newAttachments) {
+                        attachments.value = newAttachments;
+                      },
+                    ),
+                error: (_, __) => const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+              ),
+            ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: CallOverlayBar().padding(horizontal: 8, top: 12),
           ),
         ],
       ),

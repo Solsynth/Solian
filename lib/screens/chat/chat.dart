@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/realm.dart';
+import 'package:island/pods/call.dart';
 import 'package:island/pods/chat_summary.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
@@ -21,6 +22,7 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/chat/call_overlay.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/realms/selection_dropdown.dart';
 import 'package:island/widgets/response.dart';
@@ -147,12 +149,11 @@ class ChatRoomListTile extends HookConsumerWidget {
       subtitle: buildSubtitle(),
       onTap: () async {
         // Clear unread count if there are unread messages
-        final summary = await ref.read(chatSummaryProvider.future);
-        if ((summary[room.id]?.unreadCount ?? 0) > 0) {
-          await ref
-              .read(chatSummaryProvider.notifier)
-              .clearUnreadCount(room.id);
-        }
+        ref.read(chatSummaryProvider.future).then((summary) {
+          if ((summary[room.id]?.unreadCount ?? 0) > 0) {
+            ref.read(chatSummaryProvider.notifier).clearUnreadCount(room.id);
+          }
+        });
         onTap?.call();
       },
     );
@@ -212,6 +213,8 @@ class ChatListScreen extends HookConsumerWidget {
     final selectedTab = useState(
       0,
     ); // 0 for All, 1 for Direct Messages, 2 for Group Chats
+
+    final callState = ref.watch(callNotifierProvider);
 
     useEffect(() {
       tabController.addListener(() {
@@ -334,76 +337,93 @@ class ChatListScreen extends HookConsumerWidget {
         },
         child: const Icon(Symbols.add),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Consumer(
-            builder: (context, ref, _) {
-              final summaryState = ref.watch(chatSummaryProvider);
-              return summaryState.maybeWhen(
-                loading: () => const LinearProgressIndicator(),
-                orElse: () => const SizedBox.shrink(),
-              );
-            },
-          ),
-          Expanded(
-            child: chats.when(
-              data:
-                  (items) => RefreshIndicator(
-                    onRefresh:
-                        () => Future.sync(() {
-                          ref.invalidate(chatroomsJoinedProvider);
-                        }),
-                    child: ListView.builder(
-                      padding: EdgeInsets.zero,
-                      itemCount:
-                          items
-                              .where(
-                                (item) =>
-                                    selectedTab.value == 0 ||
-                                    (selectedTab.value == 1 &&
-                                        item.type == 1) ||
-                                    (selectedTab.value == 2 && item.type != 1),
-                              )
-                              .length,
-                      itemBuilder: (context, index) {
-                        final filteredItems =
-                            items
-                                .where(
-                                  (item) =>
-                                      selectedTab.value == 0 ||
-                                      (selectedTab.value == 1 &&
-                                          item.type == 1) ||
-                                      (selectedTab.value == 2 &&
-                                          item.type != 1),
-                                )
-                                .toList();
-                        final item = filteredItems[index];
-                        return ChatRoomListTile(
-                          room: item,
-                          isDirect: item.type == 1,
-                          onTap: () {
-                            if (context.router.topRoute.name ==
-                                ChatRoomRoute.name) {
-                              context.router.replace(
-                                ChatRoomRoute(id: item.id),
-                              );
-                            } else {
-                              context.router.push(ChatRoomRoute(id: item.id));
-                            }
+          Column(
+            children: [
+              Consumer(
+                builder: (context, ref, _) {
+                  final summaryState = ref.watch(chatSummaryProvider);
+                  return summaryState.maybeWhen(
+                    loading: () => const LinearProgressIndicator(),
+                    orElse: () => const SizedBox.shrink(),
+                  );
+                },
+              ),
+              Expanded(
+                child: chats.when(
+                  data:
+                      (items) => RefreshIndicator(
+                        onRefresh:
+                            () => Future.sync(() {
+                              ref.invalidate(chatroomsJoinedProvider);
+                            }),
+                        child: ListView.builder(
+                          padding:
+                              callState.isConnected
+                                  ? EdgeInsets.only(bottom: 96)
+                                  : EdgeInsets.zero,
+                          itemCount:
+                              items
+                                  .where(
+                                    (item) =>
+                                        selectedTab.value == 0 ||
+                                        (selectedTab.value == 1 &&
+                                            item.type == 1) ||
+                                        (selectedTab.value == 2 &&
+                                            item.type != 1),
+                                  )
+                                  .length,
+                          itemBuilder: (context, index) {
+                            final filteredItems =
+                                items
+                                    .where(
+                                      (item) =>
+                                          selectedTab.value == 0 ||
+                                          (selectedTab.value == 1 &&
+                                              item.type == 1) ||
+                                          (selectedTab.value == 2 &&
+                                              item.type != 1),
+                                    )
+                                    .toList();
+                            final item = filteredItems[index];
+                            return ChatRoomListTile(
+                              room: item,
+                              isDirect: item.type == 1,
+                              onTap: () {
+                                if (context.router.topRoute.name ==
+                                    ChatRoomRoute.name) {
+                                  context.router.replace(
+                                    ChatRoomRoute(id: item.id),
+                                  );
+                                } else {
+                                  context.router.push(
+                                    ChatRoomRoute(id: item.id),
+                                  );
+                                }
+                              },
+                            );
                           },
-                        );
-                      },
-                    ),
-                  ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error:
-                  (error, stack) => ResponseErrorWidget(
-                    error: error,
-                    onRetry: () {
-                      ref.invalidate(chatroomsJoinedProvider);
-                    },
-                  ),
-            ),
+                        ),
+                      ),
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error:
+                      (error, stack) => ResponseErrorWidget(
+                        error: error,
+                        onRetry: () {
+                          ref.invalidate(chatroomsJoinedProvider);
+                        },
+                      ),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: const CallOverlayBar().padding(horizontal: 16, vertical: 12),
           ),
         ],
       ),

@@ -278,5 +278,8 @@
   "settingsHideBottomNav": "Hide Bottom Navigation",
   "settingsSoundEffects": "Sound Effects",
   "settingsAprilFoolFeatures": "April Fool Features",
-  "settingsEnterToSend": "Enter to Send"
+  "settingsEnterToSend": "Enter to Send",
+  "postTitle": "Title",
+  "postDescription": "Description",
+  "call": "Call"
 }

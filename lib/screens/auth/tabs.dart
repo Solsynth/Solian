@@ -17,6 +17,7 @@ class TabNavigationObserver extends AutoRouterObserver {
 
   @override
   void didPush(Route route, Route? previousRoute) {
+    if (route is DialogRoute) return;
     Future(() {
       onChange(route.settings.name);
     });
@@ -24,6 +25,7 @@ class TabNavigationObserver extends AutoRouterObserver {
 
   @override
   void didPop(Route route, Route? previousRoute) {
+    if (route is DialogRoute) return;
     Future(() {
       onChange(previousRoute?.settings.name);
     });
