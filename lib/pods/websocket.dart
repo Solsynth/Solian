@@ -51,8 +51,8 @@ class WebSocketService {
 
   Future<void> connect(Ref ref) async {
     _ref = ref;
-
     _statusStreamController.sink.add(WebSocketState.connecting());
+
     final baseUrl = ref.watch(serverUrlProvider);
     final atk = await getFreshAtk(
       ref.watch(tokenPairProvider),
@@ -141,19 +141,6 @@ class WebSocketStateNotifier extends StateNotifier<WebSocketState> {
     state = const WebSocketState.connecting();
     try {
       final service = ref.read(websocketProvider);
-      final baseUrl = ref.watch(serverUrlProvider);
-      final atk = await getFreshAtk(
-        ref.watch(tokenPairProvider),
-        baseUrl,
-        onRefreshed: (atk, rtk) {
-          setTokenPair(ref.watch(sharedPreferencesProvider), atk, rtk);
-          ref.invalidate(tokenPairProvider);
-        },
-      );
-      if (atk == null) {
-        state = const WebSocketState.error('Unauthorized');
-        return;
-      }
       await service.connect(ref);
       state = const WebSocketState.connected();
       service.statusStream.listen((event) {

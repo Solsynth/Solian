@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/websocket.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/markdown.dart';
@@ -21,8 +23,18 @@ part 'notification.g.dart';
 @riverpod
 class NotificationUnreadCountNotifier
     extends _$NotificationUnreadCountNotifier {
+  StreamSubscription<WebSocketPacket>? _subscription;
+
   @override
   Future<int> build() async {
+    // Subscribe to websocket events when this provider is built
+    _subscribeToWebSocket();
+
+    // Dispose the subscription when this provider is disposed
+    ref.onDispose(() {
+      _subscription?.cancel();
+    });
+
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.get('/notifications/count');
@@ -32,9 +44,23 @@ class NotificationUnreadCountNotifier
     }
   }
 
+  void _subscribeToWebSocket() {
+    final webSocketService = ref.read(websocketProvider);
+    _subscription = webSocketService.dataStream.listen((packet) {
+      if (packet.type == 'notifications.new') {
+        _incrementCounter();
+      }
+    });
+  }
+
+  Future<void> _incrementCounter() async {
+    final current = await future;
+    state = AsyncData(current + 1);
+  }
+
   Future<void> decrement(int count) async {
     final current = await future;
-    state = AsyncData(math.min(current - count, 0));
+    state = AsyncData(math.max(current - count, 0));
   }
 }
 
@@ -94,6 +120,7 @@ class NotificationScreen extends HookConsumerWidget {
         notifierRefreshable: notificationListNotifierProvider.notifier,
         contentBuilder:
             (data, widgetCount, endItemView) => ListView.builder(
+              padding: EdgeInsets.zero,
               itemCount: widgetCount,
               itemBuilder: (context, index) {
                 if (index == widgetCount - 1) {
@@ -142,7 +169,7 @@ class NotificationScreen extends HookConsumerWidget {
                     ],
                   ),
                   trailing:
-                      notification.viewedAt == null
+                      notification.viewedAt != null
                           ? null
                           : Container(
                             width: 12,
