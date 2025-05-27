@@ -19,6 +19,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import 'captcha.dart';
+
 final Map<int, (String, String, IconData)> kFactorTypes = {
   0: ('authFactorPassword', 'authFactorPasswordDescription', Symbols.password),
   1: ('authFactorEmail', 'authFactorEmailDescription', Symbols.email),
@@ -354,15 +356,18 @@ class _LoginLookupScreen extends HookConsumerWidget {
         showErrorAlert('loginResetPasswordHint'.tr());
         return;
       }
+      final captchaTk = await Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => CaptchaScreen()));
+      if (captchaTk == null) return;
       isBusy.value = true;
       try {
         final client = ref.watch(apiClientProvider);
-        final lookupResp = await client.get('/users/lookup?probe=$uname');
         await client.post(
-          '/users/me/password-reset',
-          data: {'user_id': lookupResp.data['id']},
+          '/accounts/recovery/password',
+          data: {'account': uname, 'captcha_token': captchaTk},
         );
-        showInfoAlert('done'.tr(), 'signinResetPasswordSent'.tr());
+        showInfoAlert('loginResetPasswordSent'.tr(), 'done'.tr());
       } catch (err) {
         showErrorAlert(err);
       } finally {

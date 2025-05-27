@@ -281,5 +281,7 @@
   "settingsEnterToSend": "Enter to Send",
   "postTitle": "Title",
   "postDescription": "Description",
-  "call": "Call"
+  "call": "Call",
+  "done": "Done",
+  "loginResetPasswordSent": "Password reset link sent, please check your email inbox."
 }
