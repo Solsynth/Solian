@@ -17,6 +17,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/screens/posts/detail.dart';
 import 'package:island/services/file.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -260,7 +261,43 @@ class PostComposeScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         leading: const PageBackButton(),
+        title:
+            isWideScreen(context)
+                ? Text(originalPost != null ? 'editPost'.tr() : 'newPost'.tr())
+                : null,
         actions: [
+          if (isWideScreen(context))
+            Tooltip(
+              message: 'keyboard_shortcuts'.tr(),
+              child: IconButton(
+                icon: const Icon(Symbols.keyboard),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: Text('keyboard_shortcuts'.tr()),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Ctrl/Cmd + Enter: ${'submit'.tr()}'),
+                              Text('Ctrl/Cmd + V: ${'paste'.tr()}'),
+                              Text('Ctrl/Cmd + I: ${'add_image'.tr()}'),
+                              Text('Ctrl/Cmd + Shift + V: ${'add_video'.tr()}'),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text('close'.tr()),
+                            ),
+                          ],
+                        ),
+                  );
+                },
+              ),
+            ),
           IconButton(
             onPressed: submitting.value ? null : performAction,
             icon:
@@ -315,7 +352,7 @@ class PostComposeScreen extends HookConsumerWidget {
                         TextField(
                           controller: titleController,
                           decoration: InputDecoration.collapsed(
-                            hintText: 'title'.tr(),
+                            hintText: 'postTitle'.tr(),
                           ),
                           style: TextStyle(fontSize: 16),
                           onTapOutside:
@@ -325,7 +362,7 @@ class PostComposeScreen extends HookConsumerWidget {
                         TextField(
                           controller: descriptionController,
                           decoration: InputDecoration.collapsed(
-                            hintText: 'description'.tr(),
+                            hintText: 'postDescription'.tr(),
                           ),
                           style: TextStyle(fontSize: 16),
                           onTapOutside:
@@ -344,6 +381,7 @@ class PostComposeScreen extends HookConsumerWidget {
                               hintText: 'postPlaceholder'.tr(),
                               isDense: true,
                             ),
+                            maxLines: null,
                             onTapOutside:
                                 (_) =>
                                     FocusManager.instance.primaryFocus
@@ -351,34 +389,64 @@ class PostComposeScreen extends HookConsumerWidget {
                           ),
                         ),
                         const Gap(8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            for (
-                              var idx = 0;
-                              idx < attachments.value.length;
-                              idx++
-                            )
-                              AttachmentPreview(
-                                item: attachments.value[idx],
-                                progress: attachmentProgress.value[idx],
-                                onRequestUpload: () => uploadAttachment(idx),
-                                onDelete: () => deleteAttachment(idx),
-                                onMove: (delta) {
-                                  if (idx + delta < 0 ||
-                                      idx + delta >= attachments.value.length) {
-                                    return;
-                                  }
-                                  final clone = List.of(attachments.value);
-                                  clone.insert(
-                                    idx + delta,
-                                    clone.removeAt(idx),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isWide = isWideScreen(context);
+                            return isWide
+                                ? Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      for (var idx = 0; idx < attachments.value.length; idx++)
+                                        SizedBox(
+                                          width: constraints.maxWidth / 2 - 4,
+                                          child: AttachmentPreview(
+                                            item: attachments.value[idx],
+                                            progress: attachmentProgress.value[idx],
+                                            onRequestUpload: () => uploadAttachment(idx),
+                                            onDelete: () => deleteAttachment(idx),
+                                            onMove: (delta) {
+                                              if (idx + delta < 0 ||
+                                                  idx + delta >= attachments.value.length) {
+                                                return;
+                                              }
+                                              final clone = List.of(attachments.value);
+                                              clone.insert(
+                                                idx + delta,
+                                                clone.removeAt(idx),
+                                              );
+                                              attachments.value = clone;
+                                            },
+                                          ),
+                                        ),
+                                    ],
+                                  )
+                                : Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    spacing: 8,
+                                    children: [
+                                      for (var idx = 0; idx < attachments.value.length; idx++)
+                                        AttachmentPreview(
+                                          item: attachments.value[idx],
+                                          progress: attachmentProgress.value[idx],
+                                          onRequestUpload: () => uploadAttachment(idx),
+                                          onDelete: () => deleteAttachment(idx),
+                                          onMove: (delta) {
+                                            if (idx + delta < 0 ||
+                                                idx + delta >= attachments.value.length) {
+                                              return;
+                                            }
+                                            final clone = List.of(attachments.value);
+                                            clone.insert(
+                                              idx + delta,
+                                              clone.removeAt(idx),
+                                            );
+                                            attachments.value = clone;
+                                          },
+                                        ),
+                                    ],
                                   );
-                                  attachments.value = clone;
-                                },
-                              ),
-                          ],
+                          },
                         ),
                       ],
                     ),
