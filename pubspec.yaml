@@ -100,9 +100,9 @@ dependencies:
   photo_view: ^0.15.0
   dismissible_page: ^1.0.2
   super_sliver_list: ^0.4.1
-  super_clipboard: ^0.9.0-dev.6
   flutter_webrtc: ^0.14.1
   livekit_client: ^2.4.7
+  pasteboard: ^0.4.0
 
 dev_dependencies:
   flutter_test:
@@ -130,6 +130,17 @@ dependency_overrides:
   analyzer_plugin: 0.12.0
   # https://github.com/dart-lang/sdk/issues/60784#issuecomment-2906872272
   custom_lint_visitor: 1.0.0+7.3.0
+  # https://github.com/superlistapp/super_native_extensions/issues/524#issuecomment-2918531753
+  super_native_extensions:
+    git:
+      url: https://github.com/superlistapp/super_native_extensions.git
+      ref: refs/pull/525/head
+      path: super_native_extensions
+  irondash_engine_context:
+    git:
+      url: https://github.com/irondash/irondash.git
+      ref: refs/pull/66/head
+      path: engine_context/dart
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

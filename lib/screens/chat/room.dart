@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -27,12 +28,12 @@ import 'package:island/widgets/chat/message_item.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:pasteboard/pasteboard.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:uuid/uuid.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:super_clipboard/super_clipboard.dart';
 import 'chat.dart';
 import 'package:island/widgets/chat/call_button.dart';
 
@@ -745,33 +746,16 @@ class _ChatInput extends ConsumerWidget {
   }
 
   Future<void> _handlePaste() async {
-    final clipboard = SystemClipboard.instance;
+    final clipboard = await Pasteboard.image;
     if (clipboard == null) return;
 
-    final reader = await clipboard.read();
-    if (reader.canProvide(Formats.png)) {
-      reader.getFile(Formats.png, (file) async {
-        final stream = file.getStream();
-        final bytes = await stream.toList();
-        final imageBytes = bytes.expand((e) => e).toList();
-
-        // Create a temporary file to store the image
-        final tempDir = Directory.systemTemp;
-        final tempFile = File(
-          '${tempDir.path}/pasted_image_${DateTime.now().millisecondsSinceEpoch}.png',
-        );
-        await tempFile.writeAsBytes(imageBytes);
-
-        // Add the file to attachments
-        onAttachmentsChanged([
-          ...attachments,
-          UniversalFile(
-            data: XFile(tempFile.path),
-            type: UniversalFileType.image,
-          ),
-        ]);
-      });
-    }
+    onAttachmentsChanged([
+      ...attachments,
+      UniversalFile(
+        data: XFile.fromData(clipboard, mimeType: "image/jpeg"),
+        type: UniversalFileType.image,
+      ),
+    ]);
   }
 
   @override

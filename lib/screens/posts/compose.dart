@@ -23,8 +23,8 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:pasteboard/pasteboard.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:super_clipboard/super_clipboard.dart';
 
 @RoutePage()
 class PostEditScreen extends HookConsumerWidget {
@@ -211,33 +211,16 @@ class PostComposeScreen extends HookConsumerWidget {
     }
 
     Future<void> _handlePaste() async {
-      final clipboard = SystemClipboard.instance;
+      final clipboard = await Pasteboard.image;
       if (clipboard == null) return;
 
-      final reader = await clipboard.read();
-      if (reader.canProvide(Formats.png)) {
-        reader.getFile(Formats.png, (file) async {
-          final stream = file.getStream();
-          final bytes = await stream.toList();
-          final imageBytes = bytes.expand((e) => e).toList();
-
-          // Create a temporary file to store the image
-          final tempDir = Directory.systemTemp;
-          final tempFile = File(
-            '${tempDir.path}/pasted_image_${DateTime.now().millisecondsSinceEpoch}.png',
-          );
-          await tempFile.writeAsBytes(imageBytes);
-
-          // Add the file to attachments
-          attachments.value = [
-            ...attachments.value,
-            UniversalFile(
-              data: XFile(tempFile.path),
-              type: UniversalFileType.image,
-            ),
-          ];
-        });
-      }
+      attachments.value = [
+        ...attachments.value,
+        UniversalFile(
+          data: XFile.fromData(clipboard, mimeType: "image/jpeg"),
+          type: UniversalFileType.image,
+        ),
+      ];
     }
 
     void _handleKeyPress(RawKeyEvent event) {
