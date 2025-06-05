@@ -24,6 +24,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/call_overlay.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/realms/selection_dropdown.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -714,109 +715,77 @@ class _ChatInvitesSheet extends HookConsumerWidget {
       }
     }
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
-            child: Row(
-              children: [
-                Text(
-                  'invites'.tr(),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Symbols.refresh),
-                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-                  onPressed: () {
-                    ref.invalidate(chatroomInvitesProvider);
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Symbols.close),
-                  onPressed: () => Navigator.pop(context),
-                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: invites.when(
-              data:
-                  (items) =>
-                      items.isEmpty
-                          ? Center(
-                            child:
-                                Text(
-                                  'invitesEmpty',
-                                  textAlign: TextAlign.center,
-                                ).tr(),
-                          )
-                          : ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: items.length,
-                            itemBuilder: (context, index) {
-                              final invite = items[index];
-                              return ChatRoomListTile(
-                                room: invite.chatRoom!,
-                                isDirect: invite.chatRoom!.type == 1,
-                                subtitle: Row(
-                                  spacing: 6,
-                                  children: [
-                                    Flexible(
-                                      child:
-                                          Text(
-                                            invite.role >= 100
-                                                ? 'permissionOwner'
-                                                : invite.role >= 50
-                                                ? 'permissionModerator'
-                                                : 'permissionMember',
-                                          ).tr(),
-                                    ),
-                                    if (invite.chatRoom!.type == 1)
-                                      Badge(
-                                        label: Text('directMessage').tr(),
-                                        backgroundColor:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                        textColor:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.onPrimary,
-                                      ),
-                                  ],
+    return SheetScaffold(
+      titleText: 'invites'.tr(),
+      actions: [
+        IconButton(
+          icon: const Icon(Symbols.refresh),
+          style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+          onPressed: () {
+            ref.invalidate(realmInvitesProvider);
+          },
+        ),
+      ],
+      child: invites.when(
+        data:
+            (items) =>
+                items.isEmpty
+                    ? Center(
+                      child:
+                          Text(
+                            'invitesEmpty',
+                            textAlign: TextAlign.center,
+                          ).tr(),
+                    )
+                    : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final invite = items[index];
+                        return ChatRoomListTile(
+                          room: invite.chatRoom!,
+                          isDirect: invite.chatRoom!.type == 1,
+                          subtitle: Row(
+                            spacing: 6,
+                            children: [
+                              Flexible(
+                                child:
+                                    Text(
+                                      invite.role >= 100
+                                          ? 'permissionOwner'
+                                          : invite.role >= 50
+                                          ? 'permissionModerator'
+                                          : 'permissionMember',
+                                    ).tr(),
+                              ),
+                              if (invite.chatRoom!.type == 1)
+                                Badge(
+                                  label: Text('directMessage').tr(),
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                  textColor:
+                                      Theme.of(context).colorScheme.onPrimary,
                                 ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Symbols.check),
-                                      onPressed: () => acceptInvite(invite),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Symbols.close),
-                                      onPressed: () => declineInvite(invite),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                            ],
                           ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $error')),
-            ),
-          ),
-        ],
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Symbols.check),
+                                onPressed: () => acceptInvite(invite),
+                              ),
+                              IconButton(
+                                icon: const Icon(Symbols.close),
+                                onPressed: () => declineInvite(invite),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
       ),
     );
   }

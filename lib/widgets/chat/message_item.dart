@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/database/message.dart';
@@ -27,6 +31,7 @@ class MessageItem extends HookConsumerWidget {
   final Function(String action)? onAction;
   final Map<int, double>? progress;
   final bool showAvatar;
+  final Function(String messageId) onJump;
 
   const MessageItem({
     super.key,
@@ -35,6 +40,7 @@ class MessageItem extends HookConsumerWidget {
     required this.onAction,
     required this.progress,
     required this.showAvatar,
+    required this.onJump,
   });
 
   @override
@@ -53,6 +59,8 @@ class MessageItem extends HookConsumerWidget {
 
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
+
+    final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
     return ContextMenuWidget(
       menuProvider: (_) {
@@ -90,6 +98,17 @@ class MessageItem extends HookConsumerWidget {
                 onAction!.call(MessageItemAction.forward);
               },
             ),
+            if (isMobile) MenuSeparator(),
+            if (isMobile)
+              MenuAction(
+                title: 'copyMessage'.tr(),
+                image: MenuImage.icon(Symbols.copy_all),
+                callback: () {
+                  Clipboard.setData(
+                    ClipboardData(text: remoteMessage.content ?? ''),
+                  );
+                },
+              ),
           ],
         );
       },
@@ -355,39 +374,67 @@ class MessageQuoteWidget extends HookConsumerWidget {
         if (remoteMessage != null) {
           return ClipRRect(
             borderRadius: BorderRadius.all(Radius.circular(8)),
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-              color: Theme.of(
-                context,
-              ).colorScheme.primaryFixedDim.withOpacity(0.4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (isReply)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 4,
-                      children: [
-                        Icon(Symbols.reply, size: 16, color: textColor),
-                        Text(
-                          'Replying to ${remoteMessage.sender.account.nick}',
-                        ).textColor(textColor).bold(),
-                      ],
-                    ).padding(right: 8)
-                  else
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 4,
-                      children: [
-                        Icon(Symbols.forward, size: 16, color: textColor),
-                        Text(
-                          'Forwarded from ${remoteMessage.sender.account.nick}',
-                        ).textColor(textColor).bold(),
-                      ],
-                    ).padding(right: 8),
-                  if (_MessageItemContent.hasContent(remoteMessage))
-                    _MessageItemContent(item: remoteMessage),
-                ],
+            child: GestureDetector(
+              onTap: () {
+                final messageId =
+                    isReply
+                        ? message.toRemoteMessage().repliedMessageId!
+                        : message.toRemoteMessage().forwardedMessageId!;
+                // Find the nearest MessageItem ancestor and call its onJump method
+                final MessageItem? ancestor =
+                    context.findAncestorWidgetOfExactType<MessageItem>();
+                if (ancestor != null) {
+                  ancestor.onJump(messageId);
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primaryFixedDim.withOpacity(0.4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isReply)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 4,
+                        children: [
+                          Icon(Symbols.reply, size: 16, color: textColor),
+                          Text(
+                            '${'repliedTo'.tr()} ${remoteMessage.sender.account.nick}',
+                          ).textColor(textColor).bold(),
+                        ],
+                      ).padding(right: 8)
+                    else
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 4,
+                        children: [
+                          Icon(Symbols.forward, size: 16, color: textColor),
+                          Text(
+                            '${'forwarded'.tr()} ${remoteMessage.sender.account.nick}',
+                          ).textColor(textColor).bold(),
+                        ],
+                      ).padding(right: 8),
+                    if (_MessageItemContent.hasContent(remoteMessage))
+                      _MessageItemContent(item: remoteMessage),
+                    if (remoteMessage.attachments.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Symbols.attach_file, size: 12, color: textColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            'hasAttachments'.plural(
+                              remoteMessage.attachments.length,
+                            ),
+                            style: TextStyle(color: textColor, fontSize: 12),
+                          ),
+                        ],
+                      ).padding(vertical: 2),
+                  ],
+                ),
               ),
             ),
           ).padding(bottom: 4);

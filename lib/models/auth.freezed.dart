@@ -339,7 +339,7 @@ as DateTime?,
 /// @nodoc
 mixin _$SnAuthFactor {
 
- String get id; int get type; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; int get type; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; DateTime? get expiredAt; DateTime? get enabledAt; int get trustworthy; Map<String, dynamic>? get createdResponse;
 /// Create a copy of SnAuthFactor
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -352,16 +352,16 @@ $SnAuthFactorCopyWith<SnAuthFactor> get copyWith => _$SnAuthFactorCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthFactor&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthFactor&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.enabledAt, enabledAt) || other.enabledAt == enabledAt)&&(identical(other.trustworthy, trustworthy) || other.trustworthy == trustworthy)&&const DeepCollectionEquality().equals(other.createdResponse, createdResponse));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,type,createdAt,updatedAt,deletedAt,expiredAt,enabledAt,trustworthy,const DeepCollectionEquality().hash(createdResponse));
 
 @override
 String toString() {
-  return 'SnAuthFactor(id: $id, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAuthFactor(id: $id, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, expiredAt: $expiredAt, enabledAt: $enabledAt, trustworthy: $trustworthy, createdResponse: $createdResponse)';
 }
 
 
@@ -372,7 +372,7 @@ abstract mixin class $SnAuthFactorCopyWith<$Res>  {
   factory $SnAuthFactorCopyWith(SnAuthFactor value, $Res Function(SnAuthFactor) _then) = _$SnAuthFactorCopyWithImpl;
 @useResult
 $Res call({
- String id, int type, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int type, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, DateTime? expiredAt, DateTime? enabledAt, int trustworthy, Map<String, dynamic>? createdResponse
 });
 
 
@@ -389,14 +389,18 @@ class _$SnAuthFactorCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthFactor
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? expiredAt = freezed,Object? enabledAt = freezed,Object? trustworthy = null,Object? createdResponse = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,enabledAt: freezed == enabledAt ? _self.enabledAt : enabledAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,trustworthy: null == trustworthy ? _self.trustworthy : trustworthy // ignore: cast_nullable_to_non_nullable
+as int,createdResponse: freezed == createdResponse ? _self.createdResponse : createdResponse // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 
@@ -407,7 +411,7 @@ as DateTime?,
 @JsonSerializable()
 
 class _SnAuthFactor implements SnAuthFactor {
-  const _SnAuthFactor({required this.id, required this.type, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnAuthFactor({required this.id, required this.type, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.expiredAt, required this.enabledAt, required this.trustworthy, required final  Map<String, dynamic>? createdResponse}): _createdResponse = createdResponse;
   factory _SnAuthFactor.fromJson(Map<String, dynamic> json) => _$SnAuthFactorFromJson(json);
 
 @override final  String id;
@@ -415,6 +419,18 @@ class _SnAuthFactor implements SnAuthFactor {
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
+@override final  DateTime? expiredAt;
+@override final  DateTime? enabledAt;
+@override final  int trustworthy;
+ final  Map<String, dynamic>? _createdResponse;
+@override Map<String, dynamic>? get createdResponse {
+  final value = _createdResponse;
+  if (value == null) return null;
+  if (_createdResponse is EqualUnmodifiableMapView) return _createdResponse;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 
 /// Create a copy of SnAuthFactor
 /// with the given fields replaced by the non-null parameter values.
@@ -429,16 +445,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthFactor&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthFactor&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.enabledAt, enabledAt) || other.enabledAt == enabledAt)&&(identical(other.trustworthy, trustworthy) || other.trustworthy == trustworthy)&&const DeepCollectionEquality().equals(other._createdResponse, _createdResponse));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,type,createdAt,updatedAt,deletedAt,expiredAt,enabledAt,trustworthy,const DeepCollectionEquality().hash(_createdResponse));
 
 @override
 String toString() {
-  return 'SnAuthFactor(id: $id, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAuthFactor(id: $id, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, expiredAt: $expiredAt, enabledAt: $enabledAt, trustworthy: $trustworthy, createdResponse: $createdResponse)';
 }
 
 
@@ -449,7 +465,7 @@ abstract mixin class _$SnAuthFactorCopyWith<$Res> implements $SnAuthFactorCopyWi
   factory _$SnAuthFactorCopyWith(_SnAuthFactor value, $Res Function(_SnAuthFactor) _then) = __$SnAuthFactorCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int type, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int type, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, DateTime? expiredAt, DateTime? enabledAt, int trustworthy, Map<String, dynamic>? createdResponse
 });
 
 
@@ -466,14 +482,18 @@ class __$SnAuthFactorCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthFactor
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? expiredAt = freezed,Object? enabledAt = freezed,Object? trustworthy = null,Object? createdResponse = freezed,}) {
   return _then(_SnAuthFactor(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,enabledAt: freezed == enabledAt ? _self.enabledAt : enabledAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,trustworthy: null == trustworthy ? _self.trustworthy : trustworthy // ignore: cast_nullable_to_non_nullable
+as int,createdResponse: freezed == createdResponse ? _self._createdResponse : createdResponse // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 

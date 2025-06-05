@@ -416,6 +416,8 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final compactHeader = isWideScreen(context);
 
+    final listController = useMemoized(() => ListController(), []);
+
     return AppScaffold(
       appBar: AppBar(
         leading: !compactHeader ? const Center(child: PageBackButton()) : null,
@@ -541,11 +543,19 @@ class ChatRoomScreen extends HookConsumerWidget {
                           messageList.isEmpty
                               ? Center(child: Text('No messages yet'.tr()))
                               : SuperListView.builder(
+                                listController: listController,
                                 padding: EdgeInsets.symmetric(vertical: 16),
                                 controller: scrollController,
                                 reverse:
                                     true, // Show newest messages at the bottom
                                 itemCount: messageList.length,
+                                findChildIndexCallback: (key) {
+                                  final valueKey = key as ValueKey;
+                                  final messageId = valueKey.value as String;
+                                  return messageList.indexWhere(
+                                    (m) => m.id == messageId,
+                                  );
+                                },
                                 itemBuilder: (context, index) {
                                   final message = messageList[index];
                                   final nextMessage =
@@ -602,6 +612,18 @@ class ChatRoomScreen extends HookConsumerWidget {
                                                     message.toRemoteMessage();
                                             }
                                           },
+                                          onJump: (messageId) {
+                                            final messageIndex = messageList
+                                                .indexWhere(
+                                                  (m) => m.id == messageId,
+                                                );
+                                            listController.jumpToItem(
+                                              index: messageIndex,
+                                              scrollController:
+                                                  scrollController,
+                                              alignment: 0.5,
+                                            );
+                                          },
                                           progress:
                                               attachmentProgress.value[message
                                                   .id],
@@ -614,6 +636,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                                           onAction: null,
                                           progress: null,
                                           showAvatar: false,
+                                          onJump: (_) {},
                                         ),
                                     error: (_, _) => const SizedBox.shrink(),
                                   );
