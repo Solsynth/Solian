@@ -42,6 +42,10 @@ sealed class SnAuthFactor with _$SnAuthFactor {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    required DateTime? expiredAt,
+    required DateTime? enabledAt,
+    required int trustworthy,
+    required Map<String, dynamic>? createdResponse,
   }) = _SnAuthFactor;
 
   factory SnAuthFactor.fromJson(Map<String, dynamic> json) =>

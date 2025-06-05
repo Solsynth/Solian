@@ -20,6 +20,9 @@ String _parseRemoteError(DioException err) {
 }
 
 void showErrorAlert(dynamic err) async {
+  if (err is Error) {
+    log('${err.stackTrace}');
+  }
   final text = switch (err) {
     String _ => err,
     DioException _ => _parseRemoteError(err),

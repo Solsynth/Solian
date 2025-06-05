@@ -67,6 +67,16 @@ _SnAuthFactor _$SnAuthFactorFromJson(Map<String, dynamic> json) =>
           json['deleted_at'] == null
               ? null
               : DateTime.parse(json['deleted_at'] as String),
+      expiredAt:
+          json['expired_at'] == null
+              ? null
+              : DateTime.parse(json['expired_at'] as String),
+      enabledAt:
+          json['enabled_at'] == null
+              ? null
+              : DateTime.parse(json['enabled_at'] as String),
+      trustworthy: (json['trustworthy'] as num).toInt(),
+      createdResponse: json['created_response'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$SnAuthFactorToJson(_SnAuthFactor instance) =>
@@ -76,4 +86,8 @@ Map<String, dynamic> _$SnAuthFactorToJson(_SnAuthFactor instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
+      'expired_at': instance.expiredAt?.toIso8601String(),
+      'enabled_at': instance.enabledAt?.toIso8601String(),
+      'trustworthy': instance.trustworthy,
+      'created_response': instance.createdResponse,
     };

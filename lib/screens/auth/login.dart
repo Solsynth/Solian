@@ -24,12 +24,12 @@ import 'captcha.dart';
 final Map<int, (String, String, IconData)> kFactorTypes = {
   0: ('authFactorPassword', 'authFactorPasswordDescription', Symbols.password),
   1: ('authFactorEmail', 'authFactorEmailDescription', Symbols.email),
-  2: ('authFactorTOTP', 'authFactorTOTPDescription', Symbols.timer),
-  3: (
+  2: (
     'authFactorInAppNotify',
     'authFactorInAppNotifyDescription',
     Symbols.notifications_active,
   ),
+  3: ('authFactorTOTP', 'authFactorTOTPDescription', Symbols.timer),
 };
 
 @RoutePage()
