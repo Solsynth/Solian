@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/auth.dart';
@@ -339,7 +340,7 @@ class _AuthFactorSheet extends HookConsumerWidget {
     }
 
     Future<void> enableFactor() async {
-      final passwordController = TextEditingController();
+      String? password;
       final confirmed = await showDialog<bool>(
         context: context,
         builder:
@@ -350,13 +351,15 @@ class _AuthFactorSheet extends HookConsumerWidget {
                 children: [
                   Text('authFactorEnableHint').tr(),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'password'.tr(),
-                      border: const OutlineInputBorder(),
-                    ),
+                  OtpTextField(
+                    numberOfFields: 6,
+                    obscureText: false,
+                    showFieldAsBox: true,
+                    focusedBorderColor: Theme.of(context).colorScheme.primary,
+                    onSubmit: (String verificationCode) {
+                      password = verificationCode;
+                    },
+                    textStyle: Theme.of(context).textTheme.titleLarge!,
                   ),
                 ],
               ),
@@ -372,11 +375,10 @@ class _AuthFactorSheet extends HookConsumerWidget {
               ],
             ),
       );
-      final password = passwordController.text;
-      if (confirmed == false || password.isEmpty || !context.mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          passwordController.dispose();
-        });
+      if (confirmed == false ||
+          (password?.isEmpty ?? true) ||
+          !context.mounted) {
+        return;
       }
       try {
         final client = ref.read(apiClientProvider);
@@ -385,9 +387,6 @@ class _AuthFactorSheet extends HookConsumerWidget {
           data: jsonEncode(password),
         );
         if (context.mounted) Navigator.pop(context, true);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          passwordController.dispose();
-        });
       } catch (err) {
         showErrorAlert(err);
       }
@@ -398,12 +397,37 @@ class _AuthFactorSheet extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ListTile(
-            title: Text(kFactorTypes[factor.type]!.$1).tr(),
-            subtitle: Text(kFactorTypes[factor.type]!.$2).tr(),
-            leading: Icon(kFactorTypes[factor.type]!.$3),
-            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(kFactorTypes[factor.type]!.$3, size: 32),
+              const Gap(8),
+              Text(kFactorTypes[factor.type]!.$1).tr(),
+              const Gap(4),
+              Text(
+                kFactorTypes[factor.type]!.$2,
+                style: Theme.of(context).textTheme.bodySmall,
+              ).tr(),
+              const Gap(10),
+              Row(
+                children: [
+                  if (factor.enabledAt == null)
+                    Badge(
+                      label: Text('Disabled'),
+                      textColor: Theme.of(context).colorScheme.onSecondary,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                    )
+                  else
+                    Badge(
+                      label: Text('Enabled'),
+                      textColor: Theme.of(context).colorScheme.onPrimary,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                    ),
+                ],
+              ),
+            ],
+          ).padding(all: 20),
           const Divider(height: 1),
           if (factor.enabledAt != null)
             ListTile(
