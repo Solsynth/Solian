@@ -16,6 +16,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/auth/captcha.dart';
 import 'package:island/screens/auth/login.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/account_session_sheet.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/sheet.dart';
@@ -90,6 +91,21 @@ class AccountSettingsScreen extends HookConsumerWidget {
 
     // Group settings into categories for better organization
     final securitySettings = [
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.devices),
+        title: Text('authSessions').tr(),
+        subtitle: Text('authSessionsDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => const AccountSessionSheet(),
+          );
+        },
+      ),
       ExpansionTile(
         leading: const Icon(
           Symbols.security,

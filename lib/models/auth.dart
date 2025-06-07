@@ -18,13 +18,18 @@ sealed class SnAuthChallenge with _$SnAuthChallenge {
     required DateTime expiredAt,
     required int stepRemain,
     required int stepTotal,
+    required int failedAttempts,
+    required int platform,
+    required int type,
     required List<String> blacklistFactors,
-    required List<String> audiences,
-    required List<String> scopes,
+    required List<dynamic> audiences,
+    required List<dynamic> scopes,
     required String ipAddress,
     required String userAgent,
-    required String? deviceId,
+    required String deviceId,
     required String? nonce,
+    required String? location,
+    required String accountId,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
@@ -32,6 +37,25 @@ sealed class SnAuthChallenge with _$SnAuthChallenge {
 
   factory SnAuthChallenge.fromJson(Map<String, dynamic> json) =>
       _$SnAuthChallengeFromJson(json);
+}
+
+@freezed
+sealed class SnAuthSession with _$SnAuthSession {
+  const factory SnAuthSession({
+    required String id,
+    required String? label,
+    required DateTime lastGrantedAt,
+    required DateTime expiredAt,
+    required String accountId,
+    required String challengeId,
+    required SnAuthChallenge challenge,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnAuthSession;
+
+  factory SnAuthSession.fromJson(Map<String, dynamic> json) =>
+      _$SnAuthSessionFromJson(json);
 }
 
 @freezed
@@ -50,4 +74,20 @@ sealed class SnAuthFactor with _$SnAuthFactor {
 
   factory SnAuthFactor.fromJson(Map<String, dynamic> json) =>
       _$SnAuthFactorFromJson(json);
+}
+
+@freezed
+sealed class SnAuthDevice with _$SnAuthDevice {
+  const factory SnAuthDevice({
+    required dynamic label,
+    required String userAgent,
+    required String deviceId,
+    required int platform,
+    required List<SnAuthSession> sessions,
+    // Not from backend, used for UI
+    @Default(false) bool isCurrent,
+  }) = _SnAuthDevice;
+
+  factory SnAuthDevice.fromJson(Map<String, dynamic> json) =>
+      _$SnAuthDeviceFromJson(json);
 }

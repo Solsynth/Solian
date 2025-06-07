@@ -338,5 +338,20 @@
   "confirm": "Confirm",
   "authFactorAdditional": "One more step",
   "authFactorHint": "Contact method hint",
-  "authFactorHintHelper": "You need provide a part of your contact method and we will send the verification code to that contact method if it matched our records"
+  "authFactorHintHelper": "You need provide a part of your contact method and we will send the verification code to that contact method if it matched our records",
+  "authSessions": "Active Sessions",
+  "authSessionsDescription": "See devices you currently logged in.",
+  "authSessionsCount": {
+    "one": "{} session",
+    "other": "{} sessions"
+  },
+  "authDeviceCurrent": "Current device",
+  "lastActiveAt": "Last active at {}",
+  "authDeviceLogout": "Logout",
+  "authDeviceLogoutHint": "Are you sure you want to logout this device? This will also disable the push notification to this device.",
+  "authDeviceEditLabel": "Edit Label",
+  "authDeviceLabelTitle": "Edit Device Label",
+  "authDeviceLabelHint": "Enter a name for this device",
+  "authDeviceSwipeEditHint": "Swipe left to edit label",
+  "authDeviceSwipeLogoutHint": "Swipe right to logout device"
 }

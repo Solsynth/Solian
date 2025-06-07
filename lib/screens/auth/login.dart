@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:animations/animations.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +66,19 @@ class LoginScreen extends HookConsumerWidget {
               LinearProgressIndicator(
                 minHeight: 4,
                 borderRadius: BorderRadius.zero,
+                trackGap: 0,
+                stopIndicatorRadius: 0,
+              )
+            else if (currentTicket.value != null)
+              LinearProgressIndicator(
+                minHeight: 4,
+                borderRadius: BorderRadius.zero,
+                trackGap: 0,
+                stopIndicatorRadius: 0,
+                value:
+                    1 -
+                    (currentTicket.value!.stepRemain /
+                        currentTicket.value!.stepTotal),
               )
             else
               const Gap(4),
@@ -121,17 +137,8 @@ class LoginScreen extends HookConsumerWidget {
                     ).padding(all: 24),
                   ).center(),
             ),
-            if (currentTicket.value != null)
-              LinearProgressIndicator(
-                minHeight: 4,
-                borderRadius: BorderRadius.zero,
-                value:
-                    1 -
-                    (currentTicket.value!.stepRemain /
-                        currentTicket.value!.stepTotal),
-              )
-            else
-              const Gap(4),
+
+            const Gap(4),
           ],
         ),
       ),
@@ -170,6 +177,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
       if (pwd.isEmpty) return;
       isBusy.value = true;
       try {
+        // Pass challenge
         final client = ref.watch(apiClientProvider);
         final resp = await client.patch(
           '/auth/challenge/${challenge!.id}',
@@ -181,6 +189,8 @@ class _LoginCheckScreen extends HookConsumerWidget {
           onNext();
           return;
         }
+
+        // Get token if challenge is completed
         final tokenResp = await client.post(
           '/auth/token',
           data: {'grant_type': 'authorization_code', 'code': result.id},
@@ -189,6 +199,8 @@ class _LoginCheckScreen extends HookConsumerWidget {
         setToken(ref.watch(sharedPreferencesProvider), token);
         ref.invalidate(tokenProvider);
         if (!context.mounted) return;
+
+        // Do post login tasks
         final userNotifier = ref.read(userInfoProvider.notifier);
         userNotifier.fetchUser().then((_) {
           final apiClient = ref.read(apiClientProvider);
@@ -197,6 +209,31 @@ class _LoginCheckScreen extends HookConsumerWidget {
           wsNotifier.connect();
           if (context.mounted) Navigator.pop(context, true);
         });
+
+        // Update the sessions' device name is available
+        if (!kIsWeb) {
+          String? name;
+          if (Platform.isIOS) {
+            return;
+            // TODO waiting for apple to respond to grant my access to com.apple.developer.device-information.user-assigned-device-name
+            // ignore: dead_code
+            final deviceInfo = await DeviceInfoPlugin().iosInfo;
+            name = deviceInfo.name;
+          } else if (Platform.isAndroid) {
+            final deviceInfo = await DeviceInfoPlugin().androidInfo;
+            name = deviceInfo.name;
+          } else if (Platform.isWindows) {
+            final deviceInfo = await DeviceInfoPlugin().windowsInfo;
+            name = deviceInfo.computerName;
+          }
+          if (name != null) {
+            final client = ref.watch(apiClientProvider);
+            await client.patch(
+              '/accounts/me/sessions/current/label',
+              data: jsonEncode(name),
+            );
+          }
+        }
       } catch (err) {
         showErrorAlert(err);
         return;
@@ -336,6 +373,14 @@ class _LoginPickerScreen extends HookConsumerWidget {
         onPickFactor(factors!.where((x) => x == factorPicked.value).first);
         onNext();
       } catch (err) {
+        if (err is DioException && err.response?.statusCode == 400) {
+          onPickFactor(factors!.where((x) => x == factorPicked.value).first);
+          onNext();
+          if (context.mounted) {
+            showSnackBar(context, err.response!.data.toString());
+          }
+          return;
+        }
         showErrorAlert(err);
         return;
       } finally {
@@ -404,6 +449,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
           TextField(
             controller: hintController,
             decoration: InputDecoration(
+              isDense: true,
               border: const OutlineInputBorder(),
               labelText: 'authFactorHint'.tr(),
               helperText: 'authFactorHintHelper'.tr(),
