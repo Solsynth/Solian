@@ -347,7 +347,11 @@ class ChatListScreen extends HookConsumerWidget {
                 builder: (context, ref, _) {
                   final summaryState = ref.watch(chatSummaryProvider);
                   return summaryState.maybeWhen(
-                    loading: () => const LinearProgressIndicator(),
+                    loading:
+                        () => const LinearProgressIndicator(
+                          minHeight: 2,
+                          borderRadius: BorderRadius.zero,
+                        ),
                     orElse: () => const SizedBox.shrink(),
                   );
                 },

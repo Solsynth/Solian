@@ -336,5 +336,7 @@
   "authFactorNoQrCode": "No QR code available for this authentication factor",
   "cancel": "Cancel",
   "confirm": "Confirm",
-  "authFactorAdditional": "One more step"
+  "authFactorAdditional": "One more step",
+  "authFactorHint": "Contact method hint",
+  "authFactorHintHelper": "You need provide a part of your contact method and we will send the verification code to that contact method if it matched our records"
 }

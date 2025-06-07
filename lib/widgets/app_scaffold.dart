@@ -290,7 +290,9 @@ class _WebSocketIndicator extends HookConsumerWidget {
     return AnimatedPositioned(
       duration: Duration(milliseconds: 1850),
       top:
-          !user.hasValue || websocketState == WebSocketState.connected()
+          !user.hasValue ||
+                  user.value == null ||
+                  websocketState == WebSocketState.connected()
               ? -indicatorHeight
               : 0,
       curve: Curves.fastLinearToSlowEaseIn,

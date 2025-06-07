@@ -147,6 +147,7 @@ class SettingsScreen extends HookConsumerWidget {
                   title: Text('settingsColorScheme').tr(),
                   content: SingleChildScrollView(
                     child: ColorPicker(
+                      paletteType: PaletteType.rgbWithBlue,
                       enableAlpha: false,
                       pickerColor: selectedColor,
                       onColorChanged: (color) {
@@ -174,8 +175,9 @@ class SettingsScreen extends HookConsumerWidget {
             );
           },
           child: Container(
-            width: 40,
-            height: 40,
+            width: 24,
+            height: 24,
+            margin: EdgeInsets.symmetric(horizontal: 2, vertical: 8),
             decoration: BoxDecoration(
               color:
                   settings.appColorScheme != null
@@ -198,18 +200,7 @@ class SettingsScreen extends HookConsumerWidget {
           title: Text('settingsBackgroundImage').tr(),
           contentPadding: const EdgeInsets.only(left: 24, right: 17),
           leading: const Icon(Symbols.image),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isDesktop)
-                Tooltip(
-                  message: 'settingsBackgroundImageTooltip'.tr(),
-                  padding: EdgeInsets.only(left: 8),
-                  child: const Icon(Symbols.info, size: 18),
-                ),
-              const Icon(Symbols.chevron_right),
-            ],
-          ),
+          trailing: const Icon(Symbols.chevron_right),
           onTap: () async {
             final imagePicker = ref.read(imagePickerProvider);
             final image = await imagePicker.pickImage(

@@ -1,9 +1,13 @@
+import 'dart:convert';
+import 'dart:math' as math;
+
 import 'package:animations/animations.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/auth.dart';
@@ -38,10 +42,13 @@ class LoginScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isBusy = useState(false);
+
     final period = useState(0);
     final currentTicket = useState<SnAuthChallenge?>(null);
     final factors = useState<List<SnAuthFactor>>([]);
     final factorPicked = useState<SnAuthFactor?>(null);
+
     return AppScaffold(
       noBackground: false,
       appBar: AppBar(
@@ -50,54 +57,83 @@ class LoginScreen extends HookConsumerWidget {
       ),
       body: Theme(
         data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
-        child:
-            SingleChildScrollView(
-              child: PageTransitionSwitcher(
-                transitionBuilder: (
-                  Widget child,
-                  Animation<double> primaryAnimation,
-                  Animation<double> secondaryAnimation,
-                ) {
-                  return SharedAxisTransition(
-                    animation: primaryAnimation,
-                    secondaryAnimation: secondaryAnimation,
-                    transitionType: SharedAxisTransitionType.horizontal,
-                    child: Container(
-                      constraints: BoxConstraints(maxWidth: 380),
-                      child: child,
-                    ),
-                  );
-                },
-                child: switch (period.value % 3) {
-                  1 => _LoginPickerScreen(
-                    key: const ValueKey(1),
-                    ticket: currentTicket.value,
-                    factors: factors.value,
-                    onChallenge:
-                        (SnAuthChallenge? p0) => currentTicket.value = p0,
-                    onPickFactor: (SnAuthFactor p0) => factorPicked.value = p0,
-                    onNext: () => period.value++,
-                  ),
-                  2 => _LoginCheckScreen(
-                    key: const ValueKey(2),
-                    challenge: currentTicket.value,
-                    factor: factorPicked.value,
-                    onChallenge:
-                        (SnAuthChallenge? p0) => currentTicket.value = p0,
-                    onNext: () => period.value++,
-                  ),
-                  _ => _LoginLookupScreen(
-                    key: const ValueKey(0),
-                    ticket: currentTicket.value,
-                    onChallenge:
-                        (SnAuthChallenge? p0) => currentTicket.value = p0,
-                    onFactor:
-                        (List<SnAuthFactor>? p0) => factors.value = p0 ?? [],
-                    onNext: () => period.value++,
-                  ),
-                },
-              ).padding(all: 24),
-            ).center(),
+        child: Column(
+          children: [
+            if (isBusy.value)
+              LinearProgressIndicator(
+                minHeight: 4,
+                borderRadius: BorderRadius.zero,
+              )
+            else
+              const Gap(4),
+            Expanded(
+              child:
+                  SingleChildScrollView(
+                    child: PageTransitionSwitcher(
+                      transitionBuilder: (
+                        Widget child,
+                        Animation<double> primaryAnimation,
+                        Animation<double> secondaryAnimation,
+                      ) {
+                        return SharedAxisTransition(
+                          animation: primaryAnimation,
+                          secondaryAnimation: secondaryAnimation,
+                          transitionType: SharedAxisTransitionType.horizontal,
+                          child: Container(
+                            constraints: BoxConstraints(maxWidth: 380),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: switch (period.value % 3) {
+                        1 => _LoginPickerScreen(
+                          key: const ValueKey(1),
+                          ticket: currentTicket.value,
+                          factors: factors.value,
+                          onChallenge:
+                              (SnAuthChallenge? p0) => currentTicket.value = p0,
+                          onPickFactor:
+                              (SnAuthFactor p0) => factorPicked.value = p0,
+                          onNext: () => period.value++,
+                          onBusy: (value) => isBusy.value = value,
+                        ),
+                        2 => _LoginCheckScreen(
+                          key: const ValueKey(2),
+                          challenge: currentTicket.value,
+                          factor: factorPicked.value,
+                          onChallenge:
+                              (SnAuthChallenge? p0) => currentTicket.value = p0,
+                          onNext: () => period.value = 1,
+                          onBusy: (value) => isBusy.value = value,
+                        ),
+                        _ => _LoginLookupScreen(
+                          key: const ValueKey(0),
+                          ticket: currentTicket.value,
+                          onChallenge:
+                              (SnAuthChallenge? p0) => currentTicket.value = p0,
+                          onFactor:
+                              (List<SnAuthFactor>? p0) =>
+                                  factors.value = p0 ?? [],
+                          onNext: () => period.value++,
+                          onBusy: (value) => isBusy.value = value,
+                        ),
+                      },
+                    ).padding(all: 24),
+                  ).center(),
+            ),
+            if (currentTicket.value != null)
+              LinearProgressIndicator(
+                minHeight: 4,
+                borderRadius: BorderRadius.zero,
+                value:
+                    1 -
+                    (currentTicket.value!.stepRemain /
+                        currentTicket.value!.stepTotal),
+              )
+            else
+              const Gap(4),
+          ],
+        ),
       ),
     );
   }
@@ -107,7 +143,8 @@ class _LoginCheckScreen extends HookConsumerWidget {
   final SnAuthChallenge? challenge;
   final SnAuthFactor? factor;
   final Function(SnAuthChallenge?) onChallenge;
-  final Function onNext;
+  final VoidCallback onNext;
+  final Function(bool) onBusy;
 
   const _LoginCheckScreen({
     super.key,
@@ -115,12 +152,18 @@ class _LoginCheckScreen extends HookConsumerWidget {
     required this.factor,
     required this.onChallenge,
     required this.onNext,
+    required this.onBusy,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isBusy = useState(false);
     final passwordController = useTextEditingController();
+
+    useEffect(() {
+      onBusy.call(isBusy.value);
+      return null;
+    }, [isBusy]);
 
     Future<void> performCheckTicket() async {
       final pwd = passwordController.value.text;
@@ -162,6 +205,8 @@ class _LoginCheckScreen extends HookConsumerWidget {
       }
     }
 
+    final width = math.min(380, MediaQuery.of(context).size.width);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -176,24 +221,49 @@ class _LoginCheckScreen extends HookConsumerWidget {
           'loginEnterPassword'.tr(),
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
         ).padding(left: 4, bottom: 16),
-        TextField(
-          autocorrect: false,
-          enableSuggestions: false,
-          controller: passwordController,
-          obscureText: true,
-          autofillHints: [
-            factor!.type == 0
-                ? AutofillHints.password
-                : AutofillHints.oneTimeCode,
-          ],
-          decoration: InputDecoration(
-            isDense: true,
-            border: const UnderlineInputBorder(),
-            labelText: 'password'.tr(),
+        if ([0].contains(factor!.type))
+          TextField(
+            autocorrect: false,
+            enableSuggestions: false,
+            controller: passwordController,
+            obscureText: true,
+            autofillHints: [
+              factor!.type == 0
+                  ? AutofillHints.password
+                  : AutofillHints.oneTimeCode,
+            ],
+            decoration: InputDecoration(
+              isDense: true,
+              border: const OutlineInputBorder(),
+              labelText: 'password'.tr(),
+            ),
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            onSubmitted: isBusy.value ? null : (_) => performCheckTicket(),
+          ).padding(horizontal: 7)
+        else
+          OtpTextField(
+            showCursor: false,
+            numberOfFields: 6,
+            obscureText: false,
+            showFieldAsBox: true,
+            focusedBorderColor: Theme.of(context).colorScheme.primary,
+            fieldWidth: (width / 6) - 10,
+            onSubmit: (value) {
+              passwordController.text = value;
+              performCheckTicket();
+            },
+            textStyle: Theme.of(context).textTheme.titleLarge!,
           ),
-          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-          onSubmitted: isBusy.value ? null : (_) => performCheckTicket(),
-        ).padding(horizontal: 7),
+        const Gap(12),
+        Card(
+          child: ListTile(
+            leading: Icon(
+              kFactorTypes[factor!.type]?.$3 ?? Symbols.question_mark,
+            ),
+            title: Text(kFactorTypes[factor!.type]?.$1 ?? 'unknown').tr(),
+            subtitle: Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
+          ),
+        ),
         const Gap(12),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -220,7 +290,8 @@ class _LoginPickerScreen extends HookConsumerWidget {
   final List<SnAuthFactor>? factors;
   final Function(SnAuthChallenge?) onChallenge;
   final Function(SnAuthFactor) onPickFactor;
-  final Function onNext;
+  final VoidCallback onNext;
+  final Function(bool) onBusy;
 
   const _LoginPickerScreen({
     super.key,
@@ -229,16 +300,24 @@ class _LoginPickerScreen extends HookConsumerWidget {
     required this.onChallenge,
     required this.onPickFactor,
     required this.onNext,
+    required this.onBusy,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isBusy = useState(false);
-    final factorPicked = useState<String?>(null);
+    final factorPicked = useState<SnAuthFactor?>(null);
+
+    useEffect(() {
+      onBusy.call(isBusy.value);
+      return null;
+    }, [isBusy]);
 
     final unfocusColor = Theme.of(
       context,
     ).colorScheme.onSurface.withAlpha((255 * 0.75).round());
+
+    final hintController = useTextEditingController();
 
     void performGetFactorCode() async {
       if (factorPicked.value == null) return;
@@ -247,11 +326,14 @@ class _LoginPickerScreen extends HookConsumerWidget {
       final client = ref.watch(apiClientProvider);
 
       try {
-        // Request one-time-password code
         await client.post(
-          '/auth/challenge/${ticket!.id}/factors/${factorPicked.value}',
+          '/auth/challenge/${ticket!.id}/factors/${factorPicked.value!.id}',
+          data:
+              hintController.text.isNotEmpty
+                  ? jsonEncode(hintController.text)
+                  : null,
         );
-        onPickFactor(factors!.where((x) => x.id == factorPicked.value).first);
+        onPickFactor(factors!.where((x) => x == factorPicked.value).first);
         onNext();
       } catch (err) {
         showErrorAlert(err);
@@ -260,6 +342,20 @@ class _LoginPickerScreen extends HookConsumerWidget {
         isBusy.value = false;
       }
     }
+
+    useEffect(() {
+      if (ticket == null || (factors?.isEmpty ?? true)) return;
+      if (ticket!.blacklistFactors.isEmpty) {
+        Future(() {
+          var password = factors!.where((x) => x.type == 0).firstOrNull;
+          if (password != null) {
+            factorPicked.value = password;
+            performGetFactorCode();
+          }
+        });
+      }
+      return null;
+    }, [ticket, factors]);
 
     return Column(
       key: const ValueKey<int>(1),
@@ -292,10 +388,10 @@ class _LoginPickerScreen extends HookConsumerWidget {
                         ),
                         title: Text(kFactorTypes[x.type]?.$1 ?? 'unknown').tr(),
                         enabled: !ticket!.blacklistFactors.contains(x.id),
-                        value: factorPicked.value == x.id,
+                        value: factorPicked.value == x,
                         onChanged: (value) {
                           if (value == true) {
-                            factorPicked.value = x.id;
+                            factorPicked.value = x;
                           }
                         },
                       ),
@@ -304,6 +400,15 @@ class _LoginPickerScreen extends HookConsumerWidget {
                 List.empty(),
           ),
         ),
+        if ([1].contains(factorPicked.value?.type))
+          TextField(
+            controller: hintController,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: 'authFactorHint'.tr(),
+              helperText: 'authFactorHintHelper'.tr(),
+            ),
+          ).padding(top: 12, bottom: 4, horizontal: 4),
         const Gap(8),
         Text(
           'loginMultiFactor'.plural(ticket!.stepRemain),
@@ -334,7 +439,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
   final SnAuthChallenge? ticket;
   final Function(SnAuthChallenge?) onChallenge;
   final Function(List<SnAuthFactor>?) onFactor;
-  final Function onNext;
+  final VoidCallback onNext;
+  final Function(bool) onBusy;
 
   const _LoginLookupScreen({
     super.key,
@@ -342,12 +448,18 @@ class _LoginLookupScreen extends HookConsumerWidget {
     required this.onChallenge,
     required this.onFactor,
     required this.onNext,
+    required this.onBusy,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isBusy = useState(false);
     final usernameController = useTextEditingController();
+
+    useEffect(() {
+      onBusy.call(isBusy.value);
+      return null;
+    }, [isBusy]);
 
     Future<void> requestResetPassword() async {
       final uname = usernameController.value.text;

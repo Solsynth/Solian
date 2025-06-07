@@ -106,13 +106,44 @@ class AccountSettingsScreen extends HookConsumerWidget {
                       ListTile(
                         minLeadingWidth: 48,
                         contentPadding: const EdgeInsets.only(
-                          left: 24,
+                          left: 16,
                           right: 17,
+                          top: 2,
+                          bottom: 4,
                         ),
-                        title: Text(kFactorTypes[factor.type]!.$1).tr(),
-                        subtitle: Text(kFactorTypes[factor.type]!.$2).tr(),
-                        leading: Icon(kFactorTypes[factor.type]!.$3),
+                        title:
+                            Text(
+                              kFactorTypes[factor.type]!.$1,
+                              style:
+                                  factor.enabledAt == null
+                                      ? TextStyle(
+                                        decoration: TextDecoration.lineThrough,
+                                      )
+                                      : null,
+                            ).tr(),
+                        subtitle:
+                            Text(
+                              kFactorTypes[factor.type]!.$2,
+                              style:
+                                  factor.enabledAt == null
+                                      ? TextStyle(
+                                        decoration: TextDecoration.lineThrough,
+                                      )
+                                      : null,
+                            ).tr(),
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              factor.enabledAt == null
+                                  ? Theme.of(
+                                    context,
+                                  ).colorScheme.secondaryContainer
+                                  : Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
+                          child: Icon(kFactorTypes[factor.type]!.$3),
+                        ).padding(top: 4),
                         trailing: const Icon(Symbols.chevron_right),
+                        isThreeLine: true,
                         onTap: () {
                           if (factor.type == 0) {
                             requestResetPassword();
@@ -341,44 +372,47 @@ class _AuthFactorSheet extends HookConsumerWidget {
 
     Future<void> enableFactor() async {
       String? password;
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: Text('authFactorEnable').tr(),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('authFactorEnableHint').tr(),
-                  const SizedBox(height: 16),
-                  OtpTextField(
-                    numberOfFields: 6,
-                    obscureText: false,
-                    showFieldAsBox: true,
-                    focusedBorderColor: Theme.of(context).colorScheme.primary,
-                    onSubmit: (String verificationCode) {
-                      password = verificationCode;
-                    },
-                    textStyle: Theme.of(context).textTheme.titleLarge!,
+      if ([3].contains(factor.type)) {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: Text('authFactorEnable').tr(),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('authFactorEnableHint').tr(),
+                    const SizedBox(height: 16),
+                    OtpTextField(
+                      showCursor: false,
+                      numberOfFields: 6,
+                      obscureText: false,
+                      showFieldAsBox: true,
+                      focusedBorderColor: Theme.of(context).colorScheme.primary,
+                      onSubmit: (String verificationCode) {
+                        password = verificationCode;
+                      },
+                      textStyle: Theme.of(context).textTheme.titleLarge!,
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text('cancel').tr(),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text('confirm').tr(),
                   ),
                 ],
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text('cancel').tr(),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text('confirm').tr(),
-                ),
-              ],
-            ),
-      );
-      if (confirmed == false ||
-          (password?.isEmpty ?? true) ||
-          !context.mounted) {
-        return;
+        );
+        if (confirmed == false ||
+            (password?.isEmpty ?? true) ||
+            !context.mounted) {
+          return;
+        }
       }
       try {
         final client = ref.read(apiClientProvider);
