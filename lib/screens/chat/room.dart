@@ -321,14 +321,45 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
     }
 
-    void sendTypingStatus() async {
+    // Members who are typing
+    final typingStatuses = useState<List<SnChatMember>>([]);
+    final typingDebouncer = useState<Timer?>(null);
+
+    void sendTypingStatus() {
+      // Don't send if we're already in a cooldown period
+      if (typingDebouncer.value != null) return;
+
+      // Send typing status immediately
       final wsState = ref.read(websocketStateProvider.notifier);
       wsState.sendMessage(
         jsonEncode(
           WebSocketPacket(type: 'messages.typing', data: {'chat_room_id': id}),
         ),
       );
+
+      typingDebouncer.value = Timer(const Duration(milliseconds: 1000), () {
+        typingDebouncer.value = null;
+      });
     }
+
+    // Add timer to remove typing status after inactivity
+    useEffect(() {
+      final removeTypingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        if (typingStatuses.value.isNotEmpty) {
+          // Remove typing statuses older than 5 seconds
+          final now = DateTime.now();
+          typingStatuses.value =
+              typingStatuses.value.where((member) {
+                final lastTyped =
+                    member.lastTyped ??
+                    DateTime.now().subtract(const Duration(milliseconds: 1350));
+                return now.difference(lastTyped).inSeconds < 5;
+              }).toList();
+        }
+      });
+
+      return () => removeTypingTimer.cancel();
+    }, []);
 
     var isLoading = false;
 
@@ -352,6 +383,28 @@ class ChatRoomScreen extends HookConsumerWidget {
       void onMessage(WebSocketPacket pkt) {
         if (!pkt.type.startsWith('messages')) return;
         if (['messages.read'].contains(pkt.type)) return;
+
+        if (pkt.type == 'messages.typing') {
+          final sender = SnChatMember.fromJson(
+            pkt.data!['sender'],
+          ).copyWith(lastTyped: DateTime.now());
+
+          // Check if the sender is already in the typing list
+          final existingIndex = typingStatuses.value.indexWhere(
+            (member) => member.id == sender.id,
+          );
+          if (existingIndex >= 0) {
+            // Update the existing entry with new timestamp
+            final updatedList = [...typingStatuses.value];
+            updatedList[existingIndex] = sender;
+            typingStatuses.value = updatedList;
+          } else {
+            // Add new typing status
+            typingStatuses.value = [...typingStatuses.value, sender];
+          }
+          return;
+        }
+
         final message = SnChatMessage.fromJson(pkt.data!);
         if (message.chatRoomId != chatRoom.value?.id) return;
         switch (pkt.type) {
@@ -425,7 +478,17 @@ class ChatRoomScreen extends HookConsumerWidget {
       }
     }
 
-    useEffect(() {});
+    // Add listener to message controller for typing status
+    useEffect(() {
+      void onTextChange() {
+        if (messageController.text.isNotEmpty) {
+          sendTypingStatus();
+        }
+      }
+
+      messageController.addListener(onTextChange);
+      return () => messageController.removeListener(onTextChange);
+    }, [messageController]);
 
     final compactHeader = isWideScreen(context);
 
@@ -666,55 +729,133 @@ class ChatRoomScreen extends HookConsumerWidget {
               ),
               chatRoom.when(
                 data:
-                    (room) => _ChatInput(
-                      messageController: messageController,
-                      chatRoom: room!,
-                      onSend: sendMessage,
-                      onClear: () {
-                        if (messageEditingTo.value != null) {
-                          attachments.value.clear();
-                          messageController.clear();
-                        }
-                        messageEditingTo.value = null;
-                        messageReplyingTo.value = null;
-                        messageForwardingTo.value = null;
-                      },
-                      messageEditingTo: messageEditingTo.value,
-                      messageReplyingTo: messageReplyingTo.value,
-                      messageForwardingTo: messageForwardingTo.value,
-                      onPickFile: (bool isPhoto) {
-                        if (isPhoto) {
-                          pickPhotoMedia();
-                        } else {
-                          pickVideoMedia();
-                        }
-                      },
-                      attachments: attachments.value,
-                      onUploadAttachment: (_) {
-                        // not going to do anything, only upload when send the message
-                      },
-                      onDeleteAttachment: (index) async {
-                        final attachment = attachments.value[index];
-                        if (attachment.isOnCloud) {
-                          final client = ref.watch(apiClientProvider);
-                          await client.delete('/files/${attachment.data.id}');
-                        }
-                        final clone = List.of(attachments.value);
-                        clone.removeAt(index);
-                        attachments.value = clone;
-                      },
-                      onMoveAttachment: (idx, delta) {
-                        if (idx + delta < 0 ||
-                            idx + delta >= attachments.value.length) {
-                          return;
-                        }
-                        final clone = List.of(attachments.value);
-                        clone.insert(idx + delta, clone.removeAt(idx));
-                        attachments.value = clone;
-                      },
-                      onAttachmentsChanged: (newAttachments) {
-                        attachments.value = newAttachments;
-                      },
+                    (room) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                          switchOutCurve: Curves.fastEaseInToSlowEaseOut,
+                          transitionBuilder: (
+                            Widget child,
+                            Animation<double> animation,
+                          ) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, -0.3),
+                                end: Offset.zero,
+                              ).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOutCubic,
+                                ),
+                              ),
+                              child: SizeTransition(
+                                sizeFactor: animation,
+                                axisAlignment: -1.0,
+                                child: FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                ),
+                              ),
+                            );
+                          },
+                          child:
+                              typingStatuses.value.isNotEmpty
+                                  ? Container(
+                                    key: const ValueKey('typing-indicator'),
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 4,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Symbols.more_horiz,
+                                          size: 16,
+                                        ).padding(horizontal: 8),
+                                        const Gap(8),
+                                        Expanded(
+                                          child: Text(
+                                            'typingHint'.plural(
+                                              typingStatuses.value.length,
+                                              args: [
+                                                typingStatuses.value
+                                                    .map(
+                                                      (x) =>
+                                                          x.nick ??
+                                                          x.account.nick,
+                                                    )
+                                                    .join(', '),
+                                              ],
+                                            ),
+                                            style:
+                                                Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                  : const SizedBox.shrink(
+                                    key: ValueKey('no_typing'),
+                                  ),
+                        ),
+                        _ChatInput(
+                          messageController: messageController,
+                          chatRoom: room!,
+                          onSend: sendMessage,
+                          onClear: () {
+                            if (messageEditingTo.value != null) {
+                              attachments.value.clear();
+                              messageController.clear();
+                            }
+                            messageEditingTo.value = null;
+                            messageReplyingTo.value = null;
+                            messageForwardingTo.value = null;
+                          },
+                          messageEditingTo: messageEditingTo.value,
+                          messageReplyingTo: messageReplyingTo.value,
+                          messageForwardingTo: messageForwardingTo.value,
+                          onPickFile: (bool isPhoto) {
+                            if (isPhoto) {
+                              pickPhotoMedia();
+                            } else {
+                              pickVideoMedia();
+                            }
+                          },
+                          attachments: attachments.value,
+                          onUploadAttachment: (_) {
+                            // not going to do anything, only upload when send the message
+                          },
+                          onDeleteAttachment: (index) async {
+                            final attachment = attachments.value[index];
+                            if (attachment.isOnCloud) {
+                              final client = ref.watch(apiClientProvider);
+                              await client.delete(
+                                '/files/${attachment.data.id}',
+                              );
+                            }
+                            final clone = List.of(attachments.value);
+                            clone.removeAt(index);
+                            attachments.value = clone;
+                          },
+                          onMoveAttachment: (idx, delta) {
+                            if (idx + delta < 0 ||
+                                idx + delta >= attachments.value.length) {
+                              return;
+                            }
+                            final clone = List.of(attachments.value);
+                            clone.insert(idx + delta, clone.removeAt(idx));
+                            attachments.value = clone;
+                          },
+                          onAttachmentsChanged: (newAttachments) {
+                            attachments.value = newAttachments;
+                          },
+                        ),
+                      ],
                     ),
                 error: (_, _) => const SizedBox.shrink(),
                 loading: () => const SizedBox.shrink(),

@@ -91,6 +91,7 @@ sealed class SnChatMember with _$SnChatMember {
     required int notify,
     required DateTime? joinedAt,
     required bool isBot,
+    DateTime? lastTyped,
   }) = _SnChatMember;
 
   factory SnChatMember.fromJson(Map<String, dynamic> json) =>

@@ -353,5 +353,9 @@
   "authDeviceLabelTitle": "Edit Device Label",
   "authDeviceLabelHint": "Enter a name for this device",
   "authDeviceSwipeEditHint": "Swipe left to edit label",
-  "authDeviceSwipeLogoutHint": "Swipe right to logout device"
+  "authDeviceSwipeLogoutHint": "Swipe right to logout device",
+  "typingHint": {
+    "one": "{} is typing...",
+    "other": "{} are typing..."
+  }
 }

@@ -167,6 +167,10 @@ _SnChatMember _$SnChatMemberFromJson(Map<String, dynamic> json) =>
               ? null
               : DateTime.parse(json['joined_at'] as String),
       isBot: json['is_bot'] as bool,
+      lastTyped:
+          json['last_typed'] == null
+              ? null
+              : DateTime.parse(json['last_typed'] as String),
     );
 
 Map<String, dynamic> _$SnChatMemberToJson(_SnChatMember instance) =>
@@ -184,6 +188,7 @@ Map<String, dynamic> _$SnChatMemberToJson(_SnChatMember instance) =>
       'notify': instance.notify,
       'joined_at': instance.joinedAt?.toIso8601String(),
       'is_bot': instance.isBot,
+      'last_typed': instance.lastTyped?.toIso8601String(),
     };
 
 _SnChatSummary _$SnChatSummaryFromJson(Map<String, dynamic> json) =>
