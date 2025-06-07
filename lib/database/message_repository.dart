@@ -309,7 +309,7 @@ class MessageRepository {
   }
 
   Future<LocalChatMessage> retryMessage(String pendingMessageId) async {
-    final message = pendingMessages[pendingMessageId];
+    final message = await getMessageById(pendingMessageId);
     if (message == null) {
       throw Exception('Message not found');
     }

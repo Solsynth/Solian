@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -319,6 +321,15 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
     }
 
+    void sendTypingStatus() async {
+      final wsState = ref.read(websocketStateProvider.notifier);
+      wsState.sendMessage(
+        jsonEncode(
+          WebSocketPacket(type: 'messages.typing', data: {'chat_room_id': id}),
+        ),
+      );
+    }
+
     var isLoading = false;
 
     // Add scroll listener for pagination
@@ -413,6 +424,8 @@ class ChatRoomScreen extends HookConsumerWidget {
         attachments.value = [];
       }
     }
+
+    useEffect(() {});
 
     final compactHeader = isWideScreen(context);
 
@@ -720,7 +733,7 @@ class ChatRoomScreen extends HookConsumerWidget {
   }
 }
 
-class _ChatInput extends ConsumerWidget {
+class _ChatInput extends HookConsumerWidget {
   final TextEditingController messageController;
   final SnChatRoom chatRoom;
   final VoidCallback onSend;
@@ -751,45 +764,58 @@ class _ChatInput extends ConsumerWidget {
     required this.onAttachmentsChanged,
   });
 
-  void _handleKeyPress(BuildContext context, WidgetRef ref, RawKeyEvent event) {
-    if (event is! RawKeyDownEvent) return;
-
-    final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
-    final isModifierPressed = event.isMetaPressed || event.isControlPressed;
-
-    if (isPaste && isModifierPressed) {
-      _handlePaste();
-      return;
-    }
-
-    final enterToSend = ref.read(appSettingsNotifierProvider).enterToSend;
-    final isEnter = event.logicalKey == LogicalKeyboardKey.enter;
-
-    if (isEnter) {
-      if (enterToSend && !isModifierPressed) {
-        onSend();
-      } else if (!enterToSend && isModifierPressed) {
-        onSend();
-      }
-    }
-  }
-
-  Future<void> _handlePaste() async {
-    final clipboard = await Pasteboard.image;
-    if (clipboard == null) return;
-
-    onAttachmentsChanged([
-      ...attachments,
-      UniversalFile(
-        data: XFile.fromData(clipboard, mimeType: "image/jpeg"),
-        type: UniversalFileType.image,
-      ),
-    ]);
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final inputFocusNode = useFocusNode();
+
     final enterToSend = ref.watch(appSettingsNotifierProvider).enterToSend;
+
+    final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+    void send() {
+      inputFocusNode.requestFocus();
+      onSend.call();
+    }
+
+    Future<void> handlePaste() async {
+      final clipboard = await Pasteboard.image;
+      if (clipboard == null) return;
+
+      onAttachmentsChanged([
+        ...attachments,
+        UniversalFile(
+          data: XFile.fromData(clipboard, mimeType: "image/jpeg"),
+          type: UniversalFileType.image,
+        ),
+      ]);
+    }
+
+    void handleKeyPress(
+      BuildContext context,
+      WidgetRef ref,
+      RawKeyEvent event,
+    ) {
+      if (event is! RawKeyDownEvent) return;
+
+      final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
+      final isModifierPressed = event.isMetaPressed || event.isControlPressed;
+
+      if (isPaste && isModifierPressed) {
+        handlePaste();
+        return;
+      }
+
+      final enterToSend = ref.read(appSettingsNotifierProvider).enterToSend;
+      final isEnter = event.logicalKey == LogicalKeyboardKey.enter;
+
+      if (isEnter) {
+        if (enterToSend && !isModifierPressed) {
+          send();
+        } else if (!enterToSend && isModifierPressed) {
+          send();
+        }
+      }
+    }
 
     return Material(
       elevation: 8,
@@ -892,12 +918,23 @@ class _ChatInput extends ConsumerWidget {
                 Expanded(
                   child: RawKeyboardListener(
                     focusNode: FocusNode(),
-                    onKey: (event) => _handleKeyPress(context, ref, event),
+                    onKey: (event) => handleKeyPress(context, ref, event),
                     child: TextField(
+                      focusNode: inputFocusNode,
                       controller: messageController,
-                      onSubmitted: enterToSend ? (_) => onSend() : null,
+                      onSubmitted:
+                          (enterToSend && isMobile)
+                              ? (_) {
+                                send();
+                              }
+                              : null,
+                      keyboardType:
+                          (enterToSend && isMobile)
+                              ? TextInputType.text
+                              : TextInputType.multiline,
+                      textInputAction: TextInputAction.send,
                       inputFormatters: [
-                        if (enterToSend)
+                        if (enterToSend && !isMobile)
                           TextInputFormatter.withFunction((oldValue, newValue) {
                             if (newValue.text.endsWith('\n')) {
                               return oldValue;
@@ -932,7 +969,7 @@ class _ChatInput extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.send),
                   color: Theme.of(context).colorScheme.primary,
-                  onPressed: onSend,
+                  onPressed: send,
                 ),
               ],
             ).padding(bottom: MediaQuery.of(context).padding.bottom),
