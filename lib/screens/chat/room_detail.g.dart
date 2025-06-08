@@ -7,7 +7,7 @@ part of 'room_detail.dart';
 // **************************************************************************
 
 String _$chatMemberListNotifierHash() =>
-    r'f14dbb3c6ccfef26a49d8bf5dd53b05f7c63eb6c';
+    r'f2191a631ba00ae3de39ccac10e4cdd065ffee17';
 
 /// Copied from Dart SDK
 class _SystemHash {

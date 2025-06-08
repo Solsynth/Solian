@@ -168,12 +168,6 @@ class _ActivityListView extends HookConsumerWidget {
                   );
                 }
                 break;
-              case 'accounts.check-in':
-                itemWidget = CheckInActivityWidget(item: item);
-                break;
-              case 'accounts.status':
-                itemWidget = StatusActivityWidget(item: item);
-                break;
               default:
                 itemWidget = const Placeholder();
             }
@@ -196,12 +190,14 @@ class ActivityListNotifier extends _$ActivityListNotifier
   @override
   Future<CursorPagingData<SnActivity>> fetch({required String? cursor}) async {
     final client = ref.read(apiClientProvider);
-    final offset = cursor == null ? 0 : int.parse(cursor);
     final take = 20;
 
     final response = await client.get(
       '/activities',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: {
+        if (cursor != null) 'reading_cursor': cursor,
+        'take': take,
+      },
     );
 
     final List<SnActivity> items =
@@ -209,9 +205,9 @@ class ActivityListNotifier extends _$ActivityListNotifier
             .map((e) => SnActivity.fromJson(e as Map<String, dynamic>))
             .toList();
 
-    final total = int.tryParse(response.headers['x-total']?.first ?? '') ?? 0;
-    final hasMore = offset + items.length < total;
-    final nextCursor = hasMore ? (offset + items.length).toString() : null;
+    final hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
+    final nextCursor =
+        items.map((x) => x.createdAt).lastOrNull?.toIso8601String().toString();
 
     return CursorPagingData(
       items: items,

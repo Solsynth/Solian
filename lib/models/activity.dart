@@ -10,13 +10,10 @@ sealed class SnActivity with _$SnActivity {
     required String id,
     required String type,
     required String resourceIdentifier,
-    required int visibility,
-    required String accountId,
-    required SnAccount account,
     required dynamic data,
     required DateTime createdAt,
     required DateTime updatedAt,
-    required dynamic deletedAt,
+    required DateTime? deletedAt,
   }) = _SnActivity;
 
   factory SnActivity.fromJson(Map<String, dynamic> json) =>

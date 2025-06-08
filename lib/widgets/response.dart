@@ -9,7 +9,11 @@ class ResponseErrorWidget extends StatelessWidget {
   final dynamic error;
   final VoidCallback onRetry;
 
-  const ResponseErrorWidget({super.key, required this.error, required this.onRetry});
+  const ResponseErrorWidget({
+    super.key,
+    required this.error,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +38,15 @@ class ResponseErrorWidget extends StatelessWidget {
                   style: const TextStyle(color: Color(0xFF757575)),
                 ),
               ],
+            ),
+          ).center()
+        else if (error is DioException && error.response != null)
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: Text(
+              error.response.toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF757575)),
             ),
           ).center()
         else

@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnActivity {
 
- String get id; String get type; String get resourceIdentifier; int get visibility; String get accountId; SnAccount get account; dynamic get data; DateTime get createdAt; DateTime get updatedAt; dynamic get deletedAt;
+ String get id; String get type; String get resourceIdentifier; dynamic get data; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnActivity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $SnActivityCopyWith<SnActivity> get copyWith => _$SnActivityCopyWithImpl<SnActiv
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.deletedAt, deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,resourceIdentifier,visibility,accountId,account,const DeepCollectionEquality().hash(data),createdAt,updatedAt,const DeepCollectionEquality().hash(deletedAt));
+int get hashCode => Object.hash(runtimeType,id,type,resourceIdentifier,const DeepCollectionEquality().hash(data),createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnActivity(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, visibility: $visibility, accountId: $accountId, account: $account, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnActivity(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -49,11 +49,11 @@ abstract mixin class $SnActivityCopyWith<$Res>  {
   factory $SnActivityCopyWith(SnActivity value, $Res Function(SnActivity) _then) = _$SnActivityCopyWithImpl;
 @useResult
 $Res call({
- String id, String type, String resourceIdentifier, int visibility, String accountId, SnAccount account, dynamic data, DateTime createdAt, DateTime updatedAt, dynamic deletedAt
+ String id, String type, String resourceIdentifier, dynamic data, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnAccountCopyWith<$Res> get account;
+
 
 }
 /// @nodoc
@@ -66,31 +66,19 @@ class _$SnActivityCopyWithImpl<$Res>
 
 /// Create a copy of SnActivity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? resourceIdentifier = null,Object? visibility = null,Object? accountId = null,Object? account = null,Object? data = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? resourceIdentifier = null,Object? data = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,resourceIdentifier: null == resourceIdentifier ? _self.resourceIdentifier : resourceIdentifier // ignore: cast_nullable_to_non_nullable
-as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as int,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount,data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
+as String,data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as dynamic,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as dynamic,
+as DateTime?,
   ));
 }
-/// Create a copy of SnActivity
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnAccountCopyWith<$Res> get account {
-  
-  return $SnAccountCopyWith<$Res>(_self.account, (value) {
-    return _then(_self.copyWith(account: value));
-  });
-}
+
 }
 
 
@@ -98,19 +86,16 @@ $SnAccountCopyWith<$Res> get account {
 @JsonSerializable()
 
 class _SnActivity implements SnActivity {
-  const _SnActivity({required this.id, required this.type, required this.resourceIdentifier, required this.visibility, required this.accountId, required this.account, required this.data, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnActivity({required this.id, required this.type, required this.resourceIdentifier, required this.data, required this.createdAt, required this.updatedAt, required this.deletedAt});
   factory _SnActivity.fromJson(Map<String, dynamic> json) => _$SnActivityFromJson(json);
 
 @override final  String id;
 @override final  String type;
 @override final  String resourceIdentifier;
-@override final  int visibility;
-@override final  String accountId;
-@override final  SnAccount account;
 @override final  dynamic data;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
-@override final  dynamic deletedAt;
+@override final  DateTime? deletedAt;
 
 /// Create a copy of SnActivity
 /// with the given fields replaced by the non-null parameter values.
@@ -125,16 +110,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.deletedAt, deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,resourceIdentifier,visibility,accountId,account,const DeepCollectionEquality().hash(data),createdAt,updatedAt,const DeepCollectionEquality().hash(deletedAt));
+int get hashCode => Object.hash(runtimeType,id,type,resourceIdentifier,const DeepCollectionEquality().hash(data),createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnActivity(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, visibility: $visibility, accountId: $accountId, account: $account, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnActivity(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -145,11 +130,11 @@ abstract mixin class _$SnActivityCopyWith<$Res> implements $SnActivityCopyWith<$
   factory _$SnActivityCopyWith(_SnActivity value, $Res Function(_SnActivity) _then) = __$SnActivityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String type, String resourceIdentifier, int visibility, String accountId, SnAccount account, dynamic data, DateTime createdAt, DateTime updatedAt, dynamic deletedAt
+ String id, String type, String resourceIdentifier, dynamic data, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnAccountCopyWith<$Res> get account;
+
 
 }
 /// @nodoc
@@ -162,32 +147,20 @@ class __$SnActivityCopyWithImpl<$Res>
 
 /// Create a copy of SnActivity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? resourceIdentifier = null,Object? visibility = null,Object? accountId = null,Object? account = null,Object? data = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? resourceIdentifier = null,Object? data = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnActivity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,resourceIdentifier: null == resourceIdentifier ? _self.resourceIdentifier : resourceIdentifier // ignore: cast_nullable_to_non_nullable
-as String,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as int,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount,data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
+as String,data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as dynamic,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as dynamic,
+as DateTime?,
   ));
 }
 
-/// Create a copy of SnActivity
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnAccountCopyWith<$Res> get account {
-  
-  return $SnAccountCopyWith<$Res>(_self.account, (value) {
-    return _then(_self.copyWith(account: value));
-  });
-}
+
 }
 
 
