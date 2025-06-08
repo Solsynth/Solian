@@ -119,7 +119,7 @@ class ProfilePictureWidget extends ConsumerWidget {
                       fallbackColor ??
                       Theme.of(context).colorScheme.onPrimaryContainer,
                 ).center()
-                : CachedNetworkImage(imageUrl: uri, fit: BoxFit.cover),
+                : UniversalImage(uri: uri, fit: BoxFit.cover),
       ),
     );
   }
