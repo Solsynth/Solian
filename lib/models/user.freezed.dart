@@ -747,6 +747,163 @@ as DateTime?,
 
 
 /// @nodoc
+mixin _$SnContactMethod {
+
+ String get id; int get type; DateTime? get verifiedAt; bool get isPrimary; String get content; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnContactMethod
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnContactMethodCopyWith<SnContactMethod> get copyWith => _$SnContactMethodCopyWithImpl<SnContactMethod>(this as SnContactMethod, _$identity);
+
+  /// Serializes this SnContactMethod to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnContactMethod&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.verifiedAt, verifiedAt) || other.verifiedAt == verifiedAt)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary)&&(identical(other.content, content) || other.content == content)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,type,verifiedAt,isPrimary,content,accountId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnContactMethod(id: $id, type: $type, verifiedAt: $verifiedAt, isPrimary: $isPrimary, content: $content, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnContactMethodCopyWith<$Res>  {
+  factory $SnContactMethodCopyWith(SnContactMethod value, $Res Function(SnContactMethod) _then) = _$SnContactMethodCopyWithImpl;
+@useResult
+$Res call({
+ String id, int type, DateTime? verifiedAt, bool isPrimary, String content, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnContactMethodCopyWithImpl<$Res>
+    implements $SnContactMethodCopyWith<$Res> {
+  _$SnContactMethodCopyWithImpl(this._self, this._then);
+
+  final SnContactMethod _self;
+  final $Res Function(SnContactMethod) _then;
+
+/// Create a copy of SnContactMethod
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? verifiedAt = freezed,Object? isPrimary = null,Object? content = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as int,verifiedAt: freezed == verifiedAt ? _self.verifiedAt : verifiedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,isPrimary: null == isPrimary ? _self.isPrimary : isPrimary // ignore: cast_nullable_to_non_nullable
+as bool,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnContactMethod implements SnContactMethod {
+  const _SnContactMethod({required this.id, required this.type, required this.verifiedAt, required this.isPrimary, required this.content, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  factory _SnContactMethod.fromJson(Map<String, dynamic> json) => _$SnContactMethodFromJson(json);
+
+@override final  String id;
+@override final  int type;
+@override final  DateTime? verifiedAt;
+@override final  bool isPrimary;
+@override final  String content;
+@override final  String accountId;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnContactMethod
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnContactMethodCopyWith<_SnContactMethod> get copyWith => __$SnContactMethodCopyWithImpl<_SnContactMethod>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnContactMethodToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnContactMethod&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.verifiedAt, verifiedAt) || other.verifiedAt == verifiedAt)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary)&&(identical(other.content, content) || other.content == content)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,type,verifiedAt,isPrimary,content,accountId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnContactMethod(id: $id, type: $type, verifiedAt: $verifiedAt, isPrimary: $isPrimary, content: $content, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnContactMethodCopyWith<$Res> implements $SnContactMethodCopyWith<$Res> {
+  factory _$SnContactMethodCopyWith(_SnContactMethod value, $Res Function(_SnContactMethod) _then) = __$SnContactMethodCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, int type, DateTime? verifiedAt, bool isPrimary, String content, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnContactMethodCopyWithImpl<$Res>
+    implements _$SnContactMethodCopyWith<$Res> {
+  __$SnContactMethodCopyWithImpl(this._self, this._then);
+
+  final _SnContactMethod _self;
+  final $Res Function(_SnContactMethod) _then;
+
+/// Create a copy of SnContactMethod
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? verifiedAt = freezed,Object? isPrimary = null,Object? content = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnContactMethod(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as int,verifiedAt: freezed == verifiedAt ? _self.verifiedAt : verifiedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,isPrimary: null == isPrimary ? _self.isPrimary : isPrimary // ignore: cast_nullable_to_non_nullable
+as bool,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnNotification {
 
  DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get topic; String get title; String get subtitle; String get content; Map<String, dynamic> get meta; int get priority; DateTime? get viewedAt; String get accountId;

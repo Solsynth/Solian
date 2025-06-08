@@ -158,7 +158,7 @@ class SettingsScreen extends HookConsumerWidget {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text('Cancel').tr(),
+                      child: Text('cancel').tr(),
                     ),
                     TextButton(
                       onPressed: () {
@@ -167,7 +167,7 @@ class SettingsScreen extends HookConsumerWidget {
                             .setAppColorScheme(selectedColor.value);
                         Navigator.of(context).pop();
                       },
-                      child: Text('Confirm').tr(),
+                      child: Text('confirm').tr(),
                     ),
                   ],
                 );
@@ -402,19 +402,19 @@ class SettingsScreen extends HookConsumerWidget {
                               children: [
                                 _ShortcutRow(
                                   shortcut: 'Ctrl+F',
-                                  description: 'Search',
+                                  description: 'settingsKeyboardShortcutSearch'.tr(),
                                 ),
                                 _ShortcutRow(
                                   shortcut: 'Ctrl+,',
-                                  description: 'Settings',
+                                  description: 'settingsKeyboardShortcutSettings'.tr(),
                                 ),
                                 _ShortcutRow(
                                   shortcut: 'Ctrl+N',
-                                  description: 'New Message',
+                                  description: 'settingsKeyboardShortcutNewMessage'.tr(),
                                 ),
                                 _ShortcutRow(
                                   shortcut: 'Esc',
-                                  description: 'Close Dialog',
+                                  description: 'settingsKeyboardShortcutCloseDialog'.tr(),
                                 ),
                                 // Add more shortcuts as needed
                               ],
@@ -423,7 +423,7 @@ class SettingsScreen extends HookConsumerWidget {
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),
-                              child: Text('Close').tr(),
+                              child: Text('close').tr(),
                             ),
                           ],
                         ),
@@ -445,10 +445,10 @@ class SettingsScreen extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _SettingsSection(
-                    title: 'Appearance',
+                    title: 'settingsAppearance'.tr(),
                     children: appearanceSettings,
                   ),
-                  _SettingsSection(title: 'Server', children: serverSettings),
+                  _SettingsSection(title: 'settingsServer'.tr(), children: serverSettings),
                 ],
               ),
             ),
@@ -457,12 +457,12 @@ class SettingsScreen extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _SettingsSection(
-                    title: 'Behavior',
+                    title: 'settingsBehavior'.tr(),
                     children: behaviorSettings,
                   ),
                   if (desktopSettings.isNotEmpty)
                     _SettingsSection(
-                      title: 'Desktop',
+                      title: 'settingsDesktop'.tr(),
                       children: desktopSettings,
                     ),
                 ],
@@ -475,11 +475,11 @@ class SettingsScreen extends HookConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SettingsSection(title: 'Appearance', children: appearanceSettings),
-            _SettingsSection(title: 'Server', children: serverSettings),
-            _SettingsSection(title: 'Behavior', children: behaviorSettings),
+            _SettingsSection(title: 'settingsAppearance'.tr(), children: appearanceSettings),
+            _SettingsSection(title: 'settingsServer'.tr(), children: serverSettings),
+            _SettingsSection(title: 'settingsBehavior'.tr(), children: behaviorSettings),
             if (desktopSettings.isNotEmpty)
-              _SettingsSection(title: 'Desktop', children: desktopSettings),
+              _SettingsSection(title: 'settingsDesktop'.tr(), children: desktopSettings),
           ],
         );
       }
@@ -488,7 +488,7 @@ class SettingsScreen extends HookConsumerWidget {
     return AppScaffold(
       noBackground: false,
       appBar: AppBar(
-        title: Text('Settings').tr(),
+        title: Text('settings').tr(),
         actions:
             isDesktop
                 ? [
@@ -505,7 +505,7 @@ class SettingsScreen extends HookConsumerWidget {
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(context).pop(),
-                                  child: Text('Close').tr(),
+                                  child: Text('close').tr(),
                                 ),
                               ],
                             ),

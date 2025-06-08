@@ -86,6 +86,24 @@ sealed class SnAccountBadge with _$SnAccountBadge {
 }
 
 @freezed
+sealed class SnContactMethod with _$SnContactMethod {
+  const factory SnContactMethod({
+    required String id,
+    required int type,
+    required DateTime? verifiedAt,
+    required bool isPrimary,
+    required String content,
+    required String accountId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnContactMethod;
+
+  factory SnContactMethod.fromJson(Map<String, dynamic> json) =>
+      _$SnContactMethodFromJson(json);
+}
+
+@freezed
 sealed class SnNotification with _$SnNotification {
   const factory SnNotification({
     required DateTime createdAt,

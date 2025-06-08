@@ -157,6 +157,38 @@ Map<String, dynamic> _$SnAccountBadgeToJson(_SnAccountBadge instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
+_SnContactMethod _$SnContactMethodFromJson(Map<String, dynamic> json) =>
+    _SnContactMethod(
+      id: json['id'] as String,
+      type: (json['type'] as num).toInt(),
+      verifiedAt:
+          json['verified_at'] == null
+              ? null
+              : DateTime.parse(json['verified_at'] as String),
+      isPrimary: json['is_primary'] as bool,
+      content: json['content'] as String,
+      accountId: json['account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnContactMethodToJson(_SnContactMethod instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'verified_at': instance.verifiedAt?.toIso8601String(),
+      'is_primary': instance.isPrimary,
+      'content': instance.content,
+      'account_id': instance.accountId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };
+
 _SnNotification _$SnNotificationFromJson(Map<String, dynamic> json) =>
     _SnNotification(
       createdAt: DateTime.parse(json['created_at'] as String),
