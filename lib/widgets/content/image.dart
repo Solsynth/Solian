@@ -45,6 +45,16 @@ class UniversalImage extends StatelessWidget {
             height: height,
             memCacheHeight: cacheHeight,
             memCacheWidth: cacheWidth,
+            progressIndicatorBuilder: (context, url, progress) {
+              return Center(
+                child: CircularProgressIndicator(value: progress.progress),
+              );
+            },
+            errorWidget: (context, url, error) {
+              return const Center(
+                child: Icon(Icons.broken_image, color: Colors.white, size: 16),
+              );
+            },
           ),
         ],
       ),
