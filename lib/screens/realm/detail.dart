@@ -15,6 +15,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'detail.g.dart';
@@ -250,6 +251,42 @@ class _RealmActionMenu extends HookConsumerWidget {
   }
 }
 
+@riverpod
+class RealmMemberListNotifier extends _$RealmMemberListNotifier
+    with CursorPagingNotifierMixin<SnRealmMember> {
+  static const int _pageSize = 20;
+
+  @override
+  Future<CursorPagingData<SnRealmMember>> build(String realmSlug) async {
+    return fetch();
+  }
+
+  @override
+  Future<CursorPagingData<SnRealmMember>> fetch({String? cursor}) async {
+    final apiClient = ref.read(apiClientProvider);
+    final offset = cursor != null ? int.parse(cursor) : 0;
+
+    final response = await apiClient.get(
+      '/realms/$realmSlug/members',
+      queryParameters: {'offset': offset, 'take': _pageSize},
+    );
+
+    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    final List<dynamic> data = response.data;
+    final members = data.map((e) => SnRealmMember.fromJson(e)).toList();
+
+    final hasMore = offset + members.length < total;
+    final nextCursor = hasMore ? (offset + members.length).toString() : null;
+
+    return CursorPagingData(
+      items: members,
+      hasMore: hasMore,
+      nextCursor: nextCursor,
+    );
+  }
+}
+
+// Keep the old provider for backward compatibility
 final realmMemberStateProvider =
     StateNotifierProvider.family<RealmMemberNotifier, RealmMemberState, String>(
       (ref, realmSlug) {
@@ -302,12 +339,14 @@ class _RealmMemberListSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final realmIdentity = ref.watch(realmIdentityProvider(realmSlug));
+    final memberListProvider = realmMemberListNotifierProvider(realmSlug);
+
+    // For backward compatibility and to show total count in the header
     final memberState = ref.watch(realmMemberStateProvider(realmSlug));
     final memberNotifier = ref.read(
       realmMemberStateProvider(realmSlug).notifier,
     );
-
-    final realmIdentity = ref.watch(realmIdentityProvider(realmSlug));
 
     useEffect(() {
       Future(() {
@@ -329,8 +368,10 @@ class _RealmMemberListSheet extends HookConsumerWidget {
           '/realms/invites/$realmSlug',
           data: {'related_user_id': result.id, 'role': 0},
         );
+        // Refresh both providers
         memberNotifier.reset();
         await memberNotifier.loadMore();
+        ref.invalidate(memberListProvider);
       } catch (err) {
         showErrorAlert(err);
       }
@@ -362,8 +403,10 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                 IconButton(
                   icon: const Icon(Symbols.refresh),
                   onPressed: () {
+                    // Refresh both providers
                     memberNotifier.reset();
                     memberNotifier.loadMore();
+                    ref.invalidate(memberListProvider);
                   },
                 ),
                 IconButton(
@@ -376,108 +419,103 @@ class _RealmMemberListSheet extends HookConsumerWidget {
           ),
           const Divider(height: 1),
           Expanded(
-            child:
-                memberState.error != null
-                    ? Center(child: Text(memberState.error!))
-                    : ListView.builder(
-                      itemCount: memberState.members.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == memberState.members.length) {
-                          if (memberState.isLoading) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-                          if (memberState.members.length < memberState.total) {
-                            memberNotifier.loadMore(
-                              offset: memberState.members.length,
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        }
+            child: PagingHelperView(
+              provider: memberListProvider,
+              futureRefreshable: memberListProvider.future,
+              notifierRefreshable: memberListProvider.notifier,
+              contentBuilder: (data, widgetCount, endItemView) {
+                return ListView.builder(
+                  itemCount: widgetCount,
+                  itemBuilder: (context, index) {
+                    if (index == data.items.length) {
+                      return endItemView;
+                    }
 
-                        final member = memberState.members[index];
-                        return ListTile(
-                          contentPadding: EdgeInsets.only(left: 16, right: 12),
-                          leading: ProfilePictureWidget(
-                            fileId: member.account!.profile.picture?.id,
-                          ),
-                          title: Row(
-                            spacing: 6,
-                            children: [
-                              Flexible(child: Text(member.account!.nick)),
-                              if (member.joinedAt == null)
-                                const Icon(Symbols.pending_actions, size: 20),
-                            ],
-                          ),
-                          subtitle: Row(
-                            children: [
-                              Text(
-                                member.role >= 100
-                                    ? 'permissionOwner'
-                                    : member.role >= 50
-                                    ? 'permissionModerator'
-                                    : 'permissionMember',
-                              ).tr(),
-                              Text('·').bold().padding(horizontal: 6),
-                              Expanded(child: Text("@${member.account!.name}")),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if ((realmIdentity.value?.role ?? 0) >= 50)
-                                IconButton(
-                                  icon: const Icon(Symbols.edit),
-                                  onPressed: () {
-                                    showModalBottomSheet(
-                                      isScrollControlled: true,
-                                      context: context,
-                                      builder:
-                                          (context) => _RealmMemberRoleSheet(
-                                            realmSlug: realmSlug,
-                                            member: member,
-                                          ),
-                                    ).then((value) {
-                                      if (value != null) {
-                                        memberNotifier.reset();
-                                        memberNotifier.loadMore();
-                                      }
-                                    });
-                                  },
-                                ),
-                              if ((realmIdentity.value?.role ?? 0) >= 50)
-                                IconButton(
-                                  icon: const Icon(Symbols.delete),
-                                  onPressed: () {
-                                    showConfirmAlert(
-                                      'removeRealmMemberHint'.tr(),
-                                      'removeRealmMember'.tr(),
-                                    ).then((confirm) async {
-                                      if (confirm != true) return;
-                                      try {
-                                        final apiClient = ref.watch(
-                                          apiClientProvider,
-                                        );
-                                        await apiClient.delete(
-                                          '/realms/$realmSlug/members/${member.accountId}',
-                                        );
-                                        memberNotifier.reset();
-                                        memberNotifier.loadMore();
-                                      } catch (err) {
-                                        showErrorAlert(err);
-                                      }
-                                    });
-                                  },
-                                ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                    final member = data.items[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.only(left: 16, right: 12),
+                      leading: ProfilePictureWidget(
+                        fileId: member.account!.profile.picture?.id,
+                      ),
+                      title: Row(
+                        spacing: 6,
+                        children: [
+                          Flexible(child: Text(member.account!.nick)),
+                          if (member.joinedAt == null)
+                            const Icon(Symbols.pending_actions, size: 20),
+                        ],
+                      ),
+                      subtitle: Row(
+                        children: [
+                          Text(
+                            member.role >= 100
+                                ? 'permissionOwner'
+                                : member.role >= 50
+                                ? 'permissionModerator'
+                                : 'permissionMember',
+                          ).tr(),
+                          Text('·').bold().padding(horizontal: 6),
+                          Expanded(child: Text("@${member.account!.name}")),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if ((realmIdentity.value?.role ?? 0) >= 50)
+                            IconButton(
+                              icon: const Icon(Symbols.edit),
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  isScrollControlled: true,
+                                  context: context,
+                                  builder:
+                                      (context) => _RealmMemberRoleSheet(
+                                        realmSlug: realmSlug,
+                                        member: member,
+                                      ),
+                                ).then((value) {
+                                  if (value != null) {
+                                    // Refresh both providers
+                                    memberNotifier.reset();
+                                    memberNotifier.loadMore();
+                                    ref.invalidate(memberListProvider);
+                                  }
+                                });
+                              },
+                            ),
+                          if ((realmIdentity.value?.role ?? 0) >= 50)
+                            IconButton(
+                              icon: const Icon(Symbols.delete),
+                              onPressed: () {
+                                showConfirmAlert(
+                                  'removeRealmMemberHint'.tr(),
+                                  'removeRealmMember'.tr(),
+                                ).then((confirm) async {
+                                  if (confirm != true) return;
+                                  try {
+                                    final apiClient = ref.watch(
+                                      apiClientProvider,
+                                    );
+                                    await apiClient.delete(
+                                      '/realms/$realmSlug/members/${member.accountId}',
+                                    );
+                                    // Refresh both providers
+                                    memberNotifier.reset();
+                                    memberNotifier.loadMore();
+                                    ref.invalidate(memberListProvider);
+                                  } catch (err) {
+                                    showErrorAlert(err);
+                                  }
+                                });
+                              },
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

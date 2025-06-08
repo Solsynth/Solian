@@ -16,7 +16,6 @@ class PostListNotifier extends _$PostListNotifier
 
   @override
   Future<CursorPagingData<SnPost>> build(String? pubName) {
-    this.pubName = pubName;
     return fetch(cursor: null);
   }
 

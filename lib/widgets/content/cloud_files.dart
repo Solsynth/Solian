@@ -298,7 +298,7 @@ class SplitAvatarWidget extends ConsumerWidget {
     return SizedBox(
       width: radius,
       height: radius,
-      child: CachedNetworkImage(imageUrl: uri, fit: BoxFit.cover),
+      child: UniversalImage(uri: uri, fit: BoxFit.cover),
     );
   }
 }

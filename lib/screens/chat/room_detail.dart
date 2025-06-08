@@ -14,10 +14,14 @@ import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/paging_helper_ext.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'room_detail.freezed.dart';
+part 'room_detail.g.dart';
 
 @RoutePage()
 class ChatDetailScreen extends HookConsumerWidget {
@@ -287,12 +291,51 @@ class ChatMemberNotifier extends StateNotifier<ChatRoomMemberState> {
   }
 }
 
+@riverpod
+class ChatMemberListNotifier extends _$ChatMemberListNotifier
+    with CursorPagingNotifierMixin<SnChatMember> {
+  @override
+  Future<CursorPagingData<SnChatMember>> build(String roomId) {
+    return fetch();
+  }
+
+  @override
+  Future<CursorPagingData<SnChatMember>> fetch({String? cursor}) async {
+    final offset = cursor == null ? 0 : int.parse(cursor);
+    final take = 20;
+
+    final apiClient = ref.watch(apiClientProvider);
+    final response = await apiClient.get(
+      '/chat/$roomId/members',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+
+    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    final List<dynamic> data = response.data;
+    final members = data.map((e) => SnChatMember.fromJson(e)).toList();
+
+    // Calculate next cursor based on total count
+    final nextOffset = offset + members.length;
+    final String? nextCursor =
+        nextOffset < total ? nextOffset.toString() : null;
+
+    return CursorPagingData(
+      items: members,
+      nextCursor: nextCursor,
+      hasMore: members.length < total,
+    );
+  }
+}
+
 class _ChatMemberListSheet extends HookConsumerWidget {
   final String roomId;
   const _ChatMemberListSheet({required this.roomId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final memberListProvider = chatMemberListNotifierProvider(roomId);
+
+    // For backward compatibility and to show total count in the header
     final memberState = ref.watch(chatMemberStateProvider(roomId));
     final memberNotifier = ref.read(chatMemberStateProvider(roomId).notifier);
 
@@ -318,8 +361,10 @@ class _ChatMemberListSheet extends HookConsumerWidget {
           '/chat/invites/$roomId',
           data: {'related_user_id': result.id, 'role': 0},
         );
+        // Refresh both providers
         memberNotifier.reset();
         await memberNotifier.loadMore();
+        ref.invalidate(memberListProvider);
       } catch (err) {
         showErrorAlert(err);
       }
@@ -351,8 +396,10 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                 IconButton(
                   icon: const Icon(Symbols.refresh),
                   onPressed: () {
+                    // Refresh both providers
                     memberNotifier.reset();
                     memberNotifier.loadMore();
+                    ref.invalidate(memberListProvider);
                   },
                 ),
                 IconButton(
@@ -365,108 +412,103 @@ class _ChatMemberListSheet extends HookConsumerWidget {
           ),
           const Divider(height: 1),
           Expanded(
-            child:
-                memberState.error != null
-                    ? Center(child: Text(memberState.error!))
-                    : ListView.builder(
-                      itemCount: memberState.members.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == memberState.members.length) {
-                          if (memberState.isLoading) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-                          if (memberState.members.length < memberState.total) {
-                            memberNotifier.loadMore(
-                              offset: memberState.members.length,
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        }
+            child: PagingHelperView(
+              provider: memberListProvider,
+              futureRefreshable: memberListProvider.future,
+              notifierRefreshable: memberListProvider.notifier,
+              contentBuilder: (data, widgetCount, endItemView) {
+                return ListView.builder(
+                  itemCount: widgetCount,
+                  itemBuilder: (context, index) {
+                    if (index == data.items.length) {
+                      return endItemView;
+                    }
 
-                        final member = memberState.members[index];
-                        return ListTile(
-                          contentPadding: EdgeInsets.only(left: 16, right: 12),
-                          leading: ProfilePictureWidget(
-                            fileId: member.account.profile.picture?.id,
-                          ),
-                          title: Row(
-                            spacing: 6,
-                            children: [
-                              Flexible(child: Text(member.account.nick)),
-                              if (member.joinedAt == null)
-                                const Icon(Symbols.pending_actions, size: 20),
-                            ],
-                          ),
-                          subtitle: Row(
-                            children: [
-                              Text(
-                                member.role >= 100
-                                    ? 'permissionOwner'
-                                    : member.role >= 50
-                                    ? 'permissionModerator'
-                                    : 'permissionMember',
-                              ).tr(),
-                              Text('·').bold().padding(horizontal: 6),
-                              Expanded(child: Text("@${member.account.name}")),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if ((roomIdentity.value?.role ?? 0) >= 50)
-                                IconButton(
-                                  icon: const Icon(Symbols.edit),
-                                  onPressed: () {
-                                    showModalBottomSheet(
-                                      isScrollControlled: true,
-                                      context: context,
-                                      builder:
-                                          (context) => _ChatMemberRoleSheet(
-                                            roomId: roomId,
-                                            member: member,
-                                          ),
-                                    ).then((value) {
-                                      if (value != null) {
-                                        memberNotifier.reset();
-                                        memberNotifier.loadMore();
-                                      }
-                                    });
-                                  },
-                                ),
-                              if ((roomIdentity.value?.role ?? 0) >= 50)
-                                IconButton(
-                                  icon: const Icon(Symbols.delete),
-                                  onPressed: () {
-                                    showConfirmAlert(
-                                      'removeChatMemberHint'.tr(),
-                                      'removeChatMember'.tr(),
-                                    ).then((confirm) async {
-                                      if (confirm != true) return;
-                                      try {
-                                        final apiClient = ref.watch(
-                                          apiClientProvider,
-                                        );
-                                        await apiClient.delete(
-                                          '/chat/$roomId/members/${member.accountId}',
-                                        );
-                                        memberNotifier.reset();
-                                        memberNotifier.loadMore();
-                                      } catch (err) {
-                                        showErrorAlert(err);
-                                      }
-                                    });
-                                  },
-                                ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                    final member = data.items[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.only(left: 16, right: 12),
+                      leading: ProfilePictureWidget(
+                        fileId: member.account.profile.picture?.id,
+                      ),
+                      title: Row(
+                        spacing: 6,
+                        children: [
+                          Flexible(child: Text(member.account.nick)),
+                          if (member.joinedAt == null)
+                            const Icon(Symbols.pending_actions, size: 20),
+                        ],
+                      ),
+                      subtitle: Row(
+                        children: [
+                          Text(
+                            member.role >= 100
+                                ? 'permissionOwner'
+                                : member.role >= 50
+                                ? 'permissionModerator'
+                                : 'permissionMember',
+                          ).tr(),
+                          Text('·').bold().padding(horizontal: 6),
+                          Expanded(child: Text("@${member.account.name}")),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if ((roomIdentity.value?.role ?? 0) >= 50)
+                            IconButton(
+                              icon: const Icon(Symbols.edit),
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  isScrollControlled: true,
+                                  context: context,
+                                  builder:
+                                      (context) => _ChatMemberRoleSheet(
+                                        roomId: roomId,
+                                        member: member,
+                                      ),
+                                ).then((value) {
+                                  if (value != null) {
+                                    // Refresh both providers
+                                    memberNotifier.reset();
+                                    memberNotifier.loadMore();
+                                    ref.invalidate(memberListProvider);
+                                  }
+                                });
+                              },
+                            ),
+                          if ((roomIdentity.value?.role ?? 0) >= 50)
+                            IconButton(
+                              icon: const Icon(Symbols.delete),
+                              onPressed: () {
+                                showConfirmAlert(
+                                  'removeChatMemberHint'.tr(),
+                                  'removeChatMember'.tr(),
+                                ).then((confirm) async {
+                                  if (confirm != true) return;
+                                  try {
+                                    final apiClient = ref.watch(
+                                      apiClientProvider,
+                                    );
+                                    await apiClient.delete(
+                                      '/chat/$roomId/members/${member.accountId}',
+                                    );
+                                    // Refresh both providers
+                                    memberNotifier.reset();
+                                    memberNotifier.loadMore();
+                                    ref.invalidate(memberListProvider);
+                                  } catch (err) {
+                                    showErrorAlert(err);
+                                  }
+                                });
+                              },
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
