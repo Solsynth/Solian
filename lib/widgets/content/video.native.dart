@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/widgets/alert.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
@@ -37,25 +36,15 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
     final inCacheInfo = await DefaultCacheManager().getFileFromCache(url);
     if (inCacheInfo == null) {
       log('[MediaPlayer] Miss cache: $url');
-      final token = await getToken(ref.watch(tokenProvider));
-      final fileStream = DefaultCacheManager().getFileStream(
+      final token = ref.watch(tokenProvider)?.token;
+      DefaultCacheManager().downloadFile(
         url,
-        headers: {'Authorization': 'Bearer $token'},
-        withProgress: true,
+        authHeaders: {'Authorization': 'AtField $token'},
       );
-      await for (var fileInfo in fileStream) {
-        if (fileInfo is FileInfo) {
-          uri = fileInfo.file.path;
-          break;
-        }
-      }
+      uri = url;
     } else {
       uri = inCacheInfo.file.path;
       log('[MediaPlayer] Hit cache: $url');
-    }
-    if (uri == null) {
-      showErrorAlert('Failed to open media... $url');
-      return;
     }
 
     _player!.open(Media(uri), play: false);
