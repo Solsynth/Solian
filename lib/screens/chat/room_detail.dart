@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/route.gr.dart';
@@ -14,7 +15,7 @@ import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/content/paging_helper_ext.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -31,6 +32,206 @@ class ChatDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomState = ref.watch(chatroomProvider(id));
+    final roomIdentity = ref.watch(chatroomIdentityProvider(id));
+
+    const kNotifyLevelText = [
+      'chatNotifyLevelAll',
+      'chatNotifyLevelMention',
+      'chatNotifyLevelNone',
+    ];
+
+    void setNotifyLevel(int level) async {
+      try {
+        final client = ref.watch(apiClientProvider);
+        await client.patch(
+          '/chat/$id/members/me/notify',
+          data: {'notify_level': level},
+        );
+        ref.invalidate(chatroomIdentityProvider(id));
+        if (context.mounted) {
+          showSnackBar(
+            context,
+            'chatNotifyLevelUpdated'.tr(args: [kNotifyLevelText[level].tr()]),
+          );
+        }
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    void setChatBreak(DateTime until) async {
+      try {
+        final client = ref.watch(apiClientProvider);
+        await client.patch(
+          '/chat/$id/members/me/notify',
+          data: {'break_until': until.toUtc().toIso8601String()},
+        );
+        ref.invalidate(chatroomProvider(id));
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    void showNotifyLevelBottomSheet(SnChatMember identity) {
+      showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder:
+            (context) => SheetScaffold(
+              height: 320,
+              titleText: 'chatNotifyLevel'.tr(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    title: const Text('chatNotifyLevelAll').tr(),
+                    subtitle: const Text('chatNotifyLevelDescription').tr(),
+                    leading: const Icon(Icons.notifications_active),
+                    selected: identity.notify == 0,
+                    onTap: () {
+                      setNotifyLevel(0);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('chatNotifyLevelMention').tr(),
+                    subtitle: const Text('chatNotifyLevelDescription').tr(),
+                    leading: const Icon(Icons.alternate_email),
+                    selected: identity.notify == 1,
+                    onTap: () {
+                      setNotifyLevel(1);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('chatNotifyLevelNone').tr(),
+                    subtitle: const Text('chatNotifyLevelDescription').tr(),
+                    leading: const Icon(Icons.notifications_off),
+                    selected: identity.notify == 2,
+                    onTap: () {
+                      setNotifyLevel(2);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+      );
+    }
+
+    void showChatBreakDialog() {
+      final now = DateTime.now();
+      final durationController = TextEditingController();
+
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('chatBreak').tr(),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('chatBreakDescription').tr(),
+                  const Gap(16),
+                  ListTile(
+                    title: const Text('Clear').tr(),
+                    subtitle: const Text('chatBreakClear').tr(),
+                    leading: const Icon(Icons.notifications_active),
+                    onTap: () {
+                      setChatBreak(now);
+                      Navigator.pop(context);
+                      if (context.mounted) {
+                        showSnackBar(context, 'chatBreakCleared'.tr());
+                      }
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('5m'),
+                    subtitle: const Text('chatBreakHour').tr(args: ['5m']),
+                    leading: const Icon(Symbols.circle),
+                    onTap: () {
+                      setChatBreak(now.add(const Duration(minutes: 5)));
+                      Navigator.pop(context);
+                      if (context.mounted) {
+                        showSnackBar(context, 'chatBreakSet'.tr(args: ['5m']));
+                      }
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('10m'),
+                    subtitle: const Text('chatBreakHour').tr(args: ['10m']),
+                    leading: const Icon(Symbols.circle),
+                    onTap: () {
+                      setChatBreak(now.add(const Duration(minutes: 10)));
+                      Navigator.pop(context);
+                      if (context.mounted) {
+                        showSnackBar(context, 'chatBreakSet'.tr(args: ['10m']));
+                      }
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('15m'),
+                    subtitle: const Text('chatBreakHour').tr(args: ['15m']),
+                    leading: const Icon(Symbols.timer_3),
+                    onTap: () {
+                      setChatBreak(now.add(const Duration(minutes: 15)));
+                      Navigator.pop(context);
+                      if (context.mounted) {
+                        showSnackBar(context, 'chatBreakSet'.tr(args: ['15m']));
+                      }
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('30m'),
+                    subtitle: const Text('chatBreakHour').tr(args: ['30m']),
+                    leading: const Icon(Symbols.timer),
+                    onTap: () {
+                      setChatBreak(now.add(const Duration(minutes: 30)));
+                      Navigator.pop(context);
+                      if (context.mounted) {
+                        showSnackBar(context, 'chatBreakSet'.tr(args: ['30m']));
+                      }
+                    },
+                  ),
+                  const Gap(8),
+                  TextField(
+                    controller: durationController,
+                    decoration: InputDecoration(
+                      labelText: 'Custom (minutes)'.tr(),
+                      hintText: 'Enter minutes'.tr(),
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.check),
+                        onPressed: () {
+                          final minutes = int.tryParse(durationController.text);
+                          if (minutes != null && minutes > 0) {
+                            setChatBreak(now.add(Duration(minutes: minutes)));
+                            Navigator.pop(context);
+                            if (context.mounted) {
+                              showSnackBar(
+                                context,
+                                'chatBreakSet'.tr(args: ['${minutes}m']),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('cancel').tr(),
+                ),
+              ],
+            ),
+      );
+    }
 
     const iconShadow = Shadow(
       color: Colors.black54,
@@ -114,17 +315,51 @@ class ChatDetailScreen extends HookConsumerWidget {
                   ],
                 ),
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          currentRoom.description ?? 'descriptionNone'.tr(),
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ],
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentRoom.description ?? 'descriptionNone'.tr(),
+                        style: const TextStyle(fontSize: 16),
+                      ).padding(all: 24),
+                      const Divider(height: 1),
+                      roomIdentity.when(
+                        data:
+                            (identity) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ListTile(
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  leading: const Icon(Symbols.notifications),
+                                  trailing: const Icon(Symbols.chevron_right),
+                                  title: const Text('chatNotifyLevel').tr(),
+                                  subtitle: Text(
+                                    kNotifyLevelText[identity!.notify].tr(),
+                                  ),
+                                  onTap:
+                                      () =>
+                                          showNotifyLevelBottomSheet(identity),
+                                ),
+                                ListTile(
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  leading: const Icon(Icons.timer),
+                                  trailing: const Icon(Symbols.chevron_right),
+                                  title: const Text('chatBreak').tr(),
+                                  subtitle: identity!.breakUntil != null && identity.breakUntil!.isAfter(DateTime.now())
+                                      ? Text(DateFormat('yyyy-MM-dd HH:mm').format(identity.breakUntil!))
+                                      : const Text('chatBreakNone').tr(),
+                                  onTap: () => showChatBreakDialog(),
+                                ),
+                              ],
+                            ),
+                        error: (_, _) => const SizedBox.shrink(),
+                        loading: () => const SizedBox.shrink(),
+                      ),
+                    ],
                   ),
                 ),
               ],

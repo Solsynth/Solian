@@ -90,7 +90,10 @@ sealed class SnChatMember with _$SnChatMember {
     required int role,
     required int notify,
     required DateTime? joinedAt,
+    required DateTime? breakUntil,
+    required DateTime? timeoutUntil,
     required bool isBot,
+    // Frontend data
     DateTime? lastTyped,
   }) = _SnChatMember;
 

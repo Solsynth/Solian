@@ -291,5 +291,21 @@
   "postVisibilityPublic": "公开",
   "postVisibilityFriends": "仅好友可见",
   "postVisibilityUnlisted": "不公开",
-  "postVisibilityPrivate": "私密"
+  "postVisibilityPrivate": "私密",
+  "chatNotifyLevel": "通知级别",
+  "chatNotifyLevelDescription": "决定您将收到多少通知。",
+  "chatNotifyLevelAll": "全部",
+  "chatNotifyLevelMention": "提及",
+  "chatNotifyLevelNone": "无",
+  "chatNotifyLevelUpdated": "通知级别已更新为 {}。",
+  "chatBreak": "暂停聊天",
+  "chatBreakDescription": "设置一个时间，在该时间之前，您的通知级别将仅为提及，以暂时休息当前讨论的话题。",
+  "chatBreakClear": "清除暂停时间",
+  "chatBreakHour": "暂停 {} 分钟",
+  "chatBreakDay": "暂停 {} 天",
+  "chatBreakSet": "已设置暂停 {}",
+  "chatBreakCleared": "聊天暂停已清除。",
+  "chatBreakCustom": "自定义时长",
+  "chatBreakEnterMinutes": "输入分钟数",
+  "chatBreakNone": "无"
 }

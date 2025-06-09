@@ -166,6 +166,14 @@ _SnChatMember _$SnChatMemberFromJson(Map<String, dynamic> json) =>
           json['joined_at'] == null
               ? null
               : DateTime.parse(json['joined_at'] as String),
+      breakUntil:
+          json['break_until'] == null
+              ? null
+              : DateTime.parse(json['break_until'] as String),
+      timeoutUntil:
+          json['timeout_until'] == null
+              ? null
+              : DateTime.parse(json['timeout_until'] as String),
       isBot: json['is_bot'] as bool,
       lastTyped:
           json['last_typed'] == null
@@ -187,6 +195,8 @@ Map<String, dynamic> _$SnChatMemberToJson(_SnChatMember instance) =>
       'role': instance.role,
       'notify': instance.notify,
       'joined_at': instance.joinedAt?.toIso8601String(),
+      'break_until': instance.breakUntil?.toIso8601String(),
+      'timeout_until': instance.timeoutUntil?.toIso8601String(),
       'is_bot': instance.isBot,
       'last_typed': instance.lastTyped?.toIso8601String(),
     };
