@@ -7,6 +7,7 @@ class SheetScaffold extends StatelessWidget {
   final List<Widget> actions;
   final Widget child;
   final double heightFactor;
+  final double? height;
   const SheetScaffold({
     super.key,
     this.title,
@@ -14,6 +15,7 @@ class SheetScaffold extends StatelessWidget {
     required this.child,
     this.actions = const [],
     this.heightFactor = 0.8,
+    this.height,
   });
 
   @override
@@ -32,7 +34,7 @@ class SheetScaffold extends StatelessWidget {
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * heightFactor,
+        maxHeight: height ?? MediaQuery.of(context).size.height * heightFactor,
       ),
       child: Column(
         children: [

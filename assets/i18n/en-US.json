@@ -282,6 +282,7 @@
     "one": "{} unread message",
     "other": "{} unread messages"
   },
+  "chatBreakNone": "None",
   "settingsRealmCompactView": "Compact Realm View",
   "settingsMixedFeed": "Mixed Feed",
   "settingsAutoTranslate": "Auto Translate",
@@ -396,5 +397,20 @@
   "contactMethodPrimary": "Primary",
   "contactMethodSetPrimary": "Set as Primary",
   "contactMethodSetPrimaryHint": "Set this contact method as your primary contact method for account recovery and notifications",
-  "contactMethodDeleteHint": "Are you sure to delete this contact method? This action cannot be undone."
+  "contactMethodDeleteHint": "Are you sure to delete this contact method? This action cannot be undone.",
+  "chatNotifyLevel": "Notify Level",
+  "chatNotifyLevelDescription": "Decide how many notifications you will receive.",
+  "chatNotifyLevelAll": "All",
+  "chatNotifyLevelMention": "Mentions",
+  "chatNotifyLevelNone": "None",
+  "chatNotifyLevelUpdated": "The notify level has been updated to {}.",
+  "chatBreak": "Take a Break",
+  "chatBreakDescription": "Set a time, before that time, your notification level will be metions only, to take a break of the current topic they're talking about.",
+  "chatBreakClear": "Clear the break time",
+  "chatBreakHour": "{} break",
+  "chatBreakDay": "{} day break",
+  "chatBreakSet": "Break set for {}",
+  "chatBreakCleared": "Chat break has been cleared.",
+  "chatBreakCustom": "Custom duration",
+  "chatBreakEnterMinutes": "Enter minutes"
 }
