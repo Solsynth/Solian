@@ -337,7 +337,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         ),
       );
 
-      typingDebouncer.value = Timer(const Duration(milliseconds: 1000), () {
+      typingDebouncer.value = Timer(const Duration(milliseconds: 850), () {
         typingDebouncer.value = null;
       });
     }
@@ -384,9 +384,11 @@ class ChatRoomScreen extends HookConsumerWidget {
         if (!pkt.type.startsWith('messages')) return;
         if (['messages.read'].contains(pkt.type)) return;
 
-        if (pkt.type == 'messages.typing') {
+        if (pkt.type == 'messages.typing' && pkt.data?['sender'] != null) {
+          if (pkt.data?['sender_id'] == chatIdentity.value?.id) return;
+
           final sender = SnChatMember.fromJson(
-            pkt.data!['sender'],
+            pkt.data?['sender'],
           ).copyWith(lastTyped: DateTime.now());
 
           // Check if the sender is already in the typing list
@@ -733,7 +735,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 150),
                           switchInCurve: Curves.fastEaseInToSlowEaseOut,
                           switchOutCurve: Curves.fastEaseInToSlowEaseOut,
                           transitionBuilder: (
@@ -800,7 +802,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                                     ),
                                   )
                                   : const SizedBox.shrink(
-                                    key: ValueKey('no_typing'),
+                                    key: ValueKey('typing-indicator-none'),
                                   ),
                         ),
                         _ChatInput(
