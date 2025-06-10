@@ -167,9 +167,10 @@ class AppScaffold extends StatelessWidget {
 }
 
 class PageBackButton extends StatelessWidget {
+  final Color? color;
   final List<Shadow>? shadows;
   final VoidCallback? onWillPop;
-  const PageBackButton({super.key, this.shadows, this.onWillPop});
+  const PageBackButton({super.key, this.shadows, this.onWillPop, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +180,7 @@ class PageBackButton extends StatelessWidget {
         context.router.maybePop();
       },
       icon: Icon(
+        color: color,
         (!kIsWeb && (Platform.isMacOS || Platform.isIOS))
             ? Symbols.arrow_back_ios_new
             : Symbols.arrow_back,

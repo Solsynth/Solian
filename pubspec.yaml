@@ -108,6 +108,7 @@ dependencies:
   record: ^6.0.0
   qr_flutter: ^4.1.0
   flutter_otp_text_field: ^1.5.1+1
+  palette_generator: ^0.3.3+7
 
 dev_dependencies:
   flutter_test:

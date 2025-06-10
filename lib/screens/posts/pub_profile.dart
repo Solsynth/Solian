@@ -7,13 +7,16 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/models/user.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/color.dart';
 import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/post_list.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -47,6 +50,21 @@ Future<SnSubscriptionStatus> publisherSubscriptionStatus(
   return SnSubscriptionStatus.fromJson(resp.data);
 }
 
+@riverpod
+Future<Color?> publisherAppbarForcegroundColor(Ref ref, String pubName) async {
+  final publisher = await ref.watch(publisherProvider(pubName).future);
+  if (publisher.background == null) return null;
+  final palette = await PaletteGenerator.fromImageProvider(
+    CloudImageWidget.provider(
+      fileId: publisher.background!.id,
+      serverUrl: ref.watch(serverUrlProvider),
+    ),
+  );
+  final dominantColor = palette.dominantColor?.color;
+  if (dominantColor == null) return null;
+  return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+}
+
 @RoutePage()
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
@@ -60,6 +78,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
     final publisher = ref.watch(publisherProvider(name));
     final badges = ref.watch(publisherBadgesProvider(name));
     final subStatus = ref.watch(publisherSubscriptionStatusProvider(name));
+    final appbarColor = ref.watch(
+      publisherAppbarForcegroundColorProvider(name),
+    );
 
     final subscribing = useState(false);
 
@@ -91,8 +112,8 @@ class PublisherProfileScreen extends HookConsumerWidget {
       }
     }
 
-    final iconShadow = Shadow(
-      color: Colors.black54,
+    final appbarShadow = Shadow(
+      color: appbarColor.value?.invert ?? Colors.black54,
       blurRadius: 5.0,
       offset: Offset(1.0, 1.0),
     );
@@ -103,9 +124,13 @@ class PublisherProfileScreen extends HookConsumerWidget {
             body: CustomScrollView(
               slivers: [
                 SliverAppBar(
+                  foregroundColor: appbarColor.value,
                   expandedHeight: 180,
                   pinned: true,
-                  leading: PageBackButton(shadows: [iconShadow]),
+                  leading: PageBackButton(
+                    color: appbarColor.value,
+                    shadows: [appbarShadow],
+                  ),
                   flexibleSpace: Stack(
                     children: [
                       Positioned.fill(
@@ -124,8 +149,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           data.nick,
                           style: TextStyle(
                             color:
+                                appbarColor.value ??
                                 Theme.of(context).appBarTheme.foregroundColor,
-                            shadows: [iconShadow],
+                            shadows: [appbarShadow],
                           ),
                         ),
                         background:
@@ -147,7 +173,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                               status.isSubscribed
                                   ? Icons.remove_circle
                                   : Icons.add_circle,
-                              shadows: [iconShadow],
+                              shadows: [appbarShadow],
                             ),
                           ),
                       error: (_, _) => const SizedBox(),

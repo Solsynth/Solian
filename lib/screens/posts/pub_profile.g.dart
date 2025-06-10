@@ -399,5 +399,136 @@ class _PublisherSubscriptionStatusProviderElement
   String get pubName => (origin as PublisherSubscriptionStatusProvider).pubName;
 }
 
+String _$publisherAppbarForcegroundColorHash() =>
+    r'3ff2eebb48d3f3af1907052f471e648f5b14b13c';
+
+/// See also [publisherAppbarForcegroundColor].
+@ProviderFor(publisherAppbarForcegroundColor)
+const publisherAppbarForcegroundColorProvider =
+    PublisherAppbarForcegroundColorFamily();
+
+/// See also [publisherAppbarForcegroundColor].
+class PublisherAppbarForcegroundColorFamily extends Family<AsyncValue<Color?>> {
+  /// See also [publisherAppbarForcegroundColor].
+  const PublisherAppbarForcegroundColorFamily();
+
+  /// See also [publisherAppbarForcegroundColor].
+  PublisherAppbarForcegroundColorProvider call(String pubName) {
+    return PublisherAppbarForcegroundColorProvider(pubName);
+  }
+
+  @override
+  PublisherAppbarForcegroundColorProvider getProviderOverride(
+    covariant PublisherAppbarForcegroundColorProvider provider,
+  ) {
+    return call(provider.pubName);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'publisherAppbarForcegroundColorProvider';
+}
+
+/// See also [publisherAppbarForcegroundColor].
+class PublisherAppbarForcegroundColorProvider
+    extends AutoDisposeFutureProvider<Color?> {
+  /// See also [publisherAppbarForcegroundColor].
+  PublisherAppbarForcegroundColorProvider(String pubName)
+    : this._internal(
+        (ref) => publisherAppbarForcegroundColor(
+          ref as PublisherAppbarForcegroundColorRef,
+          pubName,
+        ),
+        from: publisherAppbarForcegroundColorProvider,
+        name: r'publisherAppbarForcegroundColorProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$publisherAppbarForcegroundColorHash,
+        dependencies: PublisherAppbarForcegroundColorFamily._dependencies,
+        allTransitiveDependencies:
+            PublisherAppbarForcegroundColorFamily._allTransitiveDependencies,
+        pubName: pubName,
+      );
+
+  PublisherAppbarForcegroundColorProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.pubName,
+  }) : super.internal();
+
+  final String pubName;
+
+  @override
+  Override overrideWith(
+    FutureOr<Color?> Function(PublisherAppbarForcegroundColorRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PublisherAppbarForcegroundColorProvider._internal(
+        (ref) => create(ref as PublisherAppbarForcegroundColorRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        pubName: pubName,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Color?> createElement() {
+    return _PublisherAppbarForcegroundColorProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherAppbarForcegroundColorProvider &&
+        other.pubName == pubName;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, pubName.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PublisherAppbarForcegroundColorRef
+    on AutoDisposeFutureProviderRef<Color?> {
+  /// The parameter `pubName` of this provider.
+  String get pubName;
+}
+
+class _PublisherAppbarForcegroundColorProviderElement
+    extends AutoDisposeFutureProviderElement<Color?>
+    with PublisherAppbarForcegroundColorRef {
+  _PublisherAppbarForcegroundColorProviderElement(super.provider);
+
+  @override
+  String get pubName =>
+      (origin as PublisherAppbarForcegroundColorProvider).pubName;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

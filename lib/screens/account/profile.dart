@@ -4,13 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/user.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/services/color.dart';
 import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -38,6 +41,21 @@ Future<List<SnAccountBadge>> accountBadges(Ref ref, String uname) async {
   );
 }
 
+@riverpod
+Future<Color?> accountAppbarForcegroundColor(Ref ref, String uname) async {
+  final account = await ref.watch(accountProvider(uname).future);
+  if (account.profile.background == null) return null;
+  final palette = await PaletteGenerator.fromImageProvider(
+    CloudImageWidget.provider(
+      fileId: account.profile.background!.id,
+      serverUrl: ref.watch(serverUrlProvider),
+    ),
+  );
+  final dominantColor = palette.dominantColor?.color;
+  if (dominantColor == null) return null;
+  return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+}
+
 @RoutePage()
 class AccountProfileScreen extends HookConsumerWidget {
   final String name;
@@ -49,11 +67,12 @@ class AccountProfileScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final account = ref.watch(accountProvider(name));
+    final appbarColor = ref.watch(accountAppbarForcegroundColorProvider(name));
 
-    final iconShadow = Shadow(
-      color: Colors.black54,
+    final appbarShadow = Shadow(
+      color: appbarColor.value?.invert ?? Colors.black54,
       blurRadius: 5.0,
-      offset: const Offset(1.0, 1.0),
+      offset: Offset(1.0, 1.0),
     );
 
     return account.when(
@@ -62,9 +81,13 @@ class AccountProfileScreen extends HookConsumerWidget {
             body: CustomScrollView(
               slivers: [
                 SliverAppBar(
+                  foregroundColor: appbarColor.value,
                   expandedHeight: 180,
                   pinned: true,
-                  leading: PageBackButton(shadows: [iconShadow]),
+                  leading: PageBackButton(
+                    color: appbarColor.value,
+                    shadows: [appbarShadow],
+                  ),
                   flexibleSpace: Stack(
                     children: [
                       Positioned.fill(
@@ -85,8 +108,9 @@ class AccountProfileScreen extends HookConsumerWidget {
                           data.nick,
                           style: TextStyle(
                             color:
+                                appbarColor.value ??
                                 Theme.of(context).appBarTheme.foregroundColor,
-                            shadows: [iconShadow],
+                            shadows: [appbarShadow],
                           ),
                         ),
                       ),

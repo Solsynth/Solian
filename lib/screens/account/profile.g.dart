@@ -267,5 +267,133 @@ class _AccountBadgesProviderElement
   String get uname => (origin as AccountBadgesProvider).uname;
 }
 
+String _$accountAppbarForcegroundColorHash() =>
+    r'f654a7a5594eda1500906e9ad023c22772257a9b';
+
+/// See also [accountAppbarForcegroundColor].
+@ProviderFor(accountAppbarForcegroundColor)
+const accountAppbarForcegroundColorProvider =
+    AccountAppbarForcegroundColorFamily();
+
+/// See also [accountAppbarForcegroundColor].
+class AccountAppbarForcegroundColorFamily extends Family<AsyncValue<Color?>> {
+  /// See also [accountAppbarForcegroundColor].
+  const AccountAppbarForcegroundColorFamily();
+
+  /// See also [accountAppbarForcegroundColor].
+  AccountAppbarForcegroundColorProvider call(String uname) {
+    return AccountAppbarForcegroundColorProvider(uname);
+  }
+
+  @override
+  AccountAppbarForcegroundColorProvider getProviderOverride(
+    covariant AccountAppbarForcegroundColorProvider provider,
+  ) {
+    return call(provider.uname);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'accountAppbarForcegroundColorProvider';
+}
+
+/// See also [accountAppbarForcegroundColor].
+class AccountAppbarForcegroundColorProvider
+    extends AutoDisposeFutureProvider<Color?> {
+  /// See also [accountAppbarForcegroundColor].
+  AccountAppbarForcegroundColorProvider(String uname)
+    : this._internal(
+        (ref) => accountAppbarForcegroundColor(
+          ref as AccountAppbarForcegroundColorRef,
+          uname,
+        ),
+        from: accountAppbarForcegroundColorProvider,
+        name: r'accountAppbarForcegroundColorProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$accountAppbarForcegroundColorHash,
+        dependencies: AccountAppbarForcegroundColorFamily._dependencies,
+        allTransitiveDependencies:
+            AccountAppbarForcegroundColorFamily._allTransitiveDependencies,
+        uname: uname,
+      );
+
+  AccountAppbarForcegroundColorProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.uname,
+  }) : super.internal();
+
+  final String uname;
+
+  @override
+  Override overrideWith(
+    FutureOr<Color?> Function(AccountAppbarForcegroundColorRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: AccountAppbarForcegroundColorProvider._internal(
+        (ref) => create(ref as AccountAppbarForcegroundColorRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        uname: uname,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Color?> createElement() {
+    return _AccountAppbarForcegroundColorProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountAppbarForcegroundColorProvider &&
+        other.uname == uname;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, uname.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin AccountAppbarForcegroundColorRef on AutoDisposeFutureProviderRef<Color?> {
+  /// The parameter `uname` of this provider.
+  String get uname;
+}
+
+class _AccountAppbarForcegroundColorProviderElement
+    extends AutoDisposeFutureProviderElement<Color?>
+    with AccountAppbarForcegroundColorRef {
+  _AccountAppbarForcegroundColorProviderElement(super.provider);
+
+  @override
+  String get uname => (origin as AccountAppbarForcegroundColorProvider).uname;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
