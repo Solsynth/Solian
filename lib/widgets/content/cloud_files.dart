@@ -123,7 +123,9 @@ class ProfilePictureWidget extends ConsumerWidget {
         height: radius * 2,
         color: Theme.of(context).colorScheme.primaryContainer,
         child:
-            fileId == null
+            file != null
+                ? CloudFileWidget(item: file!, fit: BoxFit.cover)
+                : fileId == null
                 ? Icon(
                   fallbackIcon ?? Symbols.account_circle,
                   size: radius,
@@ -131,8 +133,6 @@ class ProfilePictureWidget extends ConsumerWidget {
                       fallbackColor ??
                       Theme.of(context).colorScheme.onPrimaryContainer,
                 ).center()
-                : file != null
-                ? CloudFileWidget(item: file!, fit: BoxFit.cover)
                 : UniversalImage(uri: uri, fit: BoxFit.cover),
       ),
     );
