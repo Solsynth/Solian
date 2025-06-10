@@ -11,6 +11,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -83,7 +84,7 @@ class AccountScreen extends HookConsumerWidget {
                       child: AspectRatio(
                         aspectRatio: 16 / 7,
                         child: CloudImageWidget(
-                          fileId: user.value!.profile.background!.id,
+                          file: user.value?.profile.background,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -94,7 +95,7 @@ class AccountScreen extends HookConsumerWidget {
                     children: [
                       GestureDetector(
                         child: ProfilePictureWidget(
-                          fileId: user.value?.profile.picture?.id,
+                          file: user.value?.profile.picture,
                           radius: 24,
                         ),
                         onTap: () {
@@ -112,7 +113,13 @@ class AccountScreen extends HookConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                               textBaseline: TextBaseline.alphabetic,
                               children: [
-                                Text(user.value!.nick).bold().fontSize(16),
+                                AccountName(
+                                  account: user.value!,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 Text('@${user.value!.name}'),
                               ],
                             ),

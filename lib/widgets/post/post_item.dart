@@ -11,6 +11,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
@@ -133,9 +134,7 @@ class PostItem extends HookConsumerWidget {
                 spacing: 12,
                 children: [
                   GestureDetector(
-                    child: ProfilePictureWidget(
-                      fileId: item.publisher.picture?.id,
-                    ),
+                    child: ProfilePictureWidget(file: item.publisher.picture),
                     onTap: () {
                       context.router.push(
                         PublisherProfileRoute(name: item.publisher.name),
@@ -147,7 +146,15 @@ class PostItem extends HookConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(item.publisher.nick).bold(),
+                          Row(
+                            children: [
+                              Text(item.publisher.nick).bold(),
+                              if (item.publisher.verification != null)
+                                VerificationMark(
+                                  mark: item.publisher.verification!,
+                                ).padding(left: 4),
+                            ],
+                          ),
                           // Add visibility indicator if not public (visibility != 0)
                           if (item.visibility != 0)
                             Row(

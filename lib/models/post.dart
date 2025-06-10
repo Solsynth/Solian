@@ -59,6 +59,7 @@ sealed class SnPublisher with _$SnPublisher {
     required DateTime updatedAt,
     required DateTime? deletedAt,
     required String? realmId,
+    required SnVerificationMark? verification,
   }) = _SnPublisher;
 
   factory SnPublisher.fromJson(Map<String, dynamic> json) =>
