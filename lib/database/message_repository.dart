@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:island/database/drift_db.dart';
 import 'package:island/database/message.dart';
@@ -48,13 +45,6 @@ class MessageRepository {
         },
       );
 
-      for (final item in resp.data['changes']) {
-        if (item['message']['sender']['account'] == null)
-          log(jsonEncode(item['message']['sender']['account']));
-        // if (item['message'] != null &&
-        //     item['message']['sender']['account'] == null) {
-        // }
-      }
       final response = MessageSyncResponse.fromJson(resp.data);
       for (final change in response.changes) {
         switch (change.action) {
