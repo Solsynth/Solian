@@ -86,7 +86,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
       ).push(MaterialPageRoute(builder: (context) => CaptchaScreen()));
       if (captchaTk == null) return;
       try {
-        showLoadingModal(context);
+        if (context.mounted) showLoadingModal(context);
         final userInfo = ref.read(userInfoProvider);
         final client = ref.read(apiClientProvider);
         await client.post(

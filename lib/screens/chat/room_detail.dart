@@ -6,7 +6,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/route.gr.dart';
@@ -349,9 +348,17 @@ class ChatDetailScreen extends HookConsumerWidget {
                                   leading: const Icon(Icons.timer),
                                   trailing: const Icon(Symbols.chevron_right),
                                   title: const Text('chatBreak').tr(),
-                                  subtitle: identity!.breakUntil != null && identity.breakUntil!.isAfter(DateTime.now())
-                                      ? Text(DateFormat('yyyy-MM-dd HH:mm').format(identity.breakUntil!))
-                                      : const Text('chatBreakNone').tr(),
+                                  subtitle:
+                                      identity.breakUntil != null &&
+                                              identity.breakUntil!.isAfter(
+                                                DateTime.now(),
+                                              )
+                                          ? Text(
+                                            DateFormat(
+                                              'yyyy-MM-dd HH:mm',
+                                            ).format(identity.breakUntil!),
+                                          )
+                                          : const Text('chatBreakNone').tr(),
                                   onTap: () => showChatBreakDialog(),
                                 ),
                               ],

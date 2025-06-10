@@ -1,15 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/activity.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/account/status_creation.dart';
-import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
