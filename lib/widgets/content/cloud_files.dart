@@ -54,13 +54,15 @@ class CloudFileWidget extends ConsumerWidget {
 }
 
 class CloudImageWidget extends ConsumerWidget {
-  final String fileId;
+  final String? fileId;
+  final SnCloudFile? file;
   final BoxFit fit;
   final double aspectRatio;
   final String? blurHash;
   const CloudImageWidget({
     super.key,
-    required this.fileId,
+    this.fileId,
+    this.file,
     this.aspectRatio = 1,
     this.fit = BoxFit.cover,
     this.blurHash,
@@ -68,11 +70,17 @@ class CloudImageWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    assert(fileId != null || file != null);
+
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/files/$fileId';
+    final uri = '$serverUrl/files/${file?.id ?? fileId}';
+
     return AspectRatio(
       aspectRatio: aspectRatio,
-      child: UniversalImage(uri: uri, blurHash: blurHash),
+      child:
+          file != null
+              ? CloudFileWidget(item: file!, fit: fit)
+              : UniversalImage(uri: uri, blurHash: blurHash, fit: fit),
     );
   }
 
@@ -88,12 +96,14 @@ class CloudImageWidget extends ConsumerWidget {
 
 class ProfilePictureWidget extends ConsumerWidget {
   final String? fileId;
+  final SnCloudFile? file;
   final double radius;
   final IconData? fallbackIcon;
   final Color? fallbackColor;
   const ProfilePictureWidget({
     super.key,
-    required this.fileId,
+    this.fileId,
+    this.file,
     this.radius = 20,
     this.fallbackIcon,
     this.fallbackColor,
@@ -101,8 +111,10 @@ class ProfilePictureWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    assert(fileId != null || file != null);
+
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/files/$fileId';
+    final uri = '$serverUrl/files/${file?.id ?? fileId}';
 
     return ClipRRect(
       borderRadius: BorderRadius.all(Radius.circular(radius)),
@@ -119,6 +131,8 @@ class ProfilePictureWidget extends ConsumerWidget {
                       fallbackColor ??
                       Theme.of(context).colorScheme.onPrimaryContainer,
                 ).center()
+                : file != null
+                ? CloudFileWidget(item: file!, fit: BoxFit.cover)
                 : UniversalImage(uri: uri, fit: BoxFit.cover),
       ),
     );

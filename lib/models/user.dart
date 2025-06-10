@@ -36,6 +36,7 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     required double levelingProgress,
     required SnCloudFile? picture,
     required SnCloudFile? background,
+    required SnVerificationMark? verification,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
@@ -122,4 +123,17 @@ sealed class SnNotification with _$SnNotification {
 
   factory SnNotification.fromJson(Map<String, dynamic> json) =>
       _$SnNotificationFromJson(json);
+}
+
+@freezed
+sealed class SnVerificationMark with _$SnVerificationMark {
+  const factory SnVerificationMark({
+    required int type,
+    required String? title,
+    required String? description,
+    required String? verifiedBy,
+  }) = _SnVerificationMark;
+
+  factory SnVerificationMark.fromJson(Map<String, dynamic> json) =>
+      _$SnVerificationMarkFromJson(json);
 }

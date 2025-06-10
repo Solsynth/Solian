@@ -60,6 +60,12 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
               : SnCloudFile.fromJson(
                 json['background'] as Map<String, dynamic>,
               ),
+      verification:
+          json['verification'] == null
+              ? null
+              : SnVerificationMark.fromJson(
+                json['verification'] as Map<String, dynamic>,
+              ),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt:
@@ -80,6 +86,7 @@ Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
       'leveling_progress': instance.levelingProgress,
       'picture': instance.picture?.toJson(),
       'background': instance.background?.toJson(),
+      'verification': instance.verification?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
@@ -225,4 +232,20 @@ Map<String, dynamic> _$SnNotificationToJson(_SnNotification instance) =>
       'priority': instance.priority,
       'viewed_at': instance.viewedAt?.toIso8601String(),
       'account_id': instance.accountId,
+    };
+
+_SnVerificationMark _$SnVerificationMarkFromJson(Map<String, dynamic> json) =>
+    _SnVerificationMark(
+      type: (json['type'] as num).toInt(),
+      title: json['title'] as String?,
+      description: json['description'] as String?,
+      verifiedBy: json['verified_by'] as String?,
+    );
+
+Map<String, dynamic> _$SnVerificationMarkToJson(_SnVerificationMark instance) =>
+    <String, dynamic>{
+      'type': instance.type,
+      'title': instance.title,
+      'description': instance.description,
+      'verified_by': instance.verifiedBy,
     };

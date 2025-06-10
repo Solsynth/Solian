@@ -120,6 +120,12 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
           ? null
           : DateTime.parse(json['deleted_at'] as String),
   realmId: json['realm_id'] as String?,
+  verification:
+      json['verification'] == null
+          ? null
+          : SnVerificationMark.fromJson(
+            json['verification'] as Map<String, dynamic>,
+          ),
 );
 
 Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
@@ -137,6 +143,7 @@ Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'realm_id': instance.realmId,
+      'verification': instance.verification?.toJson(),
     };
 
 _SnPublisherStats _$SnPublisherStatsFromJson(Map<String, dynamic> json) =>
