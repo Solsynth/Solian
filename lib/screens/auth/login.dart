@@ -214,9 +214,6 @@ class _LoginCheckScreen extends HookConsumerWidget {
         if (!kIsWeb) {
           String? name;
           if (Platform.isIOS) {
-            return;
-            // TODO waiting for apple to respond to grant my access to com.apple.developer.device-information.user-assigned-device-name
-            // ignore: dead_code
             final deviceInfo = await DeviceInfoPlugin().iosInfo;
             name = deviceInfo.name;
           } else if (Platform.isAndroid) {
@@ -387,20 +384,6 @@ class _LoginPickerScreen extends HookConsumerWidget {
         isBusy.value = false;
       }
     }
-
-    useEffect(() {
-      if (ticket == null || (factors?.isEmpty ?? true)) return;
-      if (ticket!.blacklistFactors.isEmpty) {
-        Future(() {
-          var password = factors!.where((x) => x.type == 0).firstOrNull;
-          if (password != null) {
-            factorPicked.value = password;
-            performGetFactorCode();
-          }
-        });
-      }
-      return null;
-    }, [ticket, factors]);
 
     return Column(
       key: const ValueKey<int>(1),
