@@ -106,21 +106,32 @@ class PublisherProfileScreen extends HookConsumerWidget {
                   expandedHeight: 180,
                   pinned: true,
                   leading: PageBackButton(shadows: [iconShadow]),
-                  flexibleSpace: FlexibleSpaceBar(
-                    background:
-                        data.background?.id != null
-                            ? CloudImageWidget(fileId: data.background!.id)
-                            : Container(
-                              color:
-                                  Theme.of(context).appBarTheme.backgroundColor,
-                            ),
-                    title: Text(
-                      data.nick,
-                      style: TextStyle(
-                        color: Theme.of(context).appBarTheme.foregroundColor,
-                        shadows: [iconShadow],
+                  flexibleSpace: Stack(
+                    children: [
+                      Positioned.fill(
+                        child:
+                            data.background?.id != null
+                                ? CloudImageWidget(file: data.background)
+                                : Container(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).appBarTheme.backgroundColor,
+                                ),
                       ),
-                    ),
+                      FlexibleSpaceBar(
+                        title: Text(
+                          data.nick,
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).appBarTheme.foregroundColor,
+                            shadows: [iconShadow],
+                          ),
+                        ),
+                        background:
+                            Container(), // Empty container since background is handled by Stack
+                      ),
+                    ],
                   ),
                   actions: [
                     subStatus.when(
@@ -163,10 +174,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: 20,
                     children: [
-                      ProfilePictureWidget(
-                        fileId: data.picture!.id,
-                        radius: 32,
-                      ),
+                      ProfilePictureWidget(file: data.picture, radius: 32),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
