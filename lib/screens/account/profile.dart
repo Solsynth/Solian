@@ -65,23 +65,32 @@ class AccountProfileScreen extends HookConsumerWidget {
                   expandedHeight: 180,
                   pinned: true,
                   leading: PageBackButton(shadows: [iconShadow]),
-                  flexibleSpace: FlexibleSpaceBar(
-                    background:
-                        data.profile.background?.id != null
-                            ? CloudImageWidget(
-                              fileId: data.profile.background!.id,
-                            )
-                            : Container(
-                              color:
-                                  Theme.of(context).appBarTheme.backgroundColor,
-                            ),
-                    title: Text(
-                      data.nick,
-                      style: TextStyle(
-                        color: Theme.of(context).appBarTheme.foregroundColor,
-                        shadows: [iconShadow],
+                  flexibleSpace: Stack(
+                    children: [
+                      Positioned.fill(
+                        child:
+                            data.profile.background?.id != null
+                                ? CloudImageWidget(
+                                  file: data.profile.background,
+                                )
+                                : Container(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).appBarTheme.backgroundColor,
+                                ),
                       ),
-                    ),
+                      FlexibleSpaceBar(
+                        title: Text(
+                          data.nick,
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).appBarTheme.foregroundColor,
+                            shadows: [iconShadow],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -91,7 +100,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ProfilePictureWidget(
-                          fileId: data.profile.picture?.id,
+                          file: data.profile.picture,
                           radius: 32,
                         ),
                         const Gap(20),
