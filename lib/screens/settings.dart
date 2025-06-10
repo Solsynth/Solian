@@ -16,6 +16,7 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
@@ -232,7 +233,7 @@ class SettingsScreen extends HookConsumerWidget {
             return ListTile(
               minLeadingWidth: 48,
               title: Text('settingsBackgroundImageClear').tr(),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
               leading: const Icon(Symbols.texture),
               trailing: const Icon(Symbols.chevron_right),
               onTap: () {
@@ -242,6 +243,53 @@ class SettingsScreen extends HookConsumerWidget {
                 prefs.remove(kAppBackgroundStoreKey);
                 ref.invalidate(backgroundImageFileProvider);
                 if (context.mounted) {
+                  showSnackBar(context, 'settingsApplied'.tr());
+                }
+              },
+            );
+          },
+        ),
+
+      if (!kIsWeb && docBasepath.value != null)
+        FutureBuilder(
+          future:
+              File('${docBasepath.value}/$kAppBackgroundImagePath').exists(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || !snapshot.data!) {
+              return const SizedBox.shrink();
+            }
+
+            return ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsBackgroundGenerateColor').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.format_color_fill),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () async {
+                showLoadingModal(context);
+                final palette = await PaletteGenerator.fromImageProvider(
+                  FileImage(
+                    File('${docBasepath.value}/$kAppBackgroundImagePath'),
+                  ),
+                );
+                if (palette.darkVibrantColor == null ||
+                    palette.lightVibrantColor == null) {
+                  if (context.mounted) hideLoadingModal(context);
+                  showErrorAlert(
+                    'Unable to calculate the domiant color of the background image.',
+                  );
+                  return;
+                }
+                if (!context.mounted) return;
+                final color =
+                    MediaQuery.of(context).platformBrightness == Brightness.dark
+                        ? palette.darkVibrantColor!.color
+                        : palette.lightVibrantColor!.color;
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setAppColorScheme(color.value);
+                if (context.mounted) {
+                  hideLoadingModal(context);
                   showSnackBar(context, 'settingsApplied'.tr());
                 }
               },
@@ -402,19 +450,24 @@ class SettingsScreen extends HookConsumerWidget {
                               children: [
                                 _ShortcutRow(
                                   shortcut: 'Ctrl+F',
-                                  description: 'settingsKeyboardShortcutSearch'.tr(),
+                                  description:
+                                      'settingsKeyboardShortcutSearch'.tr(),
                                 ),
                                 _ShortcutRow(
                                   shortcut: 'Ctrl+,',
-                                  description: 'settingsKeyboardShortcutSettings'.tr(),
+                                  description:
+                                      'settingsKeyboardShortcutSettings'.tr(),
                                 ),
                                 _ShortcutRow(
                                   shortcut: 'Ctrl+N',
-                                  description: 'settingsKeyboardShortcutNewMessage'.tr(),
+                                  description:
+                                      'settingsKeyboardShortcutNewMessage'.tr(),
                                 ),
                                 _ShortcutRow(
                                   shortcut: 'Esc',
-                                  description: 'settingsKeyboardShortcutCloseDialog'.tr(),
+                                  description:
+                                      'settingsKeyboardShortcutCloseDialog'
+                                          .tr(),
                                 ),
                                 // Add more shortcuts as needed
                               ],
@@ -448,7 +501,10 @@ class SettingsScreen extends HookConsumerWidget {
                     title: 'settingsAppearance'.tr(),
                     children: appearanceSettings,
                   ),
-                  _SettingsSection(title: 'settingsServer'.tr(), children: serverSettings),
+                  _SettingsSection(
+                    title: 'settingsServer'.tr(),
+                    children: serverSettings,
+                  ),
                 ],
               ),
             ),
@@ -475,11 +531,23 @@ class SettingsScreen extends HookConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SettingsSection(title: 'settingsAppearance'.tr(), children: appearanceSettings),
-            _SettingsSection(title: 'settingsServer'.tr(), children: serverSettings),
-            _SettingsSection(title: 'settingsBehavior'.tr(), children: behaviorSettings),
+            _SettingsSection(
+              title: 'settingsAppearance'.tr(),
+              children: appearanceSettings,
+            ),
+            _SettingsSection(
+              title: 'settingsServer'.tr(),
+              children: serverSettings,
+            ),
+            _SettingsSection(
+              title: 'settingsBehavior'.tr(),
+              children: behaviorSettings,
+            ),
             if (desktopSettings.isNotEmpty)
-              _SettingsSection(title: 'settingsDesktop'.tr(), children: desktopSettings),
+              _SettingsSection(
+                title: 'settingsDesktop'.tr(),
+                children: desktopSettings,
+              ),
           ],
         );
       }
