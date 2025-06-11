@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:island/models/user.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 const kVerificationMarkColors = [
   Colors.teal,
@@ -58,6 +60,40 @@ class VerificationMark extends StatelessWidget {
         color: kVerificationMarkColors[mark.type],
         fill: 1,
       ),
+    );
+  }
+}
+
+class VerificationStatusCard extends StatelessWidget {
+  final SnVerificationMark mark;
+  const VerificationStatusCard({super.key, required this.mark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            mark.type == 4
+                ? Symbols.play_circle
+                : mark.type == 0
+                ? Symbols.build_circle
+                : Symbols.verified,
+            size: 32,
+            color: kVerificationMarkColors[mark.type],
+            fill: 1,
+          ),
+          const Gap(8),
+          Text(mark.title ?? 'No title').bold(),
+          Text(mark.description ?? 'descriptionNone'.tr()),
+          const Gap(6),
+          Text(
+            'Verified by\n${mark.verifiedBy ?? 'No one verified it'}',
+          ).fontSize(11).opacity(0.8),
+        ],
+      ).padding(horizontal: 24, vertical: 16),
     );
   }
 }

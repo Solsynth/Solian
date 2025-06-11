@@ -70,8 +70,6 @@ class CloudImageWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    assert(fileId != null || file != null);
-
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/files/${file?.id ?? fileId}';
 
@@ -111,8 +109,6 @@ class ProfilePictureWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    assert(fileId != null || file != null);
-
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/files/${file?.id ?? fileId}';
 
