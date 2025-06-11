@@ -11,6 +11,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_platform_alert
   flutter_udid
   flutter_webrtc
+  gal
   irondash_engine_context
   livekit_client
   media_kit_libs_windows_video

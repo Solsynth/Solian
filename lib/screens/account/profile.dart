@@ -8,6 +8,7 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/color.dart';
+import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/account/status.dart';
@@ -157,16 +158,24 @@ class AccountProfileScreen extends HookConsumerWidget {
                     child: BadgeList(
                       badges: data.badges,
                     ).padding(horizontal: 24, bottom: 24),
-                  )
-                else
-                  const SliverGap(4),
+                  ),
                 SliverToBoxAdapter(
-                  child: LevelingProgressCard(
-                    level: data.profile.level,
-                    experience: data.profile.experience,
-                    progress: data.profile.levelingProgress,
+                  child: Column(
+                    spacing: 12,
+                    children: [
+                      LevelingProgressCard(
+                        level: data.profile.level,
+                        experience: data.profile.experience,
+                        progress: data.profile.levelingProgress,
+                      ),
+                      if (data.profile.verification != null)
+                        VerificationStatusCard(
+                          mark: data.profile.verification!,
+                        ),
+                    ],
                   ).padding(horizontal: 20, bottom: 24),
                 ),
+
                 SliverToBoxAdapter(
                   child: const Divider(height: 1).padding(bottom: 24),
                 ),

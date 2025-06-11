@@ -98,7 +98,7 @@ dependencies:
   visibility_detector: ^0.4.0+2
   flutter_native_splash: ^2.4.6
   photo_view: ^0.15.0
-  gal: ^1.9.1
+  gal: ^2.3.1
   dismissible_page: ^1.0.2
   super_sliver_list: ^0.4.1
   flutter_webrtc: ^0.14.1
@@ -129,24 +129,6 @@ dev_dependencies:
   riverpod_lint: ^2.6.5
   drift_dev: ^2.26.0
   flutter_launcher_icons: ^0.14.3
-
-dependency_overrides:
-  # https://github.com/dart-lang/sdk/issues/60784#issuecomment-2904784415
-  analyzer: 7.3.0
-  analyzer_plugin: 0.12.0
-  # https://github.com/dart-lang/sdk/issues/60784#issuecomment-2906872272
-  custom_lint_visitor: 1.0.0+7.3.0
-  # https://github.com/superlistapp/super_native_extensions/issues/524#issuecomment-2918531753
-  super_native_extensions:
-    git:
-      url: https://github.com/superlistapp/super_native_extensions.git
-      ref: refs/pull/525/head
-      path: super_native_extensions
-  irondash_engine_context:
-    git:
-      url: https://github.com/irondash/irondash.git
-      ref: refs/pull/66/head
-      path: engine_context/dart
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
