@@ -307,5 +307,10 @@
   "chatBreakCleared": "聊天暂停已清除。",
   "chatBreakCustom": "自定义时长",
   "chatBreakEnterMinutes": "输入分钟数",
-  "chatBreakNone": "无"
+  "chatBreakNone": "无",
+  "checkInResultT0": "大凶",
+  "checkInResultT1": "凶",
+  "checkInResultT2": "中平",
+  "checkInResultT3": "吉",
+  "checkInResultT4": "大吉"
 }

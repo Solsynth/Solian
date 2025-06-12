@@ -6,8 +6,7 @@ part of 'event_calendar.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$accountEventCalendarHash() =>
-    r'57405caaf53a83d121b6bb4b70540134fb581525';
+String _$eventCalendarHash() => r'6f2454404fa8660b96334d654490e1a40ee53e10';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -30,24 +29,36 @@ class _SystemHash {
   }
 }
 
-/// See also [accountEventCalendar].
-@ProviderFor(accountEventCalendar)
-const accountEventCalendarProvider = AccountEventCalendarFamily();
+/// Provider for fetching event calendar data
+/// This can be used anywhere in the app where calendar data is needed
+///
+/// Copied from [eventCalendar].
+@ProviderFor(eventCalendar)
+const eventCalendarProvider = EventCalendarFamily();
 
-/// See also [accountEventCalendar].
-class AccountEventCalendarFamily
+/// Provider for fetching event calendar data
+/// This can be used anywhere in the app where calendar data is needed
+///
+/// Copied from [eventCalendar].
+class EventCalendarFamily
     extends Family<AsyncValue<List<SnEventCalendarEntry>>> {
-  /// See also [accountEventCalendar].
-  const AccountEventCalendarFamily();
+  /// Provider for fetching event calendar data
+  /// This can be used anywhere in the app where calendar data is needed
+  ///
+  /// Copied from [eventCalendar].
+  const EventCalendarFamily();
 
-  /// See also [accountEventCalendar].
-  AccountEventCalendarProvider call(EventCalendarQuery query) {
-    return AccountEventCalendarProvider(query);
+  /// Provider for fetching event calendar data
+  /// This can be used anywhere in the app where calendar data is needed
+  ///
+  /// Copied from [eventCalendar].
+  EventCalendarProvider call(EventCalendarQuery query) {
+    return EventCalendarProvider(query);
   }
 
   @override
-  AccountEventCalendarProvider getProviderOverride(
-    covariant AccountEventCalendarProvider provider,
+  EventCalendarProvider getProviderOverride(
+    covariant EventCalendarProvider provider,
   ) {
     return call(provider.query);
   }
@@ -64,29 +75,35 @@ class AccountEventCalendarFamily
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'accountEventCalendarProvider';
+  String? get name => r'eventCalendarProvider';
 }
 
-/// See also [accountEventCalendar].
-class AccountEventCalendarProvider
+/// Provider for fetching event calendar data
+/// This can be used anywhere in the app where calendar data is needed
+///
+/// Copied from [eventCalendar].
+class EventCalendarProvider
     extends AutoDisposeFutureProvider<List<SnEventCalendarEntry>> {
-  /// See also [accountEventCalendar].
-  AccountEventCalendarProvider(EventCalendarQuery query)
+  /// Provider for fetching event calendar data
+  /// This can be used anywhere in the app where calendar data is needed
+  ///
+  /// Copied from [eventCalendar].
+  EventCalendarProvider(EventCalendarQuery query)
     : this._internal(
-        (ref) => accountEventCalendar(ref as AccountEventCalendarRef, query),
-        from: accountEventCalendarProvider,
-        name: r'accountEventCalendarProvider',
+        (ref) => eventCalendar(ref as EventCalendarRef, query),
+        from: eventCalendarProvider,
+        name: r'eventCalendarProvider',
         debugGetCreateSourceHash:
             const bool.fromEnvironment('dart.vm.product')
                 ? null
-                : _$accountEventCalendarHash,
-        dependencies: AccountEventCalendarFamily._dependencies,
+                : _$eventCalendarHash,
+        dependencies: EventCalendarFamily._dependencies,
         allTransitiveDependencies:
-            AccountEventCalendarFamily._allTransitiveDependencies,
+            EventCalendarFamily._allTransitiveDependencies,
         query: query,
       );
 
-  AccountEventCalendarProvider._internal(
+  EventCalendarProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -100,15 +117,13 @@ class AccountEventCalendarProvider
 
   @override
   Override overrideWith(
-    FutureOr<List<SnEventCalendarEntry>> Function(
-      AccountEventCalendarRef provider,
-    )
+    FutureOr<List<SnEventCalendarEntry>> Function(EventCalendarRef provider)
     create,
   ) {
     return ProviderOverride(
       origin: this,
-      override: AccountEventCalendarProvider._internal(
-        (ref) => create(ref as AccountEventCalendarRef),
+      override: EventCalendarProvider._internal(
+        (ref) => create(ref as EventCalendarRef),
         from: from,
         name: null,
         dependencies: null,
@@ -121,12 +136,12 @@ class AccountEventCalendarProvider
 
   @override
   AutoDisposeFutureProviderElement<List<SnEventCalendarEntry>> createElement() {
-    return _AccountEventCalendarProviderElement(this);
+    return _EventCalendarProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AccountEventCalendarProvider && other.query == query;
+    return other is EventCalendarProvider && other.query == query;
   }
 
   @override
@@ -140,20 +155,19 @@ class AccountEventCalendarProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin AccountEventCalendarRef
+mixin EventCalendarRef
     on AutoDisposeFutureProviderRef<List<SnEventCalendarEntry>> {
   /// The parameter `query` of this provider.
   EventCalendarQuery get query;
 }
 
-class _AccountEventCalendarProviderElement
+class _EventCalendarProviderElement
     extends AutoDisposeFutureProviderElement<List<SnEventCalendarEntry>>
-    with AccountEventCalendarRef {
-  _AccountEventCalendarProviderElement(super.provider);
+    with EventCalendarRef {
+  _EventCalendarProviderElement(super.provider);
 
   @override
-  EventCalendarQuery get query =>
-      (origin as AccountEventCalendarProvider).query;
+  EventCalendarQuery get query => (origin as EventCalendarProvider).query;
 }
 
 // ignore_for_file: type=lint

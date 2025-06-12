@@ -134,14 +134,11 @@
   "checkInResultLevel2": "A Normal Day",
   "checkInResultLevel3": "Good Luck",
   "checkInResultLevel4": "Best Luck",
-  "checkInResultLevelShort0": "Wrost",
-  "checkInResultLevelShort1": "Bad",
-  "checkInResultLevelShort2": "Normal",
-  "checkInResultLevelShort3": "Good",
-  "checkInResultLevelShort4": "Best",
   "checkInActivityTitle": "{} checked in on {} and got a {}",
   "eventCalander": "Event Calander",
   "eventCalanderEmpty": "No events on that day.",
+  "fortuneGraph": "Fortune Trend",
+  "noFortuneData": "No fortune data available for this month.",
   "creatorHub": "Creator Hub",
   "creatorHubDescription": "Manage posts, analytics, and more.",
   "developerPortal": "Developer Portal",
@@ -423,5 +420,9 @@
   "timeZone": "Time Zone",
   "birthday": "Birthday",
   "selectADate": "Select a date",
-  "useDeviceTimeZone": "Use device time zone"
+  "checkInResultT0": "Worst",
+  "checkInResultT1": "Poor",
+  "checkInResultT2": "Mid",
+  "checkInResultT3": "Good",
+  "checkInResultT4": "Best"
 }

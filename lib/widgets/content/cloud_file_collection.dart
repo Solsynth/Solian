@@ -17,7 +17,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:uuid/uuid.dart';
-import 'package:dio/dio.dart';
 
 class CloudFileList extends HookConsumerWidget {
   final List<SnCloudFile> files;

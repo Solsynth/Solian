@@ -10,6 +10,7 @@ import 'package:island/models/user.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/color.dart';
+import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/alert.dart';
@@ -113,7 +114,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
     }
 
     final appbarShadow = Shadow(
-      color: appbarColor.value?.invert ?? Colors.black54,
+      color: appbarColor.value?.invert ?? Colors.transparent,
       blurRadius: 5.0,
       offset: Offset(1.0, 1.0),
     );
@@ -245,14 +246,17 @@ class PublisherProfileScreen extends HookConsumerWidget {
                     ],
                   ).padding(horizontal: 24, top: 24, bottom: 24),
                 ),
-                if (badges.value?.isNotEmpty ?? false)
-                  SliverToBoxAdapter(
-                    child: BadgeList(
-                      badges: badges.value!,
-                    ).padding(horizontal: 24, bottom: 24),
-                  )
-                else
-                  const SliverGap(16),
+                SliverToBoxAdapter(
+                  child: Column(
+                    spacing: 24,
+                    children: [
+                      if (badges.value?.isNotEmpty ?? false)
+                        BadgeList(badges: badges.value!),
+                      if (data.verification != null)
+                        VerificationStatusCard(mark: data.verification!),
+                    ],
+                  ).padding(horizontal: 24, bottom: 24),
+                ),
                 SliverToBoxAdapter(child: const Divider(height: 1)),
                 if (data.bio.isNotEmpty)
                   SliverToBoxAdapter(

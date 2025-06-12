@@ -71,7 +71,7 @@ class AccountProfileScreen extends HookConsumerWidget {
     final appbarColor = ref.watch(accountAppbarForcegroundColorProvider(name));
 
     final appbarShadow = Shadow(
-      color: appbarColor.value?.invert ?? Colors.black54,
+      color: appbarColor.value?.invert ?? Colors.transparent,
       blurRadius: 5.0,
       offset: Offset(1.0, 1.0),
     );
