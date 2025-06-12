@@ -10,6 +10,7 @@ import 'package:island/database/message.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/call.dart';
 import 'package:island/screens/chat/room.dart';
+import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -129,9 +130,12 @@ class MessageItem extends HookConsumerWidget {
                   spacing: 8,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    ProfilePictureWidget(
-                      fileId: sender.account.profile.picture?.id,
-                      radius: 16,
+                    AccountPfcGestureDetector(
+                      uname: sender.account.name,
+                      child: ProfilePictureWidget(
+                        fileId: sender.account.profile.picture?.id,
+                        radius: 16,
+                      ),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
