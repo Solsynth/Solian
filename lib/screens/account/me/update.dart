@@ -11,6 +11,7 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/file.dart';
+import 'package:island/services/timezone.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -120,8 +121,30 @@ class UpdateProfileScreen extends HookConsumerWidget {
     }
 
     final formKeyProfile = useMemoized(GlobalKey<FormState>.new, const []);
+    final birthday = useState<DateTime?>(user.value!.profile.birthday);
+    final firstNameController = useTextEditingController(
+      text: user.value!.profile.firstName,
+    );
+    final middleNameController = useTextEditingController(
+      text: user.value!.profile.middleName,
+    );
+    final lastNameController = useTextEditingController(
+      text: user.value!.profile.lastName,
+    );
     final bioController = useTextEditingController(
       text: user.value!.profile.bio,
+    );
+    final genderController = useTextEditingController(
+      text: user.value!.profile.gender,
+    );
+    final pronounsController = useTextEditingController(
+      text: user.value!.profile.pronouns,
+    );
+    final locationController = useTextEditingController(
+      text: user.value!.profile.location,
+    );
+    final timeZoneController = useTextEditingController(
+      text: user.value!.profile.timeZone,
     );
 
     void updateProfile() async {
@@ -132,7 +155,17 @@ class UpdateProfileScreen extends HookConsumerWidget {
         final client = ref.watch(apiClientProvider);
         await client.patch(
           '/accounts/me/profile',
-          data: {'bio': bioController.text},
+          data: {
+            'bio': bioController.text,
+            'first_name': firstNameController.text,
+            'middle_name': middleNameController.text,
+            'last_name': lastNameController.text,
+            'gender': genderController.text,
+            'pronouns': pronounsController.text,
+            'location': locationController.text,
+            'time_zone': timeZoneController.text,
+            'birthday': birthday.value?.toIso8601String(),
+          },
         );
         final userNotifier = ref.read(userInfoProvider.notifier);
         userNotifier.fetchUser();
@@ -268,6 +301,45 @@ class UpdateProfileScreen extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 16,
                 children: [
+                  Row(
+                    spacing: 16,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: 'firstName'.tr(),
+                          ),
+                          controller: firstNameController,
+                          onTapOutside:
+                              (_) =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: 'middleName'.tr(),
+                          ),
+                          controller: middleNameController,
+                          onTapOutside:
+                              (_) =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: 'lastName'.tr(),
+                          ),
+                          controller: lastNameController,
+                          onTapOutside:
+                              (_) =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
+                        ),
+                      ),
+                    ],
+                  ),
+
                   TextFormField(
                     decoration: InputDecoration(labelText: 'bio'.tr()),
                     maxLines: null,
@@ -275,6 +347,213 @@ class UpdateProfileScreen extends HookConsumerWidget {
                     controller: bioController,
                     onTapOutside:
                         (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                  Row(
+                    spacing: 16,
+                    children: [
+                      Expanded(
+                        child: Autocomplete<String>(
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            final options = ['Male', 'Female'];
+                            if (textEditingValue.text == '') {
+                              return options;
+                            }
+                            return options.where(
+                              (option) => option.toLowerCase().contains(
+                                textEditingValue.text.toLowerCase(),
+                              ),
+                            );
+                          },
+                          onSelected: (String selection) {
+                            genderController.text = selection;
+                          },
+                          fieldViewBuilder: (
+                            context,
+                            controller,
+                            focusNode,
+                            onFieldSubmitted,
+                          ) {
+                            // Initialize the controller with the current value
+                            if (controller.text.isEmpty &&
+                                genderController.text.isNotEmpty) {
+                              controller.text = genderController.text;
+                            }
+
+                            return TextFormField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                labelText: 'gender'.tr(),
+                              ),
+                              onChanged: (value) {
+                                genderController.text = value;
+                              },
+                              onTapOutside:
+                                  (_) =>
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus(),
+                            );
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: 'pronouns'.tr(),
+                          ),
+                          controller: pronounsController,
+                          onTapOutside:
+                              (_) =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    spacing: 16,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: 'location'.tr(),
+                          ),
+                          controller: locationController,
+                          onTapOutside:
+                              (_) =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
+                        ),
+                      ),
+                      Expanded(
+                        child: Autocomplete<String>(
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text.isEmpty) {
+                              return const Iterable<String>.empty();
+                            }
+                            final lowercaseQuery =
+                                textEditingValue.text.toLowerCase();
+                            return getAvailableTz().where((tz) {
+                              return tz.toLowerCase().contains(lowercaseQuery);
+                            });
+                          },
+                          onSelected: (String selection) {
+                            timeZoneController.text = selection;
+                          },
+                          fieldViewBuilder: (
+                            context,
+                            controller,
+                            focusNode,
+                            onFieldSubmitted,
+                          ) {
+                            // Sync the controller with timeZoneController when the widget is built
+                            if (controller.text != timeZoneController.text) {
+                              controller.text = timeZoneController.text;
+                            }
+
+                            return TextFormField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                labelText: 'timeZone'.tr(),
+                                suffix: InkWell(
+                                  child: const Icon(
+                                    Symbols.my_location,
+                                    size: 18,
+                                  ),
+                                  onTap: () async {
+                                    try {
+                                      showLoadingModal(context);
+                                      final machineTz = await getMachineTz();
+                                      controller.text = machineTz;
+                                      timeZoneController.text = machineTz;
+                                    } finally {
+                                      if (context.mounted) {
+                                        hideLoadingModal(context);
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
+                              onChanged: (value) {
+                                timeZoneController.text = value;
+                              },
+                            );
+                          },
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 4.0,
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 200,
+                                    maxWidth: 300,
+                                  ),
+                                  child: ListView.builder(
+                                    padding: const EdgeInsets.all(8.0),
+                                    itemCount: options.length,
+                                    itemBuilder: (
+                                      BuildContext context,
+                                      int index,
+                                    ) {
+                                      final option = options.elementAt(index);
+                                      return ListTile(
+                                        title: Text(
+                                          option,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        onTap: () {
+                                          onSelected(option);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: birthday.value ?? DateTime.now(),
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime.now(),
+                      );
+                      if (date != null) {
+                        birthday.value = date;
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'birthday'.tr(),
+                            style: TextStyle(
+                              color: Theme.of(context).hintColor,
+                            ),
+                          ),
+                          Text(
+                            birthday.value != null
+                                ? DateFormat.yMMMd().format(birthday.value!)
+                                : 'Select a date'.tr(),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   Align(
                     alignment: Alignment.centerRight,

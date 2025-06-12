@@ -47,6 +47,24 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
       middleName: json['middle_name'] as String?,
       lastName: json['last_name'] as String?,
       bio: json['bio'] as String? ?? '',
+      gender: json['gender'] as String? ?? '',
+      pronouns: json['pronouns'] as String? ?? '',
+      location: json['location'] as String? ?? '',
+      timeZone: json['time_zone'] as String? ?? '',
+      birthday:
+          json['birthday'] == null
+              ? null
+              : DateTime.parse(json['birthday'] as String),
+      lastSeenAt:
+          json['last_seen_at'] == null
+              ? null
+              : DateTime.parse(json['last_seen_at'] as String),
+      activeBadge:
+          json['active_badge'] == null
+              ? null
+              : SnAccountBadge.fromJson(
+                json['active_badge'] as Map<String, dynamic>,
+              ),
       experience: (json['experience'] as num).toInt(),
       level: (json['level'] as num).toInt(),
       levelingProgress: (json['leveling_progress'] as num).toDouble(),
@@ -81,6 +99,13 @@ Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
       'middle_name': instance.middleName,
       'last_name': instance.lastName,
       'bio': instance.bio,
+      'gender': instance.gender,
+      'pronouns': instance.pronouns,
+      'location': instance.location,
+      'time_zone': instance.timeZone,
+      'birthday': instance.birthday?.toIso8601String(),
+      'last_seen_at': instance.lastSeenAt?.toIso8601String(),
+      'active_badge': instance.activeBadge?.toJson(),
       'experience': instance.experience,
       'level': instance.level,
       'leveling_progress': instance.levelingProgress,
@@ -144,6 +169,10 @@ _SnAccountBadge _$SnAccountBadgeFromJson(Map<String, dynamic> json) =>
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      activatedAt:
+          json['activated_at'] == null
+              ? null
+              : DateTime.parse(json['activated_at'] as String),
       deletedAt:
           json['deleted_at'] == null
               ? null
@@ -161,6 +190,7 @@ Map<String, dynamic> _$SnAccountBadgeToJson(_SnAccountBadge instance) =>
       'account_id': instance.accountId,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
+      'activated_at': instance.activatedAt?.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 

@@ -31,6 +31,13 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     required String? middleName,
     required String? lastName,
     @Default('') String bio,
+    @Default('') String gender,
+    @Default('') String pronouns,
+    @Default('') String location,
+    @Default('') String timeZone,
+    DateTime? birthday,
+    DateTime? lastSeenAt,
+    SnAccountBadge? activeBadge,
     required int experience,
     required int level,
     required double levelingProgress,
@@ -79,6 +86,7 @@ sealed class SnAccountBadge with _$SnAccountBadge {
     required String accountId,
     required DateTime createdAt,
     required DateTime updatedAt,
+    required DateTime? activatedAt,
     required DateTime? deletedAt,
   }) = _SnAccountBadge;
 

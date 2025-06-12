@@ -19,6 +19,7 @@ import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/screens/auth/tabs.dart';
 import 'package:island/services/notify.dart';
+import 'package:island/services/timezone.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:relative_time/relative_time.dart';
@@ -43,6 +44,14 @@ void main() async {
     log("[SplashScreen] Firebase is ready!");
   } catch (err) {
     showErrorAlert(err);
+  }
+
+  try {
+    log("[SplashScreen] Loading timezone database...");
+    await initializeTzdb();
+    log("[SplashScreen] Time zone database was loaded!");
+  } catch (err) {
+    log("[SplashScreen] Failed to load timezone database... $err");
   }
 
   final prefs = await SharedPreferences.getInstance();

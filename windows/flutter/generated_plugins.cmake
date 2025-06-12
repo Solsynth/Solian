@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_core
   flutter_inappwebview_windows
   flutter_platform_alert
+  flutter_timezone
   flutter_udid
   flutter_webrtc
   gal

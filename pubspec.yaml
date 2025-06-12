@@ -109,6 +109,9 @@ dependencies:
   qr_flutter: ^4.1.0
   flutter_otp_text_field: ^1.5.1+1
   palette_generator: ^0.3.3+7
+  flutter_popup_card: ^0.0.6
+  timezone: ^0.10.1
+  flutter_timezone: ^4.1.1
 
 dev_dependencies:
   flutter_test:

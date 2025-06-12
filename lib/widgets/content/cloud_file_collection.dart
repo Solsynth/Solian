@@ -10,6 +10,7 @@ import 'package:gal/gal.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/pods/network.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:path/path.dart' show extension;
 import 'package:path_provider/path_provider.dart';
@@ -194,14 +195,18 @@ class CloudFileZoomIn extends HookConsumerWidget {
         );
 
         // Get the image URL
-        final imageUrl = '$serverUrl/files/${item.id}?original=true';
+        final client = ref.watch(apiClientProvider);
 
         // Create a temporary file to save the image
         final tempDir = await getTemporaryDirectory();
         final filePath = '${tempDir.path}/${item.id}.${extension(item.name)}';
 
-        await Dio().download(imageUrl, filePath);
-        await Gal.putImage(filePath);
+        await client.download(
+          '/files/${item.id}',
+          filePath,
+          queryParameters: {'original': true},
+        );
+        await Gal.putImage(filePath, album: 'Solar Network');
 
         // Show success message
         scaffold.showSnackBar(

@@ -413,5 +413,15 @@
   "chatBreakSet": "Break set for {}",
   "chatBreakCleared": "Chat break has been cleared.",
   "chatBreakCustom": "Custom duration",
-  "chatBreakEnterMinutes": "Enter minutes"
+  "chatBreakEnterMinutes": "Enter minutes",
+  "firstName": "First Name",
+  "middleName": "Middle Name",
+  "lastName": "Last Name",
+  "gender": "Gender",
+  "pronouns": "Pronouns",
+  "location": "Location",
+  "timeZone": "Time Zone",
+  "birthday": "Birthday",
+  "selectADate": "Select a date",
+  "useDeviceTimeZone": "Use device time zone"
 }
