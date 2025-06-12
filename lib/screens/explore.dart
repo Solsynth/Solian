@@ -193,10 +193,7 @@ class ActivityListNotifier extends _$ActivityListNotifier
 
     final response = await client.get(
       '/activities',
-      queryParameters: {
-        if (cursor != null) 'reading_cursor': cursor,
-        'take': take,
-      },
+      queryParameters: {if (cursor != null) 'cursor': cursor, 'take': take},
     );
 
     final List<SnActivity> items =
@@ -206,7 +203,12 @@ class ActivityListNotifier extends _$ActivityListNotifier
 
     final hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
     final nextCursor =
-        items.map((x) => x.createdAt).lastOrNull?.toIso8601String().toString();
+        items
+            .map((x) => x.createdAt)
+            .lastOrNull
+            ?.toUtc()
+            .toIso8601String()
+            .toString();
 
     return CursorPagingData(
       items: items,
