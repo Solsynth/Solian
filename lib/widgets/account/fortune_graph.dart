@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,8 @@ class FortuneGraphWidget extends HookConsumerWidget {
   /// Callback when a point is selected
   final void Function(DateTime)? onPointSelected;
 
+  final String? eventCalanderUser;
+
   const FortuneGraphWidget({
     super.key,
     required this.events,
@@ -30,6 +33,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
     this.maxWidth = double.infinity,
     this.height = 180,
     this.onPointSelected,
+    this.eventCalanderUser,
   });
 
   @override
@@ -48,9 +52,27 @@ class FortuneGraphWidget extends HookConsumerWidget {
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'fortuneGraph',
-        ).tr().fontSize(18).bold().padding(all: 16, bottom: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('fortuneGraph').tr().fontSize(18).bold(),
+            if (eventCalanderUser != null)
+              IconButton(
+                icon: const Icon(Icons.calendar_month, size: 20),
+                visualDensity: const VisualDensity(
+                  horizontal: -4,
+                  vertical: -4,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () {
+                  context.router.pushNamed(
+                    '/account/$eventCalanderUser/calendar',
+                  );
+                },
+              ),
+          ],
+        ).padding(all: 16, bottom: 24),
         SizedBox(
           height: height,
           child: filteredEvents.when(
@@ -75,7 +97,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
               final maxDate = data.last.date;
 
               return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                 child: LineChart(
                   LineChartData(
                     gridData: FlGridData(

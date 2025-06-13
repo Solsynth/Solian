@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/screens/account/profile.dart';
+import 'package:island/services/time.dart';
 import 'package:island/widgets/account/status_creation.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -104,14 +106,15 @@ class AccountStatusWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userStatus = ref.watch(accountStatusProvider(uname));
+    final status = ref.watch(accountStatusProvider(uname));
+    final account = ref.watch(accountProvider(uname));
 
     return Padding(
       padding: padding ?? EdgeInsets.symmetric(horizontal: 27, vertical: 4),
       child: Row(
         spacing: 4,
         children: [
-          if (userStatus.value?.isOnline ?? false)
+          if (status.value?.isOnline ?? false)
             Icon(
               Symbols.circle,
               fill: 1,
@@ -119,13 +122,24 @@ class AccountStatusWidget extends HookConsumerWidget {
               size: 16,
             ).padding(right: 4)
           else
-            Icon(Symbols.circle, color: Colors.grey, size: 16).padding(all: 4),
-          if (userStatus.value?.isCustomized ?? false)
-            Text(userStatus.value?.label ?? 'unknown'.tr())
+            Icon(
+              Symbols.circle,
+              color: Colors.grey,
+              size: 16,
+            ).padding(right: 4),
+          if (status.value?.isCustomized ?? false)
+            Text(status.value?.label ?? 'unknown'.tr())
           else
-            Text((userStatus.value?.label ?? 'offline').toLowerCase()).tr(),
+            Text((status.value?.label ?? 'offline').toLowerCase()).tr(),
+          if (!(status.value?.isOnline ?? false) &&
+              account.value?.profile.lastSeenAt != null)
+            Flexible(
+              child: Text(
+                account.value!.profile.lastSeenAt!.formatRelative(context),
+              ).opacity(0.75),
+            ),
         ],
       ),
-    ).opacity((userStatus.value?.isCustomized ?? false) ? 1 : 0.85);
+    ).opacity((status.value?.isCustomized ?? false) ? 1 : 0.85);
   }
 }

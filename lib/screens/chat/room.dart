@@ -385,6 +385,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         if (['messages.read'].contains(pkt.type)) return;
 
         if (pkt.type == 'messages.typing' && pkt.data?['sender'] != null) {
+          if (pkt.data?['room_id'] != chatRoom.value?.id) return;
           if (pkt.data?['sender_id'] == chatIdentity.value?.id) return;
 
           final sender = SnChatMember.fromJson(

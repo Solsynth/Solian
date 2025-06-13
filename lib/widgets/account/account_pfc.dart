@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
@@ -12,6 +13,7 @@ import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/response.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class AccountProfileCard extends HookConsumerWidget {
@@ -34,17 +36,18 @@ class AccountProfileCard extends HookConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
+                  if (data.profile.background != null)
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(12),
+                      ),
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: CloudImageWidget(file: data.profile.background),
+                      ),
                     ),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: CloudImageWidget(file: data.profile.background),
-                    ),
-                  ),
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
                         children: [
@@ -76,6 +79,14 @@ class AccountProfileCard extends HookConsumerWidget {
                         experience: data.profile.experience,
                         progress: data.profile.levelingProgress,
                       ).padding(top: 12),
+                      FilledButton.tonalIcon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          context.router.pushPath('/account/${data.name}');
+                        },
+                        icon: const Icon(Symbols.launch),
+                        label: Text('accountProfileView').tr(),
+                      ).padding(top: 12, horizontal: 2),
                     ],
                   ).padding(horizontal: 24, vertical: 16),
                 ],
@@ -86,9 +97,14 @@ class AccountProfileCard extends HookConsumerWidget {
                 onRetry: () => ref.invalidate(accountProvider(uname)),
               ),
           loading:
-              () => Padding(
-                padding: const EdgeInsets.all(24),
-                child: CircularProgressIndicator(),
+              () => SizedBox(
+                width: width,
+                height: width,
+                child:
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
+                    ).center(),
               ),
         ),
       ),

@@ -15,7 +15,7 @@ import 'package:flutter/material.dart' as _i28;
 import 'package:island/models/post.dart' as _i30;
 import 'package:island/route.dart' as _i31;
 import 'package:island/screens/account.dart' as _i2;
-import 'package:island/screens/account/me/event_calendar.dart' as _i14;
+import 'package:island/screens/account/event_calendar.dart' as _i14;
 import 'package:island/screens/account/me/settings.dart' as _i3;
 import 'package:island/screens/account/me/update.dart' as _i25;
 import 'package:island/screens/account/profile.dart' as _i1;

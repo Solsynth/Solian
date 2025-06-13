@@ -17,6 +17,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/post_list.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -210,65 +211,85 @@ class PublisherProfileScreen extends HookConsumerWidget {
                               spacing: 6,
                               children: [
                                 Text(data.nick).fontSize(20),
+                                if (data.verification != null)
+                                  VerificationMark(mark: data.verification!),
                                 Text(
                                   '@${data.name}',
                                 ).fontSize(14).opacity(0.85),
                               ],
                             ),
                             if (data.type == 0 && data.account != null)
-                              InkWell(
-                                onTap: () {
-                                  context.router.pushPath(
-                                    '/account/${data.account!.name}',
-                                  );
-                                },
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  spacing: 4,
-                                  children: [
-                                    Text(
-                                      'publisherVisitAccountPage'.tr(
-                                        args: ['@${data.account!.name}'],
-                                      ),
-                                    ).fontSize(14),
-                                    Icon(Icons.launch, size: 14),
-                                  ],
-                                ).opacity(0.85),
-                              ).padding(bottom: 6),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                spacing: 6,
+                                children: [
+                                  Icon(
+                                    data.type == 0
+                                        ? Symbols.person
+                                        : Symbols.workspaces,
+                                    fill: 1,
+                                    size: 17,
+                                  ),
+                                  Text(
+                                    'publisherBelongsTo'.tr(
+                                      args: ['@${data.account!.name}'],
+                                    ),
+                                  ).fontSize(14),
+                                ],
+                              ).opacity(0.85).padding(bottom: 6),
                             if (data.type == 0 && data.account != null)
                               AccountStatusWidget(
                                 uname: data.account!.name,
                                 padding: EdgeInsets.zero,
                               ),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                context.router.pushPath(
+                                  '/account/${data.name}',
+                                );
+                              },
+                              icon: const Icon(Symbols.launch),
+                              label: Text('accountProfileView').tr(),
+                              style: ButtonStyle(
+                                visualDensity: VisualDensity(vertical: -2),
+                              ),
+                            ).padding(top: 8),
                           ],
                         ),
                       ),
                     ],
-                  ).padding(horizontal: 24, top: 24, bottom: 24),
+                  ).padding(horizontal: 24, top: 24),
                 ),
                 SliverToBoxAdapter(
                   child: Column(
-                    spacing: 24,
                     children: [
                       if (badges.value?.isNotEmpty ?? false)
-                        BadgeList(badges: badges.value!),
+                        BadgeList(badges: badges.value!).padding(top: 16),
                       if (data.verification != null)
-                        VerificationStatusCard(mark: data.verification!),
+                        VerificationStatusCard(
+                          mark: data.verification!,
+                        ).padding(top: 16),
                     ],
-                  ).padding(horizontal: 24, bottom: 24),
+                  ).padding(horizontal: 24),
                 ),
-                SliverToBoxAdapter(child: const Divider(height: 1)),
-                if (data.bio.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [Text('bio').tr().bold(), Text(data.bio)],
-                    ).padding(horizontal: 24, top: 24),
-                  ),
-                if (data.bio.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: const Divider(height: 1).padding(top: 24),
-                  ),
+                SliverToBoxAdapter(
+                  child: const Divider(height: 1).padding(vertical: 24),
+                ),
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('bio').tr().bold(),
+                      Text(
+                        data.bio.isEmpty ? 'descriptionNone'.tr() : data.bio,
+                      ),
+                    ],
+                  ).padding(horizontal: 24),
+                ),
+                SliverToBoxAdapter(
+                  child: const Divider(height: 1).padding(top: 24),
+                ),
                 SliverPostList(pubName: name),
                 SliverGap(MediaQuery.of(context).padding.bottom + 16),
               ],

@@ -5,11 +5,13 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/color.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/badge.dart';
+import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -67,7 +69,14 @@ class AccountProfileScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final now = DateTime.now();
+
     final account = ref.watch(accountProvider(name));
+    final accountEvents = ref.watch(
+      eventCalendarProvider(
+        EventCalendarQuery(uname: name, year: now.year, month: now.month),
+      ),
+    );
     final appbarColor = ref.watch(accountAppbarForcegroundColorProvider(name));
 
     final appbarShadow = Shadow(
@@ -173,22 +182,39 @@ class AccountProfileScreen extends HookConsumerWidget {
                           mark: data.profile.verification!,
                         ),
                     ],
-                  ).padding(horizontal: 20, bottom: 24),
+                  ).padding(horizontal: 20),
                 ),
 
                 SliverToBoxAdapter(
-                  child: const Divider(height: 1).padding(bottom: 24),
+                  child: const Divider(height: 1).padding(vertical: 24),
                 ),
-                if (data.profile.bio.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text('bio').tr().bold(),
-                        Text(data.profile.bio),
-                      ],
-                    ).padding(horizontal: 24),
-                  ),
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('bio').tr().bold(),
+                      Text(
+                        data.profile.bio.isEmpty
+                            ? 'descriptionNone'.tr()
+                            : data.profile.bio,
+                      ),
+                    ],
+                  ).padding(horizontal: 24),
+                ),
+
+                SliverToBoxAdapter(
+                  child: const Divider(height: 1).padding(top: 24),
+                ),
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      FortuneGraphWidget(
+                        events: accountEvents,
+                        eventCalanderUser: data.name,
+                      ),
+                    ],
+                  ).padding(all: 8),
+                ),
               ],
             ),
           ),

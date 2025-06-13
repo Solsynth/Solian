@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/event_calendar.dart';
 import 'package:island/screens/account/profile.dart';
+import 'package:island/widgets/account/account_nameplate.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/account/event_calendar.dart';
@@ -86,29 +87,7 @@ class EventCalanderScreen extends HookConsumerWidget {
 
                       // Show user profile if viewing someone else's calendar
                       if (name != 'me' && user.hasValue)
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              width:
-                                  1 / MediaQuery.of(context).devicePixelRatio,
-                              color: Theme.of(context).dividerColor,
-                            ),
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
-                          ),
-                          margin: EdgeInsets.all(16),
-                          child: Card(
-                            margin: EdgeInsets.zero,
-                            elevation: 0,
-                            color: Colors.transparent,
-                            child: ListTile(
-                              leading: ProfilePictureWidget(
-                                fileId: user.value!.profile.picture?.id,
-                              ),
-                              title: Text(user.value!.nick).bold(),
-                              subtitle: Text('@${user.value!.name}'),
-                            ),
-                          ),
-                        ),
+                        AccountNameplate(name: name),
                     ],
                   ),
                 ).center()
@@ -132,28 +111,8 @@ class EventCalanderScreen extends HookConsumerWidget {
 
                     // Show user profile if viewing someone else's calendar
                     if (name != 'me' && user.hasValue)
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            width: 1 / MediaQuery.of(context).devicePixelRatio,
-                            color: Theme.of(context).dividerColor,
-                          ),
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                        ),
-                        margin: EdgeInsets.all(16),
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          elevation: 0,
-                          color: Colors.transparent,
-                          child: ListTile(
-                            leading: ProfilePictureWidget(
-                              fileId: user.value!.profile.picture?.id,
-                            ),
-                            title: Text(user.value!.nick).bold(),
-                            subtitle: Text('@${user.value!.name}'),
-                          ),
-                        ),
-                      ),
+                      AccountNameplate(name: name),
+                    Gap(MediaQuery.of(context).padding.bottom + 16),
                   ],
                 ),
       ),
