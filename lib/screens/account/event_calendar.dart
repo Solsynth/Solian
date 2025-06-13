@@ -8,7 +8,6 @@ import 'package:island/pods/event_calendar.dart';
 import 'package:island/screens/account/profile.dart';
 import 'package:island/widgets/account/account_nameplate.dart';
 import 'package:island/widgets/app_scaffold.dart';
-import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/account/event_calendar.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:styled_widget/styled_widget.dart';
