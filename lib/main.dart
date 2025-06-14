@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:croppy/croppy.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -26,6 +27,7 @@ import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -110,6 +112,33 @@ class IslandApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(themeProvider);
+
+    void handleMessage(RemoteMessage notification) {
+      if (notification.data['action_uri'] != null) {
+        var uri = notification.data['action_uri'] as String;
+        if (uri.startsWith('/')) {
+          // In-app routes
+          _appRouter.pushPath(notification.data['action_uri']);
+        } else {
+          // External links
+          launchUrlString(uri);
+        }
+      }
+    }
+
+    useEffect(() {
+      Future(() async {
+        RemoteMessage? initialMessage =
+            await FirebaseMessaging.instance.getInitialMessage();
+        if (initialMessage != null) {
+          handleMessage(initialMessage);
+        }
+
+        FirebaseMessaging.onMessageOpenedApp.listen(handleMessage);
+      });
+
+      return null;
+    }, []);
 
     useEffect(() {
       // Load userinfo
