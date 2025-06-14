@@ -230,6 +230,9 @@ class CallNotifier extends _$CallNotifier {
   String? get roomId => _roomId;
 
   Future<void> joinRoom(String roomId) async {
+    if (_roomId == roomId && _room != null) {
+      return;
+    }
     _roomId = roomId;
     if (_room != null) {
       await _room!.disconnect();
