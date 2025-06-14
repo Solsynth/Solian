@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:collection/collection.dart';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/main.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -30,6 +29,12 @@ class AppNotificationToast extends HookConsumerWidget {
     // Create a global key for AnimatedList
     final listKey = useMemoized(() => GlobalKey<AnimatedListState>());
 
+    // Track visual notification count (including those being animated out)
+    final visualCount = useState(notifications.length);
+
+    // Track notifications being removed to manage visual count
+    final animatingOutIds = useState<Set<String>>({});
+
     // Track previous notifications to detect changes
     final previousNotifications = usePrevious(notifications) ?? [];
 
@@ -40,6 +45,11 @@ class AppNotificationToast extends HookConsumerWidget {
 
       // Find new notifications (added)
       final newIds = currentIds.difference(previousIds);
+
+      // Update visual count for new notifications
+      if (newIds.isNotEmpty) {
+        visualCount.value += newIds.length;
+      }
 
       // Insert new notifications with animation
       for (final id in newIds) {
@@ -68,7 +78,8 @@ class AppNotificationToast extends HookConsumerWidget {
       left: 16,
       right: 16,
       child: SizedBox(
-        height: notifications.length * 80,
+        // Use visualCount instead of notifications.length for height calculation
+        height: visualCount.value * 80,
         child: AnimatedList(
           physics: NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
@@ -107,6 +118,15 @@ class AppNotificationToast extends HookConsumerWidget {
                     (n) => n.data.id == notification.data.id,
                   );
 
+                  // Add to animating out set
+                  final notificationId = notification.data.id;
+                  if (!animatingOutIds.value.contains(notificationId)) {
+                    animatingOutIds.value = {
+                      ...animatingOutIds.value,
+                      notificationId,
+                    };
+                  }
+
                   if (currentIndex != -1 &&
                       listKey.currentState != null &&
                       currentIndex >= 0 &&
@@ -126,13 +146,31 @@ class AppNotificationToast extends HookConsumerWidget {
                                 () {}, // Empty because it's being removed
                           ),
                         ),
-                        duration: const Duration(
-                          milliseconds: 150,
-                        ), // Make removal animation faster
+                        duration: const Duration(milliseconds: 150),
+                        // When animation completes, update the visual count
                       );
+
+                      // Schedule decrementing the visual count after animation completes
+                      Future.delayed(const Duration(milliseconds: 150), () {
+                        if (animatingOutIds.value.contains(notificationId)) {
+                          visualCount.value =
+                              visualCount.value > 0 ? visualCount.value - 1 : 0;
+                          animatingOutIds.value =
+                              animatingOutIds.value
+                                  .where((id) => id != notificationId)
+                                  .toSet();
+                        }
+                      });
                     } catch (e) {
                       // Log error but don't crash the app
-                      debugPrint('Error removing notification: $e');
+                      log('[Notification] Error removing notification: $e');
+                      // Still update visual count in case of error
+                      visualCount.value =
+                          visualCount.value > 0 ? visualCount.value - 1 : 0;
+                      animatingOutIds.value =
+                          animatingOutIds.value
+                              .where((id) => id != notificationId)
+                              .toSet();
                     }
                   }
 
@@ -206,11 +244,12 @@ class _NotificationCard extends HookConsumerWidget {
             var uri = notification.data.meta['action_uri'] as String;
             if (uri.startsWith('/')) {
               // In-app routes
-              context.router.pushPath(notification.data.meta['action_uri']);
+              appRouter.pushPath(notification.data.meta['action_uri']);
             } else {
               // External URLs
               launchUrlString(uri);
             }
+            onDismiss();
           }
         },
         child: Column(
@@ -228,7 +267,7 @@ class _NotificationCard extends HookConsumerWidget {
                     ),
                     value: 1.0 - progressState.value,
                     backgroundColor: Colors.transparent,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.tertiary,
                     minHeight: 3,
                     stopIndicatorColor: Colors.transparent,
                     stopIndicatorRadius: 0,

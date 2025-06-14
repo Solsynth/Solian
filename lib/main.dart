@@ -104,7 +104,7 @@ void main() async {
   );
 }
 
-final _appRouter = AppRouter();
+final appRouter = AppRouter();
 
 class IslandApp extends HookConsumerWidget {
   const IslandApp({super.key});
@@ -118,7 +118,7 @@ class IslandApp extends HookConsumerWidget {
         var uri = notification.data['action_uri'] as String;
         if (uri.startsWith('/')) {
           // In-app routes
-          _appRouter.pushPath(notification.data['action_uri']);
+          appRouter.pushPath(notification.data['action_uri']);
         } else {
           // External links
           launchUrlString(uri);
@@ -164,7 +164,7 @@ class IslandApp extends HookConsumerWidget {
       theme: theme?.light,
       darkTheme: theme?.dark,
       themeMode: ThemeMode.system,
-      routerConfig: _appRouter.config(
+      routerConfig: appRouter.config(
         navigatorObservers:
             () => [
               TabNavigationObserver(
@@ -187,9 +187,9 @@ class IslandApp extends HookConsumerWidget {
             OverlayEntry(
               builder:
                   (_) => WindowScaffold(
-                    router: _appRouter,
+                    router: appRouter,
                     child: TabsNavigationWidget(
-                      router: _appRouter,
+                      router: appRouter,
                       child: child ?? const SizedBox.shrink(),
                     ),
                   ),
