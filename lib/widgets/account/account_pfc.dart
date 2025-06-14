@@ -7,6 +7,8 @@ import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/account/profile.dart';
+import 'package:island/services/time.dart';
+import 'package:island/services/timezone/native.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
@@ -72,6 +74,27 @@ class AccountProfileCard extends HookConsumerWidget {
                         uname: data.name,
                         padding: EdgeInsets.zero,
                       ),
+                      if (data.profile.timeZone.isNotEmpty)
+                        Row(
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              Symbols.alarm,
+                              size: 17,
+                              fill: 1,
+                            ).padding(right: 2),
+                            Text(
+                              getTzInfo(
+                                data.profile.timeZone,
+                              ).$2.formatCustomGlobal('HH:mm'),
+                            ).fontSize(12),
+                            Text(
+                              getTzInfo(
+                                data.profile.timeZone,
+                              ).$1.formatOffsetLocal(),
+                            ).fontSize(12),
+                          ],
+                        ).padding(top: 2),
                       if (data.badges.isNotEmpty)
                         BadgeList(badges: data.badges).padding(top: 12),
                       LevelingProgressCard(

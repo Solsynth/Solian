@@ -7,7 +7,7 @@ part of 'explore.dart';
 // **************************************************************************
 
 String _$activityListNotifierHash() =>
-    r'1ac57c33c7a65700116a9698209f52cd4be932cc';
+    r'c9683035f7a66a2f331689e274642b60064fbb2e';
 
 /// See also [ActivityListNotifier].
 @ProviderFor(ActivityListNotifier)

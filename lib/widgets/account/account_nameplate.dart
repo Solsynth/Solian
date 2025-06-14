@@ -66,8 +66,8 @@ class AccountNameplate extends HookConsumerWidget {
                                     begin: Alignment.bottomCenter,
                                     end: Alignment.topCenter,
                                     colors: [
-                                      Colors.black.withOpacity(0.7),
-                                      Colors.black.withOpacity(0.3),
+                                      Colors.black.withOpacity(0.8),
+                                      Colors.black.withOpacity(0.1),
                                       Colors.transparent,
                                     ],
                                   ),

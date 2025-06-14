@@ -19,6 +19,38 @@ extension DurationFormatter on Duration {
 
     return '${isNegative ? '-' : ''}$hours:$minutes:$seconds';
   }
+
+  String formatOffset() {
+    final isNegative = inMicroseconds < 0;
+    final positiveDuration = isNegative ? -this : this;
+
+    final hours = positiveDuration.inHours.toString().padLeft(2, '0');
+    final minutes = (positiveDuration.inMinutes % 60).toString().padLeft(
+      2,
+      '0',
+    );
+
+    return '${isNegative ? '-' : '+'}$hours:$minutes';
+  }
+
+  String formatOffsetLocal() {
+    // Get the local timezone offset
+    final localOffset = DateTime.now().timeZoneOffset;
+
+    // Add the local offset to the input duration
+    final totalOffset = this - localOffset;
+
+    final isNegative = totalOffset.inMicroseconds < 0;
+    final positiveDuration = isNegative ? -totalOffset : totalOffset;
+
+    final hours = positiveDuration.inHours.toString().padLeft(2, '0');
+    final minutes = (positiveDuration.inMinutes % 60).toString().padLeft(
+      2,
+      '0',
+    );
+
+    return '${isNegative ? '-' : '+'}$hours:$minutes';
+  }
 }
 
 extension DateTimeFormatter on DateTime {
@@ -28,6 +60,10 @@ extension DateTimeFormatter on DateTime {
 
   String formatCustom(String pattern) {
     return DateFormat(pattern).format(toLocal());
+  }
+
+  String formatCustomGlobal(String pattern) {
+    return DateFormat(pattern).format(this);
   }
 
   String formatWithLocale(String locale) {

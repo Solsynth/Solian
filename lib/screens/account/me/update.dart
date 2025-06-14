@@ -121,7 +121,9 @@ class UpdateProfileScreen extends HookConsumerWidget {
     }
 
     final formKeyProfile = useMemoized(GlobalKey<FormState>.new, const []);
-    final birthday = useState<DateTime?>(user.value!.profile.birthday);
+    final birthday = useState<DateTime?>(
+      user.value!.profile.birthday?.toLocal(),
+    );
     final firstNameController = useTextEditingController(
       text: user.value!.profile.firstName,
     );
@@ -164,7 +166,7 @@ class UpdateProfileScreen extends HookConsumerWidget {
             'pronouns': pronounsController.text,
             'location': locationController.text,
             'time_zone': timeZoneController.text,
-            'birthday': birthday.value?.toIso8601String(),
+            'birthday': birthday.value?.toUtc().toIso8601String(),
           },
         );
         final userNotifier = ref.read(userInfoProvider.notifier);

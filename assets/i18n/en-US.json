@@ -425,5 +425,6 @@
   "checkInResultT2": "Mid",
   "checkInResultT3": "Good",
   "checkInResultT4": "Best",
-  "accountProfileView": "View Profile"
+  "accountProfileView": "View Profile",
+  "unspecified": "Unspecified"
 }
