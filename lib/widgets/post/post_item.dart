@@ -5,12 +5,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -26,6 +28,7 @@ class PostItem extends HookConsumerWidget {
   final SnPost item;
   final EdgeInsets? padding;
   final bool isOpenable;
+  final bool isFullPost;
   final bool showReferencePost;
   final Function? onRefresh;
   final Function(SnPost)? onUpdate;
@@ -35,6 +38,7 @@ class PostItem extends HookConsumerWidget {
     this.backgroundColor,
     this.padding,
     this.isOpenable = true,
+    this.isFullPost = false,
     this.showReferencePost = true,
     this.onRefresh,
     this.onUpdate,
@@ -153,6 +157,13 @@ class PostItem extends HookConsumerWidget {
                                 VerificationMark(
                                   mark: item.publisher.verification!,
                                 ).padding(left: 4),
+                              Spacer(),
+                              Text(
+                                isFullPost
+                                    ? item.publishedAt.formatSystem()
+                                    : item.publishedAt.formatRelative(context),
+                              ).fontSize(11).alignment(Alignment.bottomRight),
+                              const Gap(4),
                             ],
                           ),
                           // Add visibility indicator if not public (visibility != 0)

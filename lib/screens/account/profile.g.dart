@@ -395,5 +395,249 @@ class _AccountAppbarForcegroundColorProviderElement
   String get uname => (origin as AccountAppbarForcegroundColorProvider).uname;
 }
 
+String _$accountDirectChatHash() => r'60d0015fc2a3c8fc2190bb41d6818cf3027d9d0a';
+
+/// See also [accountDirectChat].
+@ProviderFor(accountDirectChat)
+const accountDirectChatProvider = AccountDirectChatFamily();
+
+/// See also [accountDirectChat].
+class AccountDirectChatFamily extends Family<AsyncValue<SnChatRoom?>> {
+  /// See also [accountDirectChat].
+  const AccountDirectChatFamily();
+
+  /// See also [accountDirectChat].
+  AccountDirectChatProvider call(String uname) {
+    return AccountDirectChatProvider(uname);
+  }
+
+  @override
+  AccountDirectChatProvider getProviderOverride(
+    covariant AccountDirectChatProvider provider,
+  ) {
+    return call(provider.uname);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'accountDirectChatProvider';
+}
+
+/// See also [accountDirectChat].
+class AccountDirectChatProvider extends AutoDisposeFutureProvider<SnChatRoom?> {
+  /// See also [accountDirectChat].
+  AccountDirectChatProvider(String uname)
+    : this._internal(
+        (ref) => accountDirectChat(ref as AccountDirectChatRef, uname),
+        from: accountDirectChatProvider,
+        name: r'accountDirectChatProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$accountDirectChatHash,
+        dependencies: AccountDirectChatFamily._dependencies,
+        allTransitiveDependencies:
+            AccountDirectChatFamily._allTransitiveDependencies,
+        uname: uname,
+      );
+
+  AccountDirectChatProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.uname,
+  }) : super.internal();
+
+  final String uname;
+
+  @override
+  Override overrideWith(
+    FutureOr<SnChatRoom?> Function(AccountDirectChatRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: AccountDirectChatProvider._internal(
+        (ref) => create(ref as AccountDirectChatRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        uname: uname,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<SnChatRoom?> createElement() {
+    return _AccountDirectChatProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountDirectChatProvider && other.uname == uname;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, uname.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin AccountDirectChatRef on AutoDisposeFutureProviderRef<SnChatRoom?> {
+  /// The parameter `uname` of this provider.
+  String get uname;
+}
+
+class _AccountDirectChatProviderElement
+    extends AutoDisposeFutureProviderElement<SnChatRoom?>
+    with AccountDirectChatRef {
+  _AccountDirectChatProviderElement(super.provider);
+
+  @override
+  String get uname => (origin as AccountDirectChatProvider).uname;
+}
+
+String _$accountRelationshipHash() =>
+    r'cb7d0d3f8cd4f23ad9d2d529872c540dac483d4f';
+
+/// See also [accountRelationship].
+@ProviderFor(accountRelationship)
+const accountRelationshipProvider = AccountRelationshipFamily();
+
+/// See also [accountRelationship].
+class AccountRelationshipFamily extends Family<AsyncValue<SnRelationship?>> {
+  /// See also [accountRelationship].
+  const AccountRelationshipFamily();
+
+  /// See also [accountRelationship].
+  AccountRelationshipProvider call(String uname) {
+    return AccountRelationshipProvider(uname);
+  }
+
+  @override
+  AccountRelationshipProvider getProviderOverride(
+    covariant AccountRelationshipProvider provider,
+  ) {
+    return call(provider.uname);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'accountRelationshipProvider';
+}
+
+/// See also [accountRelationship].
+class AccountRelationshipProvider
+    extends AutoDisposeFutureProvider<SnRelationship?> {
+  /// See also [accountRelationship].
+  AccountRelationshipProvider(String uname)
+    : this._internal(
+        (ref) => accountRelationship(ref as AccountRelationshipRef, uname),
+        from: accountRelationshipProvider,
+        name: r'accountRelationshipProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$accountRelationshipHash,
+        dependencies: AccountRelationshipFamily._dependencies,
+        allTransitiveDependencies:
+            AccountRelationshipFamily._allTransitiveDependencies,
+        uname: uname,
+      );
+
+  AccountRelationshipProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.uname,
+  }) : super.internal();
+
+  final String uname;
+
+  @override
+  Override overrideWith(
+    FutureOr<SnRelationship?> Function(AccountRelationshipRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: AccountRelationshipProvider._internal(
+        (ref) => create(ref as AccountRelationshipRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        uname: uname,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<SnRelationship?> createElement() {
+    return _AccountRelationshipProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountRelationshipProvider && other.uname == uname;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, uname.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin AccountRelationshipRef on AutoDisposeFutureProviderRef<SnRelationship?> {
+  /// The parameter `uname` of this provider.
+  String get uname;
+}
+
+class _AccountRelationshipProviderElement
+    extends AutoDisposeFutureProviderElement<SnRelationship?>
+    with AccountRelationshipRef {
+  _AccountRelationshipProviderElement(super.provider);
+
+  @override
+  String get uname => (origin as AccountRelationshipProvider).uname;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

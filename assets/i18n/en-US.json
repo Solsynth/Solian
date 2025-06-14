@@ -113,7 +113,8 @@
   "addVideo": "Add video",
   "addPhoto": "Add photo",
   "addFile": "Add file",
-  "createDirectMessage": "New direct message",
+  "createDirectMessage": "Send new DM",
+  "gotoDirectMessage": "Go to DM",
   "react": "React",
   "reactions": {
     "zero": "Reactions",
@@ -230,6 +231,7 @@
   "creatorHubUnselectedHint": "Pick / create a publisher to get started.",
   "relationships": "Relationships",
   "addFriend": "Send a Friend Request",
+  "addFriendShort": "Add as Friend",
   "addFriendHint": "Add a friend to your relationship list.",
   "pendingRequest": "Pending",
   "waitingRequest": "Waiting",
@@ -426,5 +428,6 @@
   "checkInResultT3": "Good",
   "checkInResultT4": "Best",
   "accountProfileView": "View Profile",
-  "unspecified": "Unspecified"
+  "unspecified": "Unspecified",
+  "added": "Added"
 }

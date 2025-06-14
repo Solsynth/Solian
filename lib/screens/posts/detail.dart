@@ -47,6 +47,7 @@ class PostDetailScreen extends HookConsumerWidget {
                         PostItem(
                           item: post!,
                           isOpenable: false,
+                          isFullPost: true,
                           backgroundColor: isWide ? Colors.transparent : null,
                         ),
                         const Divider(height: 1),
@@ -63,7 +64,6 @@ class PostDetailScreen extends HookConsumerWidget {
                 right: 0,
                 child: Material(
                   elevation: 2,
-                  color: Colors.transparent,
                   child: PostQuickReply(
                     parent: post,
                     onPosted: () {

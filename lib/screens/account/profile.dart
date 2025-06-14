@@ -1,8 +1,11 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/chat.dart';
+import 'package:island/models/relationship.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/event_calendar.dart';
@@ -16,6 +19,7 @@ import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/account/status.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -62,6 +66,36 @@ Future<Color?> accountAppbarForcegroundColor(Ref ref, String uname) async {
   return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 }
 
+@riverpod
+Future<SnChatRoom?> accountDirectChat(Ref ref, String uname) async {
+  final account = await ref.watch(accountProvider(uname).future);
+  final apiClient = ref.watch(apiClientProvider);
+  try {
+    final resp = await apiClient.get("/chat/direct/${account.id}");
+    return SnChatRoom.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null;
+    }
+    rethrow;
+  }
+}
+
+@riverpod
+Future<SnRelationship?> accountRelationship(Ref ref, String uname) async {
+  final account = await ref.watch(accountProvider(uname).future);
+  final apiClient = ref.watch(apiClientProvider);
+  try {
+    final resp = await apiClient.get("/relationships/${account.id}");
+    return SnRelationship.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null;
+    }
+    rethrow;
+  }
+}
+
 @RoutePage()
 class AccountProfileScreen extends HookConsumerWidget {
   final String name;
@@ -80,6 +114,9 @@ class AccountProfileScreen extends HookConsumerWidget {
         EventCalendarQuery(uname: name, year: now.year, month: now.month),
       ),
     );
+    final accountChat = ref.watch(accountDirectChatProvider(name));
+    final accountRelationship = ref.watch(accountRelationshipProvider(name));
+
     final appbarColor = ref.watch(accountAppbarForcegroundColorProvider(name));
 
     final appbarShadow = Shadow(
@@ -87,6 +124,100 @@ class AccountProfileScreen extends HookConsumerWidget {
       blurRadius: 5.0,
       offset: Offset(1.0, 1.0),
     );
+
+    Future<void> relationshipAction() async {
+      if (accountRelationship.value != null) return;
+      showLoadingModal(context);
+      try {
+        final client = ref.watch(apiClientProvider);
+        await client.post('/relationships/${account.value!.id}/friends');
+        ref.invalidate(accountRelationshipProvider(name));
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> directMessageAction() async {
+      if (!account.hasValue) return;
+      if (accountChat.value != null) {
+        context.router.pushPath('/chat/${accountChat.value!.id}');
+        return;
+      }
+      showLoadingModal(context);
+      try {
+        final client = ref.watch(apiClientProvider);
+        final resp = await client.post(
+          '/chat/direct',
+          data: {'related_user_id': account.value!.id},
+        );
+        final chat = SnChatRoom.fromJson(resp.data);
+        if (context.mounted) context.router.pushPath('/chat/${chat.id}');
+        ref.invalidate(accountDirectChatProvider(name));
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    List<Widget> buildSubcolumn(SnAccount data) {
+      return [
+        if (data.profile.birthday != null)
+          Row(
+            spacing: 6,
+            children: [
+              const Icon(Symbols.cake, size: 17, fill: 1),
+              Text(data.profile.birthday!.formatCustom('yyyy-MM-dd')),
+              Text('·').bold(),
+              Text(
+                '${DateTime.now().difference(data.profile.birthday!).inDays ~/ 365} yrs old',
+              ),
+            ],
+          ),
+        if (data.profile.location.isNotEmpty)
+          Row(
+            spacing: 6,
+            children: [
+              const Icon(Symbols.location_on, size: 17, fill: 1),
+              Text(data.profile.location),
+            ],
+          ),
+        if (data.profile.pronouns.isNotEmpty || data.profile.gender.isNotEmpty)
+          Row(
+            spacing: 6,
+            children: [
+              const Icon(Symbols.person, size: 17, fill: 1),
+              Text(
+                data.profile.gender.isEmpty
+                    ? 'unspecified'.tr()
+                    : data.profile.gender,
+              ),
+              Text('·').bold(),
+              Text(
+                data.profile.pronouns.isEmpty
+                    ? 'unspecified'.tr()
+                    : data.profile.pronouns,
+              ),
+            ],
+          ),
+        if (data.profile.firstName.isNotEmpty ||
+            data.profile.middleName.isNotEmpty ||
+            data.profile.lastName.isNotEmpty)
+          Row(
+            spacing: 6,
+            children: [
+              const Icon(Symbols.id_card, size: 17, fill: 1),
+              if (data.profile.firstName.isNotEmpty)
+                Text(data.profile.firstName),
+              if (data.profile.middleName.isNotEmpty)
+                Text(data.profile.middleName),
+              if (data.profile.lastName.isNotEmpty) Text(data.profile.lastName),
+            ],
+          ),
+      ];
+    }
 
     return account.when(
       data:
@@ -196,74 +327,12 @@ class AccountProfileScreen extends HookConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     spacing: 24,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 2,
-                        children: [
-                          if (data.profile.birthday != null)
-                            Row(
-                              spacing: 6,
-                              children: [
-                                const Icon(Symbols.cake, size: 17, fill: 1),
-                                Text(
-                                  data.profile.birthday!.formatCustom(
-                                    'yyyy-MM-dd',
-                                  ),
-                                ),
-                                Text('·').bold(),
-                                Text(
-                                  '${DateTime.now().difference(data.profile.birthday!).inDays ~/ 365} yrs old',
-                                ),
-                              ],
-                            ),
-                          if (data.profile.location.isNotEmpty)
-                            Row(
-                              spacing: 6,
-                              children: [
-                                const Icon(
-                                  Symbols.location_on,
-                                  size: 17,
-                                  fill: 1,
-                                ),
-                                Text(data.profile.location),
-                              ],
-                            ),
-                          if (data.profile.pronouns.isNotEmpty ||
-                              data.profile.gender.isNotEmpty)
-                            Row(
-                              spacing: 6,
-                              children: [
-                                const Icon(Symbols.person, size: 17, fill: 1),
-                                Text(
-                                  data.profile.gender.isEmpty
-                                      ? 'unspecified'.tr()
-                                      : data.profile.gender,
-                                ),
-                                Text('·').bold(),
-                                Text(
-                                  data.profile.pronouns.isEmpty
-                                      ? 'unspecified'.tr()
-                                      : data.profile.pronouns,
-                                ),
-                              ],
-                            ),
-                          if (data.profile.firstName.isNotEmpty ||
-                              data.profile.middleName.isNotEmpty ||
-                              data.profile.lastName.isNotEmpty)
-                            Row(
-                              spacing: 6,
-                              children: [
-                                const Icon(Symbols.id_card, size: 17, fill: 1),
-                                if (data.profile.firstName.isNotEmpty)
-                                  Text(data.profile.firstName),
-                                if (data.profile.middleName.isNotEmpty)
-                                  Text(data.profile.middleName),
-                                if (data.profile.lastName.isNotEmpty)
-                                  Text(data.profile.lastName),
-                              ],
-                            ),
-                        ],
-                      ),
+                      if (buildSubcolumn(data).isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 2,
+                          children: buildSubcolumn(data),
+                        ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -308,7 +377,57 @@ class AccountProfileScreen extends HookConsumerWidget {
                 ),
 
                 SliverToBoxAdapter(
-                  child: const Divider(height: 1).padding(top: 24),
+                  child: const Divider(height: 1).padding(top: 24, bottom: 12),
+                ),
+                SliverToBoxAdapter(
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      Expanded(
+                        child: FilledButton.icon(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll(
+                              accountRelationship.value == null
+                                  ? null
+                                  : Theme.of(context).colorScheme.secondary,
+                            ),
+                            foregroundColor: WidgetStatePropertyAll(
+                              accountRelationship.value == null
+                                  ? null
+                                  : Theme.of(context).colorScheme.onSecondary,
+                            ),
+                          ),
+                          onPressed: relationshipAction,
+                          label:
+                              Text(
+                                accountRelationship.value == null
+                                    ? 'addFriendShort'
+                                    : 'added',
+                              ).tr(),
+                          icon:
+                              accountRelationship.value == null
+                                  ? const Icon(Symbols.person_add)
+                                  : const Icon(Symbols.person_check),
+                        ),
+                      ),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: directMessageAction,
+                          icon: const Icon(Symbols.message),
+                          label:
+                              Text(
+                                accountChat.value == null
+                                    ? 'createDirectMessage'
+                                    : 'gotoDirectMessage',
+                                maxLines: 1,
+                              ).tr(),
+                        ),
+                      ),
+                    ],
+                  ).padding(horizontal: 16),
+                ),
+                SliverToBoxAdapter(
+                  child: const Divider(height: 1).padding(top: 12),
                 ),
                 SliverToBoxAdapter(
                   child: Column(
