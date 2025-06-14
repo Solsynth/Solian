@@ -27,9 +27,9 @@ sealed class SnAccount with _$SnAccount {
 sealed class SnAccountProfile with _$SnAccountProfile {
   const factory SnAccountProfile({
     required String id,
-    required String? firstName,
-    required String? middleName,
-    required String? lastName,
+    @Default('') String firstName,
+    @Default('') String middleName,
+    @Default('') String lastName,
     @Default('') String bio,
     @Default('') String gender,
     @Default('') String pronouns,

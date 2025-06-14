@@ -200,7 +200,7 @@ $SnAccountProfileCopyWith<$Res> get profile {
 /// @nodoc
 mixin _$SnAccountProfile {
 
- String get id; String? get firstName; String? get middleName; String? get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -233,7 +233,7 @@ abstract mixin class $SnAccountProfileCopyWith<$Res>  {
   factory $SnAccountProfileCopyWith(SnAccountProfile value, $Res Function(SnAccountProfile) _then) = _$SnAccountProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String? firstName, String? middleName, String? lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -250,13 +250,13 @@ class _$SnAccountProfileCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = freezed,Object? middleName = freezed,Object? lastName = freezed,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
-as String?,middleName: freezed == middleName ? _self.middleName : middleName // ignore: cast_nullable_to_non_nullable
-as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
-as String?,bio: null == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
+as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
+as String,middleName: null == middleName ? _self.middleName : middleName // ignore: cast_nullable_to_non_nullable
+as String,lastName: null == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
+as String,bio: null == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
 as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String,pronouns: null == pronouns ? _self.pronouns : pronouns // ignore: cast_nullable_to_non_nullable
 as String,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
@@ -332,13 +332,13 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 @JsonSerializable()
 
 class _SnAccountProfile implements SnAccountProfile {
-  const _SnAccountProfile({required this.id, required this.firstName, required this.middleName, required this.lastName, this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, this.lastSeenAt, this.activeBadge, required this.experience, required this.level, required this.levelingProgress, required this.picture, required this.background, required this.verification, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, this.lastSeenAt, this.activeBadge, required this.experience, required this.level, required this.levelingProgress, required this.picture, required this.background, required this.verification, required this.createdAt, required this.updatedAt, required this.deletedAt});
   factory _SnAccountProfile.fromJson(Map<String, dynamic> json) => _$SnAccountProfileFromJson(json);
 
 @override final  String id;
-@override final  String? firstName;
-@override final  String? middleName;
-@override final  String? lastName;
+@override@JsonKey() final  String firstName;
+@override@JsonKey() final  String middleName;
+@override@JsonKey() final  String lastName;
 @override@JsonKey() final  String bio;
 @override@JsonKey() final  String gender;
 @override@JsonKey() final  String pronouns;
@@ -390,7 +390,7 @@ abstract mixin class _$SnAccountProfileCopyWith<$Res> implements $SnAccountProfi
   factory _$SnAccountProfileCopyWith(_SnAccountProfile value, $Res Function(_SnAccountProfile) _then) = __$SnAccountProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? firstName, String? middleName, String? lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -407,13 +407,13 @@ class __$SnAccountProfileCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = freezed,Object? middleName = freezed,Object? lastName = freezed,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAccountProfile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
-as String?,middleName: freezed == middleName ? _self.middleName : middleName // ignore: cast_nullable_to_non_nullable
-as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
-as String?,bio: null == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
+as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
+as String,middleName: null == middleName ? _self.middleName : middleName // ignore: cast_nullable_to_non_nullable
+as String,lastName: null == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
+as String,bio: null == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
 as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String,pronouns: null == pronouns ? _self.pronouns : pronouns // ignore: cast_nullable_to_non_nullable
 as String,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable

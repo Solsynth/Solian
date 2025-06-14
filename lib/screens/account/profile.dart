@@ -9,6 +9,8 @@ import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/color.dart';
+import 'package:island/services/time.dart';
+import 'package:island/services/timezone/native.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
@@ -16,6 +18,7 @@ import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -191,13 +194,115 @@ class AccountProfileScreen extends HookConsumerWidget {
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 24,
                     children: [
-                      Text('bio').tr().bold(),
-                      Text(
-                        data.profile.bio.isEmpty
-                            ? 'descriptionNone'.tr()
-                            : data.profile.bio,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 2,
+                        children: [
+                          if (data.profile.birthday != null)
+                            Row(
+                              spacing: 6,
+                              children: [
+                                const Icon(Symbols.cake, size: 17, fill: 1),
+                                Text(
+                                  data.profile.birthday!.formatCustom(
+                                    'yyyy-MM-dd',
+                                  ),
+                                ),
+                                Text('·').bold(),
+                                Text(
+                                  '${DateTime.now().difference(data.profile.birthday!).inDays ~/ 365} yrs old',
+                                ),
+                              ],
+                            ),
+                          if (data.profile.location.isNotEmpty)
+                            Row(
+                              spacing: 6,
+                              children: [
+                                const Icon(
+                                  Symbols.location_on,
+                                  size: 17,
+                                  fill: 1,
+                                ),
+                                Text(data.profile.location),
+                              ],
+                            ),
+                          if (data.profile.pronouns.isNotEmpty ||
+                              data.profile.gender.isNotEmpty)
+                            Row(
+                              spacing: 6,
+                              children: [
+                                const Icon(Symbols.person, size: 17, fill: 1),
+                                Text(
+                                  data.profile.gender.isEmpty
+                                      ? 'unspecified'.tr()
+                                      : data.profile.gender,
+                                ),
+                                Text('·').bold(),
+                                Text(
+                                  data.profile.pronouns.isEmpty
+                                      ? 'unspecified'.tr()
+                                      : data.profile.pronouns,
+                                ),
+                              ],
+                            ),
+                          if (data.profile.firstName.isNotEmpty ||
+                              data.profile.middleName.isNotEmpty ||
+                              data.profile.lastName.isNotEmpty)
+                            Row(
+                              spacing: 6,
+                              children: [
+                                const Icon(Symbols.id_card, size: 17, fill: 1),
+                                if (data.profile.firstName.isNotEmpty)
+                                  Text(data.profile.firstName),
+                                if (data.profile.middleName.isNotEmpty)
+                                  Text(data.profile.middleName),
+                                if (data.profile.lastName.isNotEmpty)
+                                  Text(data.profile.lastName),
+                              ],
+                            ),
+                        ],
                       ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('bio').tr().bold(),
+                          Text(
+                            data.profile.bio.isEmpty
+                                ? 'descriptionNone'.tr()
+                                : data.profile.bio,
+                          ),
+                        ],
+                      ),
+                      if (data.profile.timeZone.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('timeZone').tr().bold(),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              spacing: 6,
+                              children: [
+                                Text(data.profile.timeZone),
+                                Text(
+                                  getTzInfo(
+                                    data.profile.timeZone,
+                                  ).$2.formatCustomGlobal('HH:mm'),
+                                ),
+                                Text(
+                                  getTzInfo(
+                                    data.profile.timeZone,
+                                  ).$1.formatOffsetLocal(),
+                                ).fontSize(11),
+                                Text(
+                                  'UTC${getTzInfo(data.profile.timeZone).$1.formatOffset()}',
+                                ).fontSize(11).opacity(0.75),
+                              ],
+                            ),
+                          ],
+                        ),
                     ],
                   ).padding(horizontal: 24),
                 ),

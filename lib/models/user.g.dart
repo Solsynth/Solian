@@ -43,9 +43,9 @@ Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
 _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
     _SnAccountProfile(
       id: json['id'] as String,
-      firstName: json['first_name'] as String?,
-      middleName: json['middle_name'] as String?,
-      lastName: json['last_name'] as String?,
+      firstName: json['first_name'] as String? ?? '',
+      middleName: json['middle_name'] as String? ?? '',
+      lastName: json['last_name'] as String? ?? '',
       bio: json['bio'] as String? ?? '',
       gender: json['gender'] as String? ?? '',
       pronouns: json['pronouns'] as String? ?? '',
