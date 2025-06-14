@@ -11,6 +11,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/websocket.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -25,12 +26,6 @@ class AppNotificationToast extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifications = ref.watch(appNotificationsProvider);
-    final isDesktop =
-        !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
-
-    // Calculate position based on device type
-    final safeAreaTop = MediaQuery.of(context).padding.top;
-    final notificationTop = safeAreaTop + (isDesktop ? 30 : 10);
 
     // Create a global key for AnimatedList
     final listKey = useMemoized(() => GlobalKey<AnimatedListState>());
@@ -69,121 +64,87 @@ class AppNotificationToast extends HookConsumerWidget {
     }, [notifications]);
 
     return Positioned(
-      top: notificationTop,
+      top: MediaQuery.of(context).padding.top + 50,
       left: 16,
       right: 16,
-      bottom: 16, // Add bottom constraint to make it take full height
-      child: Column(
-        children: [
-          // Test button for development
-          if (kDebugMode)
-            ElevatedButton(
-              onPressed: () {
-                ref
-                    .read(appNotificationsProvider.notifier)
-                    .addNotification(
-                      AppNotification(
-                        data: SnNotification(
-                          createdAt: DateTime.now(),
-                          updatedAt: DateTime.now(),
-                          deletedAt: null,
-                          id:
-                              'test-notification-${DateTime.now().millisecondsSinceEpoch}',
-                          topic: 'test',
-                          title: 'Test Notification',
-                          content: 'This is a test notification content',
-                          priority: 1,
-                          viewedAt: null,
-                          accountId: 'test-account-123',
+      child: SizedBox(
+        height: notifications.length * 80,
+        child: AnimatedList(
+          physics: NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          key: listKey,
+          initialItemCount: notifications.length,
+          itemBuilder: (context, index, animation) {
+            // Safely access notifications with bounds check
+            if (index >= notifications.length) {
+              return const SizedBox.shrink(); // Return empty widget if out of bounds
+            }
+
+            final notification = notifications[index];
+            final now = DateTime.now();
+            final createdAt = notification.createdAt ?? now;
+            final duration =
+                notification.duration ?? const Duration(seconds: 5);
+            final elapsedTime = now.difference(createdAt);
+            final remainingTime = duration - elapsedTime;
+            final progress =
+                1.0 -
+                (remainingTime.inMilliseconds / duration.inMilliseconds).clamp(
+                  0.0,
+                  1.0,
+                ); // Ensure progress is clamped
+
+            return SizeTransition(
+              sizeFactor: animation.drive(
+                CurveTween(curve: Curves.fastLinearToSlowEaseIn),
+              ),
+              child: _NotificationCard(
+                notification: notification,
+                progress: progress.clamp(0.0, 1.0),
+                onDismiss: () {
+                  // Find the current index before removal
+                  final currentIndex = notifications.indexWhere(
+                    (n) => n.data.id == notification.data.id,
+                  );
+
+                  if (currentIndex != -1 &&
+                      listKey.currentState != null &&
+                      currentIndex >= 0 &&
+                      currentIndex < notifications.length) {
+                    try {
+                      // Remove the item with animation
+                      listKey.currentState!.removeItem(
+                        currentIndex,
+                        (context, animation) => SizeTransition(
+                          sizeFactor: animation.drive(
+                            CurveTween(curve: Curves.fastLinearToSlowEaseIn),
+                          ),
+                          child: _NotificationCard(
+                            notification: notification,
+                            progress: progress.clamp(0.0, 1.0),
+                            onDismiss:
+                                () {}, // Empty because it's being removed
+                          ),
                         ),
-                        icon: Symbols.info,
-                        createdAt: DateTime.now(),
-                        duration: const Duration(seconds: 5),
-                      ),
-                    );
-              },
-              child: Text('test notification'),
-            ),
-          // Use AnimatedList for notifications with Expanded to take full height
-          Expanded(
-            child: AnimatedList(
-              physics: NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              key: listKey,
-              initialItemCount: notifications.length,
-              itemBuilder: (context, index, animation) {
-                // Safely access notifications with bounds check
-                if (index >= notifications.length) {
-                  return const SizedBox.shrink(); // Return empty widget if out of bounds
-                }
-
-                final notification = notifications[index];
-                final now = DateTime.now();
-                final createdAt = notification.createdAt ?? now;
-                final duration =
-                    notification.duration ?? const Duration(seconds: 5);
-                final elapsedTime = now.difference(createdAt);
-                final remainingTime = duration - elapsedTime;
-                final progress =
-                    1.0 -
-                    (remainingTime.inMilliseconds / duration.inMilliseconds)
-                        .clamp(0.0, 1.0); // Ensure progress is clamped
-
-                return SizeTransition(
-                  sizeFactor: animation.drive(
-                    CurveTween(curve: Curves.fastLinearToSlowEaseIn),
-                  ),
-                  child: _NotificationCard(
-                    notification: notification,
-                    progress: progress.clamp(0.0, 1.0),
-                    onDismiss: () {
-                      // Find the current index before removal
-                      final currentIndex = notifications.indexWhere(
-                        (n) => n.data.id == notification.data.id,
+                        duration: const Duration(
+                          milliseconds: 150,
+                        ), // Make removal animation faster
                       );
+                    } catch (e) {
+                      // Log error but don't crash the app
+                      debugPrint('Error removing notification: $e');
+                    }
+                  }
 
-                      if (currentIndex != -1 &&
-                          listKey.currentState != null &&
-                          currentIndex >= 0 &&
-                          currentIndex < notifications.length) {
-                        try {
-                          // Remove the item with animation
-                          listKey.currentState!.removeItem(
-                            currentIndex,
-                            (context, animation) => SizeTransition(
-                              sizeFactor: animation.drive(
-                                CurveTween(
-                                  curve: Curves.fastLinearToSlowEaseIn,
-                                ),
-                              ),
-                              child: _NotificationCard(
-                                notification: notification,
-                                progress: progress.clamp(0.0, 1.0),
-                                onDismiss:
-                                    () {}, // Empty because it's being removed
-                              ),
-                            ),
-                            duration: const Duration(
-                              milliseconds: 150,
-                            ), // Make removal animation faster
-                          );
-                        } catch (e) {
-                          // Log error but don't crash the app
-                          debugPrint('Error removing notification: $e');
-                        }
-                      }
-
-                      // Actually remove from state
-                      ref
-                          .read(appNotificationsProvider.notifier)
-                          .removeNotification(notification);
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+                  // Actually remove from state
+                  ref
+                      .read(appNotificationsProvider.notifier)
+                      .removeNotification(notification);
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -235,7 +196,9 @@ class _NotificationCard extends HookConsumerWidget {
     return Card(
       elevation: 4,
       margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
+      ),
       child: InkWell(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         onTap: () {
@@ -265,9 +228,7 @@ class _NotificationCard extends HookConsumerWidget {
                     ),
                     value: 1.0 - progressState.value,
                     backgroundColor: Colors.transparent,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.5),
+                    color: Theme.of(context).colorScheme.secondary,
                     minHeight: 3,
                     stopIndicatorColor: Colors.transparent,
                     stopIndicatorRadius: 0,
@@ -279,7 +240,12 @@ class _NotificationCard extends HookConsumerWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (notification.icon != null)
+                  if (notification.data.meta['avatar'] != null)
+                    ProfilePictureWidget(
+                      fileId: notification.data.meta['avatar'],
+                      radius: 12,
+                    ).padding(right: 12, top: 2)
+                  else if (notification.icon != null)
                     Icon(
                       notification.icon,
                       color: Theme.of(context).colorScheme.primary,
@@ -298,12 +264,12 @@ class _NotificationCard extends HookConsumerWidget {
                           Text(
                             notification.data.content,
                             style: Theme.of(context).textTheme.bodyMedium,
-                          ).padding(top: 4),
+                          ),
                         if (notification.data.subtitle.isNotEmpty)
                           Text(
                             notification.data.subtitle,
                             style: Theme.of(context).textTheme.bodySmall,
-                          ).padding(top: 2),
+                          ),
                       ],
                     ),
                   ),
