@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'app_scaffold.dart';
+part of 'app_notification.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -25,7 +25,7 @@ Map<String, dynamic> _$AppNotificationToJson(_AppNotification instance) =>
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appNotificationsHash() => r'8ab8b2b23f7f7953b05f08b90a57f495fd6f88d0';
+String _$appNotificationsHash() => r'a7e7e1d1533e329b000d4b294e455b8420ec3c4d';
 
 /// See also [AppNotifications].
 @ProviderFor(AppNotifications)

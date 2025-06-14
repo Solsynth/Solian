@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -6,21 +5,15 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/user.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/services/responsive.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:island/widgets/app_notification.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
-
-part 'app_scaffold.freezed.dart';
-part 'app_scaffold.g.dart';
 
 class WindowScaffold extends HookConsumerWidget {
   final Widget child;
@@ -91,7 +84,7 @@ class WindowScaffold extends HookConsumerWidget {
               ],
             ),
             _WebSocketIndicator(),
-            _AppNotificationToast(),
+            AppNotificationToast(),
           ],
         ),
       );
@@ -99,7 +92,7 @@ class WindowScaffold extends HookConsumerWidget {
 
     return Stack(
       fit: StackFit.expand,
-      children: [child, _WebSocketIndicator(), _AppNotificationToast()],
+      children: [child, _WebSocketIndicator(), AppNotificationToast()],
     );
   }
 }
@@ -298,71 +291,6 @@ class _WebSocketIndicator extends HookConsumerWidget {
       indicatorText = 'connectionDisconnected';
     }
 
-    // Add a test button for notifications when connected
-    if (websocketState == WebSocketState.connected &&
-        user.hasValue &&
-        user.value != null) {
-      // This is just for testing - you can remove this later
-      Future.delayed(const Duration(milliseconds: 100), () {
-        // Add a small button to the corner of the screen for testing
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final overlay = Overlay.of(context);
-          final entry = OverlayEntry(
-            builder:
-                (context) => Positioned(
-                  right: 20,
-                  bottom: 100,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        final testNotification = SnNotification(
-                          id: 'test-${DateTime.now().millisecondsSinceEpoch}',
-                          createdAt: DateTime.now(),
-                          updatedAt: DateTime.now(),
-                          deletedAt: null,
-                          topic: 'test',
-                          title: 'Test Notification',
-                          content: 'This is a test notification message',
-                          priority: 1,
-                          viewedAt: null,
-                          accountId: 'test',
-                          meta: {},
-                        );
-
-                        ref
-                            .read(appNotificationsProvider.notifier)
-                            .showNotification(
-                              data: testNotification,
-                              icon: Icons.notifications,
-                              duration: const Duration(seconds: 5),
-                            );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.notifications,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-          );
-          // Only add if not already added
-          try {
-            overlay.insert(entry);
-          } catch (e) {
-            // Ignore if already added
-          }
-        });
-      });
-    }
-
     return AnimatedPositioned(
       duration: Duration(milliseconds: 1850),
       top:
@@ -393,239 +321,6 @@ class _WebSocketIndicator extends HookConsumerWidget {
             ).padding(top: MediaQuery.of(context).padding.top),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _AppNotificationToast extends HookConsumerWidget {
-  const _AppNotificationToast();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final notifications = ref.watch(appNotificationsProvider);
-    final isDesktop =
-        !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
-
-    // If no notifications, return empty container
-    if (notifications.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    // Get the most recent notification
-    final notification = notifications.last;
-
-    // Calculate position based on device type
-    final safeAreaTop = MediaQuery.of(context).padding.top;
-    final notificationTop = safeAreaTop + (isDesktop ? 30 : 10);
-
-    return Positioned(
-      top: notificationTop,
-      left: 16,
-      right: 16,
-      child: Column(
-        children:
-            notifications.map((notification) {
-              // Calculate how long the notification has been visible
-              final now = DateTime.now();
-              final createdAt = notification.createdAt ?? now;
-              final duration =
-                  notification.duration ?? const Duration(seconds: 5);
-              final elapsedTime = now.difference(createdAt);
-              final remainingTime = duration - elapsedTime;
-              final progress =
-                  1.0 -
-                  (remainingTime.inMilliseconds / duration.inMilliseconds);
-
-              return _NotificationCard(
-                notification: notification,
-                progress: progress.clamp(0.0, 1.0),
-                onDismiss: () {
-                  ref
-                      .read(appNotificationsProvider.notifier)
-                      .removeNotification(notification);
-                },
-              );
-            }).toList(),
-      ),
-    );
-  }
-}
-
-class _NotificationCard extends StatelessWidget {
-  final AppNotification notification;
-  final double progress;
-  final VoidCallback onDismiss;
-
-  const _NotificationCard({
-    required this.notification,
-    required this.progress,
-    required this.onDismiss,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Dismissible(
-      key: ValueKey(notification.data.id),
-      direction: DismissDirection.horizontal,
-      onDismissed: (_) => onDismiss(),
-      child: Card(
-        elevation: 4,
-        margin: const EdgeInsets.only(bottom: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: InkWell(
-          onTap: () {},
-          borderRadius: BorderRadius.circular(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.transparent,
-                  minHeight: 2,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (notification.icon != null)
-                      Icon(
-                        notification.icon,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 24,
-                      ).padding(right: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            notification.data.title,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          if (notification.data.content.isNotEmpty)
-                            Text(
-                              notification.data.content,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ).padding(top: 4),
-                          if (notification.data.subtitle.isNotEmpty)
-                            Text(
-                              notification.data.subtitle,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ).padding(top: 2),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Symbols.close, size: 18),
-                      onPressed: onDismiss,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-@freezed
-sealed class AppNotification with _$AppNotification {
-  const factory AppNotification({
-    required SnNotification data,
-    @JsonKey(ignore: true) IconData? icon,
-    @JsonKey(ignore: true) Duration? duration,
-    @Default(null) DateTime? createdAt,
-  }) = _AppNotification;
-
-  factory AppNotification.fromJson(Map<String, dynamic> json) =>
-      _$AppNotificationFromJson(json);
-}
-
-// Using riverpod_generator for cleaner provider code
-@riverpod
-class AppNotifications extends _$AppNotifications {
-  StreamSubscription? _subscription;
-
-  @override
-  List<AppNotification> build() {
-    ref.onDispose(() {
-      _subscription?.cancel();
-    });
-
-    _initWebSocketListener();
-    return [];
-  }
-
-  void _initWebSocketListener() {
-    final service = ref.read(websocketProvider);
-    _subscription = service.dataStream.listen((packet) {
-      // Handle notification packets
-      if (packet.type == 'notifications.new') {
-        try {
-          final data = SnNotification.fromJson(packet.data!);
-
-          IconData? icon;
-          switch (data.topic) {
-            default:
-              icon = Symbols.info;
-              break;
-          }
-
-          addNotification(
-            AppNotification(data: data, icon: icon, createdAt: data.createdAt),
-          );
-        } catch (e) {
-          print('Error processing notification: $e');
-        }
-      }
-    });
-  }
-
-  void addNotification(AppNotification notification) {
-    // Create a new notification with createdAt if not provided
-    final newNotification =
-        notification.createdAt == null
-            ? notification.copyWith(createdAt: DateTime.now())
-            : notification;
-
-    // Add to state
-    state = [...state, newNotification];
-
-    // Auto-remove notification after duration
-    final duration = newNotification.duration ?? const Duration(seconds: 5);
-    Future.delayed(duration, () {
-      removeNotification(newNotification);
-    });
-  }
-
-  void removeNotification(AppNotification notification) {
-    state = state.where((n) => n != notification).toList();
-  }
-
-  // Helper method to manually add a notification for testing
-  void showNotification({
-    required SnNotification data,
-    IconData? icon,
-    Duration? duration,
-  }) {
-    addNotification(
-      AppNotification(
-        data: data,
-        icon: icon,
-        duration: duration,
-        createdAt: data.createdAt,
       ),
     );
   }
