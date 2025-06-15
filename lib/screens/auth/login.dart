@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/auth.dart';
@@ -23,6 +24,7 @@ import 'package:island/services/udid.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -558,6 +560,43 @@ class _LoginLookupScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> withApple() async {
+      final client = ref.watch(apiClientProvider);
+      try {
+        final credential = await SignInWithApple.getAppleIDCredential(
+          scopes: [AppleIDAuthorizationScopes.email],
+        );
+
+        if (context.mounted) showLoadingModal(context);
+
+        final resp = await client.post(
+          '/auth/login/apple/mobile',
+          data: {
+            'identity_token': credential.identityToken!,
+            'authorization_code': credential.authorizationCode,
+          },
+        );
+        final token = resp.data['token'];
+        setToken(ref.watch(sharedPreferencesProvider), token);
+        ref.invalidate(tokenProvider);
+        if (!context.mounted) return;
+
+        // Do post login tasks
+        final userNotifier = ref.read(userInfoProvider.notifier);
+        userNotifier.fetchUser().then((_) {
+          final apiClient = ref.read(apiClientProvider);
+          subscribePushNotification(apiClient);
+          final wsNotifier = ref.read(websocketStateProvider.notifier);
+          wsNotifier.connect();
+          if (context.mounted) Navigator.pop(context, true);
+        });
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -586,7 +625,45 @@ class _LoginLookupScreen extends HookConsumerWidget {
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNewTicket(),
         ).padding(horizontal: 7),
-        const Gap(12),
+        Row(
+          spacing: 4,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Text("loginOr").tr().fontSize(11).opacity(0.85),
+            const Gap(8),
+            Spacer(),
+            IconButton.filled(
+              onPressed: () async {},
+              padding: EdgeInsets.zero,
+              icon: SvgPicture.asset(
+                'assets/images/oidc/google.svg',
+                width: 16,
+                height: 16,
+              ),
+              tooltip: 'Google',
+            ),
+            IconButton.filled(
+              onPressed: () async {},
+              padding: EdgeInsets.zero,
+              icon: SvgPicture.asset(
+                'assets/images/oidc/microsoft.svg',
+                width: 16,
+                height: 16,
+              ),
+              tooltip: 'Microsoft',
+            ),
+            IconButton.filled(
+              onPressed: withApple,
+              padding: EdgeInsets.zero,
+              icon: SvgPicture.asset(
+                'assets/images/oidc/apple.svg',
+                width: 16,
+                height: 16,
+              ),
+              tooltip: 'Apple Account',
+            ),
+          ],
+        ).padding(horizontal: 8, top: 8, bottom: 4),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
