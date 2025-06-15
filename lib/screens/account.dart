@@ -221,16 +221,6 @@ class AccountScreen extends HookConsumerWidget {
                 context.router.push(RelationshipRoute());
               },
             ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.edit),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('updateYourProfile').tr(),
-              onTap: () {
-                context.router.push(UpdateProfileRoute());
-              },
-            ),
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
               minTileHeight: 48,
@@ -240,6 +230,16 @@ class AccountScreen extends HookConsumerWidget {
               title: Text('appSettings').tr(),
               onTap: () {
                 context.router.push(SettingsRoute());
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.person_edit),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('updateYourProfile').tr(),
+              onTap: () {
+                context.router.push(UpdateProfileRoute());
               },
             ),
             ListTile(

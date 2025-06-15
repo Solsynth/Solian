@@ -155,3 +155,33 @@ Map<String, dynamic> _$SnAuthDeviceToJson(_SnAuthDevice instance) =>
       'sessions': instance.sessions.map((e) => e.toJson()).toList(),
       'is_current': instance.isCurrent,
     };
+
+_SnAccountConnection _$SnAccountConnectionFromJson(Map<String, dynamic> json) =>
+    _SnAccountConnection(
+      id: json['id'] as String,
+      accountId: json['account_id'] as String,
+      provider: json['provider'] as String,
+      providedIdentifier: json['provided_identifier'] as String,
+      meta: json['meta'] as Map<String, dynamic>? ?? const {},
+      lastUsedAt: DateTime.parse(json['last_used_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnAccountConnectionToJson(
+  _SnAccountConnection instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'account_id': instance.accountId,
+  'provider': instance.provider,
+  'provided_identifier': instance.providedIdentifier,
+  'meta': instance.meta,
+  'last_used_at': instance.lastUsedAt.toIso8601String(),
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
+};
