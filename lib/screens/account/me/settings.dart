@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/annotations.dart';
@@ -6,15 +5,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/auth.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/account/me/settings_auth_factors.dart';
+import 'package:island/screens/account/me/settings_connections.dart';
 import 'package:island/screens/account/me/settings_contacts.dart';
 import 'package:island/screens/auth/captcha.dart';
 import 'package:island/screens/auth/login.dart';
@@ -22,10 +19,8 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_session_sheet.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
-import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -44,6 +39,15 @@ Future<List<SnContactMethod>> contactMethods(Ref ref) async {
   final resp = await client.get('/accounts/me/contacts');
   return resp.data
       .map<SnContactMethod>((e) => SnContactMethod.fromJson(e))
+      .toList();
+}
+
+@riverpod
+Future<List<SnAccountConnection>> accountConnections(Ref ref) async {
+  final client = ref.read(apiClientProvider);
+  final resp = await client.get('/accounts/me/connections');
+  return resp.data
+      .map<SnAccountConnection>((e) => SnAccountConnection.fromJson(e))
       .toList();
 }
 
@@ -123,6 +127,104 @@ class AccountSettingsScreen extends HookConsumerWidget {
             builder: (context) => const AccountSessionSheet(),
           );
         },
+      ),
+      ExpansionTile(
+        leading: const Icon(
+          Symbols.link,
+        ).alignment(Alignment.centerLeft).width(48),
+        title: Text('accountConnections').tr(),
+        subtitle: Text('accountConnectionsDescription').tr().fontSize(12),
+        tilePadding: const EdgeInsets.only(left: 24, right: 17),
+        children: [
+          ref
+              .watch(accountConnectionsProvider)
+              .when(
+                data:
+                    (connections) => Column(
+                      children: [
+                        for (final connection in connections)
+                          ListTile(
+                            minLeadingWidth: 48,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 17,
+                              top: 2,
+                              bottom: 4,
+                            ),
+                            title:
+                                Text(
+                                  getLocalizedProviderName(connection.provider),
+                                ).tr(),
+                            subtitle:
+                                connection.meta.isNotEmpty
+                                    ? Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        for (final meta
+                                            in connection.meta.entries)
+                                          Text(
+                                            '${meta.key.split('_').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ')}: ${meta.value}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                      ],
+                                    )
+                                    : Text(connection.providedIdentifier),
+                            leading: CircleAvatar(
+                              child: Icon(getProviderIcon(connection.provider)),
+                            ).padding(top: 4),
+                            trailing: const Icon(Symbols.chevron_right),
+                            isThreeLine: true,
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder:
+                                    (context) => AccountConnectionSheet(
+                                      connection: connection,
+                                    ),
+                              ).then((value) {
+                                if (value == true) {
+                                  ref.invalidate(accountConnectionsProvider);
+                                }
+                              });
+                            },
+                          ),
+                        if (connections.isNotEmpty) const Divider(height: 1),
+                        ListTile(
+                          minLeadingWidth: 48,
+                          contentPadding: const EdgeInsets.only(
+                            left: 24,
+                            right: 17,
+                          ),
+                          title: Text('accountConnectionAdd').tr(),
+                          leading: const Icon(Symbols.add),
+                          trailing: const Icon(Symbols.chevron_right),
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder:
+                                  (context) =>
+                                      const AccountConnectionNewSheet(),
+                            ).then((value) {
+                              if (value == true) {
+                                ref.invalidate(accountConnectionsProvider);
+                              }
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                error:
+                    (err, _) => ResponseErrorWidget(
+                      error: err,
+                      onRetry: () => ref.invalidate(accountConnectionsProvider),
+                    ),
+                loading: () => const ResponseLoadingWidget(),
+              ),
+        ],
       ),
       ExpansionTile(
         leading: const Icon(
