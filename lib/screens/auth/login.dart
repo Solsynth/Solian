@@ -565,6 +565,10 @@ class _LoginLookupScreen extends HookConsumerWidget {
       try {
         final credential = await SignInWithApple.getAppleIDCredential(
           scopes: [AppleIDAuthorizationScopes.email],
+          webAuthenticationOptions: WebAuthenticationOptions(
+            clientId: 'dev.solsynth.solarpass',
+            redirectUri: Uri.parse('https://nt.solian.app/auth/callback/apple'),
+          ),
         );
 
         if (context.mounted) showLoadingModal(context);
@@ -591,6 +595,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
           if (context.mounted) Navigator.pop(context, true);
         });
       } catch (err) {
+        if (err is SignInWithAppleCredentialsException) return;
         showErrorAlert(err);
       } finally {
         if (context.mounted) hideLoadingModal(context);
@@ -626,13 +631,13 @@ class _LoginLookupScreen extends HookConsumerWidget {
           onSubmitted: isBusy.value ? null : (_) => performNewTicket(),
         ).padding(horizontal: 7),
         Row(
-          spacing: 4,
+          spacing: 6,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text("loginOr").tr().fontSize(11).opacity(0.85),
             const Gap(8),
             Spacer(),
-            IconButton.filled(
+            IconButton.filledTonal(
               onPressed: () async {},
               padding: EdgeInsets.zero,
               icon: SvgPicture.asset(
@@ -642,7 +647,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
               ),
               tooltip: 'Google',
             ),
-            IconButton.filled(
+            IconButton.filledTonal(
               onPressed: () async {},
               padding: EdgeInsets.zero,
               icon: SvgPicture.asset(
@@ -652,7 +657,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
               ),
               tooltip: 'Microsoft',
             ),
-            IconButton.filled(
+            IconButton.filledTonal(
               onPressed: withApple,
               padding: EdgeInsets.zero,
               icon: SvgPicture.asset(
@@ -663,7 +668,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
               tooltip: 'Apple Account',
             ),
           ],
-        ).padding(horizontal: 8, top: 8, bottom: 4),
+        ).padding(horizontal: 8, vertical: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
