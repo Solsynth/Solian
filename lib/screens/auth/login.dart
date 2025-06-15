@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/auth.dart';
@@ -578,6 +579,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
           data: {
             'identity_token': credential.identityToken!,
             'authorization_code': credential.authorizationCode,
+            'device_id': await getUdid(),
           },
         );
         final token = resp.data['token'];
@@ -599,6 +601,25 @@ class _LoginLookupScreen extends HookConsumerWidget {
         showErrorAlert(err);
       } finally {
         if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> withGoogle() async {
+      // TODO This crashes for no reason
+      GoogleSignIn gsi = GoogleSignIn(
+        clientId:
+            kIsWeb
+                ? '961776991058-963m1qin2vtp8fv693b5fdrab5hmpl89.apps.googleusercontent.com'
+                : (Platform.isIOS || Platform.isMacOS)
+                ? '961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com'
+                : '961776991058-r4iv9qoio57ul7utbfpgfrda2etvtch8.apps.googleusercontent.com',
+        scopes: ['openid', 'https://www.googleapis.com/auth/userinfo.email'],
+      );
+
+      try {
+        var ga = await gsi.signIn();
+      } catch (err) {
+        showErrorAlert(err);
       }
     }
 
@@ -637,26 +658,16 @@ class _LoginLookupScreen extends HookConsumerWidget {
             Text("loginOr").tr().fontSize(11).opacity(0.85),
             const Gap(8),
             Spacer(),
-            IconButton.filledTonal(
-              onPressed: () async {},
-              padding: EdgeInsets.zero,
-              icon: SvgPicture.asset(
-                'assets/images/oidc/google.svg',
-                width: 16,
-                height: 16,
-              ),
-              tooltip: 'Google',
-            ),
-            IconButton.filledTonal(
-              onPressed: () async {},
-              padding: EdgeInsets.zero,
-              icon: SvgPicture.asset(
-                'assets/images/oidc/microsoft.svg',
-                width: 16,
-                height: 16,
-              ),
-              tooltip: 'Microsoft',
-            ),
+            // IconButton.filledTonal(
+            //   // onPressed: withGoogle,
+            //   padding: EdgeInsets.zero,
+            //   icon: SvgPicture.asset(
+            //     'assets/images/oidc/google.svg',
+            //     width: 16,
+            //     height: 16,
+            //   ),
+            //   tooltip: 'Google',
+            // ),
             IconButton.filledTonal(
               onPressed: withApple,
               padding: EdgeInsets.zero,
@@ -664,6 +675,11 @@ class _LoginLookupScreen extends HookConsumerWidget {
                 'assets/images/oidc/apple.svg',
                 width: 16,
                 height: 16,
+                color:
+                    MediaQuery.of(context).platformBrightness ==
+                            Brightness.light
+                        ? Colors.black54
+                        : Colors.white,
               ),
               tooltip: 'Apple Account',
             ),
