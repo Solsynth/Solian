@@ -597,7 +597,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
           if (context.mounted) Navigator.pop(context, true);
         });
       } catch (err) {
-        if (err is SignInWithAppleCredentialsException) return;
+        if (err is SignInWithAppleAuthorizationException) return;
         showErrorAlert(err);
       } finally {
         if (context.mounted) hideLoadingModal(context);
