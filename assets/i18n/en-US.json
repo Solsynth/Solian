@@ -28,7 +28,7 @@
   "fieldCannotBeEmpty": "This field cannot be empty.",
   "fieldEmailAddressMustBeValid": "The email address must be valid.",
   "logout": "Logout",
-  "updateYourProfile": "Edit Profile",
+  "updateYourProfile": "Profile Settings",
   "accountBasicInfo": "Basic Info",
   "accountProfile": "Your Profile",
   "saveChanges": "Save Changes",

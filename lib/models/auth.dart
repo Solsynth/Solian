@@ -91,3 +91,21 @@ sealed class SnAuthDevice with _$SnAuthDevice {
   factory SnAuthDevice.fromJson(Map<String, dynamic> json) =>
       _$SnAuthDeviceFromJson(json);
 }
+
+@freezed
+sealed class SnAccountConnection with _$SnAccountConnection {
+  const factory SnAccountConnection({
+    required String id,
+    required String accountId,
+    required String provider,
+    required String providedIdentifier,
+    @Default({}) Map<String, dynamic> meta,
+    required DateTime lastUsedAt,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnAccountConnection;
+
+  factory SnAccountConnection.fromJson(Map<String, dynamic> json) =>
+      _$SnAccountConnectionFromJson(json);
+}
