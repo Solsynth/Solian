@@ -4,20 +4,22 @@ import 'dart:ui_web' as ui;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/pods/network.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 
 class OidcScreen extends ConsumerStatefulWidget {
   final String provider;
+  final String? title;
 
-  const OidcScreen({super.key, required this.provider});
+  const OidcScreen({super.key, required this.provider, this.title});
 
   @override
-  ConsumerState<OidcScreen> createState() => _OIDCScreenState();
+  ConsumerState<OidcScreen> createState() => _OidcScreenState();
 }
 
-class _OIDCScreenState extends ConsumerState<OidcScreen> {
+class _OidcScreenState extends ConsumerState<OidcScreen> {
   bool _isInitialized = false;
   final String _viewType = 'oidc-iframe';
 
@@ -29,15 +31,19 @@ class _OIDCScreenState extends ConsumerState<OidcScreen> {
         if (message.startsWith("token=")) {
           String token = message.replaceFirst("token=", "");
           // Return the token and close the screen
-          if (context.mounted) Navigator.pop(context, token);
+          if (mounted) Navigator.pop(context, token);
         }
       }
     });
 
     // Create the iframe for the OIDC login
+    final token = ref.watch(tokenProvider);
     final iframe =
         web.HTMLIFrameElement()
-          ..src = '$serverUrl/auth/login/${widget.provider}'
+          ..src =
+              (token?.token.isNotEmpty ?? false)
+                  ? '$serverUrl/auth/login/${widget.provider}?tk=${token!.token}'
+                  : '$serverUrl/auth/login/${widget.provider}'
           ..style.border = 'none'
           ..width = '100%'
           ..height = '100%';
@@ -68,7 +74,9 @@ class _OIDCScreenState extends ConsumerState<OidcScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppBar(title: Text('login').tr()),
+      appBar: AppBar(
+        title: widget.title != null ? Text(widget.title!) : Text('login').tr(),
+      ),
       body:
           _isInitialized
               ? HtmlElementView(viewType: _viewType)

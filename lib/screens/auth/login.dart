@@ -11,8 +11,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/auth.dart';
@@ -20,6 +18,7 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
+import 'package:island/screens/account/me/settings_connections.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/udid.dart';
 import 'package:island/widgets/alert.dart';
@@ -271,7 +270,6 @@ class _LoginCheckScreen extends HookConsumerWidget {
             ],
             decoration: InputDecoration(
               isDense: true,
-              border: const OutlineInputBorder(),
               labelText: 'password'.tr(),
             ),
             onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
@@ -292,14 +290,12 @@ class _LoginCheckScreen extends HookConsumerWidget {
             textStyle: Theme.of(context).textTheme.titleLarge!,
           ),
         const Gap(12),
-        Card(
-          child: ListTile(
-            leading: Icon(
-              kFactorTypes[factor!.type]?.$3 ?? Symbols.question_mark,
-            ),
-            title: Text(kFactorTypes[factor!.type]?.$1 ?? 'unknown').tr(),
-            subtitle: Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
+        ListTile(
+          leading: Icon(
+            kFactorTypes[factor!.type]?.$3 ?? Symbols.question_mark,
           ),
+          title: Text(kFactorTypes[factor!.type]?.$1 ?? 'unknown').tr(),
+          subtitle: Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
         ),
         const Gap(12),
         Row(
@@ -604,25 +600,6 @@ class _LoginLookupScreen extends HookConsumerWidget {
       }
     }
 
-    Future<void> withGoogle() async {
-      // TODO This crashes for no reason
-      GoogleSignIn gsi = GoogleSignIn(
-        clientId:
-            kIsWeb
-                ? '961776991058-963m1qin2vtp8fv693b5fdrab5hmpl89.apps.googleusercontent.com'
-                : (Platform.isIOS || Platform.isMacOS)
-                ? '961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com'
-                : '961776991058-r4iv9qoio57ul7utbfpgfrda2etvtch8.apps.googleusercontent.com',
-        scopes: ['openid', 'https://www.googleapis.com/auth/userinfo.email'],
-      );
-
-      try {
-        var ga = await gsi.signIn();
-      } catch (err) {
-        showErrorAlert(err);
-      }
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -658,28 +635,13 @@ class _LoginLookupScreen extends HookConsumerWidget {
             Text("loginOr").tr().fontSize(11).opacity(0.85),
             const Gap(8),
             Spacer(),
-            // IconButton.filledTonal(
-            //   // onPressed: withGoogle,
-            //   padding: EdgeInsets.zero,
-            //   icon: SvgPicture.asset(
-            //     'assets/images/oidc/google.svg',
-            //     width: 16,
-            //     height: 16,
-            //   ),
-            //   tooltip: 'Google',
-            // ),
             IconButton.filledTonal(
               onPressed: withApple,
               padding: EdgeInsets.zero,
-              icon: SvgPicture.asset(
-                'assets/images/oidc/apple.svg',
-                width: 16,
-                height: 16,
-                color:
-                    MediaQuery.of(context).platformBrightness ==
-                            Brightness.light
-                        ? Colors.black54
-                        : Colors.white,
+              icon: getProviderIcon(
+                "apple",
+                size: 16,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
               tooltip: 'Apple Account',
             ),

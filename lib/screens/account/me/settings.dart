@@ -174,7 +174,14 @@ class AccountSettingsScreen extends HookConsumerWidget {
                                     )
                                     : Text(connection.providedIdentifier),
                             leading: CircleAvatar(
-                              child: Icon(getProviderIcon(connection.provider)),
+                              child: getProviderIcon(
+                                connection.provider,
+                                size: 16,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                              ),
                             ).padding(top: 4),
                             trailing: const Icon(Symbols.chevron_right),
                             isThreeLine: true,
