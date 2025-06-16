@@ -1,7 +1,7 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/auth.dart';
@@ -17,20 +17,24 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 // Helper function to get provider icon and localized name
-IconData getProviderIcon(String provider) {
-  switch (provider.toLowerCase()) {
+Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
+  final providerLower = provider.toLowerCase();
+
+  // Check if we have an SVG for this provider
+  switch (providerLower) {
     case 'apple':
-      return Icons.apple;
     case 'microsoft':
-      return Symbols.window; // Microsoft icon alternative
     case 'google':
-      return Symbols.g_translate; // Google icon alternative
     case 'github':
-      return Symbols.code; // GitHub icon
     case 'discord':
-      return Symbols.forum; // Discord icon alternative
+      return SvgPicture.asset(
+        'assets/images/oidc/$providerLower.svg',
+        width: size,
+        height: size,
+        color: color,
+      );
     default:
-      return Symbols.link;
+      return Icon(Symbols.link, size: size);
   }
 }
 
@@ -84,7 +88,11 @@ class AccountConnectionSheet extends HookConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(getProviderIcon(connection.provider), size: 32),
+              getProviderIcon(
+                connection.provider,
+                size: 32,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               const Gap(8),
               Text(getLocalizedProviderName(connection.provider)).tr(),
               const Gap(4),
@@ -161,15 +169,15 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
         case 'google':
         case 'github':
         case 'discord':
-          final token = await Navigator.of(context).push(
+          await Navigator.of(context).push(
             MaterialPageRoute(
               builder:
                   (context) => OidcScreen(
                     provider: selectedProvider.value.toLowerCase(),
+                    title: 'Connect with ${selectedProvider.value}',
                   ),
             ),
           );
-          print(token);
           break;
         default:
           showSnackBar(context, 'accountConnectionAddError'.tr());
@@ -186,7 +194,11 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
           DropdownButtonFormField<String>(
             value: selectedProvider.value,
             decoration: InputDecoration(
-              prefixIcon: Icon(getProviderIcon(selectedProvider.value)),
+              prefixIcon: getProviderIcon(
+                selectedProvider.value,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurface,
+              ).padding(all: 16),
               labelText: 'accountConnectionProvider'.tr(),
               border: const OutlineInputBorder(),
             ),
@@ -304,8 +316,9 @@ class AccountConnectionsSheet extends HookConsumerWidget {
                               return false;
                             },
                             child: ListTile(
-                              leading: Icon(
-                                getProviderIcon(connection.provider),
+                              leading: getProviderIcon(
+                                connection.provider,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                               title:
                                   Text(
