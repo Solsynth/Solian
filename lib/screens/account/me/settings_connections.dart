@@ -8,6 +8,7 @@ import 'package:island/models/auth.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/account/me/settings.dart';
 import 'package:island/screens/auth/oidc.native.dart';
+import 'package:island/services/text.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
@@ -96,6 +97,18 @@ class AccountConnectionSheet extends HookConsumerWidget {
               const Gap(8),
               Text(getLocalizedProviderName(connection.provider)).tr(),
               const Gap(4),
+              if (connection.meta.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final meta in connection.meta.entries)
+                      Text(
+                        '${meta.key.replaceAll('_', ' ').capitalizeEachWord()}: ${meta.value}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                  ],
+                ),
               Text(
                 connection.providedIdentifier,
                 style: Theme.of(context).textTheme.bodySmall,
@@ -174,10 +187,12 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
               builder:
                   (context) => OidcScreen(
                     provider: selectedProvider.value.toLowerCase(),
-                    title: 'Connect with ${selectedProvider.value}',
+                    title:
+                        'Connect with ${selectedProvider.value.capitalizeEachWord()}',
                   ),
             ),
           );
+          if (context.mounted) Navigator.pop(context, true);
           break;
         default:
           showSnackBar(context, 'accountConnectionAddError'.tr());
@@ -326,7 +341,10 @@ class AccountConnectionsSheet extends HookConsumerWidget {
                                       connection.provider,
                                     ),
                                   ).tr(),
-                              subtitle: Text(connection.providedIdentifier),
+                              subtitle:
+                                  connection.meta['email'] != null
+                                      ? Text(connection.meta['email'])
+                                      : Text(connection.providedIdentifier),
                               trailing: Text(
                                 DateFormat.yMd().format(
                                   connection.lastUsedAt.toLocal(),

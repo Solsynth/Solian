@@ -156,22 +156,8 @@ class AccountSettingsScreen extends HookConsumerWidget {
                                   getLocalizedProviderName(connection.provider),
                                 ).tr(),
                             subtitle:
-                                connection.meta.isNotEmpty
-                                    ? Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        for (final meta
-                                            in connection.meta.entries)
-                                          Text(
-                                            '${meta.key.split('_').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ')}: ${meta.value}',
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                      ],
-                                    )
+                                connection.meta['email'] != null
+                                    ? Text(connection.meta['email'])
                                     : Text(connection.providedIdentifier),
                             leading: CircleAvatar(
                               child: getProviderIcon(
@@ -184,7 +170,6 @@ class AccountSettingsScreen extends HookConsumerWidget {
                               ),
                             ).padding(top: 4),
                             trailing: const Icon(Symbols.chevron_right),
-                            isThreeLine: true,
                             onTap: () {
                               showModalBottomSheet(
                                 context: context,
