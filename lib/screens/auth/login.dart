@@ -19,6 +19,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/screens/account/me/settings_connections.dart';
+import 'package:island/screens/auth/oidc.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/udid.dart';
 import 'package:island/widgets/alert.dart';
@@ -174,6 +175,67 @@ class _LoginCheckScreen extends HookConsumerWidget {
       return null;
     }, [isBusy]);
 
+    Future<void> getToken({String? code}) async {
+      // Get token if challenge is completed
+      final client = ref.watch(apiClientProvider);
+      final tokenResp = await client.post(
+        '/auth/token',
+        data: {
+          'grant_type': 'authorization_code',
+          'code': code ?? challenge!.id,
+        },
+      );
+      final token = tokenResp.data['token'];
+      setToken(ref.watch(sharedPreferencesProvider), token);
+      ref.invalidate(tokenProvider);
+      if (!context.mounted) return;
+
+      // Do post login tasks
+      final userNotifier = ref.read(userInfoProvider.notifier);
+      userNotifier.fetchUser().then((_) {
+        final apiClient = ref.read(apiClientProvider);
+        subscribePushNotification(apiClient);
+        final wsNotifier = ref.read(websocketStateProvider.notifier);
+        wsNotifier.connect();
+        if (context.mounted) Navigator.pop(context, true);
+      });
+
+      // Update the sessions' device name is available
+      if (!kIsWeb) {
+        String? name;
+        if (Platform.isIOS) {
+          final deviceInfo = await DeviceInfoPlugin().iosInfo;
+          name = deviceInfo.name;
+        } else if (Platform.isAndroid) {
+          final deviceInfo = await DeviceInfoPlugin().androidInfo;
+          name = deviceInfo.name;
+        } else if (Platform.isWindows) {
+          final deviceInfo = await DeviceInfoPlugin().windowsInfo;
+          name = deviceInfo.computerName;
+        }
+        if (name != null) {
+          final client = ref.watch(apiClientProvider);
+          await client.patch(
+            '/accounts/me/sessions/current/label',
+            data: jsonEncode(name),
+          );
+        }
+      }
+    }
+
+    useEffect(() {
+      if (challenge != null && challenge?.stepRemain == 0) {
+        Future(() {
+          isBusy.value = true;
+          getToken().catchError((err) {
+            showErrorAlert(err);
+            isBusy.value = false;
+          });
+        });
+      }
+      return null;
+    }, [challenge]);
+
     Future<void> performCheckTicket() async {
       final pwd = passwordController.value.text;
       if (pwd.isEmpty) return;
@@ -192,47 +254,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
           return;
         }
 
-        // Get token if challenge is completed
-        final tokenResp = await client.post(
-          '/auth/token',
-          data: {'grant_type': 'authorization_code', 'code': result.id},
-        );
-        final token = tokenResp.data['token'];
-        setToken(ref.watch(sharedPreferencesProvider), token);
-        ref.invalidate(tokenProvider);
-        if (!context.mounted) return;
-
-        // Do post login tasks
-        final userNotifier = ref.read(userInfoProvider.notifier);
-        userNotifier.fetchUser().then((_) {
-          final apiClient = ref.read(apiClientProvider);
-          subscribePushNotification(apiClient);
-          final wsNotifier = ref.read(websocketStateProvider.notifier);
-          wsNotifier.connect();
-          if (context.mounted) Navigator.pop(context, true);
-        });
-
-        // Update the sessions' device name is available
-        if (!kIsWeb) {
-          String? name;
-          if (Platform.isIOS) {
-            final deviceInfo = await DeviceInfoPlugin().iosInfo;
-            name = deviceInfo.name;
-          } else if (Platform.isAndroid) {
-            final deviceInfo = await DeviceInfoPlugin().androidInfo;
-            name = deviceInfo.name;
-          } else if (Platform.isWindows) {
-            final deviceInfo = await DeviceInfoPlugin().windowsInfo;
-            name = deviceInfo.computerName;
-          }
-          if (name != null) {
-            final client = ref.watch(apiClientProvider);
-            await client.patch(
-              '/accounts/me/sessions/current/label',
-              data: jsonEncode(name),
-            );
-          }
-        }
+        await getToken(code: result.id);
       } catch (err) {
         showErrorAlert(err);
         return;
@@ -345,6 +367,14 @@ class _LoginPickerScreen extends HookConsumerWidget {
       onBusy.call(isBusy.value);
       return null;
     }, [isBusy]);
+
+    useEffect(() {
+      if (ticket != null && ticket?.stepRemain == 0) {
+        onPickFactor(factors!.first);
+        onNext();
+      }
+      return null;
+    }, [ticket]);
 
     final unfocusColor = Theme.of(
       context,
@@ -569,7 +599,6 @@ class _LoginLookupScreen extends HookConsumerWidget {
         );
 
         if (context.mounted) showLoadingModal(context);
-
         final resp = await client.post(
           '/auth/login/apple/mobile',
           data: {
@@ -578,25 +607,49 @@ class _LoginLookupScreen extends HookConsumerWidget {
             'device_id': await getUdid(),
           },
         );
-        final token = resp.data['token'];
-        setToken(ref.watch(sharedPreferencesProvider), token);
-        ref.invalidate(tokenProvider);
-        if (!context.mounted) return;
 
-        // Do post login tasks
-        final userNotifier = ref.read(userInfoProvider.notifier);
-        userNotifier.fetchUser().then((_) {
-          final apiClient = ref.read(apiClientProvider);
-          subscribePushNotification(apiClient);
-          final wsNotifier = ref.read(websocketStateProvider.notifier);
-          wsNotifier.connect();
-          if (context.mounted) Navigator.pop(context, true);
-        });
+        final challenge = SnAuthChallenge.fromJson(resp.data);
+        onChallenge(challenge);
+        final factorResp = await client.get(
+          '/auth/challenge/${challenge.id}/factors',
+        );
+        onFactor(
+          List<SnAuthFactor>.from(
+            factorResp.data.map((ele) => SnAuthFactor.fromJson(ele)),
+          ),
+        );
+        onNext();
       } catch (err) {
         if (err is SignInWithAppleAuthorizationException) return;
         showErrorAlert(err);
       } finally {
         if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> withOidc(String provider) async {
+      final challengeId = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => OidcScreen(provider: provider.toLowerCase()),
+        ),
+      );
+
+      final client = ref.watch(apiClientProvider);
+      try {
+        final resp = await client.get('/auth/challenge/$challengeId');
+        final challenge = SnAuthChallenge.fromJson(resp.data);
+        onChallenge(challenge);
+        final factorResp = await client.get(
+          '/auth/challenge/${challenge.id}/factors',
+        );
+        onFactor(
+          List<SnAuthFactor>.from(
+            factorResp.data.map((ele) => SnAuthFactor.fromJson(ele)),
+          ),
+        );
+        onNext();
+      } catch (err) {
+        showErrorAlert(err);
       }
     }
 
@@ -635,6 +688,26 @@ class _LoginLookupScreen extends HookConsumerWidget {
             Text("loginOr").tr().fontSize(11).opacity(0.85),
             const Gap(8),
             Spacer(),
+            IconButton.filledTonal(
+              onPressed: () => withOidc('github'),
+              padding: EdgeInsets.zero,
+              icon: getProviderIcon(
+                "github",
+                size: 16,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+              tooltip: 'GitHub',
+            ),
+            IconButton.filledTonal(
+              onPressed: () => withOidc('google'),
+              padding: EdgeInsets.zero,
+              icon: getProviderIcon(
+                "google",
+                size: 16,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+              tooltip: 'Google',
+            ),
             IconButton.filledTonal(
               onPressed: withApple,
               padding: EdgeInsets.zero,
