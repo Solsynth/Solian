@@ -11,6 +11,7 @@
   "loginSuccess": "Logged in as {}",
   "loginGreeting": "Welcome back!",
   "loginOr": "Or login with\nthird parties",
+  "loginInProgress": "Logging you in...",
   "username": "Username",
   "usernameCannotChangeHint": "Username cannot be updated after created.",
   "usernameLookupHint": "We also take your email address.",
