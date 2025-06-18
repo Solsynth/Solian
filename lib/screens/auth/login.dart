@@ -107,7 +107,7 @@ class LoginScreen extends HookConsumerWidget {
                       child: switch (period.value % 3) {
                         1 => _LoginPickerScreen(
                           key: const ValueKey(1),
-                          ticket: currentTicket.value,
+                          challenge: currentTicket.value,
                           factors: factors.value,
                           onChallenge:
                               (SnAuthChallenge? p0) => currentTicket.value = p0,
@@ -236,6 +236,28 @@ class _LoginCheckScreen extends HookConsumerWidget {
       return null;
     }, [challenge]);
 
+    if (factor == null) {
+      // Logging in by third parties
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: CircleAvatar(
+              radius: 26,
+              child: const Icon(Symbols.asterisk, size: 28),
+            ).padding(bottom: 8),
+          ),
+          Text(
+            'loginInProgress'.tr(),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+          ).padding(left: 4, bottom: 16),
+          const Gap(16),
+          CircularProgressIndicator().alignment(Alignment.centerLeft),
+        ],
+      );
+    }
+
     Future<void> performCheckTicket() async {
       final pwd = passwordController.value.text;
       if (pwd.isEmpty) return;
@@ -341,7 +363,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
 }
 
 class _LoginPickerScreen extends HookConsumerWidget {
-  final SnAuthChallenge? ticket;
+  final SnAuthChallenge? challenge;
   final List<SnAuthFactor>? factors;
   final Function(SnAuthChallenge?) onChallenge;
   final Function(SnAuthFactor) onPickFactor;
@@ -350,7 +372,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
 
   const _LoginPickerScreen({
     super.key,
-    required this.ticket,
+    required this.challenge,
     required this.factors,
     required this.onChallenge,
     required this.onPickFactor,
@@ -369,12 +391,13 @@ class _LoginPickerScreen extends HookConsumerWidget {
     }, [isBusy]);
 
     useEffect(() {
-      if (ticket != null && ticket?.stepRemain == 0) {
-        onPickFactor(factors!.first);
-        onNext();
+      if (challenge != null && challenge?.stepRemain == 0) {
+        Future(() {
+          onNext();
+        });
       }
       return null;
-    }, [ticket]);
+    }, [challenge]);
 
     final unfocusColor = Theme.of(
       context,
@@ -390,7 +413,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
 
       try {
         await client.post(
-          '/auth/challenge/${ticket!.id}/factors/${factorPicked.value!.id}',
+          '/auth/challenge/${challenge!.id}/factors/${factorPicked.value!.id}',
           data:
               hintController.text.isNotEmpty
                   ? jsonEncode(hintController.text)
@@ -444,7 +467,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
                           kFactorTypes[x.type]?.$3 ?? Symbols.question_mark,
                         ),
                         title: Text(kFactorTypes[x.type]?.$1 ?? 'unknown').tr(),
-                        enabled: !ticket!.blacklistFactors.contains(x.id),
+                        enabled: !challenge!.blacklistFactors.contains(x.id),
                         value: factorPicked.value == x,
                         onChanged: (value) {
                           if (value == true) {
@@ -469,7 +492,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
           ).padding(top: 12, bottom: 4, horizontal: 4),
         const Gap(8),
         Text(
-          'loginMultiFactor'.plural(ticket!.stepRemain),
+          'loginMultiFactor'.plural(challenge!.stepRemain),
           style: TextStyle(color: unfocusColor, fontSize: 13),
         ).padding(horizontal: 16),
         const Gap(12),
