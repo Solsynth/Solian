@@ -51,6 +51,7 @@ class AppRouter extends RootStackRouter {
       path: '/creators',
       children: [
         AutoRoute(page: CreatorHubRoute.page, path: ''),
+        AutoRoute(page: CreatorPostListRoute.page, path: ':name/posts'),
         AutoRoute(page: StickersRoute.page, path: ':name/stickers'),
         AutoRoute(page: NewStickerPacksRoute.page, path: ':name/stickers/new'),
         AutoRoute(

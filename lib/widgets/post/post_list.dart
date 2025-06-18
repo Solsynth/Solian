@@ -4,6 +4,7 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/content/paging_helper_ext.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/post/post_item_creator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
@@ -46,9 +47,34 @@ class PostListNotifier extends _$PostListNotifier
   }
 }
 
+/// Defines which post item widget to use in the list
+enum PostItemType {
+  /// Regular post item with user information
+  regular,
+  
+  /// Creator view with analytics and metadata
+  creator
+}
+
 class SliverPostList extends HookConsumerWidget {
   final String? pubName;
-  const SliverPostList({super.key, this.pubName});
+  final PostItemType itemType;
+  final Color? backgroundColor;
+  final EdgeInsets? padding;
+  final bool isOpenable;
+  final Function? onRefresh;
+  final Function(SnPost)? onUpdate;
+  
+  const SliverPostList({
+    super.key, 
+    this.pubName,
+    this.itemType = PostItemType.regular,
+    this.backgroundColor,
+    this.padding,
+    this.isOpenable = true,
+    this.onRefresh,
+    this.onUpdate,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,15 +89,34 @@ class SliverPostList extends HookConsumerWidget {
               if (index == widgetCount - 1) {
                 return endItemView;
               }
-
+              
+              final post = data.items[index];
+              
               return Column(
                 children: [
-                  PostItem(item: data.items[index]),
+                  _buildPostItem(post),
                   const Divider(height: 1),
                 ],
               );
             },
           ),
     );
+  }
+  
+  Widget _buildPostItem(SnPost post) {
+    switch (itemType) {
+      case PostItemType.creator:
+        return PostItemCreator(
+          item: post,
+          backgroundColor: backgroundColor,
+          padding: padding,
+          isOpenable: isOpenable,
+          onRefresh: onRefresh,
+          onUpdate: onUpdate,
+        );
+      case PostItemType.regular:
+      default:
+        return PostItem(item: post);
+    }
   }
 }

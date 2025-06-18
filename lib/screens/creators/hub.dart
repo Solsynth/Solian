@@ -263,6 +263,13 @@ class CreatorHubScreen extends HookConsumerWidget {
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: 24,
                             ),
+                            onTap: () {
+                              context.router.push(
+                                CreatorPostListRoute(
+                                  pubName: currentPublisher.value!.name,
+                                ),
+                              );
+                            },
                           ),
                           Divider(height: 1).padding(vertical: 8),
                           ListTile(

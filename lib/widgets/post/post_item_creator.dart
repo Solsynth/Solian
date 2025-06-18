@@ -1,0 +1,457 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/post.dart';
+import 'package:island/pods/network.dart';
+import 'package:island/route.gr.dart';
+import 'package:island/services/time.dart';
+import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/cloud_file_collection.dart';
+import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/post/post_item.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
+import 'package:super_context_menu/super_context_menu.dart';
+
+class PostItemCreator extends HookConsumerWidget {
+  final Color? backgroundColor;
+  final SnPost item;
+  final EdgeInsets? padding;
+  final bool isOpenable;
+  final Function? onRefresh;
+  final Function(SnPost)? onUpdate;
+
+  const PostItemCreator({
+    super.key,
+    required this.item,
+    this.backgroundColor,
+    this.padding,
+    this.isOpenable = true,
+    this.onRefresh,
+    this.onUpdate,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final renderingPadding =
+        padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
+
+    return ContextMenuWidget(
+      menuProvider: (_) {
+        return Menu(
+          children: [
+            MenuAction(
+              title: 'edit'.tr(),
+              image: MenuImage.icon(Symbols.edit),
+              callback: () {
+                context.router.push(PostEditRoute(id: item.id)).then((value) {
+                  if (value != null) {
+                    onRefresh?.call();
+                  }
+                });
+              },
+            ),
+            MenuAction(
+              title: 'delete'.tr(),
+              image: MenuImage.icon(Symbols.delete),
+              callback: () {
+                showConfirmAlert('deletePostHint'.tr(), 'deletePost'.tr()).then(
+                  (confirm) {
+                    if (confirm) {
+                      final client = ref.watch(apiClientProvider);
+                      client
+                          .delete('/posts/${item.id}')
+                          .catchError((err) {
+                            showErrorAlert(err);
+                            return err;
+                          })
+                          .then((_) {
+                            onRefresh?.call();
+                          });
+                    }
+                  },
+                );
+              },
+            ),
+            MenuSeparator(),
+            MenuAction(
+              title: 'copyLink'.tr(),
+              image: MenuImage.icon(Symbols.link),
+              callback: () {
+                // Copy post link to clipboard
+                context.router.push(PostDetailRoute(id: item.id));
+              },
+            ),
+          ],
+        );
+      },
+      child: Material(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        elevation: 1,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            if (isOpenable) {
+              context.router.push(PostDetailRoute(id: item.id));
+            }
+          },
+          child: Padding(
+            padding: renderingPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPostHeader(context),
+                _buildPostContent(context),
+                const Gap(16),
+                _buildAnalyticsSection(context),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPostHeader(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Post ID and timestamp row
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'ID: ${item.id.substring(0, 6)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+            const Spacer(),
+            Icon(
+              _getVisibilityIcon(item.visibility),
+              size: 16,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _getVisibilityText(item.visibility).tr(),
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
+            const Gap(8),
+            Text(
+              item.publishedAt.formatSystem(),
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
+          ],
+        ),
+        const Gap(8),
+
+        // Title and description
+        if (item.title?.isNotEmpty ?? false)
+          Text(
+            item.title!,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        if (item.description?.isNotEmpty ?? false)
+          Text(
+            item.description!,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ).padding(top: 4),
+      ],
+    );
+  }
+
+  Widget _buildPostContent(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Content preview
+        if (item.content?.isNotEmpty ?? false)
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            child: MarkdownTextContent(content: item.content!),
+          ),
+
+        // Attachments
+        if (item.attachments.isNotEmpty)
+          CloudFileList(
+            files: item.attachments,
+            maxWidth: MediaQuery.of(context).size.width * 0.85,
+            minWidth: MediaQuery.of(context).size.width * 0.9,
+          ).padding(top: 8),
+
+        // Reference post indicator
+        if (item.repliedPost != null || item.forwardedPost != null)
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                Icon(
+                  item.repliedPost != null ? Symbols.reply : Symbols.forward,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  item.repliedPost != null
+                      ? 'repliedTo'.tr()
+                      : 'forwarded'.tr(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAnalyticsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Analytics', style: Theme.of(context).textTheme.titleSmall),
+        const Gap(8),
+
+        // Engagement metrics in a card
+        Card(
+          elevation: 1,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildMetricItem(
+                  context,
+                  Symbols.visibility,
+                  'Views',
+                  '${item.viewsUnique} / ${item.viewsTotal}',
+                  'Unique / Total',
+                ),
+                _buildMetricItem(
+                  context,
+                  Symbols.thumb_up,
+                  'Upvotes',
+                  '${item.upvotes}',
+                  null,
+                ),
+                _buildMetricItem(
+                  context,
+                  Symbols.thumb_down,
+                  'Downvotes',
+                  '${item.downvotes}',
+                  null,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Gap(16),
+
+        // Reactions summary
+        if (item.reactionsCount.isNotEmpty) _buildReactionsSection(context),
+
+        // Metadata section
+        if (item.meta != null && item.meta!.isNotEmpty)
+          _buildMetadataSection(context),
+
+        // Creation and modification timestamps
+        const Gap(16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Created: ${item.createdAt.formatSystem()}',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
+            if (item.editedAt != null)
+              Text(
+                'Edited: ${item.editedAt!.formatSystem()}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+    String? subtitle,
+  ) {
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        const Gap(4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        if (subtitle != null)
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 10,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildReactionsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'reactions'.plural(
+            item.reactionsCount.isNotEmpty
+                ? item.reactionsCount.values.reduce((a, b) => a + b)
+                : 0,
+          ),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
+        const Gap(8),
+        PostReactionList(
+          parentId: item.id,
+          reactions: item.reactionsCount,
+          padding: EdgeInsets.zero,
+          onReact: (symbol, attitude, delta) {
+            final reactionsCount = Map<String, int>.from(item.reactionsCount);
+            reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
+            onUpdate?.call(item.copyWith(reactionsCount: reactionsCount));
+          },
+        ),
+        const Gap(16),
+      ],
+    );
+  }
+
+  Widget _buildMetadataSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Gap(16),
+        Text('Metadata', style: Theme.of(context).textTheme.titleSmall),
+        const Gap(8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceVariant.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final entry in item.meta!.entries)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${entry.key}: ',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          '${entry.value}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Helper method to get the appropriate icon for each visibility status
+IconData _getVisibilityIcon(int visibility) {
+  switch (visibility) {
+    case 1: // Friends
+      return Symbols.group;
+    case 2: // Unlisted
+      return Symbols.link_off;
+    case 3: // Private
+      return Symbols.lock;
+    default: // Public (0) or unknown
+      return Symbols.public;
+  }
+}
+
+// Helper method to get the translation key for each visibility status
+String _getVisibilityText(int visibility) {
+  switch (visibility) {
+    case 1: // Friends
+      return 'postVisibilityFriends';
+    case 2: // Unlisted
+      return 'postVisibilityUnlisted';
+    case 3: // Private
+      return 'postVisibilityPrivate';
+    default: // Public (0) or unknown
+      return 'postVisibilityPublic';
+  }
+}
