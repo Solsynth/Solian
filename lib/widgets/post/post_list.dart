@@ -51,9 +51,9 @@ class PostListNotifier extends _$PostListNotifier
 enum PostItemType {
   /// Regular post item with user information
   regular,
-  
+
   /// Creator view with analytics and metadata
-  creator
+  creator,
 }
 
 class SliverPostList extends HookConsumerWidget {
@@ -64,9 +64,9 @@ class SliverPostList extends HookConsumerWidget {
   final bool isOpenable;
   final Function? onRefresh;
   final Function(SnPost)? onUpdate;
-  
+
   const SliverPostList({
-    super.key, 
+    super.key,
     this.pubName,
     this.itemType = PostItemType.regular,
     this.backgroundColor,
@@ -89,20 +89,17 @@ class SliverPostList extends HookConsumerWidget {
               if (index == widgetCount - 1) {
                 return endItemView;
               }
-              
+
               final post = data.items[index];
-              
+
               return Column(
-                children: [
-                  _buildPostItem(post),
-                  const Divider(height: 1),
-                ],
+                children: [_buildPostItem(post), const Divider(height: 1)],
               );
             },
           ),
     );
   }
-  
+
   Widget _buildPostItem(SnPost post) {
     switch (itemType) {
       case PostItemType.creator:
@@ -115,7 +112,6 @@ class SliverPostList extends HookConsumerWidget {
           onUpdate: onUpdate,
         );
       case PostItemType.regular:
-      default:
         return PostItem(item: post);
     }
   }

@@ -63,10 +63,14 @@ class PostComposeScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final publishers = ref.watch(publishersManagedProvider);
+    // Extract common theme and localization to avoid repeated lookups
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
+    final publishers = ref.watch(publishersManagedProvider);
     final currentPublisher = useState<SnPublisher?>(null);
 
+    // Initialize publisher once when data is available
     useEffect(() {
       if (publishers.value?.isNotEmpty ?? false) {
         currentPublisher.value = publishers.value!.first;
@@ -74,7 +78,7 @@ class PostComposeScreen extends HookConsumerWidget {
       return null;
     }, [publishers]);
 
-    // Contains the XFile, ByteData, or SnCloudFile
+    // State management
     final attachments = useState<List<UniversalFile>>(
       originalPost?.attachments
               .map(
@@ -100,12 +104,11 @@ class PostComposeScreen extends HookConsumerWidget {
           originalPost?.content ??
           (forwardedPost != null ? '> ${forwardedPost!.content}\n\n' : null),
     );
-
-    // Add visibility state with default value from original post or 0 (public)
     final visibility = useState<int>(originalPost?.visibility ?? 0);
-
     final submitting = useState(false);
+    final attachmentProgress = useState<Map<int, double>>({});
 
+    // Media handling functions
     Future<void> pickPhotoMedia() async {
       final result = await ref
           .watch(imagePickerProvider)
@@ -130,16 +133,30 @@ class PostComposeScreen extends HookConsumerWidget {
       ];
     }
 
-    final attachmentProgress = useState<Map<int, double>>({});
+    // Helper method to get mimetype from file type
+    String getMimeTypeFromFileType(UniversalFileType type) {
+      return switch (type) {
+        UniversalFileType.image => 'image/unknown',
+        UniversalFileType.video => 'video/unknown',
+        UniversalFileType.audio => 'audio/unknown',
+        UniversalFileType.file => 'application/octet-stream',
+      };
+    }
 
+    // Attachment management functions
     Future<void> uploadAttachment(int index) async {
       final attachment = attachments.value[index];
-      if (attachment is SnCloudFile) return;
+      if (attachment.isOnCloud) return;
+
       final baseUrl = ref.watch(serverUrlProvider);
       final token = await getToken(ref.watch(tokenProvider));
       if (token == null) throw ArgumentError('Token is null');
+
       try {
+        // Update progress state
         attachmentProgress.value = {...attachmentProgress.value, index: 0};
+
+        // Upload file to cloud
         final cloudFile =
             await putMediaToCloud(
               fileData: attachment,
@@ -148,30 +165,43 @@ class PostComposeScreen extends HookConsumerWidget {
               filename: attachment.data.name ?? 'Post media',
               mimetype:
                   attachment.data.mimeType ??
-                  switch (attachment.type) {
-                    UniversalFileType.image => 'image/unknown',
-                    UniversalFileType.video => 'video/unknown',
-                    UniversalFileType.audio => 'audio/unknown',
-                    UniversalFileType.file => 'application/octet-stream',
-                  },
-              onProgress: (progress, estimate) {
+                  getMimeTypeFromFileType(attachment.type),
+              onProgress: (progress, _) {
                 attachmentProgress.value = {
                   ...attachmentProgress.value,
                   index: progress,
                 };
               },
             ).future;
+
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }
+
+        // Update attachments list with cloud file
         final clone = List.of(attachments.value);
         clone[index] = UniversalFile(data: cloudFile, type: attachment.type);
         attachments.value = clone;
       } catch (err) {
         showErrorAlert(err);
       } finally {
-        attachmentProgress.value = attachmentProgress.value..remove(index);
+        // Clean up progress state
+        attachmentProgress.value = {...attachmentProgress.value}..remove(index);
       }
+    }
+
+    // Helper method to move attachment in the list
+    List<UniversalFile> moveAttachment(
+      List<UniversalFile> attachments,
+      int idx,
+      int delta,
+    ) {
+      if (idx + delta < 0 || idx + delta >= attachments.length) {
+        return attachments;
+      }
+      final clone = List.of(attachments);
+      clone.insert(idx + delta, clone.removeAt(idx));
+      return clone;
     }
 
     Future<void> deleteAttachment(int index) async {
@@ -185,38 +215,52 @@ class PostComposeScreen extends HookConsumerWidget {
       attachments.value = clone;
     }
 
+    // Form submission
     Future<void> performAction() async {
+      if (submitting.value) return;
+
       try {
         submitting.value = true;
 
+        // Upload any local attachments first
         await Future.wait(
           attachments.value
-              .where((e) => e.isOnDevice)
-              .mapIndexed((idx, e) => uploadAttachment(idx)),
+              .asMap()
+              .entries
+              .where((entry) => entry.value.isOnDevice)
+              .map((entry) => uploadAttachment(entry.key)),
         );
 
+        // Prepare API request
         final client = ref.watch(apiClientProvider);
+        final isNewPost = originalPost == null;
+        final endpoint = isNewPost ? '/posts' : '/posts/${originalPost!.id}';
+
+        // Create request payload
+        final payload = {
+          'title': titleController.text,
+          'description': descriptionController.text,
+          'content': contentController.text,
+          'visibility': visibility.value,
+          'attachments':
+              attachments.value
+                  .where((e) => e.isOnCloud)
+                  .map((e) => e.data.id)
+                  .toList(),
+          if (repliedPost != null) 'replied_post_id': repliedPost!.id,
+          if (forwardedPost != null) 'forwarded_post_id': forwardedPost!.id,
+        };
+
+        // Send request
         await client.request(
-          originalPost == null ? '/posts' : '/posts/${originalPost!.id}',
-          data: {
-            'title': titleController.text,
-            'description': descriptionController.text,
-            'content': contentController.text,
-            'visibility':
-                visibility.value, // Add visibility field to API request
-            'attachments':
-                attachments.value
-                    .where((e) => e.isOnCloud)
-                    .map((e) => e.data.id)
-                    .toList(),
-            if (repliedPost != null) 'replied_post_id': repliedPost!.id,
-            if (forwardedPost != null) 'forwarded_post_id': forwardedPost!.id,
-          },
+          endpoint,
+          data: payload,
           options: Options(
             headers: {'X-Pub': currentPublisher.value?.name},
-            method: originalPost == null ? 'POST' : 'PATCH',
+            method: isNewPost ? 'POST' : 'PATCH',
           ),
         );
+
         if (context.mounted) {
           context.maybePop(true);
         }
@@ -227,6 +271,7 @@ class PostComposeScreen extends HookConsumerWidget {
       }
     }
 
+    // Clipboard handling
     Future<void> handlePaste() async {
       final clipboard = await Pasteboard.image;
       if (clipboard == null) return;
@@ -245,60 +290,30 @@ class PostComposeScreen extends HookConsumerWidget {
 
       final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
       final isModifierPressed = event.isMetaPressed || event.isControlPressed;
+      final isSubmit = event.logicalKey == LogicalKeyboardKey.enter;
 
       if (isPaste && isModifierPressed) {
         handlePaste();
+      } else if (isSubmit && isModifierPressed && !submitting.value) {
+        performAction();
       }
     }
 
-    void showVisibilityModal() {
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: Text('postVisibility'.tr()),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: Icon(Symbols.public),
-                    title: Text('postVisibilityPublic'.tr()),
-                    onTap: () {
-                      visibility.value = 0;
-                      Navigator.pop(context);
-                    },
-                    selected: visibility.value == 0,
-                  ),
-                  ListTile(
-                    leading: Icon(Symbols.group),
-                    title: Text('postVisibilityFriends'.tr()),
-                    onTap: () {
-                      visibility.value = 1;
-                      Navigator.pop(context);
-                    },
-                    selected: visibility.value == 1,
-                  ),
-                  ListTile(
-                    leading: Icon(Symbols.link_off),
-                    title: Text('postVisibilityUnlisted'.tr()),
-                    onTap: () {
-                      visibility.value = 2;
-                      Navigator.pop(context);
-                    },
-                    selected: visibility.value == 2,
-                  ),
-                  ListTile(
-                    leading: Icon(Symbols.lock),
-                    title: Text('postVisibilityPrivate'.tr()),
-                    onTap: () {
-                      visibility.value = 3;
-                      Navigator.pop(context);
-                    },
-                    selected: visibility.value == 3,
-                  ),
-                ],
-              ),
-            ),
+    // Helper method to build visibility option
+    Widget buildVisibilityOption(
+      BuildContext context,
+      int value,
+      IconData icon,
+      String textKey,
+    ) {
+      return ListTile(
+        leading: Icon(icon),
+        title: Text(textKey.tr()),
+        onTap: () {
+          visibility.value = value;
+          Navigator.pop(context);
+        },
+        selected: visibility.value == value,
       );
     }
 
@@ -330,6 +345,120 @@ class PostComposeScreen extends HookConsumerWidget {
       }
     }
 
+    // Visibility handling
+    void showVisibilityModal() {
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Text('postVisibility'.tr()),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  buildVisibilityOption(
+                    context,
+                    0,
+                    Symbols.public,
+                    'postVisibilityPublic',
+                  ),
+                  buildVisibilityOption(
+                    context,
+                    1,
+                    Symbols.group,
+                    'postVisibilityFriends',
+                  ),
+                  buildVisibilityOption(
+                    context,
+                    2,
+                    Symbols.link_off,
+                    'postVisibilityUnlisted',
+                  ),
+                  buildVisibilityOption(
+                    context,
+                    3,
+                    Symbols.lock,
+                    'postVisibilityPrivate',
+                  ),
+                ],
+              ),
+            ),
+      );
+    }
+
+    // Show keyboard shortcuts dialog
+    void showKeyboardShortcutsDialog() {
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Text('keyboard_shortcuts'.tr()),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Ctrl/Cmd + Enter: ${'submit'.tr()}'),
+                  Text('Ctrl/Cmd + V: ${'paste'.tr()}'),
+                  Text('Ctrl/Cmd + I: ${'add_image'.tr()}'),
+                  Text('Ctrl/Cmd + Shift + V: ${'add_video'.tr()}'),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('close'.tr()),
+                ),
+              ],
+            ),
+      );
+    }
+
+    // Helper method to build wide attachment grid
+    Widget buildWideAttachmentGrid(
+      BoxConstraints constraints,
+      List<UniversalFile> attachments,
+      Map<int, double> progress,
+    ) {
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (var idx = 0; idx < attachments.length; idx++)
+            SizedBox(
+              width: constraints.maxWidth / 2 - 4,
+              child: AttachmentPreview(
+                item: attachments[idx],
+                progress: progress[idx],
+                onRequestUpload: () => uploadAttachment(idx),
+                onDelete: () => deleteAttachment(idx),
+                onMove: (delta) => moveAttachment(attachments, idx, delta),
+              ),
+            ),
+        ],
+      );
+    }
+
+    // Helper method to build narrow attachment list
+    Widget buildNarrowAttachmentList(
+      List<UniversalFile> attachments,
+      Map<int, double> progress,
+    ) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          for (var idx = 0; idx < attachments.length; idx++)
+            AttachmentPreview(
+              item: attachments[idx],
+              progress: progress[idx],
+              onRequestUpload: () => uploadAttachment(idx),
+              onDelete: () => deleteAttachment(idx),
+              onMove: (delta) => moveAttachment(attachments, idx, delta),
+            ),
+        ],
+      );
+    }
+
+    // Build UI
     return AppScaffold(
       appBar: AppBar(
         leading: const PageBackButton(),
@@ -343,31 +472,7 @@ class PostComposeScreen extends HookConsumerWidget {
               message: 'keyboard_shortcuts'.tr(),
               child: IconButton(
                 icon: const Icon(Symbols.keyboard),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: Text('keyboard_shortcuts'.tr()),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Ctrl/Cmd + Enter: ${'submit'.tr()}'),
-                              Text('Ctrl/Cmd + V: ${'paste'.tr()}'),
-                              Text('Ctrl/Cmd + I: ${'add_image'.tr()}'),
-                              Text('Ctrl/Cmd + Shift + V: ${'add_video'.tr()}'),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Text('close'.tr()),
-                            ),
-                          ],
-                        ),
-                  );
-                },
+                onPressed: showKeyboardShortcutsDialog,
               ),
             ),
           IconButton(
@@ -382,9 +487,9 @@ class PostComposeScreen extends HookConsumerWidget {
                         strokeWidth: 2.5,
                       ),
                     ).center()
-                    : originalPost != null
-                    ? const Icon(Symbols.edit)
-                    : const Icon(Symbols.upload),
+                    : Icon(
+                      originalPost != null ? Symbols.edit : Symbols.upload,
+                    ),
           ),
           const Gap(8),
         ],
@@ -392,53 +497,29 @@ class PostComposeScreen extends HookConsumerWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Reply/Forward info section
           if (repliedPost != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceVariant.withOpacity(0.5),
-              child: Row(
-                children: [
-                  const Icon(Symbols.reply, size: 16),
-                  const Gap(8),
-                  Expanded(
-                    child: Text(
-                      '${'reply'.tr()}: ${repliedPost!.publisher.nick}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
+            _buildInfoBanner(
+              context,
+              Symbols.reply,
+              'reply',
+              repliedPost!.publisher.nick,
             ),
           if (forwardedPost != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceVariant.withOpacity(0.5),
-              child: Row(
-                children: [
-                  const Icon(Symbols.forward, size: 16),
-                  const Gap(8),
-                  Expanded(
-                    child: Text(
-                      '${'forward'.tr()}: ${forwardedPost!.publisher.nick}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
+            _buildInfoBanner(
+              context,
+              Symbols.forward,
+              'forward',
+              forwardedPost!.publisher.nick,
             ),
+
+          // Main content area
           Expanded(
             child: Row(
               spacing: 12,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Publisher profile picture
                 GestureDetector(
                   child: ProfilePictureWidget(
                     fileId: currentPublisher.value?.picture?.id,
@@ -458,28 +539,29 @@ class PostComposeScreen extends HookConsumerWidget {
                     });
                   },
                 ).padding(top: 16),
+
+                // Post content form
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Visibility selector
                         Row(
                           children: [
                             OutlinedButton(
-                              onPressed: () {
-                                showVisibilityModal();
-                              },
+                              onPressed: showVisibilityModal,
                               style: OutlinedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 side: BorderSide(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withOpacity(0.5),
+                                  color: colorScheme.primary.withOpacity(0.5),
                                 ),
-                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
                                 visualDensity: const VisualDensity(
                                   vertical: -2,
                                   horizontal: -4,
@@ -491,16 +573,14 @@ class PostComposeScreen extends HookConsumerWidget {
                                   Icon(
                                     getVisibilityIcon(visibility.value),
                                     size: 16,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                    color: colorScheme.primary,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
                                     getVisibilityText(visibility.value).tr(),
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
+                                      color: colorScheme.primary,
                                     ),
                                   ),
                                 ],
@@ -508,33 +588,40 @@ class PostComposeScreen extends HookConsumerWidget {
                             ),
                           ],
                         ).padding(bottom: 6),
+
+                        // Title field
                         TextField(
                           controller: titleController,
                           decoration: InputDecoration.collapsed(
                             hintText: 'postTitle'.tr(),
                           ),
-                          style: TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                           onTapOutside:
                               (_) =>
                                   FocusManager.instance.primaryFocus?.unfocus(),
                         ),
+
+                        // Description field
                         TextField(
                           controller: descriptionController,
                           decoration: InputDecoration.collapsed(
                             hintText: 'postDescription'.tr(),
                           ),
-                          style: TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                           onTapOutside:
                               (_) =>
                                   FocusManager.instance.primaryFocus?.unfocus(),
                         ),
+
                         const Gap(8),
+
+                        // Content field with keyboard listener
                         RawKeyboardListener(
                           focusNode: FocusNode(),
                           onKey: handleKeyPress,
                           child: TextField(
                             controller: contentController,
-                            style: TextStyle(fontSize: 14),
+                            style: const TextStyle(fontSize: 14),
                             decoration: InputDecoration(
                               border: InputBorder.none,
                               hintText: 'postPlaceholder'.tr(),
@@ -547,80 +634,22 @@ class PostComposeScreen extends HookConsumerWidget {
                                         ?.unfocus(),
                           ),
                         ),
+
                         const Gap(8),
+
+                        // Attachments preview
                         LayoutBuilder(
                           builder: (context, constraints) {
                             final isWide = isWideScreen(context);
                             return isWide
-                                ? Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    for (
-                                      var idx = 0;
-                                      idx < attachments.value.length;
-                                      idx++
-                                    )
-                                      SizedBox(
-                                        width: constraints.maxWidth / 2 - 4,
-                                        child: AttachmentPreview(
-                                          item: attachments.value[idx],
-                                          progress:
-                                              attachmentProgress.value[idx],
-                                          onRequestUpload:
-                                              () => uploadAttachment(idx),
-                                          onDelete: () => deleteAttachment(idx),
-                                          onMove: (delta) {
-                                            if (idx + delta < 0 ||
-                                                idx + delta >=
-                                                    attachments.value.length) {
-                                              return;
-                                            }
-                                            final clone = List.of(
-                                              attachments.value,
-                                            );
-                                            clone.insert(
-                                              idx + delta,
-                                              clone.removeAt(idx),
-                                            );
-                                            attachments.value = clone;
-                                          },
-                                        ),
-                                      ),
-                                  ],
+                                ? buildWideAttachmentGrid(
+                                  constraints,
+                                  attachments.value,
+                                  attachmentProgress.value,
                                 )
-                                : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  spacing: 8,
-                                  children: [
-                                    for (
-                                      var idx = 0;
-                                      idx < attachments.value.length;
-                                      idx++
-                                    )
-                                      AttachmentPreview(
-                                        item: attachments.value[idx],
-                                        progress: attachmentProgress.value[idx],
-                                        onRequestUpload:
-                                            () => uploadAttachment(idx),
-                                        onDelete: () => deleteAttachment(idx),
-                                        onMove: (delta) {
-                                          if (idx + delta < 0 ||
-                                              idx + delta >=
-                                                  attachments.value.length) {
-                                            return;
-                                          }
-                                          final clone = List.of(
-                                            attachments.value,
-                                          );
-                                          clone.insert(
-                                            idx + delta,
-                                            clone.removeAt(idx),
-                                          );
-                                          attachments.value = clone;
-                                        },
-                                      ),
-                                  ],
+                                : buildNarrowAttachmentList(
+                                  attachments.value,
+                                  attachmentProgress.value,
                                 );
                           },
                         ),
@@ -631,6 +660,8 @@ class PostComposeScreen extends HookConsumerWidget {
               ],
             ).padding(horizontal: 16),
           ),
+
+          // Bottom toolbar
           Material(
             elevation: 4,
             child: Row(
@@ -638,18 +669,45 @@ class PostComposeScreen extends HookConsumerWidget {
                 IconButton(
                   onPressed: pickPhotoMedia,
                   icon: const Icon(Symbols.add_a_photo),
-                  color: Theme.of(context).colorScheme.primary,
+                  color: colorScheme.primary,
                 ),
                 IconButton(
                   onPressed: pickVideoMedia,
                   icon: const Icon(Symbols.videocam),
-                  color: Theme.of(context).colorScheme.primary,
+                  color: colorScheme.primary,
                 ),
               ],
             ).padding(
               bottom: MediaQuery.of(context).padding.bottom + 16,
               horizontal: 16,
               top: 8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to build info banner for replied/forwarded posts
+  Widget _buildInfoBanner(
+    BuildContext context,
+    IconData icon,
+    String labelKey,
+    String publisherNick,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+      child: Row(
+        children: [
+          Icon(icon, size: 16),
+          const Gap(8),
+          Expanded(
+            child: Text(
+              '${'labelKey'.tr()}: $publisherNick',
+              style: Theme.of(context).textTheme.bodySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
