@@ -115,6 +115,7 @@ dependencies:
   fl_chart: ^1.0.0
   sign_in_with_apple: ^7.0.1
   flutter_svg: ^2.1.0
+  native_exif: ^0.6.2
 
 dev_dependencies:
   flutter_test:

@@ -8,6 +8,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:island/models/file.dart';
+import 'package:native_exif/native_exif.dart';
 import 'package:tus_client_dart/tus_client_dart.dart';
 
 Future<XFile?> cropImage(
@@ -46,7 +47,91 @@ Completer<SnCloudFile?> putMediaToCloud({
   String? mimetype,
   Function(double progress, Duration estimate)? onProgress,
 }) {
-  XFile file;
+  final completer = Completer<SnCloudFile?>();
+
+  // Process the image to remove GPS EXIF data if needed
+  if (fileData.isOnDevice && fileData.type == UniversalFileType.image) {
+    final data = fileData.data;
+    if (data is XFile && !kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      // Use native_exif to selectively remove GPS data
+      Exif.fromPath(data.path)
+          .then((exif) {
+            // Remove GPS-related attributes
+            final gpsAttributes = [
+              'GPSLatitude',
+              'GPSLatitudeRef',
+              'GPSLongitude',
+              'GPSLongitudeRef',
+              'GPSAltitude',
+              'GPSAltitudeRef',
+              'GPSTimeStamp',
+              'GPSProcessingMethod',
+              'GPSDateStamp',
+            ];
+
+            // Create a map of attributes to clear
+            final clearAttributes = <String, String>{};
+            for (final attr in gpsAttributes) {
+              clearAttributes[attr] = '';
+            }
+
+            // Write empty values to remove GPS data
+            return exif.writeAttributes(clearAttributes);
+          })
+          .then((_) {
+            // Continue with upload after GPS data is removed
+            _processUpload(
+              fileData,
+              atk,
+              baseUrl,
+              filename,
+              mimetype,
+              onProgress,
+              completer,
+            );
+          })
+          .catchError((e) {
+            // If there's an error, continue with the original file
+            debugPrint('Error removing GPS EXIF data: $e');
+            _processUpload(
+              fileData,
+              atk,
+              baseUrl,
+              filename,
+              mimetype,
+              onProgress,
+              completer,
+            );
+          });
+
+      return completer;
+    }
+  }
+
+  // If not an image or on web, continue with normal upload
+  _processUpload(
+    fileData,
+    atk,
+    baseUrl,
+    filename,
+    mimetype,
+    onProgress,
+    completer,
+  );
+  return completer;
+}
+
+// Helper method to process the upload after any EXIF processing
+Completer<SnCloudFile?> _processUpload(
+  UniversalFile fileData,
+  String atk,
+  String baseUrl,
+  String? filename,
+  String? mimetype,
+  Function(double progress, Duration estimate)? onProgress,
+  Completer<SnCloudFile?> completer,
+) {
+  late XFile file;
   String actualFilename = filename ?? 'randomly_file';
   String actualMimetype = mimetype ?? '';
   Uint8List? byteData;
@@ -63,24 +148,29 @@ Completer<SnCloudFile?> putMediaToCloud({
     actualFilename = filename ?? 'uploaded_file';
     actualMimetype = mimetype ?? 'application/octet-stream';
     if (mimetype == null) {
-      throw ArgumentError('Mimetype is required when providing raw bytes.');
+      completer.completeError(
+        ArgumentError('Mimetype is required when providing raw bytes.'),
+      );
+      return completer;
     }
     file = XFile.fromData(byteData!, mimeType: actualMimetype);
   } else if (data is SnCloudFile) {
     // If the file is already on the cloud, just return it
-    return Completer<SnCloudFile?>()..complete(data);
+    completer.complete(data);
+    return completer;
   } else {
-    throw ArgumentError(
-      'Invalid fileData type. Expected data to be XFile, List<int>, Uint8List, or SnCloudFile.',
+    completer.completeError(
+      ArgumentError(
+        'Invalid fileData type. Expected data to be XFile, List<int>, Uint8List, or SnCloudFile.',
+      ),
     );
+    return completer;
   }
 
   final Map<String, String> metadata = {
     'filename': actualFilename,
     'content-type': actualMimetype,
   };
-
-  final completer = Completer<SnCloudFile?>();
 
   final client = TusClient(file);
   client
