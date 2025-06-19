@@ -47,8 +47,9 @@ class NotificationUnreadCountNotifier
   void _subscribeToWebSocket() {
     final webSocketService = ref.read(websocketProvider);
     _subscription = webSocketService.dataStream.listen((packet) {
-      if (packet.type == 'notifications.new') {
-        _incrementCounter();
+      if (packet.type == 'notifications.new' && packet.data != null) {
+        final notification = SnNotification.fromJson(packet.data!);
+        if (notification.topic != 'messages.new') _incrementCounter();
       }
     });
   }
