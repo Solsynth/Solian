@@ -3,7 +3,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/widgets/content/paging_helper_ext.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -57,7 +56,8 @@ class PostRepliesNotifier extends _$PostRepliesNotifier
 
 class PostRepliesList extends HookConsumerWidget {
   final String postId;
-  const PostRepliesList({super.key, required this.postId});
+  final Color? backgroundColor;
+  const PostRepliesList({super.key, required this.postId, this.backgroundColor});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,7 +93,7 @@ class PostRepliesList extends HookConsumerWidget {
               children: [
                 PostItem(
                   item: data.items[index],
-                  backgroundColor: isWide ? Colors.transparent : null,
+                  backgroundColor: backgroundColor ?? (isWide ? Colors.transparent : null),
                   showReferencePost: false,
                 ),
                 const Divider(height: 1),

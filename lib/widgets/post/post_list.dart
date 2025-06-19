@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/widgets/content/paging_helper_ext.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_item_creator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

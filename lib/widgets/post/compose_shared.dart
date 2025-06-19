@@ -213,7 +213,7 @@ class ComposeLogic {
       // Prepare API request
       final client = ref.watch(apiClientProvider);
       final isNewPost = originalPost == null;
-      final endpoint = isNewPost ? '/posts' : '/posts/${originalPost!.id}';
+      final endpoint = isNewPost ? '/posts' : '/posts/${originalPost.id}';
 
       // Create request payload
       final payload = {

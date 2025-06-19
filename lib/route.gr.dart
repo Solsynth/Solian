@@ -182,17 +182,10 @@ class ArticleComposeRoute extends _i29.PageRouteInfo<ArticleComposeRouteArgs> {
   ArticleComposeRoute({
     _i30.Key? key,
     _i32.SnPost? originalPost,
-    _i32.SnPost? repliedPost,
-    _i32.SnPost? forwardedPost,
     List<_i29.PageRouteInfo>? children,
   }) : super(
          ArticleComposeRoute.name,
-         args: ArticleComposeRouteArgs(
-           key: key,
-           originalPost: originalPost,
-           repliedPost: repliedPost,
-           forwardedPost: forwardedPost,
-         ),
+         args: ArticleComposeRouteArgs(key: key, originalPost: originalPost),
          initialChildren: children,
        );
 
@@ -213,42 +206,26 @@ class ArticleComposeRoute extends _i29.PageRouteInfo<ArticleComposeRouteArgs> {
 }
 
 class ArticleComposeRouteArgs {
-  const ArticleComposeRouteArgs({
-    this.key,
-    this.originalPost,
-    this.repliedPost,
-    this.forwardedPost,
-  });
+  const ArticleComposeRouteArgs({this.key, this.originalPost});
 
   final _i30.Key? key;
 
   final _i32.SnPost? originalPost;
 
-  final _i32.SnPost? repliedPost;
-
-  final _i32.SnPost? forwardedPost;
-
   @override
   String toString() {
-    return 'ArticleComposeRouteArgs{key: $key, originalPost: $originalPost, repliedPost: $repliedPost, forwardedPost: $forwardedPost}';
+    return 'ArticleComposeRouteArgs{key: $key, originalPost: $originalPost}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! ArticleComposeRouteArgs) return false;
-    return key == other.key &&
-        originalPost == other.originalPost &&
-        repliedPost == other.repliedPost &&
-        forwardedPost == other.forwardedPost;
+    return key == other.key && originalPost == other.originalPost;
   }
 
   @override
-  int get hashCode =>
-      key.hashCode ^
-      originalPost.hashCode ^
-      repliedPost.hashCode ^
-      forwardedPost.hashCode;
+  int get hashCode => key.hashCode ^ originalPost.hashCode;
 }
 
 /// generated route for

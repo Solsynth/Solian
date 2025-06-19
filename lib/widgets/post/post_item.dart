@@ -19,6 +19,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/post/post_replies_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
@@ -235,18 +236,52 @@ class PostItem extends HookConsumerWidget {
                   ),
                 ],
               ),
-              PostReactionList(
-                parentId: item.id,
-                reactions: item.reactionsCount,
-                padding: EdgeInsets.only(left: 48),
-                onReact: (symbol, attitude, delta) {
-                  final reactionsCount = Map<String, int>.from(
-                    item.reactionsCount,
-                  );
-                  reactionsCount[symbol] =
-                      (reactionsCount[symbol] ?? 0) + delta;
-                  onUpdate?.call(item.copyWith(reactionsCount: reactionsCount));
-                },
+              Row(
+                children: [
+                  // Replies count button
+                  Padding(
+                    padding: const EdgeInsets.only(left: 48, right: 12),
+                    child: ActionChip(
+                      avatar: Icon(Symbols.reply, size: 16),
+                      label: Text(
+                        (item.repliesCount > 0)
+                            ? 'repliesCount'.plural(item.repliesCount)
+                            : 'reply'.tr(),
+                      ),
+                      visualDensity: const VisualDensity(
+                        horizontal: VisualDensity.minimumDensity,
+                        vertical: VisualDensity.minimumDensity,
+                      ),
+                      onPressed: () {
+                         if (isOpenable) {
+                           showModalBottomSheet(
+                             context: context,
+                             isScrollControlled: true,
+                             builder: (context) => PostRepliesSheet(post: item),
+                           );
+                         }
+                       },
+                    ),
+                  ),
+                  // Reactions list
+                  Expanded(
+                    child: PostReactionList(
+                      parentId: item.id,
+                      reactions: item.reactionsCount,
+                      padding: EdgeInsets.zero,
+                      onReact: (symbol, attitude, delta) {
+                        final reactionsCount = Map<String, int>.from(
+                          item.reactionsCount,
+                        );
+                        reactionsCount[symbol] =
+                            (reactionsCount[symbol] ?? 0) + delta;
+                        onUpdate?.call(
+                          item.copyWith(reactionsCount: reactionsCount),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
