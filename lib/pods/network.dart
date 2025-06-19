@@ -16,27 +16,42 @@ import 'config.dart';
 final imagePickerProvider = Provider((ref) => ImagePicker());
 
 final userAgentProvider = FutureProvider<String>((ref) async {
+  // Helper function to sanitize strings for HTTP headers
+  String sanitizeForHeader(String input) {
+    // Remove or replace characters that are not allowed in HTTP headers
+    // Keep only ASCII printable characters (32-126) and replace others with underscore
+    return input.runes.map((rune) {
+      if (rune >= 32 && rune <= 126) {
+        return String.fromCharCode(rune);
+      } else {
+        return '_';
+      }
+    }).join();
+  }
+
   final String platformInfo;
   if (kIsWeb) {
     final deviceInfo = await DeviceInfoPlugin().webBrowserInfo;
-    platformInfo = 'Web; ${deviceInfo.vendor}';
+    platformInfo = 'Web; ${sanitizeForHeader(deviceInfo.vendor ?? 'Unknown')}';
   } else if (Platform.isAndroid) {
     final deviceInfo = await DeviceInfoPlugin().androidInfo;
     platformInfo =
-        'Android; ${deviceInfo.brand} ${deviceInfo.model}; ${deviceInfo.id}';
+        'Android; ${sanitizeForHeader(deviceInfo.brand)} ${sanitizeForHeader(deviceInfo.model)}; ${sanitizeForHeader(deviceInfo.id)}';
   } else if (Platform.isIOS) {
     final deviceInfo = await DeviceInfoPlugin().iosInfo;
-    platformInfo = 'iOS; ${deviceInfo.model}; ${deviceInfo.name}';
+    platformInfo =
+        'iOS; ${sanitizeForHeader(deviceInfo.model)}; ${sanitizeForHeader(deviceInfo.name)}';
   } else if (Platform.isMacOS) {
     final deviceInfo = await DeviceInfoPlugin().macOsInfo;
-    platformInfo = 'MacOS; ${deviceInfo.model}; ${deviceInfo.hostName}';
+    platformInfo =
+        'MacOS; ${sanitizeForHeader(deviceInfo.model)}; ${sanitizeForHeader(deviceInfo.hostName)}';
   } else if (Platform.isWindows) {
     final deviceInfo = await DeviceInfoPlugin().windowsInfo;
     platformInfo =
-        'Windows NT; ${deviceInfo.productName}; ${deviceInfo.computerName}';
+        'Windows NT; ${sanitizeForHeader(deviceInfo.productName)}; ${sanitizeForHeader(deviceInfo.computerName)}';
   } else if (Platform.isLinux) {
     final deviceInfo = await DeviceInfoPlugin().linuxInfo;
-    platformInfo = 'Linux; ${deviceInfo.prettyName}';
+    platformInfo = 'Linux; ${sanitizeForHeader(deviceInfo.prettyName)}';
   } else {
     platformInfo = 'Unknown';
   }
