@@ -337,6 +337,9 @@
   "unauthorized": "Unauthorized",
   "unauthorizedHint": "You're not signed in or session expired, please sign in again.",
   "publisherBelongsTo": "Belongs to {}",
+  "postContent": "Content",
+  "postSettings": "Settings",
+  "postPublisherUnselected": "Publisher Unspecified",
   "postVisibility": "Visibility",
   "postVisibilityPublic": "Public",
   "postVisibilityFriends": "Friends Only",
@@ -449,5 +452,7 @@
   "checkInResultT4": "Best",
   "accountProfileView": "View Profile",
   "unspecified": "Unspecified",
-  "added": "Added"
+  "added": "Added",
+  "preview": "Preview",
+  "togglePreview": "Toggle Preview"
 }

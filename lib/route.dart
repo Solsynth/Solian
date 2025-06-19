@@ -8,14 +8,14 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
+    AutoRoute(page: PostComposeRoute.page, path: '/posts/compose'),
+    AutoRoute(page: PostEditRoute.page, path: '/posts/:id/edit'),
     AutoRoute(
       page: ExploreShellRoute.page,
       path: '/',
       children: [
         AutoRoute(page: ExploreRoute.page, path: ''),
-        AutoRoute(page: PostComposeRoute.page, path: 'posts/compose'),
         AutoRoute(page: PostDetailRoute.page, path: 'posts/:id'),
-        AutoRoute(page: PostEditRoute.page, path: 'posts/:id/edit'),
         AutoRoute(page: PublisherProfileRoute.page, path: 'publishers/:name'),
       ],
     ),
