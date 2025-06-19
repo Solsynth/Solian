@@ -24,6 +24,7 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   viewsTotal: (json['views_total'] as num).toInt(),
   upvotes: (json['upvotes'] as num).toInt(),
   downvotes: (json['downvotes'] as num).toInt(),
+  repliesCount: (json['replies_count'] as num).toInt(),
   threadedPostId: json['threaded_post_id'] as String?,
   threadedPost:
       json['threaded_post'] == null
@@ -76,6 +77,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'views_total': instance.viewsTotal,
   'upvotes': instance.upvotes,
   'downvotes': instance.downvotes,
+  'replies_count': instance.repliesCount,
   'threaded_post_id': instance.threadedPostId,
   'threaded_post': instance.threadedPost?.toJson(),
   'replied_post_id': instance.repliedPostId,

@@ -22,6 +22,7 @@ sealed class SnPost with _$SnPost {
     required int viewsTotal,
     required int upvotes,
     required int downvotes,
+    required int repliesCount,
     required String? threadedPostId,
     required SnPost? threadedPost,
     required String? repliedPostId,
