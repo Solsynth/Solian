@@ -18,7 +18,6 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
-import 'package:island/screens/auth/tabs.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/timezone.dart';
 import 'package:island/widgets/alert.dart';
@@ -164,22 +163,13 @@ class IslandApp extends HookConsumerWidget {
       theme: theme?.light,
       darkTheme: theme?.dark,
       themeMode: ThemeMode.system,
-      routerConfig: appRouter.config(
-        navigatorObservers:
-            () => [
-              TabNavigationObserver(
-                onChange: (route) {
-                  ref.read(currentRouteProvider.notifier).state = route;
-                },
-              ),
-            ],
-      ),
+      routerConfig: appRouter.config(),
       supportedLocales: context.supportedLocales,
       localizationsDelegates: [
         ...context.localizationDelegates,
         CroppyLocalizations.delegate,
         RelativeTimeLocalizations.delegate,
-      ], // this contains the cupertino one
+      ],
       locale: context.locale,
       builder: (context, child) {
         return Overlay(
@@ -188,10 +178,7 @@ class IslandApp extends HookConsumerWidget {
               builder:
                   (_) => WindowScaffold(
                     router: appRouter,
-                    child: TabsNavigationWidget(
-                      router: appRouter,
-                      child: child ?? const SizedBox.shrink(),
-                    ),
+                    child: child ?? const SizedBox.shrink(),
                   ),
             ),
           ],

@@ -66,6 +66,7 @@ class AccountScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      extendBody: false, // Prevent conflicts with tabs navigation
       noBackground: isWide,
       appBar: AppBar(title: const Text('account').tr()),
       body: SingleChildScrollView(

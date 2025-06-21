@@ -8,44 +8,53 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-    AutoRoute(page: PostComposeRoute.page, path: '/posts/compose'),
-    AutoRoute(page: PostEditRoute.page, path: '/posts/:id/edit'),
     AutoRoute(
-      page: ExploreShellRoute.page,
+      page: TabsRoute.page,
       path: '/',
       children: [
-        AutoRoute(page: ExploreRoute.page, path: ''),
-        AutoRoute(page: PostDetailRoute.page, path: 'posts/:id'),
-        AutoRoute(page: PublisherProfileRoute.page, path: 'publishers/:name'),
+        AutoRoute(
+          page: ExploreShellRoute.page,
+          path: '',
+          children: [
+            AutoRoute(page: ExploreRoute.page, path: ''),
+            AutoRoute(page: PostDetailRoute.page, path: 'posts/:id'),
+            AutoRoute(
+              page: PublisherProfileRoute.page,
+              path: 'publishers/:name',
+            ),
+          ],
+        ),
+        AutoRoute(
+          page: AccountShellRoute.page,
+          path: 'account',
+          children: [
+            AutoRoute(page: AccountRoute.page, path: ''),
+            AutoRoute(page: NotificationRoute.page, path: 'notifications'),
+            AutoRoute(page: WalletRoute.page, path: 'wallet'),
+            AutoRoute(page: RelationshipRoute.page, path: 'relationships'),
+            AutoRoute(page: AccountProfileRoute.page, path: ':name'),
+            AutoRoute(page: UpdateProfileRoute.page, path: 'me/update'),
+            AutoRoute(page: AccountSettingsRoute.page, path: 'settings'),
+          ],
+        ),
+        AutoRoute(page: RealmListRoute.page, path: 'realms'),
+        AutoRoute(
+          page: ChatShellRoute.page,
+          path: 'chat',
+          children: [
+            AutoRoute(page: ChatListRoute.page, path: ''),
+            AutoRoute(page: ChatRoomRoute.page, path: ':id'),
+            AutoRoute(page: CallRoute.page, path: ':id/call'),
+            AutoRoute(page: NewChatRoute.page, path: 'new'),
+            AutoRoute(page: EditChatRoute.page, path: ':id/edit'),
+            AutoRoute(page: ChatDetailRoute.page, path: ':id/detail'),
+          ],
+        ),
       ],
     ),
-    AutoRoute(
-      page: AccountShellRoute.page,
-      path: '/account',
-      children: [
-        AutoRoute(page: AccountRoute.page, path: ''),
-        AutoRoute(page: NotificationRoute.page, path: 'notifications'),
-        AutoRoute(page: WalletRoute.page, path: 'wallet'),
-        AutoRoute(page: RelationshipRoute.page, path: 'relationships'),
-        AutoRoute(page: AccountProfileRoute.page, path: ':name'),
-        AutoRoute(page: UpdateProfileRoute.page, path: 'me/update'),
-        AutoRoute(page: AccountSettingsRoute.page, path: 'settings'),
-      ],
-    ),
+    AutoRoute(page: PostComposeRoute.page, path: '/posts/compose'),
+    AutoRoute(page: PostEditRoute.page, path: '/posts/:id/edit'),
     AutoRoute(page: EventCalanderRoute.page, path: '/account/:name/calendar'),
-    AutoRoute(page: RealmListRoute.page, path: '/realms'),
-    AutoRoute(
-      page: ChatShellRoute.page,
-      path: '/chat',
-      children: [
-        AutoRoute(page: ChatListRoute.page, path: ''),
-        AutoRoute(page: ChatRoomRoute.page, path: ':id'),
-        AutoRoute(page: CallRoute.page, path: ':id/call'),
-        AutoRoute(page: NewChatRoute.page, path: 'new'),
-        AutoRoute(page: EditChatRoute.page, path: ':id/edit'),
-        AutoRoute(page: ChatDetailRoute.page, path: ':id/detail'),
-      ],
-    ),
     AutoRoute(
       page: CreatorHubShellRoute.page,
       path: '/creators',

@@ -18,6 +18,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
+import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -41,6 +42,7 @@ class RealmListScreen extends HookConsumerWidget {
     final realmInvites = ref.watch(realmInvitesProvider);
 
     return AppScaffold(
+      extendBody: false, // Prevent conflicts with tabs navigation
       noBackground: false,
       appBar: AppBar(
         title: const Text('realms').tr(),
@@ -83,6 +85,7 @@ class RealmListScreen extends HookConsumerWidget {
           });
         },
       ),
+      floatingActionButtonLocation: TabbedFabLocation(context),
       body: RefreshIndicator(
         child: realms.when(
           data:

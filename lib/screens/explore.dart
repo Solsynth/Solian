@@ -12,6 +12,7 @@ import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/tour/tour.dart';
+import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -45,6 +46,8 @@ class ExploreShellScreen extends ConsumerWidget {
   }
 }
 
+
+
 @RoutePage()
 class ExploreScreen extends ConsumerWidget {
   final bool isAside;
@@ -61,6 +64,7 @@ class ExploreScreen extends ConsumerWidget {
 
     return TourTriggerWidget(
       child: AppScaffold(
+        extendBody: false, // Prevent conflicts with tabs navigation
         appBar: AppBar(title: const Text('explore').tr()),
         floatingActionButton: FloatingActionButton(
           heroTag: Key("explore-page-fab"),
@@ -73,7 +77,7 @@ class ExploreScreen extends ConsumerWidget {
           },
           child: const Icon(Symbols.edit),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButtonLocation: TabbedFabLocation(context),
         body: RefreshIndicator(
           onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
           child: PagingHelperView(

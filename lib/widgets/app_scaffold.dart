@@ -92,7 +92,11 @@ class WindowScaffold extends HookConsumerWidget {
 
     return Stack(
       fit: StackFit.expand,
-      children: [child, _WebSocketIndicator(), AppNotificationToast()],
+      children: [
+        Positioned.fill(child: child),
+        _WebSocketIndicator(),
+        AppNotificationToast(),
+      ],
     );
   }
 }
@@ -112,6 +116,7 @@ class AppScaffold extends StatelessWidget {
   final DrawerCallback? onDrawerChanged;
   final DrawerCallback? onEndDrawerChanged;
   final bool? noBackground;
+  final bool? extendBody;
 
   const AppScaffold({
     super.key,
@@ -127,6 +132,7 @@ class AppScaffold extends StatelessWidget {
     this.onDrawerChanged,
     this.onEndDrawerChanged,
     this.noBackground,
+    this.extendBody,
   });
 
   @override
@@ -146,7 +152,7 @@ class AppScaffold extends StatelessWidget {
     );
 
     return Scaffold(
-      extendBody: true,
+      extendBody: extendBody ?? true,
       extendBodyBehindAppBar: true,
       backgroundColor:
           noBackground

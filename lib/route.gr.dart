@@ -13,7 +13,6 @@ import 'package:auto_route/auto_route.dart' as _i29;
 import 'package:flutter/foundation.dart' as _i31;
 import 'package:flutter/material.dart' as _i30;
 import 'package:island/models/post.dart' as _i32;
-import 'package:island/route.dart' as _i33;
 import 'package:island/screens/account.dart' as _i2;
 import 'package:island/screens/account/event_calendar.dart' as _i16;
 import 'package:island/screens/account/me/settings.dart' as _i3;
@@ -22,7 +21,6 @@ import 'package:island/screens/account/profile.dart' as _i1;
 import 'package:island/screens/account/relationship.dart' as _i24;
 import 'package:island/screens/auth/create_account.dart' as _i9;
 import 'package:island/screens/auth/login.dart' as _i18;
-import 'package:island/screens/auth/tabs.dart' as _i26;
 import 'package:island/screens/chat/call.dart' as _i5;
 import 'package:island/screens/chat/chat.dart' as _i7;
 import 'package:island/screens/chat/room.dart' as _i8;
@@ -41,6 +39,7 @@ import 'package:island/screens/posts/pub_profile.dart' as _i22;
 import 'package:island/screens/realm/detail.dart' as _i23;
 import 'package:island/screens/realm/realms.dart' as _i13;
 import 'package:island/screens/settings.dart' as _i25;
+import 'package:island/screens/tabs.dart' as _i26;
 import 'package:island/screens/wallet.dart' as _i28;
 
 /// generated route for
@@ -1684,62 +1683,19 @@ class StickersRouteArgs {
 }
 
 /// generated route for
-/// [_i26.TabsNavigationWidget]
-class TabsNavigationWidget
-    extends _i29.PageRouteInfo<TabsNavigationWidgetArgs> {
-  TabsNavigationWidget({
-    _i30.Key? key,
-    required _i30.Widget child,
-    required _i33.AppRouter router,
-    List<_i29.PageRouteInfo>? children,
-  }) : super(
-         TabsNavigationWidget.name,
-         args: TabsNavigationWidgetArgs(key: key, child: child, router: router),
-         initialChildren: children,
-       );
+/// [_i26.TabsScreen]
+class TabsRoute extends _i29.PageRouteInfo<void> {
+  const TabsRoute({List<_i29.PageRouteInfo>? children})
+    : super(TabsRoute.name, initialChildren: children);
 
-  static const String name = 'TabsNavigationWidget';
+  static const String name = 'TabsRoute';
 
   static _i29.PageInfo page = _i29.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<TabsNavigationWidgetArgs>();
-      return _i26.TabsNavigationWidget(
-        key: args.key,
-        child: args.child,
-        router: args.router,
-      );
+      return const _i26.TabsScreen();
     },
   );
-}
-
-class TabsNavigationWidgetArgs {
-  const TabsNavigationWidgetArgs({
-    this.key,
-    required this.child,
-    required this.router,
-  });
-
-  final _i30.Key? key;
-
-  final _i30.Widget child;
-
-  final _i33.AppRouter router;
-
-  @override
-  String toString() {
-    return 'TabsNavigationWidgetArgs{key: $key, child: $child, router: $router}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! TabsNavigationWidgetArgs) return false;
-    return key == other.key && child == other.child && router == other.router;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ child.hashCode ^ router.hashCode;
 }
 
 /// generated route for

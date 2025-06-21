@@ -27,6 +27,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/realms/selection_dropdown.dart';
 import 'package:island/widgets/response.dart';
+import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -241,6 +242,7 @@ class ChatListScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      extendBody: false, // Prevent conflicts with tabs navigation
       appBar: AppBar(
         title: Text('chat').tr(),
         bottom: TabBar(
@@ -339,6 +341,7 @@ class ChatListScreen extends HookConsumerWidget {
         },
         child: const Icon(Symbols.add),
       ),
+      floatingActionButtonLocation: TabbedFabLocation(context),
       body: Stack(
         children: [
           Column(
