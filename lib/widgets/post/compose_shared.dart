@@ -38,6 +38,7 @@ class ComposeLogic {
   static ComposeState createState({
     SnPost? originalPost,
     SnPost? forwardedPost,
+    SnPost? repliedPost,
   }) {
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(

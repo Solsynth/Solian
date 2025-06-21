@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/screens/posts/compose_article.dart';
@@ -71,13 +72,18 @@ class PostComposeScreen extends HookConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // When editing, preserve the original replied/forwarded post references
+    final effectiveRepliedPost = repliedPost ?? originalPost?.repliedPost;
+    final effectiveForwardedPost = forwardedPost ?? originalPost?.forwardedPost;
+
     final publishers = ref.watch(publishersManagedProvider);
     final state = useMemoized(
       () => ComposeLogic.createState(
         originalPost: originalPost,
-        forwardedPost: forwardedPost,
+        forwardedPost: effectiveForwardedPost,
+        repliedPost: effectiveRepliedPost,
       ),
-      [originalPost, forwardedPost],
+      [originalPost, effectiveForwardedPost, effectiveRepliedPost],
     );
 
     // Initialize publisher once when data is available
@@ -148,17 +154,22 @@ class PostComposeScreen extends HookConsumerWidget {
         ),
         itemCount: state.attachments.value.length,
         itemBuilder: (context, idx) {
-          return AttachmentPreview(
-            item: state.attachments.value[idx],
-            progress: state.attachmentProgress.value[idx],
-            onRequestUpload:
-                () => ComposeLogic.uploadAttachment(ref, state, idx),
-            onDelete: () => ComposeLogic.deleteAttachment(ref, state, idx),
-            onMove: (delta) {
-              state.attachments.value = ComposeLogic.moveAttachment(
-                state.attachments.value,
-                idx,
-                delta,
+          return ValueListenableBuilder<Map<int, double>>(
+            valueListenable: state.attachmentProgress,
+            builder: (context, progressMap, _) {
+              return AttachmentPreview(
+                item: state.attachments.value[idx],
+                progress: progressMap[idx],
+                onRequestUpload:
+                    () => ComposeLogic.uploadAttachment(ref, state, idx),
+                onDelete: () => ComposeLogic.deleteAttachment(ref, state, idx),
+                onMove: (delta) {
+                  state.attachments.value = ComposeLogic.moveAttachment(
+                    state.attachments.value,
+                    idx,
+                    delta,
+                  );
+                },
               );
             },
           );
@@ -172,17 +183,22 @@ class PostComposeScreen extends HookConsumerWidget {
           for (var idx = 0; idx < state.attachments.value.length; idx++)
             Container(
               margin: const EdgeInsets.only(bottom: 8),
-              child: AttachmentPreview(
-                item: state.attachments.value[idx],
-                progress: state.attachmentProgress.value[idx],
-                onRequestUpload:
-                    () => ComposeLogic.uploadAttachment(ref, state, idx),
-                onDelete: () => ComposeLogic.deleteAttachment(ref, state, idx),
-                onMove: (delta) {
-                  state.attachments.value = ComposeLogic.moveAttachment(
-                    state.attachments.value,
-                    idx,
-                    delta,
+              child: ValueListenableBuilder<Map<int, double>>(
+                valueListenable: state.attachmentProgress,
+                builder: (context, progressMap, _) {
+                  return AttachmentPreview(
+                    item: state.attachments.value[idx],
+                    progress: progressMap[idx],
+                    onRequestUpload:
+                        () => ComposeLogic.uploadAttachment(ref, state, idx),
+                    onDelete: () => ComposeLogic.deleteAttachment(ref, state, idx),
+                    onMove: (delta) {
+                      state.attachments.value = ComposeLogic.moveAttachment(
+                        state.attachments.value,
+                        idx,
+                        delta,
+                      );
+                    },
                   );
                 },
               ),
@@ -323,12 +339,18 @@ class PostComposeScreen extends HookConsumerWidget {
                         const Gap(8),
 
                         // Attachments preview
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isWide = isWideScreen(context);
-                            return isWide
-                                ? buildWideAttachmentGrid()
-                                : buildNarrowAttachmentList();
+                        ValueListenableBuilder<List<UniversalFile>>(
+                          valueListenable: state.attachments,
+                          builder: (context, attachments, _) {
+                            if (attachments.isEmpty) return const SizedBox.shrink();
+                            return LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isWide = isWideScreen(context);
+                                return isWide
+                                    ? buildWideAttachmentGrid()
+                                    : buildNarrowAttachmentList();
+                              },
+                            );
                           },
                         ),
                       ],
@@ -367,7 +389,91 @@ class PostComposeScreen extends HookConsumerWidget {
   }
 
   Widget _buildInfoBanner(BuildContext context) {
+    // When editing, preserve the original replied/forwarded post references
+    final effectiveRepliedPost = repliedPost ?? originalPost?.repliedPost;
+    final effectiveForwardedPost = forwardedPost ?? originalPost?.forwardedPost;
+
+    // Show editing banner when editing a post
     if (originalPost != null) {
+      return Column(
+        children: [
+          Container(
+            width: double.infinity,
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: Row(
+              children: [
+                Icon(
+                  Symbols.edit,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                const Gap(4),
+                Text(
+                   'edit'.tr(),
+                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                     color: Theme.of(context).colorScheme.onPrimaryContainer,
+                   ),
+                 ),
+              ],
+            ).padding(all: 16),
+          ),
+          // Show reply/forward banners below editing banner if they exist
+          if (effectiveRepliedPost != null)
+            Container(
+              width: double.infinity,
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.reply,
+                        size: 16,
+                      ),
+                      const Gap(4),
+                      Text(
+                        'postReplyingTo'.tr(),
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    ],
+                  ),
+                  const Gap(8),
+                  _buildCompactReferencePost(context, effectiveRepliedPost),
+                ],
+              ).padding(all: 16),
+            ),
+          if (effectiveForwardedPost != null)
+            Container(
+              width: double.infinity,
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.forward,
+                        size: 16,
+                      ),
+                      const Gap(4),
+                      Text(
+                        'postForwardingTo'.tr(),
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    ],
+                  ),
+                  const Gap(8),
+                  _buildCompactReferencePost(context, effectiveForwardedPost),
+                ],
+              ).padding(all: 16),
+            ),
+        ],
+      );
+    }
+
+    // Show banner for replies (including when editing a reply)
+    if (effectiveRepliedPost != null) {
       return Container(
         width: double.infinity,
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
@@ -377,25 +483,171 @@ class PostComposeScreen extends HookConsumerWidget {
             Row(
               children: [
                 Icon(
-                  repliedPost != null ? Symbols.reply : Symbols.forward,
+                  Symbols.reply,
                   size: 16,
                 ),
                 const Gap(4),
                 Text(
-                  repliedPost != null
-                      ? 'postReplyingTo'.tr()
-                      : 'postForwardingTo'.tr(),
+                  'postReplyingTo'.tr(),
                   style: Theme.of(context).textTheme.labelMedium,
                 ),
               ],
             ),
             const Gap(8),
-            PostItem(item: originalPost!, isOpenable: false),
+            _buildCompactReferencePost(context, effectiveRepliedPost),
+          ],
+        ).padding(all: 16),
+      );
+    }
+
+    // Show banner for forwards (including when editing a forward)
+    if (effectiveForwardedPost != null) {
+      return Container(
+        width: double.infinity,
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Symbols.forward,
+                  size: 16,
+                ),
+                const Gap(4),
+                Text(
+                  'postForwardingTo'.tr(),
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ],
+            ),
+            const Gap(8),
+            _buildCompactReferencePost(context, effectiveForwardedPost),
           ],
         ).padding(all: 16),
       );
     }
 
     return const SizedBox.shrink();
+  }
+
+  Widget _buildCompactReferencePost(BuildContext context, SnPost post) {
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            maxChildSize: 0.9,
+            minChildSize: 0.5,
+            builder: (context, scrollController) => Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.outline,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      child: PostItem(item: post, isOpenable: false),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            ProfilePictureWidget(
+              fileId: post.publisher.picture?.id,
+              radius: 16,
+            ),
+            const Gap(8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.publisher.nick,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (post.title?.isNotEmpty ?? false)
+                    Text(
+                      post.title!,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (post.content?.isNotEmpty ?? false)
+                    Text(
+                      post.content!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (post.attachments.isNotEmpty)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Symbols.attach_file,
+                          size: 12,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        const Gap(4),
+                        Text(
+                          'postHasAttachments'.plural(post.attachments.length),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            Icon(
+              Symbols.open_in_full,
+              size: 16,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/services/responsive.dart';
@@ -258,35 +259,48 @@ class ArticleComposeScreen extends HookConsumerWidget {
           ),
 
           // Attachments preview
-          if (state.attachments.value.isNotEmpty) ...[
-            const Gap(16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (var idx = 0; idx < state.attachments.value.length; idx++)
-                  SizedBox(
-                    width: 120,
-                    height: 120,
-                    child: AttachmentPreview(
-                      item: state.attachments.value[idx],
-                      progress: state.attachmentProgress.value[idx],
-                      onRequestUpload:
-                          () => ComposeLogic.uploadAttachment(ref, state, idx),
-                      onDelete:
-                          () => ComposeLogic.deleteAttachment(ref, state, idx),
-                      onMove: (delta) {
-                        state.attachments.value = ComposeLogic.moveAttachment(
-                          state.attachments.value,
-                          idx,
-                          delta,
-                        );
-                      },
-                    ),
+          ValueListenableBuilder<List<UniversalFile>>(
+            valueListenable: state.attachments,
+            builder: (context, attachments, _) {
+              if (attachments.isEmpty) return const SizedBox.shrink();
+              return Column(
+                children: [
+                  const Gap(16),
+                  ValueListenableBuilder<Map<int, double>>(
+                    valueListenable: state.attachmentProgress,
+                    builder: (context, progressMap, _) {
+                      return Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (var idx = 0; idx < attachments.length; idx++)
+                            SizedBox(
+                              width: 120,
+                              height: 120,
+                              child: AttachmentPreview(
+                                item: attachments[idx],
+                                progress: progressMap[idx],
+                                onRequestUpload:
+                                    () => ComposeLogic.uploadAttachment(ref, state, idx),
+                                onDelete:
+                                    () => ComposeLogic.deleteAttachment(ref, state, idx),
+                                onMove: (delta) {
+                                  state.attachments.value = ComposeLogic.moveAttachment(
+                                    state.attachments.value,
+                                    idx,
+                                    delta,
+                                  );
+                                },
+                              ),
+                            ),
+                        ],
+                      );
+                    },
                   ),
-              ],
-            ),
-          ],
+                ],
+              );
+            },
+          ),
         ],
       );
     }
@@ -295,6 +309,8 @@ class ArticleComposeScreen extends HookConsumerWidget {
       appBar: AppBar(
         leading: const PageBackButton(),
         actions: [
+          // Info banner for article compose
+          const SizedBox.shrink(),
           IconButton(
             icon: const Icon(Symbols.settings),
             onPressed: showSettingsSheet,
