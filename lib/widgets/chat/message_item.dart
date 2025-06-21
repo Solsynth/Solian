@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -8,12 +9,14 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/database/message.dart';
 import 'package:island/models/chat.dart';
+import 'package:island/models/embed.dart';
 import 'package:island/pods/call.dart';
 import 'package:island/screens/chat/room.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -227,6 +230,20 @@ class MessageItem extends HookConsumerWidget {
                                 ).padding(vertical: 4);
                               },
                             ),
+                          if (remoteMessage.meta['embeds'] != null)
+                            ...((remoteMessage.meta['embeds'] as List<dynamic>)
+                                .where((embed) => embed['Type'] == 'link')
+                                .map((embed) => SnEmbedLink.fromJson(embed as Map<String, dynamic>))
+                                .map((link) => LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        return EmbedLinkWidget(
+                                          link: link,
+                                          maxWidth: math.min(constraints.maxWidth, 480),
+                                          margin: const EdgeInsets.symmetric(vertical: 4),
+                                        );
+                                      },
+                                    ))
+                                .toList()),
                           if (progress != null && progress!.isNotEmpty)
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,

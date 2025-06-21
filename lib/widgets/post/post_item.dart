@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'dart:math' as math;
+import 'package:island/models/embed.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
@@ -18,6 +18,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_replies_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -228,6 +229,21 @@ class PostItem extends HookConsumerWidget {
                                 kWideScreenWidth - 160,
                               ),
                             ).padding(top: 4),
+                          // Render embed links
+                          if (item.meta?['embeds'] != null)
+                            ...((item.meta!['embeds'] as List<dynamic>)
+                                .where((embed) => embed['Type'] == 'link')
+                                .map(
+                                  (embedData) => EmbedLinkWidget(
+                                    link: SnEmbedLink.fromJson(
+                                      embedData as Map<String, dynamic>,
+                                    ),
+                                    maxWidth: math.min(
+                                      MediaQuery.of(context).size.width * 0.85,
+                                      kWideScreenWidth - 160,
+                                    ),
+                                  ).padding(top: 4),
+                                )),
                         ],
                       ),
                       onTap: () {
