@@ -140,10 +140,15 @@ class AccountScreen extends HookConsumerWidget {
                 ],
               ),
             ).padding(horizontal: 8),
-            LevelingProgressCard(
-              level: user.value!.profile.level,
-              experience: user.value!.profile.experience,
-              progress: user.value!.profile.levelingProgress,
+            GestureDetector(
+              child: LevelingProgressCard(
+                level: user.value!.profile.level,
+                experience: user.value!.profile.experience,
+                progress: user.value!.profile.levelingProgress,
+              ),
+              onTap: () {
+                context.router.push(LevelingRoute());
+              },
             ).padding(horizontal: 12),
             Row(
               children: [

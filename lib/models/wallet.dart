@@ -56,3 +56,32 @@ sealed class SnTransaction with _$SnTransaction {
   factory SnTransaction.fromJson(Map<String, dynamic> json) =>
       _$SnTransactionFromJson(json);
 }
+
+@freezed
+sealed class SnWalletSubscription with _$SnWalletSubscription {
+  const factory SnWalletSubscription({
+    required String id,
+    required DateTime begunAt,
+    required DateTime endedAt,
+    required String identifier,
+    required bool isActive,
+    required bool isFreeTrial,
+    required int status,
+    required String paymentMethod,
+    required Map<String, dynamic> paymentDetails,
+    required double basePrice,
+    required String? couponId,
+    required dynamic coupon,
+    required DateTime renewalAt,
+    required String accountId,
+    required SnAccount? account,
+    required bool isAvailable,
+    required double finalPrice,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnWalletSubscription;
+
+  factory SnWalletSubscription.fromJson(Map<String, dynamic> json) =>
+      _$SnWalletSubscriptionFromJson(json);
+}

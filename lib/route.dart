@@ -34,6 +34,7 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: RelationshipRoute.page, path: 'relationships'),
             AutoRoute(page: AccountProfileRoute.page, path: ':name'),
             AutoRoute(page: UpdateProfileRoute.page, path: 'me/update'),
+            AutoRoute(page: LevelingRoute.page, path: 'me/leveling'),
             AutoRoute(page: AccountSettingsRoute.page, path: 'settings'),
           ],
         ),
