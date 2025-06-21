@@ -28,6 +28,7 @@ Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
     case 'google':
     case 'github':
     case 'discord':
+    case 'afdian':
       return SvgPicture.asset(
         'assets/images/oidc/$providerLower.svg',
         width: size,
@@ -51,6 +52,8 @@ String getLocalizedProviderName(String provider) {
       return 'accountConnectionProviderGithub'.tr();
     case 'discord':
       return 'accountConnectionProviderDiscord'.tr();
+    case 'afdian':
+      return 'accountConnectionProviderAfdian'.tr();
     default:
       return provider;
   }
@@ -141,7 +144,14 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
     final selectedProvider = useState<String>('apple');
 
     // List of available providers
-    final providers = ['apple', 'microsoft', 'google', 'github', 'discord'];
+    final providers = [
+      'apple',
+      'microsoft',
+      'google',
+      'github',
+      'discord',
+      'afdian',
+    ];
 
     Future<void> addConnection() async {
       final client = ref.watch(apiClientProvider);
@@ -182,7 +192,8 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
         case 'google':
         case 'github':
         case 'discord':
-          await Navigator.of(context).push(
+        case 'afdian':
+          await Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute(
               builder:
                   (context) => OidcScreen(

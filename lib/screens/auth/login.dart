@@ -652,7 +652,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
     }
 
     Future<void> withOidc(String provider) async {
-      final challengeId = await Navigator.of(context).push(
+      final challengeId = await Navigator.of(context, rootNavigator: true).push(
         MaterialPageRoute(
           builder: (context) => OidcScreen(provider: provider.toLowerCase()),
         ),
