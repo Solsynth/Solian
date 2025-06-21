@@ -292,6 +292,7 @@
   "postVisibilityFriends": "仅好友可见",
   "postVisibilityUnlisted": "不公开",
   "postVisibilityPrivate": "私密",
+  "postTruncated": "内容已截断，点击查看完整帖子",
   "chatNotifyLevel": "通知级别",
   "chatNotifyLevelDescription": "决定您将收到多少通知。",
   "chatNotifyLevelAll": "全部",

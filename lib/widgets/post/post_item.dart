@@ -209,6 +209,9 @@ class PostItem extends HookConsumerWidget {
                             ).padding(bottom: 8),
                           if (item.content?.isNotEmpty ?? false)
                             MarkdownTextContent(content: item.content!),
+                          // Show truncation hint if post is truncated
+                          if (item.isTruncated && !isFullPost)
+                            _PostTruncateHint(),
                           if ((item.repliedPost != null ||
                                   item.forwardedPost != null) &&
                               showReferencePost)
@@ -240,7 +243,7 @@ class PostItem extends HookConsumerWidget {
                 children: [
                   // Replies count button
                   Padding(
-                    padding: const EdgeInsets.only(left: 48, right: 12),
+                    padding: const EdgeInsets.only(left: 52, right: 12),
                     child: ActionChip(
                       avatar: Icon(Symbols.reply, size: 16),
                       label: Text(
@@ -253,14 +256,14 @@ class PostItem extends HookConsumerWidget {
                         vertical: VisualDensity.minimumDensity,
                       ),
                       onPressed: () {
-                         if (isOpenable) {
-                           showModalBottomSheet(
-                             context: context,
-                             isScrollControlled: true,
-                             builder: (context) => PostRepliesSheet(post: item),
-                           );
-                         }
-                       },
+                        if (isOpenable) {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => PostRepliesSheet(post: item),
+                          );
+                        }
+                      },
                     ),
                   ),
                   // Reactions list
@@ -393,6 +396,12 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
                       textStyle: const TextStyle(fontSize: 14),
                       isSelectable: false,
                     ).padding(bottom: 4),
+                  // Truncation hint for referenced post
+                  if (referencePost.isTruncated)
+                    _PostTruncateHint(
+                      isCompact: true,
+                      margin: const EdgeInsets.only(top: 4, bottom: 8),
+                    ),
                   if (referencePost.attachments.isNotEmpty)
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -633,6 +642,56 @@ class _PostReactionSheet extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PostTruncateHint extends StatelessWidget {
+  final bool isCompact;
+  final EdgeInsets? margin;
+
+  const _PostTruncateHint({this.isCompact = false, this.margin});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: margin ?? EdgeInsets.only(top: isCompact ? 4 : 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 8 : 12,
+        vertical: isCompact ? 4 : 8,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Symbols.more_horiz,
+            size: isCompact ? 14 : 16,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          SizedBox(width: isCompact ? 4 : 6),
+          Text(
+            'postTruncated'.tr(),
+            style: TextStyle(
+              fontSize: isCompact ? 10 : 12,
+              color: Theme.of(context).colorScheme.secondary,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          SizedBox(width: isCompact ? 3 : 4),
+          Icon(
+            Symbols.arrow_forward,
+            size: isCompact ? 12 : 14,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ],
+      ),
     );
   }
 }
