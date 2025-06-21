@@ -431,7 +431,7 @@ class ChatListScreen extends HookConsumerWidget {
           Positioned(
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: getTabbedPadding(context).bottom + 8,
             child: const CallOverlayBar().padding(horizontal: 16, vertical: 12),
           ),
         ],

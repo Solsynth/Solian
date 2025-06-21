@@ -6,7 +6,7 @@ part of 'call.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$callNotifierHash() => r'e04cea314c823e407d49fd616d90d77491232c12';
+String _$callNotifierHash() => r'47eaba43aa2af1a107725998f4a34af2c94fbc55';
 
 /// See also [CallNotifier].
 @ProviderFor(CallNotifier)

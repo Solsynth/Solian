@@ -54,6 +54,28 @@ class TabsScreen extends HookConsumerWidget {
       builder: (context, child, _) {
         final tabsRouter = AutoTabsRouter.of(context);
 
+        if (isWideScreen(context)) {
+          return Row(
+            children: [
+              NavigationRail(
+                destinations:
+                    destinations
+                        .map(
+                          (e) => NavigationRailDestination(
+                            icon: e.icon,
+                            label: Text(e.label),
+                          ),
+                        )
+                        .toList(),
+                selectedIndex: tabsRouter.activeIndex,
+                onDestinationSelected: tabsRouter.setActiveIndex,
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(child: child),
+            ],
+          );
+        }
+
         return Stack(
           children: [
             Positioned.fill(child: child),

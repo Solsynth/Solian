@@ -11,6 +11,7 @@ import 'package:island/widgets/chat/call_button.dart';
 import 'package:island/widgets/chat/call_overlay.dart';
 import 'package:island/widgets/chat/call_participant_tile.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
@@ -32,37 +33,9 @@ class CallScreen extends HookConsumerWidget {
     final viewMode = useState<String>('grid');
 
     return AppScaffold(
+      noBackground: false,
       appBar: AppBar(
-        leading: PageBackButton(
-          onWillPop: () {
-            showDialog<void>(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  content: const Text(
-                    'Do you want to leave the call or leave it in background?',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('In Background'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.of(context).pop();
-                        await callNotifier.disconnect();
-                        callNotifier.dispose();
-                      },
-                      child: const Text('Leave'),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
+        leading: PageBackButton(),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -83,7 +56,7 @@ class CallScreen extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton(
-                icon: Icon(Icons.grid_view),
+                icon: Icon(Symbols.grid_view),
                 tooltip: 'Grid View',
                 onPressed: () => viewMode.value = 'grid',
                 color:
@@ -92,7 +65,7 @@ class CallScreen extends HookConsumerWidget {
                         : null,
               ),
               IconButton(
-                icon: Icon(Icons.view_agenda),
+                icon: Icon(Symbols.view_agenda),
                 tooltip: 'Stage View',
                 onPressed: () => viewMode.value = 'stage',
                 color:

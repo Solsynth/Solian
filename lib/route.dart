@@ -44,7 +44,6 @@ class AppRouter extends RootStackRouter {
           children: [
             AutoRoute(page: ChatListRoute.page, path: ''),
             AutoRoute(page: ChatRoomRoute.page, path: ':id'),
-            AutoRoute(page: CallRoute.page, path: ':id/call'),
             AutoRoute(page: NewChatRoute.page, path: 'new'),
             AutoRoute(page: EditChatRoute.page, path: ':id/edit'),
             AutoRoute(page: ChatDetailRoute.page, path: ':id/detail'),
@@ -54,6 +53,7 @@ class AppRouter extends RootStackRouter {
     ),
     AutoRoute(page: PostComposeRoute.page, path: '/posts/compose'),
     AutoRoute(page: PostEditRoute.page, path: '/posts/:id/edit'),
+    AutoRoute(page: CallRoute.page, path: '/chat/:id/call'),
     AutoRoute(page: EventCalanderRoute.page, path: '/account/:name/calendar'),
     AutoRoute(
       page: CreatorHubShellRoute.page,

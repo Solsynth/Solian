@@ -66,6 +66,8 @@ class CallNotifier extends _$CallNotifier {
 
   Timer? _durationTimer;
 
+  Room? get room => _room;
+
   @override
   CallState build() {
     // Subscribe to websocket updates

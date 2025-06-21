@@ -25,14 +25,22 @@ EdgeInsets getTabbedPadding(
   double? top,
   double? bottom,
 }) {
-  final bottomPadding = bottom ?? MediaQuery.of(context).padding.bottom + 16;
+  if (isWideScreen(context)) {
+    return EdgeInsets.only(
+      left: left ?? horizontal ?? 0,
+      right: right ?? horizontal ?? 0,
+      top: top ?? vertical ?? 0,
+      bottom: bottom ?? vertical ?? 0,
+    );
+  }
+  final effectiveBottom = bottom ?? vertical;
   return EdgeInsets.only(
     left: left ?? horizontal ?? 0,
     right: right ?? horizontal ?? 0,
     top: top ?? vertical ?? 0,
     bottom:
-        bottom != null
-            ? bottomPadding
+        effectiveBottom != null
+            ? effectiveBottom + MediaQuery.of(context).padding.bottom + 16
             : MediaQuery.of(context).padding.bottom + 16,
   );
 }
