@@ -350,6 +350,7 @@
   "postVisibilityFriends": "Friends Only",
   "postVisibilityUnlisted": "Unlisted",
   "postVisibilityPrivate": "Private",
+  "postTruncated": "Content truncated, tap to view full post",
   "copyMessage": "Copy Message",
   "authFactor": "Authentication Factor",
   "authFactorDelete": "Delete the Factor",

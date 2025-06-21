@@ -39,6 +39,7 @@ sealed class SnPost with _$SnPost {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    @Default(false) bool isTruncated,
   }) = _SnPost;
 
   factory SnPost.fromJson(Map<String, dynamic> json) => _$SnPostFromJson(json);
