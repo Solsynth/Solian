@@ -100,3 +100,59 @@ Map<String, dynamic> _$SnTransactionToJson(_SnTransaction instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_SnWalletSubscription _$SnWalletSubscriptionFromJson(
+  Map<String, dynamic> json,
+) => _SnWalletSubscription(
+  id: json['id'] as String,
+  begunAt: DateTime.parse(json['begun_at'] as String),
+  endedAt: DateTime.parse(json['ended_at'] as String),
+  identifier: json['identifier'] as String,
+  isActive: json['is_active'] as bool,
+  isFreeTrial: json['is_free_trial'] as bool,
+  status: (json['status'] as num).toInt(),
+  paymentMethod: json['payment_method'] as String,
+  paymentDetails: json['payment_details'] as Map<String, dynamic>,
+  basePrice: (json['base_price'] as num).toDouble(),
+  couponId: json['coupon_id'] as String?,
+  coupon: json['coupon'],
+  renewalAt: DateTime.parse(json['renewal_at'] as String),
+  accountId: json['account_id'] as String,
+  account:
+      json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+  isAvailable: json['is_available'] as bool,
+  finalPrice: (json['final_price'] as num).toDouble(),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt:
+      json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+);
+
+Map<String, dynamic> _$SnWalletSubscriptionToJson(
+  _SnWalletSubscription instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'begun_at': instance.begunAt.toIso8601String(),
+  'ended_at': instance.endedAt.toIso8601String(),
+  'identifier': instance.identifier,
+  'is_active': instance.isActive,
+  'is_free_trial': instance.isFreeTrial,
+  'status': instance.status,
+  'payment_method': instance.paymentMethod,
+  'payment_details': instance.paymentDetails,
+  'base_price': instance.basePrice,
+  'coupon_id': instance.couponId,
+  'coupon': instance.coupon,
+  'renewal_at': instance.renewalAt.toIso8601String(),
+  'account_id': instance.accountId,
+  'account': instance.account?.toJson(),
+  'is_available': instance.isAvailable,
+  'final_price': instance.finalPrice,
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
+};
