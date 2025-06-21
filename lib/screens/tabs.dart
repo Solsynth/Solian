@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/screens/notification.dart';
@@ -54,12 +53,6 @@ class TabsScreen extends HookConsumerWidget {
       physics: const NeverScrollableScrollPhysics(),
       builder: (context, child, _) {
         final tabsRouter = AutoTabsRouter.of(context);
-
-        // Check if current route is a tab route
-        final currentRoute = context.router.topRoute;
-        final isTabRoute = routes.any(
-          (route) => route.routeName == currentRoute.name,
-        );
 
         return Stack(
           children: [

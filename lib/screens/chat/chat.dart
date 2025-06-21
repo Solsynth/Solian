@@ -368,10 +368,10 @@ class ChatListScreen extends HookConsumerWidget {
                               ref.invalidate(chatroomsJoinedProvider);
                             }),
                         child: ListView.builder(
-                          padding:
-                              callState.isConnected
-                                  ? EdgeInsets.only(bottom: 96)
-                                  : EdgeInsets.zero,
+                          padding: getTabbedPadding(
+                            context,
+                            bottom: callState.isConnected ? 96 : null,
+                          ),
                           itemCount:
                               items
                                   .where(

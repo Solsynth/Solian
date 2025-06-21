@@ -40,6 +40,7 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
     Symbols.notifications_active,
   ),
   3: ('authFactorTOTP', 'authFactorTOTPDescription', Symbols.timer),
+  4: ('authFactorPin', 'authFactorPinDescription', Symbols.nest_secure_alarm),
 };
 
 @RoutePage()

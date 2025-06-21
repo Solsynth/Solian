@@ -23,7 +23,6 @@ class LevelingProgressCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('levelingProgress').tr().fontSize(16).bold(),
           Row(
             spacing: 8,
             crossAxisAlignment: CrossAxisAlignment.baseline,

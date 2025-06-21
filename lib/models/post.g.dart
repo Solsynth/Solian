@@ -172,7 +172,7 @@ _SnSubscriptionStatus _$SnSubscriptionStatusFromJson(
   Map<String, dynamic> json,
 ) => _SnSubscriptionStatus(
   isSubscribed: json['is_subscribed'] as bool,
-  publisherId: (json['publisher_id'] as num).toInt(),
+  publisherId: json['publisher_id'] as String,
   publisherName: json['publisher_name'] as String,
 );
 

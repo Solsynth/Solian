@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
@@ -46,10 +47,8 @@ class ExploreShellScreen extends ConsumerWidget {
   }
 }
 
-
-
 @RoutePage()
-class ExploreScreen extends ConsumerWidget {
+class ExploreScreen extends HookConsumerWidget {
   final bool isAside;
   const ExploreScreen({super.key, this.isAside = false});
 
@@ -60,12 +59,67 @@ class ExploreScreen extends ConsumerWidget {
       return const EmptyPageHolder();
     }
 
-    final activitiesNotifier = ref.watch(activityListNotifierProvider.notifier);
+    final tabController = useTabController(initialLength: 3);
+    final currentFilter = useState<String?>(null);
+
+    useEffect(() {
+      void listener() {
+        switch (tabController.index) {
+          case 0:
+            currentFilter.value = null;
+            break;
+          case 1:
+            currentFilter.value = 'subscriptions';
+            break;
+          case 2:
+            currentFilter.value = 'friends';
+            break;
+        }
+      }
+
+      tabController.addListener(listener);
+      return () => tabController.removeListener(listener);
+    }, [tabController]);
+
+    final activitiesNotifier = ref.watch(
+      activityListNotifierProvider(currentFilter.value).notifier,
+    );
 
     return TourTriggerWidget(
       child: AppScaffold(
         extendBody: false, // Prevent conflicts with tabs navigation
-        appBar: AppBar(title: const Text('explore').tr()),
+        appBar: AppBar(
+          toolbarHeight: 0,
+          bottom: TabBar(
+            controller: tabController,
+            tabs: [
+              Tab(
+                child: Text(
+                  'explore'.tr(),
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor!,
+                  ),
+                ),
+              ),
+              Tab(
+                child: Text(
+                  'exploreFilterSubscriptions'.tr(),
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor!,
+                  ),
+                ),
+              ),
+              Tab(
+                child: Text(
+                  'exploreFilterFriends'.tr(),
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor!,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         floatingActionButton: FloatingActionButton(
           heroTag: Key("explore-page-fab"),
           onPressed: () {
@@ -78,23 +132,39 @@ class ExploreScreen extends ConsumerWidget {
           child: const Icon(Symbols.edit),
         ),
         floatingActionButtonLocation: TabbedFabLocation(context),
-        body: RefreshIndicator(
-          onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
-          child: PagingHelperView(
-            provider: activityListNotifierProvider,
-            futureRefreshable: activityListNotifierProvider.future,
-            notifierRefreshable: activityListNotifierProvider.notifier,
-            contentBuilder:
-                (data, widgetCount, endItemView) => Center(
-                  child: _ActivityListView(
-                    data: data,
-                    widgetCount: widgetCount,
-                    endItemView: endItemView,
-                    activitiesNotifier: activitiesNotifier,
-                  ),
-                ),
-          ),
+        body: TabBarView(
+          controller: tabController,
+          children: [
+            _buildActivityList(ref, null),
+            _buildActivityList(ref, 'subscriptions'),
+            _buildActivityList(ref, 'friends'),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildActivityList(WidgetRef ref, String? filter) {
+    final activitiesNotifier = ref.watch(
+      activityListNotifierProvider(filter).notifier,
+    );
+
+    return RefreshIndicator(
+      onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
+      child: PagingHelperView(
+        provider: activityListNotifierProvider(filter),
+        futureRefreshable: activityListNotifierProvider(filter).future,
+        notifierRefreshable: activityListNotifierProvider(filter).notifier,
+        contentBuilder:
+            (data, widgetCount, endItemView) => Center(
+              child: _ActivityListView(
+                data: data,
+                widgetCount: widgetCount,
+                endItemView: endItemView,
+                activitiesNotifier: activitiesNotifier,
+                contentOnly: filter != null,
+              ),
+            ),
       ),
     );
   }
@@ -104,6 +174,7 @@ class _ActivityListView extends HookConsumerWidget {
   final CursorPagingData<SnActivity> data;
   final int widgetCount;
   final Widget endItemView;
+  final bool contentOnly;
   final ActivityListNotifier activitiesNotifier;
 
   const _ActivityListView({
@@ -111,6 +182,7 @@ class _ActivityListView extends HookConsumerWidget {
     required this.widgetCount,
     required this.endItemView,
     required this.activitiesNotifier,
+    this.contentOnly = false,
   });
 
   @override
@@ -119,7 +191,8 @@ class _ActivityListView extends HookConsumerWidget {
 
     return CustomScrollView(
       slivers: [
-        if (user.hasValue) SliverToBoxAdapter(child: CheckInWidget()),
+        if (user.hasValue && !contentOnly)
+          SliverToBoxAdapter(child: CheckInWidget()),
         SliverList.builder(
           itemCount: widgetCount,
           itemBuilder: (context, index) {
@@ -178,7 +251,7 @@ class _ActivityListView extends HookConsumerWidget {
             return Column(children: [itemWidget, const Divider(height: 1)]);
           },
         ),
-        SliverGap(MediaQuery.of(context).padding.bottom + 16),
+        SliverGap(getTabbedPadding(context).bottom),
       ],
     );
   }
@@ -188,16 +261,23 @@ class _ActivityListView extends HookConsumerWidget {
 class ActivityListNotifier extends _$ActivityListNotifier
     with CursorPagingNotifierMixin<SnActivity> {
   @override
-  Future<CursorPagingData<SnActivity>> build() => fetch(cursor: null);
+  Future<CursorPagingData<SnActivity>> build(String? filter) =>
+      fetch(cursor: null);
 
   @override
   Future<CursorPagingData<SnActivity>> fetch({required String? cursor}) async {
     final client = ref.read(apiClientProvider);
     final take = 20;
 
+    final queryParameters = {
+      if (cursor != null) 'cursor': cursor,
+      'take': take,
+      if (filter != null) 'filter': filter,
+    };
+
     final response = await client.get(
       '/activities',
-      queryParameters: {if (cursor != null) 'cursor': cursor, 'take': take},
+      queryParameters: queryParameters,
     );
 
     final List<SnActivity> items =

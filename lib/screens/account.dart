@@ -66,10 +66,10 @@ class AccountScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      extendBody: false, // Prevent conflicts with tabs navigation
       noBackground: isWide,
-      appBar: AppBar(title: const Text('account').tr()),
+      appBar: AppBar(backgroundColor: Colors.transparent, toolbarHeight: 0),
       body: SingleChildScrollView(
+        padding: getTabbedPadding(context),
         child: Column(
           children: <Widget>[
             Card(
@@ -144,7 +144,7 @@ class AccountScreen extends HookConsumerWidget {
               level: user.value!.profile.level,
               experience: user.value!.profile.experience,
               progress: user.value!.profile.levelingProgress,
-            ).padding(horizontal: 8),
+            ).padding(horizontal: 12),
             Row(
               children: [
                 Expanded(

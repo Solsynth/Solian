@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -138,13 +139,13 @@ class AuthFactorSheet extends HookConsumerWidget {
                 children: [
                   if (factor.enabledAt == null)
                     Badge(
-                      label: Text('authFactorDisabled'.tr()),
+                      label: Text('authFactorDisabled').tr(),
                       textColor: Theme.of(context).colorScheme.onSecondary,
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                     )
                   else
                     Badge(
-                      label: Text('authFactorEnabled'.tr()),
+                      label: Text('authFactorEnabled').tr(),
                       textColor: Theme.of(context).colorScheme.onPrimary,
                       backgroundColor: Theme.of(context).colorScheme.primary,
                     ),
@@ -217,6 +218,8 @@ class AuthFactorNewSheet extends HookConsumerWidget {
       }
     }
 
+    final width = math.min(400, MediaQuery.of(context).size.width);
+
     return SheetScaffold(
       titleText: 'authFactorNew'.tr(),
       child: Column(
@@ -248,7 +251,7 @@ class AuthFactorNewSheet extends HookConsumerWidget {
               }
             },
           ),
-          if (factorType.value == 0)
+          if ([0].contains(factorType.value))
             TextField(
               controller: secretController,
               decoration: InputDecoration(
@@ -259,6 +262,20 @@ class AuthFactorNewSheet extends HookConsumerWidget {
               ),
               onTapOutside:
                   (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            )
+          else if ([4].contains(factorType.value))
+            OtpTextField(
+              showCursor: false,
+              numberOfFields: 6,
+              obscureText: false,
+              showFieldAsBox: true,
+              focusedBorderColor: Theme.of(context).colorScheme.primary,
+              fieldWidth: (width / 6) - 10,
+              keyboardType: TextInputType.number,
+              onSubmit: (String verificationCode) {
+                secretController.text = verificationCode;
+              },
+              textStyle: Theme.of(context).textTheme.titleLarge!,
             ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),

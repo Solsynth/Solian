@@ -161,48 +161,34 @@ class PublisherProfileScreen extends HookConsumerWidget {
                       ),
                     ],
                   ),
-                  actions: [
-                    subStatus.when(
-                      data:
-                          (status) => IconButton(
-                            onPressed:
-                                subscribing.value
-                                    ? null
-                                    : (status.isSubscribed
-                                        ? unsubscribe
-                                        : subscribe),
-                            icon: Icon(
-                              status.isSubscribed
-                                  ? Icons.remove_circle
-                                  : Icons.add_circle,
-                              shadows: [appbarShadow],
-                            ),
-                          ),
-                      error: (_, _) => const SizedBox(),
-                      loading:
-                          () => const SizedBox(
-                            width: 48,
-                            height: 48,
-                            child: Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                    ),
-                    const Gap(8),
-                  ],
                 ),
                 SliverToBoxAdapter(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: 20,
                     children: [
-                      ProfilePictureWidget(file: data.picture, radius: 32),
+                      GestureDetector(
+                        child: Badge(
+                          isLabelVisible: data.type == 0,
+                          padding: EdgeInsets.all(4),
+                          label: Icon(
+                            Symbols.launch,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          offset: Offset(0, 48),
+                          child: ProfilePictureWidget(
+                            file: data.picture,
+                            radius: 32,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context, true);
+                          context.router.pushPath('/account/${data.name}');
+                        },
+                      ),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -242,19 +228,49 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                 uname: data.account!.name,
                                 padding: EdgeInsets.zero,
                               ),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                context.router.pushPath(
-                                  '/account/${data.name}',
-                                );
-                              },
-                              icon: const Icon(Symbols.launch),
-                              label: Text('accountProfileView').tr(),
-                              style: ButtonStyle(
-                                visualDensity: VisualDensity(vertical: -2),
-                              ),
-                            ).padding(top: 8),
+                            subStatus
+                                .when(
+                                  data:
+                                      (status) => FilledButton.icon(
+                                        onPressed:
+                                            subscribing.value
+                                                ? null
+                                                : (status.isSubscribed
+                                                    ? unsubscribe
+                                                    : subscribe),
+                                        icon: Icon(
+                                          status.isSubscribed
+                                              ? Symbols.remove_circle
+                                              : Symbols.add_circle,
+                                        ),
+                                        label:
+                                            Text(
+                                              status.isSubscribed
+                                                  ? 'unsubscribe'
+                                                  : 'subscribe',
+                                            ).tr(),
+                                        style: ButtonStyle(
+                                          visualDensity: VisualDensity(
+                                            vertical: -2,
+                                          ),
+                                        ),
+                                      ),
+                                  error: (_, _) => const SizedBox(),
+                                  loading:
+                                      () => const SizedBox(
+                                        height: 36,
+                                        child: Center(
+                                          child: SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                )
+                                .padding(top: 8),
                           ],
                         ),
                       ),

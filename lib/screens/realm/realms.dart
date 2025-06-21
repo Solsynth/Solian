@@ -13,6 +13,7 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/services/file.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -93,9 +94,7 @@ class RealmListScreen extends HookConsumerWidget {
                 children: [
                   Expanded(
                     child: ListView.builder(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).padding.bottom,
-                      ),
+                      padding: getTabbedPadding(context),
                       itemCount: value.length,
                       itemBuilder: (context, item) {
                         return ListTile(

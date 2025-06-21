@@ -86,7 +86,7 @@ sealed class SnPublisherStats with _$SnPublisherStats {
 sealed class SnSubscriptionStatus with _$SnSubscriptionStatus {
   const factory SnSubscriptionStatus({
     required bool isSubscribed,
-    required int publisherId,
+    required String publisherId,
     required String publisherName,
   }) = _SnSubscriptionStatus;
 

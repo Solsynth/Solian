@@ -789,7 +789,7 @@ as int,
 /// @nodoc
 mixin _$SnSubscriptionStatus {
 
- bool get isSubscribed; int get publisherId; String get publisherName;
+ bool get isSubscribed; String get publisherId; String get publisherName;
 /// Create a copy of SnSubscriptionStatus
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -822,7 +822,7 @@ abstract mixin class $SnSubscriptionStatusCopyWith<$Res>  {
   factory $SnSubscriptionStatusCopyWith(SnSubscriptionStatus value, $Res Function(SnSubscriptionStatus) _then) = _$SnSubscriptionStatusCopyWithImpl;
 @useResult
 $Res call({
- bool isSubscribed, int publisherId, String publisherName
+ bool isSubscribed, String publisherId, String publisherName
 });
 
 
@@ -843,7 +843,7 @@ class _$SnSubscriptionStatusCopyWithImpl<$Res>
   return _then(_self.copyWith(
 isSubscribed: null == isSubscribed ? _self.isSubscribed : isSubscribed // ignore: cast_nullable_to_non_nullable
 as bool,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as int,publisherName: null == publisherName ? _self.publisherName : publisherName // ignore: cast_nullable_to_non_nullable
+as String,publisherName: null == publisherName ? _self.publisherName : publisherName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -859,7 +859,7 @@ class _SnSubscriptionStatus implements SnSubscriptionStatus {
   factory _SnSubscriptionStatus.fromJson(Map<String, dynamic> json) => _$SnSubscriptionStatusFromJson(json);
 
 @override final  bool isSubscribed;
-@override final  int publisherId;
+@override final  String publisherId;
 @override final  String publisherName;
 
 /// Create a copy of SnSubscriptionStatus
@@ -895,7 +895,7 @@ abstract mixin class _$SnSubscriptionStatusCopyWith<$Res> implements $SnSubscrip
   factory _$SnSubscriptionStatusCopyWith(_SnSubscriptionStatus value, $Res Function(_SnSubscriptionStatus) _then) = __$SnSubscriptionStatusCopyWithImpl;
 @override @useResult
 $Res call({
- bool isSubscribed, int publisherId, String publisherName
+ bool isSubscribed, String publisherId, String publisherName
 });
 
 
@@ -916,7 +916,7 @@ class __$SnSubscriptionStatusCopyWithImpl<$Res>
   return _then(_SnSubscriptionStatus(
 isSubscribed: null == isSubscribed ? _self.isSubscribed : isSubscribed // ignore: cast_nullable_to_non_nullable
 as bool,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as int,publisherName: null == publisherName ? _self.publisherName : publisherName // ignore: cast_nullable_to_non_nullable
+as String,publisherName: null == publisherName ? _self.publisherName : publisherName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
