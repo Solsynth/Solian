@@ -6,9 +6,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/call.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/widgets/chat/call_participant_tile.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:livekit_client/livekit_client.dart';
-import '../../widgets/content/sheet.dart';
 
 class CallControlsBar extends HookConsumerWidget {
   const CallControlsBar({super.key});
@@ -150,9 +150,10 @@ class CallControlsBar extends HookConsumerWidget {
         context: context,
         builder: (BuildContext dialogContext) {
           return SheetScaffold(
-            titleText: deviceType == 'videoinput'
-                ? 'selectCamera'.tr()
-                : 'selectMicrophone'.tr(),
+            titleText:
+                deviceType == 'videoinput'
+                    ? 'selectCamera'.tr()
+                    : 'selectMicrophone'.tr(),
             child: ListView.builder(
               itemCount: devices.length,
               itemBuilder: (context, index) {

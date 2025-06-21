@@ -156,6 +156,7 @@
   "accountConnectionProviderGoogle": "Google",
   "accountConnectionProviderGithub": "GitHub",
   "accountConnectionProviderDiscord": "Discord",
+  "accountConnectionProviderAfdian": "Afdian",
   "checkIn": "Check In",
   "checkInNone": "Not checked-in yet",
   "checkInNoneHint": "Get your fortune tips and daily rewards by checking in.",
