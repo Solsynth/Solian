@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnEmbedLink {
 
-@JsonKey(name: 'Type') String get type;@JsonKey(name: 'Url') String get url;@JsonKey(name: 'Title') String get title;@JsonKey(name: 'Description') String get description;@JsonKey(name: 'ImageUrl') String get imageUrl;@JsonKey(name: 'FaviconUrl') String get faviconUrl;@JsonKey(name: 'SiteName') String get siteName;@JsonKey(name: 'ContentType') String get contentType;@JsonKey(name: 'Author') dynamic get author;@JsonKey(name: 'PublishedDate') dynamic get publishedDate;
+@JsonKey(name: 'Type') String get type;@JsonKey(name: 'Url') String get url;@JsonKey(name: 'Title') String get title;@JsonKey(name: 'Description') String? get description;@JsonKey(name: 'ImageUrl') String? get imageUrl;@JsonKey(name: 'FaviconUrl') String get faviconUrl;@JsonKey(name: 'SiteName') String get siteName;@JsonKey(name: 'ContentType') String? get contentType;@JsonKey(name: 'Author') String? get author;@JsonKey(name: 'PublishedDate') DateTime? get publishedDate;
 /// Create a copy of SnEmbedLink
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,12 +29,12 @@ $SnEmbedLinkCopyWith<SnEmbedLink> get copyWith => _$SnEmbedLinkCopyWithImpl<SnEm
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnEmbedLink&&(identical(other.type, type) || other.type == type)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.faviconUrl, faviconUrl) || other.faviconUrl == faviconUrl)&&(identical(other.siteName, siteName) || other.siteName == siteName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&const DeepCollectionEquality().equals(other.author, author)&&const DeepCollectionEquality().equals(other.publishedDate, publishedDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnEmbedLink&&(identical(other.type, type) || other.type == type)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.faviconUrl, faviconUrl) || other.faviconUrl == faviconUrl)&&(identical(other.siteName, siteName) || other.siteName == siteName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.author, author) || other.author == author)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,url,title,description,imageUrl,faviconUrl,siteName,contentType,const DeepCollectionEquality().hash(author),const DeepCollectionEquality().hash(publishedDate));
+int get hashCode => Object.hash(runtimeType,type,url,title,description,imageUrl,faviconUrl,siteName,contentType,author,publishedDate);
 
 @override
 String toString() {
@@ -49,7 +49,7 @@ abstract mixin class $SnEmbedLinkCopyWith<$Res>  {
   factory $SnEmbedLinkCopyWith(SnEmbedLink value, $Res Function(SnEmbedLink) _then) = _$SnEmbedLinkCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'Type') String type,@JsonKey(name: 'Url') String url,@JsonKey(name: 'Title') String title,@JsonKey(name: 'Description') String description,@JsonKey(name: 'ImageUrl') String imageUrl,@JsonKey(name: 'FaviconUrl') String faviconUrl,@JsonKey(name: 'SiteName') String siteName,@JsonKey(name: 'ContentType') String contentType,@JsonKey(name: 'Author') dynamic author,@JsonKey(name: 'PublishedDate') dynamic publishedDate
+@JsonKey(name: 'Type') String type,@JsonKey(name: 'Url') String url,@JsonKey(name: 'Title') String title,@JsonKey(name: 'Description') String? description,@JsonKey(name: 'ImageUrl') String? imageUrl,@JsonKey(name: 'FaviconUrl') String faviconUrl,@JsonKey(name: 'SiteName') String siteName,@JsonKey(name: 'ContentType') String? contentType,@JsonKey(name: 'Author') String? author,@JsonKey(name: 'PublishedDate') DateTime? publishedDate
 });
 
 
@@ -66,19 +66,19 @@ class _$SnEmbedLinkCopyWithImpl<$Res>
 
 /// Create a copy of SnEmbedLink
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = null,Object? imageUrl = null,Object? faviconUrl = null,Object? siteName = null,Object? contentType = null,Object? author = freezed,Object? publishedDate = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = freezed,Object? imageUrl = freezed,Object? faviconUrl = null,Object? siteName = null,Object? contentType = freezed,Object? author = freezed,Object? publishedDate = freezed,}) {
   return _then(_self.copyWith(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
-as String,faviconUrl: null == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,faviconUrl: null == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
 as String,siteName: null == siteName ? _self.siteName : siteName // ignore: cast_nullable_to_non_nullable
-as String,contentType: null == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
-as String,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
-as dynamic,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
-as dynamic,
+as String,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
+as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String?,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -95,13 +95,13 @@ class _SnEmbedLink implements SnEmbedLink {
 @override@JsonKey(name: 'Type') final  String type;
 @override@JsonKey(name: 'Url') final  String url;
 @override@JsonKey(name: 'Title') final  String title;
-@override@JsonKey(name: 'Description') final  String description;
-@override@JsonKey(name: 'ImageUrl') final  String imageUrl;
+@override@JsonKey(name: 'Description') final  String? description;
+@override@JsonKey(name: 'ImageUrl') final  String? imageUrl;
 @override@JsonKey(name: 'FaviconUrl') final  String faviconUrl;
 @override@JsonKey(name: 'SiteName') final  String siteName;
-@override@JsonKey(name: 'ContentType') final  String contentType;
-@override@JsonKey(name: 'Author') final  dynamic author;
-@override@JsonKey(name: 'PublishedDate') final  dynamic publishedDate;
+@override@JsonKey(name: 'ContentType') final  String? contentType;
+@override@JsonKey(name: 'Author') final  String? author;
+@override@JsonKey(name: 'PublishedDate') final  DateTime? publishedDate;
 
 /// Create a copy of SnEmbedLink
 /// with the given fields replaced by the non-null parameter values.
@@ -116,12 +116,12 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnEmbedLink&&(identical(other.type, type) || other.type == type)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.faviconUrl, faviconUrl) || other.faviconUrl == faviconUrl)&&(identical(other.siteName, siteName) || other.siteName == siteName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&const DeepCollectionEquality().equals(other.author, author)&&const DeepCollectionEquality().equals(other.publishedDate, publishedDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnEmbedLink&&(identical(other.type, type) || other.type == type)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.faviconUrl, faviconUrl) || other.faviconUrl == faviconUrl)&&(identical(other.siteName, siteName) || other.siteName == siteName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.author, author) || other.author == author)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,url,title,description,imageUrl,faviconUrl,siteName,contentType,const DeepCollectionEquality().hash(author),const DeepCollectionEquality().hash(publishedDate));
+int get hashCode => Object.hash(runtimeType,type,url,title,description,imageUrl,faviconUrl,siteName,contentType,author,publishedDate);
 
 @override
 String toString() {
@@ -136,7 +136,7 @@ abstract mixin class _$SnEmbedLinkCopyWith<$Res> implements $SnEmbedLinkCopyWith
   factory _$SnEmbedLinkCopyWith(_SnEmbedLink value, $Res Function(_SnEmbedLink) _then) = __$SnEmbedLinkCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'Type') String type,@JsonKey(name: 'Url') String url,@JsonKey(name: 'Title') String title,@JsonKey(name: 'Description') String description,@JsonKey(name: 'ImageUrl') String imageUrl,@JsonKey(name: 'FaviconUrl') String faviconUrl,@JsonKey(name: 'SiteName') String siteName,@JsonKey(name: 'ContentType') String contentType,@JsonKey(name: 'Author') dynamic author,@JsonKey(name: 'PublishedDate') dynamic publishedDate
+@JsonKey(name: 'Type') String type,@JsonKey(name: 'Url') String url,@JsonKey(name: 'Title') String title,@JsonKey(name: 'Description') String? description,@JsonKey(name: 'ImageUrl') String? imageUrl,@JsonKey(name: 'FaviconUrl') String faviconUrl,@JsonKey(name: 'SiteName') String siteName,@JsonKey(name: 'ContentType') String? contentType,@JsonKey(name: 'Author') String? author,@JsonKey(name: 'PublishedDate') DateTime? publishedDate
 });
 
 
@@ -153,19 +153,19 @@ class __$SnEmbedLinkCopyWithImpl<$Res>
 
 /// Create a copy of SnEmbedLink
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = null,Object? imageUrl = null,Object? faviconUrl = null,Object? siteName = null,Object? contentType = null,Object? author = freezed,Object? publishedDate = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = freezed,Object? imageUrl = freezed,Object? faviconUrl = null,Object? siteName = null,Object? contentType = freezed,Object? author = freezed,Object? publishedDate = freezed,}) {
   return _then(_SnEmbedLink(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
-as String,faviconUrl: null == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,faviconUrl: null == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
 as String,siteName: null == siteName ? _self.siteName : siteName // ignore: cast_nullable_to_non_nullable
-as String,contentType: null == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
-as String,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
-as dynamic,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
-as dynamic,
+as String,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
+as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String?,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

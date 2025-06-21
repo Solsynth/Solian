@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/embed.dart';
@@ -42,10 +41,10 @@ class EmbedLinkWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Preview Image
-              if (link.imageUrl.isNotEmpty)
+              if (link.imageUrl != null && link.imageUrl!.isNotEmpty)
                 AspectRatio(
                   aspectRatio: 16 / 9,
-                  child: UniversalImage(uri: link.imageUrl, fit: BoxFit.cover),
+                  child: UniversalImage(uri: link.imageUrl!, fit: BoxFit.cover),
                 ),
 
               // Content
@@ -117,9 +116,9 @@ class EmbedLinkWidget extends StatelessWidget {
                     ],
 
                     // Description
-                    if (link.description.isNotEmpty) ...[
+                    if (link.description != null && link.description!.isNotEmpty) ...[
                       Text(
-                        link.description,
+                        link.description!,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -153,7 +152,7 @@ class EmbedLinkWidget extends StatelessWidget {
                             ),
                             const Gap(4),
                             Text(
-                              link.author.toString(),
+                              link.author!,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -169,7 +168,7 @@ class EmbedLinkWidget extends StatelessWidget {
                             ),
                             const Gap(4),
                             Text(
-                              _formatDate(link.publishedDate),
+                              _formatDate(link.publishedDate!),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -188,20 +187,20 @@ class EmbedLinkWidget extends StatelessWidget {
     );
   }
 
-  String _formatDate(dynamic date) {
-    if (date == null) return '';
-
+  String _formatDate(DateTime date) {
     try {
-      DateTime dateTime;
-      if (date is String) {
-        dateTime = DateTime.parse(date);
-      } else if (date is DateTime) {
-        dateTime = date;
+      final now = DateTime.now();
+      final difference = now.difference(date);
+      
+      if (difference.inDays == 0) {
+        return 'Today';
+      } else if (difference.inDays == 1) {
+        return 'Yesterday';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays} days ago';
       } else {
-        return date.toString();
+        return '${date.day}/${date.month}/${date.year}';
       }
-
-      return DateFormat.yMMMd().format(dateTime);
     } catch (e) {
       return date.toString();
     }

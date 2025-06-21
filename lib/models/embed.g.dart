@@ -10,13 +10,16 @@ _SnEmbedLink _$SnEmbedLinkFromJson(Map<String, dynamic> json) => _SnEmbedLink(
   type: json['Type'] as String,
   url: json['Url'] as String,
   title: json['Title'] as String,
-  description: json['Description'] as String,
-  imageUrl: json['ImageUrl'] as String,
+  description: json['Description'] as String?,
+  imageUrl: json['ImageUrl'] as String?,
   faviconUrl: json['FaviconUrl'] as String,
   siteName: json['SiteName'] as String,
-  contentType: json['ContentType'] as String,
-  author: json['Author'],
-  publishedDate: json['PublishedDate'],
+  contentType: json['ContentType'] as String?,
+  author: json['Author'] as String?,
+  publishedDate:
+      json['PublishedDate'] == null
+          ? null
+          : DateTime.parse(json['PublishedDate'] as String),
 );
 
 Map<String, dynamic> _$SnEmbedLinkToJson(_SnEmbedLink instance) =>
@@ -30,5 +33,5 @@ Map<String, dynamic> _$SnEmbedLinkToJson(_SnEmbedLink instance) =>
       'SiteName': instance.siteName,
       'ContentType': instance.contentType,
       'Author': instance.author,
-      'PublishedDate': instance.publishedDate,
+      'PublishedDate': instance.publishedDate?.toIso8601String(),
     };
