@@ -32,7 +32,7 @@ class RestorePurchaseSheet extends HookConsumerWidget {
       try {
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/wallet/subscriptions/order/restore/${selectedProvider.value!}',
+          '/subscriptions/order/restore/${selectedProvider.value!}',
           data: {'order_id': orderIdController.text.trim()},
         );
 
