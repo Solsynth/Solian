@@ -1,13 +1,19 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pods/userinfo.dart';
-import 'package:island/services/responsive.dart';
-import 'package:island/widgets/app_scaffold.dart';
-import 'package:island/widgets/account/leveling_progress.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/user.dart';
+import 'package:island/models/wallet.dart';
+import 'package:island/pods/network.dart';
+import 'package:island/pods/userinfo.dart';
+import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/leveling_progress.dart';
+import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/payment/payment_overlay.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 @RoutePage()
 class LevelingScreen extends HookConsumerWidget {
@@ -57,30 +63,33 @@ class LevelingScreen extends HookConsumerWidget {
 
             const Gap(24),
 
-            // Placeholder for unlocked content
-            Text(
-              'Unlocked Features',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
+            // Membership section
+            _buildMembershipSection(context, ref, user.value!),
             const Gap(16),
+
+            // Unlocked features section
             Container(
-              height: 200,
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                ),
               ),
-              child: Center(
-                child: Text(
-                  'Unlocked features will be shown here',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Unlocked Features',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                ),
+                  const Gap(8),
+                  Text(
+                    'Features unlocked at your current level will be displayed here.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -207,6 +216,344 @@ class LevelingScreen extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildMembershipSection(
+    BuildContext context,
+    WidgetRef ref,
+    SnAccount user,
+  ) {
+    final membership = user.profile.stellarMembership;
+    final isActive = membership?.isActive ?? false;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.primaryContainer,
+            Theme.of(context).colorScheme.secondaryContainer,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isActive ? Icons.star : Icons.star_border,
+                color: Theme.of(context).colorScheme.primary,
+                size: 24,
+              ),
+              const Gap(8),
+              Text(
+                'Stellar Membership',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const Gap(12),
+
+          if (isActive) ...[
+            _buildCurrentMembershipCard(context, membership!),
+            const Gap(16),
+          ],
+
+          Text(
+            isActive ? 'Upgrade Your Plan' : 'Choose Your Plan',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const Gap(12),
+
+          _buildMembershipTiers(context, ref, membership),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrentMembershipCard(
+    BuildContext context,
+    SnWalletSubscription membership,
+  ) {
+    final tierName = _getMembershipTierName(membership.identifier);
+    final tierColor = _getMembershipTierColor(context, membership.identifier);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: tierColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: tierColor, width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.verified, color: tierColor, size: 20),
+          const Gap(8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Current: $tierName',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: tierColor,
+                  ),
+                ),
+                Text(
+                  'Expires: ${_formatDate(membership.endedAt)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMembershipTiers(
+    BuildContext context,
+    WidgetRef ref,
+    SnWalletSubscription? currentMembership,
+  ) {
+    final tiers = [
+      {
+        'id': 'solian.stellar.primary',
+        'name': 'Stellar',
+        'price': '10 NS\$ per month',
+        'features': [
+          'Basic features',
+          'Priority support',
+          'Ad-free experience',
+        ],
+        'color': Colors.blue,
+      },
+      {
+        'id': 'solian.stellar.nova',
+        'name': 'Nova',
+        'price': '20 NS\$ per month',
+        'features': [
+          'All Primary features',
+          'Advanced customization',
+          'Early access',
+        ],
+        'color': Colors.purple,
+      },
+      {
+        'id': 'solian.stellar.supernova',
+        'name': 'Supernova',
+        'price': '30 NS\$ per month',
+        'features': ['All Nova features', 'Exclusive content', 'VIP support'],
+        'color': Colors.orange,
+      },
+    ];
+
+    return Column(
+      children:
+          tiers.map((tier) {
+            final isCurrentTier = currentMembership?.identifier == tier['id'];
+            final tierColor = tier['color'] as Color;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap:
+                      isCurrentTier
+                          ? null
+                          : () => _purchaseMembership(
+                            context,
+                            ref,
+                            tier['id'] as String,
+                          ),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color:
+                          isCurrentTier
+                              ? tierColor.withOpacity(0.1)
+                              : Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color:
+                            isCurrentTier
+                                ? tierColor
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.outline.withOpacity(0.2),
+                        width: isCurrentTier ? 2 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: tierColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const Gap(12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    tier['name'] as String,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: isCurrentTier ? tierColor : null,
+                                    ),
+                                  ),
+                                  const Gap(8),
+                                  if (isCurrentTier)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: tierColor,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'CURRENT',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              Text(
+                                tier['price'] as String,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (!isCurrentTier)
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+    );
+  }
+
+  String _getMembershipTierName(String identifier) {
+    switch (identifier) {
+      case 'solian.stellar.primary':
+        return 'Primary';
+      case 'solian.stellar.nova':
+        return 'Nova';
+      case 'solian.stellar.supernova':
+        return 'Supernova';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  Color _getMembershipTierColor(BuildContext context, String identifier) {
+    switch (identifier) {
+      case 'solian.stellar.primary':
+        return Colors.blue;
+      case 'solian.stellar.nova':
+        return Colors.purple;
+      case 'solian.stellar.supernova':
+        return Colors.orange;
+      default:
+        return Theme.of(context).colorScheme.primary;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  Future<void> _purchaseMembership(
+    BuildContext context,
+    WidgetRef ref,
+    String tierId,
+  ) async {
+    final client = ref.watch(apiClientProvider);
+    try {
+      showLoadingModal(context);
+      final resp = await client.post(
+        '/subscriptions',
+        data: {
+          'identifier': tierId,
+          'payment_method': 'solian.wallet',
+          'payment_details': {'currency': 'golds'},
+          'cycle_duration_days': 30,
+        },
+        options: Options(headers: {'X-Noop': true}),
+      );
+      final subscription = SnWalletSubscription.fromJson(resp.data);
+      if (subscription.status == 1) return;
+      final orderResp = await client.post(
+        '/subscriptions/${subscription.identifier}/order',
+      );
+      final order = SnWalletOrder.fromJson(orderResp.data);
+
+      if (context.mounted) hideLoadingModal(context);
+
+      // Show payment overlay to complete the payment
+      if (!context.mounted) return;
+      final paidOrder = await PaymentOverlay.show(
+        context: context,
+        order: order,
+        enableBiometric: true,
+      );
+
+      if (paidOrder != null) {
+        // Payment successful, refresh user info or show success message
+        ref.invalidate(userInfoProvider);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('membershipPurchaseSuccess'.tr()),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            ),
+          );
+        }
+      }
+    } catch (err) {
+      if (context.mounted) hideLoadingModal(context);
+      showErrorAlert(err);
+    }
   }
 }
 

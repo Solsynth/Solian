@@ -84,6 +84,12 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
               : SnVerificationMark.fromJson(
                 json['verification'] as Map<String, dynamic>,
               ),
+      stellarMembership:
+          json['stellar_membership'] == null
+              ? null
+              : SnWalletSubscription.fromJson(
+                json['stellar_membership'] as Map<String, dynamic>,
+              ),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt:
@@ -112,6 +118,7 @@ Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
       'picture': instance.picture?.toJson(),
       'background': instance.background?.toJson(),
       'verification': instance.verification?.toJson(),
+      'stellar_membership': instance.stellarMembership?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),

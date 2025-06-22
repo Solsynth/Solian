@@ -85,3 +85,29 @@ sealed class SnWalletSubscription with _$SnWalletSubscription {
   factory SnWalletSubscription.fromJson(Map<String, dynamic> json) =>
       _$SnWalletSubscriptionFromJson(json);
 }
+
+@freezed
+sealed class SnWalletOrder with _$SnWalletOrder {
+  const factory SnWalletOrder({
+    required String id,
+    required int status,
+    required String currency,
+    required dynamic remarks,
+    required String appIdentifier,
+    @Default({}) Map<String, dynamic> meta,
+    required int amount,
+    required DateTime expiredAt,
+    required String? payeeWalletId,
+    required SnWallet? payeeWallet,
+    required String? transactionId,
+    required SnTransaction? transaction,
+    required String? issuerAppId,
+    required dynamic issuerApp,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnWalletOrder;
+
+  factory SnWalletOrder.fromJson(Map<String, dynamic> json) =>
+      _$SnWalletOrderFromJson(json);
+}

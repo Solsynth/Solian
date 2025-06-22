@@ -40,7 +40,7 @@ EdgeInsets getTabbedPadding(
     top: top ?? vertical ?? 0,
     bottom:
         effectiveBottom != null
-            ? effectiveBottom + MediaQuery.of(context).padding.bottom + 16
-            : MediaQuery.of(context).padding.bottom + 16,
+            ? effectiveBottom + MediaQuery.of(context).padding.bottom + 56
+            : MediaQuery.of(context).padding.bottom + 56,
   );
 }
