@@ -782,6 +782,157 @@ $SnAccountCopyWith<$Res>? get account {
 
 
 /// @nodoc
+mixin _$SnWalletSubscriptionRef {
+
+ String get id; bool get isActive; String get accountId; DateTime get createdAt; DateTime? get deletedAt; DateTime get updatedAt; String get identifier;
+/// Create a copy of SnWalletSubscriptionRef
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnWalletSubscriptionRefCopyWith<SnWalletSubscriptionRef> get copyWith => _$SnWalletSubscriptionRefCopyWithImpl<SnWalletSubscriptionRef>(this as SnWalletSubscriptionRef, _$identity);
+
+  /// Serializes this SnWalletSubscriptionRef to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletSubscriptionRef&&(identical(other.id, id) || other.id == id)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.identifier, identifier) || other.identifier == identifier));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,isActive,accountId,createdAt,deletedAt,updatedAt,identifier);
+
+@override
+String toString() {
+  return 'SnWalletSubscriptionRef(id: $id, isActive: $isActive, accountId: $accountId, createdAt: $createdAt, deletedAt: $deletedAt, updatedAt: $updatedAt, identifier: $identifier)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnWalletSubscriptionRefCopyWith<$Res>  {
+  factory $SnWalletSubscriptionRefCopyWith(SnWalletSubscriptionRef value, $Res Function(SnWalletSubscriptionRef) _then) = _$SnWalletSubscriptionRefCopyWithImpl;
+@useResult
+$Res call({
+ String id, bool isActive, String accountId, DateTime createdAt, DateTime? deletedAt, DateTime updatedAt, String identifier
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnWalletSubscriptionRefCopyWithImpl<$Res>
+    implements $SnWalletSubscriptionRefCopyWith<$Res> {
+  _$SnWalletSubscriptionRefCopyWithImpl(this._self, this._then);
+
+  final SnWalletSubscriptionRef _self;
+  final $Res Function(SnWalletSubscriptionRef) _then;
+
+/// Create a copy of SnWalletSubscriptionRef
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? isActive = null,Object? accountId = null,Object? createdAt = null,Object? deletedAt = freezed,Object? updatedAt = null,Object? identifier = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnWalletSubscriptionRef implements SnWalletSubscriptionRef {
+  const _SnWalletSubscriptionRef({required this.id, required this.isActive, required this.accountId, required this.createdAt, required this.deletedAt, required this.updatedAt, required this.identifier});
+  factory _SnWalletSubscriptionRef.fromJson(Map<String, dynamic> json) => _$SnWalletSubscriptionRefFromJson(json);
+
+@override final  String id;
+@override final  bool isActive;
+@override final  String accountId;
+@override final  DateTime createdAt;
+@override final  DateTime? deletedAt;
+@override final  DateTime updatedAt;
+@override final  String identifier;
+
+/// Create a copy of SnWalletSubscriptionRef
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnWalletSubscriptionRefCopyWith<_SnWalletSubscriptionRef> get copyWith => __$SnWalletSubscriptionRefCopyWithImpl<_SnWalletSubscriptionRef>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnWalletSubscriptionRefToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletSubscriptionRef&&(identical(other.id, id) || other.id == id)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.identifier, identifier) || other.identifier == identifier));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,isActive,accountId,createdAt,deletedAt,updatedAt,identifier);
+
+@override
+String toString() {
+  return 'SnWalletSubscriptionRef(id: $id, isActive: $isActive, accountId: $accountId, createdAt: $createdAt, deletedAt: $deletedAt, updatedAt: $updatedAt, identifier: $identifier)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnWalletSubscriptionRefCopyWith<$Res> implements $SnWalletSubscriptionRefCopyWith<$Res> {
+  factory _$SnWalletSubscriptionRefCopyWith(_SnWalletSubscriptionRef value, $Res Function(_SnWalletSubscriptionRef) _then) = __$SnWalletSubscriptionRefCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, bool isActive, String accountId, DateTime createdAt, DateTime? deletedAt, DateTime updatedAt, String identifier
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnWalletSubscriptionRefCopyWithImpl<$Res>
+    implements _$SnWalletSubscriptionRefCopyWith<$Res> {
+  __$SnWalletSubscriptionRefCopyWithImpl(this._self, this._then);
+
+  final _SnWalletSubscriptionRef _self;
+  final $Res Function(_SnWalletSubscriptionRef) _then;
+
+/// Create a copy of SnWalletSubscriptionRef
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? isActive = null,Object? accountId = null,Object? createdAt = null,Object? deletedAt = freezed,Object? updatedAt = null,Object? identifier = null,}) {
+  return _then(_SnWalletSubscriptionRef(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnWalletOrder {
 
  String get id; int get status; String get currency; dynamic get remarks; String get appIdentifier; Map<String, dynamic> get meta; int get amount; DateTime get expiredAt; String? get payeeWalletId; SnWallet? get payeeWallet; String? get transactionId; SnTransaction? get transaction; String? get issuerAppId; dynamic get issuerApp; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;

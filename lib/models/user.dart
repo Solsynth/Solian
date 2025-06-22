@@ -45,7 +45,7 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     required SnCloudFile? picture,
     required SnCloudFile? background,
     required SnVerificationMark? verification,
-    required SnWalletSubscription? stellarMembership,
+    required SnWalletSubscriptionRef? stellarMembership,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,

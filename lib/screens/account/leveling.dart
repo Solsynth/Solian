@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/user.dart';
 import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
@@ -15,6 +14,21 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/payment/payment_overlay.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'leveling.g.dart';
+
+@riverpod
+Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
+  try {
+    final client = ref.watch(apiClientProvider);
+    final resp = await client.get('/subscriptions/fuzzy/solian.stellar');
+    return SnWalletSubscription.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) return null;
+    rethrow;
+  }
+}
 
 @RoutePage()
 class LevelingScreen extends HookConsumerWidget {
@@ -23,6 +37,7 @@ class LevelingScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
+    final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
 
     if (user.value == null) {
       return AppScaffold(
@@ -65,7 +80,7 @@ class LevelingScreen extends HookConsumerWidget {
             const Gap(24),
 
             // Membership section
-            _buildMembershipSection(context, ref, user.value!),
+            _buildMembershipSection(context, ref, stellarSubscription),
             const Gap(16),
 
             // Unlocked features section
@@ -222,9 +237,52 @@ class LevelingScreen extends HookConsumerWidget {
   Widget _buildMembershipSection(
     BuildContext context,
     WidgetRef ref,
-    SnAccount user,
+    AsyncValue<SnWalletSubscription?> stellarSubscriptionAsync,
   ) {
-    final membership = user.profile.stellarMembership;
+    return stellarSubscriptionAsync.when(
+      data: (membership) => _buildMembershipContent(context, ref, membership),
+      loading:
+          () => Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primaryContainer,
+                  Theme.of(context).colorScheme.secondaryContainer,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+      error:
+          (error, stack) => Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primaryContainer,
+                  Theme.of(context).colorScheme.secondaryContainer,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text('Error loading membership: $error'),
+          ),
+    );
+  }
+
+  Widget _buildMembershipContent(
+    BuildContext context,
+    WidgetRef ref,
+    SnWalletSubscription? membership,
+  ) {
     final isActive = membership?.isActive ?? false;
 
     return Container(
@@ -309,7 +367,9 @@ class LevelingScreen extends HookConsumerWidget {
                 ),
                 if (membership.endedAt != null)
                   Text(
-                    'membershipExpires'.tr(args: [membership.endedAt!.formatSystem()]),
+                    'membershipExpires'.tr(
+                      args: [membership.endedAt!.formatSystem()],
+                    ),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -354,7 +414,11 @@ class LevelingScreen extends HookConsumerWidget {
         'id': 'solian.stellar.supernova',
         'name': 'membershipTierSupernova'.tr(),
         'price': 'membershipPriceSupernova'.tr(),
-        'features': ['membershipFeatureAllNova'.tr(), 'membershipFeatureExclusiveContent'.tr(), 'membershipFeatureVipSupport'.tr()],
+        'features': [
+          'membershipFeatureAllNova'.tr(),
+          'membershipFeatureExclusiveContent'.tr(),
+          'membershipFeatureVipSupport'.tr(),
+        ],
         'color': Colors.orange,
       },
     ];
@@ -544,6 +608,7 @@ class LevelingScreen extends HookConsumerWidget {
           data: {'order_id': paidOrder.id},
         );
 
+        ref.invalidate(accountStellarSubscriptionProvider);
         ref.read(userInfoProvider.notifier).fetchUser();
         if (context.mounted) {
           showSnackBar(context, 'membershipPurchaseSuccess'.tr());

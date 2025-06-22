@@ -278,7 +278,10 @@ class AccountProfileScreen extends HookConsumerWidget {
                             children: [
                               Row(
                                 children: [
-                                  Text(data.nick).fontSize(20),
+                                  AccountName(
+                                    account: data,
+                                    style: TextStyle(fontSize: 20),
+                                  ),
                                   const Gap(6),
                                   Text(
                                     '@${data.name}',

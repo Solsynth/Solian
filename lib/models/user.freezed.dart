@@ -200,7 +200,7 @@ $SnAccountProfileCopyWith<$Res> get profile {
 /// @nodoc
 mixin _$SnAccountProfile {
 
- String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; SnWalletSubscription? get stellarMembership; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; SnWalletSubscriptionRef? get stellarMembership; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -233,11 +233,11 @@ abstract mixin class $SnAccountProfileCopyWith<$Res>  {
   factory $SnAccountProfileCopyWith(SnAccountProfile value, $Res Function(SnAccountProfile) _then) = _$SnAccountProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, SnWalletSubscription? stellarMembership, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, SnWalletSubscriptionRef? stellarMembership, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnAccountBadgeCopyWith<$Res>? get activeBadge;$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;$SnWalletSubscriptionCopyWith<$Res>? get stellarMembership;
+$SnAccountBadgeCopyWith<$Res>? get activeBadge;$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;$SnWalletSubscriptionRefCopyWith<$Res>? get stellarMembership;
 
 }
 /// @nodoc
@@ -271,7 +271,7 @@ as double,picture: freezed == picture ? _self.picture : picture // ignore: cast_
 as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
 as SnVerificationMark?,stellarMembership: freezed == stellarMembership ? _self.stellarMembership : stellarMembership // ignore: cast_nullable_to_non_nullable
-as SnWalletSubscription?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SnWalletSubscriptionRef?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -329,12 +329,12 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnWalletSubscriptionCopyWith<$Res>? get stellarMembership {
+$SnWalletSubscriptionRefCopyWith<$Res>? get stellarMembership {
     if (_self.stellarMembership == null) {
     return null;
   }
 
-  return $SnWalletSubscriptionCopyWith<$Res>(_self.stellarMembership!, (value) {
+  return $SnWalletSubscriptionRefCopyWith<$Res>(_self.stellarMembership!, (value) {
     return _then(_self.copyWith(stellarMembership: value));
   });
 }
@@ -366,7 +366,7 @@ class _SnAccountProfile implements SnAccountProfile {
 @override final  SnCloudFile? picture;
 @override final  SnCloudFile? background;
 @override final  SnVerificationMark? verification;
-@override final  SnWalletSubscription? stellarMembership;
+@override final  SnWalletSubscriptionRef? stellarMembership;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -404,11 +404,11 @@ abstract mixin class _$SnAccountProfileCopyWith<$Res> implements $SnAccountProfi
   factory _$SnAccountProfileCopyWith(_SnAccountProfile value, $Res Function(_SnAccountProfile) _then) = __$SnAccountProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, SnWalletSubscription? stellarMembership, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, SnWalletSubscriptionRef? stellarMembership, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnAccountBadgeCopyWith<$Res>? get activeBadge;@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;@override $SnWalletSubscriptionCopyWith<$Res>? get stellarMembership;
+@override $SnAccountBadgeCopyWith<$Res>? get activeBadge;@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;@override $SnWalletSubscriptionRefCopyWith<$Res>? get stellarMembership;
 
 }
 /// @nodoc
@@ -442,7 +442,7 @@ as double,picture: freezed == picture ? _self.picture : picture // ignore: cast_
 as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
 as SnVerificationMark?,stellarMembership: freezed == stellarMembership ? _self.stellarMembership : stellarMembership // ignore: cast_nullable_to_non_nullable
-as SnWalletSubscription?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SnWalletSubscriptionRef?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -501,12 +501,12 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnWalletSubscriptionCopyWith<$Res>? get stellarMembership {
+$SnWalletSubscriptionRefCopyWith<$Res>? get stellarMembership {
     if (_self.stellarMembership == null) {
     return null;
   }
 
-  return $SnWalletSubscriptionCopyWith<$Res>(_self.stellarMembership!, (value) {
+  return $SnWalletSubscriptionRefCopyWith<$Res>(_self.stellarMembership!, (value) {
     return _then(_self.copyWith(stellarMembership: value));
   });
 }

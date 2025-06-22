@@ -163,6 +163,33 @@ Map<String, dynamic> _$SnWalletSubscriptionToJson(
   'deleted_at': instance.deletedAt?.toIso8601String(),
 };
 
+_SnWalletSubscriptionRef _$SnWalletSubscriptionRefFromJson(
+  Map<String, dynamic> json,
+) => _SnWalletSubscriptionRef(
+  id: json['id'] as String,
+  isActive: json['is_active'] as bool,
+  accountId: json['account_id'] as String,
+  createdAt: DateTime.parse(json['created_at'] as String),
+  deletedAt:
+      json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  identifier: json['identifier'] as String,
+);
+
+Map<String, dynamic> _$SnWalletSubscriptionRefToJson(
+  _SnWalletSubscriptionRef instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'is_active': instance.isActive,
+  'account_id': instance.accountId,
+  'created_at': instance.createdAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'identifier': instance.identifier,
+};
+
 _SnWalletOrder _$SnWalletOrderFromJson(Map<String, dynamic> json) =>
     _SnWalletOrder(
       id: json['id'] as String,

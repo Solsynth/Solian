@@ -87,7 +87,7 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
       stellarMembership:
           json['stellar_membership'] == null
               ? null
-              : SnWalletSubscription.fromJson(
+              : SnWalletSubscriptionRef.fromJson(
                 json['stellar_membership'] as Map<String, dynamic>,
               ),
       createdAt: DateTime.parse(json['created_at'] as String),

@@ -87,6 +87,22 @@ sealed class SnWalletSubscription with _$SnWalletSubscription {
 }
 
 @freezed
+sealed class SnWalletSubscriptionRef with _$SnWalletSubscriptionRef {
+  const factory SnWalletSubscriptionRef({
+    required String id,
+    required bool isActive,
+    required String accountId,
+    required DateTime createdAt,
+    required DateTime? deletedAt,
+    required DateTime updatedAt,
+    required String identifier,
+  }) = _SnWalletSubscriptionRef;
+
+  factory SnWalletSubscriptionRef.fromJson(Map<String, dynamic> json) =>
+      _$SnWalletSubscriptionRefFromJson(json);
+}
+
+@freezed
 sealed class SnWalletOrder with _$SnWalletOrder {
   const factory SnWalletOrder({
     required String id,

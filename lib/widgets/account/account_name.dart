@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/user.dart';
+import 'package:island/models/wallet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -25,6 +26,8 @@ class AccountName extends StatelessWidget {
       spacing: 4,
       children: [
         Flexible(child: Text(account.nick, style: style)),
+        if (account.profile.stellarMembership != null)
+          StellarMembershipMark(membership: account.profile.stellarMembership!),
         if (account.profile.verification != null)
           VerificationMark(mark: account.profile.verification!),
       ],
@@ -60,6 +63,74 @@ class VerificationMark extends StatelessWidget {
         color: kVerificationMarkColors[mark.type],
         fill: 1,
       ),
+    );
+  }
+}
+
+class StellarMembershipMark extends StatelessWidget {
+  final SnWalletSubscriptionRef membership;
+  const StellarMembershipMark({super.key, required this.membership});
+
+  String _getMembershipTierName(String identifier) {
+    switch (identifier) {
+      case 'solian.stellar.primary':
+        return 'membershipTierStellar'.tr();
+      case 'solian.stellar.nova':
+        return 'membershipTierNova'.tr();
+      case 'solian.stellar.supernova':
+        return 'membershipTierSupernova'.tr();
+      default:
+        return 'membershipTierUnknown'.tr();
+    }
+  }
+
+  Color _getMembershipTierColor(String identifier) {
+    switch (identifier) {
+      case 'solian.stellar.primary':
+        return Colors.amber;
+      case 'solian.stellar.nova':
+        return Colors.blue;
+      case 'solian.stellar.supernova':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getMembershipTierIcon(String identifier) {
+    switch (identifier) {
+      case 'solian.stellar.primary':
+        return Symbols.star;
+      case 'solian.stellar.nova':
+        return Symbols.auto_awesome;
+      case 'solian.stellar.supernova':
+        return Symbols.diamond;
+      default:
+        return Symbols.workspace_premium;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!membership.isActive) return const SizedBox.shrink();
+
+    final tierName = _getMembershipTierName(membership.identifier);
+    final tierColor = _getMembershipTierColor(membership.identifier);
+    final tierIcon = _getMembershipTierIcon(membership.identifier);
+
+    return Tooltip(
+      richMessage: TextSpan(
+        text: 'stellarMembership'.tr(),
+        children: [
+          TextSpan(text: '\n'),
+          TextSpan(
+            text: 'currentMembership'.tr(args: [tierName]),
+            style: TextStyle(fontWeight: FontWeight.normal),
+          ),
+        ],
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      child: Icon(tierIcon, size: 16, color: tierColor, fill: 1),
     );
   }
 }
