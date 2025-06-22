@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/file.dart';
+import 'package:island/models/wallet.dart';
 
 part 'user.freezed.dart';
 part 'user.g.dart';
@@ -44,6 +45,7 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     required SnCloudFile? picture,
     required SnCloudFile? background,
     required SnVerificationMark? verification,
+    required SnWalletSubscription? stellarMembership,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,

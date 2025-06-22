@@ -116,6 +116,8 @@ dependencies:
   sign_in_with_apple: ^7.0.1
   flutter_svg: ^2.1.0
   native_exif: ^0.6.2
+  local_auth: ^2.3.0
+  flutter_secure_storage: ^4.2.1
 
 dev_dependencies:
   flutter_test:

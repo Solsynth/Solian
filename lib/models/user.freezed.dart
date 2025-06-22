@@ -200,7 +200,7 @@ $SnAccountProfileCopyWith<$Res> get profile {
 /// @nodoc
 mixin _$SnAccountProfile {
 
- String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; SnWalletSubscription? get stellarMembership; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -213,16 +213,16 @@ $SnAccountProfileCopyWith<SnAccountProfile> get copyWith => _$SnAccountProfileCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.stellarMembership, stellarMembership) || other.stellarMembership == stellarMembership)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,lastSeenAt,activeBadge,experience,level,levelingProgress,picture,background,verification,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,lastSeenAt,activeBadge,experience,level,levelingProgress,picture,background,verification,stellarMembership,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, stellarMembership: $stellarMembership, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -233,11 +233,11 @@ abstract mixin class $SnAccountProfileCopyWith<$Res>  {
   factory $SnAccountProfileCopyWith(SnAccountProfile value, $Res Function(SnAccountProfile) _then) = _$SnAccountProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, SnWalletSubscription? stellarMembership, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnAccountBadgeCopyWith<$Res>? get activeBadge;$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;
+$SnAccountBadgeCopyWith<$Res>? get activeBadge;$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;$SnWalletSubscriptionCopyWith<$Res>? get stellarMembership;
 
 }
 /// @nodoc
@@ -250,7 +250,7 @@ class _$SnAccountProfileCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? stellarMembership = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -270,7 +270,8 @@ as int,levelingProgress: null == levelingProgress ? _self.levelingProgress : lev
 as double,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SnVerificationMark?,stellarMembership: freezed == stellarMembership ? _self.stellarMembership : stellarMembership // ignore: cast_nullable_to_non_nullable
+as SnWalletSubscription?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -324,6 +325,18 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
   return $SnVerificationMarkCopyWith<$Res>(_self.verification!, (value) {
     return _then(_self.copyWith(verification: value));
   });
+}/// Create a copy of SnAccountProfile
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnWalletSubscriptionCopyWith<$Res>? get stellarMembership {
+    if (_self.stellarMembership == null) {
+    return null;
+  }
+
+  return $SnWalletSubscriptionCopyWith<$Res>(_self.stellarMembership!, (value) {
+    return _then(_self.copyWith(stellarMembership: value));
+  });
 }
 }
 
@@ -332,7 +345,7 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 @JsonSerializable()
 
 class _SnAccountProfile implements SnAccountProfile {
-  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, this.lastSeenAt, this.activeBadge, required this.experience, required this.level, required this.levelingProgress, required this.picture, required this.background, required this.verification, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, this.lastSeenAt, this.activeBadge, required this.experience, required this.level, required this.levelingProgress, required this.picture, required this.background, required this.verification, required this.stellarMembership, required this.createdAt, required this.updatedAt, required this.deletedAt});
   factory _SnAccountProfile.fromJson(Map<String, dynamic> json) => _$SnAccountProfileFromJson(json);
 
 @override final  String id;
@@ -353,6 +366,7 @@ class _SnAccountProfile implements SnAccountProfile {
 @override final  SnCloudFile? picture;
 @override final  SnCloudFile? background;
 @override final  SnVerificationMark? verification;
+@override final  SnWalletSubscription? stellarMembership;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -370,16 +384,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.stellarMembership, stellarMembership) || other.stellarMembership == stellarMembership)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,lastSeenAt,activeBadge,experience,level,levelingProgress,picture,background,verification,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,lastSeenAt,activeBadge,experience,level,levelingProgress,picture,background,verification,stellarMembership,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, stellarMembership: $stellarMembership, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -390,11 +404,11 @@ abstract mixin class _$SnAccountProfileCopyWith<$Res> implements $SnAccountProfi
   factory _$SnAccountProfileCopyWith(_SnAccountProfile value, $Res Function(_SnAccountProfile) _then) = __$SnAccountProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, SnWalletSubscription? stellarMembership, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnAccountBadgeCopyWith<$Res>? get activeBadge;@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;
+@override $SnAccountBadgeCopyWith<$Res>? get activeBadge;@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;@override $SnWalletSubscriptionCopyWith<$Res>? get stellarMembership;
 
 }
 /// @nodoc
@@ -407,7 +421,7 @@ class __$SnAccountProfileCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? stellarMembership = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAccountProfile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -427,7 +441,8 @@ as int,levelingProgress: null == levelingProgress ? _self.levelingProgress : lev
 as double,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SnVerificationMark?,stellarMembership: freezed == stellarMembership ? _self.stellarMembership : stellarMembership // ignore: cast_nullable_to_non_nullable
+as SnWalletSubscription?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -481,6 +496,18 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 
   return $SnVerificationMarkCopyWith<$Res>(_self.verification!, (value) {
     return _then(_self.copyWith(verification: value));
+  });
+}/// Create a copy of SnAccountProfile
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnWalletSubscriptionCopyWith<$Res>? get stellarMembership {
+    if (_self.stellarMembership == null) {
+    return null;
+  }
+
+  return $SnWalletSubscriptionCopyWith<$Res>(_self.stellarMembership!, (value) {
+    return _then(_self.copyWith(stellarMembership: value));
   });
 }
 }

@@ -313,5 +313,11 @@
   "checkInResultT1": "凶",
   "checkInResultT2": "中平",
   "checkInResultT3": "吉",
-  "checkInResultT4": "大吉"
+  "checkInResultT4": "大吉",
+  "authenticating": "认证中...",
+  "processing": "处理中...",
+  "processingPayment": "处理付款中...",
+  "pleaseWait": "请稍候",
+  "paymentFailed": "付款失败，请重试。",
+  "paymentSuccess": "付款成功完成！"
 }

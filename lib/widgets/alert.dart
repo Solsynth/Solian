@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:island/services/responsive.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 export 'content/alert.native.dart'
@@ -11,9 +12,21 @@ void showSnackBar(
   String message, {
   SnackBarAction? action,
 }) {
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(message), action: action));
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      action: action,
+      margin:
+          isWideScreen(context)
+              ? null
+              : EdgeInsets.fromLTRB(
+                15.0,
+                5.0,
+                15.0,
+                MediaQuery.of(context).padding.bottom + 28,
+              ),
+    ),
+  );
 }
 
 void clearSnackBar(BuildContext context) {

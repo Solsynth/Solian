@@ -84,6 +84,8 @@ PODS:
     - Flutter
   - flutter_platform_alert (0.0.1):
     - Flutter
+  - flutter_secure_storage (3.3.1):
+    - Flutter
   - flutter_timezone (0.0.1):
     - Flutter
   - flutter_udid (0.0.1):
@@ -131,6 +133,9 @@ PODS:
     - Flutter
     - flutter_webrtc
     - WebRTC-SDK (= 125.6422.07)
+  - local_auth_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - media_kit_libs_ios_video (1.0.4):
     - Flutter
   - media_kit_video (0.0.1):
@@ -210,6 +215,7 @@ DEPENDENCIES:
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - flutter_platform_alert (from `.symlinks/plugins/flutter_platform_alert/ios`)
+  - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - flutter_timezone (from `.symlinks/plugins/flutter_timezone/ios`)
   - flutter_udid (from `.symlinks/plugins/flutter_udid/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
@@ -218,6 +224,7 @@ DEPENDENCIES:
   - irondash_engine_context (from `.symlinks/plugins/irondash_engine_context/ios`)
   - Kingfisher (~> 8.0)
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
+  - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - native_exif (from `.symlinks/plugins/native_exif/ios`)
@@ -277,6 +284,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_native_splash/ios"
   flutter_platform_alert:
     :path: ".symlinks/plugins/flutter_platform_alert/ios"
+  flutter_secure_storage:
+    :path: ".symlinks/plugins/flutter_secure_storage/ios"
   flutter_timezone:
     :path: ".symlinks/plugins/flutter_timezone/ios"
   flutter_udid:
@@ -291,6 +300,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/irondash_engine_context/ios"
   livekit_client:
     :path: ".symlinks/plugins/livekit_client/ios"
+  local_auth_darwin:
+    :path: ".symlinks/plugins/local_auth_darwin/darwin"
   media_kit_libs_ios_video:
     :path: ".symlinks/plugins/media_kit_libs_ios_video/ios"
   media_kit_video:
@@ -341,6 +352,7 @@ SPEC CHECKSUMS:
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
   flutter_platform_alert: bf3b5fcd4ac14bd637e20527e9c471633071afd3
+  flutter_secure_storage: 50035aef357c5a8bdd67fd6bc81370d46efc4d16
   flutter_timezone: 7c838e17ffd4645d261e87037e5bebf6d38fe544
   flutter_udid: f7c3884e6ec2951efe4f9de082257fc77c4d15e9
   flutter_webrtc: fd0d3bdef8766a0736dbbe2e5b7e85f1f3c52117
@@ -351,6 +363,7 @@ SPEC CHECKSUMS:
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
   Kingfisher: 0621d0ac0c78fecb19f6dc5303bde2b52abaf2f5
   livekit_client: 9e901890552514206e5ff828903ed271531da264
+  local_auth_darwin: 553ce4f9b16d3fdfeafce9cf042e7c9f77c1c391
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
