@@ -562,7 +562,7 @@ $SnWalletCopyWith<$Res>? get payeeWallet {
 /// @nodoc
 mixin _$SnWalletSubscription {
 
- String get id; DateTime get begunAt; DateTime get endedAt; String get identifier; bool get isActive; bool get isFreeTrial; int get status; String get paymentMethod; Map<String, dynamic> get paymentDetails; double get basePrice; String? get couponId; dynamic get coupon; DateTime get renewalAt; String get accountId; SnAccount? get account; bool get isAvailable; double get finalPrice; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; DateTime get begunAt; DateTime? get endedAt; String get identifier; bool get isActive; bool get isFreeTrial; int get status; String? get paymentMethod; Map<String, dynamic>? get paymentDetails; double? get basePrice; String? get couponId; dynamic get coupon; DateTime? get renewalAt; String get accountId; SnAccount? get account; bool get isAvailable; double? get finalPrice; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnWalletSubscription
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -595,7 +595,7 @@ abstract mixin class $SnWalletSubscriptionCopyWith<$Res>  {
   factory $SnWalletSubscriptionCopyWith(SnWalletSubscription value, $Res Function(SnWalletSubscription) _then) = _$SnWalletSubscriptionCopyWithImpl;
 @useResult
 $Res call({
- String id, DateTime begunAt, DateTime endedAt, String identifier, bool isActive, bool isFreeTrial, int status, String paymentMethod, Map<String, dynamic> paymentDetails, double basePrice, String? couponId, dynamic coupon, DateTime renewalAt, String accountId, SnAccount? account, bool isAvailable, double finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime begunAt, DateTime? endedAt, String identifier, bool isActive, bool isFreeTrial, int status, String? paymentMethod, Map<String, dynamic>? paymentDetails, double? basePrice, String? couponId, dynamic coupon, DateTime? renewalAt, String accountId, SnAccount? account, bool isAvailable, double? finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -612,26 +612,26 @@ class _$SnWalletSubscriptionCopyWithImpl<$Res>
 
 /// Create a copy of SnWalletSubscription
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? begunAt = null,Object? endedAt = null,Object? identifier = null,Object? isActive = null,Object? isFreeTrial = null,Object? status = null,Object? paymentMethod = null,Object? paymentDetails = null,Object? basePrice = null,Object? couponId = freezed,Object? coupon = freezed,Object? renewalAt = null,Object? accountId = null,Object? account = freezed,Object? isAvailable = null,Object? finalPrice = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? begunAt = null,Object? endedAt = freezed,Object? identifier = null,Object? isActive = null,Object? isFreeTrial = null,Object? status = null,Object? paymentMethod = freezed,Object? paymentDetails = freezed,Object? basePrice = freezed,Object? couponId = freezed,Object? coupon = freezed,Object? renewalAt = freezed,Object? accountId = null,Object? account = freezed,Object? isAvailable = null,Object? finalPrice = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,begunAt: null == begunAt ? _self.begunAt : begunAt // ignore: cast_nullable_to_non_nullable
-as DateTime,endedAt: null == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as DateTime,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,isFreeTrial: null == isFreeTrial ? _self.isFreeTrial : isFreeTrial // ignore: cast_nullable_to_non_nullable
 as bool,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as int,paymentMethod: null == paymentMethod ? _self.paymentMethod : paymentMethod // ignore: cast_nullable_to_non_nullable
-as String,paymentDetails: null == paymentDetails ? _self.paymentDetails : paymentDetails // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,basePrice: null == basePrice ? _self.basePrice : basePrice // ignore: cast_nullable_to_non_nullable
-as double,couponId: freezed == couponId ? _self.couponId : couponId // ignore: cast_nullable_to_non_nullable
+as int,paymentMethod: freezed == paymentMethod ? _self.paymentMethod : paymentMethod // ignore: cast_nullable_to_non_nullable
+as String?,paymentDetails: freezed == paymentDetails ? _self.paymentDetails : paymentDetails // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,basePrice: freezed == basePrice ? _self.basePrice : basePrice // ignore: cast_nullable_to_non_nullable
+as double?,couponId: freezed == couponId ? _self.couponId : couponId // ignore: cast_nullable_to_non_nullable
 as String?,coupon: freezed == coupon ? _self.coupon : coupon // ignore: cast_nullable_to_non_nullable
-as dynamic,renewalAt: null == renewalAt ? _self.renewalAt : renewalAt // ignore: cast_nullable_to_non_nullable
-as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as dynamic,renewalAt: freezed == renewalAt ? _self.renewalAt : renewalAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,isAvailable: null == isAvailable ? _self.isAvailable : isAvailable // ignore: cast_nullable_to_non_nullable
-as bool,finalPrice: null == finalPrice ? _self.finalPrice : finalPrice // ignore: cast_nullable_to_non_nullable
-as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,finalPrice: freezed == finalPrice ? _self.finalPrice : finalPrice // ignore: cast_nullable_to_non_nullable
+as double?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -657,32 +657,34 @@ $SnAccountCopyWith<$Res>? get account {
 @JsonSerializable()
 
 class _SnWalletSubscription implements SnWalletSubscription {
-  const _SnWalletSubscription({required this.id, required this.begunAt, required this.endedAt, required this.identifier, required this.isActive, required this.isFreeTrial, required this.status, required this.paymentMethod, required final  Map<String, dynamic> paymentDetails, required this.basePrice, required this.couponId, required this.coupon, required this.renewalAt, required this.accountId, required this.account, required this.isAvailable, required this.finalPrice, required this.createdAt, required this.updatedAt, required this.deletedAt}): _paymentDetails = paymentDetails;
+  const _SnWalletSubscription({required this.id, required this.begunAt, required this.endedAt, required this.identifier, this.isActive = true, this.isFreeTrial = false, this.status = 1, required this.paymentMethod, required final  Map<String, dynamic>? paymentDetails, required this.basePrice, required this.couponId, required this.coupon, required this.renewalAt, required this.accountId, required this.account, this.isAvailable = true, required this.finalPrice, required this.createdAt, required this.updatedAt, required this.deletedAt}): _paymentDetails = paymentDetails;
   factory _SnWalletSubscription.fromJson(Map<String, dynamic> json) => _$SnWalletSubscriptionFromJson(json);
 
 @override final  String id;
 @override final  DateTime begunAt;
-@override final  DateTime endedAt;
+@override final  DateTime? endedAt;
 @override final  String identifier;
-@override final  bool isActive;
-@override final  bool isFreeTrial;
-@override final  int status;
-@override final  String paymentMethod;
- final  Map<String, dynamic> _paymentDetails;
-@override Map<String, dynamic> get paymentDetails {
+@override@JsonKey() final  bool isActive;
+@override@JsonKey() final  bool isFreeTrial;
+@override@JsonKey() final  int status;
+@override final  String? paymentMethod;
+ final  Map<String, dynamic>? _paymentDetails;
+@override Map<String, dynamic>? get paymentDetails {
+  final value = _paymentDetails;
+  if (value == null) return null;
   if (_paymentDetails is EqualUnmodifiableMapView) return _paymentDetails;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_paymentDetails);
+  return EqualUnmodifiableMapView(value);
 }
 
-@override final  double basePrice;
+@override final  double? basePrice;
 @override final  String? couponId;
 @override final  dynamic coupon;
-@override final  DateTime renewalAt;
+@override final  DateTime? renewalAt;
 @override final  String accountId;
 @override final  SnAccount? account;
-@override final  bool isAvailable;
-@override final  double finalPrice;
+@override@JsonKey() final  bool isAvailable;
+@override final  double? finalPrice;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -720,7 +722,7 @@ abstract mixin class _$SnWalletSubscriptionCopyWith<$Res> implements $SnWalletSu
   factory _$SnWalletSubscriptionCopyWith(_SnWalletSubscription value, $Res Function(_SnWalletSubscription) _then) = __$SnWalletSubscriptionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, DateTime begunAt, DateTime endedAt, String identifier, bool isActive, bool isFreeTrial, int status, String paymentMethod, Map<String, dynamic> paymentDetails, double basePrice, String? couponId, dynamic coupon, DateTime renewalAt, String accountId, SnAccount? account, bool isAvailable, double finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime begunAt, DateTime? endedAt, String identifier, bool isActive, bool isFreeTrial, int status, String? paymentMethod, Map<String, dynamic>? paymentDetails, double? basePrice, String? couponId, dynamic coupon, DateTime? renewalAt, String accountId, SnAccount? account, bool isAvailable, double? finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -737,26 +739,26 @@ class __$SnWalletSubscriptionCopyWithImpl<$Res>
 
 /// Create a copy of SnWalletSubscription
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? begunAt = null,Object? endedAt = null,Object? identifier = null,Object? isActive = null,Object? isFreeTrial = null,Object? status = null,Object? paymentMethod = null,Object? paymentDetails = null,Object? basePrice = null,Object? couponId = freezed,Object? coupon = freezed,Object? renewalAt = null,Object? accountId = null,Object? account = freezed,Object? isAvailable = null,Object? finalPrice = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? begunAt = null,Object? endedAt = freezed,Object? identifier = null,Object? isActive = null,Object? isFreeTrial = null,Object? status = null,Object? paymentMethod = freezed,Object? paymentDetails = freezed,Object? basePrice = freezed,Object? couponId = freezed,Object? coupon = freezed,Object? renewalAt = freezed,Object? accountId = null,Object? account = freezed,Object? isAvailable = null,Object? finalPrice = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnWalletSubscription(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,begunAt: null == begunAt ? _self.begunAt : begunAt // ignore: cast_nullable_to_non_nullable
-as DateTime,endedAt: null == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as DateTime,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,isFreeTrial: null == isFreeTrial ? _self.isFreeTrial : isFreeTrial // ignore: cast_nullable_to_non_nullable
 as bool,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as int,paymentMethod: null == paymentMethod ? _self.paymentMethod : paymentMethod // ignore: cast_nullable_to_non_nullable
-as String,paymentDetails: null == paymentDetails ? _self._paymentDetails : paymentDetails // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,basePrice: null == basePrice ? _self.basePrice : basePrice // ignore: cast_nullable_to_non_nullable
-as double,couponId: freezed == couponId ? _self.couponId : couponId // ignore: cast_nullable_to_non_nullable
+as int,paymentMethod: freezed == paymentMethod ? _self.paymentMethod : paymentMethod // ignore: cast_nullable_to_non_nullable
+as String?,paymentDetails: freezed == paymentDetails ? _self._paymentDetails : paymentDetails // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,basePrice: freezed == basePrice ? _self.basePrice : basePrice // ignore: cast_nullable_to_non_nullable
+as double?,couponId: freezed == couponId ? _self.couponId : couponId // ignore: cast_nullable_to_non_nullable
 as String?,coupon: freezed == coupon ? _self.coupon : coupon // ignore: cast_nullable_to_non_nullable
-as dynamic,renewalAt: null == renewalAt ? _self.renewalAt : renewalAt // ignore: cast_nullable_to_non_nullable
-as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as dynamic,renewalAt: freezed == renewalAt ? _self.renewalAt : renewalAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,isAvailable: null == isAvailable ? _self.isAvailable : isAvailable // ignore: cast_nullable_to_non_nullable
-as bool,finalPrice: null == finalPrice ? _self.finalPrice : finalPrice // ignore: cast_nullable_to_non_nullable
-as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,finalPrice: freezed == finalPrice ? _self.finalPrice : finalPrice // ignore: cast_nullable_to_non_nullable
+as double?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,

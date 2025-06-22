@@ -12,6 +12,7 @@ import 'package:dio/dio.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/services.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class PaymentOverlay extends HookConsumerWidget {
   final SnWalletOrder order;
@@ -278,12 +279,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
       _isPinMode = true;
     });
     if (message != null && message.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      showSnackBar(context, message);
     }
   }
 
@@ -423,21 +419,10 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   Widget _buildBiometricAuth() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Symbols.fingerprint,
-            size: 64,
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
-        ),
-        const Gap(24),
+        Icon(Symbols.fingerprint, size: 48),
+        const Gap(16),
         Text(
           'useBiometricToConfirm'.tr(),
           style: Theme.of(
@@ -445,15 +430,15 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
           textAlign: TextAlign.center,
         ),
-        const Gap(16),
         Text(
-          'touchSensorToAuthenticate'.tr(),
+          'The biometric data will only be processed on your device',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 11,
           ),
           textAlign: TextAlign.center,
-        ),
-        const Gap(32),
+        ).opacity(0.75),
+        const Gap(28),
         ElevatedButton.icon(
           onPressed: _authenticateWithBiometric,
           icon: const Icon(Symbols.fingerprint),
@@ -462,13 +447,12 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
         ),
-        const Gap(16),
         TextButton(
           onPressed: () => _fallbackToPinMode(null),
           child: Text('usePinInstead'.tr()),
         ),
       ],
-    );
+    ).center();
   }
 
   Widget _buildActionButtons() {

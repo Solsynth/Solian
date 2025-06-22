@@ -9,6 +9,7 @@ import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/services/time.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -51,7 +52,7 @@ class LevelingScreen extends HookConsumerWidget {
 
             // Level Stairs Graph
             Text(
-              'Level Progress',
+              'levelProgress'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -79,12 +80,12 @@ class LevelingScreen extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Unlocked Features',
+                    'unlockedFeatures'.tr(),
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const Gap(8),
                   Text(
-                    'Features unlocked at your current level will be displayed here.',
+                    'unlockedFeaturesDescription'.tr(),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -252,7 +253,7 @@ class LevelingScreen extends HookConsumerWidget {
               ),
               const Gap(8),
               Text(
-                'Stellar Membership',
+                'stellarMembership'.tr(),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
@@ -265,7 +266,7 @@ class LevelingScreen extends HookConsumerWidget {
           ],
 
           Text(
-            isActive ? 'Upgrade Your Plan' : 'Choose Your Plan',
+            isActive ? 'upgradeYourPlan'.tr() : 'chooseYourPlan'.tr(),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const Gap(12),
@@ -299,19 +300,20 @@ class LevelingScreen extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Current: $tierName',
+                  'currentMembership'.tr(args: [tierName]),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: tierColor,
                   ),
                 ),
-                Text(
-                  'Expires: ${_formatDate(membership.endedAt)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                if (membership.endedAt != null)
+                  Text(
+                    'membershipExpires'.tr(args: [membership.endedAt!.formatSystem()]),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -328,31 +330,31 @@ class LevelingScreen extends HookConsumerWidget {
     final tiers = [
       {
         'id': 'solian.stellar.primary',
-        'name': 'Stellar',
-        'price': '10 NS\$ per month',
+        'name': 'membershipTierStellar'.tr(),
+        'price': 'membershipPriceStellar'.tr(),
         'features': [
-          'Basic features',
-          'Priority support',
-          'Ad-free experience',
+          'membershipFeatureBasic'.tr(),
+          'membershipFeaturePrioritySupport'.tr(),
+          'membershipFeatureAdFree'.tr(),
         ],
         'color': Colors.blue,
       },
       {
         'id': 'solian.stellar.nova',
-        'name': 'Nova',
-        'price': '20 NS\$ per month',
+        'name': 'membershipTierNova'.tr(),
+        'price': 'membershipPriceNova'.tr(),
         'features': [
-          'All Primary features',
-          'Advanced customization',
-          'Early access',
+          'membershipFeatureAllPrimary'.tr(),
+          'membershipFeatureAdvancedCustomization'.tr(),
+          'membershipFeatureEarlyAccess'.tr(),
         ],
         'color': Colors.purple,
       },
       {
         'id': 'solian.stellar.supernova',
-        'name': 'Supernova',
-        'price': '30 NS\$ per month',
-        'features': ['All Nova features', 'Exclusive content', 'VIP support'],
+        'name': 'membershipTierSupernova'.tr(),
+        'price': 'membershipPriceSupernova'.tr(),
+        'features': ['membershipFeatureAllNova'.tr(), 'membershipFeatureExclusiveContent'.tr(), 'membershipFeatureVipSupport'.tr()],
         'color': Colors.orange,
       },
     ];
@@ -432,7 +434,7 @@ class LevelingScreen extends HookConsumerWidget {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        'CURRENT',
+                                        'membershipCurrentBadge'.tr(),
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
@@ -476,13 +478,13 @@ class LevelingScreen extends HookConsumerWidget {
   String _getMembershipTierName(String identifier) {
     switch (identifier) {
       case 'solian.stellar.primary':
-        return 'Primary';
+        return 'membershipTierStellar'.tr();
       case 'solian.stellar.nova':
-        return 'Nova';
+        return 'membershipTierNova'.tr();
       case 'solian.stellar.supernova':
-        return 'Supernova';
+        return 'membershipTierSupernova'.tr();
       default:
-        return 'Unknown';
+        return 'membershipTierUnknown'.tr();
     }
   }
 
@@ -497,10 +499,6 @@ class LevelingScreen extends HookConsumerWidget {
       default:
         return Theme.of(context).colorScheme.primary;
     }
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 
   Future<void> _purchaseMembership(
@@ -538,21 +536,23 @@ class LevelingScreen extends HookConsumerWidget {
         enableBiometric: true,
       );
 
+      if (context.mounted) showLoadingModal(context);
+
       if (paidOrder != null) {
-        // Payment successful, refresh user info or show success message
-        ref.invalidate(userInfoProvider);
+        await client.post(
+          '/subscriptions/order/handle',
+          data: {'order_id': paidOrder.id},
+        );
+
+        ref.read(userInfoProvider.notifier).fetchUser();
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('membershipPurchaseSuccess'.tr()),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-            ),
-          );
+          showSnackBar(context, 'membershipPurchaseSuccess'.tr());
         }
       }
     } catch (err) {
-      if (context.mounted) hideLoadingModal(context);
       showErrorAlert(err);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
     }
   }
 }
