@@ -85,52 +85,54 @@ class AccountConnectionSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'accountConnections'.tr(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              getProviderIcon(
-                connection.provider,
-                size: 32,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              const Gap(8),
-              Text(getLocalizedProviderName(connection.provider)).tr(),
-              const Gap(4),
-              if (connection.meta.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (final meta in connection.meta.entries)
-                      Text(
-                        '${meta.key.replaceAll('_', ' ').capitalizeEachWord()}: ${meta.value}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                  ],
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                getProviderIcon(
+                  connection.provider,
+                  size: 32,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-              Text(
-                connection.providedIdentifier,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const Gap(8),
-              Text(
-                connection.lastUsedAt.formatSystem(),
-                style: Theme.of(context).textTheme.bodySmall,
-              ).opacity(0.85),
-            ],
-          ).padding(all: 20),
-          const Divider(height: 1),
-          ListTile(
-            leading: const Icon(Symbols.delete),
-            title: Text('accountConnectionDelete').tr(),
-            onTap: deleteConnection,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-          ),
-        ],
+                const Gap(8),
+                Text(getLocalizedProviderName(connection.provider)).tr(),
+                const Gap(4),
+                if (connection.meta.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final meta in connection.meta.entries)
+                        Text(
+                          '${meta.key.replaceAll('_', ' ').capitalizeEachWord()}: ${meta.value}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                    ],
+                  ),
+                Text(
+                  connection.providedIdentifier,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const Gap(8),
+                Text(
+                  connection.lastUsedAt.formatSystem(),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ).opacity(0.85),
+              ],
+            ).padding(all: 20),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Symbols.delete),
+              title: Text('accountConnectionDelete').tr(),
+              onTap: deleteConnection,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -213,52 +215,56 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'accountConnectionAdd'.tr(),
-      child: Column(
-        spacing: 16,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DropdownButtonFormField<String>(
-            value: selectedProvider.value,
-            decoration: InputDecoration(
-              prefixIcon: getProviderIcon(
-                selectedProvider.value,
-                size: 16,
-                color: Theme.of(context).colorScheme.onSurface,
-              ).padding(all: 16),
-              labelText: 'accountConnectionProvider'.tr(),
-              border: const OutlineInputBorder(),
-            ),
-            items:
-                providers.map((String provider) {
-                  return DropdownMenuItem<String>(
-                    value: provider,
-                    child: Row(
-                      children: [Text(getLocalizedProviderName(provider)).tr()],
-                    ),
-                  );
-                }).toList(),
-            onChanged: (String? newValue) {
-              if (newValue != null) {
-                selectedProvider.value = newValue;
-              }
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text('accountConnectionDescription'.tr()),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton.icon(
-                onPressed: addConnection,
-                icon: const Icon(Symbols.add),
-                label: Text('next').tr(),
+      child: SingleChildScrollView(
+        child: Column(
+          spacing: 16,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DropdownButtonFormField<String>(
+              value: selectedProvider.value,
+              decoration: InputDecoration(
+                prefixIcon: getProviderIcon(
+                  selectedProvider.value,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ).padding(all: 16),
+                labelText: 'accountConnectionProvider'.tr(),
+                border: const OutlineInputBorder(),
               ),
-            ],
-          ),
-        ],
-      ).padding(horizontal: 20, vertical: 24),
+              items:
+                  providers.map((String provider) {
+                    return DropdownMenuItem<String>(
+                      value: provider,
+                      child: Row(
+                        children: [
+                          Text(getLocalizedProviderName(provider)).tr(),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  selectedProvider.value = newValue;
+                }
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text('accountConnectionDescription'.tr()),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: addConnection,
+                  icon: const Icon(Symbols.add),
+                  label: Text('next').tr(),
+                ),
+              ],
+            ),
+          ],
+        ).padding(horizontal: 20, vertical: 24),
+      ),
     );
   }
 }

@@ -191,7 +191,8 @@ class PostComposeScreen extends HookConsumerWidget {
                     progress: progressMap[idx],
                     onRequestUpload:
                         () => ComposeLogic.uploadAttachment(ref, state, idx),
-                    onDelete: () => ComposeLogic.deleteAttachment(ref, state, idx),
+                    onDelete:
+                        () => ComposeLogic.deleteAttachment(ref, state, idx),
                     onMove: (delta) {
                       state.attachments.value = ComposeLogic.moveAttachment(
                         state.attachments.value,
@@ -209,12 +210,9 @@ class PostComposeScreen extends HookConsumerWidget {
 
     // Build UI
     return AppScaffold(
+      noBackground: false,
       appBar: AppBar(
         leading: const PageBackButton(),
-        title:
-            isWideScreen(context)
-                ? Text(originalPost != null ? 'editPost'.tr() : 'newPost'.tr())
-                : null,
         actions: [
           IconButton(
             icon: const Icon(Symbols.settings),
@@ -272,93 +270,98 @@ class PostComposeScreen extends HookConsumerWidget {
 
           // Main content area
           Expanded(
-            child: Row(
-              spacing: 12,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Publisher profile picture
-                GestureDetector(
-                  child: ProfilePictureWidget(
-                    fileId: state.currentPublisher.value?.picture?.id,
-                    radius: 20,
-                    fallbackIcon:
-                        state.currentPublisher.value == null
-                            ? Symbols.question_mark
-                            : null,
-                  ),
-                  onTap: () {
-                    showModalBottomSheet(
-                      isScrollControlled: true,
-                      context: context,
-                      builder: (context) => const PublisherModal(),
-                    ).then((value) {
-                      if (value != null) {
-                        state.currentPublisher.value = value;
-                      }
-                    });
-                  },
-                ).padding(top: 16),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Row(
+                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Publisher profile picture
+                  GestureDetector(
+                    child: ProfilePictureWidget(
+                      fileId: state.currentPublisher.value?.picture?.id,
+                      radius: 20,
+                      fallbackIcon:
+                          state.currentPublisher.value == null
+                              ? Symbols.question_mark
+                              : null,
+                    ),
+                    onTap: () {
+                      showModalBottomSheet(
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (context) => const PublisherModal(),
+                      ).then((value) {
+                        if (value != null) {
+                          state.currentPublisher.value = value;
+                        }
+                      });
+                    },
+                  ).padding(top: 16),
 
-                // Post content form
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Content field with borderless design
-                        RawKeyboardListener(
-                          focusNode: FocusNode(),
-                          onKey:
-                              (event) => ComposeLogic.handleKeyPress(
-                                event,
-                                state,
-                                ref,
-                                context,
-                                originalPost: originalPost,
-                                repliedPost: repliedPost,
-                                forwardedPost: forwardedPost,
-                                postType: 0, // Regular post type
+                  // Post content form
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Content field with borderless design
+                          RawKeyboardListener(
+                            focusNode: FocusNode(),
+                            onKey:
+                                (event) => ComposeLogic.handleKeyPress(
+                                  event,
+                                  state,
+                                  ref,
+                                  context,
+                                  originalPost: originalPost,
+                                  repliedPost: repliedPost,
+                                  forwardedPost: forwardedPost,
+                                  postType: 0, // Regular post type
+                                ),
+                            child: TextField(
+                              controller: state.contentController,
+                              style: theme.textTheme.bodyMedium,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'postContent'.tr(),
+                                contentPadding: const EdgeInsets.all(8),
                               ),
-                          child: TextField(
-                            controller: state.contentController,
-                            style: theme.textTheme.bodyMedium,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'postContent'.tr(),
-                              contentPadding: const EdgeInsets.all(8),
+                              maxLines: null,
+                              onTapOutside:
+                                  (_) =>
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus(),
                             ),
-                            maxLines: null,
-                            onTapOutside:
-                                (_) =>
-                                    FocusManager.instance.primaryFocus
-                                        ?.unfocus(),
                           ),
-                        ),
 
-                        const Gap(8),
+                          const Gap(8),
 
-                        // Attachments preview
-                        ValueListenableBuilder<List<UniversalFile>>(
-                          valueListenable: state.attachments,
-                          builder: (context, attachments, _) {
-                            if (attachments.isEmpty) return const SizedBox.shrink();
-                            return LayoutBuilder(
-                              builder: (context, constraints) {
-                                final isWide = isWideScreen(context);
-                                return isWide
-                                    ? buildWideAttachmentGrid()
-                                    : buildNarrowAttachmentList();
-                              },
-                            );
-                          },
-                        ),
-                      ],
+                          // Attachments preview
+                          ValueListenableBuilder<List<UniversalFile>>(
+                            valueListenable: state.attachments,
+                            builder: (context, attachments, _) {
+                              if (attachments.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final isWide = isWideScreen(context);
+                                  return isWide
+                                      ? buildWideAttachmentGrid()
+                                      : buildNarrowAttachmentList();
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ).padding(horizontal: 16),
+                ],
+              ).padding(horizontal: 16),
+            ).alignment(Alignment.topCenter),
           ),
 
           // Bottom toolbar
@@ -409,11 +412,11 @@ class PostComposeScreen extends HookConsumerWidget {
                 ),
                 const Gap(4),
                 Text(
-                   'edit'.tr(),
-                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                     color: Theme.of(context).colorScheme.onPrimaryContainer,
-                   ),
-                 ),
+                  'edit'.tr(),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
               ],
             ).padding(all: 16),
           ),
@@ -427,10 +430,7 @@ class PostComposeScreen extends HookConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Symbols.reply,
-                        size: 16,
-                      ),
+                      Icon(Symbols.reply, size: 16),
                       const Gap(4),
                       Text(
                         'postReplyingTo'.tr(),
@@ -452,10 +452,7 @@ class PostComposeScreen extends HookConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Symbols.forward,
-                        size: 16,
-                      ),
+                      Icon(Symbols.forward, size: 16),
                       const Gap(4),
                       Text(
                         'postForwardingTo'.tr(),
@@ -482,10 +479,7 @@ class PostComposeScreen extends HookConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Symbols.reply,
-                  size: 16,
-                ),
+                Icon(Symbols.reply, size: 16),
                 const Gap(4),
                 Text(
                   'postReplyingTo'.tr(),
@@ -510,10 +504,7 @@ class PostComposeScreen extends HookConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Symbols.forward,
-                  size: 16,
-                ),
+                Icon(Symbols.forward, size: 16),
                 const Gap(4),
                 Text(
                   'postForwardingTo'.tr(),
@@ -537,37 +528,41 @@ class PostComposeScreen extends HookConsumerWidget {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
-          builder: (context) => DraggableScrollableSheet(
-            initialChildSize: 0.7,
-            maxChildSize: 0.9,
-            minChildSize: 0.5,
-            builder: (context, scrollController) => Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.outline,
-                      borderRadius: BorderRadius.circular(2),
+          builder:
+              (context) => DraggableScrollableSheet(
+                initialChildSize: 0.7,
+                maxChildSize: 0.9,
+                minChildSize: 0.5,
+                builder:
+                    (context, scrollController) => Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 4,
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.outline,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              controller: scrollController,
+                              padding: const EdgeInsets.all(16),
+                              child: PostItem(item: post, isOpenable: false),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      controller: scrollController,
-                      padding: const EdgeInsets.all(16),
-                      child: PostItem(item: post, isOpenable: false),
-                    ),
-                  ),
-                ],
               ),
-            ),
-          ),
         );
       },
       child: Container(

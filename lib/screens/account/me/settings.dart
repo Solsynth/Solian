@@ -470,7 +470,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
               ),
             ),
           ],
-        ).padding(horizontal: 16);
+        );
       } else {
         // Single column layout for narrow screens
         return Column(
