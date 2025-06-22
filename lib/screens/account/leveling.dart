@@ -10,6 +10,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
+import 'package:island/widgets/account/restore_purchase_sheet.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/payment/payment_overlay.dart';
@@ -54,61 +55,69 @@ class LevelingScreen extends HookConsumerWidget {
       appBar: AppBar(title: Text('levelingProgress'.tr())),
       body: SingleChildScrollView(
         padding: getTabbedPadding(context, horizontal: 20, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Current Progress Card
-            LevelingProgressCard(
-              level: currentLevel,
-              experience: currentExp,
-              progress: progress,
-            ),
-            const Gap(24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Current Progress Card
+                LevelingProgressCard(
+                  level: currentLevel,
+                  experience: currentExp,
+                  progress: progress,
+                ),
+                const Gap(24),
 
-            // Level Stairs Graph
-            Text(
-              'levelProgress'.tr(),
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const Gap(16),
-
-            // Stairs visualization with fixed height and horizontal scroll
-            _buildLevelStairs(context, currentLevel),
-
-            const Gap(24),
-
-            // Membership section
-            _buildMembershipSection(context, ref, stellarSubscription),
-            const Gap(16),
-
-            // Unlocked features section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'unlockedFeatures'.tr(),
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                // Level Stairs Graph
+                Text(
+                  'levelProgress'.tr(),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  const Gap(8),
-                  Text(
-                    'unlockedFeaturesDescription'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                ),
+                const Gap(16),
+
+                // Stairs visualization with fixed height and horizontal scroll
+                _buildLevelStairs(context, currentLevel),
+
+                const Gap(24),
+
+                // Membership section
+                _buildMembershipSection(context, ref, stellarSubscription),
+                const Gap(16),
+
+                // Unlocked features section
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
-              ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'unlockedFeatures'.tr(),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Gap(8),
+                      Text(
+                        'unlockedFeaturesDescription'.tr(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -330,6 +339,17 @@ class LevelingScreen extends HookConsumerWidget {
           const Gap(12),
 
           _buildMembershipTiers(context, ref, membership),
+          const Gap(12),
+
+          // Restore Purchase Button
+          OutlinedButton.icon(
+            onPressed: () => _showRestorePurchaseSheet(context, ref),
+            icon: const Icon(Icons.restore),
+            label: Text('restorePurchase'.tr()),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 48),
+            ),
+          ),
         ],
       ),
     );
@@ -563,6 +583,16 @@ class LevelingScreen extends HookConsumerWidget {
       default:
         return Theme.of(context).colorScheme.primary;
     }
+  }
+
+  Future<void> _showRestorePurchaseSheet(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) => const RestorePurchaseSheet(),
+    );
   }
 
   Future<void> _purchaseMembership(

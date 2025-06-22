@@ -513,5 +513,12 @@
   "membershipFeatureAllNova": "All Nova features",
   "membershipFeatureExclusiveContent": "Exclusive content",
   "membershipFeatureVipSupport": "VIP support",
-  "membershipCurrentBadge": "CURRENT"
+  "membershipCurrentBadge": "CURRENT",
+  "restorePurchase": "Restore Purchase",
+  "restorePurchaseDescription": "Enter your payment provider and order ID to restore your purchase.",
+  "provider": "Provider",
+  "selectProvider": "Select a provider",
+  "orderId": "Order ID",
+  "enterOrderId": "Enter your order ID",
+  "restore": "Restore"
 }
