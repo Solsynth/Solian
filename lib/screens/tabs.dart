@@ -135,7 +135,7 @@ class TabbedFabLocation extends FloatingActionButtonLocation {
     final double fabX =
         scaffoldGeometry.scaffoldSize.width -
         scaffoldGeometry.floatingActionButtonSize.width -
-        16.0 -
+        16 -
         safeAreaPadding.right;
 
     // Use safe area bottom padding + navigation bar height (typically 80px)
@@ -144,7 +144,7 @@ class TabbedFabLocation extends FloatingActionButtonLocation {
         scaffoldGeometry.floatingActionButtonSize.height -
         scaffoldGeometry.bottomSheetSize.height -
         safeAreaPadding.bottom -
-        80.0 +
+        (isWideScreen(context) ? 24 : 80) +
         16;
 
     return Offset(fabX, fabY);

@@ -96,6 +96,7 @@ class ExploreScreen extends HookConsumerWidget {
               Tab(
                 child: Text(
                   'explore'.tr(),
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor!,
                   ),
@@ -104,6 +105,7 @@ class ExploreScreen extends HookConsumerWidget {
               Tab(
                 child: Text(
                   'exploreFilterSubscriptions'.tr(),
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor!,
                   ),
@@ -112,6 +114,7 @@ class ExploreScreen extends HookConsumerWidget {
               Tab(
                 child: Text(
                   'exploreFilterFriends'.tr(),
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor!,
                   ),

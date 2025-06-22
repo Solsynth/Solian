@@ -88,14 +88,14 @@ class PostItemCreator extends HookConsumerWidget {
         );
       },
       child: Material(
-        color: backgroundColor,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         elevation: 1,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
             if (isOpenable) {
-              context.router.push(PostDetailRoute(id: item.id));
+              context.router.pushPath('/posts/${item.id}');
             }
           },
           child: Padding(
