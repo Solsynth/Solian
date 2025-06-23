@@ -58,6 +58,7 @@ sealed class AppSettings with _$AppSettings {
     required bool appBarTransparent,
     required String? customFonts,
     required int? appColorScheme, // The color stored via the int type
+    required Size? windowSize, // The window size for desktop platforms
   }) = _AppSettings;
 }
 
@@ -74,7 +75,25 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       appBarTransparent: prefs.getBool(kAppbarTransparentStoreKey) ?? false,
       customFonts: prefs.getString(kAppCustomFonts),
       appColorScheme: prefs.getInt(kAppColorSchemeStoreKey),
+      windowSize: _getWindowSizeFromPrefs(prefs),
     );
+  }
+
+  Size? _getWindowSizeFromPrefs(SharedPreferences prefs) {
+    final sizeString = prefs.getString(kAppWindowSize);
+    if (sizeString == null) return null;
+    
+    try {
+      final parts = sizeString.split(',');
+      if (parts.length == 2) {
+        final width = double.parse(parts[0]);
+        final height = double.parse(parts[1]);
+        return Size(width, height);
+      }
+    } catch (e) {
+      // Invalid format, return null
+    }
+    return null;
   }
 
   void setAutoTranslate(bool value) {
@@ -120,6 +139,20 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     prefs.setInt(kAppColorSchemeStoreKey, value ?? 0);
     state = state.copyWith(appColorScheme: value);
     ref.read(themeProvider.notifier).reloadTheme();
+  }
+
+  void setWindowSize(Size? size) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (size != null) {
+      prefs.setString(kAppWindowSize, '${size.width},${size.height}');
+    } else {
+      prefs.remove(kAppWindowSize);
+    }
+    state = state.copyWith(windowSize: size);
+  }
+
+  Size? getWindowSize() {
+    return state.windowSize;
   }
 }
 

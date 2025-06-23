@@ -59,12 +59,31 @@ void main() async {
 
   if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
     doWhenWindowReady(() {
-      const initialSize = Size(360, 640);
-      appWindow.minSize = initialSize;
+      const defaultSize = Size(360, 640);
+      
+      // Get saved window size from preferences
+      final savedSizeString = prefs.getString(kAppWindowSize);
+      Size initialSize = defaultSize;
+      
+      if (savedSizeString != null) {
+        try {
+          final parts = savedSizeString.split(',');
+          if (parts.length == 2) {
+            final width = double.parse(parts[0]);
+            final height = double.parse(parts[1]);
+            initialSize = Size(width, height);
+          }
+        } catch (e) {
+          log("[SplashScreen] Failed to parse saved window size: $e");
+          initialSize = defaultSize;
+        }
+      }
+      
+      appWindow.minSize = defaultSize;
       appWindow.size = initialSize;
       appWindow.alignment = Alignment.center;
       appWindow.show();
-      log("[SplashScreen] Desktop window is ready!");
+      log("[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}");
     });
   }
 

@@ -99,7 +99,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
         context: context,
         builder:
             (context) => AlertDialog(
-              title: Text('keyboard_shortcuts'.tr()),
+              title: Text('keyboardShortcuts'.tr()),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,11 +281,21 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                 item: attachments[idx],
                                 progress: progressMap[idx],
                                 onRequestUpload:
-                                    () => ComposeLogic.uploadAttachment(ref, state, idx),
+                                    () => ComposeLogic.uploadAttachment(
+                                      ref,
+                                      state,
+                                      idx,
+                                    ),
                                 onDelete:
-                                    () => ComposeLogic.deleteAttachment(ref, state, idx),
+                                    () => ComposeLogic.deleteAttachment(
+                                      ref,
+                                      state,
+                                      idx,
+                                    ),
                                 onMove: (delta) {
-                                  state.attachments.value = ComposeLogic.moveAttachment(
+                                  state
+                                      .attachments
+                                      .value = ComposeLogic.moveAttachment(
                                     state.attachments.value,
                                     idx,
                                     delta,
@@ -325,7 +335,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
           ),
           if (isWideScreen(context))
             Tooltip(
-              message: 'keyboard_shortcuts'.tr(),
+              message: 'keyboardShortcuts'.tr(),
               child: IconButton(
                 icon: const Icon(Symbols.keyboard),
                 onPressed: showKeyboardShortcutsDialog,

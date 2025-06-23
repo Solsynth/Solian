@@ -520,5 +520,6 @@
   "selectProvider": "Select a provider",
   "orderId": "Order ID",
   "enterOrderId": "Enter your order ID",
-  "restore": "Restore"
+  "restore": "Restore",
+  "keyboardShortcuts": "Keyboard Shortcuts"
 }

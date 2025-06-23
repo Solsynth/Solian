@@ -5,7 +5,9 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
@@ -22,6 +24,26 @@ class WindowScaffold extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Add window resize listener for desktop platforms
+    useEffect(() {
+      if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        void saveWindowSize() {
+          final size = appWindow.size;
+          final settingsNotifier = ref.read(appSettingsNotifierProvider.notifier);
+          settingsNotifier.setWindowSize(size);
+        }
+        
+        // Save window size when app is about to close
+        WidgetsBinding.instance.addObserver(_WindowSizeObserver(saveWindowSize));
+        
+        return () {
+          // Cleanup observer when widget is disposed
+          WidgetsBinding.instance.removeObserver(_WindowSizeObserver(saveWindowSize));
+        };
+      }
+      return null;
+    }, []);
+    
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
@@ -99,6 +121,34 @@ class WindowScaffold extends HookConsumerWidget {
       ],
     );
   }
+}
+
+class _WindowSizeObserver extends WidgetsBindingObserver {
+  final VoidCallback onSaveWindowSize;
+  
+  _WindowSizeObserver(this.onSaveWindowSize);
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    // Save window size when app is paused, detached, or hidden
+    if (state == AppLifecycleState.paused || 
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        onSaveWindowSize();
+      }
+    }
+  }
+  
+  @override
+  bool operator ==(Object other) {
+    return other is _WindowSizeObserver && other.onSaveWindowSize == onSaveWindowSize;
+  }
+  
+  @override
+  int get hashCode => onSaveWindowSize.hashCode;
 }
 
 final rootScaffoldKey = GlobalKey<ScaffoldState>();
