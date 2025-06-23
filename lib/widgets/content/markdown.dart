@@ -2,10 +2,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_highlight/themes/a11y-dark.dart';
+import 'package:flutter_highlight/themes/a11y-light.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/markdown_latex.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,6 +21,7 @@ class MarkdownTextContent extends HookConsumerWidget {
   final TextScaler? textScaler;
   final TextStyle? textStyle;
   final TextStyle? linkStyle;
+  final EdgeInsets? linesMargin;
   final bool isSelectable;
 
   const MarkdownTextContent({
@@ -28,6 +32,7 @@ class MarkdownTextContent extends HookConsumerWidget {
     this.textStyle,
     this.linkStyle,
     this.isSelectable = false,
+    this.linesMargin,
   });
 
   @override
@@ -54,19 +59,13 @@ class MarkdownTextContent extends HookConsumerWidget {
       config: config.copy(
         configs: [
           isDark
-              ? PreConfig.darkConfig.copy(
-                textStyle: textStyle,
-                padding: EdgeInsets.zero,
-                margin: EdgeInsets.zero,
-              )
-              : PreConfig().copy(
-                textStyle: textStyle,
-                padding: EdgeInsets.zero,
-                margin: EdgeInsets.zero,
-              ),
+              ? PreConfig.darkConfig.copy(textStyle: textStyle)
+              : PreConfig().copy(textStyle: textStyle),
           PConfig(
             textStyle: textStyle ?? Theme.of(context).textTheme.bodyMedium!,
           ),
+          HrConfig(height: 1, color: Theme.of(context).dividerColor),
+          PreConfig(theme: isDark ? a11yDarkTheme : a11yLightTheme),
           LinkConfig(
             style:
                 linkStyle ??
@@ -146,8 +145,13 @@ class MarkdownTextContent extends HookConsumerWidget {
         ],
       ),
       generator: MarkdownGenerator(
-        inlineSyntaxList: [_UserNameCardInlineSyntax(), _StickerInlineSyntax()],
-        linesMargin: EdgeInsets.zero,
+        generators: [latexGenerator],
+        inlineSyntaxList: [
+          _UserNameCardInlineSyntax(),
+          _StickerInlineSyntax(),
+          LatexSyntax(isDark),
+        ],
+        linesMargin: linesMargin ?? EdgeInsets.symmetric(vertical: 4),
       ),
     );
   }

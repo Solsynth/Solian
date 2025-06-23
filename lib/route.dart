@@ -8,6 +8,10 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
+    AutoRoute(page: PostComposeRoute.page, path: '/posts/compose'),
+    AutoRoute(page: PostEditRoute.page, path: '/posts/:id/edit'),
+    AutoRoute(page: CallRoute.page, path: '/chat/:id/call'),
+    AutoRoute(page: EventCalanderRoute.page, path: '/account/:name/calendar'),
     AutoRoute(
       page: TabsRoute.page,
       path: '/',
@@ -52,10 +56,6 @@ class AppRouter extends RootStackRouter {
         ),
       ],
     ),
-    AutoRoute(page: PostComposeRoute.page, path: '/posts/compose'),
-    AutoRoute(page: PostEditRoute.page, path: '/posts/:id/edit'),
-    AutoRoute(page: CallRoute.page, path: '/chat/:id/call'),
-    AutoRoute(page: EventCalanderRoute.page, path: '/account/:name/calendar'),
     AutoRoute(
       page: CreatorHubShellRoute.page,
       path: '/creators',

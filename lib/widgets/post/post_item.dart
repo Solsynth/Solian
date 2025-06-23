@@ -209,7 +209,11 @@ class PostItem extends HookConsumerWidget {
                               ),
                             ).padding(bottom: 8),
                           if (item.content?.isNotEmpty ?? false)
-                            MarkdownTextContent(content: item.content!),
+                            MarkdownTextContent(
+                              content: item.content!,
+                              linesMargin:
+                                  item.type == 0 ? EdgeInsets.zero : null,
+                            ),
                           // Show truncation hint if post is truncated
                           if (item.isTruncated && !isFullPost)
                             _PostTruncateHint(),

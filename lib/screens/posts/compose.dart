@@ -32,11 +32,13 @@ class PostEditScreen extends HookConsumerWidget {
       data: (post) => PostComposeScreen(originalPost: post),
       loading:
           () => AppScaffold(
+            noBackground: false,
             appBar: AppBar(leading: const PageBackButton()),
             body: const Center(child: CircularProgressIndicator()),
           ),
       error:
           (e, _) => AppScaffold(
+            noBackground: false,
             appBar: AppBar(leading: const PageBackButton()),
             body: Text('Error: $e', textAlign: TextAlign.center),
           ),
@@ -117,32 +119,6 @@ class PostComposeScreen extends HookConsumerWidget {
       );
     }
 
-    void showKeyboardShortcutsDialog() {
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: Text('keyboardShortcuts'.tr()),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Ctrl/Cmd + Enter: ${'submit'.tr()}'),
-                  Text('Ctrl/Cmd + V: ${'paste'.tr()}'),
-                  Text('Ctrl/Cmd + I: ${'add_image'.tr()}'),
-                  Text('Ctrl/Cmd + Shift + V: ${'add_video'.tr()}'),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('close'.tr()),
-                ),
-              ],
-            ),
-      );
-    }
-
     Widget buildWideAttachmentGrid() {
       return GridView.builder(
         shrinkWrap: true,
@@ -219,14 +195,6 @@ class PostComposeScreen extends HookConsumerWidget {
             onPressed: showSettingsSheet,
             tooltip: 'postSettings'.tr(),
           ),
-          if (isWideScreen(context))
-            Tooltip(
-              message: 'keyboardShortcuts'.tr(),
-              child: IconButton(
-                icon: const Icon(Symbols.keyboard),
-                onPressed: showKeyboardShortcutsDialog,
-              ),
-            ),
           ValueListenableBuilder<bool>(
             valueListenable: state.submitting,
             builder: (context, submitting, _) {

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -22,6 +23,9 @@ class ComposeSettingsSheet extends HookWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // Listen to visibility changes to trigger rebuilds
+    final currentVisibility = useValueListenable(visibility);
 
     IconData getVisibilityIcon(int visibilityValue) {
       switch (visibilityValue) {
@@ -71,38 +75,39 @@ class ComposeSettingsSheet extends HookWidget {
     void showVisibilitySheet() {
       showModalBottomSheet(
         context: context,
-        builder: (context) => SheetScaffold(
-          titleText: 'postVisibility'.tr(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              buildVisibilityOption(
-                context,
-                0,
-                Symbols.public,
-                'postVisibilityPublic',
+        builder:
+            (context) => SheetScaffold(
+              titleText: 'postVisibility'.tr(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  buildVisibilityOption(
+                    context,
+                    0,
+                    Symbols.public,
+                    'postVisibilityPublic',
+                  ),
+                  buildVisibilityOption(
+                    context,
+                    1,
+                    Symbols.group,
+                    'postVisibilityFriends',
+                  ),
+                  buildVisibilityOption(
+                    context,
+                    2,
+                    Symbols.link_off,
+                    'postVisibilityUnlisted',
+                  ),
+                  buildVisibilityOption(
+                    context,
+                    3,
+                    Symbols.lock,
+                    'postVisibilityPrivate',
+                  ),
+                ],
               ),
-              buildVisibilityOption(
-                context,
-                1,
-                Symbols.group,
-                'postVisibilityFriends',
-              ),
-              buildVisibilityOption(
-                context,
-                2,
-                Symbols.link_off,
-                'postVisibilityUnlisted',
-              ),
-              buildVisibilityOption(
-                context,
-                3,
-                Symbols.lock,
-                'postVisibilityPrivate',
-              ),
-            ],
-          ),
-        ),
+            ),
       );
     }
 
@@ -124,10 +129,11 @@ class ComposeSettingsSheet extends HookWidget {
                 ),
                 contentPadding: const EdgeInsets.all(16),
               ),
-              style: theme.textTheme.titleLarge,
-              onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              style: theme.textTheme.titleMedium,
+              onTapOutside:
+                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
             ),
-            const SizedBox(height: 16),
+            const Gap(16),
 
             // Description field
             TextField(
@@ -140,25 +146,23 @@ class ComposeSettingsSheet extends HookWidget {
                 ),
                 contentPadding: const EdgeInsets.all(16),
               ),
-              style: theme.textTheme.bodyLarge,
+              style: theme.textTheme.bodyMedium,
               maxLines: 3,
-              onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside:
+                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
             ),
-            const SizedBox(height: 24),
+            const Gap(16),
 
             // Visibility setting
             Container(
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: colorScheme.outline,
-                  width: 1,
-                ),
+                border: Border.all(color: colorScheme.outline, width: 1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListTile(
-                leading: Icon(getVisibilityIcon(visibility.value)),
+                leading: Icon(getVisibilityIcon(currentVisibility)),
                 title: Text('postVisibility'.tr()),
-                subtitle: Text(getVisibilityText(visibility.value).tr()),
+                subtitle: Text(getVisibilityText(currentVisibility).tr()),
                 trailing: const Icon(Symbols.chevron_right),
                 onTap: showVisibilitySheet,
                 shape: RoundedRectangleBorder(

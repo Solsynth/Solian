@@ -1,19 +1,17 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/services/responsive.dart';
-
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/screens/posts/detail.dart';
 import 'package:island/widgets/content/attachment_preview.dart';
+import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -94,33 +92,6 @@ class ArticleComposeScreen extends HookConsumerWidget {
       );
     }
 
-    void showKeyboardShortcutsDialog() {
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: Text('keyboardShortcuts'.tr()),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Ctrl/Cmd + Enter: ${'submit'.tr()}'),
-                  Text('Ctrl/Cmd + V: ${'paste'.tr()}'),
-                  Text('Ctrl/Cmd + I: ${'add_image'.tr()}'),
-                  Text('Ctrl/Cmd + Shift + V: ${'add_video'.tr()}'),
-                  Text('Ctrl/Cmd + P: ${'toggle_preview'.tr()}'),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('close'.tr()),
-                ),
-              ],
-            ),
-      );
-    }
-
     Widget buildPreviewPane() {
       return Container(
         decoration: BoxDecoration(
@@ -150,33 +121,49 @@ class ArticleComposeScreen extends HookConsumerWidget {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (state.titleController.text.isNotEmpty) ...[
-                      Text(
-                        state.titleController.text,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Gap(16),
-                    ],
-                    if (state.descriptionController.text.isNotEmpty) ...[
-                      Text(
-                        state.descriptionController.text,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.7),
-                        ),
-                      ),
-                      const Gap(16),
-                    ],
-                    if (state.contentController.text.isNotEmpty)
-                      Text(
-                        state.contentController.text,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                  ],
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: state.titleController,
+                  builder: (context, titleValue, _) {
+                    return ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: state.descriptionController,
+                      builder: (context, descriptionValue, _) {
+                        return ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: state.contentController,
+                          builder: (context, contentValue, _) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (titleValue.text.isNotEmpty) ...[
+                                  Text(
+                                    titleValue.text,
+                                    style: theme.textTheme.headlineSmall
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  const Gap(16),
+                                ],
+                                if (descriptionValue.text.isNotEmpty) ...[
+                                  Text(
+                                    descriptionValue.text,
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      color: colorScheme.onSurface.withOpacity(
+                                        0.7,
+                                      ),
+                                    ),
+                                  ),
+                                  const Gap(16),
+                                ],
+                                if (contentValue.text.isNotEmpty)
+                                  MarkdownTextContent(
+                                    content: contentValue.text,
+                                    textStyle: theme.textTheme.bodyMedium,
+                                  ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ),
@@ -191,6 +178,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
         children: [
           // Publisher row
           Card(
+            margin: EdgeInsets.only(bottom: 8),
             elevation: 1,
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -316,8 +304,17 @@ class ArticleComposeScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      noBackground: false,
       appBar: AppBar(
         leading: const PageBackButton(),
+        title: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: state.titleController,
+          builder: (context, titleValue, _) {
+            return Text(
+              titleValue.text.isEmpty ? 'postTitle'.tr() : titleValue.text,
+            );
+          },
+        ),
         actions: [
           // Info banner for article compose
           const SizedBox.shrink(),
@@ -333,14 +330,6 @@ class ArticleComposeScreen extends HookConsumerWidget {
               onPressed: () => showPreview.value = !showPreview.value,
             ),
           ),
-          if (isWideScreen(context))
-            Tooltip(
-              message: 'keyboardShortcuts'.tr(),
-              child: IconButton(
-                icon: const Icon(Symbols.keyboard),
-                onPressed: showKeyboardShortcutsDialog,
-              ),
-            ),
           ValueListenableBuilder<bool>(
             valueListenable: state.submitting,
             builder: (context, submitting, _) {
@@ -378,7 +367,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
         children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(left: 16, right: 16),
               child:
                   isWideScreen(context)
                       ? Row(
