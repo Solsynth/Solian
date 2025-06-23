@@ -212,7 +212,9 @@ class PostItem extends HookConsumerWidget {
                             MarkdownTextContent(
                               content: item.content!,
                               linesMargin:
-                                  item.type == 0 ? EdgeInsets.zero : null,
+                                  item.type == 0
+                                      ? EdgeInsets.only(bottom: 4)
+                                      : null,
                             ),
                           // Show truncation hint if post is truncated
                           if (item.isTruncated && !isFullPost)
@@ -415,6 +417,10 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
                       content: referencePost.content!,
                       textStyle: const TextStyle(fontSize: 14),
                       isSelectable: false,
+                      linesMargin:
+                          referencePost.type == 0
+                              ? EdgeInsets.only(bottom: 4)
+                              : null,
                     ).padding(bottom: 4),
                   // Truncation hint for referenced post
                   if (referencePost.isTruncated)

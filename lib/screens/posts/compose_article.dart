@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +13,13 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/screens/posts/detail.dart';
 import 'package:island/widgets/content/attachment_preview.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/compose_shared.dart';
-import 'package:island/widgets/post/publishers_modal.dart';
-import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
+import 'package:island/widgets/post/publishers_modal.dart';
+import 'package:island/services/compose_storage.dart';
+import 'package:island/widgets/post/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -60,6 +64,24 @@ class ArticleComposeScreen extends HookConsumerWidget {
       [originalPost],
     );
 
+    // Start auto-save when component mounts
+    useEffect(() {
+      Timer? autoSaveTimer;
+      if (originalPost == null) {
+        // Only auto-save for new articles, not edits
+        autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+          _saveArticleDraft(ref, state);
+        });
+      }
+      return () {
+        // Save final draft before cancelling timer
+        if (originalPost == null) {
+          _saveArticleDraft(ref, state);
+        }
+        autoSaveTimer?.cancel();
+      };
+    }, [state]);
+
     final showPreview = useState(false);
 
     // Initialize publisher once when data is available
@@ -70,10 +92,40 @@ class ArticleComposeScreen extends HookConsumerWidget {
       return null;
     }, [publishers]);
 
+    // Load draft if available (only for new articles)
+    useEffect(() {
+      if (originalPost == null) {
+        // Try to load the most recent article draft
+        final drafts = ref.read(articleStorageNotifierProvider);
+        if (drafts.isNotEmpty) {
+          final mostRecentDraft = drafts.values.reduce(
+            (a, b) => a.lastModified.isAfter(b.lastModified) ? a : b,
+          );
+
+          // Only load if the draft has meaningful content
+          if (!mostRecentDraft.isEmpty) {
+            state.titleController.text = mostRecentDraft.title;
+            state.descriptionController.text = mostRecentDraft.description;
+            state.contentController.text = mostRecentDraft.content;
+            state.visibility.value = _parseArticleVisibility(
+              mostRecentDraft.visibility,
+            );
+          }
+        }
+      }
+      return null;
+    }, []);
+
     // Dispose state when widget is disposed
     useEffect(() {
-      return () => ComposeLogic.dispose(state);
-    }, []);
+      return () {
+        // Save final draft before disposing
+        if (originalPost == null) {
+          _saveArticleDraft(ref, state);
+        }
+        ComposeLogic.dispose(state);
+      };
+    }, [state]);
 
     // Helper methods
     void showSettingsSheet() {
@@ -318,6 +370,34 @@ class ArticleComposeScreen extends HookConsumerWidget {
         actions: [
           // Info banner for article compose
           const SizedBox.shrink(),
+          if (originalPost == null) // Only show drafts for new articles
+            IconButton(
+              icon: const Icon(Symbols.draft),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder:
+                      (context) => DraftManagerSheet(
+                        isArticle: true,
+                        onDraftSelected: (draftId) {
+                          final draft =
+                              ref.read(articleStorageNotifierProvider)[draftId];
+                          if (draft != null) {
+                            state.titleController.text = draft.title;
+                            state.descriptionController.text =
+                                draft.description;
+                            state.contentController.text = draft.content;
+                            state.visibility.value = _parseArticleVisibility(
+                              draft.visibility,
+                            );
+                          }
+                        },
+                      ),
+                );
+              },
+              tooltip: 'drafts'.tr(),
+            ),
           IconButton(
             icon: const Icon(Symbols.settings),
             onPressed: showSettingsSheet,
@@ -412,5 +492,56 @@ class ArticleComposeScreen extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  // Helper method to save article draft
+  Future<void> _saveArticleDraft(WidgetRef ref, ComposeState state) async {
+  try {
+    final draft = ArticleDraft(
+      id: state.draftId,
+      title: state.titleController.text,
+      description: state.descriptionController.text,
+      content: state.contentController.text,
+      visibility: _visibilityToString(state.visibility.value),
+      lastModified: DateTime.now(),
+    );
+
+    await ref.read(articleStorageNotifierProvider.notifier).saveDraft(draft);
+  } catch (e) {
+    log('[ArticleCompose] Failed to save draft, error: $e');
+    // Silently fail for auto-save to avoid disrupting user experience
+  }
+}
+
+  // Helper method to convert visibility int to string
+  String _visibilityToString(int visibility) {
+    switch (visibility) {
+      case 0:
+        return 'public';
+      case 1:
+        return 'unlisted';
+      case 2:
+        return 'friends';
+      case 3:
+        return 'private';
+      default:
+        return 'public';
+    }
+  }
+
+  // Helper method to parse article visibility
+  int _parseArticleVisibility(String visibility) {
+    switch (visibility) {
+      case 'public':
+        return 0;
+      case 'unlisted':
+        return 1;
+      case 'friends':
+        return 2;
+      case 'private':
+        return 3;
+      default:
+        return 0;
+    }
   }
 }

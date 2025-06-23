@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +11,10 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
+import 'package:island/services/compose_storage.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:pasteboard/pasteboard.dart';
+import 'dart:async';
 
 class ComposeState {
   final ValueNotifier<List<UniversalFile>> attachments;
@@ -21,6 +25,8 @@ class ComposeState {
   final ValueNotifier<bool> submitting;
   final ValueNotifier<Map<int, double>> attachmentProgress;
   final ValueNotifier<SnPublisher?> currentPublisher;
+  final String draftId;
+  Timer? _autoSaveTimer;
 
   ComposeState({
     required this.attachments,
@@ -31,7 +37,20 @@ class ComposeState {
     required this.submitting,
     required this.attachmentProgress,
     required this.currentPublisher,
+    required this.draftId,
   });
+
+  void startAutoSave(WidgetRef ref) {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      ComposeLogic.saveDraft(ref, this);
+    });
+  }
+
+  void stopAutoSave() {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
+  }
 }
 
 class ComposeLogic {
@@ -39,7 +58,10 @@ class ComposeLogic {
     SnPost? originalPost,
     SnPost? forwardedPost,
     SnPost? repliedPost,
+    String? draftId,
   }) {
+    final id = draftId ?? DateTime.now().millisecondsSinceEpoch.toString();
+
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
         originalPost?.attachments
@@ -70,7 +92,104 @@ class ComposeLogic {
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
+      draftId: id,
     );
+  }
+
+  static ComposeState createStateFromDraft(ComposeDraft draft) {
+    return ComposeState(
+      attachments: ValueNotifier<List<UniversalFile>>([]),
+      titleController: TextEditingController(text: draft.title),
+      descriptionController: TextEditingController(text: draft.description),
+      contentController: TextEditingController(text: draft.content),
+      visibility: ValueNotifier<int>(_parseVisibility(draft.visibility)),
+      submitting: ValueNotifier<bool>(false),
+      attachmentProgress: ValueNotifier<Map<int, double>>({}),
+      currentPublisher: ValueNotifier<SnPublisher?>(null),
+      draftId: draft.id,
+    );
+  }
+
+  static int _parseVisibility(String visibility) {
+    switch (visibility.toLowerCase()) {
+      case 'public':
+        return 0;
+      case 'unlisted':
+        return 1;
+      case 'friends':
+        return 2;
+      case 'selected':
+        return 3;
+      case 'private':
+        return 4;
+      default:
+        return 0;
+    }
+  }
+
+  static String _visibilityToString(int visibility) {
+    switch (visibility) {
+      case 0:
+        return 'public';
+      case 1:
+        return 'unlisted';
+      case 2:
+        return 'friends';
+      case 3:
+        return 'selected';
+      case 4:
+        return 'private';
+      default:
+        return 'public';
+    }
+  }
+
+  static Future<void> saveDraft(WidgetRef ref, ComposeState state) async {
+    try {
+      // Check if the auto-save timer is still active (widget not disposed)
+      if (state._autoSaveTimer == null) {
+        return; // Widget has been disposed, don't save
+      }
+      
+      final draft = ComposeDraft(
+        id: state.draftId,
+        title: state.titleController.text,
+        description: state.descriptionController.text,
+        content: state.contentController.text,
+        attachmentIds:
+            state.attachments.value
+                .where((e) => e.isOnCloud)
+                .map((e) => e.data.id.toString())
+                .toList(),
+        visibility: _visibilityToString(state.visibility.value),
+        lastModified: DateTime.now(),
+      );
+
+      await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
+    } catch (e) {
+      log('[ComposeLogic] Failed to save draft, error: $e');
+      // Silently fail for auto-save to avoid disrupting user experience
+    }
+  }
+
+  static Future<void> deleteDraft(WidgetRef ref, String draftId) async {
+    try {
+      await ref
+          .read(composeStorageNotifierProvider.notifier)
+          .deleteDraft(draftId);
+    } catch (e) {
+      // Silently fail
+    }
+  }
+
+  static Future<ComposeDraft?> loadDraft(WidgetRef ref, String draftId) async {
+    try {
+      return ref
+          .read(composeStorageNotifierProvider.notifier)
+          .getDraft(draftId);
+    } catch (e) {
+      return null;
+    }
   }
 
   static String getMimeTypeFromFileType(UniversalFileType type) {
@@ -242,6 +361,19 @@ class ComposeLogic {
         ),
       );
 
+      // Delete draft after successful submission
+      if (postType == 1) {
+        // Delete article draft
+        await ref
+            .read(articleStorageNotifierProvider.notifier)
+            .deleteDraft(state.draftId);
+      } else {
+        // Delete regular post draft
+        await ref
+            .read(composeStorageNotifierProvider.notifier)
+            .deleteDraft(state.draftId);
+      }
+
       if (context.mounted) {
         Navigator.of(context).maybePop(true);
       }
@@ -297,6 +429,7 @@ class ComposeLogic {
   }
 
   static void dispose(ComposeState state) {
+    state.stopAutoSave();
     state.titleController.dispose();
     state.descriptionController.dispose();
     state.contentController.dispose();
