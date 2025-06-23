@@ -17,6 +17,8 @@ import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:island/screens/posts/detail.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
+import 'package:island/services/compose_storage.dart';
+import 'package:island/widgets/post/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -60,6 +62,17 @@ class PostComposeScreen extends HookConsumerWidget {
     @QueryParam('type') this.type,
   });
 
+  // Helper method to parse visibility
+  int _parseVisibility(String visibility) {
+    switch (visibility) {
+      case 'public': return 0;
+      case 'unlisted': return 1;
+      case 'friends': return 2;
+      case 'private': return 3;
+      default: return 0;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Determine the compose type: auto-detect from edited post or use query parameter
@@ -88,6 +101,14 @@ class PostComposeScreen extends HookConsumerWidget {
       [originalPost, effectiveForwardedPost, effectiveRepliedPost],
     );
 
+    // Start auto-save when component mounts
+    useEffect(() {
+      if (originalPost == null) { // Only auto-save for new posts, not edits
+        state.startAutoSave(ref);
+      }
+      return () => state.stopAutoSave();
+    }, [state]);
+
     // Initialize publisher once when data is available
     useEffect(() {
       if (publishers.value?.isNotEmpty ?? false) {
@@ -96,9 +117,38 @@ class PostComposeScreen extends HookConsumerWidget {
       return null;
     }, [publishers]);
 
+    // Load draft if available (only for new posts)
+    useEffect(() {
+      if (originalPost == null && effectiveForwardedPost == null && effectiveRepliedPost == null) {
+        // Try to load the most recent draft
+        final drafts = ref.read(composeStorageNotifierProvider);
+        if (drafts.isNotEmpty) {
+          final mostRecentDraft = drafts.values.reduce((a, b) => 
+            a.lastModified.isAfter(b.lastModified) ? a : b);
+          
+          // Only load if the draft has meaningful content
+          if (!mostRecentDraft.isEmpty) {
+            state.titleController.text = mostRecentDraft.title;
+            state.descriptionController.text = mostRecentDraft.description;
+            state.contentController.text = mostRecentDraft.content;
+            state.visibility.value = _parseVisibility(mostRecentDraft.visibility);
+          }
+        }
+      }
+      return null;
+    }, []);
+
     // Dispose state when widget is disposed
     useEffect(() {
-      return () => ComposeLogic.dispose(state);
+      return () {
+        // Stop auto-save first to prevent race conditions
+        state.stopAutoSave();
+        // Save final draft before disposing
+        if (originalPost == null) {
+          ComposeLogic.saveDraft(ref, state);
+        }
+        ComposeLogic.dispose(state);
+      };
     }, []);
 
     // Helper methods
@@ -190,6 +240,29 @@ class PostComposeScreen extends HookConsumerWidget {
       appBar: AppBar(
         leading: const PageBackButton(),
         actions: [
+          if (originalPost == null) // Only show drafts for new posts
+            IconButton(
+              icon: const Icon(Symbols.draft),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => DraftManagerSheet(
+                    isArticle: false,
+                    onDraftSelected: (draftId) {
+                      final draft = ref.read(composeStorageNotifierProvider)[draftId];
+                      if (draft != null) {
+                        state.titleController.text = draft.title;
+                        state.descriptionController.text = draft.description;
+                        state.contentController.text = draft.content;
+                        state.visibility.value = _parseVisibility(draft.visibility);
+                      }
+                    },
+                  ),
+                );
+              },
+              tooltip: 'drafts'.tr(),
+            ),
           IconButton(
             icon: const Icon(Symbols.settings),
             onPressed: showSettingsSheet,

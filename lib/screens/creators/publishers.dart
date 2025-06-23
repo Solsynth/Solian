@@ -15,6 +15,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/file.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -190,128 +191,140 @@ class EditPublisherScreen extends HookConsumerWidget {
         title: Text(name == null ? 'createPublisher' : 'editPublisher').tr(),
         leading: const PageBackButton(),
       ),
-      body: Column(
-        children: [
-          RealmSelectionDropdown(
-            value: currentRealm.value,
-            realms: joinedRealms.when(
-              data: (realms) => realms,
-              loading: () => [],
-              error: (_, _) => [],
+      body: SingleChildScrollView(
+        padding: getTabbedPadding(context, bottom: 16),
+        child: Column(
+          children: [
+            RealmSelectionDropdown(
+              value: currentRealm.value,
+              realms: joinedRealms.when(
+                data: (realms) => realms,
+                loading: () => [],
+                error: (_, _) => [],
+              ),
+              onChanged: (SnRealm? value) {
+                currentRealm.value = value;
+              },
+              isLoading: joinedRealms.isLoading,
+              error: joinedRealms.error?.toString(),
             ),
-            onChanged: (SnRealm? value) {
-              currentRealm.value = value;
-            },
-            isLoading: joinedRealms.isLoading,
-            error: joinedRealms.error?.toString(),
-          ),
-          AspectRatio(
-            aspectRatio: 16 / 7,
-            child: Stack(
-              clipBehavior: Clip.none,
-              fit: StackFit.expand,
-              children: [
-                GestureDetector(
-                  child: Container(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    child:
-                        background.value != null
-                            ? CloudImageWidget(
-                              fileId: background.value!,
-                              fit: BoxFit.cover,
-                            )
-                            : const SizedBox.shrink(),
-                  ),
-                  onTap: () {
-                    setPicture('background');
-                  },
-                ),
-                Positioned(
-                  left: 20,
-                  bottom: -32,
-                  child: GestureDetector(
-                    child: ProfilePictureWidget(
-                      fileId: picture.value,
-                      radius: 40,
+            AspectRatio(
+              aspectRatio: 16 / 7,
+              child: Stack(
+                clipBehavior: Clip.none,
+                fit: StackFit.expand,
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      child:
+                          background.value != null
+                              ? CloudImageWidget(
+                                fileId: background.value!,
+                                fit: BoxFit.cover,
+                              )
+                              : const SizedBox.shrink(),
                     ),
                     onTap: () {
-                      setPicture('picture');
+                      setPicture('background');
                     },
                   ),
-                ),
-              ],
-            ),
-          ).padding(bottom: 32),
-          Form(
-            key: formKey,
-            child: Column(
-              spacing: 16,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'username'.tr(),
-                    helperText: 'usernameCannotChangeHint'.tr(),
-                    prefixText: '@',
-                  ),
-                  readOnly: name != null,
-                  onTapOutside:
-                      (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-                TextFormField(
-                  controller: nickController,
-                  decoration: InputDecoration(labelText: 'nickname'.tr()),
-                  onTapOutside:
-                      (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-                TextFormField(
-                  controller: bioController,
-                  decoration: InputDecoration(labelText: 'bio'.tr()),
-                  minLines: 3,
-                  maxLines: null,
-                  onTapOutside:
-                      (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () {
-                        if (currentRealm.value == null) {
-                          final user = ref.watch(userInfoProvider);
-                          nameController.text = user.value!.name;
-                          nickController.text = user.value!.nick;
-                          bioController.text = user.value!.profile.bio;
-                          picture.value = user.value!.profile.picture?.id;
-                          background.value = user.value!.profile.background?.id;
-                        } else {
-                          nameController.text = currentRealm.value!.slug;
-                          nickController.text = currentRealm.value!.name;
-                          bioController.text = currentRealm.value!.description;
-                          picture.value = currentRealm.value!.picture?.id;
-                          background.value = currentRealm.value!.background?.id;
-                        }
+                  Positioned(
+                    left: 20,
+                    bottom: -32,
+                    child: GestureDetector(
+                      child: ProfilePictureWidget(
+                        fileId: picture.value,
+                        radius: 40,
+                      ),
+                      onTap: () {
+                        setPicture('picture');
                       },
-                      label:
-                          Text(
-                            currentRealm.value == null
-                                ? 'syncPublisher'
-                                : 'syncPublisherRealm',
-                          ).tr(),
-                      icon: const Icon(Symbols.link),
                     ),
-                    TextButton.icon(
-                      onPressed: submitting.value ? null : performAction,
-                      label: Text(name == null ? 'create' : 'saveChanges').tr(),
-                      icon: const Icon(Symbols.save),
+                  ),
+                ],
+              ),
+            ).padding(bottom: 32),
+            Form(
+              key: formKey,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 480),
+                child: Column(
+                  spacing: 16,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: 'username'.tr(),
+                        helperText: 'usernameCannotChangeHint'.tr(),
+                        prefixText: '@',
+                      ),
+                      readOnly: name != null,
+                      onTapOutside:
+                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    ),
+                    TextFormField(
+                      controller: nickController,
+                      decoration: InputDecoration(labelText: 'nickname'.tr()),
+                      onTapOutside:
+                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    ),
+                    TextFormField(
+                      controller: bioController,
+                      decoration: InputDecoration(labelText: 'bio'.tr()),
+                      minLines: 3,
+                      maxLines: null,
+                      onTapOutside:
+                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () {
+                            if (currentRealm.value == null) {
+                              final user = ref.watch(userInfoProvider);
+                              nameController.text = user.value!.name;
+                              nickController.text = user.value!.nick;
+                              bioController.text = user.value!.profile.bio;
+                              picture.value = user.value!.profile.picture?.id;
+                              background.value =
+                                  user.value!.profile.background?.id;
+                            } else {
+                              nameController.text = currentRealm.value!.slug;
+                              nickController.text = currentRealm.value!.name;
+                              bioController.text =
+                                  currentRealm.value!.description;
+                              picture.value = currentRealm.value!.picture?.id;
+                              background.value =
+                                  currentRealm.value!.background?.id;
+                            }
+                          },
+                          label:
+                              Text(
+                                currentRealm.value == null
+                                    ? 'syncPublisher'
+                                    : 'syncPublisherRealm',
+                              ).tr(),
+                          icon: const Icon(Symbols.link),
+                        ),
+                        TextButton.icon(
+                          onPressed: submitting.value ? null : performAction,
+                          label:
+                              Text(
+                                name == null ? 'create' : 'saveChanges',
+                              ).tr(),
+                          icon: const Icon(Symbols.save),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ],
-            ).padding(horizontal: 24),
-          ),
-        ],
+                ).padding(horizontal: 24),
+              ).alignment(Alignment.topCenter),
+            ),
+          ],
+        ),
       ),
     );
   }
