@@ -1,9 +1,10 @@
 # Solar Network
 
-> [!IMPORTANT]
-> You're visiting the Solar Network v3 branch, which is the next version and still under active development. **NOT READY FOR USE / PRODUCTION!**
-
 ![](https://solsynth.dev/_next/static/media/alpha.e779a584.webp)
+
+[![Crowdin](https://badges.crowdin.net/solian/localized.svg)](https://crowdin.com/project/solian)
+
+*Tap the badge above to help us tranlate!*
 
 Hello there! Welcome to the main repository of the DysonNetwork (also known as the Solar Network). The code here is mainly about the front-end app (also known as Solian). But you can still post issues here to get help and request new features!
 
