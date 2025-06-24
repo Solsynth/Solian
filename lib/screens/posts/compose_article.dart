@@ -111,9 +111,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
             state.titleController.text = mostRecentDraft.title;
             state.descriptionController.text = mostRecentDraft.description;
             state.contentController.text = mostRecentDraft.content;
-            state.visibility.value = _parseArticleVisibility(
-              mostRecentDraft.visibility,
-            );
+            state.visibility.value = mostRecentDraft.visibility;
           }
         }
       }
@@ -396,9 +394,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                               state.descriptionController.text =
                                   draft.description;
                               state.contentController.text = draft.content;
-                              state.visibility.value = _parseArticleVisibility(
-                                draft.visibility,
-                              );
+                              state.visibility.value = draft.visibility;
                             }
                           },
                         ),
@@ -548,7 +544,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
         title: state.titleController.text,
         description: state.descriptionController.text,
         content: state.contentController.text,
-        visibility: _visibilityToString(state.visibility.value),
+        visibility: state.visibility.value,
         lastModified: DateTime.now(),
       );
 
@@ -559,35 +555,5 @@ class ArticleComposeScreen extends HookConsumerWidget {
     }
   }
 
-  // Helper method to convert visibility int to string
-  String _visibilityToString(int visibility) {
-    switch (visibility) {
-      case 0:
-        return 'public';
-      case 1:
-        return 'unlisted';
-      case 2:
-        return 'friends';
-      case 3:
-        return 'private';
-      default:
-        return 'public';
-    }
-  }
 
-  // Helper method to parse article visibility
-  int _parseArticleVisibility(String visibility) {
-    switch (visibility) {
-      case 'public':
-        return 0;
-      case 'unlisted':
-        return 1;
-      case 'friends':
-        return 2;
-      case 'private':
-        return 3;
-      default:
-        return 0;
-    }
-  }
 }

@@ -7,7 +7,7 @@ part of 'compose_storage_db.dart';
 // **************************************************************************
 
 String _$composeStorageNotifierHash() =>
-    r'57d3812b8fd430e6144f72708c694ddceea34c17';
+    r'fcdb006dca44d30916a20804922e93d0caad49ca';
 
 /// See also [ComposeStorageNotifier].
 @ProviderFor(ComposeStorageNotifier)

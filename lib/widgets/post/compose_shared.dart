@@ -102,7 +102,7 @@ class ComposeLogic {
       titleController: TextEditingController(text: draft.title),
       descriptionController: TextEditingController(text: draft.description),
       contentController: TextEditingController(text: draft.content),
-      visibility: ValueNotifier<int>(_parseVisibility(draft.visibility)),
+      visibility: ValueNotifier<int>(draft.visibility),
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
@@ -110,39 +110,7 @@ class ComposeLogic {
     );
   }
 
-  static int _parseVisibility(String visibility) {
-    switch (visibility.toLowerCase()) {
-      case 'public':
-        return 0;
-      case 'unlisted':
-        return 1;
-      case 'friends':
-        return 2;
-      case 'selected':
-        return 3;
-      case 'private':
-        return 4;
-      default:
-        return 0;
-    }
-  }
 
-  static String _visibilityToString(int visibility) {
-    switch (visibility) {
-      case 0:
-        return 'public';
-      case 1:
-        return 'unlisted';
-      case 2:
-        return 'friends';
-      case 3:
-        return 'selected';
-      case 4:
-        return 'private';
-      default:
-        return 'public';
-    }
-  }
 
   static Future<void> saveDraft(WidgetRef ref, ComposeState state) async {
     try {
@@ -156,12 +124,8 @@ class ComposeLogic {
         title: state.titleController.text,
         description: state.descriptionController.text,
         content: state.contentController.text,
-        attachmentIds:
-            state.attachments.value
-                .where((e) => e.isOnCloud)
-                .map((e) => e.data.id.toString())
-                .toList(),
-        visibility: _visibilityToString(state.visibility.value),
+        attachments: state.attachments.value,
+        visibility: state.visibility.value,
         lastModified: DateTime.now(),
       );
 
