@@ -1,19 +1,19 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'compose_storage.dart';
+part of 'compose_storage_db.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
 String _$composeStorageNotifierHash() =>
-    r'99c5e4070fa8af2771751064b56ca3251dbda27a';
+    r'57d3812b8fd430e6144f72708c694ddceea34c17';
 
 /// See also [ComposeStorageNotifier].
 @ProviderFor(ComposeStorageNotifier)
 final composeStorageNotifierProvider = AutoDisposeNotifierProvider<
   ComposeStorageNotifier,
-  Map<String, ComposeDraft>
+  Map<String, ComposeDraftModel>
 >.internal(
   ComposeStorageNotifier.new,
   name: r'composeStorageNotifierProvider',
@@ -26,15 +26,15 @@ final composeStorageNotifierProvider = AutoDisposeNotifierProvider<
 );
 
 typedef _$ComposeStorageNotifier =
-    AutoDisposeNotifier<Map<String, ComposeDraft>>;
+    AutoDisposeNotifier<Map<String, ComposeDraftModel>>;
 String _$articleStorageNotifierHash() =>
-    r'4a200878bfe7881fc3afd2164b334e84dc44f338';
+    r'21ee0f8ee87528bebf8f5f4b0b2892cd8058e230';
 
 /// See also [ArticleStorageNotifier].
 @ProviderFor(ArticleStorageNotifier)
 final articleStorageNotifierProvider = AutoDisposeNotifierProvider<
   ArticleStorageNotifier,
-  Map<String, ArticleDraft>
+  Map<String, ArticleDraftModel>
 >.internal(
   ArticleStorageNotifier.new,
   name: r'articleStorageNotifierProvider',
@@ -47,6 +47,6 @@ final articleStorageNotifierProvider = AutoDisposeNotifierProvider<
 );
 
 typedef _$ArticleStorageNotifier =
-    AutoDisposeNotifier<Map<String, ArticleDraft>>;
+    AutoDisposeNotifier<Map<String, ArticleDraftModel>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

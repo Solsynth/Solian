@@ -11,7 +11,7 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
-import 'package:island/services/compose_storage.dart';
+import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'dart:async';
@@ -96,7 +96,7 @@ class ComposeLogic {
     );
   }
 
-  static ComposeState createStateFromDraft(ComposeDraft draft) {
+  static ComposeState createStateFromDraft(ComposeDraftModel draft) {
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>([]),
       titleController: TextEditingController(text: draft.title),
@@ -150,8 +150,8 @@ class ComposeLogic {
       if (state._autoSaveTimer == null) {
         return; // Widget has been disposed, don't save
       }
-      
-      final draft = ComposeDraft(
+
+      final draft = ComposeDraftModel(
         id: state.draftId,
         title: state.titleController.text,
         description: state.descriptionController.text,
@@ -182,7 +182,7 @@ class ComposeLogic {
     }
   }
 
-  static Future<ComposeDraft?> loadDraft(WidgetRef ref, String draftId) async {
+  static Future<ComposeDraftModel?> loadDraft(WidgetRef ref, String draftId) async {
     try {
       return ref
           .read(composeStorageNotifierProvider.notifier)
@@ -410,11 +410,14 @@ class ComposeLogic {
     if (event is! RawKeyDownEvent) return;
 
     final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
+    final isSave = event.logicalKey == LogicalKeyboardKey.keyS;
     final isModifierPressed = event.isMetaPressed || event.isControlPressed;
     final isSubmit = event.logicalKey == LogicalKeyboardKey.enter;
 
     if (isPaste && isModifierPressed) {
       handlePaste(state);
+    } else if (isSave && isModifierPressed) {
+      saveDraft(ref, state);
     } else if (isSubmit && isModifierPressed && !state.submitting.value) {
       performAction(
         ref,

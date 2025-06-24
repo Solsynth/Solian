@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/services/compose_storage.dart';
+import 'package:island/services/compose_storage_db.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class DraftManagerSheet extends HookConsumerWidget {
@@ -28,11 +28,11 @@ class DraftManagerSheet extends HookConsumerWidget {
 
     final sortedDrafts = useMemoized(() {
       if (isArticle) {
-        final draftList = drafts.values.cast<ArticleDraft>().toList();
+        final draftList = drafts.values.cast<ArticleDraftModel>().toList();
         draftList.sort((a, b) => b.lastModified.compareTo(a.lastModified));
         return draftList;
       } else {
-        final draftList = drafts.values.cast<ComposeDraft>().toList();
+        final draftList = drafts.values.cast<ComposeDraftModel>().toList();
         draftList.sort((a, b) => b.lastModified.compareTo(a.lastModified));
         return draftList;
       }
@@ -79,15 +79,15 @@ class DraftManagerSheet extends HookConsumerWidget {
                       Navigator.of(context).pop();
                       final draftId =
                           isArticle
-                              ? (draft as ArticleDraft).id
-                              : (draft as ComposeDraft).id;
+                              ? (draft as ArticleDraftModel).id
+                              : (draft as ComposeDraftModel).id;
                       onDraftSelected?.call(draftId);
                     },
                     onDelete: () async {
                       final draftId =
                           isArticle
-                              ? (draft as ArticleDraft).id
-                              : (draft as ComposeDraft).id;
+                              ? (draft as ArticleDraftModel).id
+                              : (draft as ComposeDraftModel).id;
                       if (isArticle) {
                         await ref
                             .read(articleStorageNotifierProvider.notifier)
@@ -182,7 +182,7 @@ class _DraftItem extends StatelessWidget {
     final String visibility;
 
     if (isArticle) {
-      final articleDraft = draft as ArticleDraft;
+      final articleDraft = draft as ArticleDraftModel;
       title =
           articleDraft.title.isNotEmpty ? articleDraft.title : 'untitled'.tr();
       content =
@@ -194,7 +194,7 @@ class _DraftItem extends StatelessWidget {
       lastModified = articleDraft.lastModified;
       visibility = _parseArticleVisibility(articleDraft.visibility);
     } else {
-      final postDraft = draft as ComposeDraft;
+      final postDraft = draft as ComposeDraftModel;
       title = postDraft.title.isNotEmpty ? postDraft.title : 'untitled'.tr();
       content =
           postDraft.content.isNotEmpty

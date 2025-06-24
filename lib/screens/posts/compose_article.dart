@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -17,8 +18,8 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
+import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
-import 'package:island/services/compose_storage.dart';
 import 'package:island/widgets/post/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -74,10 +75,13 @@ class ArticleComposeScreen extends HookConsumerWidget {
         });
       }
       return () {
-        // Save final draft before cancelling timer
+        // Stop auto-save first to prevent race conditions
+        state.stopAutoSave();
+        // Save final draft before disposing
         if (originalPost == null) {
           _saveArticleDraft(ref, state);
         }
+        ComposeLogic.dispose(state);
         autoSaveTimer?.cancel();
       };
     }, [state]);
@@ -116,13 +120,10 @@ class ArticleComposeScreen extends HookConsumerWidget {
       return null;
     }, []);
 
-    // Dispose state when widget is disposed
+    // Auto-save cleanup
     useEffect(() {
       return () {
-        // Save final draft before disposing
-        if (originalPost == null) {
-          _saveArticleDraft(ref, state);
-        }
+        state.stopAutoSave();
         ComposeLogic.dispose(state);
       };
     }, [state]);
@@ -273,13 +274,12 @@ class ArticleComposeScreen extends HookConsumerWidget {
             child: RawKeyboardListener(
               focusNode: FocusNode(),
               onKey:
-                  (event) => ComposeLogic.handleKeyPress(
+                  (event) => _handleKeyPress(
                     event,
                     state,
                     ref,
                     context,
                     originalPost: originalPost,
-                    postType: 1, // Article type
                   ),
               child: TextField(
                 controller: state.contentController,
@@ -355,163 +355,209 @@ class ArticleComposeScreen extends HookConsumerWidget {
       );
     }
 
-    return AppScaffold(
-      noBackground: false,
-      appBar: AppBar(
-        leading: const PageBackButton(),
-        title: ValueListenableBuilder<TextEditingValue>(
-          valueListenable: state.titleController,
-          builder: (context, titleValue, _) {
-            return Text(
-              titleValue.text.isEmpty ? 'postTitle'.tr() : titleValue.text,
-            );
-          },
-        ),
-        actions: [
-          // Info banner for article compose
-          const SizedBox.shrink(),
-          if (originalPost == null) // Only show drafts for new articles
-            IconButton(
-              icon: const Icon(Symbols.draft),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder:
-                      (context) => DraftManagerSheet(
-                        isArticle: true,
-                        onDraftSelected: (draftId) {
-                          final draft =
-                              ref.read(articleStorageNotifierProvider)[draftId];
-                          if (draft != null) {
-                            state.titleController.text = draft.title;
-                            state.descriptionController.text =
-                                draft.description;
-                            state.contentController.text = draft.content;
-                            state.visibility.value = _parseArticleVisibility(
-                              draft.visibility,
-                            );
-                          }
-                        },
-                      ),
-                );
-              },
-              tooltip: 'drafts'.tr(),
-            ),
-          IconButton(
-            icon: const Icon(Symbols.settings),
-            onPressed: showSettingsSheet,
-            tooltip: 'postSettings'.tr(),
-          ),
-          Tooltip(
-            message: 'togglePreview'.tr(),
-            child: IconButton(
-              icon: Icon(showPreview.value ? Symbols.edit : Symbols.preview),
-              onPressed: () => showPreview.value = !showPreview.value,
-            ),
-          ),
-          ValueListenableBuilder<bool>(
-            valueListenable: state.submitting,
-            builder: (context, submitting, _) {
-              return IconButton(
-                onPressed:
-                    submitting
-                        ? null
-                        : () => ComposeLogic.performAction(
-                          ref,
-                          state,
-                          context,
-                          originalPost: originalPost,
-                          postType: 1, // Article type
-                        ),
-                icon:
-                    submitting
-                        ? SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: const CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
-                        ).center()
-                        : Icon(
-                          originalPost != null ? Symbols.edit : Symbols.upload,
-                        ),
+    return PopScope(
+      onPopInvoked: (_) {
+        if (originalPost == null) {
+          _saveArticleDraft(ref, state);
+        }
+      },
+      child: AppScaffold(
+        noBackground: false,
+        appBar: AppBar(
+          leading: const PageBackButton(),
+          title: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: state.titleController,
+            builder: (context, titleValue, _) {
+              return Text(
+                titleValue.text.isEmpty ? 'postTitle'.tr() : titleValue.text,
               );
             },
           ),
-          const Gap(8),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16),
-              child:
-                  isWideScreen(context)
-                      ? Row(
-                        spacing: 16,
-                        children: [
-                          Expanded(
-                            flex: showPreview.value ? 1 : 2,
-                            child: buildEditorPane(),
+          actions: [
+            // Info banner for article compose
+            const SizedBox.shrink(),
+            if (originalPost == null) // Only show drafts for new articles
+              IconButton(
+                icon: const Icon(Symbols.draft),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder:
+                        (context) => DraftManagerSheet(
+                          isArticle: true,
+                          onDraftSelected: (draftId) {
+                            final draft =
+                                ref.read(
+                                  articleStorageNotifierProvider,
+                                )[draftId];
+                            if (draft != null) {
+                              state.titleController.text = draft.title;
+                              state.descriptionController.text =
+                                  draft.description;
+                              state.contentController.text = draft.content;
+                              state.visibility.value = _parseArticleVisibility(
+                                draft.visibility,
+                              );
+                            }
+                          },
+                        ),
+                  );
+                },
+                tooltip: 'drafts'.tr(),
+              ),
+            IconButton(
+              icon: const Icon(Symbols.save),
+              onPressed: () => _saveArticleDraft(ref, state),
+              tooltip: 'saveDraft'.tr(),
+            ),
+            IconButton(
+              icon: const Icon(Symbols.settings),
+              onPressed: showSettingsSheet,
+              tooltip: 'postSettings'.tr(),
+            ),
+            Tooltip(
+              message: 'togglePreview'.tr(),
+              child: IconButton(
+                icon: Icon(showPreview.value ? Symbols.edit : Symbols.preview),
+                onPressed: () => showPreview.value = !showPreview.value,
+              ),
+            ),
+            ValueListenableBuilder<bool>(
+              valueListenable: state.submitting,
+              builder: (context, submitting, _) {
+                return IconButton(
+                  onPressed:
+                      submitting
+                          ? null
+                          : () => ComposeLogic.performAction(
+                            ref,
+                            state,
+                            context,
+                            originalPost: originalPost,
+                            postType: 1, // Article type
                           ),
-                          if (showPreview.value)
-                            Expanded(child: buildPreviewPane()),
-                        ],
-                      )
-                      : showPreview.value
-                      ? buildPreviewPane()
-                      : buildEditorPane(),
+                  icon:
+                      submitting
+                          ? SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          ).center()
+                          : Icon(
+                            originalPost != null
+                                ? Symbols.edit
+                                : Symbols.upload,
+                          ),
+                );
+              },
             ),
-          ),
+            const Gap(8),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16),
+                child:
+                    isWideScreen(context)
+                        ? Row(
+                          spacing: 16,
+                          children: [
+                            Expanded(
+                              flex: showPreview.value ? 1 : 2,
+                              child: buildEditorPane(),
+                            ),
+                            if (showPreview.value)
+                              Expanded(child: buildPreviewPane()),
+                          ],
+                        )
+                        : showPreview.value
+                        ? buildPreviewPane()
+                        : buildEditorPane(),
+              ),
+            ),
 
-          // Bottom toolbar
-          Material(
-            elevation: 4,
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => ComposeLogic.pickPhotoMedia(ref, state),
-                  icon: const Icon(Symbols.add_a_photo),
-                  color: colorScheme.primary,
-                ),
-                IconButton(
-                  onPressed: () => ComposeLogic.pickVideoMedia(ref, state),
-                  icon: const Icon(Symbols.videocam),
-                  color: colorScheme.primary,
-                ),
-              ],
-            ).padding(
-              bottom: MediaQuery.of(context).padding.bottom + 16,
-              horizontal: 16,
-              top: 8,
+            // Bottom toolbar
+            Material(
+              elevation: 4,
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => ComposeLogic.pickPhotoMedia(ref, state),
+                    icon: const Icon(Symbols.add_a_photo),
+                    color: colorScheme.primary,
+                  ),
+                  IconButton(
+                    onPressed: () => ComposeLogic.pickVideoMedia(ref, state),
+                    icon: const Icon(Symbols.videocam),
+                    color: colorScheme.primary,
+                  ),
+                ],
+              ).padding(
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+                horizontal: 16,
+                top: 8,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  // Helper method to handle keyboard shortcuts
+  void _handleKeyPress(
+    RawKeyEvent event,
+    ComposeState state,
+    WidgetRef ref,
+    BuildContext context, {
+    SnPost? originalPost,
+  }) {
+    if (event is! RawKeyDownEvent) return;
+
+    final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
+    final isSave = event.logicalKey == LogicalKeyboardKey.keyS;
+    final isModifierPressed = event.isMetaPressed || event.isControlPressed;
+    final isSubmit = event.logicalKey == LogicalKeyboardKey.enter;
+
+    if (isPaste && isModifierPressed) {
+      ComposeLogic.handlePaste(state);
+    } else if (isSave && isModifierPressed) {
+      _saveArticleDraft(ref, state);
+    } else if (isSubmit && isModifierPressed && !state.submitting.value) {
+      ComposeLogic.performAction(
+        ref,
+        state,
+        context,
+        originalPost: originalPost,
+        postType: 1, // Article type
+      );
+    }
   }
 
   // Helper method to save article draft
   Future<void> _saveArticleDraft(WidgetRef ref, ComposeState state) async {
-  try {
-    final draft = ArticleDraft(
-      id: state.draftId,
-      title: state.titleController.text,
-      description: state.descriptionController.text,
-      content: state.contentController.text,
-      visibility: _visibilityToString(state.visibility.value),
-      lastModified: DateTime.now(),
-    );
+    try {
+      final draft = ArticleDraftModel(
+        id: state.draftId,
+        title: state.titleController.text,
+        description: state.descriptionController.text,
+        content: state.contentController.text,
+        visibility: _visibilityToString(state.visibility.value),
+        lastModified: DateTime.now(),
+      );
 
-    await ref.read(articleStorageNotifierProvider.notifier).saveDraft(draft);
-  } catch (e) {
-    log('[ArticleCompose] Failed to save draft, error: $e');
-    // Silently fail for auto-save to avoid disrupting user experience
+      await ref.read(articleStorageNotifierProvider.notifier).saveDraft(draft);
+    } catch (e) {
+      log('[ArticleCompose] Failed to save draft, error: $e');
+      // Silently fail for auto-save to avoid disrupting user experience
+    }
   }
-}
 
   // Helper method to convert visibility int to string
   String _visibilityToString(int visibility) {

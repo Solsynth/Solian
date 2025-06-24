@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:island/database/message.dart';
+import 'package:island/database/draft.dart';
 
 part 'drift_db.g.dart';
 
 // Define the database
-@DriftDatabase(tables: [ChatMessages])
+@DriftDatabase(tables: [ChatMessages, ComposeDrafts, ArticleDrafts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -21,6 +22,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         // Add isRead column with default value false
         await m.addColumn(chatMessages, chatMessages.isRead);
+      }
+      if (from < 3) {
+        // Add draft tables
+        await m.createTable(composeDrafts);
+        await m.createTable(articleDrafts);
       }
     },
   );
@@ -90,5 +96,53 @@ class AppDatabase extends _$AppDatabase {
       nonce: dbMessage.nonce,
       isRead: dbMessage.isRead,
     );
+  }
+
+  // Methods for compose drafts
+  Future<List<ComposeDraft>> getAllComposeDrafts() {
+    return (select(composeDrafts)
+          ..orderBy([(d) => OrderingTerm.desc(d.lastModified)]))
+        .get();
+  }
+
+  Future<ComposeDraft?> getComposeDraft(String id) {
+    return (select(composeDrafts)..where((d) => d.id.equals(id)))
+        .getSingleOrNull();
+  }
+
+  Future<int> saveComposeDraft(ComposeDraftsCompanion draft) {
+    return into(composeDrafts).insert(draft, mode: InsertMode.insertOrReplace);
+  }
+
+  Future<int> deleteComposeDraft(String id) {
+    return (delete(composeDrafts)..where((d) => d.id.equals(id))).go();
+  }
+
+  Future<int> clearAllComposeDrafts() {
+    return delete(composeDrafts).go();
+  }
+
+  // Methods for article drafts
+  Future<List<ArticleDraft>> getAllArticleDrafts() {
+    return (select(articleDrafts)
+          ..orderBy([(d) => OrderingTerm.desc(d.lastModified)]))
+        .get();
+  }
+
+  Future<ArticleDraft?> getArticleDraft(String id) {
+    return (select(articleDrafts)..where((d) => d.id.equals(id)))
+        .getSingleOrNull();
+  }
+
+  Future<int> saveArticleDraft(ArticleDraftsCompanion draft) {
+    return into(articleDrafts).insert(draft, mode: InsertMode.insertOrReplace);
+  }
+
+  Future<int> deleteArticleDraft(String id) {
+    return (delete(articleDrafts)..where((d) => d.id.equals(id))).go();
+  }
+
+  Future<int> clearAllArticleDrafts() {
+    return delete(articleDrafts).go();
   }
 }

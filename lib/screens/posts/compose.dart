@@ -17,7 +17,7 @@ import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:island/screens/posts/detail.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
-import 'package:island/services/compose_storage.dart';
+import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/post/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -65,11 +65,16 @@ class PostComposeScreen extends HookConsumerWidget {
   // Helper method to parse visibility
   int _parseVisibility(String visibility) {
     switch (visibility) {
-      case 'public': return 0;
-      case 'unlisted': return 1;
-      case 'friends': return 2;
-      case 'private': return 3;
-      default: return 0;
+      case 'public':
+        return 0;
+      case 'unlisted':
+        return 1;
+      case 'friends':
+        return 2;
+      case 'private':
+        return 3;
+      default:
+        return 0;
     }
   }
 
@@ -103,7 +108,8 @@ class PostComposeScreen extends HookConsumerWidget {
 
     // Start auto-save when component mounts
     useEffect(() {
-      if (originalPost == null) { // Only auto-save for new posts, not edits
+      if (originalPost == null) {
+        // Only auto-save for new posts, not edits
         state.startAutoSave(ref);
       }
       return () => state.stopAutoSave();
@@ -119,19 +125,24 @@ class PostComposeScreen extends HookConsumerWidget {
 
     // Load draft if available (only for new posts)
     useEffect(() {
-      if (originalPost == null && effectiveForwardedPost == null && effectiveRepliedPost == null) {
+      if (originalPost == null &&
+          effectiveForwardedPost == null &&
+          effectiveRepliedPost == null) {
         // Try to load the most recent draft
         final drafts = ref.read(composeStorageNotifierProvider);
         if (drafts.isNotEmpty) {
-          final mostRecentDraft = drafts.values.reduce((a, b) => 
-            a.lastModified.isAfter(b.lastModified) ? a : b);
-          
+          final mostRecentDraft = drafts.values.reduce(
+            (a, b) => a.lastModified.isAfter(b.lastModified) ? a : b,
+          );
+
           // Only load if the draft has meaningful content
           if (!mostRecentDraft.isEmpty) {
             state.titleController.text = mostRecentDraft.title;
             state.descriptionController.text = mostRecentDraft.description;
             state.contentController.text = mostRecentDraft.content;
-            state.visibility.value = _parseVisibility(mostRecentDraft.visibility);
+            state.visibility.value = _parseVisibility(
+              mostRecentDraft.visibility,
+            );
           }
         }
       }
@@ -141,12 +152,7 @@ class PostComposeScreen extends HookConsumerWidget {
     // Dispose state when widget is disposed
     useEffect(() {
       return () {
-        // Stop auto-save first to prevent race conditions
         state.stopAutoSave();
-        // Save final draft before disposing
-        if (originalPost == null) {
-          ComposeLogic.saveDraft(ref, state);
-        }
         ComposeLogic.dispose(state);
       };
     }, []);
@@ -235,199 +241,220 @@ class PostComposeScreen extends HookConsumerWidget {
     }
 
     // Build UI
-    return AppScaffold(
-      noBackground: false,
-      appBar: AppBar(
-        leading: const PageBackButton(),
-        actions: [
-          if (originalPost == null) // Only show drafts for new posts
+    return PopScope(
+      onPopInvoked: (_) {
+        if (originalPost == null) {
+          ComposeLogic.saveDraft(ref, state);
+        }
+      },
+      child: AppScaffold(
+        noBackground: false,
+        appBar: AppBar(
+          leading: const PageBackButton(),
+          actions: [
+            if (originalPost == null) // Only show drafts for new posts
+              IconButton(
+                icon: const Icon(Symbols.draft),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder:
+                        (context) => DraftManagerSheet(
+                          isArticle: false,
+                          onDraftSelected: (draftId) {
+                            final draft =
+                                ref.read(
+                                  composeStorageNotifierProvider,
+                                )[draftId];
+                            if (draft != null) {
+                              state.titleController.text = draft.title;
+                              state.descriptionController.text =
+                                  draft.description;
+                              state.contentController.text = draft.content;
+                              state.visibility.value = _parseVisibility(
+                                draft.visibility,
+                              );
+                            }
+                          },
+                        ),
+                  );
+                },
+                tooltip: 'drafts'.tr(),
+              ),
             IconButton(
-              icon: const Icon(Symbols.draft),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => DraftManagerSheet(
-                    isArticle: false,
-                    onDraftSelected: (draftId) {
-                      final draft = ref.read(composeStorageNotifierProvider)[draftId];
-                      if (draft != null) {
-                        state.titleController.text = draft.title;
-                        state.descriptionController.text = draft.description;
-                        state.contentController.text = draft.content;
-                        state.visibility.value = _parseVisibility(draft.visibility);
-                      }
-                    },
-                  ),
+              icon: const Icon(Symbols.save),
+              onPressed: () => ComposeLogic.saveDraft(ref, state),
+              tooltip: 'saveDraft'.tr(),
+            ),
+            IconButton(
+              icon: const Icon(Symbols.settings),
+              onPressed: showSettingsSheet,
+              tooltip: 'postSettings'.tr(),
+            ),
+            ValueListenableBuilder<bool>(
+              valueListenable: state.submitting,
+              builder: (context, submitting, _) {
+                return IconButton(
+                  onPressed:
+                      submitting
+                          ? null
+                          : () => ComposeLogic.performAction(
+                            ref,
+                            state,
+                            context,
+                            originalPost: originalPost,
+                            repliedPost: repliedPost,
+                            forwardedPost: forwardedPost,
+                            postType: 0, // Regular post type
+                          ),
+                  icon:
+                      submitting
+                          ? SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          ).center()
+                          : Icon(
+                            originalPost != null
+                                ? Symbols.edit
+                                : Symbols.upload,
+                          ),
                 );
               },
-              tooltip: 'drafts'.tr(),
             ),
-          IconButton(
-            icon: const Icon(Symbols.settings),
-            onPressed: showSettingsSheet,
-            tooltip: 'postSettings'.tr(),
-          ),
-          ValueListenableBuilder<bool>(
-            valueListenable: state.submitting,
-            builder: (context, submitting, _) {
-              return IconButton(
-                onPressed:
-                    submitting
-                        ? null
-                        : () => ComposeLogic.performAction(
-                          ref,
-                          state,
-                          context,
-                          originalPost: originalPost,
-                          repliedPost: repliedPost,
-                          forwardedPost: forwardedPost,
-                          postType: 0, // Regular post type
-                        ),
-                icon:
-                    submitting
-                        ? SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: const CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
-                        ).center()
-                        : Icon(
-                          originalPost != null ? Symbols.edit : Symbols.upload,
-                        ),
-              );
-            },
-          ),
-          const Gap(8),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Reply/Forward info section
-          _buildInfoBanner(context),
+            const Gap(8),
+          ],
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Reply/Forward info section
+            _buildInfoBanner(context),
 
-          // Main content area
-          Expanded(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Row(
-                spacing: 12,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Publisher profile picture
-                  GestureDetector(
-                    child: ProfilePictureWidget(
-                      fileId: state.currentPublisher.value?.picture?.id,
-                      radius: 20,
-                      fallbackIcon:
-                          state.currentPublisher.value == null
-                              ? Symbols.question_mark
-                              : null,
-                    ),
-                    onTap: () {
-                      showModalBottomSheet(
-                        isScrollControlled: true,
-                        context: context,
-                        builder: (context) => const PublisherModal(),
-                      ).then((value) {
-                        if (value != null) {
-                          state.currentPublisher.value = value;
-                        }
-                      });
-                    },
-                  ).padding(top: 16),
+            // Main content area
+            Expanded(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Row(
+                  spacing: 12,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Publisher profile picture
+                    GestureDetector(
+                      child: ProfilePictureWidget(
+                        fileId: state.currentPublisher.value?.picture?.id,
+                        radius: 20,
+                        fallbackIcon:
+                            state.currentPublisher.value == null
+                                ? Symbols.question_mark
+                                : null,
+                      ),
+                      onTap: () {
+                        showModalBottomSheet(
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (context) => const PublisherModal(),
+                        ).then((value) {
+                          if (value != null) {
+                            state.currentPublisher.value = value;
+                          }
+                        });
+                      },
+                    ).padding(top: 16),
 
-                  // Post content form
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Content field with borderless design
-                          RawKeyboardListener(
-                            focusNode: FocusNode(),
-                            onKey:
-                                (event) => ComposeLogic.handleKeyPress(
-                                  event,
-                                  state,
-                                  ref,
-                                  context,
-                                  originalPost: originalPost,
-                                  repliedPost: repliedPost,
-                                  forwardedPost: forwardedPost,
-                                  postType: 0, // Regular post type
+                    // Post content form
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Content field with borderless design
+                            RawKeyboardListener(
+                              focusNode: FocusNode(),
+                              onKey:
+                                  (event) => ComposeLogic.handleKeyPress(
+                                    event,
+                                    state,
+                                    ref,
+                                    context,
+                                    originalPost: originalPost,
+                                    repliedPost: repliedPost,
+                                    forwardedPost: forwardedPost,
+                                    postType: 0, // Regular post type
+                                  ),
+                              child: TextField(
+                                controller: state.contentController,
+                                style: theme.textTheme.bodyMedium,
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'postContent'.tr(),
+                                  contentPadding: const EdgeInsets.all(8),
                                 ),
-                            child: TextField(
-                              controller: state.contentController,
-                              style: theme.textTheme.bodyMedium,
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                hintText: 'postContent'.tr(),
-                                contentPadding: const EdgeInsets.all(8),
+                                maxLines: null,
+                                onTapOutside:
+                                    (_) =>
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus(),
                               ),
-                              maxLines: null,
-                              onTapOutside:
-                                  (_) =>
-                                      FocusManager.instance.primaryFocus
-                                          ?.unfocus(),
                             ),
-                          ),
 
-                          const Gap(8),
+                            const Gap(8),
 
-                          // Attachments preview
-                          ValueListenableBuilder<List<UniversalFile>>(
-                            valueListenable: state.attachments,
-                            builder: (context, attachments, _) {
-                              if (attachments.isEmpty) {
-                                return const SizedBox.shrink();
-                              }
-                              return LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final isWide = isWideScreen(context);
-                                  return isWide
-                                      ? buildWideAttachmentGrid()
-                                      : buildNarrowAttachmentList();
-                                },
-                              );
-                            },
-                          ),
-                        ],
+                            // Attachments preview
+                            ValueListenableBuilder<List<UniversalFile>>(
+                              valueListenable: state.attachments,
+                              builder: (context, attachments, _) {
+                                if (attachments.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+                                return LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final isWide = isWideScreen(context);
+                                    return isWide
+                                        ? buildWideAttachmentGrid()
+                                        : buildNarrowAttachmentList();
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                  ],
+                ).padding(horizontal: 16),
+              ).alignment(Alignment.topCenter),
+            ),
+
+            // Bottom toolbar
+            Material(
+              elevation: 4,
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => ComposeLogic.pickPhotoMedia(ref, state),
+                    icon: const Icon(Symbols.add_a_photo),
+                    color: colorScheme.primary,
+                  ),
+                  IconButton(
+                    onPressed: () => ComposeLogic.pickVideoMedia(ref, state),
+                    icon: const Icon(Symbols.videocam),
+                    color: colorScheme.primary,
                   ),
                 ],
-              ).padding(horizontal: 16),
-            ).alignment(Alignment.topCenter),
-          ),
-
-          // Bottom toolbar
-          Material(
-            elevation: 4,
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => ComposeLogic.pickPhotoMedia(ref, state),
-                  icon: const Icon(Symbols.add_a_photo),
-                  color: colorScheme.primary,
-                ),
-                IconButton(
-                  onPressed: () => ComposeLogic.pickVideoMedia(ref, state),
-                  icon: const Icon(Symbols.videocam),
-                  color: colorScheme.primary,
-                ),
-              ],
-            ).padding(
-              bottom: MediaQuery.of(context).padding.bottom + 16,
-              horizontal: 16,
-              top: 8,
+              ).padding(
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+                horizontal: 16,
+                top: 8,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
