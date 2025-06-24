@@ -61,7 +61,7 @@ class EventCalanderScreen extends HookConsumerWidget {
                   child: Column(
                     children: [
                       Card(
-                        margin: EdgeInsets.all(16),
+                        margin: EdgeInsets.only(left: 16, right: 16, top: 16),
                         child: Column(
                           children: [
                             // Use the reusable EventCalendarWidget
@@ -77,7 +77,6 @@ class EventCalanderScreen extends HookConsumerWidget {
                       ),
 
                       // Add the fortune graph widget
-                      const Divider(height: 1),
                       FortuneGraphWidget(
                         events: events,
                         constrainWidth: true,

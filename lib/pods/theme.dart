@@ -102,6 +102,7 @@ Future<ThemeData> createAppTheme(
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: useM3 ? SnackBarBehavior.floating : SnackBarBehavior.fixed,
+      width: 560,
     ),
     appBarTheme: AppBarTheme(
       centerTitle: true,

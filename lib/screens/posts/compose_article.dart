@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +9,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
+
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -21,6 +22,7 @@ import 'package:island/widgets/post/compose_settings_sheet.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:island/widgets/post/draft_manager.dart';
+
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -71,7 +73,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
       if (originalPost == null) {
         // Only auto-save for new articles, not edits
         autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-          _saveArticleDraft(ref, state);
+          ComposeLogic.saveDraftWithoutUpload(ref, state, postType: 1);
         });
       }
       return () {
@@ -79,7 +81,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
         state.stopAutoSave();
         // Save final draft before disposing
         if (originalPost == null) {
-          _saveArticleDraft(ref, state);
+          ComposeLogic.saveDraftWithoutUpload(ref, state, postType: 1);
         }
         ComposeLogic.dispose(state);
         autoSaveTimer?.cancel();
@@ -100,17 +102,22 @@ class ArticleComposeScreen extends HookConsumerWidget {
     useEffect(() {
       if (originalPost == null) {
         // Try to load the most recent article draft
-        final drafts = ref.read(articleStorageNotifierProvider);
+        final drafts = ref.read(composeStorageNotifierProvider);
         if (drafts.isNotEmpty) {
           final mostRecentDraft = drafts.values.reduce(
-            (a, b) => a.lastModified.isAfter(b.lastModified) ? a : b,
+            (a, b) =>
+                (a.updatedAt ?? DateTime(0)).isAfter(b.updatedAt ?? DateTime(0))
+                    ? a
+                    : b,
           );
 
           // Only load if the draft has meaningful content
-          if (!mostRecentDraft.isEmpty) {
-            state.titleController.text = mostRecentDraft.title;
-            state.descriptionController.text = mostRecentDraft.description;
-            state.contentController.text = mostRecentDraft.content;
+          if (mostRecentDraft.content?.isNotEmpty == true ||
+              mostRecentDraft.title?.isNotEmpty == true) {
+            state.titleController.text = mostRecentDraft.title ?? '';
+            state.descriptionController.text =
+                mostRecentDraft.description ?? '';
+            state.contentController.text = mostRecentDraft.content ?? '';
             state.visibility.value = mostRecentDraft.visibility;
           }
         }
@@ -356,7 +363,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
     return PopScope(
       onPopInvoked: (_) {
         if (originalPost == null) {
-          _saveArticleDraft(ref, state);
+          ComposeLogic.saveDraftWithoutUpload(ref, state, postType: 1);
         }
       },
       child: AppScaffold(
@@ -383,17 +390,17 @@ class ArticleComposeScreen extends HookConsumerWidget {
                     isScrollControlled: true,
                     builder:
                         (context) => DraftManagerSheet(
-                          isArticle: true,
                           onDraftSelected: (draftId) {
                             final draft =
                                 ref.read(
-                                  articleStorageNotifierProvider,
+                                  composeStorageNotifierProvider,
                                 )[draftId];
                             if (draft != null) {
-                              state.titleController.text = draft.title;
+                              state.titleController.text = draft.title ?? '';
                               state.descriptionController.text =
-                                  draft.description;
-                              state.contentController.text = draft.content;
+                                  draft.description ?? '';
+                              state.contentController.text =
+                                  draft.content ?? '';
                               state.visibility.value = draft.visibility;
                             }
                           },
@@ -404,7 +411,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
               ),
             IconButton(
               icon: const Icon(Symbols.save),
-              onPressed: () => _saveArticleDraft(ref, state),
+              onPressed: () => ComposeLogic.saveDraft(ref, state, postType: 1),
               tooltip: 'saveDraft'.tr(),
             ),
             IconButton(
@@ -524,7 +531,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
     if (isPaste && isModifierPressed) {
       ComposeLogic.handlePaste(state);
     } else if (isSave && isModifierPressed) {
-      _saveArticleDraft(ref, state);
+      ComposeLogic.saveDraft(ref, state, postType: 1);
     } else if (isSubmit && isModifierPressed && !state.submitting.value) {
       ComposeLogic.performAction(
         ref,
@@ -537,23 +544,5 @@ class ArticleComposeScreen extends HookConsumerWidget {
   }
 
   // Helper method to save article draft
-  Future<void> _saveArticleDraft(WidgetRef ref, ComposeState state) async {
-    try {
-      final draft = ArticleDraftModel(
-        id: state.draftId,
-        title: state.titleController.text,
-        description: state.descriptionController.text,
-        content: state.contentController.text,
-        visibility: state.visibility.value,
-        lastModified: DateTime.now(),
-      );
-
-      await ref.read(articleStorageNotifierProvider.notifier).saveDraft(draft);
-    } catch (e) {
-      log('[ArticleCompose] Failed to save draft, error: $e');
-      // Silently fail for auto-save to avoid disrupting user experience
-    }
-  }
-
 
 }

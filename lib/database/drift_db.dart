@@ -2,16 +2,17 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:island/database/message.dart';
 import 'package:island/database/draft.dart';
+import 'package:island/models/post.dart';
 
 part 'drift_db.g.dart';
 
 // Define the database
-@DriftDatabase(tables: [ChatMessages, ComposeDrafts, ArticleDrafts])
+@DriftDatabase(tables: [ChatMessages, PostDrafts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -23,10 +24,9 @@ class AppDatabase extends _$AppDatabase {
         // Add isRead column with default value false
         await m.addColumn(chatMessages, chatMessages.isRead);
       }
-      if (from < 3) {
-        // Add draft tables
-        await m.createTable(composeDrafts);
-        await m.createTable(articleDrafts);
+      if (from < 4) {
+        // Drop old draft tables if they exist
+        await m.createTable(postDrafts);
       }
     },
   );
@@ -98,51 +98,23 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  // Methods for compose drafts
-  Future<List<ComposeDraft>> getAllComposeDrafts() {
-    return (select(composeDrafts)
-          ..orderBy([(d) => OrderingTerm.desc(d.lastModified)]))
-        .get();
+  // Methods for post drafts
+  Future<List<SnPost>> getAllPostDrafts() async {
+    final drafts = await select(postDrafts).get();
+    return drafts
+        .map((draft) => SnPost.fromJson(jsonDecode(draft.post)))
+        .toList();
   }
 
-  Future<ComposeDraft?> getComposeDraft(String id) {
-    return (select(composeDrafts)..where((d) => d.id.equals(id)))
-        .getSingleOrNull();
+  Future<void> addPostDraft(PostDraftsCompanion entry) async {
+    await into(postDrafts).insert(entry, mode: InsertMode.replace);
   }
 
-  Future<int> saveComposeDraft(ComposeDraftsCompanion draft) {
-    return into(composeDrafts).insert(draft, mode: InsertMode.insertOrReplace);
+  Future<void> deletePostDraft(String id) async {
+    await (delete(postDrafts)..where((tbl) => tbl.id.equals(id))).go();
   }
 
-  Future<int> deleteComposeDraft(String id) {
-    return (delete(composeDrafts)..where((d) => d.id.equals(id))).go();
-  }
-
-  Future<int> clearAllComposeDrafts() {
-    return delete(composeDrafts).go();
-  }
-
-  // Methods for article drafts
-  Future<List<ArticleDraft>> getAllArticleDrafts() {
-    return (select(articleDrafts)
-          ..orderBy([(d) => OrderingTerm.desc(d.lastModified)]))
-        .get();
-  }
-
-  Future<ArticleDraft?> getArticleDraft(String id) {
-    return (select(articleDrafts)..where((d) => d.id.equals(id)))
-        .getSingleOrNull();
-  }
-
-  Future<int> saveArticleDraft(ArticleDraftsCompanion draft) {
-    return into(articleDrafts).insert(draft, mode: InsertMode.insertOrReplace);
-  }
-
-  Future<int> deleteArticleDraft(String id) {
-    return (delete(articleDrafts)..where((d) => d.id.equals(id))).go();
-  }
-
-  Future<int> clearAllArticleDrafts() {
-    return delete(articleDrafts).go();
+  Future<void> clearAllPostDrafts() async {
+    await delete(postDrafts).go();
   }
 }

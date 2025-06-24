@@ -569,12 +569,12 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
   }
 }
 
-class $ComposeDraftsTable extends ComposeDrafts
-    with TableInfo<$ComposeDraftsTable, ComposeDraft> {
+class $PostDraftsTable extends PostDrafts
+    with TableInfo<$PostDraftsTable, PostDraft> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $ComposeDraftsTable(this.attachedDatabase, [this._alias]);
+  $PostDraftsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -584,63 +584,14 @@ class $ComposeDraftsTable extends ComposeDrafts
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  static const VerificationMeta _postMeta = const VerificationMeta('post');
   @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-    'title',
+  late final GeneratedColumn<String> post = GeneratedColumn<String>(
+    'post',
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _descriptionMeta = const VerificationMeta(
-    'description',
-  );
-  @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>(
-    'description',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _contentMeta = const VerificationMeta(
-    'content',
-  );
-  @override
-  late final GeneratedColumn<String> content = GeneratedColumn<String>(
-    'content',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _attachmentIdsMeta = const VerificationMeta(
-    'attachmentIds',
-  );
-  @override
-  late final GeneratedColumn<String> attachmentIds = GeneratedColumn<String>(
-    'attachment_ids',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('[]'),
-  );
-  static const VerificationMeta _visibilityMeta = const VerificationMeta(
-    'visibility',
-  );
-  @override
-  late final GeneratedColumn<int> visibility = GeneratedColumn<int>(
-    'visibility',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _lastModifiedMeta = const VerificationMeta(
     'lastModified',
@@ -654,23 +605,15 @@ class $ComposeDraftsTable extends ComposeDrafts
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    title,
-    description,
-    content,
-    attachmentIds,
-    visibility,
-    lastModified,
-  ];
+  List<GeneratedColumn> get $columns => [id, post, lastModified];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'compose_drafts';
+  static const String $name = 'post_drafts';
   @override
   VerificationContext validateIntegrity(
-    Insertable<ComposeDraft> instance, {
+    Insertable<PostDraft> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -680,41 +623,13 @@ class $ComposeDraftsTable extends ComposeDrafts
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('title')) {
+    if (data.containsKey('post')) {
       context.handle(
-        _titleMeta,
-        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+        _postMeta,
+        post.isAcceptableOrUnknown(data['post']!, _postMeta),
       );
-    }
-    if (data.containsKey('description')) {
-      context.handle(
-        _descriptionMeta,
-        description.isAcceptableOrUnknown(
-          data['description']!,
-          _descriptionMeta,
-        ),
-      );
-    }
-    if (data.containsKey('content')) {
-      context.handle(
-        _contentMeta,
-        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
-      );
-    }
-    if (data.containsKey('attachment_ids')) {
-      context.handle(
-        _attachmentIdsMeta,
-        attachmentIds.isAcceptableOrUnknown(
-          data['attachment_ids']!,
-          _attachmentIdsMeta,
-        ),
-      );
-    }
-    if (data.containsKey('visibility')) {
-      context.handle(
-        _visibilityMeta,
-        visibility.isAcceptableOrUnknown(data['visibility']!, _visibilityMeta),
-      );
+    } else if (isInserting) {
+      context.missing(_postMeta);
     }
     if (data.containsKey('last_modified')) {
       context.handle(
@@ -733,38 +648,18 @@ class $ComposeDraftsTable extends ComposeDrafts
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  ComposeDraft map(Map<String, dynamic> data, {String? tablePrefix}) {
+  PostDraft map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ComposeDraft(
+    return PostDraft(
       id:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
             data['${effectivePrefix}id'],
           )!,
-      title:
+      post:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
-            data['${effectivePrefix}title'],
-          )!,
-      description:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}description'],
-          )!,
-      content:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}content'],
-          )!,
-      attachmentIds:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}attachment_ids'],
-          )!,
-      visibility:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}visibility'],
+            data['${effectivePrefix}post'],
           )!,
       lastModified:
           attachedDatabase.typeMapping.read(
@@ -775,65 +670,45 @@ class $ComposeDraftsTable extends ComposeDrafts
   }
 
   @override
-  $ComposeDraftsTable createAlias(String alias) {
-    return $ComposeDraftsTable(attachedDatabase, alias);
+  $PostDraftsTable createAlias(String alias) {
+    return $PostDraftsTable(attachedDatabase, alias);
   }
 }
 
-class ComposeDraft extends DataClass implements Insertable<ComposeDraft> {
+class PostDraft extends DataClass implements Insertable<PostDraft> {
   final String id;
-  final String title;
-  final String description;
-  final String content;
-  final String attachmentIds;
-  final int visibility;
+  final String post;
   final DateTime lastModified;
-  const ComposeDraft({
+  const PostDraft({
     required this.id,
-    required this.title,
-    required this.description,
-    required this.content,
-    required this.attachmentIds,
-    required this.visibility,
+    required this.post,
     required this.lastModified,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['title'] = Variable<String>(title);
-    map['description'] = Variable<String>(description);
-    map['content'] = Variable<String>(content);
-    map['attachment_ids'] = Variable<String>(attachmentIds);
-    map['visibility'] = Variable<int>(visibility);
+    map['post'] = Variable<String>(post);
     map['last_modified'] = Variable<DateTime>(lastModified);
     return map;
   }
 
-  ComposeDraftsCompanion toCompanion(bool nullToAbsent) {
-    return ComposeDraftsCompanion(
+  PostDraftsCompanion toCompanion(bool nullToAbsent) {
+    return PostDraftsCompanion(
       id: Value(id),
-      title: Value(title),
-      description: Value(description),
-      content: Value(content),
-      attachmentIds: Value(attachmentIds),
-      visibility: Value(visibility),
+      post: Value(post),
       lastModified: Value(lastModified),
     );
   }
 
-  factory ComposeDraft.fromJson(
+  factory PostDraft.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ComposeDraft(
+    return PostDraft(
       id: serializer.fromJson<String>(json['id']),
-      title: serializer.fromJson<String>(json['title']),
-      description: serializer.fromJson<String>(json['description']),
-      content: serializer.fromJson<String>(json['content']),
-      attachmentIds: serializer.fromJson<String>(json['attachmentIds']),
-      visibility: serializer.fromJson<int>(json['visibility']),
+      post: serializer.fromJson<String>(json['post']),
       lastModified: serializer.fromJson<DateTime>(json['lastModified']),
     );
   }
@@ -842,45 +717,21 @@ class ComposeDraft extends DataClass implements Insertable<ComposeDraft> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'title': serializer.toJson<String>(title),
-      'description': serializer.toJson<String>(description),
-      'content': serializer.toJson<String>(content),
-      'attachmentIds': serializer.toJson<String>(attachmentIds),
-      'visibility': serializer.toJson<int>(visibility),
+      'post': serializer.toJson<String>(post),
       'lastModified': serializer.toJson<DateTime>(lastModified),
     };
   }
 
-  ComposeDraft copyWith({
-    String? id,
-    String? title,
-    String? description,
-    String? content,
-    String? attachmentIds,
-    int? visibility,
-    DateTime? lastModified,
-  }) => ComposeDraft(
-    id: id ?? this.id,
-    title: title ?? this.title,
-    description: description ?? this.description,
-    content: content ?? this.content,
-    attachmentIds: attachmentIds ?? this.attachmentIds,
-    visibility: visibility ?? this.visibility,
-    lastModified: lastModified ?? this.lastModified,
-  );
-  ComposeDraft copyWithCompanion(ComposeDraftsCompanion data) {
-    return ComposeDraft(
+  PostDraft copyWith({String? id, String? post, DateTime? lastModified}) =>
+      PostDraft(
+        id: id ?? this.id,
+        post: post ?? this.post,
+        lastModified: lastModified ?? this.lastModified,
+      );
+  PostDraft copyWithCompanion(PostDraftsCompanion data) {
+    return PostDraft(
       id: data.id.present ? data.id.value : this.id,
-      title: data.title.present ? data.title.value : this.title,
-      description:
-          data.description.present ? data.description.value : this.description,
-      content: data.content.present ? data.content.value : this.content,
-      attachmentIds:
-          data.attachmentIds.present
-              ? data.attachmentIds.value
-              : this.attachmentIds,
-      visibility:
-          data.visibility.present ? data.visibility.value : this.visibility,
+      post: data.post.present ? data.post.value : this.post,
       lastModified:
           data.lastModified.present
               ? data.lastModified.value
@@ -890,110 +741,67 @@ class ComposeDraft extends DataClass implements Insertable<ComposeDraft> {
 
   @override
   String toString() {
-    return (StringBuffer('ComposeDraft(')
+    return (StringBuffer('PostDraft(')
           ..write('id: $id, ')
-          ..write('title: $title, ')
-          ..write('description: $description, ')
-          ..write('content: $content, ')
-          ..write('attachmentIds: $attachmentIds, ')
-          ..write('visibility: $visibility, ')
+          ..write('post: $post, ')
           ..write('lastModified: $lastModified')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    title,
-    description,
-    content,
-    attachmentIds,
-    visibility,
-    lastModified,
-  );
+  int get hashCode => Object.hash(id, post, lastModified);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ComposeDraft &&
+      (other is PostDraft &&
           other.id == this.id &&
-          other.title == this.title &&
-          other.description == this.description &&
-          other.content == this.content &&
-          other.attachmentIds == this.attachmentIds &&
-          other.visibility == this.visibility &&
+          other.post == this.post &&
           other.lastModified == this.lastModified);
 }
 
-class ComposeDraftsCompanion extends UpdateCompanion<ComposeDraft> {
+class PostDraftsCompanion extends UpdateCompanion<PostDraft> {
   final Value<String> id;
-  final Value<String> title;
-  final Value<String> description;
-  final Value<String> content;
-  final Value<String> attachmentIds;
-  final Value<int> visibility;
+  final Value<String> post;
   final Value<DateTime> lastModified;
   final Value<int> rowid;
-  const ComposeDraftsCompanion({
+  const PostDraftsCompanion({
     this.id = const Value.absent(),
-    this.title = const Value.absent(),
-    this.description = const Value.absent(),
-    this.content = const Value.absent(),
-    this.attachmentIds = const Value.absent(),
-    this.visibility = const Value.absent(),
+    this.post = const Value.absent(),
     this.lastModified = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  ComposeDraftsCompanion.insert({
+  PostDraftsCompanion.insert({
     required String id,
-    this.title = const Value.absent(),
-    this.description = const Value.absent(),
-    this.content = const Value.absent(),
-    this.attachmentIds = const Value.absent(),
-    this.visibility = const Value.absent(),
+    required String post,
     required DateTime lastModified,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
+       post = Value(post),
        lastModified = Value(lastModified);
-  static Insertable<ComposeDraft> custom({
+  static Insertable<PostDraft> custom({
     Expression<String>? id,
-    Expression<String>? title,
-    Expression<String>? description,
-    Expression<String>? content,
-    Expression<String>? attachmentIds,
-    Expression<int>? visibility,
+    Expression<String>? post,
     Expression<DateTime>? lastModified,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (title != null) 'title': title,
-      if (description != null) 'description': description,
-      if (content != null) 'content': content,
-      if (attachmentIds != null) 'attachment_ids': attachmentIds,
-      if (visibility != null) 'visibility': visibility,
+      if (post != null) 'post': post,
       if (lastModified != null) 'last_modified': lastModified,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  ComposeDraftsCompanion copyWith({
+  PostDraftsCompanion copyWith({
     Value<String>? id,
-    Value<String>? title,
-    Value<String>? description,
-    Value<String>? content,
-    Value<String>? attachmentIds,
-    Value<int>? visibility,
+    Value<String>? post,
     Value<DateTime>? lastModified,
     Value<int>? rowid,
   }) {
-    return ComposeDraftsCompanion(
+    return PostDraftsCompanion(
       id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      content: content ?? this.content,
-      attachmentIds: attachmentIds ?? this.attachmentIds,
-      visibility: visibility ?? this.visibility,
+      post: post ?? this.post,
       lastModified: lastModified ?? this.lastModified,
       rowid: rowid ?? this.rowid,
     );
@@ -1005,20 +813,8 @@ class ComposeDraftsCompanion extends UpdateCompanion<ComposeDraft> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
-    }
-    if (description.present) {
-      map['description'] = Variable<String>(description.value);
-    }
-    if (content.present) {
-      map['content'] = Variable<String>(content.value);
-    }
-    if (attachmentIds.present) {
-      map['attachment_ids'] = Variable<String>(attachmentIds.value);
-    }
-    if (visibility.present) {
-      map['visibility'] = Variable<int>(visibility.value);
+    if (post.present) {
+      map['post'] = Variable<String>(post.value);
     }
     if (lastModified.present) {
       map['last_modified'] = Variable<DateTime>(lastModified.value);
@@ -1031,430 +827,9 @@ class ComposeDraftsCompanion extends UpdateCompanion<ComposeDraft> {
 
   @override
   String toString() {
-    return (StringBuffer('ComposeDraftsCompanion(')
+    return (StringBuffer('PostDraftsCompanion(')
           ..write('id: $id, ')
-          ..write('title: $title, ')
-          ..write('description: $description, ')
-          ..write('content: $content, ')
-          ..write('attachmentIds: $attachmentIds, ')
-          ..write('visibility: $visibility, ')
-          ..write('lastModified: $lastModified, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $ArticleDraftsTable extends ArticleDrafts
-    with TableInfo<$ArticleDraftsTable, ArticleDraft> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ArticleDraftsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
-  @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-    'title',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _descriptionMeta = const VerificationMeta(
-    'description',
-  );
-  @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>(
-    'description',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _contentMeta = const VerificationMeta(
-    'content',
-  );
-  @override
-  late final GeneratedColumn<String> content = GeneratedColumn<String>(
-    'content',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _visibilityMeta = const VerificationMeta(
-    'visibility',
-  );
-  @override
-  late final GeneratedColumn<int> visibility = GeneratedColumn<int>(
-    'visibility',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _lastModifiedMeta = const VerificationMeta(
-    'lastModified',
-  );
-  @override
-  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
-    'last_modified',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    title,
-    description,
-    content,
-    visibility,
-    lastModified,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'article_drafts';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<ArticleDraft> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('title')) {
-      context.handle(
-        _titleMeta,
-        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
-      );
-    }
-    if (data.containsKey('description')) {
-      context.handle(
-        _descriptionMeta,
-        description.isAcceptableOrUnknown(
-          data['description']!,
-          _descriptionMeta,
-        ),
-      );
-    }
-    if (data.containsKey('content')) {
-      context.handle(
-        _contentMeta,
-        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
-      );
-    }
-    if (data.containsKey('visibility')) {
-      context.handle(
-        _visibilityMeta,
-        visibility.isAcceptableOrUnknown(data['visibility']!, _visibilityMeta),
-      );
-    }
-    if (data.containsKey('last_modified')) {
-      context.handle(
-        _lastModifiedMeta,
-        lastModified.isAcceptableOrUnknown(
-          data['last_modified']!,
-          _lastModifiedMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_lastModifiedMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  ArticleDraft map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ArticleDraft(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}id'],
-          )!,
-      title:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}title'],
-          )!,
-      description:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}description'],
-          )!,
-      content:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}content'],
-          )!,
-      visibility:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}visibility'],
-          )!,
-      lastModified:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}last_modified'],
-          )!,
-    );
-  }
-
-  @override
-  $ArticleDraftsTable createAlias(String alias) {
-    return $ArticleDraftsTable(attachedDatabase, alias);
-  }
-}
-
-class ArticleDraft extends DataClass implements Insertable<ArticleDraft> {
-  final String id;
-  final String title;
-  final String description;
-  final String content;
-  final int visibility;
-  final DateTime lastModified;
-  const ArticleDraft({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.content,
-    required this.visibility,
-    required this.lastModified,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['title'] = Variable<String>(title);
-    map['description'] = Variable<String>(description);
-    map['content'] = Variable<String>(content);
-    map['visibility'] = Variable<int>(visibility);
-    map['last_modified'] = Variable<DateTime>(lastModified);
-    return map;
-  }
-
-  ArticleDraftsCompanion toCompanion(bool nullToAbsent) {
-    return ArticleDraftsCompanion(
-      id: Value(id),
-      title: Value(title),
-      description: Value(description),
-      content: Value(content),
-      visibility: Value(visibility),
-      lastModified: Value(lastModified),
-    );
-  }
-
-  factory ArticleDraft.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ArticleDraft(
-      id: serializer.fromJson<String>(json['id']),
-      title: serializer.fromJson<String>(json['title']),
-      description: serializer.fromJson<String>(json['description']),
-      content: serializer.fromJson<String>(json['content']),
-      visibility: serializer.fromJson<int>(json['visibility']),
-      lastModified: serializer.fromJson<DateTime>(json['lastModified']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'title': serializer.toJson<String>(title),
-      'description': serializer.toJson<String>(description),
-      'content': serializer.toJson<String>(content),
-      'visibility': serializer.toJson<int>(visibility),
-      'lastModified': serializer.toJson<DateTime>(lastModified),
-    };
-  }
-
-  ArticleDraft copyWith({
-    String? id,
-    String? title,
-    String? description,
-    String? content,
-    int? visibility,
-    DateTime? lastModified,
-  }) => ArticleDraft(
-    id: id ?? this.id,
-    title: title ?? this.title,
-    description: description ?? this.description,
-    content: content ?? this.content,
-    visibility: visibility ?? this.visibility,
-    lastModified: lastModified ?? this.lastModified,
-  );
-  ArticleDraft copyWithCompanion(ArticleDraftsCompanion data) {
-    return ArticleDraft(
-      id: data.id.present ? data.id.value : this.id,
-      title: data.title.present ? data.title.value : this.title,
-      description:
-          data.description.present ? data.description.value : this.description,
-      content: data.content.present ? data.content.value : this.content,
-      visibility:
-          data.visibility.present ? data.visibility.value : this.visibility,
-      lastModified:
-          data.lastModified.present
-              ? data.lastModified.value
-              : this.lastModified,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ArticleDraft(')
-          ..write('id: $id, ')
-          ..write('title: $title, ')
-          ..write('description: $description, ')
-          ..write('content: $content, ')
-          ..write('visibility: $visibility, ')
-          ..write('lastModified: $lastModified')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, title, description, content, visibility, lastModified);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ArticleDraft &&
-          other.id == this.id &&
-          other.title == this.title &&
-          other.description == this.description &&
-          other.content == this.content &&
-          other.visibility == this.visibility &&
-          other.lastModified == this.lastModified);
-}
-
-class ArticleDraftsCompanion extends UpdateCompanion<ArticleDraft> {
-  final Value<String> id;
-  final Value<String> title;
-  final Value<String> description;
-  final Value<String> content;
-  final Value<int> visibility;
-  final Value<DateTime> lastModified;
-  final Value<int> rowid;
-  const ArticleDraftsCompanion({
-    this.id = const Value.absent(),
-    this.title = const Value.absent(),
-    this.description = const Value.absent(),
-    this.content = const Value.absent(),
-    this.visibility = const Value.absent(),
-    this.lastModified = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  ArticleDraftsCompanion.insert({
-    required String id,
-    this.title = const Value.absent(),
-    this.description = const Value.absent(),
-    this.content = const Value.absent(),
-    this.visibility = const Value.absent(),
-    required DateTime lastModified,
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       lastModified = Value(lastModified);
-  static Insertable<ArticleDraft> custom({
-    Expression<String>? id,
-    Expression<String>? title,
-    Expression<String>? description,
-    Expression<String>? content,
-    Expression<int>? visibility,
-    Expression<DateTime>? lastModified,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (title != null) 'title': title,
-      if (description != null) 'description': description,
-      if (content != null) 'content': content,
-      if (visibility != null) 'visibility': visibility,
-      if (lastModified != null) 'last_modified': lastModified,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  ArticleDraftsCompanion copyWith({
-    Value<String>? id,
-    Value<String>? title,
-    Value<String>? description,
-    Value<String>? content,
-    Value<int>? visibility,
-    Value<DateTime>? lastModified,
-    Value<int>? rowid,
-  }) {
-    return ArticleDraftsCompanion(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      content: content ?? this.content,
-      visibility: visibility ?? this.visibility,
-      lastModified: lastModified ?? this.lastModified,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
-    }
-    if (description.present) {
-      map['description'] = Variable<String>(description.value);
-    }
-    if (content.present) {
-      map['content'] = Variable<String>(content.value);
-    }
-    if (visibility.present) {
-      map['visibility'] = Variable<int>(visibility.value);
-    }
-    if (lastModified.present) {
-      map['last_modified'] = Variable<DateTime>(lastModified.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ArticleDraftsCompanion(')
-          ..write('id: $id, ')
-          ..write('title: $title, ')
-          ..write('description: $description, ')
-          ..write('content: $content, ')
-          ..write('visibility: $visibility, ')
+          ..write('post: $post, ')
           ..write('lastModified: $lastModified, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1466,16 +841,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
-  late final $ComposeDraftsTable composeDrafts = $ComposeDraftsTable(this);
-  late final $ArticleDraftsTable articleDrafts = $ArticleDraftsTable(this);
+  late final $PostDraftsTable postDrafts = $PostDraftsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     chatMessages,
-    composeDrafts,
-    articleDrafts,
+    postDrafts,
   ];
 }
 
@@ -1764,32 +1137,24 @@ typedef $$ChatMessagesTableProcessedTableManager =
       ChatMessage,
       PrefetchHooks Function()
     >;
-typedef $$ComposeDraftsTableCreateCompanionBuilder =
-    ComposeDraftsCompanion Function({
+typedef $$PostDraftsTableCreateCompanionBuilder =
+    PostDraftsCompanion Function({
       required String id,
-      Value<String> title,
-      Value<String> description,
-      Value<String> content,
-      Value<String> attachmentIds,
-      Value<int> visibility,
+      required String post,
       required DateTime lastModified,
       Value<int> rowid,
     });
-typedef $$ComposeDraftsTableUpdateCompanionBuilder =
-    ComposeDraftsCompanion Function({
+typedef $$PostDraftsTableUpdateCompanionBuilder =
+    PostDraftsCompanion Function({
       Value<String> id,
-      Value<String> title,
-      Value<String> description,
-      Value<String> content,
-      Value<String> attachmentIds,
-      Value<int> visibility,
+      Value<String> post,
       Value<DateTime> lastModified,
       Value<int> rowid,
     });
 
-class $$ComposeDraftsTableFilterComposer
-    extends Composer<_$AppDatabase, $ComposeDraftsTable> {
-  $$ComposeDraftsTableFilterComposer({
+class $$PostDraftsTableFilterComposer
+    extends Composer<_$AppDatabase, $PostDraftsTable> {
+  $$PostDraftsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -1801,28 +1166,8 @@ class $$ComposeDraftsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get attachmentIds => $composableBuilder(
-    column: $table.attachmentIds,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get visibility => $composableBuilder(
-    column: $table.visibility,
+  ColumnFilters<String> get post => $composableBuilder(
+    column: $table.post,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1832,9 +1177,9 @@ class $$ComposeDraftsTableFilterComposer
   );
 }
 
-class $$ComposeDraftsTableOrderingComposer
-    extends Composer<_$AppDatabase, $ComposeDraftsTable> {
-  $$ComposeDraftsTableOrderingComposer({
+class $$PostDraftsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PostDraftsTable> {
+  $$PostDraftsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -1846,28 +1191,8 @@ class $$ComposeDraftsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get attachmentIds => $composableBuilder(
-    column: $table.attachmentIds,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get visibility => $composableBuilder(
-    column: $table.visibility,
+  ColumnOrderings<String> get post => $composableBuilder(
+    column: $table.post,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1877,9 +1202,9 @@ class $$ComposeDraftsTableOrderingComposer
   );
 }
 
-class $$ComposeDraftsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ComposeDraftsTable> {
-  $$ComposeDraftsTableAnnotationComposer({
+class $$PostDraftsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PostDraftsTable> {
+  $$PostDraftsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -1889,26 +1214,8 @@ class $$ComposeDraftsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => column);
-
-  GeneratedColumn<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get content =>
-      $composableBuilder(column: $table.content, builder: (column) => column);
-
-  GeneratedColumn<String> get attachmentIds => $composableBuilder(
-    column: $table.attachmentIds,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get visibility => $composableBuilder(
-    column: $table.visibility,
-    builder: (column) => column,
-  );
+  GeneratedColumn<String> get post =>
+      $composableBuilder(column: $table.post, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastModified => $composableBuilder(
     column: $table.lastModified,
@@ -1916,76 +1223,56 @@ class $$ComposeDraftsTableAnnotationComposer
   );
 }
 
-class $$ComposeDraftsTableTableManager
+class $$PostDraftsTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $ComposeDraftsTable,
-          ComposeDraft,
-          $$ComposeDraftsTableFilterComposer,
-          $$ComposeDraftsTableOrderingComposer,
-          $$ComposeDraftsTableAnnotationComposer,
-          $$ComposeDraftsTableCreateCompanionBuilder,
-          $$ComposeDraftsTableUpdateCompanionBuilder,
+          $PostDraftsTable,
+          PostDraft,
+          $$PostDraftsTableFilterComposer,
+          $$PostDraftsTableOrderingComposer,
+          $$PostDraftsTableAnnotationComposer,
+          $$PostDraftsTableCreateCompanionBuilder,
+          $$PostDraftsTableUpdateCompanionBuilder,
           (
-            ComposeDraft,
-            BaseReferences<_$AppDatabase, $ComposeDraftsTable, ComposeDraft>,
+            PostDraft,
+            BaseReferences<_$AppDatabase, $PostDraftsTable, PostDraft>,
           ),
-          ComposeDraft,
+          PostDraft,
           PrefetchHooks Function()
         > {
-  $$ComposeDraftsTableTableManager(_$AppDatabase db, $ComposeDraftsTable table)
+  $$PostDraftsTableTableManager(_$AppDatabase db, $PostDraftsTable table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer:
-              () => $$ComposeDraftsTableFilterComposer($db: db, $table: table),
+              () => $$PostDraftsTableFilterComposer($db: db, $table: table),
           createOrderingComposer:
-              () =>
-                  $$ComposeDraftsTableOrderingComposer($db: db, $table: table),
+              () => $$PostDraftsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer:
-              () => $$ComposeDraftsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+              () => $$PostDraftsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                Value<String> title = const Value.absent(),
-                Value<String> description = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<String> attachmentIds = const Value.absent(),
-                Value<int> visibility = const Value.absent(),
+                Value<String> post = const Value.absent(),
                 Value<DateTime> lastModified = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => ComposeDraftsCompanion(
+              }) => PostDraftsCompanion(
                 id: id,
-                title: title,
-                description: description,
-                content: content,
-                attachmentIds: attachmentIds,
-                visibility: visibility,
+                post: post,
                 lastModified: lastModified,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String id,
-                Value<String> title = const Value.absent(),
-                Value<String> description = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<String> attachmentIds = const Value.absent(),
-                Value<int> visibility = const Value.absent(),
+                required String post,
                 required DateTime lastModified,
                 Value<int> rowid = const Value.absent(),
-              }) => ComposeDraftsCompanion.insert(
+              }) => PostDraftsCompanion.insert(
                 id: id,
-                title: title,
-                description: description,
-                content: content,
-                attachmentIds: attachmentIds,
-                visibility: visibility,
+                post: post,
                 lastModified: lastModified,
                 rowid: rowid,
               ),
@@ -2004,257 +1291,18 @@ class $$ComposeDraftsTableTableManager
       );
 }
 
-typedef $$ComposeDraftsTableProcessedTableManager =
+typedef $$PostDraftsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $ComposeDraftsTable,
-      ComposeDraft,
-      $$ComposeDraftsTableFilterComposer,
-      $$ComposeDraftsTableOrderingComposer,
-      $$ComposeDraftsTableAnnotationComposer,
-      $$ComposeDraftsTableCreateCompanionBuilder,
-      $$ComposeDraftsTableUpdateCompanionBuilder,
-      (
-        ComposeDraft,
-        BaseReferences<_$AppDatabase, $ComposeDraftsTable, ComposeDraft>,
-      ),
-      ComposeDraft,
-      PrefetchHooks Function()
-    >;
-typedef $$ArticleDraftsTableCreateCompanionBuilder =
-    ArticleDraftsCompanion Function({
-      required String id,
-      Value<String> title,
-      Value<String> description,
-      Value<String> content,
-      Value<int> visibility,
-      required DateTime lastModified,
-      Value<int> rowid,
-    });
-typedef $$ArticleDraftsTableUpdateCompanionBuilder =
-    ArticleDraftsCompanion Function({
-      Value<String> id,
-      Value<String> title,
-      Value<String> description,
-      Value<String> content,
-      Value<int> visibility,
-      Value<DateTime> lastModified,
-      Value<int> rowid,
-    });
-
-class $$ArticleDraftsTableFilterComposer
-    extends Composer<_$AppDatabase, $ArticleDraftsTable> {
-  $$ArticleDraftsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get visibility => $composableBuilder(
-    column: $table.visibility,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get lastModified => $composableBuilder(
-    column: $table.lastModified,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$ArticleDraftsTableOrderingComposer
-    extends Composer<_$AppDatabase, $ArticleDraftsTable> {
-  $$ArticleDraftsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get visibility => $composableBuilder(
-    column: $table.visibility,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
-    column: $table.lastModified,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$ArticleDraftsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ArticleDraftsTable> {
-  $$ArticleDraftsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => column);
-
-  GeneratedColumn<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get content =>
-      $composableBuilder(column: $table.content, builder: (column) => column);
-
-  GeneratedColumn<int> get visibility => $composableBuilder(
-    column: $table.visibility,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
-    column: $table.lastModified,
-    builder: (column) => column,
-  );
-}
-
-class $$ArticleDraftsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $ArticleDraftsTable,
-          ArticleDraft,
-          $$ArticleDraftsTableFilterComposer,
-          $$ArticleDraftsTableOrderingComposer,
-          $$ArticleDraftsTableAnnotationComposer,
-          $$ArticleDraftsTableCreateCompanionBuilder,
-          $$ArticleDraftsTableUpdateCompanionBuilder,
-          (
-            ArticleDraft,
-            BaseReferences<_$AppDatabase, $ArticleDraftsTable, ArticleDraft>,
-          ),
-          ArticleDraft,
-          PrefetchHooks Function()
-        > {
-  $$ArticleDraftsTableTableManager(_$AppDatabase db, $ArticleDraftsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer:
-              () => $$ArticleDraftsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () =>
-                  $$ArticleDraftsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () => $$ArticleDraftsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> title = const Value.absent(),
-                Value<String> description = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<int> visibility = const Value.absent(),
-                Value<DateTime> lastModified = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => ArticleDraftsCompanion(
-                id: id,
-                title: title,
-                description: description,
-                content: content,
-                visibility: visibility,
-                lastModified: lastModified,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                Value<String> title = const Value.absent(),
-                Value<String> description = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<int> visibility = const Value.absent(),
-                required DateTime lastModified,
-                Value<int> rowid = const Value.absent(),
-              }) => ArticleDraftsCompanion.insert(
-                id: id,
-                title: title,
-                description: description,
-                content: content,
-                visibility: visibility,
-                lastModified: lastModified,
-                rowid: rowid,
-              ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$ArticleDraftsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $ArticleDraftsTable,
-      ArticleDraft,
-      $$ArticleDraftsTableFilterComposer,
-      $$ArticleDraftsTableOrderingComposer,
-      $$ArticleDraftsTableAnnotationComposer,
-      $$ArticleDraftsTableCreateCompanionBuilder,
-      $$ArticleDraftsTableUpdateCompanionBuilder,
-      (
-        ArticleDraft,
-        BaseReferences<_$AppDatabase, $ArticleDraftsTable, ArticleDraft>,
-      ),
-      ArticleDraft,
+      $PostDraftsTable,
+      PostDraft,
+      $$PostDraftsTableFilterComposer,
+      $$PostDraftsTableOrderingComposer,
+      $$PostDraftsTableAnnotationComposer,
+      $$PostDraftsTableCreateCompanionBuilder,
+      $$PostDraftsTableUpdateCompanionBuilder,
+      (PostDraft, BaseReferences<_$AppDatabase, $PostDraftsTable, PostDraft>),
+      PostDraft,
       PrefetchHooks Function()
     >;
 
@@ -2263,8 +1311,6 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$ChatMessagesTableTableManager get chatMessages =>
       $$ChatMessagesTableTableManager(_db, _db.chatMessages);
-  $$ComposeDraftsTableTableManager get composeDrafts =>
-      $$ComposeDraftsTableTableManager(_db, _db.composeDrafts);
-  $$ArticleDraftsTableTableManager get articleDrafts =>
-      $$ArticleDraftsTableTableManager(_db, _db.articleDrafts);
+  $$PostDraftsTableTableManager get postDrafts =>
+      $$PostDraftsTableTableManager(_db, _db.postDrafts);
 }

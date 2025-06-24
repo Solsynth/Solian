@@ -15,16 +15,19 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
       json['edited_at'] == null
           ? null
           : DateTime.parse(json['edited_at'] as String),
-  publishedAt: DateTime.parse(json['published_at'] as String),
-  visibility: (json['visibility'] as num).toInt(),
+  publishedAt:
+      json['published_at'] == null
+          ? null
+          : DateTime.parse(json['published_at'] as String),
+  visibility: (json['visibility'] as num?)?.toInt() ?? 0,
   content: json['content'] as String?,
-  type: (json['type'] as num).toInt(),
+  type: (json['type'] as num?)?.toInt() ?? 0,
   meta: json['meta'] as Map<String, dynamic>?,
-  viewsUnique: (json['views_unique'] as num).toInt(),
-  viewsTotal: (json['views_total'] as num).toInt(),
-  upvotes: (json['upvotes'] as num).toInt(),
-  downvotes: (json['downvotes'] as num).toInt(),
-  repliesCount: (json['replies_count'] as num).toInt(),
+  viewsUnique: (json['views_unique'] as num?)?.toInt() ?? 0,
+  viewsTotal: (json['views_total'] as num?)?.toInt() ?? 0,
+  upvotes: (json['upvotes'] as num?)?.toInt() ?? 0,
+  downvotes: (json['downvotes'] as num?)?.toInt() ?? 0,
+  repliesCount: (json['replies_count'] as num?)?.toInt() ?? 0,
   threadedPostId: json['threaded_post_id'] as String?,
   threadedPost:
       json['threaded_post'] == null
@@ -41,21 +44,31 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
           ? null
           : SnPost.fromJson(json['forwarded_post'] as Map<String, dynamic>),
   attachments:
-      (json['attachments'] as List<dynamic>)
-          .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
-          .toList(),
-  publisher: SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
+      (json['attachments'] as List<dynamic>?)
+          ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  publisher:
+      json['publisher'] == null
+          ? const SnPublisher()
+          : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
   reactionsCount:
       (json['reactions_count'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, (e as num).toInt()),
       ) ??
       const {},
-  reactions: json['reactions'] as List<dynamic>,
-  tags: json['tags'] as List<dynamic>,
-  categories: json['categories'] as List<dynamic>,
-  collections: json['collections'] as List<dynamic>,
-  createdAt: DateTime.parse(json['created_at'] as String),
-  updatedAt: DateTime.parse(json['updated_at'] as String),
+  reactions: json['reactions'] as List<dynamic>? ?? const [],
+  tags: json['tags'] as List<dynamic>? ?? const [],
+  categories: json['categories'] as List<dynamic>? ?? const [],
+  collections: json['collections'] as List<dynamic>? ?? const [],
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   deletedAt:
       json['deleted_at'] == null
           ? null
@@ -69,7 +82,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'description': instance.description,
   'language': instance.language,
   'edited_at': instance.editedAt?.toIso8601String(),
-  'published_at': instance.publishedAt.toIso8601String(),
+  'published_at': instance.publishedAt?.toIso8601String(),
   'visibility': instance.visibility,
   'content': instance.content,
   'type': instance.type,
@@ -92,17 +105,17 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'tags': instance.tags,
   'categories': instance.categories,
   'collections': instance.collections,
-  'created_at': instance.createdAt.toIso8601String(),
-  'updated_at': instance.updatedAt.toIso8601String(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
   'deleted_at': instance.deletedAt?.toIso8601String(),
   'is_truncated': instance.isTruncated,
 };
 
 _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
-  id: json['id'] as String,
-  type: (json['type'] as num).toInt(),
-  name: json['name'] as String,
-  nick: json['nick'] as String,
+  id: json['id'] as String? ?? '',
+  type: (json['type'] as num?)?.toInt() ?? 0,
+  name: json['name'] as String? ?? '',
+  nick: json['nick'] as String? ?? '',
   bio: json['bio'] as String? ?? '',
   picture:
       json['picture'] == null
@@ -117,8 +130,14 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
           ? null
           : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
   accountId: json['account_id'] as String?,
-  createdAt: DateTime.parse(json['created_at'] as String),
-  updatedAt: DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   deletedAt:
       json['deleted_at'] == null
           ? null
@@ -143,8 +162,8 @@ Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
       'background': instance.background?.toJson(),
       'account': instance.account?.toJson(),
       'account_id': instance.accountId,
-      'created_at': instance.createdAt.toIso8601String(),
-      'updated_at': instance.updatedAt.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'realm_id': instance.realmId,
       'verification': instance.verification?.toJson(),
