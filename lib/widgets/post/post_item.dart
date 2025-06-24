@@ -162,8 +162,8 @@ class PostItem extends HookConsumerWidget {
                               Spacer(),
                               Text(
                                 isFullPost
-                                    ? item.publishedAt.formatSystem()
-                                    : item.publishedAt.formatRelative(context),
+                                    ? item.publishedAt?.formatSystem() ?? ''
+                                    : item.publishedAt?.formatRelative(context) ?? '',
                               ).fontSize(11).alignment(Alignment.bottomRight),
                               const Gap(4),
                             ],
@@ -213,12 +213,14 @@ class PostItem extends HookConsumerWidget {
                               content: item.content!,
                               linesMargin:
                                   item.type == 0
-                                      ? EdgeInsets.only(bottom: 4)
+                                      ? EdgeInsets.only(bottom: 8)
                                       : null,
                             ),
                           // Show truncation hint if post is truncated
                           if (item.isTruncated && !isFullPost)
-                            _PostTruncateHint(),
+                            _PostTruncateHint().padding(
+                              bottom: item.attachments.isNotEmpty ? 8 : null,
+                            ),
                           if ((item.repliedPost != null ||
                                   item.forwardedPost != null) &&
                               showReferencePost)
@@ -234,7 +236,7 @@ class PostItem extends HookConsumerWidget {
                                 MediaQuery.of(context).size.width * 0.9,
                                 kWideScreenWidth - 160,
                               ),
-                            ).padding(top: 4),
+                            ),
                           // Render embed links
                           if (item.meta?['embeds'] != null)
                             ...((item.meta!['embeds'] as List<dynamic>)
@@ -248,7 +250,8 @@ class PostItem extends HookConsumerWidget {
                                       MediaQuery.of(context).size.width * 0.85,
                                       kWideScreenWidth - 160,
                                     ),
-                                  ).padding(top: 4),
+                                    margin: EdgeInsets.only(top: 8),
+                                  ),
                                 )),
                         ],
                       ),
@@ -323,7 +326,6 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
   final isReply = item.repliedPost != null;
 
   return Container(
-    margin: const EdgeInsets.only(top: 8, bottom: 8),
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),

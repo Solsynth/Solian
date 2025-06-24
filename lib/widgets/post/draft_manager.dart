@@ -7,208 +7,168 @@ import 'package:island/services/compose_storage_db.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class DraftManagerSheet extends HookConsumerWidget {
-  final bool isArticle;
   final Function(String draftId)? onDraftSelected;
 
-  const DraftManagerSheet({
-    super.key,
-    this.isArticle = false,
-    this.onDraftSelected,
-  });
+  const DraftManagerSheet({super.key, this.onDraftSelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isLoading = useState(true);
 
-    final drafts =
-        isArticle
-            ? ref.watch(articleStorageNotifierProvider)
-            : ref.watch(composeStorageNotifierProvider);
+    final drafts = ref.watch(composeStorageNotifierProvider);
 
-    final sortedDrafts = useMemoized(() {
-      if (isArticle) {
-        final draftList = drafts.values.cast<ArticleDraftModel>().toList();
-        draftList.sort((a, b) => b.lastModified.compareTo(a.lastModified));
-        return draftList;
-      } else {
-        final draftList = drafts.values.cast<ComposeDraftModel>().toList();
-        draftList.sort((a, b) => b.lastModified.compareTo(a.lastModified));
-        return draftList;
-      }
+    // Track loading state based on drafts being loaded
+    useEffect(() {
+      // Set loading to false after drafts are loaded
+      // We consider drafts loaded when the provider has been initialized
+      Future.microtask(() {
+        if (isLoading.value) {
+          isLoading.value = false;
+        }
+      });
+      return null;
     }, [drafts]);
 
+    final sortedDrafts = useMemoized(
+      () {
+        final draftList = drafts.values.toList();
+        draftList.sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
+        return draftList;
+      },
+      [
+        drafts.length,
+        drafts.values.map((e) => e.updatedAt!.millisecondsSinceEpoch).join(),
+      ],
+    );
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isArticle ? 'articleDrafts'.tr() : 'postDrafts'.tr()),
-      ),
-      body: Column(
-        children: [
-          if (sortedDrafts.isEmpty)
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Symbols.draft,
-                      size: 64,
-                      color: colorScheme.onSurface.withOpacity(0.3),
+      appBar: AppBar(title: Text('drafts'.tr())),
+      body:
+          isLoading.value
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                children: [
+                  if (sortedDrafts.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Symbols.draft,
+                              size: 64,
+                              color: colorScheme.onSurface.withOpacity(0.3),
+                            ),
+                            const Gap(16),
+                            Text(
+                              'noDrafts'.tr(),
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: sortedDrafts.length,
+                        itemBuilder: (context, index) {
+                          final draft = sortedDrafts[index];
+                          return _DraftItem(
+                            draft: draft,
+                            onTap: () {
+                              Navigator.of(context).pop();
+                              onDraftSelected?.call(draft.id);
+                            },
+                            onDelete: () async {
+                              await ref
+                                  .read(composeStorageNotifierProvider.notifier)
+                                  .deleteDraft(draft.id);
+                            },
+                          );
+                        },
+                      ),
                     ),
-                    const Gap(16),
-                    Text(
-                      'noDrafts'.tr(),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.6),
+                  if (sortedDrafts.isNotEmpty) ...[
+                    const Divider(),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder:
+                                      (context) => AlertDialog(
+                                        title: Text('clearAllDrafts'.tr()),
+                                        content: Text(
+                                          'clearAllDraftsConfirm'.tr(),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.of(
+                                                  context,
+                                                ).pop(false),
+                                            child: Text('cancel'.tr()),
+                                          ),
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.of(
+                                                  context,
+                                                ).pop(true),
+                                            child: Text('confirm'.tr()),
+                                          ),
+                                        ],
+                                      ),
+                                );
+
+                                if (confirmed == true) {
+                                  await ref
+                                      .read(
+                                        composeStorageNotifierProvider.notifier,
+                                      )
+                                      .clearAllDrafts();
+                                }
+                              },
+                              icon: const Icon(Symbols.delete_sweep),
+                              label: Text('clearAll'.tr()),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: sortedDrafts.length,
-                itemBuilder: (context, index) {
-                  final draft = sortedDrafts[index];
-                  return _DraftItem(
-                    draft: draft,
-                    isArticle: isArticle,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      final draftId =
-                          isArticle
-                              ? (draft as ArticleDraftModel).id
-                              : (draft as ComposeDraftModel).id;
-                      onDraftSelected?.call(draftId);
-                    },
-                    onDelete: () async {
-                      final draftId =
-                          isArticle
-                              ? (draft as ArticleDraftModel).id
-                              : (draft as ComposeDraftModel).id;
-                      if (isArticle) {
-                        await ref
-                            .read(articleStorageNotifierProvider.notifier)
-                            .deleteDraft(draftId);
-                      } else {
-                        await ref
-                            .read(composeStorageNotifierProvider.notifier)
-                            .deleteDraft(draftId);
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
-          if (sortedDrafts.isNotEmpty) ...[
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final confirmed = await showDialog<bool>(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: Text('clearAllDrafts'.tr()),
-                                content: Text('clearAllDraftsConfirm'.tr()),
-                                actions: [
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(false),
-                                    child: Text('cancel'.tr()),
-                                  ),
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(true),
-                                    child: Text('confirm'.tr()),
-                                  ),
-                                ],
-                              ),
-                        );
-
-                        if (confirmed == true) {
-                          if (isArticle) {
-                            await ref
-                                .read(articleStorageNotifierProvider.notifier)
-                                .clearAllDrafts();
-                          } else {
-                            await ref
-                                .read(composeStorageNotifierProvider.notifier)
-                                .clearAllDrafts();
-                          }
-                        }
-                      },
-                      icon: const Icon(Symbols.delete_sweep),
-                      label: Text('clearAll'.tr()),
-                    ),
-                  ),
                 ],
               ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }
 
 class _DraftItem extends StatelessWidget {
-  final dynamic draft; // ComposeDraft or ArticleDraft
-  final bool isArticle;
+  final dynamic draft;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
-  const _DraftItem({
-    required this.draft,
-    required this.isArticle,
-    this.onTap,
-    this.onDelete,
-  });
+  const _DraftItem({required this.draft, this.onTap, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final String title;
-    final String content;
-    final DateTime lastModified;
-    final String visibility;
-
-    if (isArticle) {
-      final articleDraft = draft as ArticleDraftModel;
-      title =
-          articleDraft.title.isNotEmpty ? articleDraft.title : 'untitled'.tr();
-      content =
-          articleDraft.content.isNotEmpty
-              ? articleDraft.content
-              : (articleDraft.description.isNotEmpty
-                  ? articleDraft.description
-                  : 'noContent'.tr());
-      lastModified = articleDraft.lastModified;
-      visibility = _parseArticleVisibility(articleDraft.visibility);
-    } else {
-      final postDraft = draft as ComposeDraftModel;
-      title = postDraft.title.isNotEmpty ? postDraft.title : 'untitled'.tr();
-      content =
-          postDraft.content.isNotEmpty
-              ? postDraft.content
-              : (postDraft.description.isNotEmpty
-                  ? postDraft.description
-                  : 'noContent'.tr());
-      lastModified = postDraft.lastModified;
-      visibility = _parseArticleVisibility(postDraft.visibility);
-    }
-
+    final title = draft.title ?? 'untitled'.tr();
+    final content = draft.content ?? (draft.description ?? 'noContent'.tr());
     final preview =
         content.length > 100 ? '${content.substring(0, 100)}...' : content;
-    final timeAgo = _formatTimeAgo(lastModified);
+    final timeAgo = _formatTimeAgo(draft.updatedAt!);
+    final visibility = _parseVisibility(draft.visibility);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -223,7 +183,7 @@ class _DraftItem extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    isArticle ? Symbols.article : Symbols.post_add,
+                    draft.type == 1 ? Symbols.article : Symbols.post_add,
                     size: 20,
                     color: colorScheme.primary,
                   ),
@@ -316,7 +276,7 @@ class _DraftItem extends StatelessWidget {
     }
   }
 
-  String _parseArticleVisibility(int visibility) {
+  String _parseVisibility(int visibility) {
     switch (visibility) {
       case 0:
         return 'public'.tr();

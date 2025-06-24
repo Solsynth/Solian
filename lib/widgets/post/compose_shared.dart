@@ -1,7 +1,6 @@
-import 'dart:developer';
-
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,6 +14,7 @@ import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'dart:async';
+import 'dart:developer';
 
 class ComposeState {
   final ValueNotifier<List<UniversalFile>> attachments;
@@ -40,10 +40,10 @@ class ComposeState {
     required this.draftId,
   });
 
-  void startAutoSave(WidgetRef ref) {
+  void startAutoSave(WidgetRef ref, {int postType = 0}) {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      ComposeLogic.saveDraft(ref, this);
+      ComposeLogic.saveDraftWithoutUpload(ref, this, postType: postType);
     });
   }
 
@@ -96,9 +96,11 @@ class ComposeLogic {
     );
   }
 
-  static ComposeState createStateFromDraft(ComposeDraftModel draft) {
+  static ComposeState createStateFromDraft(SnPost draft) {
     return ComposeState(
-      attachments: ValueNotifier<List<UniversalFile>>([]),
+      attachments: ValueNotifier<List<UniversalFile>>(
+        draft.attachments.map((e) => UniversalFile.fromAttachment(e)).toList(),
+      ),
       titleController: TextEditingController(text: draft.title),
       descriptionController: TextEditingController(text: draft.description),
       contentController: TextEditingController(text: draft.content),
@@ -110,29 +112,247 @@ class ComposeLogic {
     );
   }
 
+  static Future<void> saveDraft(WidgetRef ref, ComposeState state, {int postType = 0}) async {
+    final hasContent =
+        state.titleController.text.trim().isNotEmpty ||
+        state.descriptionController.text.trim().isNotEmpty ||
+        state.contentController.text.trim().isNotEmpty;
+    final hasAttachments = state.attachments.value.isNotEmpty;
 
+    if (!hasContent && !hasAttachments) {
+      return; // Don't save empty posts
+    }
 
-  static Future<void> saveDraft(WidgetRef ref, ComposeState state) async {
     try {
-      // Check if the auto-save timer is still active (widget not disposed)
       if (state._autoSaveTimer == null) {
-        return; // Widget has been disposed, don't save
+        return;
       }
 
-      final draft = ComposeDraftModel(
+      // Upload any local attachments first
+      final baseUrl = ref.watch(serverUrlProvider);
+      final token = await getToken(ref.watch(tokenProvider));
+      if (token == null) throw ArgumentError('Token is null');
+
+      for (int i = 0; i < state.attachments.value.length; i++) {
+        final attachment = state.attachments.value[i];
+        if (attachment.data is! SnCloudFile) {
+          try {
+            final cloudFile =
+                await putMediaToCloud(
+                  fileData: attachment,
+                  atk: token,
+                  baseUrl: baseUrl,
+                  filename: attachment.data.name ?? (postType == 1 ? 'Article media' : 'Post media'),
+                  mimetype:
+                      attachment.data.mimeType ??
+                      ComposeLogic.getMimeTypeFromFileType(attachment.type),
+                ).future;
+            if (cloudFile != null) {
+              // Update attachments list with cloud file
+              final clone = List.of(state.attachments.value);
+              clone[i] = UniversalFile(data: cloudFile, type: attachment.type);
+              state.attachments.value = clone;
+            }
+          } catch (err) {
+            log('[ComposeLogic] Failed to upload attachment: $err');
+            // Continue with other attachments even if one fails
+          }
+        }
+      }
+
+      final draft = SnPost(
         id: state.draftId,
         title: state.titleController.text,
         description: state.descriptionController.text,
-        content: state.contentController.text,
-        attachments: state.attachments.value,
+        language: null,
+        editedAt: null,
+        publishedAt: DateTime.now(),
         visibility: state.visibility.value,
-        lastModified: DateTime.now(),
+        content: state.contentController.text,
+        type: postType,
+        meta: null,
+        viewsUnique: 0,
+        viewsTotal: 0,
+        upvotes: 0,
+        downvotes: 0,
+        repliesCount: 0,
+        threadedPostId: null,
+        threadedPost: null,
+        repliedPostId: null,
+        repliedPost: null,
+        forwardedPostId: null,
+        forwardedPost: null,
+        attachments:
+            state.attachments.value
+                .map((e) => e.data)
+                .whereType<SnCloudFile>()
+                .toList(),
+        publisher: SnPublisher(
+          id: '',
+          type: 0,
+          name: '',
+          nick: '',
+          picture: null,
+          background: null,
+          account: null,
+          accountId: null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          deletedAt: null,
+          realmId: null,
+          verification: null,
+        ),
+        reactions: [],
+        tags: [],
+        categories: [],
+        collections: [],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        deletedAt: null,
       );
 
       await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
     } catch (e) {
       log('[ComposeLogic] Failed to save draft, error: $e');
-      // Silently fail for auto-save to avoid disrupting user experience
+    }
+  }
+
+  static Future<void> saveDraftWithoutUpload(WidgetRef ref, ComposeState state, {int postType = 0}) async {
+    final hasContent =
+        state.titleController.text.trim().isNotEmpty ||
+        state.descriptionController.text.trim().isNotEmpty ||
+        state.contentController.text.trim().isNotEmpty;
+    final hasAttachments = state.attachments.value.isNotEmpty;
+
+    if (!hasContent && !hasAttachments) {
+      return; // Don't save empty posts
+    }
+
+    try {
+      if (state._autoSaveTimer == null) {
+        return;
+      }
+
+      final draft = SnPost(
+        id: state.draftId,
+        title: state.titleController.text,
+        description: state.descriptionController.text,
+        language: null,
+        editedAt: null,
+        publishedAt: DateTime.now(),
+        visibility: state.visibility.value,
+        content: state.contentController.text,
+        type: postType,
+        meta: null,
+        viewsUnique: 0,
+        viewsTotal: 0,
+        upvotes: 0,
+        downvotes: 0,
+        repliesCount: 0,
+        threadedPostId: null,
+        threadedPost: null,
+        repliedPostId: null,
+        repliedPost: null,
+        forwardedPostId: null,
+        forwardedPost: null,
+        attachments:
+            state.attachments.value
+                .map((e) => e.data)
+                .whereType<SnCloudFile>()
+                .toList(),
+        publisher: SnPublisher(
+          id: '',
+          type: 0,
+          name: '',
+          nick: '',
+          picture: null,
+          background: null,
+          account: null,
+          accountId: null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          deletedAt: null,
+          realmId: null,
+          verification: null,
+        ),
+        reactions: [],
+        tags: [],
+        categories: [],
+        collections: [],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        deletedAt: null,
+      );
+
+      await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
+    } catch (e) {
+      log('[ComposeLogic] Failed to save draft without upload, error: $e');
+    }
+  }
+
+  static Future<void> saveDraftManually(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    try {
+      final draft = SnPost(
+        id: state.draftId,
+        title: state.titleController.text,
+        description: state.descriptionController.text,
+        language: null,
+        editedAt: null,
+        publishedAt: DateTime.now(),
+        visibility: state.visibility.value,
+        content: state.contentController.text,
+        type: 0,
+        meta: null,
+        viewsUnique: 0,
+        viewsTotal: 0,
+        upvotes: 0,
+        downvotes: 0,
+        repliesCount: 0,
+        threadedPostId: null,
+        threadedPost: null,
+        repliedPostId: null,
+        repliedPost: null,
+        forwardedPostId: null,
+        forwardedPost: null,
+        attachments: [], // TODO: Handle attachments
+        publisher: SnPublisher(
+          id: '',
+          type: 0,
+          name: '',
+          nick: '',
+          picture: null,
+          background: null,
+          account: null,
+          accountId: null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          deletedAt: null,
+          realmId: null,
+          verification: null,
+        ),
+        reactions: [],
+        tags: [],
+        categories: [],
+        collections: [],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        deletedAt: null,
+      );
+
+      await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
+
+      if (context.mounted) {
+        showSnackBar(context, 'draftSaved'.tr());
+      }
+    } catch (e) {
+      log('[ComposeLogic] Failed to save draft manually, error: $e');
+      if (context.mounted) {
+        showSnackBar(context, 'draftSaveFailed'.tr());
+      }
     }
   }
 
@@ -146,7 +366,7 @@ class ComposeLogic {
     }
   }
 
-  static Future<ComposeDraftModel?> loadDraft(WidgetRef ref, String draftId) async {
+  static Future<SnPost?> loadDraft(WidgetRef ref, String draftId) async {
     try {
       return ref
           .read(composeStorageNotifierProvider.notifier)
@@ -282,6 +502,20 @@ class ComposeLogic {
   }) async {
     if (state.submitting.value) return;
 
+    // Don't submit empty posts (no content and no attachments)
+    final hasContent =
+        state.titleController.text.trim().isNotEmpty ||
+        state.descriptionController.text.trim().isNotEmpty ||
+        state.contentController.text.trim().isNotEmpty;
+    final hasAttachments = state.attachments.value.isNotEmpty;
+
+    if (!hasContent && !hasAttachments) {
+      if (context.mounted) {
+        showSnackBar(context, 'postContentEmpty'.tr());
+      }
+      return; // Don't submit empty posts
+    }
+
     try {
       state.submitting.value = true;
 
@@ -329,7 +563,7 @@ class ComposeLogic {
       if (postType == 1) {
         // Delete article draft
         await ref
-            .read(articleStorageNotifierProvider.notifier)
+            .read(composeStorageNotifierProvider.notifier)
             .deleteDraft(state.draftId);
       } else {
         // Delete regular post draft
@@ -381,7 +615,7 @@ class ComposeLogic {
     if (isPaste && isModifierPressed) {
       handlePaste(state);
     } else if (isSave && isModifierPressed) {
-      saveDraft(ref, state);
+      saveDraftManually(ref, state, context);
     } else if (isSubmit && isModifierPressed && !state.submitting.value) {
       performAction(
         ref,

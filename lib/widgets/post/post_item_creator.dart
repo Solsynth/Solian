@@ -153,7 +153,7 @@ class PostItemCreator extends HookConsumerWidget {
             ),
             const Gap(8),
             Text(
-              item.publishedAt.formatSystem(),
+              item.publishedAt?.formatSystem() ?? '',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.secondary,
@@ -291,7 +291,7 @@ class PostItemCreator extends HookConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Created: ${item.createdAt.formatSystem()}',
+              'Created: ${item.createdAt?.formatSystem() ?? ''}',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.secondary,

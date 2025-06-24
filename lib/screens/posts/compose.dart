@@ -62,8 +62,6 @@ class PostComposeScreen extends HookConsumerWidget {
     @QueryParam('type') this.type,
   });
 
-
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Determine the compose type: auto-detect from edited post or use query parameter
@@ -96,7 +94,7 @@ class PostComposeScreen extends HookConsumerWidget {
     useEffect(() {
       if (originalPost == null) {
         // Only auto-save for new posts, not edits
-        state.startAutoSave(ref);
+        state.startAutoSave(ref, postType: 0);
       }
       return () => state.stopAutoSave();
     }, [state]);
@@ -118,14 +116,14 @@ class PostComposeScreen extends HookConsumerWidget {
         final drafts = ref.read(composeStorageNotifierProvider);
         if (drafts.isNotEmpty) {
           final mostRecentDraft = drafts.values.reduce(
-            (a, b) => a.lastModified.isAfter(b.lastModified) ? a : b,
+            (a, b) => (a.updatedAt ?? DateTime(0)).isAfter(b.updatedAt ?? DateTime(0)) ? a : b,
           );
 
           // Only load if the draft has meaningful content
-          if (!mostRecentDraft.isEmpty) {
-            state.titleController.text = mostRecentDraft.title;
-            state.descriptionController.text = mostRecentDraft.description;
-            state.contentController.text = mostRecentDraft.content;
+          if (mostRecentDraft.content?.isNotEmpty == true || mostRecentDraft.title?.isNotEmpty == true) {
+            state.titleController.text = mostRecentDraft.title ?? '';
+            state.descriptionController.text = mostRecentDraft.description ?? '';
+            state.contentController.text = mostRecentDraft.content ?? '';
             state.visibility.value = mostRecentDraft.visibility;
           }
         }
@@ -162,9 +160,10 @@ class PostComposeScreen extends HookConsumerWidget {
     Widget buildWideAttachmentGrid() {
       return GridView.builder(
         shrinkWrap: true,
+        padding: EdgeInsets.zero,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+          crossAxisCount: 2,
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
         ),
@@ -245,17 +244,16 @@ class PostComposeScreen extends HookConsumerWidget {
                     isScrollControlled: true,
                     builder:
                         (context) => DraftManagerSheet(
-                          isArticle: false,
                           onDraftSelected: (draftId) {
                             final draft =
                                 ref.read(
                                   composeStorageNotifierProvider,
                                 )[draftId];
                             if (draft != null) {
-                              state.titleController.text = draft.title;
+                              state.titleController.text = draft.title ?? '';
                               state.descriptionController.text =
-                                  draft.description;
-                              state.contentController.text = draft.content;
+                                  draft.description ?? '';
+                              state.contentController.text = draft.content ?? '';
                               state.visibility.value = draft.visibility;
                             }
                           },
@@ -320,7 +318,7 @@ class PostComposeScreen extends HookConsumerWidget {
             // Main content area
             Expanded(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
+                constraints: const BoxConstraints(maxWidth: 560),
                 child: Row(
                   spacing: 12,
                   crossAxisAlignment: CrossAxisAlignment.start,

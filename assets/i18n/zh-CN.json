@@ -319,5 +319,21 @@
   "processingPayment": "处理付款中...",
   "pleaseWait": "请稍候",
   "paymentFailed": "付款失败，请重试。",
-  "paymentSuccess": "付款成功完成！"
+  "paymentSuccess": "付款成功完成！",
+  "drafts": "草稿",
+  "noDrafts": "暂无草稿",
+  "articleDrafts": "文章草稿",
+  "postDrafts": "帖子草稿",
+  "saveDraft": "保存草稿",
+  "draftSaved": "草稿已保存",
+  "draftSaveFailed": "保存草稿失败",
+  "clearAllDrafts": "清空所有草稿",
+  "clearAllDraftsConfirm": "确定要删除所有草稿吗？此操作无法撤销。",
+  "clearAll": "清空全部",
+  "untitled": "无标题",
+  "noContent": "无内容",
+  "justNow": "刚刚",
+  "minutesAgo": "{} 分钟前",
+  "hoursAgo": "{} 小时前",
+  "postContentEmpty": "帖子内容不能为空"
 }
