@@ -634,13 +634,13 @@ class $ComposeDraftsTable extends ComposeDrafts
     'visibility',
   );
   @override
-  late final GeneratedColumn<String> visibility = GeneratedColumn<String>(
+  late final GeneratedColumn<int> visibility = GeneratedColumn<int>(
     'visibility',
     aliasedName,
     false,
-    type: DriftSqlType.string,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant('public'),
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _lastModifiedMeta = const VerificationMeta(
     'lastModified',
@@ -763,7 +763,7 @@ class $ComposeDraftsTable extends ComposeDrafts
           )!,
       visibility:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
+            DriftSqlType.int,
             data['${effectivePrefix}visibility'],
           )!,
       lastModified:
@@ -786,7 +786,7 @@ class ComposeDraft extends DataClass implements Insertable<ComposeDraft> {
   final String description;
   final String content;
   final String attachmentIds;
-  final String visibility;
+  final int visibility;
   final DateTime lastModified;
   const ComposeDraft({
     required this.id,
@@ -805,7 +805,7 @@ class ComposeDraft extends DataClass implements Insertable<ComposeDraft> {
     map['description'] = Variable<String>(description);
     map['content'] = Variable<String>(content);
     map['attachment_ids'] = Variable<String>(attachmentIds);
-    map['visibility'] = Variable<String>(visibility);
+    map['visibility'] = Variable<int>(visibility);
     map['last_modified'] = Variable<DateTime>(lastModified);
     return map;
   }
@@ -833,7 +833,7 @@ class ComposeDraft extends DataClass implements Insertable<ComposeDraft> {
       description: serializer.fromJson<String>(json['description']),
       content: serializer.fromJson<String>(json['content']),
       attachmentIds: serializer.fromJson<String>(json['attachmentIds']),
-      visibility: serializer.fromJson<String>(json['visibility']),
+      visibility: serializer.fromJson<int>(json['visibility']),
       lastModified: serializer.fromJson<DateTime>(json['lastModified']),
     );
   }
@@ -846,7 +846,7 @@ class ComposeDraft extends DataClass implements Insertable<ComposeDraft> {
       'description': serializer.toJson<String>(description),
       'content': serializer.toJson<String>(content),
       'attachmentIds': serializer.toJson<String>(attachmentIds),
-      'visibility': serializer.toJson<String>(visibility),
+      'visibility': serializer.toJson<int>(visibility),
       'lastModified': serializer.toJson<DateTime>(lastModified),
     };
   }
@@ -857,7 +857,7 @@ class ComposeDraft extends DataClass implements Insertable<ComposeDraft> {
     String? description,
     String? content,
     String? attachmentIds,
-    String? visibility,
+    int? visibility,
     DateTime? lastModified,
   }) => ComposeDraft(
     id: id ?? this.id,
@@ -931,7 +931,7 @@ class ComposeDraftsCompanion extends UpdateCompanion<ComposeDraft> {
   final Value<String> description;
   final Value<String> content;
   final Value<String> attachmentIds;
-  final Value<String> visibility;
+  final Value<int> visibility;
   final Value<DateTime> lastModified;
   final Value<int> rowid;
   const ComposeDraftsCompanion({
@@ -961,7 +961,7 @@ class ComposeDraftsCompanion extends UpdateCompanion<ComposeDraft> {
     Expression<String>? description,
     Expression<String>? content,
     Expression<String>? attachmentIds,
-    Expression<String>? visibility,
+    Expression<int>? visibility,
     Expression<DateTime>? lastModified,
     Expression<int>? rowid,
   }) {
@@ -983,7 +983,7 @@ class ComposeDraftsCompanion extends UpdateCompanion<ComposeDraft> {
     Value<String>? description,
     Value<String>? content,
     Value<String>? attachmentIds,
-    Value<String>? visibility,
+    Value<int>? visibility,
     Value<DateTime>? lastModified,
     Value<int>? rowid,
   }) {
@@ -1018,7 +1018,7 @@ class ComposeDraftsCompanion extends UpdateCompanion<ComposeDraft> {
       map['attachment_ids'] = Variable<String>(attachmentIds.value);
     }
     if (visibility.present) {
-      map['visibility'] = Variable<String>(visibility.value);
+      map['visibility'] = Variable<int>(visibility.value);
     }
     if (lastModified.present) {
       map['last_modified'] = Variable<DateTime>(lastModified.value);
@@ -1098,13 +1098,13 @@ class $ArticleDraftsTable extends ArticleDrafts
     'visibility',
   );
   @override
-  late final GeneratedColumn<String> visibility = GeneratedColumn<String>(
+  late final GeneratedColumn<int> visibility = GeneratedColumn<int>(
     'visibility',
     aliasedName,
     false,
-    type: DriftSqlType.string,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant('public'),
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _lastModifiedMeta = const VerificationMeta(
     'lastModified',
@@ -1212,7 +1212,7 @@ class $ArticleDraftsTable extends ArticleDrafts
           )!,
       visibility:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
+            DriftSqlType.int,
             data['${effectivePrefix}visibility'],
           )!,
       lastModified:
@@ -1234,7 +1234,7 @@ class ArticleDraft extends DataClass implements Insertable<ArticleDraft> {
   final String title;
   final String description;
   final String content;
-  final String visibility;
+  final int visibility;
   final DateTime lastModified;
   const ArticleDraft({
     required this.id,
@@ -1251,7 +1251,7 @@ class ArticleDraft extends DataClass implements Insertable<ArticleDraft> {
     map['title'] = Variable<String>(title);
     map['description'] = Variable<String>(description);
     map['content'] = Variable<String>(content);
-    map['visibility'] = Variable<String>(visibility);
+    map['visibility'] = Variable<int>(visibility);
     map['last_modified'] = Variable<DateTime>(lastModified);
     return map;
   }
@@ -1277,7 +1277,7 @@ class ArticleDraft extends DataClass implements Insertable<ArticleDraft> {
       title: serializer.fromJson<String>(json['title']),
       description: serializer.fromJson<String>(json['description']),
       content: serializer.fromJson<String>(json['content']),
-      visibility: serializer.fromJson<String>(json['visibility']),
+      visibility: serializer.fromJson<int>(json['visibility']),
       lastModified: serializer.fromJson<DateTime>(json['lastModified']),
     );
   }
@@ -1289,7 +1289,7 @@ class ArticleDraft extends DataClass implements Insertable<ArticleDraft> {
       'title': serializer.toJson<String>(title),
       'description': serializer.toJson<String>(description),
       'content': serializer.toJson<String>(content),
-      'visibility': serializer.toJson<String>(visibility),
+      'visibility': serializer.toJson<int>(visibility),
       'lastModified': serializer.toJson<DateTime>(lastModified),
     };
   }
@@ -1299,7 +1299,7 @@ class ArticleDraft extends DataClass implements Insertable<ArticleDraft> {
     String? title,
     String? description,
     String? content,
-    String? visibility,
+    int? visibility,
     DateTime? lastModified,
   }) => ArticleDraft(
     id: id ?? this.id,
@@ -1358,7 +1358,7 @@ class ArticleDraftsCompanion extends UpdateCompanion<ArticleDraft> {
   final Value<String> title;
   final Value<String> description;
   final Value<String> content;
-  final Value<String> visibility;
+  final Value<int> visibility;
   final Value<DateTime> lastModified;
   final Value<int> rowid;
   const ArticleDraftsCompanion({
@@ -1385,7 +1385,7 @@ class ArticleDraftsCompanion extends UpdateCompanion<ArticleDraft> {
     Expression<String>? title,
     Expression<String>? description,
     Expression<String>? content,
-    Expression<String>? visibility,
+    Expression<int>? visibility,
     Expression<DateTime>? lastModified,
     Expression<int>? rowid,
   }) {
@@ -1405,7 +1405,7 @@ class ArticleDraftsCompanion extends UpdateCompanion<ArticleDraft> {
     Value<String>? title,
     Value<String>? description,
     Value<String>? content,
-    Value<String>? visibility,
+    Value<int>? visibility,
     Value<DateTime>? lastModified,
     Value<int>? rowid,
   }) {
@@ -1436,7 +1436,7 @@ class ArticleDraftsCompanion extends UpdateCompanion<ArticleDraft> {
       map['content'] = Variable<String>(content.value);
     }
     if (visibility.present) {
-      map['visibility'] = Variable<String>(visibility.value);
+      map['visibility'] = Variable<int>(visibility.value);
     }
     if (lastModified.present) {
       map['last_modified'] = Variable<DateTime>(lastModified.value);
@@ -1771,7 +1771,7 @@ typedef $$ComposeDraftsTableCreateCompanionBuilder =
       Value<String> description,
       Value<String> content,
       Value<String> attachmentIds,
-      Value<String> visibility,
+      Value<int> visibility,
       required DateTime lastModified,
       Value<int> rowid,
     });
@@ -1782,7 +1782,7 @@ typedef $$ComposeDraftsTableUpdateCompanionBuilder =
       Value<String> description,
       Value<String> content,
       Value<String> attachmentIds,
-      Value<String> visibility,
+      Value<int> visibility,
       Value<DateTime> lastModified,
       Value<int> rowid,
     });
@@ -1821,7 +1821,7 @@ class $$ComposeDraftsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get visibility => $composableBuilder(
+  ColumnFilters<int> get visibility => $composableBuilder(
     column: $table.visibility,
     builder: (column) => ColumnFilters(column),
   );
@@ -1866,7 +1866,7 @@ class $$ComposeDraftsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get visibility => $composableBuilder(
+  ColumnOrderings<int> get visibility => $composableBuilder(
     column: $table.visibility,
     builder: (column) => ColumnOrderings(column),
   );
@@ -1905,7 +1905,7 @@ class $$ComposeDraftsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get visibility => $composableBuilder(
+  GeneratedColumn<int> get visibility => $composableBuilder(
     column: $table.visibility,
     builder: (column) => column,
   );
@@ -1956,7 +1956,7 @@ class $$ComposeDraftsTableTableManager
                 Value<String> description = const Value.absent(),
                 Value<String> content = const Value.absent(),
                 Value<String> attachmentIds = const Value.absent(),
-                Value<String> visibility = const Value.absent(),
+                Value<int> visibility = const Value.absent(),
                 Value<DateTime> lastModified = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ComposeDraftsCompanion(
@@ -1976,7 +1976,7 @@ class $$ComposeDraftsTableTableManager
                 Value<String> description = const Value.absent(),
                 Value<String> content = const Value.absent(),
                 Value<String> attachmentIds = const Value.absent(),
-                Value<String> visibility = const Value.absent(),
+                Value<int> visibility = const Value.absent(),
                 required DateTime lastModified,
                 Value<int> rowid = const Value.absent(),
               }) => ComposeDraftsCompanion.insert(
@@ -2027,7 +2027,7 @@ typedef $$ArticleDraftsTableCreateCompanionBuilder =
       Value<String> title,
       Value<String> description,
       Value<String> content,
-      Value<String> visibility,
+      Value<int> visibility,
       required DateTime lastModified,
       Value<int> rowid,
     });
@@ -2037,7 +2037,7 @@ typedef $$ArticleDraftsTableUpdateCompanionBuilder =
       Value<String> title,
       Value<String> description,
       Value<String> content,
-      Value<String> visibility,
+      Value<int> visibility,
       Value<DateTime> lastModified,
       Value<int> rowid,
     });
@@ -2071,7 +2071,7 @@ class $$ArticleDraftsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get visibility => $composableBuilder(
+  ColumnFilters<int> get visibility => $composableBuilder(
     column: $table.visibility,
     builder: (column) => ColumnFilters(column),
   );
@@ -2111,7 +2111,7 @@ class $$ArticleDraftsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get visibility => $composableBuilder(
+  ColumnOrderings<int> get visibility => $composableBuilder(
     column: $table.visibility,
     builder: (column) => ColumnOrderings(column),
   );
@@ -2145,7 +2145,7 @@ class $$ArticleDraftsTableAnnotationComposer
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
 
-  GeneratedColumn<String> get visibility => $composableBuilder(
+  GeneratedColumn<int> get visibility => $composableBuilder(
     column: $table.visibility,
     builder: (column) => column,
   );
@@ -2195,7 +2195,7 @@ class $$ArticleDraftsTableTableManager
                 Value<String> title = const Value.absent(),
                 Value<String> description = const Value.absent(),
                 Value<String> content = const Value.absent(),
-                Value<String> visibility = const Value.absent(),
+                Value<int> visibility = const Value.absent(),
                 Value<DateTime> lastModified = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArticleDraftsCompanion(
@@ -2213,7 +2213,7 @@ class $$ArticleDraftsTableTableManager
                 Value<String> title = const Value.absent(),
                 Value<String> description = const Value.absent(),
                 Value<String> content = const Value.absent(),
-                Value<String> visibility = const Value.absent(),
+                Value<int> visibility = const Value.absent(),
                 required DateTime lastModified,
                 Value<int> rowid = const Value.absent(),
               }) => ArticleDraftsCompanion.insert(

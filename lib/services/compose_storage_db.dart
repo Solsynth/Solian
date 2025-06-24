@@ -3,6 +3,10 @@ import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/database/drift_db.dart';
 import 'package:island/pods/database.dart';
+import 'package:island/services/file.dart';
+import 'package:island/models/file.dart';
+import 'package:island/pods/config.dart';
+import 'package:island/pods/network.dart';
 
 part 'compose_storage_db.g.dart';
 
@@ -11,8 +15,8 @@ class ComposeDraftModel {
   final String title;
   final String description;
   final String content;
-  final List<String> attachmentIds;
-  final String visibility;
+  final List<UniversalFile> attachments;
+  final int visibility;
   final DateTime lastModified;
 
   ComposeDraftModel({
@@ -20,7 +24,7 @@ class ComposeDraftModel {
     required this.title,
     required this.description,
     required this.content,
-    required this.attachmentIds,
+    required this.attachments,
     required this.visibility,
     required this.lastModified,
   });
@@ -30,7 +34,7 @@ class ComposeDraftModel {
     'title': title,
     'description': description,
     'content': content,
-    'attachmentIds': attachmentIds,
+    'attachments': attachments.map((e) => e.toJson()).toList(),
     'visibility': visibility,
     'lastModified': lastModified.toIso8601String(),
   };
@@ -40,8 +44,10 @@ class ComposeDraftModel {
     title: json['title'] as String? ?? '',
     description: json['description'] as String? ?? '',
     content: json['content'] as String? ?? '',
-    attachmentIds: List<String>.from(json['attachmentIds'] as List? ?? []),
-    visibility: json['visibility'] as String? ?? 'public',
+    attachments: (json['attachments'] as List? ?? [])
+        .map((e) => UniversalFile.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    visibility: json['visibility'] as int? ?? 0,
     lastModified: DateTime.parse(json['lastModified'] as String),
   );
 
@@ -50,7 +56,9 @@ class ComposeDraftModel {
     title: row.title,
     description: row.description,
     content: row.content,
-    attachmentIds: List<String>.from(jsonDecode(row.attachmentIds)),
+    attachments: (jsonDecode(row.attachmentIds) as List)
+        .map((e) => UniversalFile.fromJson(e as Map<String, dynamic>))
+        .toList(),
     visibility: row.visibility,
     lastModified: row.lastModified,
   );
@@ -60,7 +68,7 @@ class ComposeDraftModel {
     title: Value(title),
     description: Value(description),
     content: Value(content),
-    attachmentIds: Value(jsonEncode(attachmentIds)),
+    attachmentIds: Value(jsonEncode(attachments.map((e) => e.toJson()).toList())),
     visibility: Value(visibility),
     lastModified: Value(lastModified),
   );
@@ -70,8 +78,8 @@ class ComposeDraftModel {
     String? title,
     String? description,
     String? content,
-    List<String>? attachmentIds,
-    String? visibility,
+    List<UniversalFile>? attachments,
+    int? visibility,
     DateTime? lastModified,
   }) {
     return ComposeDraftModel(
@@ -79,7 +87,7 @@ class ComposeDraftModel {
       title: title ?? this.title,
       description: description ?? this.description,
       content: content ?? this.content,
-      attachmentIds: attachmentIds ?? this.attachmentIds,
+      attachments: attachments ?? this.attachments,
       visibility: visibility ?? this.visibility,
       lastModified: lastModified ?? this.lastModified,
     );
@@ -89,7 +97,7 @@ class ComposeDraftModel {
       title.isEmpty &&
       description.isEmpty &&
       content.isEmpty &&
-      attachmentIds.isEmpty;
+      attachments.isEmpty;
 }
 
 class ArticleDraftModel {
@@ -97,7 +105,7 @@ class ArticleDraftModel {
   final String title;
   final String description;
   final String content;
-  final String visibility;
+  final int visibility;
   final DateTime lastModified;
 
   ArticleDraftModel({
@@ -123,7 +131,7 @@ class ArticleDraftModel {
     title: json['title'] as String? ?? '',
     description: json['description'] as String? ?? '',
     content: json['content'] as String? ?? '',
-    visibility: json['visibility'] as String? ?? 'public',
+    visibility: json['visibility'] as int? ?? 0,
     lastModified: DateTime.parse(json['lastModified'] as String),
   );
 
@@ -150,7 +158,7 @@ class ArticleDraftModel {
     String? title,
     String? description,
     String? content,
-    String? visibility,
+    int? visibility,
     DateTime? lastModified,
   }) {
     return ArticleDraftModel(
@@ -196,7 +204,38 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
       return;
     }
 
-    final updatedDraft = draft.copyWith(lastModified: DateTime.now());
+    // Upload all attachments that are not yet uploaded
+    final uploadedAttachments = <UniversalFile>[];
+    final serverUrl = ref.read(serverUrlProvider);
+    final token = ref.read(tokenProvider);
+    
+    for (final attachment in draft.attachments) {
+      if (!attachment.isOnCloud) {
+        try {
+          final completer = putMediaToCloud(
+            fileData: attachment,
+            atk: token?.token ?? '',
+            baseUrl: serverUrl,
+          );
+          final uploadedFile = await completer.future;
+          if (uploadedFile != null) {
+            uploadedAttachments.add(UniversalFile.fromAttachment(uploadedFile));
+          } else {
+            uploadedAttachments.add(attachment);
+          }
+        } catch (e) {
+          // If upload fails, keep the original file
+          uploadedAttachments.add(attachment);
+        }
+      } else {
+        uploadedAttachments.add(attachment);
+      }
+    }
+
+    final updatedDraft = draft.copyWith(
+      attachments: uploadedAttachments,
+      lastModified: DateTime.now(),
+    );
     state = {...state, updatedDraft.id: updatedDraft};
     
     try {

@@ -12,6 +12,7 @@ part of 'file.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$UniversalFile {
 
@@ -22,6 +23,8 @@ mixin _$UniversalFile {
 @pragma('vm:prefer-inline')
 $UniversalFileCopyWith<UniversalFile> get copyWith => _$UniversalFileCopyWithImpl<UniversalFile>(this as UniversalFile, _$identity);
 
+  /// Serializes this UniversalFile to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -29,7 +32,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is UniversalFile&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.type, type) || other.type == type));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data),type);
 
@@ -75,11 +78,11 @@ as UniversalFileType,
 
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _UniversalFile extends UniversalFile {
   const _UniversalFile({required this.data, required this.type}): super._();
-  
+  factory _UniversalFile.fromJson(Map<String, dynamic> json) => _$UniversalFileFromJson(json);
 
 @override final  dynamic data;
 @override final  UniversalFileType type;
@@ -90,14 +93,17 @@ class _UniversalFile extends UniversalFile {
 @pragma('vm:prefer-inline')
 _$UniversalFileCopyWith<_UniversalFile> get copyWith => __$UniversalFileCopyWithImpl<_UniversalFile>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$UniversalFileToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _UniversalFile&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.type, type) || other.type == type));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data),type);
 

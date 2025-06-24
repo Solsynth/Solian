@@ -203,7 +203,7 @@ class _DraftItem extends StatelessWidget {
                   ? postDraft.description
                   : 'noContent'.tr());
       lastModified = postDraft.lastModified;
-      visibility = postDraft.visibility;
+      visibility = _parseArticleVisibility(postDraft.visibility);
     }
 
     final preview =
@@ -316,17 +316,17 @@ class _DraftItem extends StatelessWidget {
     }
   }
 
-  String _parseArticleVisibility(String visibility) {
-    switch (visibility.toLowerCase()) {
-      case 'public':
+  String _parseArticleVisibility(int visibility) {
+    switch (visibility) {
+      case 0:
         return 'public'.tr();
-      case 'unlisted':
+      case 1:
         return 'unlisted'.tr();
-      case 'friends':
+      case 2:
         return 'friends'.tr();
-      case 'selected':
+      case 3:
         return 'selected'.tr();
-      case 'private':
+      case 4:
         return 'private'.tr();
       default:
         return 'unknown'.tr();

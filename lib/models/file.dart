@@ -14,6 +14,9 @@ sealed class UniversalFile with _$UniversalFile {
     required UniversalFileType type,
   }) = _UniversalFile;
 
+  factory UniversalFile.fromJson(Map<String, dynamic> json) =>
+      _$UniversalFileFromJson(json);
+
   bool get isOnCloud => data is SnCloudFile;
   bool get isOnDevice => !isOnCloud;
 

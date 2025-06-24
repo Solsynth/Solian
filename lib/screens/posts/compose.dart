@@ -62,21 +62,7 @@ class PostComposeScreen extends HookConsumerWidget {
     @QueryParam('type') this.type,
   });
 
-  // Helper method to parse visibility
-  int _parseVisibility(String visibility) {
-    switch (visibility) {
-      case 'public':
-        return 0;
-      case 'unlisted':
-        return 1;
-      case 'friends':
-        return 2;
-      case 'private':
-        return 3;
-      default:
-        return 0;
-    }
-  }
+
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -140,9 +126,7 @@ class PostComposeScreen extends HookConsumerWidget {
             state.titleController.text = mostRecentDraft.title;
             state.descriptionController.text = mostRecentDraft.description;
             state.contentController.text = mostRecentDraft.content;
-            state.visibility.value = _parseVisibility(
-              mostRecentDraft.visibility,
-            );
+            state.visibility.value = mostRecentDraft.visibility;
           }
         }
       }
@@ -272,9 +256,7 @@ class PostComposeScreen extends HookConsumerWidget {
                               state.descriptionController.text =
                                   draft.description;
                               state.contentController.text = draft.content;
-                              state.visibility.value = _parseVisibility(
-                                draft.visibility,
-                              );
+                              state.visibility.value = draft.visibility;
                             }
                           },
                         ),

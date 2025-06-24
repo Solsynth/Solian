@@ -6,6 +6,25 @@ part of 'file.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_UniversalFile _$UniversalFileFromJson(Map<String, dynamic> json) =>
+    _UniversalFile(
+      data: json['data'],
+      type: $enumDecode(_$UniversalFileTypeEnumMap, json['type']),
+    );
+
+Map<String, dynamic> _$UniversalFileToJson(_UniversalFile instance) =>
+    <String, dynamic>{
+      'data': instance.data,
+      'type': _$UniversalFileTypeEnumMap[instance.type]!,
+    };
+
+const _$UniversalFileTypeEnumMap = {
+  UniversalFileType.image: 'image',
+  UniversalFileType.video: 'video',
+  UniversalFileType.audio: 'audio',
+  UniversalFileType.file: 'file',
+};
+
 _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
   id: json['id'] as String,
   name: json['name'] as String,
