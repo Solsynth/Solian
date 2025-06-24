@@ -1,6 +1,6 @@
 # Solar Network
 
-![](https://solsynth.dev/_next/static/media/alpha.e779a584.webp)
+![](https://solsynth.dev/_nuxt/alpha.azUGRxzt.webp)
 
 [![Crowdin](https://badges.crowdin.net/solian/localized.svg)](https://crowdin.com/project/solian)
 
