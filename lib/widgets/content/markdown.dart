@@ -94,7 +94,6 @@ class MarkdownTextContent extends HookConsumerWidget {
                 });
               } else {
                 showSnackBar(
-                  context,
                   'brokenLink'.tr(args: [href]),
                   action: SnackBarAction(
                     label: 'copyToClipboard'.tr(),

@@ -205,7 +205,7 @@ class AuthFactorNewSheet extends HookConsumerWidget {
             builder: (context) => AuthFactorNewAdditonalSheet(factor: factor),
           ).then((_) {
             if (context.mounted) {
-              showSnackBar(context, 'contactMethodVerificationNeeded'.tr());
+              showSnackBar('contactMethodVerificationNeeded'.tr());
             }
             if (context.mounted) Navigator.pop(context, true);
           });

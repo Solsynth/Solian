@@ -38,7 +38,7 @@ class RestorePurchaseSheet extends HookConsumerWidget {
 
         if (context.mounted) {
           Navigator.pop(context);
-          showSnackBar(context, 'Purchase restored successfully!');
+          showSnackBar('Purchase restored successfully!');
         }
       } catch (err) {
         showErrorAlert(err);

@@ -112,7 +112,11 @@ class ComposeLogic {
     );
   }
 
-  static Future<void> saveDraft(WidgetRef ref, ComposeState state, {int postType = 0}) async {
+  static Future<void> saveDraft(
+    WidgetRef ref,
+    ComposeState state, {
+    int postType = 0,
+  }) async {
     final hasContent =
         state.titleController.text.trim().isNotEmpty ||
         state.descriptionController.text.trim().isNotEmpty ||
@@ -142,7 +146,9 @@ class ComposeLogic {
                   fileData: attachment,
                   atk: token,
                   baseUrl: baseUrl,
-                  filename: attachment.data.name ?? (postType == 1 ? 'Article media' : 'Post media'),
+                  filename:
+                      attachment.data.name ??
+                      (postType == 1 ? 'Article media' : 'Post media'),
                   mimetype:
                       attachment.data.mimeType ??
                       ComposeLogic.getMimeTypeFromFileType(attachment.type),
@@ -217,7 +223,11 @@ class ComposeLogic {
     }
   }
 
-  static Future<void> saveDraftWithoutUpload(WidgetRef ref, ComposeState state, {int postType = 0}) async {
+  static Future<void> saveDraftWithoutUpload(
+    WidgetRef ref,
+    ComposeState state, {
+    int postType = 0,
+  }) async {
     final hasContent =
         state.titleController.text.trim().isNotEmpty ||
         state.descriptionController.text.trim().isNotEmpty ||
@@ -346,12 +356,12 @@ class ComposeLogic {
       await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
 
       if (context.mounted) {
-        showSnackBar(context, 'draftSaved'.tr());
+        showSnackBar('draftSaved'.tr());
       }
     } catch (e) {
       log('[ComposeLogic] Failed to save draft manually, error: $e');
       if (context.mounted) {
-        showSnackBar(context, 'draftSaveFailed'.tr());
+        showSnackBar('draftSaveFailed'.tr());
       }
     }
   }
@@ -511,7 +521,7 @@ class ComposeLogic {
 
     if (!hasContent && !hasAttachments) {
       if (context.mounted) {
-        showSnackBar(context, 'postContentEmpty'.tr());
+        showSnackBar('postContentEmpty'.tr());
       }
       return; // Don't submit empty posts
     }

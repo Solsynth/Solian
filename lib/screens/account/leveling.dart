@@ -641,7 +641,7 @@ class LevelingScreen extends HookConsumerWidget {
         ref.invalidate(accountStellarSubscriptionProvider);
         ref.read(userInfoProvider.notifier).fetchUser();
         if (context.mounted) {
-          showSnackBar(context, 'membershipPurchaseSuccess'.tr());
+          showSnackBar('membershipPurchaseSuccess'.tr());
         }
       }
     } catch (err) {

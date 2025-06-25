@@ -72,7 +72,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
         final client = ref.read(apiClientProvider);
         await client.delete('/accounts/me');
         if (context.mounted) {
-          showSnackBar(context, 'accountDeletionSent'.tr());
+          showSnackBar('accountDeletionSent'.tr());
         }
       } catch (err) {
         showErrorAlert(err);
@@ -100,7 +100,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
           data: {'account': userInfo.value!.name, 'captcha_token': captchaTk},
         );
         if (context.mounted) {
-          showSnackBar(context, 'accountPasswordChangeSent'.tr());
+          showSnackBar('accountPasswordChangeSent'.tr());
         }
       } catch (err) {
         showErrorAlert(err);

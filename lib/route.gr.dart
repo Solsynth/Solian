@@ -1266,6 +1266,7 @@ class PostComposeRoute extends _i31.PageRouteInfo<PostComposeRouteArgs> {
     _i34.SnPost? repliedPost,
     _i34.SnPost? forwardedPost,
     int? type,
+    _i22.PostComposeInitialState? initialState,
     List<_i31.PageRouteInfo>? children,
   }) : super(
          PostComposeRoute.name,
@@ -1275,6 +1276,7 @@ class PostComposeRoute extends _i31.PageRouteInfo<PostComposeRouteArgs> {
            repliedPost: repliedPost,
            forwardedPost: forwardedPost,
            type: type,
+           initialState: initialState,
          ),
          rawQueryParams: {'type': type},
          initialChildren: children,
@@ -1295,6 +1297,7 @@ class PostComposeRoute extends _i31.PageRouteInfo<PostComposeRouteArgs> {
         repliedPost: args.repliedPost,
         forwardedPost: args.forwardedPost,
         type: args.type,
+        initialState: args.initialState,
       );
     },
   );
@@ -1307,6 +1310,7 @@ class PostComposeRouteArgs {
     this.repliedPost,
     this.forwardedPost,
     this.type,
+    this.initialState,
   });
 
   final _i32.Key? key;
@@ -1319,9 +1323,11 @@ class PostComposeRouteArgs {
 
   final int? type;
 
+  final _i22.PostComposeInitialState? initialState;
+
   @override
   String toString() {
-    return 'PostComposeRouteArgs{key: $key, originalPost: $originalPost, repliedPost: $repliedPost, forwardedPost: $forwardedPost, type: $type}';
+    return 'PostComposeRouteArgs{key: $key, originalPost: $originalPost, repliedPost: $repliedPost, forwardedPost: $forwardedPost, type: $type, initialState: $initialState}';
   }
 
   @override
@@ -1332,7 +1338,8 @@ class PostComposeRouteArgs {
         originalPost == other.originalPost &&
         repliedPost == other.repliedPost &&
         forwardedPost == other.forwardedPost &&
-        type == other.type;
+        type == other.type &&
+        initialState == other.initialState;
   }
 
   @override
@@ -1341,7 +1348,8 @@ class PostComposeRouteArgs {
       originalPost.hashCode ^
       repliedPost.hashCode ^
       forwardedPost.hashCode ^
-      type.hashCode;
+      type.hashCode ^
+      initialState.hashCode;
 }
 
 /// generated route for

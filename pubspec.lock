@@ -2282,6 +2282,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  top_snackbar_flutter:
+    dependency: "direct main"
+    description:
+      name: top_snackbar_flutter
+      sha256: ad3f93062450e8c7db97b271d405c180536408cc2be4380a59da7022eb1d750c
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.0"
   tuple:
     dependency: transitive
     description:

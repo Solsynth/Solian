@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
@@ -21,6 +22,23 @@ import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/post/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+
+part 'compose.freezed.dart';
+part 'compose.g.dart';
+
+@freezed
+sealed class PostComposeInitialState with _$PostComposeInitialState {
+  const factory PostComposeInitialState({
+    String? title,
+    String? description,
+    String? content,
+    @Default([]) List<UniversalFile> attachments,
+    int? visibility,
+  }) = _PostComposeInitialState;
+
+  factory PostComposeInitialState.fromJson(Map<String, dynamic> json) =>
+      _$PostComposeInitialStateFromJson(json);
+}
 
 @RoutePage()
 class PostEditScreen extends HookConsumerWidget {
@@ -54,12 +72,14 @@ class PostComposeScreen extends HookConsumerWidget {
   final SnPost? repliedPost;
   final SnPost? forwardedPost;
   final int? type;
+  final PostComposeInitialState? initialState;
   const PostComposeScreen({
     super.key,
     this.originalPost,
     this.repliedPost,
     this.forwardedPost,
     @QueryParam('type') this.type,
+    this.initialState,
   });
 
   @override
@@ -107,11 +127,28 @@ class PostComposeScreen extends HookConsumerWidget {
       return null;
     }, [publishers]);
 
-    // Load draft if available (only for new posts)
+    // Load initial state if provided (for sharing functionality)
+    useEffect(() {
+      if (initialState != null) {
+        state.titleController.text = initialState!.title ?? '';
+        state.descriptionController.text = initialState!.description ?? '';
+        state.contentController.text = initialState!.content ?? '';
+        if (initialState!.visibility != null) {
+          state.visibility.value = initialState!.visibility!;
+        }
+        if (initialState!.attachments.isNotEmpty) {
+          state.attachments.value = List.from(initialState!.attachments);
+        }
+      }
+      return null;
+    }, [initialState]);
+
+    // Load draft if available (only for new posts without initial state)
     useEffect(() {
       if (originalPost == null &&
           effectiveForwardedPost == null &&
-          effectiveRepliedPost == null) {
+          effectiveRepliedPost == null &&
+          initialState == null) {
         // Try to load the most recent draft
         final drafts = ref.read(composeStorageNotifierProvider);
         if (drafts.isNotEmpty) {

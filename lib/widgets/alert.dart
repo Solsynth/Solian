@@ -1,31 +1,18 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:island/services/responsive.dart';
+import 'package:island/main.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 export 'content/alert.native.dart'
     if (dart.library.html) 'content/alert.web.dart';
 
-void showSnackBar(
-  BuildContext context,
-  String message, {
-  SnackBarAction? action,
-}) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      action: action,
-      margin:
-          isWideScreen(context)
-              ? null
-              : EdgeInsets.fromLTRB(
-                15.0,
-                5.0,
-                15.0,
-                MediaQuery.of(context).padding.bottom + 28,
-              ),
-    ),
+void showSnackBar(String message, {SnackBarAction? action}) {
+  showTopSnackBar(
+    globalOverlay.currentState!,
+    Card(child: Text(message).padding(horizontal: 24, vertical: 16)),
+    snackBarPosition: SnackBarPosition.bottom,
   );
 }
 

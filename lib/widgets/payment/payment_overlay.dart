@@ -279,7 +279,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
       _isPinMode = true;
     });
     if (message != null && message.isNotEmpty) {
-      showSnackBar(context, message);
+      showSnackBar(message);
     }
   }
 

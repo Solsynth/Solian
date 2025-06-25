@@ -427,7 +427,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
           onPickFactor(factors!.where((x) => x == factorPicked.value).first);
           onNext();
           if (context.mounted) {
-            showSnackBar(context, err.response!.data.toString());
+            showSnackBar(err.response!.data.toString());
           }
           return;
         }

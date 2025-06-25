@@ -186,7 +186,6 @@ class NotificationScreen extends HookConsumerWidget {
                       final uri = Uri.tryParse(href);
                       if (uri == null) {
                         showSnackBar(
-                          context,
                           'brokenLink'.tr(args: []),
                           action: SnackBarAction(
                             label: 'copyToClipboard'.tr(),

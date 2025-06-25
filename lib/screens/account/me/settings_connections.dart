@@ -181,7 +181,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
               },
             );
             if (context.mounted) {
-              showSnackBar(context, 'accountConnectionAddSuccess'.tr());
+              showSnackBar('accountConnectionAddSuccess'.tr());
               Navigator.pop(context, true);
             }
           } catch (err) {
@@ -208,7 +208,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
           if (context.mounted) Navigator.pop(context, true);
           break;
         default:
-          showSnackBar(context, 'accountConnectionAddError'.tr());
+          showSnackBar('accountConnectionAddError'.tr());
           return;
       }
     }

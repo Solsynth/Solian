@@ -49,7 +49,6 @@ class ChatDetailScreen extends HookConsumerWidget {
         ref.invalidate(chatroomIdentityProvider(id));
         if (context.mounted) {
           showSnackBar(
-            context,
             'chatNotifyLevelUpdated'.tr(args: [kNotifyLevelText[level].tr()]),
           );
         }
@@ -140,7 +139,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                       setChatBreak(now);
                       Navigator.pop(context);
                       if (context.mounted) {
-                        showSnackBar(context, 'chatBreakCleared'.tr());
+                        showSnackBar('chatBreakCleared'.tr());
                       }
                     },
                   ),
@@ -152,7 +151,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                       setChatBreak(now.add(const Duration(minutes: 5)));
                       Navigator.pop(context);
                       if (context.mounted) {
-                        showSnackBar(context, 'chatBreakSet'.tr(args: ['5m']));
+                        showSnackBar('chatBreakSet'.tr(args: ['5m']));
                       }
                     },
                   ),
@@ -164,7 +163,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                       setChatBreak(now.add(const Duration(minutes: 10)));
                       Navigator.pop(context);
                       if (context.mounted) {
-                        showSnackBar(context, 'chatBreakSet'.tr(args: ['10m']));
+                        showSnackBar('chatBreakSet'.tr(args: ['10m']));
                       }
                     },
                   ),
@@ -176,7 +175,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                       setChatBreak(now.add(const Duration(minutes: 15)));
                       Navigator.pop(context);
                       if (context.mounted) {
-                        showSnackBar(context, 'chatBreakSet'.tr(args: ['15m']));
+                        showSnackBar('chatBreakSet'.tr(args: ['15m']));
                       }
                     },
                   ),
@@ -188,7 +187,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                       setChatBreak(now.add(const Duration(minutes: 30)));
                       Navigator.pop(context);
                       if (context.mounted) {
-                        showSnackBar(context, 'chatBreakSet'.tr(args: ['30m']));
+                        showSnackBar('chatBreakSet'.tr(args: ['30m']));
                       }
                     },
                   ),
@@ -208,7 +207,6 @@ class ChatDetailScreen extends HookConsumerWidget {
                             Navigator.pop(context);
                             if (context.mounted) {
                               showSnackBar(
-                                context,
                                 'chatBreakSet'.tr(args: ['${minutes}m']),
                               );
                             }

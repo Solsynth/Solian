@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 class SharingIntentService {
   static final SharingIntentService _instance =
@@ -73,14 +72,44 @@ class SharingIntentService {
       );
     }
 
-    // Convert SharedMediaFile to XFile
+    // Convert SharedMediaFile to XFile for files
     final List<XFile> files =
         sharedFiles
+            .where(
+              (file) =>
+                  file.type == SharedMediaType.file ||
+                  file.type == SharedMediaType.video ||
+                  file.type == SharedMediaType.image,
+            )
             .map((file) => XFile(file.path, name: file.path.split('/').last))
             .toList();
 
+    // Extract links from shared content
+    final List<String> links =
+        sharedFiles
+            .where((file) => file.type == SharedMediaType.text)
+            .map((file) => file.path)
+            .toList();
+
     // Show ShareSheet with the shared files
-    showShareSheet(context: _context!, content: ShareContent.files(files));
+    if (files.isNotEmpty) {
+      showShareSheet(context: _context!, content: ShareContent.files(files));
+    } else if (links.isNotEmpty) {
+      showShareSheet(
+        context: _context!,
+        content: ShareContent.link(links.first),
+      );
+    } else {
+      showShareSheet(
+        context: _context!,
+        content: ShareContent.text(
+          sharedFiles
+              .where((file) => file.type == SharedMediaType.text)
+              .map((text) => text.message)
+              .join('\n'),
+        ),
+      );
+    }
   }
 
   /// Dispose of resources

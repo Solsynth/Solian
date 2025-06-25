@@ -242,12 +242,10 @@ class RelationshipScreen extends HookConsumerWidget {
         if (!context.mounted) return;
         if (isAccept) {
           showSnackBar(
-            context,
             'friendRequestAccepted'.tr(args: ['@${relationship.account.name}']),
           );
         } else {
           showSnackBar(
-            context,
             'friendRequestDeclined'.tr(args: ['@${relationship.account.name}']),
           );
         }

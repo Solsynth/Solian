@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:island/route.gr.dart';
+import 'package:island/screens/posts/compose.dart';
+import 'package:island/models/file.dart';
+import 'package:island/models/embed.dart';
+import 'package:island/pods/network.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -125,9 +132,55 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   Future<void> _shareToPost() async {
     setState(() => _isLoading = true);
     try {
-      // TODO: Implement share to post functionality
-      // This would typically navigate to the post composer with pre-filled content
-      showSnackBar(context, 'Share to post functionality coming soon');
+      // Convert ShareContent to PostComposeInitialState
+      String content = '';
+      List<UniversalFile> attachments = [];
+      
+      switch (widget.content.type) {
+        case ShareContentType.text:
+          content = widget.content.text ?? '';
+          break;
+        case ShareContentType.link:
+          content = widget.content.link ?? '';
+          break;
+        case ShareContentType.file:
+          if (widget.content.files != null) {
+            // Convert XFiles to UniversalFiles
+            for (final xFile in widget.content.files!) {
+              final file = File(xFile.path);
+              final mimeType = xFile.mimeType;
+              
+              UniversalFileType fileType;
+              if (mimeType?.startsWith('image/') == true) {
+                fileType = UniversalFileType.image;
+              } else if (mimeType?.startsWith('video/') == true) {
+                fileType = UniversalFileType.video;
+              } else if (mimeType?.startsWith('audio/') == true) {
+                fileType = UniversalFileType.audio;
+              } else {
+                fileType = UniversalFileType.file;
+              }
+              
+              attachments.add(UniversalFile(
+                data: file,
+                type: fileType,
+              ));
+            }
+          }
+          break;
+      }
+      
+      final initialState = PostComposeInitialState(
+        title: widget.title,
+        content: content,
+        attachments: attachments,
+      );
+      
+      // Navigate to compose screen
+      if (mounted) {
+        context.router.push(PostComposeRoute(initialState: initialState));
+        Navigator.of(context).pop(); // Close the share sheet
+      }
     } catch (e) {
       showErrorAlert(e);
     } finally {
@@ -213,7 +266,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       }
 
       await Clipboard.setData(ClipboardData(text: textToCopy));
-      if (mounted) showSnackBar(context, 'copyToClipboard'.tr());
+      if (mounted) showSnackBar('copyToClipboard'.tr());
     } catch (e) {
       showErrorAlert(e);
     }
@@ -664,46 +717,210 @@ class _TextPreview extends StatelessWidget {
   }
 }
 
-class _LinkPreview extends StatelessWidget {
+class _LinkPreview extends HookConsumerWidget {
   final String link;
 
   const _LinkPreview({required this.link});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Symbols.link,
-                size: 16,
-                color: Theme.of(context).colorScheme.primary,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final linkData = useState<SnEmbedLink?>(null);
+    final isLoading = useState(false);
+    final hasError = useState(false);
+
+    useEffect(() {
+      Future<void> fetchLinkData() async {
+        if (link.isEmpty) return;
+        
+        isLoading.value = true;
+        hasError.value = false;
+        
+        try {
+          final client = ref.read(apiClientProvider);
+          final response = await client.get('/scrap/link', queryParameters: {
+            'url': link,
+          });
+          
+          if (response.data != null) {
+            linkData.value = SnEmbedLink.fromJson(response.data);
+          }
+        } catch (e) {
+          hasError.value = true;
+        } finally {
+          isLoading.value = false;
+        }
+      }
+      
+      fetchLinkData();
+      return null;
+    }, [link]);
+
+    if (isLoading.value) {
+      return Container(
+        constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Loading link preview...',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Link',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (hasError.value || linkData.value == null) {
+      return Container(
+        constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Symbols.link,
+                  size: 16,
                   color: Theme.of(context).colorScheme.primary,
                 ),
+                const SizedBox(width: 8),
+                Text(
+                  'Link',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: SingleChildScrollView(
+                child: SelectableText(
+                  link,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            child: SelectableText(
-              link,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                decoration: TextDecoration.underline,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final embed = linkData.value!;
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 120), // Increased height for rich preview
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Favicon and image
+          if (embed.imageUrl != null || embed.faviconUrl.isNotEmpty)
+            Container(
+              width: 60,
+              height: 60,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: embed.imageUrl != null
+                    ? Image.network(
+                        embed.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return _buildFaviconFallback(context, embed.faviconUrl);
+                        },
+                      )
+                    : _buildFaviconFallback(context, embed.faviconUrl),
+              ),
+            ),
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Site name
+                if (embed.siteName.isNotEmpty)
+                  Text(
+                    embed.siteName,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                // Title
+                Text(
+                  embed.title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                // Description
+                if (embed.description != null && embed.description!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      embed.description!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                // URL
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    embed.url,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      decoration: TextDecoration.underline,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFaviconFallback(BuildContext context, String faviconUrl) {
+    if (faviconUrl.isNotEmpty) {
+      return Image.network(
+        faviconUrl,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(
+            Symbols.link,
+            color: Theme.of(context).colorScheme.primary,
+            size: 24,
+          );
+        },
+      );
+    }
+    return Icon(
+      Symbols.link,
+      color: Theme.of(context).colorScheme.primary,
+      size: 24,
     );
   }
 }

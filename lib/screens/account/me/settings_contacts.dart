@@ -40,7 +40,7 @@ class ContactMethodSheet extends HookConsumerWidget {
         final client = ref.read(apiClientProvider);
         await client.post('/accounts/me/contacts/${contact.id}/verify');
         if (context.mounted) {
-          showSnackBar(context, 'contactMethodVerificationSent'.tr());
+          showSnackBar('contactMethodVerificationSent'.tr());
         }
       } catch (err) {
         showErrorAlert(err);
@@ -152,7 +152,7 @@ class ContactMethodNewSheet extends HookConsumerWidget {
 
     Future<void> addContactMethod() async {
       if (contentController.text.isEmpty) {
-        showSnackBar(context, 'contactMethodContentEmpty'.tr());
+        showSnackBar('contactMethodContentEmpty'.tr());
         return;
       }
 
@@ -164,7 +164,7 @@ class ContactMethodNewSheet extends HookConsumerWidget {
           data: {'type': contactType.value, 'content': contentController.text},
         );
         if (context.mounted) {
-          showSnackBar(context, 'contactMethodVerificationNeeded'.tr());
+          showSnackBar('contactMethodVerificationNeeded'.tr());
           Navigator.pop(context, true);
         }
       } catch (err) {

@@ -110,7 +110,7 @@ class SettingsScreen extends HookConsumerWidget {
                   ref
                       .read(appSettingsNotifierProvider.notifier)
                       .setCustomFonts(null);
-                  showSnackBar(context, 'settingsApplied'.tr());
+                  showSnackBar('settingsApplied'.tr());
                 },
               ),
               border: OutlineInputBorder(
@@ -122,7 +122,7 @@ class SettingsScreen extends HookConsumerWidget {
               ref
                   .read(appSettingsNotifierProvider.notifier)
                   .setCustomFonts(value.isEmpty ? null : value);
-              showSnackBar(context, 'settingsApplied'.tr());
+              showSnackBar('settingsApplied'.tr());
             },
           ),
         ),
@@ -215,7 +215,7 @@ class SettingsScreen extends HookConsumerWidget {
             prefs.setBool(kAppBackgroundStoreKey, true);
             ref.invalidate(backgroundImageFileProvider);
             if (context.mounted) {
-              showSnackBar(context, 'settingsApplied'.tr());
+              showSnackBar('settingsApplied'.tr());
             }
           },
         ),
@@ -243,7 +243,7 @@ class SettingsScreen extends HookConsumerWidget {
                 prefs.remove(kAppBackgroundStoreKey);
                 ref.invalidate(backgroundImageFileProvider);
                 if (context.mounted) {
-                  showSnackBar(context, 'settingsApplied'.tr());
+                  showSnackBar('settingsApplied'.tr());
                 }
               },
             );
@@ -290,7 +290,7 @@ class SettingsScreen extends HookConsumerWidget {
                     .setAppColorScheme(color.value);
                 if (context.mounted) {
                   hideLoadingModal(context);
-                  showSnackBar(context, 'settingsApplied'.tr());
+                  showSnackBar('settingsApplied'.tr());
                 }
               },
             );
@@ -321,7 +321,7 @@ class SettingsScreen extends HookConsumerWidget {
                     kNetworkServerDefault,
                   );
                   ref.invalidate(serverUrlProvider);
-                  showSnackBar(context, 'settingsApplied'.tr());
+                  showSnackBar('settingsApplied'.tr());
                 },
               ),
               border: OutlineInputBorder(
@@ -333,7 +333,7 @@ class SettingsScreen extends HookConsumerWidget {
               if (value.isNotEmpty) {
                 prefs.setString(kNetworkServerStoreKey, value);
                 ref.invalidate(serverUrlProvider);
-                showSnackBar(context, 'settingsApplied'.tr());
+                showSnackBar('settingsApplied'.tr());
               }
             },
           ),

@@ -19,7 +19,6 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/services/notify.dart';
-import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/services/timezone.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -127,6 +126,8 @@ void main() async {
 
 final appRouter = AppRouter();
 
+final globalOverlay = GlobalKey<OverlayState>();
+
 class IslandApp extends HookConsumerWidget {
   const IslandApp({super.key});
 
@@ -195,6 +196,7 @@ class IslandApp extends HookConsumerWidget {
       locale: context.locale,
       builder: (context, child) {
         return Overlay(
+          key: globalOverlay,
           initialEntries: [
             OverlayEntry(
               builder:
