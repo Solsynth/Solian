@@ -1,9 +1,57 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island/main.dart';
+import 'package:island/models/user.dart';
+import 'package:island/pods/websocket.dart';
+import 'package:island/widgets/app_notification.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+
+StreamSubscription<WebSocketPacket> setupNotificationListener(
+  BuildContext context,
+  WidgetRef ref,
+) {
+  final ws = ref.watch(websocketProvider);
+  return ws.dataStream.listen((pkt) {
+    if (pkt.type == "notifications.new") {
+      final notification = SnNotification.fromJson(pkt.data!);
+      showTopSnackBar(
+        globalOverlay.currentState!,
+        NotificationCard(notification: notification),
+        onTap: () {
+          if (notification.meta['action_uri'] != null) {
+            var uri = notification.meta['action_uri'] as String;
+            if (uri.startsWith('/')) {
+              // In-app routes
+              appRouter.pushPath(notification.meta['action_uri']);
+            } else {
+              // External URLs
+              launchUrlString(uri);
+            }
+          }
+        },
+        onDismissed: () {},
+        dismissType: DismissType.onSwipe,
+        displayDuration: const Duration(seconds: 5),
+        snackBarPosition: SnackBarPosition.top,
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          // ignore: use_build_context_synchronously
+          top: MediaQuery.of(context).padding.top + 24,
+          bottom: 16,
+        ),
+      );
+    }
+  });
+}
 
 Future<void> subscribePushNotification(Dio apiClient) async {
   await FirebaseMessaging.instance.requestPermission(
