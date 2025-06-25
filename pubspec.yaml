@@ -120,6 +120,7 @@ dependencies:
   flutter_secure_storage: ^4.2.1
   flutter_math_fork: ^0.7.4
   share_plus: ^11.0.0
+  receive_sharing_intent: ^1.8.1
 
 dev_dependencies:
   flutter_test:

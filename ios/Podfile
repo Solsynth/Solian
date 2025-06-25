@@ -44,6 +44,10 @@ target 'Runner' do
     pod 'Kingfisher', '~> 8.0'
     pod 'Alamofire'
   end
+
+  target 'SolianShareExtension' do
+    inherit! :search_paths
+  end
 end
 
 post_install do |installer|

@@ -11,10 +11,15 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>webcredentials:solian.app</string>
+		<string>applinks:solian.app</string>
 	</array>
 	<key>com.apple.developer.device-information.user-assigned-device-name</key>
 	<true/>
 	<key>com.apple.developer.usernotifications.communication</key>
 	<true/>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.solsynth.solian</string>
+	</array>
 </dict>
 </plist>
