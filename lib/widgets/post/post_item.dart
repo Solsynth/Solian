@@ -733,12 +733,16 @@ class _PostTruncateHint extends StatelessWidget {
             color: Theme.of(context).colorScheme.secondary,
           ),
           SizedBox(width: isCompact ? 4 : 6),
-          Text(
-            'postTruncated'.tr(),
-            style: TextStyle(
-              fontSize: isCompact ? 10 : 12,
-              color: Theme.of(context).colorScheme.secondary,
-              fontStyle: FontStyle.italic,
+          Flexible(
+            child: Text(
+              'postTruncated'.tr(),
+              style: TextStyle(
+                fontSize: isCompact ? 10 : 12,
+                color: Theme.of(context).colorScheme.secondary,
+                fontStyle: FontStyle.italic,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           SizedBox(width: isCompact ? 3 : 4),
