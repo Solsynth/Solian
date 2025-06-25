@@ -560,5 +560,6 @@
   "failedToCopy": "Failed to copy: {}",
   "noChatRoomsAvailable": "No chat rooms available",
   "failedToLoadChats": "Failed to load chats",
+  "contentToShare": "Content to share:",
   "unknownChat": "Unknown Chat"
 }

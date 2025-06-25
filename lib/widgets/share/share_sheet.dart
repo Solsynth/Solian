@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:cross_file/cross_file.dart';
+
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:island/models/chat.dart';
 import 'package:island/screens/chat/chat.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:share_plus/share_plus.dart';
 
 enum ShareContentType { text, link, file }
 
@@ -125,15 +127,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
     try {
       // TODO: Implement share to post functionality
       // This would typically navigate to the post composer with pre-filled content
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Share to post functionality coming soon'),
-        ),
-      );
+      showSnackBar(context, 'Share to post functionality coming soon');
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('failedToShareToPost'.tr(args: [e.toString()]))));
+      showErrorAlert(e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -141,18 +137,8 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
   Future<void> _shareToChat() async {
     setState(() => _isLoading = true);
-    try {
-      // TODO: Implement share to chat functionality
-      // This would typically show a chat selection dialog
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('shareToChatComingSoon'.tr()),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('failedToShareToChat'.tr(args: [e.toString()]))));
+    try {} catch (e) {
+      showErrorAlert(e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -161,11 +147,13 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   Future<void> _shareToSpecificChat(SnChatRoom chatRoom) async {
     setState(() => _isLoading = true);
     try {
-      // TODO: Implement share to specific chat functionality
-      // This would send the content to the selected chat room
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('shareToSpecificChatComingSoon'.tr(args: [chatRoom.name ?? 'directChat'.tr()])),
+          content: Text(
+            'shareToSpecificChatComingSoon'.tr(
+              args: [chatRoom.name ?? 'directChat'.tr()],
+            ),
+          ),
         ),
       );
     } catch (e) {
@@ -182,17 +170,29 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
     setState(() => _isLoading = true);
     try {
-      // TODO: Implement system share functionality
-      // This would use platform-specific sharing APIs
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('systemShareComingSoon'.tr())),
-      );
+      switch (widget.content.type) {
+        case ShareContentType.text:
+          if (widget.content.text?.isNotEmpty == true) {
+            await Share.share(widget.content.text!);
+          }
+          break;
+        case ShareContentType.link:
+          if (widget.content.link?.isNotEmpty == true) {
+            await Share.share(widget.content.link!);
+          }
+          break;
+        case ShareContentType.file:
+          if (widget.content.files?.isNotEmpty == true) {
+            await Share.shareXFiles(widget.content.files!);
+          }
+          break;
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('failedToShareToSystem'.tr(args: [e.toString()]))));
+      showErrorAlert(e);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -213,13 +213,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       }
 
       await Clipboard.setData(ClipboardData(text: textToCopy));
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('copyToClipboard'.tr())));
+      if (mounted) showSnackBar(context, 'copyToClipboard'.tr());
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('failedToCopy'.tr(args: [e.toString()]))));
+      showErrorAlert(e);
     }
   }
 
@@ -227,6 +223,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   Widget build(BuildContext context) {
     return SheetScaffold(
       titleText: widget.title ?? 'share'.tr(),
+      heightFactor: 0.75,
       child: Column(
         children: [
           // Content preview
@@ -241,7 +238,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Content to share:',
+                  'contentToShare'.tr(),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -254,77 +251,86 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
           // Share options
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Quick actions row (horizontally scrollable)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'quickActions'.tr(),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Quick actions row (horizontally scrollable)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'quickActions'.tr(),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleSmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 80,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _CompactShareOption(
-                              icon: Symbols.post_add,
-                              title: 'post'.tr(),
-                              onTap: _isLoading ? null : _shareToPost,
-                            ),
-                            const SizedBox(width: 12),
-                            _CompactShareOption(
-                              icon: Symbols.content_copy,
-                              title: 'copy'.tr(),
-                              onTap: _isLoading ? null : _copyToClipboard,
-                            ),
-                            if (widget.toSystem) ...<Widget>[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 80,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              _CompactShareOption(
+                                icon: Symbols.post_add,
+                                title: 'post'.tr(),
+                                onTap: _isLoading ? null : _shareToPost,
+                              ),
                               const SizedBox(width: 12),
                               _CompactShareOption(
-                                icon: Symbols.share,
-                                title: 'share'.tr(),
-                                onTap: _isLoading ? null : _shareToSystem,
+                                icon: Symbols.content_copy,
+                                title: 'copy'.tr(),
+                                onTap: _isLoading ? null : _copyToClipboard,
                               ),
+                              if (widget.toSystem) ...<Widget>[
+                                const SizedBox(width: 12),
+                                _CompactShareOption(
+                                  icon: Symbols.share,
+                                  title: 'share'.tr(),
+                                  onTap: _isLoading ? null : _shareToSystem,
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Chat section
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'sendToChat'.tr(),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+
+                  const SizedBox(height: 24),
+
+                  // Chat section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'sendToChat'.tr(),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleSmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      _ChatRoomsList(
-                        onChatSelected: _isLoading ? null : _shareToSpecificChat,
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        _ChatRoomsList(
+                          onChatSelected:
+                              _isLoading ? null : _shareToSpecificChat,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                
-                const SizedBox(height: 16),
-              ],
+
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
 
@@ -382,36 +388,39 @@ class _ChatRoomsList extends ConsumerWidget {
               final room = rooms[index];
               return _ChatRoomOption(
                 room: room,
-                onTap: onChatSelected != null ? () => onChatSelected!(room) : null,
+                onTap:
+                    onChatSelected != null ? () => onChatSelected!(room) : null,
               );
             },
           ),
         );
       },
-      loading: () => SizedBox(
-        height: 80,
-        child: Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-      ),
-      error: (error, stack) => Container(
-        height: 80,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Text(
-            'failedToLoadChats'.tr(),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onErrorContainer,
+      loading:
+          () => SizedBox(
+            height: 80,
+            child: Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
-        ),
-      ),
+      error:
+          (error, stack) => Container(
+            height: 80,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text(
+                'failedToLoadChats'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+              ),
+            ),
+          ),
     );
   }
 }
@@ -420,16 +429,14 @@ class _ChatRoomOption extends StatelessWidget {
   final SnChatRoom room;
   final VoidCallback? onTap;
 
-  const _ChatRoomOption({
-    required this.room,
-    this.onTap,
-  });
+  const _ChatRoomOption({required this.room, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final isDirect = room.type == 1; // Assuming type 1 is direct chat
-    final displayName = room.name ?? 
-        (isDirect && room.members != null 
+    final displayName =
+        room.name ??
+        (isDirect && room.members != null
             ? room.members!.map((m) => m.account.nick).join(', ')
             : 'unknownChat'.tr());
 
@@ -439,9 +446,12 @@ class _ChatRoomOption extends StatelessWidget {
         width: 72,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: onTap != null
-              ? Theme.of(context).colorScheme.surfaceContainerHighest
-              : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color:
+              onTap != null
+                  ? Theme.of(context).colorScheme.surfaceContainerHighest
+                  : Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -458,28 +468,32 @@ class _ChatRoomOption extends StatelessWidget {
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: room.picture != null
-                  ? ClipRRect(
-                       borderRadius: BorderRadius.circular(16),
-                       child: CloudFileWidget(
-                         item: room.picture!,
-                         fit: BoxFit.cover,
-                       ),
-                     )
-                  : Icon(
-                      isDirect ? Symbols.person : Symbols.group,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+              child:
+                  room.picture != null
+                      ? ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: CloudFileWidget(
+                          item: room.picture!,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                      : Icon(
+                        isDirect ? Symbols.person : Symbols.group,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
             ),
             const SizedBox(height: 4),
             // Chat room name
             Text(
               displayName,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: onTap != null
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                color:
+                    onTap != null
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withOpacity(0.5),
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -511,9 +525,12 @@ class _CompactShareOption extends StatelessWidget {
         width: 72,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: onTap != null
-              ? Theme.of(context).colorScheme.surfaceContainerHighest
-              : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color:
+              onTap != null
+                  ? Theme.of(context).colorScheme.surfaceContainerHighest
+                  : Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -525,17 +542,23 @@ class _CompactShareOption extends StatelessWidget {
             Icon(
               icon,
               size: 24,
-              color: onTap != null
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color:
+                  onTap != null
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withOpacity(0.5),
             ),
             const SizedBox(height: 4),
             Text(
               title,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: onTap != null
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                color:
+                    onTap != null
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withOpacity(0.5),
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -623,6 +646,8 @@ class _ContentPreview extends StatelessWidget {
   }
 }
 
+const double kPreviewMaxHeight = 80;
+
 class _TextPreview extends StatelessWidget {
   final String text;
 
@@ -631,7 +656,7 @@ class _TextPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxHeight: 120),
+      constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
       child: SingleChildScrollView(
         child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
       ),
@@ -647,7 +672,7 @@ class _LinkPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxHeight: 120),
+      constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -730,7 +755,7 @@ class _FilePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxHeight: 200),
+      constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
