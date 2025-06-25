@@ -10,6 +10,7 @@ import 'package:gap/gap.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/udid.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -204,12 +205,7 @@ class _OidcScreenState extends ConsumerState<OidcScreen> {
                       onPressed: () {
                         if (currentUrl != null) {
                           Clipboard.setData(ClipboardData(text: currentUrl!));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('copyToClipboard').tr(),
-                              duration: const Duration(seconds: 1),
-                            ),
-                          );
+                          showSnackBar('copyToClipboard');
                         }
                       },
                     ),

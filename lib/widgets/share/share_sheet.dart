@@ -292,13 +292,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
       if (mounted) {
         // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'shareToSpecificChatSuccess'.tr(
-                args: [chatRoom.name ?? 'directChat'.tr()],
-              ),
-            ),
+        showSnackBar(
+          'shareToSpecificChatSuccess'.tr(
+            args: [chatRoom.name ?? 'directChat'.tr()],
           ),
         );
 
