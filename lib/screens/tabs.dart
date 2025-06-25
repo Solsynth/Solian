@@ -144,7 +144,7 @@ class TabbedFabLocation extends FloatingActionButtonLocation {
         scaffoldGeometry.floatingActionButtonSize.height -
         scaffoldGeometry.bottomSheetSize.height -
         safeAreaPadding.bottom -
-        (isWideScreen(context) ? 24 : 80) +
+        (isWideScreen(context) ? 32 : 80) +
         16;
 
     return Offset(fabX, fabY);
