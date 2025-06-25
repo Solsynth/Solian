@@ -10,6 +10,10 @@ import 'package:island/route.gr.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/link_preview.dart';
+import 'package:island/pods/network.dart';
+import 'package:island/pods/config.dart';
+import 'package:island/pods/userinfo.dart';
+import 'package:island/services/file.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -120,6 +124,14 @@ class ShareSheet extends ConsumerStatefulWidget {
 
 class _ShareSheetState extends ConsumerState<ShareSheet> {
   bool _isLoading = false;
+  final TextEditingController _messageController = TextEditingController();
+  final Map<String, List<double>> _fileUploadProgress = {};
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
 
   void _handleClose() {
     if (widget.onClose != null) {
@@ -185,33 +197,162 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
     }
   }
 
-  Future<void> _shareToChat() async {
-    setState(() => _isLoading = true);
-    try {} catch (e) {
-      showErrorAlert(e);
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
   Future<void> _shareToSpecificChat(SnChatRoom chatRoom) async {
     setState(() => _isLoading = true);
     try {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'shareToSpecificChatComingSoon'.tr(
-              args: [chatRoom.name ?? 'directChat'.tr()],
+      final apiClient = ref.read(apiClientProvider);
+      final userInfo = ref.read(userInfoProvider.notifier);
+      final serverUrl = ref.read(serverUrlProvider);
+
+      String content = _messageController.text.trim();
+      List<String> attachmentIds = [];
+
+      // Handle different content types
+      switch (widget.content.type) {
+        case ShareContentType.text:
+          if (content.isEmpty) {
+            content = widget.content.text ?? '';
+          } else if (widget.content.text?.isNotEmpty == true) {
+            content = '$content\n\n${widget.content.text}';
+          }
+          break;
+        case ShareContentType.link:
+          if (content.isEmpty) {
+            content = widget.content.link ?? '';
+          } else if (widget.content.link?.isNotEmpty == true) {
+            content = '$content\n\n${widget.content.link}';
+          }
+          break;
+        case ShareContentType.file:
+          // Upload files to cloud storage
+          if (widget.content.files?.isNotEmpty == true) {
+            final token = await userInfo.getAccessToken();
+            if (token == null) {
+              throw Exception('Authentication required');
+            }
+
+            final universalFiles =
+                widget.content.files!.map((file) {
+                  UniversalFileType fileType;
+                  if (file.mimeType?.startsWith('image/') == true) {
+                    fileType = UniversalFileType.image;
+                  } else if (file.mimeType?.startsWith('video/') == true) {
+                    fileType = UniversalFileType.video;
+                  } else if (file.mimeType?.startsWith('audio/') == true) {
+                    fileType = UniversalFileType.audio;
+                  } else {
+                    fileType = UniversalFileType.file;
+                  }
+                  return UniversalFile(data: file, type: fileType);
+                }).toList();
+
+            // Initialize progress tracking
+            final messageId = DateTime.now().millisecondsSinceEpoch.toString();
+            _fileUploadProgress[messageId] = List.filled(
+              universalFiles.length,
+              0.0,
+            );
+
+            // Upload each file
+            for (var idx = 0; idx < universalFiles.length; idx++) {
+              final file = universalFiles[idx];
+              final cloudFile =
+                  await putMediaToCloud(
+                    fileData: file,
+                    atk: token,
+                    baseUrl: serverUrl,
+                    filename: file.data.name ?? 'Shared file',
+                    mimetype:
+                        file.data.mimeType ??
+                        switch (file.type) {
+                          UniversalFileType.image => 'image/unknown',
+                          UniversalFileType.video => 'video/unknown',
+                          UniversalFileType.audio => 'audio/unknown',
+                          UniversalFileType.file => 'application/octet-stream',
+                        },
+                    onProgress: (progress, _) {
+                      if (mounted) {
+                        setState(() {
+                          _fileUploadProgress[messageId]?[idx] = progress;
+                        });
+                      }
+                    },
+                  ).future;
+
+              if (cloudFile == null) {
+                throw Exception('Failed to upload file: ${file.data.name}');
+              }
+              attachmentIds.add(cloudFile.id);
+            }
+          }
+          break;
+      }
+
+      if (content.isEmpty && attachmentIds.isEmpty) {
+        throw Exception('No content to share');
+      }
+
+      // Send message to chat room
+      await apiClient.post(
+        '/chat/${chatRoom.id}/messages',
+        data: {'content': content, 'attachments_id': attachmentIds, 'meta': {}},
+      );
+
+      if (mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'shareToSpecificChatSuccess'.tr(
+                args: [chatRoom.name ?? 'directChat'.tr()],
+              ),
             ),
           ),
-        ),
-      );
+        );
+
+        // Show navigation prompt
+        final shouldNavigate = await showDialog<bool>(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: Text('shareSuccess'.tr()),
+                content: Text('wouldYouLikeToGoToChat'.tr()),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text('no'.tr()),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text('yes'.tr()),
+                  ),
+                ],
+              ),
+        );
+
+        // Close the share sheet
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+
+        // Navigate to chat if requested
+        if (shouldNavigate == true && mounted) {
+          context.router.pushPath('/chat/$chatRoom');
+        }
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to share to chat: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to share to chat: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -370,6 +511,28 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                           ),
                         ),
                         const SizedBox(height: 12),
+
+                        // Additional message input
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: TextField(
+                            controller: _messageController,
+                            decoration: InputDecoration(
+                              hintText: 'addAdditionalMessage'.tr(),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                            maxLines: 3,
+                            minLines: 1,
+                            enabled: !_isLoading,
+                          ),
+                        ),
+
                         _ChatRoomsList(
                           onChatSelected:
                               _isLoading ? null : _shareToSpecificChat,
@@ -384,11 +547,40 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
             ),
           ),
 
-          // Loading indicator
+          // Loading indicator and file upload progress
           if (_isLoading)
             Container(
               padding: const EdgeInsets.all(16),
-              child: const CircularProgressIndicator(),
+              child: Column(
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 8),
+                  if (_fileUploadProgress.isNotEmpty)
+                    ..._fileUploadProgress.entries.map((entry) {
+                      final progress = entry.value;
+                      final averageProgress =
+                          progress.isEmpty
+                              ? 0.0
+                              : progress.reduce((a, b) => a + b) /
+                                  progress.length;
+                      return Column(
+                        children: [
+                          Text(
+                            'uploadingFiles'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 4),
+                          LinearProgressIndicator(value: averageProgress),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${(averageProgress * 100).toInt()}%',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      );
+                    }),
+                ],
+              ),
             ),
         ],
       ),

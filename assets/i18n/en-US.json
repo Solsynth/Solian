@@ -561,5 +561,10 @@
   "noChatRoomsAvailable": "No chat rooms available",
   "failedToLoadChats": "Failed to load chats",
   "contentToShare": "Content to share:",
-  "unknownChat": "Unknown Chat"
+  "unknownChat": "Unknown Chat",
+  "addAdditionalMessage": "Add additional message...",
+  "uploadingFiles": "Uploading files...",
+  "sharedSuccessfully": "Shared successfully!",
+  "navigateToChat": "Navigate to Chat",
+  "wouldYouLikeToNavigateToChat": "Would you like to navigate to the chat?"
 }
