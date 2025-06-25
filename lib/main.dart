@@ -19,6 +19,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/services/notify.dart';
+import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/services/timezone.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -60,11 +61,11 @@ void main() async {
   if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
     doWhenWindowReady(() {
       const defaultSize = Size(360, 640);
-      
+
       // Get saved window size from preferences
       final savedSizeString = prefs.getString(kAppWindowSize);
       Size initialSize = defaultSize;
-      
+
       if (savedSizeString != null) {
         try {
           final parts = savedSizeString.split(',');
@@ -78,12 +79,14 @@ void main() async {
           initialSize = defaultSize;
         }
       }
-      
+
       appWindow.minSize = defaultSize;
       appWindow.size = initialSize;
       appWindow.alignment = Alignment.center;
       appWindow.show();
-      log("[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}");
+      log(
+        "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}",
+      );
     });
   }
 

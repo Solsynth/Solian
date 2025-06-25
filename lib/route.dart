@@ -8,13 +8,17 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-    AutoRoute(page: PostComposeRoute.page, path: '/posts/compose'),
-    AutoRoute(page: PostEditRoute.page, path: '/posts/:id/edit'),
-    AutoRoute(page: CallRoute.page, path: '/chat/:id/call'),
-    AutoRoute(page: EventCalanderRoute.page, path: '/account/:name/calendar'),
+    AutoRoute(path: '/', page: AppWrapper.page, children: _appRoutes),
+  ];
+
+  List<AutoRoute> get _appRoutes => [
+    AutoRoute(page: PostComposeRoute.page, path: 'posts/compose'),
+    AutoRoute(page: PostEditRoute.page, path: 'posts/:id/edit'),
+    AutoRoute(page: CallRoute.page, path: 'chat/:id/call'),
+    AutoRoute(page: EventCalanderRoute.page, path: 'account/:name/calendar'),
     AutoRoute(
       page: TabsRoute.page,
-      path: '/',
+      path: '',
       children: [
         AutoRoute(
           page: ExploreShellRoute.page,
@@ -58,7 +62,7 @@ class AppRouter extends RootStackRouter {
     ),
     AutoRoute(
       page: CreatorHubShellRoute.page,
-      path: '/creators',
+      path: 'creators',
       children: [
         AutoRoute(page: CreatorHubRoute.page, path: ''),
         AutoRoute(page: CreatorPostListRoute.page, path: ':name/posts'),
@@ -81,11 +85,11 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: EditPublisherRoute.page, path: ':name/edit'),
       ],
     ),
-    AutoRoute(page: LoginRoute.page, path: '/auth/login'),
-    AutoRoute(page: CreateAccountRoute.page, path: '/auth/create-account'),
-    AutoRoute(page: SettingsRoute.page, path: '/settings'),
-    AutoRoute(page: NewRealmRoute.page, path: '/realms/new'),
-    AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
-    AutoRoute(page: EditRealmRoute.page, path: '/realms/:slug/edit'),
+    AutoRoute(page: LoginRoute.page, path: 'auth/login'),
+    AutoRoute(page: CreateAccountRoute.page, path: 'auth/create-account'),
+    AutoRoute(page: SettingsRoute.page, path: 'settings'),
+    AutoRoute(page: NewRealmRoute.page, path: 'realms/new'),
+    AutoRoute(page: RealmDetailRoute.page, path: 'realms/:slug'),
+    AutoRoute(page: EditRealmRoute.page, path: 'realms/:slug/edit'),
   ];
 }
