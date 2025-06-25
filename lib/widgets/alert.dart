@@ -11,7 +11,7 @@ export 'content/alert.native.dart'
 void showSnackBar(String message, {SnackBarAction? action}) {
   showTopSnackBar(
     globalOverlay.currentState!,
-    Card(child: Text(message).padding(horizontal: 24, vertical: 16)),
+    Card(child: Text(message).padding(horizontal: 20, vertical: 16)),
     snackBarPosition: SnackBarPosition.bottom,
   );
 }
