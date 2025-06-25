@@ -87,7 +87,7 @@ class SharingIntentService {
     // Extract links from shared content
     final List<String> links =
         sharedFiles
-            .where((file) => file.type == SharedMediaType.text)
+            .where((file) => file.type == SharedMediaType.url)
             .map((file) => file.path)
             .toList();
 

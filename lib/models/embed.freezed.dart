@@ -172,4 +172,164 @@ as DateTime?,
 
 }
 
+
+/// @nodoc
+mixin _$SnScrappedLink {
+
+ String get type; String get url; String get title; String? get description; String? get imageUrl; String get faviconUrl; String get siteName; String? get contentType; String? get author; DateTime? get publishedDate;
+/// Create a copy of SnScrappedLink
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnScrappedLinkCopyWith<SnScrappedLink> get copyWith => _$SnScrappedLinkCopyWithImpl<SnScrappedLink>(this as SnScrappedLink, _$identity);
+
+  /// Serializes this SnScrappedLink to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnScrappedLink&&(identical(other.type, type) || other.type == type)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.faviconUrl, faviconUrl) || other.faviconUrl == faviconUrl)&&(identical(other.siteName, siteName) || other.siteName == siteName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.author, author) || other.author == author)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,url,title,description,imageUrl,faviconUrl,siteName,contentType,author,publishedDate);
+
+@override
+String toString() {
+  return 'SnScrappedLink(type: $type, url: $url, title: $title, description: $description, imageUrl: $imageUrl, faviconUrl: $faviconUrl, siteName: $siteName, contentType: $contentType, author: $author, publishedDate: $publishedDate)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnScrappedLinkCopyWith<$Res>  {
+  factory $SnScrappedLinkCopyWith(SnScrappedLink value, $Res Function(SnScrappedLink) _then) = _$SnScrappedLinkCopyWithImpl;
+@useResult
+$Res call({
+ String type, String url, String title, String? description, String? imageUrl, String faviconUrl, String siteName, String? contentType, String? author, DateTime? publishedDate
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnScrappedLinkCopyWithImpl<$Res>
+    implements $SnScrappedLinkCopyWith<$Res> {
+  _$SnScrappedLinkCopyWithImpl(this._self, this._then);
+
+  final SnScrappedLink _self;
+  final $Res Function(SnScrappedLink) _then;
+
+/// Create a copy of SnScrappedLink
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = freezed,Object? imageUrl = freezed,Object? faviconUrl = null,Object? siteName = null,Object? contentType = freezed,Object? author = freezed,Object? publishedDate = freezed,}) {
+  return _then(_self.copyWith(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,faviconUrl: null == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
+as String,siteName: null == siteName ? _self.siteName : siteName // ignore: cast_nullable_to_non_nullable
+as String,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
+as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String?,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnScrappedLink implements SnScrappedLink {
+  const _SnScrappedLink({required this.type, required this.url, required this.title, required this.description, required this.imageUrl, required this.faviconUrl, required this.siteName, required this.contentType, required this.author, required this.publishedDate});
+  factory _SnScrappedLink.fromJson(Map<String, dynamic> json) => _$SnScrappedLinkFromJson(json);
+
+@override final  String type;
+@override final  String url;
+@override final  String title;
+@override final  String? description;
+@override final  String? imageUrl;
+@override final  String faviconUrl;
+@override final  String siteName;
+@override final  String? contentType;
+@override final  String? author;
+@override final  DateTime? publishedDate;
+
+/// Create a copy of SnScrappedLink
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnScrappedLinkCopyWith<_SnScrappedLink> get copyWith => __$SnScrappedLinkCopyWithImpl<_SnScrappedLink>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnScrappedLinkToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnScrappedLink&&(identical(other.type, type) || other.type == type)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.faviconUrl, faviconUrl) || other.faviconUrl == faviconUrl)&&(identical(other.siteName, siteName) || other.siteName == siteName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.author, author) || other.author == author)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,url,title,description,imageUrl,faviconUrl,siteName,contentType,author,publishedDate);
+
+@override
+String toString() {
+  return 'SnScrappedLink(type: $type, url: $url, title: $title, description: $description, imageUrl: $imageUrl, faviconUrl: $faviconUrl, siteName: $siteName, contentType: $contentType, author: $author, publishedDate: $publishedDate)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnScrappedLinkCopyWith<$Res> implements $SnScrappedLinkCopyWith<$Res> {
+  factory _$SnScrappedLinkCopyWith(_SnScrappedLink value, $Res Function(_SnScrappedLink) _then) = __$SnScrappedLinkCopyWithImpl;
+@override @useResult
+$Res call({
+ String type, String url, String title, String? description, String? imageUrl, String faviconUrl, String siteName, String? contentType, String? author, DateTime? publishedDate
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnScrappedLinkCopyWithImpl<$Res>
+    implements _$SnScrappedLinkCopyWith<$Res> {
+  __$SnScrappedLinkCopyWithImpl(this._self, this._then);
+
+  final _SnScrappedLink _self;
+  final $Res Function(_SnScrappedLink) _then;
+
+/// Create a copy of SnScrappedLink
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = freezed,Object? imageUrl = freezed,Object? faviconUrl = null,Object? siteName = null,Object? contentType = freezed,Object? author = freezed,Object? publishedDate = freezed,}) {
+  return _then(_SnScrappedLink(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,faviconUrl: null == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
+as String,siteName: null == siteName ? _self.siteName : siteName // ignore: cast_nullable_to_non_nullable
+as String,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
+as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String?,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
 // dart format on

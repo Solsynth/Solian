@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -9,8 +9,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/models/file.dart';
-import 'package:island/models/embed.dart';
-import 'package:island/pods/network.dart';
+import 'package:island/pods/link_preview.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -19,6 +18,7 @@ import 'package:island/screens/chat/chat.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 enum ShareContentType { text, link, file }
 
@@ -135,7 +135,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       // Convert ShareContent to PostComposeInitialState
       String content = '';
       List<UniversalFile> attachments = [];
-      
+
       switch (widget.content.type) {
         case ShareContentType.text:
           content = widget.content.text ?? '';
@@ -149,7 +149,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
             for (final xFile in widget.content.files!) {
               final file = File(xFile.path);
               final mimeType = xFile.mimeType;
-              
+
               UniversalFileType fileType;
               if (mimeType?.startsWith('image/') == true) {
                 fileType = UniversalFileType.image;
@@ -160,22 +160,19 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
               } else {
                 fileType = UniversalFileType.file;
               }
-              
-              attachments.add(UniversalFile(
-                data: file,
-                type: fileType,
-              ));
+
+              attachments.add(UniversalFile(data: file, type: fileType));
             }
           }
           break;
       }
-      
+
       final initialState = PostComposeInitialState(
         title: widget.title,
         content: content,
         attachments: attachments,
       );
-      
+
       // Navigate to compose screen
       if (mounted) {
         context.router.push(PostComposeRoute(initialState: initialState));
@@ -717,185 +714,178 @@ class _TextPreview extends StatelessWidget {
   }
 }
 
-class _LinkPreview extends HookConsumerWidget {
+class _LinkPreview extends ConsumerWidget {
   final String link;
 
   const _LinkPreview({required this.link});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final linkData = useState<SnEmbedLink?>(null);
-    final isLoading = useState(false);
-    final hasError = useState(false);
+    final linkPreviewAsync = ref.watch(linkPreviewProvider(link));
 
-    useEffect(() {
-      Future<void> fetchLinkData() async {
-        if (link.isEmpty) return;
-        
-        isLoading.value = true;
-        hasError.value = false;
-        
-        try {
-          final client = ref.read(apiClientProvider);
-          final response = await client.get('/scrap/link', queryParameters: {
-            'url': link,
-          });
-          
-          if (response.data != null) {
-            linkData.value = SnEmbedLink.fromJson(response.data);
-          }
-        } catch (e) {
-          hasError.value = true;
-        } finally {
-          isLoading.value = false;
-        }
-      }
-      
-      fetchLinkData();
-      return null;
-    }, [link]);
-
-    if (isLoading.value) {
-      return Container(
-        constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
-        child: Row(
-          children: [
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Loading link preview...',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (hasError.value || linkData.value == null) {
-      return Container(
-        constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return linkPreviewAsync.when(
+      loading:
+          () => Container(
+            constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
+            child: Row(
               children: [
-                Icon(
-                  Symbols.link,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.primary,
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Link',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
+                  'Loading link preview...',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: SingleChildScrollView(
-                child: SelectableText(
-                  link,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+          ),
+      error: (error, stackTrace) => _buildFallbackPreview(context),
+      data: (embed) {
+        if (embed == null) {
+          return _buildFallbackPreview(context);
+        }
 
-    final embed = linkData.value!;
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 120), // Increased height for rich preview
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Favicon and image
-          if (embed.imageUrl != null || embed.faviconUrl.isNotEmpty)
-            Container(
-              width: 60,
-              height: 60,
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: embed.imageUrl != null
-                    ? Image.network(
-                        embed.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildFaviconFallback(context, embed.faviconUrl);
-                        },
-                      )
-                    : _buildFaviconFallback(context, embed.faviconUrl),
-              ),
-            ),
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Site name
-                if (embed.siteName.isNotEmpty)
-                  Text(
-                    embed.siteName,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+        return Container(
+          constraints: const BoxConstraints(
+            maxHeight: 120,
+          ), // Increased height for rich preview
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Favicon and image
+              if (embed.imageUrl != null || embed.faviconUrl.isNotEmpty)
+                Container(
+                  width: 60,
+                  height: 60,
+                  margin: const EdgeInsets.only(right: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                   ),
-                // Title
-                Text(
-                  embed.title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child:
+                        embed.imageUrl != null
+                            ? Image.network(
+                              embed.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildFaviconFallback(
+                                  context,
+                                  embed.faviconUrl,
+                                );
+                              },
+                            )
+                            : _buildFaviconFallback(context, embed.faviconUrl),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                // Description
-                if (embed.description != null && embed.description!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      embed.description!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Site name
+                    if (embed.siteName.isNotEmpty)
+                      Text(
+                        embed.siteName,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    // Title
+                    Text(
+                      embed.title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                // URL
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    embed.url,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      decoration: TextDecoration.underline,
+                    // Description
+                    if (embed.description != null &&
+                        embed.description!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          embed.description!,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    // URL
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        embed.url,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          decoration: TextDecoration.underline,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  ],
                 ),
-              ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFallbackPreview(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Symbols.link,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Link',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const Gap(6),
+              Text(
+                'Link embed was not loaded.',
+                style: Theme.of(context).textTheme.labelSmall,
+              ).opacity(0.75),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: SingleChildScrollView(
+              child: SelectableText(
+                link,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
             ),
           ),
         ],
