@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -6,7 +7,39 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/navigation/conditional_bottom_nav.dart';
 import 'package:material_symbols_icons/symbols.dart';
+
+final currentRouteProvider = StateProvider<String?>((ref) => null);
+
+class TabNavigationObserver extends AutoRouterObserver {
+  Function(String?) onChange;
+  TabNavigationObserver({required this.onChange});
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    log('pushed ${previousRoute?.settings.name} -> ${route.settings.name}');
+    if (route is DialogRoute) return;
+    final name = route.settings.name;
+    if (name == null) return;
+    if (name.contains('Shell')) return;
+    Future(() {
+      onChange(name);
+    });
+  }
+
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    log('popped ${route.settings.name} -> ${previousRoute?.settings.name}');
+    if (previousRoute is DialogRoute) return;
+    final name = previousRoute?.settings.name;
+    if (name == null) return;
+    if (name.contains('Shell')) return;
+    Future(() {
+      onChange(name);
+    });
+  }
+}
 
 @RoutePage()
 class TabsScreen extends HookConsumerWidget {
@@ -41,10 +74,10 @@ class TabsScreen extends HookConsumerWidget {
     ];
 
     final routes = <PageRouteInfo>[
-      ExploreRoute(),
-      ChatListRoute(),
+      ExploreShellRoute(),
+      ChatShellRoute(),
       RealmListRoute(),
-      AccountRoute(),
+      AccountShellRoute(),
     ];
 
     return AutoTabsRouter.tabBar(
@@ -83,31 +116,33 @@ class TabsScreen extends HookConsumerWidget {
               left: 0,
               right: 0,
               bottom: 0,
-              child: ClipRRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surface.withOpacity(0.8),
-                    ),
-                    child: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: NavigationBar(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        overlayColor: WidgetStatePropertyAll(
-                          Colors.transparent,
+              child: ConditionalBottomNav(
+                child: ClipRRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surface.withOpacity(0.8),
+                      ),
+                      child: MediaQuery.removePadding(
+                        context: context,
+                        removeTop: true,
+                        child: NavigationBar(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          overlayColor: const WidgetStatePropertyAll(
+                            Colors.transparent,
+                          ),
+                          surfaceTintColor: Colors.transparent,
+                          height: 56,
+                          labelBehavior:
+                              NavigationDestinationLabelBehavior.alwaysHide,
+                          selectedIndex: tabsRouter.activeIndex,
+                          onDestinationSelected: tabsRouter.setActiveIndex,
+                          destinations: destinations,
                         ),
-                        surfaceTintColor: Colors.transparent,
-                        height: 56,
-                        labelBehavior:
-                            NavigationDestinationLabelBehavior.alwaysHide,
-                        selectedIndex: tabsRouter.activeIndex,
-                        onDestinationSelected: tabsRouter.setActiveIndex,
-                        destinations: destinations,
                       ),
                     ),
                   ),

@@ -12,10 +12,13 @@ class AppRouter extends RootStackRouter {
   ];
 
   List<AutoRoute> get _appRoutes => [
+    // Standalone routes without bottom navigation
     AutoRoute(page: PostComposeRoute.page, path: 'posts/compose'),
     AutoRoute(page: PostEditRoute.page, path: 'posts/:id/edit'),
     AutoRoute(page: CallRoute.page, path: 'chat/:id/call'),
     AutoRoute(page: EventCalanderRoute.page, path: 'account/:name/calendar'),
+    
+    // Main tabs with bottom navigation and shell routes for desktop layout
     AutoRoute(
       page: TabsRoute.page,
       path: '',

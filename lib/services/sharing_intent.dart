@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:island/widgets/share/share_sheet.dart';
@@ -15,6 +17,7 @@ class SharingIntentService {
 
   /// Initialize the sharing intent service
   void initialize(BuildContext context) {
+    if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return;
     debugPrint("SharingIntentService: Initializing with context");
     _context = context;
     _setupSharingListeners();

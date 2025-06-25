@@ -18,6 +18,7 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
+import 'package:island/screens/tabs.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/timezone.dart';
 import 'package:island/widgets/alert.dart';
@@ -186,7 +187,16 @@ class IslandApp extends HookConsumerWidget {
       theme: theme?.light,
       darkTheme: theme?.dark,
       themeMode: ThemeMode.system,
-      routerConfig: appRouter.config(),
+      routerConfig: appRouter.config(
+        navigatorObservers:
+            () => [
+              TabNavigationObserver(
+                onChange: (route) {
+                  ref.read(currentRouteProvider.notifier).state = route;
+                },
+              ),
+            ],
+      ),
       supportedLocales: context.supportedLocales,
       localizationsDelegates: [
         ...context.localizationDelegates,
