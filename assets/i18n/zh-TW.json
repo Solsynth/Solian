@@ -350,5 +350,22 @@
   "justNow": "剛剛",
   "minutesAgo": "{} 分鐘前",
   "hoursAgo": "{} 小時前",
-  "postContentEmpty": "貼文內容不能為空"
+  "postContentEmpty": "貼文內容不能為空",
+  "share": "分享",
+  "quickActions": "快速操作",
+  "post": "貼文",
+  "copy": "複製",
+  "sendToChat": "傳送到聊天",
+  "failedToShareToPost": "分享到貼文失敗：{}",
+  "shareToChatComingSoon": "聊天分享功能即將推出",
+  "failedToShareToChat": "分享到聊天失敗：{}",
+  "shareToSpecificChatComingSoon": "分享到 {} 即將推出",
+  "directChat": "私人聊天",
+  "systemShareComingSoon": "系統分享功能即將推出",
+  "failedToShareToSystem": "系統分享失敗：{}",
+  "copiedToClipboard": "已複製到剪貼簿",
+  "failedToCopy": "複製失敗：{}",
+  "noChatRoomsAvailable": "沒有可用的聊天室",
+  "failedToLoadChats": "載入聊天失敗",
+  "unknownChat": "未知聊天"
 }

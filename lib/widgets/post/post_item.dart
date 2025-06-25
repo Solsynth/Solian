@@ -21,6 +21,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_replies_sheet.dart';
+import 'package:island/widgets/share/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
@@ -124,6 +125,18 @@ class PostItem extends HookConsumerWidget {
                 context.router.push(PostComposeRoute(forwardedPost: item));
               },
             ),
+            MenuAction(
+              title: 'share'.tr(),
+              image: MenuImage.icon(Symbols.share),
+              callback: () {
+                showShareSheetLink(
+                  context: context,
+                  link: 'https://solsynth.dev/posts/${item.id}',
+                  title: 'sharePost'.tr(),
+                  toSystem: true,
+                );
+              },
+            ),
           ],
         );
       },
@@ -163,7 +176,10 @@ class PostItem extends HookConsumerWidget {
                               Text(
                                 isFullPost
                                     ? item.publishedAt?.formatSystem() ?? ''
-                                    : item.publishedAt?.formatRelative(context) ?? '',
+                                    : item.publishedAt?.formatRelative(
+                                          context,
+                                        ) ??
+                                        '',
                               ).fontSize(11).alignment(Alignment.bottomRight),
                               const Gap(4),
                             ],

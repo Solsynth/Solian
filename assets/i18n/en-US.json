@@ -543,5 +543,22 @@
   "orderId": "Order ID",
   "enterOrderId": "Enter your order ID",
   "restore": "Restore",
-  "keyboardShortcuts": "Keyboard Shortcuts"
+  "keyboardShortcuts": "Keyboard Shortcuts",
+  "share": "Share",
+  "sharePost": "Share Post",
+  "quickActions": "Quick Actions",
+  "post": "Post",
+  "copy": "Copy",
+  "sendToChat": "Send to Chat",
+  "failedToShareToPost": "Failed to share to post: {}",
+  "shareToChatComingSoon": "Share to chat functionality coming soon",
+  "failedToShareToChat": "Failed to share to chat: {}",
+  "shareToSpecificChatComingSoon": "Share to {} coming soon",
+  "directChat": "Direct Chat",
+  "systemShareComingSoon": "System share functionality coming soon",
+  "failedToShareToSystem": "Failed to share to system: {}",
+  "failedToCopy": "Failed to copy: {}",
+  "noChatRoomsAvailable": "No chat rooms available",
+  "failedToLoadChats": "Failed to load chats",
+  "unknownChat": "Unknown Chat"
 }

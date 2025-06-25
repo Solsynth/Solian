@@ -335,5 +335,22 @@
   "justNow": "刚刚",
   "minutesAgo": "{} 分钟前",
   "hoursAgo": "{} 小时前",
-  "postContentEmpty": "帖子内容不能为空"
+  "postContentEmpty": "帖子内容不能为空",
+  "share": "分享",
+  "quickActions": "快捷操作",
+  "post": "帖子",
+  "copy": "复制",
+  "sendToChat": "发送到聊天",
+  "failedToShareToPost": "分享到帖子失败：{}",
+  "shareToChatComingSoon": "聊天分享功能即将推出",
+  "failedToShareToChat": "分享到聊天失败：{}",
+  "shareToSpecificChatComingSoon": "分享到 {} 即将推出",
+  "directChat": "私聊",
+  "systemShareComingSoon": "系统分享功能即将推出",
+  "failedToShareToSystem": "系统分享失败：{}",
+  "copiedToClipboard": "已复制到剪贴板",
+  "failedToCopy": "复制失败：{}",
+  "noChatRoomsAvailable": "没有可用的聊天室",
+  "failedToLoadChats": "加载聊天失败",
+  "unknownChat": "未知聊天"
 }
