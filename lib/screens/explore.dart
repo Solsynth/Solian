@@ -8,7 +8,6 @@ import 'package:island/models/activity.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
@@ -76,7 +75,6 @@ class ExploreScreen extends HookConsumerWidget {
             currentFilter.value = 'friends';
             break;
         }
-        showSnackBar('Browsing ${currentFilter.value}');
       }
 
       tabController.addListener(listener);
