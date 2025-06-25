@@ -133,14 +133,6 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
     super.dispose();
   }
 
-  void _handleClose() {
-    if (widget.onClose != null) {
-      widget.onClose!();
-    } else {
-      Navigator.of(context).pop();
-    }
-  }
-
   Future<void> _shareToPost() async {
     setState(() => _isLoading = true);
     try {
@@ -808,63 +800,6 @@ class _CompactShareOption extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ShareOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
-
-  const _ShareOption({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color:
-              onTap != null
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withOpacity(0.5),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            color:
-                onTap != null
-                    ? null
-                    : Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withOpacity(0.5),
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(
-            color:
-                onTap != null
-                    ? Theme.of(context).colorScheme.onSurfaceVariant
-                    : Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withOpacity(0.5),
-          ),
-        ),
-        trailing: onTap != null ? const Icon(Symbols.chevron_right) : null,
-        onTap: onTap,
-        enabled: onTap != null,
       ),
     );
   }
