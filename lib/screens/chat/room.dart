@@ -917,8 +917,10 @@ class _ChatInput extends HookConsumerWidget {
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
     void send() {
-      inputFocusNode.requestFocus();
       onSend.call();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        inputFocusNode.requestFocus();
+      });
     }
 
     Future<void> handlePaste() async {
