@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:path/path.dart' show extension;
 import 'package:path_provider/path_provider.dart';
@@ -215,14 +216,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
           ),
         );
       } catch (e) {
-        // Show error message
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save image: $e'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        showErrorAlert(e);
       }
     }
 

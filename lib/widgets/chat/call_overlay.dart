@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/call.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/chat/call_participant_tile.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -175,14 +176,7 @@ class CallControlsBar extends HookConsumerWidget {
         },
       );
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${'failedToEnumerateDevices'.tr()}: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      showErrorAlert(e);
     }
   }
 
