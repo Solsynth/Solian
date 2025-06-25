@@ -41,6 +41,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            
+            <!-- Share Intent Filters -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
         </activity>
 
         <!-- Sign in with Apple -->
@@ -57,18 +69,6 @@
                 <data android:path="callback" />
             </intent-filter>
         </activity>
-
-        <!-- Share Intent -->
-        <intent-filter>
-            <action android:name="android.intent.action.SEND" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <data android:mimeType="*/*" />
-        </intent-filter>
-        <intent-filter>
-            <action android:name="android.intent.action.SEND_MULTIPLE" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <data android:mimeType="*/*" />
-        </intent-filter>
 
         <provider
             android:name="androidx.core.content.FileProvider"
