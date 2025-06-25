@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'dart:math' as math;
 import 'package:island/models/embed.dart';
 import 'package:island/models/post.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/route.gr.dart';
@@ -20,6 +21,7 @@ import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/post/post_replies_sheet.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -125,15 +127,26 @@ class PostItem extends HookConsumerWidget {
                 context.router.push(PostComposeRoute(forwardedPost: item));
               },
             ),
+            MenuSeparator(),
             MenuAction(
               title: 'share'.tr(),
               image: MenuImage.icon(Symbols.share),
               callback: () {
                 showShareSheetLink(
                   context: context,
-                  link: 'https://solsynth.dev/posts/${item.id}',
+                  link: '${ref.read(serverUrlProvider)}/posts/${item.id}',
                   title: 'sharePost'.tr(),
                   toSystem: true,
+                );
+              },
+            ),
+            MenuAction(
+              title: 'abuseReport'.tr(),
+              image: MenuImage.icon(Symbols.flag),
+              callback: () {
+                showAbuseReportSheet(
+                  context,
+                  resourceIdentifier: 'posts:${item.id}',
                 );
               },
             ),
