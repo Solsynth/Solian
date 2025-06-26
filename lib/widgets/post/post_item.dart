@@ -71,7 +71,7 @@ class PostItem extends HookConsumerWidget {
                 title: 'edit'.tr(),
                 image: MenuImage.icon(Symbols.edit),
                 callback: () {
-                  context.push('/posts/item.id/edit').then((value) {
+                  context.push('/posts/${item.id}/edit').then((value) {
                     if (value != null) {
                       onRefresh?.call();
                     }
@@ -243,7 +243,8 @@ class PostItem extends HookConsumerWidget {
                                       : null,
                             ),
                           // Render tags and categories if they exist
-                          if (item.tags.isNotEmpty || item.categories.isNotEmpty)
+                          if (item.tags.isNotEmpty ||
+                              item.categories.isNotEmpty)
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -255,9 +256,13 @@ class PostItem extends HookConsumerWidget {
                                           child: Row(
                                             spacing: 4,
                                             children: [
-                                              const Icon(Symbols.label, size: 13),
-                                              Text(tag.name ?? '#${tag.slug}')
-                                                  .fontSize(13)
+                                              const Icon(
+                                                Symbols.label,
+                                                size: 13,
+                                              ),
+                                              Text(
+                                                tag.name ?? '#${tag.slug}',
+                                              ).fontSize(13),
                                             ],
                                           ),
                                           onTap: () {},
@@ -272,9 +277,14 @@ class PostItem extends HookConsumerWidget {
                                           child: Row(
                                             spacing: 4,
                                             children: [
-                                              const Icon(Symbols.category, size: 13),
-                                              Text(category.name ?? '#${category.slug}')
-                                                  .fontSize(13)
+                                              const Icon(
+                                                Symbols.category,
+                                                size: 13,
+                                              ),
+                                              Text(
+                                                category.name ??
+                                                    '#${category.slug}',
+                                              ).fontSize(13),
                                             ],
                                           ),
                                           onTap: () {},
@@ -324,7 +334,7 @@ class PostItem extends HookConsumerWidget {
                       ),
                       onTap: () {
                         if (isOpenable) {
-                          context.push('/posts/item.id');
+                          context.push('/posts/${item.id}');
                         }
                       },
                     ),
