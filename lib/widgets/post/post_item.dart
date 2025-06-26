@@ -1,6 +1,6 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -11,7 +11,6 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_name.dart';
@@ -72,7 +71,7 @@ class PostItem extends HookConsumerWidget {
                 title: 'edit'.tr(),
                 image: MenuImage.icon(Symbols.edit),
                 callback: () {
-                  context.router.push(PostEditRoute(id: item.id)).then((value) {
+                  context.push('/posts/item.id/edit').then((value) {
                     if (value != null) {
                       onRefresh?.call();
                     }
@@ -117,14 +116,14 @@ class PostItem extends HookConsumerWidget {
               title: 'reply'.tr(),
               image: MenuImage.icon(Symbols.reply),
               callback: () {
-                context.router.push(PostComposeRoute(repliedPost: item));
+                context.push('/posts/compose', extra: {'repliedPost': item});
               },
             ),
             MenuAction(
               title: 'forward'.tr(),
               image: MenuImage.icon(Symbols.forward),
               callback: () {
-                context.router.push(PostComposeRoute(forwardedPost: item));
+                context.push('/posts/compose', extra: {'forwardedPost': item});
               },
             ),
             MenuSeparator(),
@@ -168,9 +167,7 @@ class PostItem extends HookConsumerWidget {
                   GestureDetector(
                     child: ProfilePictureWidget(file: item.publisher.picture),
                     onTap: () {
-                      context.router.push(
-                        PublisherProfileRoute(name: item.publisher.name),
-                      );
+                      context.push('/publishers/${item.publisher.name}');
                     },
                   ),
                   Expanded(
@@ -286,7 +283,7 @@ class PostItem extends HookConsumerWidget {
                       ),
                       onTap: () {
                         if (isOpenable) {
-                          context.router.push(PostDetailRoute(id: item.id));
+                          context.push('/posts/item.id');
                         }
                       },
                     ),
@@ -487,9 +484,7 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
         ),
       ],
     ),
-  ).gestures(
-    onTap: () => context.router.push(PostDetailRoute(id: referencePost.id)),
-  );
+  ).gestures(onTap: () => context.push('/posts/referencePost.id'));
 }
 
 class PostReactionList extends HookConsumerWidget {

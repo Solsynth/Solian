@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/user.dart';
@@ -107,7 +107,6 @@ class NotificationListNotifier extends _$NotificationListNotifier
   }
 }
 
-@RoutePage()
 class NotificationScreen extends HookConsumerWidget {
   const NotificationScreen({super.key});
 
@@ -198,7 +197,7 @@ class NotificationScreen extends HookConsumerWidget {
                         return;
                       }
                       if (uri.scheme == 'solian') {
-                        context.router.pushPath(
+                        context.push(
                           ['', uri.host, ...uri.pathSegments].join('/'),
                         );
                         return;

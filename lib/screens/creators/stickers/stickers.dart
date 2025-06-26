@@ -1,13 +1,12 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/sticker.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -17,10 +16,9 @@ import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
 part 'stickers.g.dart';
 
-@RoutePage()
 class StickersScreen extends HookConsumerWidget {
   final String pubName;
-  const StickersScreen({super.key, @PathParam("name") required this.pubName});
+  const StickersScreen({super.key, required this.pubName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,7 +28,7 @@ class StickersScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             onPressed: () {
-              context.router.push(NewStickerPacksRoute(pubName: pubName)).then((
+              context.push('/creators/stickers/new?pubName=pubName').then((
                 value,
               ) {
                 if (value != null) {
@@ -73,8 +71,8 @@ class SliverStickerPacksList extends HookConsumerWidget {
                 subtitle: Text(sticker.description),
                 trailing: const Icon(Symbols.chevron_right),
                 onTap: () {
-                  context.router.push(
-                    StickerPackDetailRoute(pubName: pubName, id: sticker.id),
+                  context.push(
+                    '/creators/$pubName/stickers/${sticker.id}',
                   );
                 },
               );
@@ -137,13 +135,9 @@ Future<SnStickerPack?> stickerPack(Ref ref, String? packId) async {
   return SnStickerPack.fromJson(resp.data);
 }
 
-@RoutePage()
 class NewStickerPacksScreen extends HookConsumerWidget {
   final String pubName;
-  const NewStickerPacksScreen({
-    super.key,
-    @PathParam("name") required this.pubName,
-  });
+  const NewStickerPacksScreen({super.key, required this.pubName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -151,15 +145,10 @@ class NewStickerPacksScreen extends HookConsumerWidget {
   }
 }
 
-@RoutePage()
 class EditStickerPacksScreen extends HookConsumerWidget {
   final String pubName;
   final String? packId;
-  const EditStickerPacksScreen({
-    super.key,
-    @PathParam("name") required this.pubName,
-    @PathParam("packId") this.packId,
-  });
+  const EditStickerPacksScreen({super.key, required this.pubName, this.packId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -200,7 +189,7 @@ class EditStickerPacksScreen extends HookConsumerWidget {
           ),
         );
         if (!context.mounted) return;
-        context.router.maybePop(SnStickerPack.fromJson(resp.data));
+        context.pop(SnStickerPack.fromJson(resp.data));
       } catch (err) {
         showErrorAlert(err);
       } finally {

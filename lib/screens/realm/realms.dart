@@ -1,8 +1,8 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:croppy/croppy.dart' show CropAspectRatio;
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -11,7 +11,6 @@ import 'package:island/models/file.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/services/file.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
@@ -33,7 +32,6 @@ Future<List<SnRealm>> realmsJoined(Ref ref) async {
   return resp.data.map((e) => SnRealm.fromJson(e)).cast<SnRealm>().toList();
 }
 
-@RoutePage()
 class RealmListScreen extends HookConsumerWidget {
   const RealmListScreen({super.key});
 
@@ -79,7 +77,7 @@ class RealmListScreen extends HookConsumerWidget {
         heroTag: Key("realms-page-fab"),
         child: const Icon(Symbols.add),
         onPressed: () {
-          context.router.push(NewRealmRoute()).then((value) {
+          context.push('/realms/new').then((value) {
             if (value != null) {
               ref.invalidate(realmsJoinedProvider);
             }
@@ -106,9 +104,7 @@ class RealmListScreen extends HookConsumerWidget {
                           title: Text(value[item].name),
                           subtitle: Text(value[item].description),
                           onTap: () {
-                            context.router.push(
-                              RealmDetailRoute(slug: value[item].slug),
-                            );
+                            context.push('/realms/${value[item].slug}');
                           },
                           contentPadding: EdgeInsets.only(
                             left: 16,
@@ -143,7 +139,6 @@ Future<SnRealm?> realm(Ref ref, String? identifier) async {
   return SnRealm.fromJson(resp.data);
 }
 
-@RoutePage()
 class NewRealmScreen extends StatelessWidget {
   const NewRealmScreen({super.key});
 
@@ -153,10 +148,9 @@ class NewRealmScreen extends StatelessWidget {
   }
 }
 
-@RoutePage()
 class EditRealmScreen extends HookConsumerWidget {
   final String? slug;
-  const EditRealmScreen({super.key, @PathParam('slug') this.slug});
+  const EditRealmScreen({super.key, this.slug});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -262,7 +256,7 @@ class EditRealmScreen extends HookConsumerWidget {
           options: Options(method: slug == null ? 'POST' : 'PATCH'),
         );
         if (context.mounted) {
-          context.maybePop(SnRealm.fromJson(resp.data));
+          context.pop(SnRealm.fromJson(resp.data));
         }
       } catch (err) {
         showErrorAlert(err);

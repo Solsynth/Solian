@@ -26,7 +26,6 @@ $SnRelationshipCopyWith<SnRelationship> get copyWith => _$SnRelationshipCopyWith
   /// Serializes this SnRelationship to a JSON map.
   Map<String, dynamic> toJson();
 
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRelationship&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.relatedId, relatedId) || other.relatedId == relatedId)&&(identical(other.related, related) || other.related == related)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.status, status) || other.status == status));
@@ -41,7 +40,6 @@ String toString() {
   return 'SnRelationship(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, accountId: $accountId, account: $account, relatedId: $relatedId, related: $related, expiredAt: $expiredAt, status: $status)';
 }
 
-
 }
 
 /// @nodoc
@@ -51,7 +49,6 @@ abstract mixin class $SnRelationshipCopyWith<$Res>  {
 $Res call({
  DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount account, String relatedId, SnAccount related, DateTime? expiredAt, int status
 });
-
 
 $SnAccountCopyWith<$Res> get account;$SnAccountCopyWith<$Res> get related;
 
@@ -101,7 +98,6 @@ $SnAccountCopyWith<$Res> get related {
 }
 }
 
-
 /// @nodoc
 @JsonSerializable()
 
@@ -144,7 +140,6 @@ String toString() {
   return 'SnRelationship(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, accountId: $accountId, account: $account, relatedId: $relatedId, related: $related, expiredAt: $expiredAt, status: $status)';
 }
 
-
 }
 
 /// @nodoc
@@ -154,7 +149,6 @@ abstract mixin class _$SnRelationshipCopyWith<$Res> implements $SnRelationshipCo
 $Res call({
  DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount account, String relatedId, SnAccount related, DateTime? expiredAt, int status
 });
-
 
 @override $SnAccountCopyWith<$Res> get account;@override $SnAccountCopyWith<$Res> get related;
 

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,10 +25,9 @@ import 'package:island/widgets/post/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-@RoutePage()
 class ArticleEditScreen extends HookConsumerWidget {
   final String id;
-  const ArticleEditScreen({super.key, @PathParam('id') required this.id});
+  const ArticleEditScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -50,7 +48,6 @@ class ArticleEditScreen extends HookConsumerWidget {
   }
 }
 
-@RoutePage()
 class ArticleComposeScreen extends HookConsumerWidget {
   final SnPost? originalPost;
 

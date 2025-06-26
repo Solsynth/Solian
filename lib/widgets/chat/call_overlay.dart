@@ -1,10 +1,9 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/call.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/chat/call_participant_tile.dart';
 import 'package:island/widgets/content/sheet.dart';
@@ -361,7 +360,7 @@ class CallOverlayBar extends HookConsumerWidget {
         ).padding(all: 16),
       ),
       onTap: () {
-        context.router.push(CallRoute(roomId: callNotifier.roomId!));
+        context.push('/chat/call/callNotifier.roomId!');
       },
     );
   }

@@ -18,7 +18,7 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
-import 'package:island/screens/tabs.dart';
+
 import 'package:island/services/notify.dart';
 import 'package:island/services/timezone.dart';
 import 'package:island/widgets/alert.dart';
@@ -125,7 +125,7 @@ void main() async {
   );
 }
 
-final appRouter = AppRouter();
+// Router will be provided through Riverpod
 
 final globalOverlay = GlobalKey<OverlayState>();
 
@@ -141,7 +141,8 @@ class IslandApp extends HookConsumerWidget {
         var uri = notification.data['action_uri'] as String;
         if (uri.startsWith('/')) {
           // In-app routes
-          appRouter.pushPath(notification.data['action_uri']);
+          final router = ref.read(routerProvider);
+          router.go(notification.data['action_uri']);
         } else {
           // External links
           launchUrlString(uri);
@@ -183,20 +184,13 @@ class IslandApp extends HookConsumerWidget {
       return null;
     }, []);
 
+    final router = ref.watch(routerProvider);
+    
     return MaterialApp.router(
       theme: theme?.light,
       darkTheme: theme?.dark,
       themeMode: ThemeMode.system,
-      routerConfig: appRouter.config(
-        navigatorObservers:
-            () => [
-              TabNavigationObserver(
-                onChange: (route) {
-                  ref.read(currentRouteProvider.notifier).state = route;
-                },
-              ),
-            ],
-      ),
+      routerConfig: router,
       supportedLocales: context.supportedLocales,
       localizationsDelegates: [
         ...context.localizationDelegates,
@@ -211,7 +205,6 @@ class IslandApp extends HookConsumerWidget {
             OverlayEntry(
               builder:
                   (_) => WindowScaffold(
-                    router: appRouter,
                     child: child ?? const SizedBox.shrink(),
                   ),
             ),

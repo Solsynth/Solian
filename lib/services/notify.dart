@@ -7,7 +7,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:island/main.dart';
+import 'package:island/route.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/widgets/app_notification.dart';
@@ -30,7 +32,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             var uri = notification.meta['action_uri'] as String;
             if (uri.startsWith('/')) {
               // In-app routes
-              appRouter.pushPath(notification.meta['action_uri']);
+              rootNavigatorKey.currentContext?.push(notification.meta['action_uri']);
             } else {
               // External URLs
               launchUrlString(uri);

@@ -26,7 +26,6 @@ $SnRealmCopyWith<SnRealm> get copyWith => _$SnRealmCopyWithImpl<SnRealm>(this as
   /// Serializes this SnRealm to a JSON map.
   Map<String, dynamic> toJson();
 
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealm&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.verifiedAs, verifiedAs) || other.verifiedAs == verifiedAs)&&(identical(other.verifiedAt, verifiedAt) || other.verifiedAt == verifiedAt)&&(identical(other.isCommunity, isCommunity) || other.isCommunity == isCommunity)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
@@ -41,7 +40,6 @@ String toString() {
   return 'SnRealm(id: $id, slug: $slug, name: $name, description: $description, verifiedAs: $verifiedAs, verifiedAt: $verifiedAt, isCommunity: $isCommunity, isPublic: $isPublic, picture: $picture, background: $background, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
-
 }
 
 /// @nodoc
@@ -51,7 +49,6 @@ abstract mixin class $SnRealmCopyWith<$Res>  {
 $Res call({
  String id, String slug, String name, String description, String? verifiedAs, DateTime? verifiedAt, bool isCommunity, bool isPublic, SnCloudFile? picture, SnCloudFile? background, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
-
 
 $SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;
 
@@ -112,7 +109,6 @@ $SnCloudFileCopyWith<$Res>? get background {
 }
 }
 
-
 /// @nodoc
 @JsonSerializable()
 
@@ -160,7 +156,6 @@ String toString() {
   return 'SnRealm(id: $id, slug: $slug, name: $name, description: $description, verifiedAs: $verifiedAs, verifiedAt: $verifiedAt, isCommunity: $isCommunity, isPublic: $isPublic, picture: $picture, background: $background, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
-
 }
 
 /// @nodoc
@@ -170,7 +165,6 @@ abstract mixin class _$SnRealmCopyWith<$Res> implements $SnRealmCopyWith<$Res> {
 $Res call({
  String id, String slug, String name, String description, String? verifiedAs, DateTime? verifiedAt, bool isCommunity, bool isPublic, SnCloudFile? picture, SnCloudFile? background, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
-
 
 @override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;
 
@@ -232,7 +226,6 @@ $SnCloudFileCopyWith<$Res>? get background {
 }
 }
 
-
 /// @nodoc
 mixin _$SnRealmMember {
 
@@ -245,7 +238,6 @@ $SnRealmMemberCopyWith<SnRealmMember> get copyWith => _$SnRealmMemberCopyWithImp
 
   /// Serializes this SnRealmMember to a JSON map.
   Map<String, dynamic> toJson();
-
 
 @override
 bool operator ==(Object other) {
@@ -261,7 +253,6 @@ String toString() {
   return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
-
 }
 
 /// @nodoc
@@ -271,7 +262,6 @@ abstract mixin class $SnRealmMemberCopyWith<$Res>  {
 $Res call({
  String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
-
 
 $SnRealmCopyWith<$Res>? get realm;$SnAccountCopyWith<$Res>? get account;
 
@@ -327,7 +317,6 @@ $SnAccountCopyWith<$Res>? get account {
 }
 }
 
-
 /// @nodoc
 @JsonSerializable()
 
@@ -370,7 +359,6 @@ String toString() {
   return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
-
 }
 
 /// @nodoc
@@ -380,7 +368,6 @@ abstract mixin class _$SnRealmMemberCopyWith<$Res> implements $SnRealmMemberCopy
 $Res call({
  String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
-
 
 @override $SnRealmCopyWith<$Res>? get realm;@override $SnAccountCopyWith<$Res>? get account;
 

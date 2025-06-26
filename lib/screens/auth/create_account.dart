@@ -1,12 +1,11 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/account/me/update.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -16,7 +15,6 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import 'captcha.dart';
 
-@RoutePage()
 class CreateAccountScreen extends HookConsumerWidget {
   const CreateAccountScreen({super.key});
 
@@ -307,7 +305,7 @@ class _PostCreateModal extends HookConsumerWidget {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                context.router.replace(LoginRoute());
+                context.pushReplacement('/auth/login');
               },
               child: Text('login'.tr()),
             ),

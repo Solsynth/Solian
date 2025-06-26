@@ -1,6 +1,6 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -8,13 +8,9 @@ import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/post_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-@RoutePage()
 class CreatorPostListScreen extends HookConsumerWidget {
   final String pubName;
-  const CreatorPostListScreen({
-    super.key,
-    @PathParam('name') required this.pubName,
-  });
+  const CreatorPostListScreen({super.key, required this.pubName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,7 +30,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
                     subtitle: Text('Create a regular post'),
                     onTap: () async {
                       Navigator.pop(context);
-                      final result = await context.router.pushPath(
+                      final result = await context.push(
                         '/posts/compose?type=0',
                       );
                       if (result == true) {
@@ -48,7 +44,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
                     subtitle: Text('Create a detailed article'),
                     onTap: () async {
                       Navigator.pop(context);
-                      final result = await context.router.pushPath(
+                      final result = await context.push(
                         '/posts/compose?type=1',
                       );
                       if (result == true) {

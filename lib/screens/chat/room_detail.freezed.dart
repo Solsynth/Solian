@@ -22,13 +22,10 @@ mixin _$ChatRoomMemberState {
 @pragma('vm:prefer-inline')
 $ChatRoomMemberStateCopyWith<ChatRoomMemberState> get copyWith => _$ChatRoomMemberStateCopyWithImpl<ChatRoomMemberState>(this as ChatRoomMemberState, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatRoomMemberState&&const DeepCollectionEquality().equals(other.members, members)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.total, total) || other.total == total)&&(identical(other.error, error) || other.error == error));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(members),isLoading,total,error);
@@ -37,7 +34,6 @@ int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(
 String toString() {
   return 'ChatRoomMemberState(members: $members, isLoading: $isLoading, total: $total, error: $error)';
 }
-
 
 }
 
@@ -48,9 +44,6 @@ abstract mixin class $ChatRoomMemberStateCopyWith<$Res>  {
 $Res call({
  List<SnChatMember> members, bool isLoading, int total, String? error
 });
-
-
-
 
 }
 /// @nodoc
@@ -75,9 +68,7 @@ as String?,
 
 }
 
-
 /// @nodoc
-
 
 class _ChatRoomMemberState implements ChatRoomMemberState {
   const _ChatRoomMemberState({required final  List<SnChatMember> members, required this.isLoading, required this.total, this.error}): _members = members;
@@ -100,13 +91,10 @@ class _ChatRoomMemberState implements ChatRoomMemberState {
 @pragma('vm:prefer-inline')
 _$ChatRoomMemberStateCopyWith<_ChatRoomMemberState> get copyWith => __$ChatRoomMemberStateCopyWithImpl<_ChatRoomMemberState>(this, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatRoomMemberState&&const DeepCollectionEquality().equals(other._members, _members)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.total, total) || other.total == total)&&(identical(other.error, error) || other.error == error));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_members),isLoading,total,error);
@@ -115,7 +103,6 @@ int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(
 String toString() {
   return 'ChatRoomMemberState(members: $members, isLoading: $isLoading, total: $total, error: $error)';
 }
-
 
 }
 
@@ -126,9 +113,6 @@ abstract mixin class _$ChatRoomMemberStateCopyWith<$Res> implements $ChatRoomMem
 $Res call({
  List<SnChatMember> members, bool isLoading, int total, String? error
 });
-
-
-
 
 }
 /// @nodoc
@@ -150,7 +134,6 @@ as int,error: freezed == error ? _self.error : error // ignore: cast_nullable_to
 as String?,
   ));
 }
-
 
 }
 

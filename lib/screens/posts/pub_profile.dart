@@ -1,6 +1,6 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -67,12 +67,11 @@ Future<Color?> publisherAppbarForcegroundColor(Ref ref, String pubName) async {
   return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 }
 
-@RoutePage()
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
   const PublisherProfileScreen({
     super.key,
-    @PathParam("name") required this.name,
+    required this.name,
   });
 
   @override
@@ -186,7 +185,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         ),
                         onTap: () {
                           Navigator.pop(context, true);
-                          context.router.pushPath('/account/${data.name}');
+                          context.push('/account/${data.name}');
                         },
                       ),
                       Expanded(

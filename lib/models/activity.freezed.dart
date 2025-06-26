@@ -26,7 +26,6 @@ $SnActivityCopyWith<SnActivity> get copyWith => _$SnActivityCopyWithImpl<SnActiv
   /// Serializes this SnActivity to a JSON map.
   Map<String, dynamic> toJson();
 
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is SnActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
@@ -41,7 +40,6 @@ String toString() {
   return 'SnActivity(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
-
 }
 
 /// @nodoc
@@ -51,9 +49,6 @@ abstract mixin class $SnActivityCopyWith<$Res>  {
 $Res call({
  String id, String type, String resourceIdentifier, dynamic data, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
-
-
-
 
 }
 /// @nodoc
@@ -80,7 +75,6 @@ as DateTime?,
 }
 
 }
-
 
 /// @nodoc
 @JsonSerializable()
@@ -122,7 +116,6 @@ String toString() {
   return 'SnActivity(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
-
 }
 
 /// @nodoc
@@ -132,9 +125,6 @@ abstract mixin class _$SnActivityCopyWith<$Res> implements $SnActivityCopyWith<$
 $Res call({
  String id, String type, String resourceIdentifier, dynamic data, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
-
-
-
 
 }
 /// @nodoc
@@ -160,9 +150,7 @@ as DateTime?,
   ));
 }
 
-
 }
-
 
 /// @nodoc
 mixin _$SnCheckInResult {
@@ -176,7 +164,6 @@ $SnCheckInResultCopyWith<SnCheckInResult> get copyWith => _$SnCheckInResultCopyW
 
   /// Serializes this SnCheckInResult to a JSON map.
   Map<String, dynamic> toJson();
-
 
 @override
 bool operator ==(Object other) {
@@ -192,7 +179,6 @@ String toString() {
   return 'SnCheckInResult(id: $id, level: $level, tips: $tips, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
-
 }
 
 /// @nodoc
@@ -202,7 +188,6 @@ abstract mixin class $SnCheckInResultCopyWith<$Res>  {
 $Res call({
  String id, int level, List<SnFortuneTip> tips, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
-
 
 $SnAccountCopyWith<$Res>? get account;
 
@@ -244,7 +229,6 @@ $SnAccountCopyWith<$Res>? get account {
   });
 }
 }
-
 
 /// @nodoc
 @JsonSerializable()
@@ -293,7 +277,6 @@ String toString() {
   return 'SnCheckInResult(id: $id, level: $level, tips: $tips, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
-
 }
 
 /// @nodoc
@@ -303,7 +286,6 @@ abstract mixin class _$SnCheckInResultCopyWith<$Res> implements $SnCheckInResult
 $Res call({
  String id, int level, List<SnFortuneTip> tips, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
-
 
 @override $SnAccountCopyWith<$Res>? get account;
 
@@ -347,7 +329,6 @@ $SnAccountCopyWith<$Res>? get account {
 }
 }
 
-
 /// @nodoc
 mixin _$SnFortuneTip {
 
@@ -360,7 +341,6 @@ $SnFortuneTipCopyWith<SnFortuneTip> get copyWith => _$SnFortuneTipCopyWithImpl<S
 
   /// Serializes this SnFortuneTip to a JSON map.
   Map<String, dynamic> toJson();
-
 
 @override
 bool operator ==(Object other) {
@@ -376,7 +356,6 @@ String toString() {
   return 'SnFortuneTip(isPositive: $isPositive, title: $title, content: $content)';
 }
 
-
 }
 
 /// @nodoc
@@ -386,9 +365,6 @@ abstract mixin class $SnFortuneTipCopyWith<$Res>  {
 $Res call({
  bool isPositive, String title, String content
 });
-
-
-
 
 }
 /// @nodoc
@@ -411,7 +387,6 @@ as String,
 }
 
 }
-
 
 /// @nodoc
 @JsonSerializable()
@@ -449,7 +424,6 @@ String toString() {
   return 'SnFortuneTip(isPositive: $isPositive, title: $title, content: $content)';
 }
 
-
 }
 
 /// @nodoc
@@ -459,9 +433,6 @@ abstract mixin class _$SnFortuneTipCopyWith<$Res> implements $SnFortuneTipCopyWi
 $Res call({
  bool isPositive, String title, String content
 });
-
-
-
 
 }
 /// @nodoc
@@ -483,9 +454,7 @@ as String,
   ));
 }
 
-
 }
-
 
 /// @nodoc
 mixin _$SnEventCalendarEntry {
@@ -499,7 +468,6 @@ $SnEventCalendarEntryCopyWith<SnEventCalendarEntry> get copyWith => _$SnEventCal
 
   /// Serializes this SnEventCalendarEntry to a JSON map.
   Map<String, dynamic> toJson();
-
 
 @override
 bool operator ==(Object other) {
@@ -515,7 +483,6 @@ String toString() {
   return 'SnEventCalendarEntry(date: $date, checkInResult: $checkInResult, statuses: $statuses)';
 }
 
-
 }
 
 /// @nodoc
@@ -525,7 +492,6 @@ abstract mixin class $SnEventCalendarEntryCopyWith<$Res>  {
 $Res call({
  DateTime date, SnCheckInResult? checkInResult, List<dynamic> statuses
 });
-
 
 $SnCheckInResultCopyWith<$Res>? get checkInResult;
 
@@ -563,7 +529,6 @@ $SnCheckInResultCopyWith<$Res>? get checkInResult {
 }
 }
 
-
 /// @nodoc
 @JsonSerializable()
 
@@ -579,7 +544,6 @@ class _SnEventCalendarEntry implements SnEventCalendarEntry {
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_statuses);
 }
-
 
 /// Create a copy of SnEventCalendarEntry
 /// with the given fields replaced by the non-null parameter values.
@@ -606,7 +570,6 @@ String toString() {
   return 'SnEventCalendarEntry(date: $date, checkInResult: $checkInResult, statuses: $statuses)';
 }
 
-
 }
 
 /// @nodoc
@@ -616,7 +579,6 @@ abstract mixin class _$SnEventCalendarEntryCopyWith<$Res> implements $SnEventCal
 $Res call({
  DateTime date, SnCheckInResult? checkInResult, List<dynamic> statuses
 });
-
 
 @override $SnCheckInResultCopyWith<$Res>? get checkInResult;
 

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:animations/animations.dart';
-import 'package:auto_route/auto_route.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -43,7 +42,6 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
   4: ('authFactorPin', 'authFactorPinDescription', Symbols.nest_secure_alarm),
 };
 
-@RoutePage()
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
 

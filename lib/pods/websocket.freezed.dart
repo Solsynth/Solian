@@ -15,9 +15,6 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WebSocketState implements DiagnosticableTreeMixin {
 
-
-
-
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
@@ -30,7 +27,6 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is WebSocketState);
 }
 
-
 @override
 int get hashCode => runtimeType.hashCode;
 
@@ -39,7 +35,6 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState()';
 }
 
-
 }
 
 /// @nodoc
@@ -47,17 +42,11 @@ class $WebSocketStateCopyWith<$Res>  {
 $WebSocketStateCopyWith(WebSocketState _, $Res Function(WebSocketState) __);
 }
 
-
 /// @nodoc
-
 
 class _Connected with DiagnosticableTreeMixin implements WebSocketState {
   const _Connected();
   
-
-
-
-
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -71,7 +60,6 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _Connected);
 }
 
-
 @override
 int get hashCode => runtimeType.hashCode;
 
@@ -80,22 +68,13 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState.connected()';
 }
 
-
 }
 
-
-
-
 /// @nodoc
-
 
 class _Connecting with DiagnosticableTreeMixin implements WebSocketState {
   const _Connecting();
   
-
-
-
-
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -109,7 +88,6 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _Connecting);
 }
 
-
 @override
 int get hashCode => runtimeType.hashCode;
 
@@ -118,22 +96,13 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState.connecting()';
 }
 
-
 }
 
-
-
-
 /// @nodoc
-
 
 class _Disconnected with DiagnosticableTreeMixin implements WebSocketState {
   const _Disconnected();
   
-
-
-
-
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -147,7 +116,6 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _Disconnected);
 }
 
-
 @override
 int get hashCode => runtimeType.hashCode;
 
@@ -156,14 +124,9 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState.disconnected()';
 }
 
-
 }
 
-
-
-
 /// @nodoc
-
 
 class _Error with DiagnosticableTreeMixin implements WebSocketState {
   const _Error(this.message);
@@ -177,7 +140,6 @@ class _Error with DiagnosticableTreeMixin implements WebSocketState {
 @pragma('vm:prefer-inline')
 _$ErrorCopyWith<_Error> get copyWith => __$ErrorCopyWithImpl<_Error>(this, _$identity);
 
-
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
@@ -190,7 +152,6 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _Error&&(identical(other.message, message) || other.message == message));
 }
 
-
 @override
 int get hashCode => Object.hash(runtimeType,message);
 
@@ -198,7 +159,6 @@ int get hashCode => Object.hash(runtimeType,message);
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState.error(message: $message)';
 }
-
 
 }
 
@@ -209,9 +169,6 @@ abstract mixin class _$ErrorCopyWith<$Res> implements $WebSocketStateCopyWith<$R
 $Res call({
  String message
 });
-
-
-
 
 }
 /// @nodoc
@@ -231,9 +188,7 @@ as String,
   ));
 }
 
-
 }
-
 
 /// @nodoc
 mixin _$WebSocketPacket implements DiagnosticableTreeMixin {
@@ -269,7 +224,6 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketPacket(type: $type, data: $data, errorMessage: $errorMessage)';
 }
 
-
 }
 
 /// @nodoc
@@ -279,9 +233,6 @@ abstract mixin class $WebSocketPacketCopyWith<$Res>  {
 $Res call({
  String type, Map<String, dynamic>? data, String? errorMessage
 });
-
-
-
 
 }
 /// @nodoc
@@ -304,7 +255,6 @@ as String?,
 }
 
 }
-
 
 /// @nodoc
 @JsonSerializable()
@@ -356,7 +306,6 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketPacket(type: $type, data: $data, errorMessage: $errorMessage)';
 }
 
-
 }
 
 /// @nodoc
@@ -366,9 +315,6 @@ abstract mixin class _$WebSocketPacketCopyWith<$Res> implements $WebSocketPacket
 $Res call({
  String type, Map<String, dynamic>? data, String? errorMessage
 });
-
-
-
 
 }
 /// @nodoc
@@ -389,7 +335,6 @@ as Map<String, dynamic>?,errorMessage: freezed == errorMessage ? _self.errorMess
 as String?,
   ));
 }
-
 
 }
 

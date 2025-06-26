@@ -22,13 +22,10 @@ mixin _$CallState {
 @pragma('vm:prefer-inline')
 $CallStateCopyWith<CallState> get copyWith => _$CallStateCopyWithImpl<CallState>(this as CallState, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is CallState&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isMicrophoneEnabled, isMicrophoneEnabled) || other.isMicrophoneEnabled == isMicrophoneEnabled)&&(identical(other.isCameraEnabled, isCameraEnabled) || other.isCameraEnabled == isCameraEnabled)&&(identical(other.isScreenSharing, isScreenSharing) || other.isScreenSharing == isScreenSharing)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.error, error) || other.error == error));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,isConnected,isMicrophoneEnabled,isCameraEnabled,isScreenSharing,duration,error);
@@ -37,7 +34,6 @@ int get hashCode => Object.hash(runtimeType,isConnected,isMicrophoneEnabled,isCa
 String toString() {
   return 'CallState(isConnected: $isConnected, isMicrophoneEnabled: $isMicrophoneEnabled, isCameraEnabled: $isCameraEnabled, isScreenSharing: $isScreenSharing, duration: $duration, error: $error)';
 }
-
 
 }
 
@@ -48,9 +44,6 @@ abstract mixin class $CallStateCopyWith<$Res>  {
 $Res call({
  bool isConnected, bool isMicrophoneEnabled, bool isCameraEnabled, bool isScreenSharing, Duration duration, String? error
 });
-
-
-
 
 }
 /// @nodoc
@@ -77,9 +70,7 @@ as String?,
 
 }
 
-
 /// @nodoc
-
 
 class _CallState implements CallState {
   const _CallState({required this.isConnected, required this.isMicrophoneEnabled, required this.isCameraEnabled, required this.isScreenSharing, this.duration = const Duration(seconds: 0), this.error});
@@ -98,13 +89,10 @@ class _CallState implements CallState {
 @pragma('vm:prefer-inline')
 _$CallStateCopyWith<_CallState> get copyWith => __$CallStateCopyWithImpl<_CallState>(this, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _CallState&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isMicrophoneEnabled, isMicrophoneEnabled) || other.isMicrophoneEnabled == isMicrophoneEnabled)&&(identical(other.isCameraEnabled, isCameraEnabled) || other.isCameraEnabled == isCameraEnabled)&&(identical(other.isScreenSharing, isScreenSharing) || other.isScreenSharing == isScreenSharing)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.error, error) || other.error == error));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,isConnected,isMicrophoneEnabled,isCameraEnabled,isScreenSharing,duration,error);
@@ -113,7 +101,6 @@ int get hashCode => Object.hash(runtimeType,isConnected,isMicrophoneEnabled,isCa
 String toString() {
   return 'CallState(isConnected: $isConnected, isMicrophoneEnabled: $isMicrophoneEnabled, isCameraEnabled: $isCameraEnabled, isScreenSharing: $isScreenSharing, duration: $duration, error: $error)';
 }
-
 
 }
 
@@ -124,9 +111,6 @@ abstract mixin class _$CallStateCopyWith<$Res> implements $CallStateCopyWith<$Re
 $Res call({
  bool isConnected, bool isMicrophoneEnabled, bool isCameraEnabled, bool isScreenSharing, Duration duration, String? error
 });
-
-
-
 
 }
 /// @nodoc
@@ -151,7 +135,6 @@ as String?,
   ));
 }
 
-
 }
 
 /// @nodoc
@@ -164,13 +147,10 @@ mixin _$CallParticipantLive {
 @pragma('vm:prefer-inline')
 $CallParticipantLiveCopyWith<CallParticipantLive> get copyWith => _$CallParticipantLiveCopyWithImpl<CallParticipantLive>(this as CallParticipantLive, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is CallParticipantLive&&(identical(other.participant, participant) || other.participant == participant)&&(identical(other.remoteParticipant, remoteParticipant) || other.remoteParticipant == remoteParticipant));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,participant,remoteParticipant);
@@ -179,7 +159,6 @@ int get hashCode => Object.hash(runtimeType,participant,remoteParticipant);
 String toString() {
   return 'CallParticipantLive(participant: $participant, remoteParticipant: $remoteParticipant)';
 }
-
 
 }
 
@@ -190,7 +169,6 @@ abstract mixin class $CallParticipantLiveCopyWith<$Res>  {
 $Res call({
  CallParticipant participant, Participant remoteParticipant
 });
-
 
 $CallParticipantCopyWith<$Res> get participant;
 
@@ -224,9 +202,7 @@ $CallParticipantCopyWith<$Res> get participant {
 }
 }
 
-
 /// @nodoc
-
 
 class _CallParticipantLive extends CallParticipantLive {
   const _CallParticipantLive({required this.participant, required this.remoteParticipant}): super._();
@@ -241,13 +217,10 @@ class _CallParticipantLive extends CallParticipantLive {
 @pragma('vm:prefer-inline')
 _$CallParticipantLiveCopyWith<_CallParticipantLive> get copyWith => __$CallParticipantLiveCopyWithImpl<_CallParticipantLive>(this, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _CallParticipantLive&&(identical(other.participant, participant) || other.participant == participant)&&(identical(other.remoteParticipant, remoteParticipant) || other.remoteParticipant == remoteParticipant));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,participant,remoteParticipant);
@@ -256,7 +229,6 @@ int get hashCode => Object.hash(runtimeType,participant,remoteParticipant);
 String toString() {
   return 'CallParticipantLive(participant: $participant, remoteParticipant: $remoteParticipant)';
 }
-
 
 }
 
@@ -267,7 +239,6 @@ abstract mixin class _$CallParticipantLiveCopyWith<$Res> implements $CallPartici
 $Res call({
  CallParticipant participant, Participant remoteParticipant
 });
-
 
 @override $CallParticipantCopyWith<$Res> get participant;
 

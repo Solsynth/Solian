@@ -1,14 +1,13 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/chat/chat.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
@@ -23,10 +22,9 @@ import 'package:styled_widget/styled_widget.dart';
 part 'room_detail.freezed.dart';
 part 'room_detail.g.dart';
 
-@RoutePage()
 class ChatDetailScreen extends HookConsumerWidget {
   final String id;
-  const ChatDetailScreen({super.key, @PathParam("id") required this.id});
+  const ChatDetailScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -391,7 +389,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
             if ((chatIdentity.value?.role ?? 0) >= 50)
               PopupMenuItem(
                 onTap: () {
-                  context.router.replace(EditChatRoute(id: id));
+                  context.pushReplacement('/chat/$id/edit');
                 },
                 child: Row(
                   children: [
@@ -426,9 +424,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                       client.delete('/chat/$id');
                       ref.invalidate(chatroomsJoinedProvider);
                       if (context.mounted) {
-                        context.router.popUntil(
-                          (route) => route is ChatRoomRoute,
-                        );
+                        context.pop();
                       }
                     }
                   });
@@ -461,9 +457,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                       client.delete('/chat/$id/members/me');
                       ref.invalidate(chatroomsJoinedProvider);
                       if (context.mounted) {
-                        context.router.popUntil(
-                          (route) => route is ChatRoomRoute,
-                        );
+                        context.pop();
                       }
                     }
                   });

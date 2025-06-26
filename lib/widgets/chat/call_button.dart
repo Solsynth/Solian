@@ -1,12 +1,11 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/call.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -45,7 +44,7 @@ class AudioCallButton extends HookConsumerWidget {
       try {
         await apiClient.post('/chat/realtime/$roomId');
         if (context.mounted) {
-          context.router.push(CallRoute(roomId: roomId));
+          context.push('/chat/call/roomId');
         }
       } catch (e) {
         showErrorAlert(e);
@@ -97,7 +96,7 @@ class AudioCallButton extends HookConsumerWidget {
         tooltip: 'Join Ongoing Call',
         onPressed: () {
           if (context.mounted) {
-            context.router.push(CallRoute(roomId: roomId));
+            context.push('/chat/call/roomId');
           }
         },
       );
