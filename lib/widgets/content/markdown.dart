@@ -1,6 +1,6 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_highlight/themes/a11y-dark.dart';
 import 'package:flutter_highlight/themes/a11y-light.dart';
@@ -74,7 +74,7 @@ class MarkdownTextContent extends HookConsumerWidget {
               final url = Uri.tryParse(href);
               if (url != null) {
                 if (url.scheme == 'solian') {
-                  context.router.pushPath(
+                  context.push(
                     ['', url.host, ...url.pathSegments].join('/'),
                   );
                   return;

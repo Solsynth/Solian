@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -20,7 +19,6 @@ import 'package:styled_widget/styled_widget.dart';
 
 const kServerSupportedLanguages = {'en-US': 'en-us', 'zh-CN': 'zh-hans'};
 
-@RoutePage()
 class UpdateProfileScreen extends HookConsumerWidget {
   const UpdateProfileScreen({super.key});
 

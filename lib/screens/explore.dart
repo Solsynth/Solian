@@ -1,12 +1,11 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/pods/userinfo.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
@@ -22,13 +21,13 @@ import 'package:styled_widget/styled_widget.dart';
 
 part 'explore.g.dart';
 
-@RoutePage()
-class ExploreShellScreen extends ConsumerWidget {
-  const ExploreShellScreen({super.key});
+class ExploreShellScreen extends HookConsumerWidget {
+  final Widget child;
+  const ExploreShellScreen({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = isWideScreen(context);
+    final isWide = MediaQuery.of(context).size.width > 640;
 
     if (isWide) {
       return AppBackground(
@@ -37,17 +36,16 @@ class ExploreShellScreen extends ConsumerWidget {
           children: [
             Flexible(flex: 2, child: ExploreScreen(isAside: true)),
             VerticalDivider(width: 1),
-            Flexible(flex: 3, child: AutoRouter()),
+            Flexible(flex: 3, child: child),
           ],
         ),
       );
     }
 
-    return AppBackground(isRoot: true, child: AutoRouter());
+    return AppBackground(isRoot: true, child: child);
   }
 }
 
-@RoutePage()
 class ExploreScreen extends HookConsumerWidget {
   final bool isAside;
   const ExploreScreen({super.key, this.isAside = false});
@@ -126,7 +124,7 @@ class ExploreScreen extends HookConsumerWidget {
         floatingActionButton: FloatingActionButton(
           heroTag: Key("explore-page-fab"),
           onPressed: () {
-            context.router.push(PostComposeRoute()).then((value) {
+            context.push('/posts/compose').then((value) {
               if (value != null) {
                 activitiesNotifier.forceRefresh();
               }

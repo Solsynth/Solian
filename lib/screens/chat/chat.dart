@@ -1,9 +1,9 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,7 +15,6 @@ import 'package:island/pods/call.dart';
 import 'package:island/pods/chat_summary.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/file.dart';
 import 'package:island/services/responsive.dart';
@@ -173,9 +172,9 @@ Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
       .toList();
 }
 
-@RoutePage()
 class ChatShellScreen extends HookConsumerWidget {
-  const ChatShellScreen({super.key});
+  final Widget child;
+  const ChatShellScreen({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -188,17 +187,16 @@ class ChatShellScreen extends HookConsumerWidget {
           children: [
             Flexible(flex: 2, child: ChatListScreen(isAside: true)),
             VerticalDivider(width: 1),
-            Flexible(flex: 4, child: AutoRouter()),
+            Flexible(flex: 4, child: child),
           ],
         ),
       );
     }
 
-    return AppBackground(isRoot: true, child: AutoRouter());
+    return AppBackground(isRoot: true, child: child);
   }
 }
 
-@RoutePage()
 class ChatListScreen extends HookConsumerWidget {
   final bool isAside;
   const ChatListScreen({super.key, this.isAside = false});
@@ -319,7 +317,7 @@ class ChatListScreen extends HookConsumerWidget {
                       leading: const Icon(Symbols.add),
                       onTap: () {
                         Navigator.pop(context);
-                        context.pushRoute(NewChatRoute()).then((value) {
+                        context.push('/chat/new').then((value) {
                           if (value != null) {
                             ref.invalidate(chatroomsJoinedProvider);
                           }
@@ -400,16 +398,7 @@ class ChatListScreen extends HookConsumerWidget {
                               room: item,
                               isDirect: item.type == 1,
                               onTap: () {
-                                if (context.router.topRoute.name ==
-                                    ChatRoomRoute.name) {
-                                  context.router.replace(
-                                    ChatRoomRoute(id: item.id),
-                                  );
-                                } else {
-                                  context.router.push(
-                                    ChatRoomRoute(id: item.id),
-                                  );
-                                }
+                                context.push('/chat/${item.id}');
                               },
                             );
                           },
@@ -456,7 +445,6 @@ Future<SnChatMember?> chatroomIdentity(Ref ref, String? identifier) async {
   return SnChatMember.fromJson(resp.data);
 }
 
-@RoutePage()
 class NewChatScreen extends StatelessWidget {
   const NewChatScreen({super.key});
 
@@ -466,10 +454,9 @@ class NewChatScreen extends StatelessWidget {
   }
 }
 
-@RoutePage()
 class EditChatScreen extends HookConsumerWidget {
   final String? id;
-  const EditChatScreen({super.key, @PathParam("id") this.id});
+  const EditChatScreen({super.key, this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -579,7 +566,7 @@ class EditChatScreen extends HookConsumerWidget {
           options: Options(method: id == null ? 'POST' : 'PATCH'),
         );
         if (context.mounted) {
-          context.maybePop(SnChatRoom.fromJson(resp.data));
+          context.pop(SnChatRoom.fromJson(resp.data));
         }
       } catch (err) {
         showErrorAlert(err);

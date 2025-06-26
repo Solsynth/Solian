@@ -1,16 +1,14 @@
 import 'dart:io';
-
-import 'package:auto_route/auto_route.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
-import 'package:island/route.dart';
 import 'package:island/services/responsive.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,8 +16,7 @@ import 'package:styled_widget/styled_widget.dart';
 
 class WindowScaffold extends HookConsumerWidget {
   final Widget child;
-  final AppRouter router;
-  const WindowScaffold({super.key, required this.child, required this.router});
+  const WindowScaffold({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -238,7 +235,7 @@ class PageBackButton extends StatelessWidget {
     return IconButton(
       onPressed: () {
         onWillPop?.call();
-        context.router.maybePop();
+        context.pop();
       },
       icon: Icon(
         color: color,

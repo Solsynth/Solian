@@ -1,7 +1,7 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -10,7 +10,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/sticker.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -34,14 +33,13 @@ Future<List<SnSticker>> stickerPackContent(Ref ref, String packId) async {
       .toList();
 }
 
-@RoutePage()
 class StickerPackDetailScreen extends HookConsumerWidget {
   final String id;
   final String pubName;
   const StickerPackDetailScreen({
     super.key,
-    @PathParam('name') required this.pubName,
-    @PathParam('packId') required this.id,
+    required this.pubName,
+    required this.id,
   });
 
   @override
@@ -76,7 +74,7 @@ class StickerPackDetailScreen extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Symbols.add_circle),
             onPressed: () {
-              AutoRouter.of(context).push(NewStickersRoute(packId: id)).then((
+              context.push('/creators/stickers/$id/new').then((
                 value,
               ) {
                 if (value != null) {
@@ -175,12 +173,9 @@ class StickerPackDetailScreen extends HookConsumerWidget {
                                         title: 'edit'.tr(),
                                         image: MenuImage.icon(Symbols.edit),
                                         callback: () {
-                                          context.router
+                                          context
                                               .push(
-                                                EditStickersRoute(
-                                                  packId: id,
-                                                  id: sticker.id,
-                                                ),
+                                                '/creators/stickers/$id/edit/${sticker.id}',
                                               )
                                               .then((value) {
                                                 if (value != null) {
@@ -264,8 +259,8 @@ class _StickerPackActionMenu extends HookConsumerWidget {
           (context) => [
             PopupMenuItem(
               onTap: () {
-                context.router.push(
-                  EditStickerPacksRoute(pubName: pubName, packId: packId),
+                context.push(
+                  '/creators/$pubName/stickers/$packId/edit',
                 );
               },
               child: Row(
@@ -299,7 +294,7 @@ class _StickerPackActionMenu extends HookConsumerWidget {
                     final client = ref.watch(apiClientProvider);
                     client.delete('/stickers/$packId');
                     ref.invalidate(stickerPacksNotifierProvider);
-                    if (context.mounted) context.router.maybePop(true);
+                    if (context.mounted) context.pop(true);
                   }
                 });
               },
@@ -331,13 +326,9 @@ Future<SnSticker?> stickerPackSticker(
   return SnSticker.fromJson(resp.data);
 }
 
-@RoutePage()
 class NewStickersScreen extends StatelessWidget {
   final String packId;
-  const NewStickersScreen({
-    super.key,
-    @PathParam('packId') required this.packId,
-  });
+  const NewStickersScreen({super.key, required this.packId});
 
   @override
   Widget build(BuildContext context) {
@@ -345,15 +336,10 @@ class NewStickersScreen extends StatelessWidget {
   }
 }
 
-@RoutePage()
 class EditStickersScreen extends HookConsumerWidget {
   final String packId;
   final String? id;
-  const EditStickersScreen({
-    super.key,
-    @PathParam("packId") required this.packId,
-    @PathParam("id") required this.id,
-  });
+  const EditStickersScreen({super.key, required this.packId, required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

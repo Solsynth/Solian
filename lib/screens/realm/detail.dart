@@ -1,13 +1,12 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
@@ -27,10 +26,10 @@ Future<SnRealmMember?> realmIdentity(Ref ref, String realmSlug) async {
   return SnRealmMember.fromJson(response.data);
 }
 
-@RoutePage()
 class RealmDetailScreen extends HookConsumerWidget {
   final String slug;
-  const RealmDetailScreen({super.key, @PathParam("slug") required this.slug});
+
+  const RealmDetailScreen({super.key, required this.slug});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -129,7 +128,7 @@ class _RealmActionMenu extends HookConsumerWidget {
             if (isModerator)
               PopupMenuItem(
                 onTap: () {
-                  context.router.replace(EditRealmRoute(slug: realmSlug));
+                  context.pushReplacement('/realms/$realmSlug/edit');
                 },
                 child: Row(
                   children: [
@@ -167,7 +166,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                                   client.delete('/realms/$realmSlug');
                                   ref.invalidate(realmsJoinedProvider);
                                   if (context.mounted) {
-                                    context.router.maybePop(true);
+                                    context.pop(true);
                                   }
                                 }
                               });
@@ -201,7 +200,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                                   );
                                   ref.invalidate(realmsJoinedProvider);
                                   if (context.mounted) {
-                                    context.router.maybePop(true);
+                                    context.pop(true);
                                   }
                                 }
                               });
@@ -239,7 +238,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                           client.delete('/realms/$realmSlug/members/me');
                           ref.invalidate(realmsJoinedProvider);
                           if (context.mounted) {
-                            context.router.maybePop(true);
+                            context.pop(true);
                           }
                         }
                       });

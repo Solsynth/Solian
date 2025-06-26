@@ -1,7 +1,7 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -66,7 +66,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () {
-                  context.router.pushNamed(
+                  context.pushNamed(
                     '/account/$eventCalanderUser/calendar',
                   );
                 },

@@ -1,7 +1,7 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/chat.dart';
@@ -96,13 +96,9 @@ Future<SnRelationship?> accountRelationship(Ref ref, String uname) async {
   }
 }
 
-@RoutePage()
 class AccountProfileScreen extends HookConsumerWidget {
   final String name;
-  const AccountProfileScreen({
-    super.key,
-    @PathParam("name") required this.name,
-  });
+  const AccountProfileScreen({super.key, required this.name});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -142,7 +138,7 @@ class AccountProfileScreen extends HookConsumerWidget {
     Future<void> directMessageAction() async {
       if (!account.hasValue) return;
       if (accountChat.value != null) {
-        context.router.pushPath('/chat/${accountChat.value!.id}');
+        context.push('/chat/${accountChat.value!.id}');
         return;
       }
       showLoadingModal(context);
@@ -153,7 +149,7 @@ class AccountProfileScreen extends HookConsumerWidget {
           data: {'related_user_id': account.value!.id},
         );
         final chat = SnChatRoom.fromJson(resp.data);
-        if (context.mounted) context.router.pushPath('/chat/${chat.id}');
+        if (context.mounted) context.push('/chat/${chat.id}');
         ref.invalidate(accountDirectChatProvider(name));
       } catch (err) {
         showErrorAlert(err);

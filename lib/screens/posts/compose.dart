@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -40,10 +39,9 @@ sealed class PostComposeInitialState with _$PostComposeInitialState {
       _$PostComposeInitialStateFromJson(json);
 }
 
-@RoutePage()
 class PostEditScreen extends HookConsumerWidget {
   final String id;
-  const PostEditScreen({super.key, @PathParam('id') required this.id});
+  const PostEditScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,7 +64,6 @@ class PostEditScreen extends HookConsumerWidget {
   }
 }
 
-@RoutePage()
 class PostComposeScreen extends HookConsumerWidget {
   final SnPost? originalPost;
   final SnPost? repliedPost;
@@ -78,7 +75,7 @@ class PostComposeScreen extends HookConsumerWidget {
     this.originalPost,
     this.repliedPost,
     this.forwardedPost,
-    @QueryParam('type') this.type,
+    this.type,
     this.initialState,
   });
 

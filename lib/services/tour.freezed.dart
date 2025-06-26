@@ -22,13 +22,10 @@ mixin _$Tour {
 @pragma('vm:prefer-inline')
 $TourCopyWith<Tour> get copyWith => _$TourCopyWithImpl<Tour>(this as Tour, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is Tour&&(identical(other.id, id) || other.id == id)&&(identical(other.isStartup, isStartup) || other.isStartup == isStartup));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,id,isStartup);
@@ -37,7 +34,6 @@ int get hashCode => Object.hash(runtimeType,id,isStartup);
 String toString() {
   return 'Tour(id: $id, isStartup: $isStartup)';
 }
-
 
 }
 
@@ -48,9 +44,6 @@ abstract mixin class $TourCopyWith<$Res>  {
 $Res call({
  String id, bool isStartup
 });
-
-
-
 
 }
 /// @nodoc
@@ -73,9 +66,7 @@ as bool,
 
 }
 
-
 /// @nodoc
-
 
 class _Tour extends Tour {
   const _Tour({required this.id, required this.isStartup}): super._();
@@ -90,13 +81,10 @@ class _Tour extends Tour {
 @pragma('vm:prefer-inline')
 _$TourCopyWith<_Tour> get copyWith => __$TourCopyWithImpl<_Tour>(this, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _Tour&&(identical(other.id, id) || other.id == id)&&(identical(other.isStartup, isStartup) || other.isStartup == isStartup));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,id,isStartup);
@@ -105,7 +93,6 @@ int get hashCode => Object.hash(runtimeType,id,isStartup);
 String toString() {
   return 'Tour(id: $id, isStartup: $isStartup)';
 }
-
 
 }
 
@@ -116,9 +103,6 @@ abstract mixin class _$TourCopyWith<$Res> implements $TourCopyWith<$Res> {
 $Res call({
  String id, bool isStartup
 });
-
-
-
 
 }
 /// @nodoc
@@ -138,7 +122,6 @@ as String,isStartup: null == isStartup ? _self.isStartup : isStartup // ignore: 
 as bool,
   ));
 }
-
 
 }
 

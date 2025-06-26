@@ -1,10 +1,9 @@
-import 'dart:developer';
 import 'dart:ui';
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/route.gr.dart';
+import 'package:go_router/go_router.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/navigation/conditional_bottom_nav.dart';
@@ -12,42 +11,22 @@ import 'package:material_symbols_icons/symbols.dart';
 
 final currentRouteProvider = StateProvider<String?>((ref) => null);
 
-class TabNavigationObserver extends AutoRouterObserver {
-  Function(String?) onChange;
-  TabNavigationObserver({required this.onChange});
-
-  @override
-  void didPush(Route route, Route? previousRoute) {
-    log('pushed ${previousRoute?.settings.name} -> ${route.settings.name}');
-    if (route is DialogRoute) return;
-    final name = route.settings.name;
-    if (name == null) return;
-    if (name.contains('Shell')) return;
-    Future(() {
-      onChange(name);
-    });
-  }
-
-  @override
-  void didPop(Route route, Route? previousRoute) {
-    log('popped ${route.settings.name} -> ${previousRoute?.settings.name}');
-    if (previousRoute is DialogRoute) return;
-    final name = previousRoute?.settings.name;
-    if (name == null) return;
-    if (name.contains('Shell')) return;
-    Future(() {
-      onChange(name);
-    });
-  }
-}
-
-@RoutePage()
 class TabsScreen extends HookConsumerWidget {
-  const TabsScreen({super.key});
+  final Widget? child;
+  const TabsScreen({super.key, this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useHorizontalLayout = isWideScreen(context);
+    // final useHorizontalLayout = isWideScreen(context);
+    final currentLocation = GoRouterState.of(context).uri.toString();
+    
+    // Update the current route provider whenever the location changes
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(currentRouteProvider.notifier).state = currentLocation;
+      });
+      return null;
+    }, [currentLocation]);
 
     final notificationUnreadCount = ref.watch(
       notificationUnreadCountNotifierProvider,
@@ -73,85 +52,89 @@ class TabsScreen extends HookConsumerWidget {
       ),
     ];
 
-    final routes = <PageRouteInfo>[
-      ExploreShellRoute(),
-      ChatShellRoute(),
-      RealmListRoute(),
-      AccountShellRoute(),
+    final routes = [
+      '/',
+      '/chat',
+      '/realms',
+      '/account',
     ];
 
-    return AutoTabsRouter.tabBar(
-      routes: routes,
-      scrollDirection: useHorizontalLayout ? Axis.vertical : Axis.horizontal,
-      physics: const NeverScrollableScrollPhysics(),
-      builder: (context, child, _) {
-        final tabsRouter = AutoTabsRouter.of(context);
+    int getCurrentIndex() {
+      if (currentLocation.startsWith('/chat')) return 1;
+      if (currentLocation.startsWith('/realms')) return 2;
+      if (currentLocation.startsWith('/account')) return 3;
+      return 0; // Default to explore
+    }
 
-        if (isWideScreen(context)) {
-          return Row(
-            children: [
-              NavigationRail(
-                destinations:
-                    destinations
-                        .map(
-                          (e) => NavigationRailDestination(
-                            icon: e.icon,
-                            label: Text(e.label),
-                          ),
-                        )
-                        .toList(),
-                selectedIndex: tabsRouter.activeIndex,
-                onDestinationSelected: tabsRouter.setActiveIndex,
-              ),
-              const VerticalDivider(width: 1),
-              Expanded(child: child),
-            ],
-          );
-        }
+    void onDestinationSelected(int index) {
+      context.go(routes[index]);
+    }
 
-        return Stack(
-          children: [
-            Positioned.fill(child: child),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: ConditionalBottomNav(
-                child: ClipRRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surface.withOpacity(0.8),
+    final currentIndex = getCurrentIndex();
+
+    if (isWideScreen(context)) {
+      return Row(
+        children: [
+          NavigationRail(
+            destinations:
+                destinations
+                    .map(
+                      (e) => NavigationRailDestination(
+                        icon: e.icon,
+                        label: Text(e.label),
                       ),
-                      child: MediaQuery.removePadding(
-                        context: context,
-                        removeTop: true,
-                        child: NavigationBar(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          overlayColor: const WidgetStatePropertyAll(
-                            Colors.transparent,
-                          ),
-                          surfaceTintColor: Colors.transparent,
-                          height: 56,
-                          labelBehavior:
-                              NavigationDestinationLabelBehavior.alwaysHide,
-                          selectedIndex: tabsRouter.activeIndex,
-                          onDestinationSelected: tabsRouter.setActiveIndex,
-                          destinations: destinations,
-                        ),
+                    )
+                    .toList(),
+            selectedIndex: currentIndex,
+            onDestinationSelected: onDestinationSelected,
+          ),
+          const VerticalDivider(width: 1),
+          Expanded(child: child ?? const SizedBox.shrink()),
+        ],
+      );
+    }
+
+    return Stack(
+      children: [
+        Positioned.fill(child: child ?? const SizedBox.shrink()),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: ConditionalBottomNav(
+            child: ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surface.withOpacity(0.8),
+                  ),
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: NavigationBar(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      overlayColor: const WidgetStatePropertyAll(
+                        Colors.transparent,
                       ),
+                      surfaceTintColor: Colors.transparent,
+                      height: 56,
+                      labelBehavior:
+                          NavigationDestinationLabelBehavior.alwaysHide,
+                      selectedIndex: currentIndex,
+                      onDestinationSelected: onDestinationSelected,
+                      destinations: destinations,
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 }

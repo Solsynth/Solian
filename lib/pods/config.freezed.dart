@@ -23,13 +23,10 @@ mixin _$AppSettings {
 @pragma('vm:prefer-inline')
 $AppSettingsCopyWith<AppSettings> get copyWith => _$AppSettingsCopyWithImpl<AppSettings>(this as AppSettings, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,autoTranslate,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,customFonts,appColorScheme,windowSize);
@@ -38,7 +35,6 @@ int get hashCode => Object.hash(runtimeType,autoTranslate,soundEffects,aprilFool
 String toString() {
   return 'AppSettings(autoTranslate: $autoTranslate, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, customFonts: $customFonts, appColorScheme: $appColorScheme, windowSize: $windowSize)';
 }
-
 
 }
 
@@ -49,9 +45,6 @@ abstract mixin class $AppSettingsCopyWith<$Res>  {
 $Res call({
  bool autoTranslate, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, String? customFonts, int? appColorScheme, Size? windowSize
 });
-
-
-
 
 }
 /// @nodoc
@@ -80,9 +73,7 @@ as Size?,
 
 }
 
-
 /// @nodoc
-
 
 class _AppSettings implements AppSettings {
   const _AppSettings({required this.autoTranslate, required this.soundEffects, required this.aprilFoolFeatures, required this.enterToSend, required this.appBarTransparent, required this.customFonts, required this.appColorScheme, required this.windowSize});
@@ -104,13 +95,10 @@ class _AppSettings implements AppSettings {
 @pragma('vm:prefer-inline')
 _$AppSettingsCopyWith<_AppSettings> get copyWith => __$AppSettingsCopyWithImpl<_AppSettings>(this, _$identity);
 
-
-
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize));
 }
-
 
 @override
 int get hashCode => Object.hash(runtimeType,autoTranslate,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,customFonts,appColorScheme,windowSize);
@@ -119,7 +107,6 @@ int get hashCode => Object.hash(runtimeType,autoTranslate,soundEffects,aprilFool
 String toString() {
   return 'AppSettings(autoTranslate: $autoTranslate, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, customFonts: $customFonts, appColorScheme: $appColorScheme, windowSize: $windowSize)';
 }
-
 
 }
 
@@ -130,9 +117,6 @@ abstract mixin class _$AppSettingsCopyWith<$Res> implements $AppSettingsCopyWith
 $Res call({
  bool autoTranslate, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, String? customFonts, int? appColorScheme, Size? windowSize
 });
-
-
-
 
 }
 /// @nodoc
@@ -158,7 +142,6 @@ as int?,windowSize: freezed == windowSize ? _self.windowSize : windowSize // ign
 as Size?,
   ));
 }
-
 
 }
 

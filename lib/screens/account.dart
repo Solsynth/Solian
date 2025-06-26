@@ -1,14 +1,13 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/message.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_name.dart';
@@ -19,9 +18,9 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-@RoutePage()
 class AccountShellScreen extends HookConsumerWidget {
-  const AccountShellScreen({super.key});
+  final Widget child;
+  const AccountShellScreen({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,17 +33,16 @@ class AccountShellScreen extends HookConsumerWidget {
           children: [
             Flexible(flex: 2, child: AccountScreen(isAside: true)),
             VerticalDivider(width: 1),
-            Flexible(flex: 3, child: AutoRouter()),
+            Flexible(flex: 3, child: child),
           ],
         ),
       );
     }
 
-    return AppBackground(isRoot: true, child: AutoRouter());
+    return AppBackground(isRoot: true, child: child);
   }
 }
 
-@RoutePage()
 class AccountScreen extends HookConsumerWidget {
   final bool isAside;
   const AccountScreen({super.key, this.isAside = false});
@@ -100,9 +98,7 @@ class AccountScreen extends HookConsumerWidget {
                           radius: 24,
                         ),
                         onTap: () {
-                          context.router.push(
-                            AccountProfileRoute(name: user.value!.name),
-                          );
+                          context.push('/account/${user.value!.name}');
                         },
                       ),
                       Expanded(
@@ -147,7 +143,7 @@ class AccountScreen extends HookConsumerWidget {
                 progress: user.value!.profile.levelingProgress,
               ),
               onTap: () {
-                context.router.push(LevelingRoute());
+                context.push('/account/leveling');
               },
             ).padding(horizontal: 12),
             Row(
@@ -165,7 +161,7 @@ class AccountScreen extends HookConsumerWidget {
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {
-                        context.router.push(CreatorHubShellRoute());
+                        context.push('/creators');
                       },
                     ),
                   ).height(140),
@@ -204,7 +200,7 @@ class AccountScreen extends HookConsumerWidget {
                 ],
               ),
               onTap: () {
-                context.router.push(NotificationRoute());
+                context.push('/notification');
               },
             ),
             ListTile(
@@ -214,7 +210,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('wallet').tr(),
               onTap: () {
-                context.router.push(WalletRoute());
+                context.push('/wallet');
               },
             ),
             ListTile(
@@ -224,7 +220,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('relationships').tr(),
               onTap: () {
-                context.router.push(RelationshipRoute());
+                context.push('/account/relationship');
               },
             ),
             const Divider(height: 1).padding(vertical: 8),
@@ -235,7 +231,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('appSettings').tr(),
               onTap: () {
-                context.router.push(SettingsRoute());
+                context.push('/settings');
               },
             ),
             ListTile(
@@ -245,7 +241,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('updateYourProfile').tr(),
               onTap: () {
-                context.router.push(UpdateProfileRoute());
+                context.push('/account/me/update');
               },
             ),
             ListTile(
@@ -255,7 +251,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('accountSettings').tr(),
               onTap: () {
-                context.router.push(AccountSettingsRoute());
+                context.push('/account/me/settings');
               },
             ),
             if (kDebugMode) const Divider(height: 1).padding(vertical: 8),
@@ -320,7 +316,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   child: Card(
                     child: InkWell(
                       onTap: () {
-                        context.router.push(CreateAccountRoute());
+                        context.push('/auth/create');
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -342,7 +338,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   child: Card(
                     child: InkWell(
                       onTap: () {
-                        context.router.push(LoginRoute());
+                        context.push('/auth/login');
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -361,7 +357,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                 const Gap(8),
                 TextButton(
                   onPressed: () {
-                    context.router.push(SettingsRoute());
+                    context.push('/settings');
                   },
                   child: Text('appSettings').tr(),
                 ).center(),

@@ -1,11 +1,10 @@
 import 'dart:math' as math;
 
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -44,8 +43,7 @@ class PublisherModal extends HookConsumerWidget {
                                     const Gap(12),
                                     ElevatedButton(
                                       onPressed: () {
-                                        context.router
-                                            .push(NewPublisherRoute())
+                                        context.push('/creators/publishers/new')
                                             .then((value) {
                                               if (value != null) {
                                                 ref.invalidate(

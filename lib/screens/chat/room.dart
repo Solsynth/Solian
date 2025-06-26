@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -18,7 +18,6 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/database.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -288,10 +287,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 }
 
-@RoutePage()
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;
-  const ChatRoomScreen({super.key, @PathParam("id") required this.id});
+  const ChatRoomScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -605,7 +603,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
-              context.router.push(ChatDetailRoute(id: id));
+              context.push('/chat/id/detail');
             },
           ),
           const Gap(8),

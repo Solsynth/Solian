@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:auto_route/auto_route.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/link_preview.dart';
@@ -178,10 +177,10 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       );
 
       // Navigate to compose screen
-      if (mounted) {
-        context.router.push(PostComposeRoute(initialState: initialState));
-        Navigator.of(context).pop(); // Close the share sheet
-      }
+        if (mounted) {
+          context.push('/posts/compose', extra: initialState);
+          Navigator.of(context).pop(); // Close the share sheet
+        }
     } catch (e) {
       showErrorAlert(e);
     } finally {
@@ -325,7 +324,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
         // Navigate to chat if requested
         if (shouldNavigate == true && mounted) {
-          context.router.pushPath('/chat/$chatRoom');
+          context.push('/chat/${chatRoom.id}');
         }
       }
     } catch (e) {

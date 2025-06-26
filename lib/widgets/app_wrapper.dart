@@ -1,15 +1,13 @@
 import 'dart:async';
-
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/sharing_intent.dart';
 
-@RoutePage()
 class AppWrapper extends HookConsumerWidget {
-  const AppWrapper({super.key});
+  final Widget child;
+  const AppWrapper({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,6 +24,6 @@ class AppWrapper extends HookConsumerWidget {
       };
     }, const []);
 
-    return AutoRouter();
+    return child;
   }
 }

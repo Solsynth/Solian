@@ -1,10 +1,10 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
@@ -44,7 +44,6 @@ Future<SnPublisher?> publisher(Ref ref, String? identifier) async {
   return SnPublisher.fromJson(resp.data);
 }
 
-@RoutePage()
 class NewPublisherScreen extends StatelessWidget {
   const NewPublisherScreen({super.key});
 
@@ -54,10 +53,9 @@ class NewPublisherScreen extends StatelessWidget {
   }
 }
 
-@RoutePage()
 class EditPublisherScreen extends HookConsumerWidget {
   final String? name;
-  const EditPublisherScreen({super.key, @PathParam('id') this.name});
+  const EditPublisherScreen({super.key, this.name});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -177,7 +175,7 @@ class EditPublisherScreen extends HookConsumerWidget {
           options: Options(method: name == null ? 'POST' : 'PATCH'),
         );
         if (context.mounted) {
-          context.maybePop(SnPublisher.fromJson(resp.data));
+          context.pop(SnPublisher.fromJson(resp.data));
         }
       } catch (err) {
         showErrorAlert(err);

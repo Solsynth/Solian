@@ -1,15 +1,14 @@
 import 'dart:convert';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/auth/captcha.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -137,7 +136,7 @@ class CheckInWidget extends HookConsumerWidget {
               if (todayResult.valueOrNull == null) {
                 checkIn();
               } else {
-                context.router.push(EventCalanderRoute(name: 'me'));
+                context.push('/account/me/calendar');
               }
             },
             icon: AnimatedSwitcher(

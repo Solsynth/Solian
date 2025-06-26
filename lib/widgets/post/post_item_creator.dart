@@ -1,11 +1,10 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
@@ -46,7 +45,7 @@ class PostItemCreator extends HookConsumerWidget {
               title: 'edit'.tr(),
               image: MenuImage.icon(Symbols.edit),
               callback: () {
-                context.router.push(PostEditRoute(id: item.id)).then((value) {
+                context.push('/posts/item.id/edit').then((value) {
                   if (value != null) {
                     onRefresh?.call();
                   }
@@ -81,7 +80,7 @@ class PostItemCreator extends HookConsumerWidget {
               image: MenuImage.icon(Symbols.link),
               callback: () {
                 // Copy post link to clipboard
-                context.router.push(PostDetailRoute(id: item.id));
+                context.push('/posts/item.id');
               },
             ),
           ],
@@ -95,7 +94,7 @@ class PostItemCreator extends HookConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: () {
             if (isOpenable) {
-              context.router.pushPath('/posts/${item.id}');
+              context.push('/posts/${item.id}');
             }
           },
           child: Padding(

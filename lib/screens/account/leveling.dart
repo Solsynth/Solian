@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -31,7 +30,6 @@ Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
   }
 }
 
-@RoutePage()
 class LevelingScreen extends HookConsumerWidget {
   const LevelingScreen({super.key});
 

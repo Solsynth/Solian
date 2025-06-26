@@ -1,13 +1,12 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
@@ -27,9 +26,9 @@ Future<SnPublisherStats?> publisherStats(Ref ref, String? uname) async {
   return SnPublisherStats.fromJson(resp.data);
 }
 
-@RoutePage()
 class CreatorHubShellScreen extends StatelessWidget {
-  const CreatorHubShellScreen({super.key});
+  final Widget child;
+  const CreatorHubShellScreen({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -39,15 +38,14 @@ class CreatorHubShellScreen extends StatelessWidget {
         children: [
           SizedBox(width: 360, child: const CreatorHubScreen(isAside: true)),
           const VerticalDivider(width: 1),
-          Expanded(child: AutoRouter()),
+          Expanded(child: child),
         ],
       );
     }
-    return AutoRouter();
+    return child;
   }
 }
 
-@RoutePage()
 class CreatorHubScreen extends HookConsumerWidget {
   final bool isAside;
   const CreatorHubScreen({super.key, this.isAside = false});
@@ -65,8 +63,8 @@ class CreatorHubScreen extends HookConsumerWidget {
     );
 
     void updatePublisher() {
-      context.router
-          .push(EditPublisherRoute(name: currentPublisher.value!.name))
+      context
+          .push('/creators/${currentPublisher.value!.name}/edit')
           .then((value) async {
             if (value == null) return;
             final data = await ref.refresh(publishersManagedProvider.future);
@@ -223,7 +221,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                             subtitle: Text('createPublisherHint').tr(),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () {
-                              context.router.push(NewPublisherRoute()).then((
+                              context.push('/creators/publishers/new').then((
                                 value,
                               ) {
                                 if (value != null) {
@@ -249,10 +247,8 @@ class CreatorHubScreen extends HookConsumerWidget {
                               horizontal: 24,
                             ),
                             onTap: () {
-                              context.router.push(
-                                StickersRoute(
-                                  pubName: currentPublisher.value!.name,
-                                ),
+                              context.push(
+                                '/creators/${currentPublisher.value!.name}/stickers',
                               );
                             },
                           ),
@@ -265,10 +261,8 @@ class CreatorHubScreen extends HookConsumerWidget {
                               horizontal: 24,
                             ),
                             onTap: () {
-                              context.router.push(
-                                CreatorPostListRoute(
-                                  pubName: currentPublisher.value!.name,
-                                ),
+                              context.push(
+                                '/creators/${currentPublisher.value!.name}/posts',
                               );
                             },
                           ),
