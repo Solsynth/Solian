@@ -4,12 +4,111 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:textfield_tags/textfield_tags.dart';
+
+/// A reusable widget for tag input fields with chip display
+class ChipTagInputField extends StatelessWidget {
+  final InputFieldValues inputFieldValues;
+  final String labelText;
+  final String hintText;
+
+  const ChipTagInputField({
+    super.key,
+    required this.inputFieldValues,
+    required this.labelText,
+    required this.hintText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: inputFieldValues.textEditingController,
+      focusNode: inputFieldValues.focusNode,
+      decoration: InputDecoration(
+        label: Text(labelText).tr(),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        hintText: inputFieldValues.tags.isNotEmpty ? '' : hintText.tr(),
+        errorText: inputFieldValues.error,
+        prefixIconConstraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.8,
+        ),
+        prefixIcon:
+            inputFieldValues.tags.isNotEmpty
+                ? SingleChildScrollView(
+                  controller: inputFieldValues.tagScrollController,
+                  scrollDirection: Axis.vertical,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8),
+                    child: Wrap(
+                      runSpacing: 4.0,
+                      spacing: 4.0,
+                      children:
+                          inputFieldValues.tags.map<Widget>((dynamic tag) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(20.0),
+                                ),
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 5.0,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0,
+                                vertical: 5.0,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  InkWell(
+                                    child: Text(
+                                      '#$tag',
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimary,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      //print("$tag selected");
+                                    },
+                                  ),
+                                  const SizedBox(width: 4.0),
+                                  InkWell(
+                                    child: const Icon(
+                                      Icons.cancel,
+                                      size: 14.0,
+                                      color: Color.fromARGB(255, 233, 233, 233),
+                                    ),
+                                    onTap: () {
+                                      inputFieldValues.onTagRemoved(tag);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                  ),
+                )
+                : null,
+      ),
+      onChanged: inputFieldValues.onTagChanged,
+      onSubmitted: inputFieldValues.onTagSubmitted,
+    );
+  }
+}
 
 class ComposeSettingsSheet extends HookWidget {
   final TextEditingController titleController;
   final TextEditingController descriptionController;
   final ValueNotifier<int> visibility;
   final VoidCallback? onVisibilityChanged;
+  final StringTagController tagsController;
+  final StringTagController categoriesController;
 
   const ComposeSettingsSheet({
     super.key,
@@ -17,6 +116,8 @@ class ComposeSettingsSheet extends HookWidget {
     required this.descriptionController,
     required this.visibility,
     this.onVisibilityChanged,
+    required this.tagsController,
+    required this.categoriesController,
   });
 
   @override
@@ -117,6 +218,7 @@ class ComposeSettingsSheet extends HookWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16,
           children: [
             // Title field
             TextField(
@@ -133,7 +235,6 @@ class ComposeSettingsSheet extends HookWidget {
               onTapOutside:
                   (_) => FocusManager.instance.primaryFocus?.unfocus(),
             ),
-            const Gap(16),
 
             // Description field
             TextField(
@@ -151,7 +252,45 @@ class ComposeSettingsSheet extends HookWidget {
               onTapOutside:
                   (_) => FocusManager.instance.primaryFocus?.unfocus(),
             ),
-            const Gap(16),
+
+            // Tags field
+            TextFieldTags(
+              textfieldTagsController: tagsController,
+              textSeparators: const [' ', ','],
+              letterCase: LetterCase.normal,
+              validator: (String tag) {
+                if (tag.isEmpty) {
+                  return 'No, cannot be empty';
+                }
+                return null;
+              },
+              inputFieldBuilder: (context, inputFieldValues) {
+                return ChipTagInputField(
+                  inputFieldValues: inputFieldValues,
+                  labelText: 'tags',
+                  hintText: 'tagsHint',
+                );
+              },
+            ),
+
+            // Categories field
+            TextFieldTags(
+              textfieldTagsController: categoriesController,
+              textSeparators: const [' ', ','],
+              letterCase: LetterCase.small,
+              validator: (String tag) {
+                if (tag.isEmpty) return 'No, cannot be empty';
+                if (tag.contains(' ')) return 'Tags should be URL-safe';
+                return null;
+              },
+              inputFieldBuilder: (context, inputFieldValues) {
+                return ChipTagInputField(
+                  inputFieldValues: inputFieldValues,
+                  labelText: 'categories',
+                  hintText: 'categoriesHint',
+                );
+              },
+            ),
 
             // Visibility setting
             Container(

@@ -26,6 +26,7 @@ $SnAccountCopyWith<SnAccount> get copyWith => _$SnAccountCopyWithImpl<SnAccount>
   /// Serializes this SnAccount to a JSON map.
   Map<String, dynamic> toJson();
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.language, language) || other.language == language)&&(identical(other.isSuperuser, isSuperuser) || other.isSuperuser == isSuperuser)&&(identical(other.profile, profile) || other.profile == profile)&&const DeepCollectionEquality().equals(other.badges, badges)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
@@ -40,6 +41,7 @@ String toString() {
   return 'SnAccount(id: $id, name: $name, nick: $nick, language: $language, isSuperuser: $isSuperuser, profile: $profile, badges: $badges, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -49,6 +51,7 @@ abstract mixin class $SnAccountCopyWith<$Res>  {
 $Res call({
  String id, String name, String nick, String language, bool isSuperuser, SnAccountProfile profile, List<SnAccountBadge> badges, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 $SnAccountProfileCopyWith<$Res> get profile;
 
@@ -89,6 +92,7 @@ $SnAccountProfileCopyWith<$Res> get profile {
   });
 }
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -139,6 +143,7 @@ String toString() {
   return 'SnAccount(id: $id, name: $name, nick: $nick, language: $language, isSuperuser: $isSuperuser, profile: $profile, badges: $badges, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -148,6 +153,7 @@ abstract mixin class _$SnAccountCopyWith<$Res> implements $SnAccountCopyWith<$Re
 $Res call({
  String id, String name, String nick, String language, bool isSuperuser, SnAccountProfile profile, List<SnAccountBadge> badges, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 @override $SnAccountProfileCopyWith<$Res> get profile;
 
@@ -190,6 +196,7 @@ $SnAccountProfileCopyWith<$Res> get profile {
 }
 }
 
+
 /// @nodoc
 mixin _$SnAccountProfile {
 
@@ -202,6 +209,7 @@ $SnAccountProfileCopyWith<SnAccountProfile> get copyWith => _$SnAccountProfileCo
 
   /// Serializes this SnAccountProfile to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -217,6 +225,7 @@ String toString() {
   return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, stellarMembership: $stellarMembership, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -226,6 +235,7 @@ abstract mixin class $SnAccountProfileCopyWith<$Res>  {
 $Res call({
  String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, SnWalletSubscriptionRef? stellarMembership, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 $SnAccountBadgeCopyWith<$Res>? get activeBadge;$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;$SnWalletSubscriptionRefCopyWith<$Res>? get stellarMembership;
 
@@ -330,6 +340,7 @@ $SnWalletSubscriptionRefCopyWith<$Res>? get stellarMembership {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -385,6 +396,7 @@ String toString() {
   return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, stellarMembership: $stellarMembership, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -394,6 +406,7 @@ abstract mixin class _$SnAccountProfileCopyWith<$Res> implements $SnAccountProfi
 $Res call({
  String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, SnWalletSubscriptionRef? stellarMembership, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 @override $SnAccountBadgeCopyWith<$Res>? get activeBadge;@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;@override $SnWalletSubscriptionRefCopyWith<$Res>? get stellarMembership;
 
@@ -499,6 +512,7 @@ $SnWalletSubscriptionRefCopyWith<$Res>? get stellarMembership {
 }
 }
 
+
 /// @nodoc
 mixin _$SnAccountStatus {
 
@@ -511,6 +525,7 @@ $SnAccountStatusCopyWith<SnAccountStatus> get copyWith => _$SnAccountStatusCopyW
 
   /// Serializes this SnAccountStatus to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -526,6 +541,7 @@ String toString() {
   return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isInvisible: $isInvisible, isNotDisturb: $isNotDisturb, isCustomized: $isCustomized, label: $label, clearedAt: $clearedAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -535,6 +551,9 @@ abstract mixin class $SnAccountStatusCopyWith<$Res>  {
 $Res call({
  String id, int attitude, bool isOnline, bool isInvisible, bool isNotDisturb, bool isCustomized, String label, DateTime? clearedAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -566,6 +585,7 @@ as DateTime?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -612,6 +632,7 @@ String toString() {
   return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isInvisible: $isInvisible, isNotDisturb: $isNotDisturb, isCustomized: $isCustomized, label: $label, clearedAt: $clearedAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -621,6 +642,9 @@ abstract mixin class _$SnAccountStatusCopyWith<$Res> implements $SnAccountStatus
 $Res call({
  String id, int attitude, bool isOnline, bool isInvisible, bool isNotDisturb, bool isCustomized, String label, DateTime? clearedAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -651,7 +675,9 @@ as DateTime?,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnAccountBadge {
@@ -665,6 +691,7 @@ $SnAccountBadgeCopyWith<SnAccountBadge> get copyWith => _$SnAccountBadgeCopyWith
 
   /// Serializes this SnAccountBadge to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -680,6 +707,7 @@ String toString() {
   return 'SnAccountBadge(id: $id, type: $type, label: $label, caption: $caption, meta: $meta, expiredAt: $expiredAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, activatedAt: $activatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -689,6 +717,9 @@ abstract mixin class $SnAccountBadgeCopyWith<$Res>  {
 $Res call({
  String id, String type, String? label, String? caption, Map<String, dynamic> meta, DateTime? expiredAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? activatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -719,6 +750,7 @@ as DateTime?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -770,6 +802,7 @@ String toString() {
   return 'SnAccountBadge(id: $id, type: $type, label: $label, caption: $caption, meta: $meta, expiredAt: $expiredAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, activatedAt: $activatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -779,6 +812,9 @@ abstract mixin class _$SnAccountBadgeCopyWith<$Res> implements $SnAccountBadgeCo
 $Res call({
  String id, String type, String? label, String? caption, Map<String, dynamic> meta, DateTime? expiredAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? activatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -808,7 +844,9 @@ as DateTime?,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnContactMethod {
@@ -822,6 +860,7 @@ $SnContactMethodCopyWith<SnContactMethod> get copyWith => _$SnContactMethodCopyW
 
   /// Serializes this SnContactMethod to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -837,6 +876,7 @@ String toString() {
   return 'SnContactMethod(id: $id, type: $type, verifiedAt: $verifiedAt, isPrimary: $isPrimary, content: $content, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -846,6 +886,9 @@ abstract mixin class $SnContactMethodCopyWith<$Res>  {
 $Res call({
  String id, int type, DateTime? verifiedAt, bool isPrimary, String content, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -874,6 +917,7 @@ as DateTime?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -917,6 +961,7 @@ String toString() {
   return 'SnContactMethod(id: $id, type: $type, verifiedAt: $verifiedAt, isPrimary: $isPrimary, content: $content, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -926,6 +971,9 @@ abstract mixin class _$SnContactMethodCopyWith<$Res> implements $SnContactMethod
 $Res call({
  String id, int type, DateTime? verifiedAt, bool isPrimary, String content, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -953,7 +1001,9 @@ as DateTime?,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnNotification {
@@ -967,6 +1017,7 @@ $SnNotificationCopyWith<SnNotification> get copyWith => _$SnNotificationCopyWith
 
   /// Serializes this SnNotification to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -982,6 +1033,7 @@ String toString() {
   return 'SnNotification(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, topic: $topic, title: $title, subtitle: $subtitle, content: $content, meta: $meta, priority: $priority, viewedAt: $viewedAt, accountId: $accountId)';
 }
 
+
 }
 
 /// @nodoc
@@ -991,6 +1043,9 @@ abstract mixin class $SnNotificationCopyWith<$Res>  {
 $Res call({
  DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String topic, String title, String subtitle, String content, Map<String, dynamic> meta, int priority, DateTime? viewedAt, String accountId
 });
+
+
+
 
 }
 /// @nodoc
@@ -1022,6 +1077,7 @@ as String,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -1074,6 +1130,7 @@ String toString() {
   return 'SnNotification(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, topic: $topic, title: $title, subtitle: $subtitle, content: $content, meta: $meta, priority: $priority, viewedAt: $viewedAt, accountId: $accountId)';
 }
 
+
 }
 
 /// @nodoc
@@ -1083,6 +1140,9 @@ abstract mixin class _$SnNotificationCopyWith<$Res> implements $SnNotificationCo
 $Res call({
  DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String topic, String title, String subtitle, String content, Map<String, dynamic> meta, int priority, DateTime? viewedAt, String accountId
 });
+
+
+
 
 }
 /// @nodoc
@@ -1113,7 +1173,9 @@ as String,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnVerificationMark {
@@ -1127,6 +1189,7 @@ $SnVerificationMarkCopyWith<SnVerificationMark> get copyWith => _$SnVerification
 
   /// Serializes this SnVerificationMark to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -1142,6 +1205,7 @@ String toString() {
   return 'SnVerificationMark(type: $type, title: $title, description: $description, verifiedBy: $verifiedBy)';
 }
 
+
 }
 
 /// @nodoc
@@ -1151,6 +1215,9 @@ abstract mixin class $SnVerificationMarkCopyWith<$Res>  {
 $Res call({
  int type, String? title, String? description, String? verifiedBy
 });
+
+
+
 
 }
 /// @nodoc
@@ -1174,6 +1241,7 @@ as String?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -1212,6 +1280,7 @@ String toString() {
   return 'SnVerificationMark(type: $type, title: $title, description: $description, verifiedBy: $verifiedBy)';
 }
 
+
 }
 
 /// @nodoc
@@ -1221,6 +1290,9 @@ abstract mixin class _$SnVerificationMarkCopyWith<$Res> implements $SnVerificati
 $Res call({
  int type, String? title, String? description, String? verifiedBy
 });
+
+
+
 
 }
 /// @nodoc
@@ -1242,6 +1314,7 @@ as String?,verifiedBy: freezed == verifiedBy ? _self.verifiedBy : verifiedBy // 
 as String?,
   ));
 }
+
 
 }
 

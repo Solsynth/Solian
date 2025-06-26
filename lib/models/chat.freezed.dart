@@ -26,6 +26,7 @@ $SnChatRoomCopyWith<SnChatRoom> get copyWith => _$SnChatRoomCopyWithImpl<SnChatR
   /// Serializes this SnChatRoom to a JSON map.
   Map<String, dynamic> toJson();
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatRoom&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.members, members));
@@ -40,6 +41,7 @@ String toString() {
   return 'SnChatRoom(id: $id, name: $name, description: $description, type: $type, isPublic: $isPublic, picture: $picture, background: $background, realmId: $realmId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members)';
 }
 
+
 }
 
 /// @nodoc
@@ -49,6 +51,7 @@ abstract mixin class $SnChatRoomCopyWith<$Res>  {
 $Res call({
  String id, String? name, String? description, int type, bool isPublic, SnCloudFile? picture, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
 });
+
 
 $SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnRealmCopyWith<$Res>? get realm;
 
@@ -120,6 +123,7 @@ $SnRealmCopyWith<$Res>? get realm {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -148,6 +152,7 @@ class _SnChatRoom implements SnChatRoom {
   return EqualUnmodifiableListView(value);
 }
 
+
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
@@ -173,6 +178,7 @@ String toString() {
   return 'SnChatRoom(id: $id, name: $name, description: $description, type: $type, isPublic: $isPublic, picture: $picture, background: $background, realmId: $realmId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members)';
 }
 
+
 }
 
 /// @nodoc
@@ -182,6 +188,7 @@ abstract mixin class _$SnChatRoomCopyWith<$Res> implements $SnChatRoomCopyWith<$
 $Res call({
  String id, String? name, String? description, int type, bool isPublic, SnCloudFile? picture, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
 });
+
 
 @override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnRealmCopyWith<$Res>? get realm;
 
@@ -254,6 +261,7 @@ $SnRealmCopyWith<$Res>? get realm {
 }
 }
 
+
 /// @nodoc
 mixin _$SnChatMessage {
 
@@ -266,6 +274,7 @@ $SnChatMessageCopyWith<SnChatMessage> get copyWith => _$SnChatMessageCopyWithImp
 
   /// Serializes this SnChatMessage to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -281,6 +290,7 @@ String toString() {
   return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, nonce: $nonce, meta: $meta, membersMetioned: $membersMetioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
 }
 
+
 }
 
 /// @nodoc
@@ -290,6 +300,7 @@ abstract mixin class $SnChatMessageCopyWith<$Res>  {
 $Res call({
  DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content, String? nonce, Map<String, dynamic> meta, List<String> membersMetioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
 });
+
 
 $SnChatMemberCopyWith<$Res> get sender;
 
@@ -337,6 +348,7 @@ $SnChatMemberCopyWith<$Res> get sender {
   });
 }
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -412,6 +424,7 @@ String toString() {
   return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, nonce: $nonce, meta: $meta, membersMetioned: $membersMetioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
 }
 
+
 }
 
 /// @nodoc
@@ -421,6 +434,7 @@ abstract mixin class _$SnChatMessageCopyWith<$Res> implements $SnChatMessageCopy
 $Res call({
  DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content, String? nonce, Map<String, dynamic> meta, List<String> membersMetioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
 });
+
 
 @override $SnChatMemberCopyWith<$Res> get sender;
 
@@ -470,6 +484,7 @@ $SnChatMemberCopyWith<$Res> get sender {
 }
 }
 
+
 /// @nodoc
 mixin _$SnChatReaction {
 
@@ -482,6 +497,7 @@ $SnChatReactionCopyWith<SnChatReaction> get copyWith => _$SnChatReactionCopyWith
 
   /// Serializes this SnChatReaction to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -497,6 +513,7 @@ String toString() {
   return 'SnChatReaction(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, messageId: $messageId, senderId: $senderId, sender: $sender, symbol: $symbol, attitude: $attitude)';
 }
 
+
 }
 
 /// @nodoc
@@ -506,6 +523,7 @@ abstract mixin class $SnChatReactionCopyWith<$Res>  {
 $Res call({
  DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String messageId, String senderId, SnChatMember sender, String symbol, int attitude
 });
+
 
 $SnChatMemberCopyWith<$Res> get sender;
 
@@ -545,6 +563,7 @@ $SnChatMemberCopyWith<$Res> get sender {
   });
 }
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -588,6 +607,7 @@ String toString() {
   return 'SnChatReaction(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, messageId: $messageId, senderId: $senderId, sender: $sender, symbol: $symbol, attitude: $attitude)';
 }
 
+
 }
 
 /// @nodoc
@@ -597,6 +617,7 @@ abstract mixin class _$SnChatReactionCopyWith<$Res> implements $SnChatReactionCo
 $Res call({
  DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String messageId, String senderId, SnChatMember sender, String symbol, int attitude
 });
+
 
 @override $SnChatMemberCopyWith<$Res> get sender;
 
@@ -638,6 +659,7 @@ $SnChatMemberCopyWith<$Res> get sender {
 }
 }
 
+
 /// @nodoc
 mixin _$SnChatMember {
 
@@ -651,6 +673,7 @@ $SnChatMemberCopyWith<SnChatMember> get copyWith => _$SnChatMemberCopyWithImpl<S
 
   /// Serializes this SnChatMember to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -666,6 +689,7 @@ String toString() {
   return 'SnChatMember(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, chatRoomId: $chatRoomId, chatRoom: $chatRoom, accountId: $accountId, account: $account, nick: $nick, role: $role, notify: $notify, joinedAt: $joinedAt, breakUntil: $breakUntil, timeoutUntil: $timeoutUntil, isBot: $isBot, lastTyped: $lastTyped)';
 }
 
+
 }
 
 /// @nodoc
@@ -675,6 +699,7 @@ abstract mixin class $SnChatMemberCopyWith<$Res>  {
 $Res call({
  DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String chatRoomId, SnChatRoom? chatRoom, String accountId, SnAccount account, String? nick, int role, int notify, DateTime? joinedAt, DateTime? breakUntil, DateTime? timeoutUntil, bool isBot, DateTime? lastTyped
 });
+
 
 $SnChatRoomCopyWith<$Res>? get chatRoom;$SnAccountCopyWith<$Res> get account;
 
@@ -734,6 +759,7 @@ $SnAccountCopyWith<$Res> get account {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -784,6 +810,7 @@ String toString() {
   return 'SnChatMember(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, chatRoomId: $chatRoomId, chatRoom: $chatRoom, accountId: $accountId, account: $account, nick: $nick, role: $role, notify: $notify, joinedAt: $joinedAt, breakUntil: $breakUntil, timeoutUntil: $timeoutUntil, isBot: $isBot, lastTyped: $lastTyped)';
 }
 
+
 }
 
 /// @nodoc
@@ -793,6 +820,7 @@ abstract mixin class _$SnChatMemberCopyWith<$Res> implements $SnChatMemberCopyWi
 $Res call({
  DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String chatRoomId, SnChatRoom? chatRoom, String accountId, SnAccount account, String? nick, int role, int notify, DateTime? joinedAt, DateTime? breakUntil, DateTime? timeoutUntil, bool isBot, DateTime? lastTyped
 });
+
 
 @override $SnChatRoomCopyWith<$Res>? get chatRoom;@override $SnAccountCopyWith<$Res> get account;
 
@@ -853,6 +881,7 @@ $SnAccountCopyWith<$Res> get account {
 }
 }
 
+
 /// @nodoc
 mixin _$SnChatSummary {
 
@@ -865,6 +894,7 @@ $SnChatSummaryCopyWith<SnChatSummary> get copyWith => _$SnChatSummaryCopyWithImp
 
   /// Serializes this SnChatSummary to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -880,6 +910,7 @@ String toString() {
   return 'SnChatSummary(unreadCount: $unreadCount, lastMessage: $lastMessage)';
 }
 
+
 }
 
 /// @nodoc
@@ -889,6 +920,7 @@ abstract mixin class $SnChatSummaryCopyWith<$Res>  {
 $Res call({
  int unreadCount, SnChatMessage lastMessage
 });
+
 
 $SnChatMessageCopyWith<$Res> get lastMessage;
 
@@ -921,6 +953,7 @@ $SnChatMessageCopyWith<$Res> get lastMessage {
   });
 }
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -957,6 +990,7 @@ String toString() {
   return 'SnChatSummary(unreadCount: $unreadCount, lastMessage: $lastMessage)';
 }
 
+
 }
 
 /// @nodoc
@@ -966,6 +1000,7 @@ abstract mixin class _$SnChatSummaryCopyWith<$Res> implements $SnChatSummaryCopy
 $Res call({
  int unreadCount, SnChatMessage lastMessage
 });
+
 
 @override $SnChatMessageCopyWith<$Res> get lastMessage;
 
@@ -1000,6 +1035,7 @@ $SnChatMessageCopyWith<$Res> get lastMessage {
 }
 }
 
+
 /// @nodoc
 mixin _$MessageChange {
 
@@ -1012,6 +1048,7 @@ $MessageChangeCopyWith<MessageChange> get copyWith => _$MessageChangeCopyWithImp
 
   /// Serializes this MessageChange to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -1027,6 +1064,7 @@ String toString() {
   return 'MessageChange(messageId: $messageId, action: $action, message: $message, timestamp: $timestamp)';
 }
 
+
 }
 
 /// @nodoc
@@ -1036,6 +1074,7 @@ abstract mixin class $MessageChangeCopyWith<$Res>  {
 $Res call({
  String messageId, String action, SnChatMessage? message, DateTime timestamp
 });
+
 
 $SnChatMessageCopyWith<$Res>? get message;
 
@@ -1074,6 +1113,7 @@ $SnChatMessageCopyWith<$Res>? get message {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -1111,6 +1151,7 @@ String toString() {
   return 'MessageChange(messageId: $messageId, action: $action, message: $message, timestamp: $timestamp)';
 }
 
+
 }
 
 /// @nodoc
@@ -1120,6 +1161,7 @@ abstract mixin class _$MessageChangeCopyWith<$Res> implements $MessageChangeCopy
 $Res call({
  String messageId, String action, SnChatMessage? message, DateTime timestamp
 });
+
 
 @override $SnChatMessageCopyWith<$Res>? get message;
 
@@ -1159,6 +1201,7 @@ $SnChatMessageCopyWith<$Res>? get message {
 }
 }
 
+
 /// @nodoc
 mixin _$MessageSyncResponse {
 
@@ -1171,6 +1214,7 @@ $MessageSyncResponseCopyWith<MessageSyncResponse> get copyWith => _$MessageSyncR
 
   /// Serializes this MessageSyncResponse to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -1186,6 +1230,7 @@ String toString() {
   return 'MessageSyncResponse(changes: $changes, currentTimestamp: $currentTimestamp)';
 }
 
+
 }
 
 /// @nodoc
@@ -1195,6 +1240,9 @@ abstract mixin class $MessageSyncResponseCopyWith<$Res>  {
 $Res call({
  List<MessageChange> changes, DateTime currentTimestamp
 });
+
+
+
 
 }
 /// @nodoc
@@ -1216,6 +1264,7 @@ as DateTime,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -1258,6 +1307,7 @@ String toString() {
   return 'MessageSyncResponse(changes: $changes, currentTimestamp: $currentTimestamp)';
 }
 
+
 }
 
 /// @nodoc
@@ -1267,6 +1317,9 @@ abstract mixin class _$MessageSyncResponseCopyWith<$Res> implements $MessageSync
 $Res call({
  List<MessageChange> changes, DateTime currentTimestamp
 });
+
+
+
 
 }
 /// @nodoc
@@ -1287,7 +1340,9 @@ as DateTime,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$ChatRealtimeJoinResponse {
@@ -1301,6 +1356,7 @@ $ChatRealtimeJoinResponseCopyWith<ChatRealtimeJoinResponse> get copyWith => _$Ch
 
   /// Serializes this ChatRealtimeJoinResponse to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -1316,6 +1372,7 @@ String toString() {
   return 'ChatRealtimeJoinResponse(provider: $provider, endpoint: $endpoint, token: $token, callId: $callId, roomName: $roomName, isAdmin: $isAdmin, participants: $participants)';
 }
 
+
 }
 
 /// @nodoc
@@ -1325,6 +1382,9 @@ abstract mixin class $ChatRealtimeJoinResponseCopyWith<$Res>  {
 $Res call({
  String provider, String endpoint, String token, String callId, String roomName, bool isAdmin, List<CallParticipant> participants
 });
+
+
+
 
 }
 /// @nodoc
@@ -1352,6 +1412,7 @@ as List<CallParticipant>,
 
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -1371,6 +1432,7 @@ class _ChatRealtimeJoinResponse implements ChatRealtimeJoinResponse {
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_participants);
 }
+
 
 /// Create a copy of ChatRealtimeJoinResponse
 /// with the given fields replaced by the non-null parameter values.
@@ -1397,6 +1459,7 @@ String toString() {
   return 'ChatRealtimeJoinResponse(provider: $provider, endpoint: $endpoint, token: $token, callId: $callId, roomName: $roomName, isAdmin: $isAdmin, participants: $participants)';
 }
 
+
 }
 
 /// @nodoc
@@ -1406,6 +1469,9 @@ abstract mixin class _$ChatRealtimeJoinResponseCopyWith<$Res> implements $ChatRe
 $Res call({
  String provider, String endpoint, String token, String callId, String roomName, bool isAdmin, List<CallParticipant> participants
 });
+
+
+
 
 }
 /// @nodoc
@@ -1431,7 +1497,9 @@ as List<CallParticipant>,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$CallParticipant {
@@ -1445,6 +1513,7 @@ $CallParticipantCopyWith<CallParticipant> get copyWith => _$CallParticipantCopyW
 
   /// Serializes this CallParticipant to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -1460,6 +1529,7 @@ String toString() {
   return 'CallParticipant(identity: $identity, name: $name, joinedAt: $joinedAt, accountId: $accountId, profile: $profile)';
 }
 
+
 }
 
 /// @nodoc
@@ -1469,6 +1539,7 @@ abstract mixin class $CallParticipantCopyWith<$Res>  {
 $Res call({
  String identity, String name, DateTime joinedAt, String? accountId, SnChatMember? profile
 });
+
 
 $SnChatMemberCopyWith<$Res>? get profile;
 
@@ -1508,6 +1579,7 @@ $SnChatMemberCopyWith<$Res>? get profile {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -1546,6 +1618,7 @@ String toString() {
   return 'CallParticipant(identity: $identity, name: $name, joinedAt: $joinedAt, accountId: $accountId, profile: $profile)';
 }
 
+
 }
 
 /// @nodoc
@@ -1555,6 +1628,7 @@ abstract mixin class _$CallParticipantCopyWith<$Res> implements $CallParticipant
 $Res call({
  String identity, String name, DateTime joinedAt, String? accountId, SnChatMember? profile
 });
+
 
 @override $SnChatMemberCopyWith<$Res>? get profile;
 
@@ -1595,6 +1669,7 @@ $SnChatMemberCopyWith<$Res>? get profile {
 }
 }
 
+
 /// @nodoc
 mixin _$SnRealtimeCall {
 
@@ -1607,6 +1682,7 @@ $SnRealtimeCallCopyWith<SnRealtimeCall> get copyWith => _$SnRealtimeCallCopyWith
 
   /// Serializes this SnRealtimeCall to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -1622,6 +1698,7 @@ String toString() {
   return 'SnRealtimeCall(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, endedAt: $endedAt, senderId: $senderId, sender: $sender, roomId: $roomId, room: $room, upstreamConfig: $upstreamConfig, providerName: $providerName, sessionId: $sessionId)';
 }
 
+
 }
 
 /// @nodoc
@@ -1631,6 +1708,7 @@ abstract mixin class $SnRealtimeCallCopyWith<$Res>  {
 $Res call({
  String id, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, DateTime? endedAt, String senderId, SnChatMember sender, String roomId, SnChatRoom room, Map<String, dynamic> upstreamConfig, String? providerName, String? sessionId
 });
+
 
 $SnChatMemberCopyWith<$Res> get sender;$SnChatRoomCopyWith<$Res> get room;
 
@@ -1683,6 +1761,7 @@ $SnChatRoomCopyWith<$Res> get room {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -1734,6 +1813,7 @@ String toString() {
   return 'SnRealtimeCall(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, endedAt: $endedAt, senderId: $senderId, sender: $sender, roomId: $roomId, room: $room, upstreamConfig: $upstreamConfig, providerName: $providerName, sessionId: $sessionId)';
 }
 
+
 }
 
 /// @nodoc
@@ -1743,6 +1823,7 @@ abstract mixin class _$SnRealtimeCallCopyWith<$Res> implements $SnRealtimeCallCo
 $Res call({
  String id, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, DateTime? endedAt, String senderId, SnChatMember sender, String roomId, SnChatRoom room, Map<String, dynamic> upstreamConfig, String? providerName, String? sessionId
 });
+
 
 @override $SnChatMemberCopyWith<$Res> get sender;@override $SnChatRoomCopyWith<$Res> get room;
 

@@ -16,27 +16,33 @@ import 'package:pasteboard/pasteboard.dart';
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:textfield_tags/textfield_tags.dart';
+
 class ComposeState {
-  final ValueNotifier<List<UniversalFile>> attachments;
   final TextEditingController titleController;
   final TextEditingController descriptionController;
   final TextEditingController contentController;
   final ValueNotifier<int> visibility;
-  final ValueNotifier<bool> submitting;
+  final ValueNotifier<List<UniversalFile>> attachments;
   final ValueNotifier<Map<int, double>> attachmentProgress;
   final ValueNotifier<SnPublisher?> currentPublisher;
+  final ValueNotifier<bool> submitting;
+  final StringTagController tagsController;
+  final StringTagController categoriesController;
   final String draftId;
   Timer? _autoSaveTimer;
 
   ComposeState({
-    required this.attachments,
     required this.titleController,
     required this.descriptionController,
     required this.contentController,
     required this.visibility,
-    required this.submitting,
+    required this.attachments,
     required this.attachmentProgress,
     required this.currentPublisher,
+    required this.submitting,
+    required this.tagsController,
+    required this.categoriesController,
     required this.draftId,
   });
 
@@ -61,7 +67,12 @@ class ComposeLogic {
     String? draftId,
   }) {
     final id = draftId ?? DateTime.now().millisecondsSinceEpoch.toString();
-
+    final tagsController = StringTagController();
+    final categoriesController = StringTagController();
+    originalPost?.tags.forEach((x) => tagsController.addTag(x.slug));
+    originalPost?.categories.forEach(
+      (x) => categoriesController.addTag(x.slug),
+    );
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
         originalPost?.attachments
@@ -86,17 +97,31 @@ class ComposeLogic {
       contentController: TextEditingController(
         text:
             originalPost?.content ??
-            (forwardedPost != null ? '> ${forwardedPost.content}\n\n' : null),
+            (forwardedPost != null
+                ? '''> ${forwardedPost.content}
+
+'''
+                : null),
       ),
       visibility: ValueNotifier<int>(originalPost?.visibility ?? 0),
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
+      tagsController: tagsController,
+      categoriesController: categoriesController,
       draftId: id,
     );
   }
 
   static ComposeState createStateFromDraft(SnPost draft) {
+    final tagsController = StringTagController();
+    final categoriesController = StringTagController();
+    for (var x in draft.tags) {
+      tagsController.addTag(x.slug);
+    }
+    for (var x in draft.categories) {
+      categoriesController.addTag(x.slug);
+    }
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
         draft.attachments.map((e) => UniversalFile.fromAttachment(e)).toList(),
@@ -108,6 +133,8 @@ class ComposeLogic {
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
+      tagsController: tagsController,
+      categoriesController: categoriesController,
       draftId: draft.id,
     );
   }
@@ -557,6 +584,8 @@ class ComposeLogic {
         if (postType != null) 'type': postType,
         if (repliedPost != null) 'replied_post_id': repliedPost.id,
         if (forwardedPost != null) 'forwarded_post_id': forwardedPost.id,
+        'tags': state.tagsController.getTags,
+        'categories': state.categoriesController.getTags,
       };
 
       // Send request
@@ -649,5 +678,7 @@ class ComposeLogic {
     state.submitting.dispose();
     state.attachmentProgress.dispose();
     state.currentPublisher.dispose();
+    state.tagsController.dispose();
+    state.categoriesController.dispose();
   }
 }

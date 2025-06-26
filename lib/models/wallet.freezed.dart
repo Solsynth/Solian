@@ -26,6 +26,7 @@ $SnWalletCopyWith<SnWallet> get copyWith => _$SnWalletCopyWithImpl<SnWallet>(thi
   /// Serializes this SnWallet to a JSON map.
   Map<String, dynamic> toJson();
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWallet&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.pockets, pockets)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
@@ -40,6 +41,7 @@ String toString() {
   return 'SnWallet(id: $id, pockets: $pockets, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -49,6 +51,7 @@ abstract mixin class $SnWalletCopyWith<$Res>  {
 $Res call({
  String id, List<SnWalletPocket> pockets, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 $SnAccountCopyWith<$Res>? get account;
 
@@ -89,6 +92,7 @@ $SnAccountCopyWith<$Res>? get account {
   });
 }
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -136,6 +140,7 @@ String toString() {
   return 'SnWallet(id: $id, pockets: $pockets, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -145,6 +150,7 @@ abstract mixin class _$SnWalletCopyWith<$Res> implements $SnWalletCopyWith<$Res>
 $Res call({
  String id, List<SnWalletPocket> pockets, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 @override $SnAccountCopyWith<$Res>? get account;
 
@@ -187,6 +193,7 @@ $SnAccountCopyWith<$Res>? get account {
 }
 }
 
+
 /// @nodoc
 mixin _$SnWalletPocket {
 
@@ -199,6 +206,7 @@ $SnWalletPocketCopyWith<SnWalletPocket> get copyWith => _$SnWalletPocketCopyWith
 
   /// Serializes this SnWalletPocket to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -214,6 +222,7 @@ String toString() {
   return 'SnWalletPocket(id: $id, currency: $currency, amount: $amount, walletId: $walletId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -223,6 +232,9 @@ abstract mixin class $SnWalletPocketCopyWith<$Res>  {
 $Res call({
  String id, String currency, double amount, String walletId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -249,6 +261,7 @@ as DateTime?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -290,6 +303,7 @@ String toString() {
   return 'SnWalletPocket(id: $id, currency: $currency, amount: $amount, walletId: $walletId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -299,6 +313,9 @@ abstract mixin class _$SnWalletPocketCopyWith<$Res> implements $SnWalletPocketCo
 $Res call({
  String id, String currency, double amount, String walletId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -324,7 +341,9 @@ as DateTime?,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnTransaction {
@@ -338,6 +357,7 @@ $SnTransactionCopyWith<SnTransaction> get copyWith => _$SnTransactionCopyWithImp
 
   /// Serializes this SnTransaction to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -353,6 +373,7 @@ String toString() {
   return 'SnTransaction(id: $id, currency: $currency, amount: $amount, remarks: $remarks, type: $type, payerWalletId: $payerWalletId, payerWallet: $payerWallet, payeeWalletId: $payeeWalletId, payeeWallet: $payeeWallet, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -362,6 +383,7 @@ abstract mixin class $SnTransactionCopyWith<$Res>  {
 $Res call({
  String id, String currency, double amount, String? remarks, int type, String? payerWalletId, SnWallet? payerWallet, String? payeeWalletId, SnWallet? payeeWallet, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 $SnWalletCopyWith<$Res>? get payerWallet;$SnWalletCopyWith<$Res>? get payeeWallet;
 
@@ -420,6 +442,7 @@ $SnWalletCopyWith<$Res>? get payeeWallet {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -465,6 +488,7 @@ String toString() {
   return 'SnTransaction(id: $id, currency: $currency, amount: $amount, remarks: $remarks, type: $type, payerWalletId: $payerWalletId, payerWallet: $payerWallet, payeeWalletId: $payeeWalletId, payeeWallet: $payeeWallet, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -474,6 +498,7 @@ abstract mixin class _$SnTransactionCopyWith<$Res> implements $SnTransactionCopy
 $Res call({
  String id, String currency, double amount, String? remarks, int type, String? payerWalletId, SnWallet? payerWallet, String? payeeWalletId, SnWallet? payeeWallet, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 @override $SnWalletCopyWith<$Res>? get payerWallet;@override $SnWalletCopyWith<$Res>? get payeeWallet;
 
@@ -533,6 +558,7 @@ $SnWalletCopyWith<$Res>? get payeeWallet {
 }
 }
 
+
 /// @nodoc
 mixin _$SnWalletSubscription {
 
@@ -545,6 +571,7 @@ $SnWalletSubscriptionCopyWith<SnWalletSubscription> get copyWith => _$SnWalletSu
 
   /// Serializes this SnWalletSubscription to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -560,6 +587,7 @@ String toString() {
   return 'SnWalletSubscription(id: $id, begunAt: $begunAt, endedAt: $endedAt, identifier: $identifier, isActive: $isActive, isFreeTrial: $isFreeTrial, status: $status, paymentMethod: $paymentMethod, paymentDetails: $paymentDetails, basePrice: $basePrice, couponId: $couponId, coupon: $coupon, renewalAt: $renewalAt, accountId: $accountId, account: $account, isAvailable: $isAvailable, finalPrice: $finalPrice, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -569,6 +597,7 @@ abstract mixin class $SnWalletSubscriptionCopyWith<$Res>  {
 $Res call({
  String id, DateTime begunAt, DateTime? endedAt, String identifier, bool isActive, bool isFreeTrial, int status, String? paymentMethod, Map<String, dynamic>? paymentDetails, double? basePrice, String? couponId, dynamic coupon, DateTime? renewalAt, String accountId, SnAccount? account, bool isAvailable, double? finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 $SnAccountCopyWith<$Res>? get account;
 
@@ -622,6 +651,7 @@ $SnAccountCopyWith<$Res>? get account {
   });
 }
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -684,6 +714,7 @@ String toString() {
   return 'SnWalletSubscription(id: $id, begunAt: $begunAt, endedAt: $endedAt, identifier: $identifier, isActive: $isActive, isFreeTrial: $isFreeTrial, status: $status, paymentMethod: $paymentMethod, paymentDetails: $paymentDetails, basePrice: $basePrice, couponId: $couponId, coupon: $coupon, renewalAt: $renewalAt, accountId: $accountId, account: $account, isAvailable: $isAvailable, finalPrice: $finalPrice, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -693,6 +724,7 @@ abstract mixin class _$SnWalletSubscriptionCopyWith<$Res> implements $SnWalletSu
 $Res call({
  String id, DateTime begunAt, DateTime? endedAt, String identifier, bool isActive, bool isFreeTrial, int status, String? paymentMethod, Map<String, dynamic>? paymentDetails, double? basePrice, String? couponId, dynamic coupon, DateTime? renewalAt, String accountId, SnAccount? account, bool isAvailable, double? finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 @override $SnAccountCopyWith<$Res>? get account;
 
@@ -748,6 +780,7 @@ $SnAccountCopyWith<$Res>? get account {
 }
 }
 
+
 /// @nodoc
 mixin _$SnWalletSubscriptionRef {
 
@@ -760,6 +793,7 @@ $SnWalletSubscriptionRefCopyWith<SnWalletSubscriptionRef> get copyWith => _$SnWa
 
   /// Serializes this SnWalletSubscriptionRef to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -775,6 +809,7 @@ String toString() {
   return 'SnWalletSubscriptionRef(id: $id, isActive: $isActive, accountId: $accountId, createdAt: $createdAt, deletedAt: $deletedAt, updatedAt: $updatedAt, identifier: $identifier)';
 }
 
+
 }
 
 /// @nodoc
@@ -784,6 +819,9 @@ abstract mixin class $SnWalletSubscriptionRefCopyWith<$Res>  {
 $Res call({
  String id, bool isActive, String accountId, DateTime createdAt, DateTime? deletedAt, DateTime updatedAt, String identifier
 });
+
+
+
 
 }
 /// @nodoc
@@ -810,6 +848,7 @@ as String,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -851,6 +890,7 @@ String toString() {
   return 'SnWalletSubscriptionRef(id: $id, isActive: $isActive, accountId: $accountId, createdAt: $createdAt, deletedAt: $deletedAt, updatedAt: $updatedAt, identifier: $identifier)';
 }
 
+
 }
 
 /// @nodoc
@@ -860,6 +900,9 @@ abstract mixin class _$SnWalletSubscriptionRefCopyWith<$Res> implements $SnWalle
 $Res call({
  String id, bool isActive, String accountId, DateTime createdAt, DateTime? deletedAt, DateTime updatedAt, String identifier
 });
+
+
+
 
 }
 /// @nodoc
@@ -885,7 +928,9 @@ as String,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnWalletOrder {
@@ -899,6 +944,7 @@ $SnWalletOrderCopyWith<SnWalletOrder> get copyWith => _$SnWalletOrderCopyWithImp
 
   /// Serializes this SnWalletOrder to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -914,6 +960,7 @@ String toString() {
   return 'SnWalletOrder(id: $id, status: $status, currency: $currency, remarks: $remarks, appIdentifier: $appIdentifier, meta: $meta, amount: $amount, expiredAt: $expiredAt, payeeWalletId: $payeeWalletId, payeeWallet: $payeeWallet, transactionId: $transactionId, transaction: $transaction, issuerAppId: $issuerAppId, issuerApp: $issuerApp, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -923,6 +970,7 @@ abstract mixin class $SnWalletOrderCopyWith<$Res>  {
 $Res call({
  String id, int status, String currency, dynamic remarks, String appIdentifier, Map<String, dynamic> meta, int amount, DateTime expiredAt, String? payeeWalletId, SnWallet? payeeWallet, String? transactionId, SnTransaction? transaction, String? issuerAppId, dynamic issuerApp, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 $SnWalletCopyWith<$Res>? get payeeWallet;$SnTransactionCopyWith<$Res>? get transaction;
 
@@ -986,6 +1034,7 @@ $SnTransactionCopyWith<$Res>? get transaction {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -1042,6 +1091,7 @@ String toString() {
   return 'SnWalletOrder(id: $id, status: $status, currency: $currency, remarks: $remarks, appIdentifier: $appIdentifier, meta: $meta, amount: $amount, expiredAt: $expiredAt, payeeWalletId: $payeeWalletId, payeeWallet: $payeeWallet, transactionId: $transactionId, transaction: $transaction, issuerAppId: $issuerAppId, issuerApp: $issuerApp, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -1051,6 +1101,7 @@ abstract mixin class _$SnWalletOrderCopyWith<$Res> implements $SnWalletOrderCopy
 $Res call({
  String id, int status, String currency, dynamic remarks, String appIdentifier, Map<String, dynamic> meta, int amount, DateTime expiredAt, String? payeeWalletId, SnWallet? payeeWallet, String? transactionId, SnTransaction? transaction, String? issuerAppId, dynamic issuerApp, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 @override $SnWalletCopyWith<$Res>? get payeeWallet;@override $SnTransactionCopyWith<$Res>? get transaction;
 

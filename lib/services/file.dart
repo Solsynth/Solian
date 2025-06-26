@@ -185,7 +185,6 @@ Completer<SnCloudFile?> _processUpload(
         onProgress: (double progress, Duration estimate) {
           onProgress?.call(progress, estimate);
         },
-        measureUploadSpeed: true,
       )
       .catchError(completer.completeError);
 

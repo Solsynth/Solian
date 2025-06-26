@@ -26,6 +26,7 @@ $SnEmbedLinkCopyWith<SnEmbedLink> get copyWith => _$SnEmbedLinkCopyWithImpl<SnEm
   /// Serializes this SnEmbedLink to a JSON map.
   Map<String, dynamic> toJson();
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is SnEmbedLink&&(identical(other.type, type) || other.type == type)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.faviconUrl, faviconUrl) || other.faviconUrl == faviconUrl)&&(identical(other.siteName, siteName) || other.siteName == siteName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.author, author) || other.author == author)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate));
@@ -40,6 +41,7 @@ String toString() {
   return 'SnEmbedLink(type: $type, url: $url, title: $title, description: $description, imageUrl: $imageUrl, faviconUrl: $faviconUrl, siteName: $siteName, contentType: $contentType, author: $author, publishedDate: $publishedDate)';
 }
 
+
 }
 
 /// @nodoc
@@ -49,6 +51,9 @@ abstract mixin class $SnEmbedLinkCopyWith<$Res>  {
 $Res call({
 @JsonKey(name: 'Type') String type,@JsonKey(name: 'Url') String url,@JsonKey(name: 'Title') String title,@JsonKey(name: 'Description') String? description,@JsonKey(name: 'ImageUrl') String? imageUrl,@JsonKey(name: 'FaviconUrl') String faviconUrl,@JsonKey(name: 'SiteName') String siteName,@JsonKey(name: 'ContentType') String? contentType,@JsonKey(name: 'Author') String? author,@JsonKey(name: 'PublishedDate') DateTime? publishedDate
 });
+
+
+
 
 }
 /// @nodoc
@@ -78,6 +83,7 @@ as DateTime?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -122,6 +128,7 @@ String toString() {
   return 'SnEmbedLink(type: $type, url: $url, title: $title, description: $description, imageUrl: $imageUrl, faviconUrl: $faviconUrl, siteName: $siteName, contentType: $contentType, author: $author, publishedDate: $publishedDate)';
 }
 
+
 }
 
 /// @nodoc
@@ -131,6 +138,9 @@ abstract mixin class _$SnEmbedLinkCopyWith<$Res> implements $SnEmbedLinkCopyWith
 $Res call({
 @JsonKey(name: 'Type') String type,@JsonKey(name: 'Url') String url,@JsonKey(name: 'Title') String title,@JsonKey(name: 'Description') String? description,@JsonKey(name: 'ImageUrl') String? imageUrl,@JsonKey(name: 'FaviconUrl') String faviconUrl,@JsonKey(name: 'SiteName') String siteName,@JsonKey(name: 'ContentType') String? contentType,@JsonKey(name: 'Author') String? author,@JsonKey(name: 'PublishedDate') DateTime? publishedDate
 });
+
+
+
 
 }
 /// @nodoc
@@ -159,7 +169,9 @@ as DateTime?,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnScrappedLink {
@@ -173,6 +185,7 @@ $SnScrappedLinkCopyWith<SnScrappedLink> get copyWith => _$SnScrappedLinkCopyWith
 
   /// Serializes this SnScrappedLink to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -188,6 +201,7 @@ String toString() {
   return 'SnScrappedLink(type: $type, url: $url, title: $title, description: $description, imageUrl: $imageUrl, faviconUrl: $faviconUrl, siteName: $siteName, contentType: $contentType, author: $author, publishedDate: $publishedDate)';
 }
 
+
 }
 
 /// @nodoc
@@ -197,6 +211,9 @@ abstract mixin class $SnScrappedLinkCopyWith<$Res>  {
 $Res call({
  String type, String url, String title, String? description, String? imageUrl, String faviconUrl, String siteName, String? contentType, String? author, DateTime? publishedDate
 });
+
+
+
 
 }
 /// @nodoc
@@ -226,6 +243,7 @@ as DateTime?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -270,6 +288,7 @@ String toString() {
   return 'SnScrappedLink(type: $type, url: $url, title: $title, description: $description, imageUrl: $imageUrl, faviconUrl: $faviconUrl, siteName: $siteName, contentType: $contentType, author: $author, publishedDate: $publishedDate)';
 }
 
+
 }
 
 /// @nodoc
@@ -279,6 +298,9 @@ abstract mixin class _$SnScrappedLinkCopyWith<$Res> implements $SnScrappedLinkCo
 $Res call({
  String type, String url, String title, String? description, String? imageUrl, String faviconUrl, String siteName, String? contentType, String? author, DateTime? publishedDate
 });
+
+
+
 
 }
 /// @nodoc
@@ -306,6 +328,7 @@ as String?,publishedDate: freezed == publishedDate ? _self.publishedDate : publi
 as DateTime?,
   ));
 }
+
 
 }
 
