@@ -1041,10 +1041,10 @@ packages:
     dependency: "direct main"
     description:
       name: go_router
-      sha256: f02fd7d2a4dc512fec615529824fdd217fecb3a3d3de68360293a551f21634b3
+      sha256: ac294be30ba841830cfa146e5a3b22bb09f8dc5a0fdd9ca9332b04b0bde99ebf
       url: "https://pub.dev"
     source: hosted
-    version: "14.8.1"
+    version: "15.2.4"
   google_fonts:
     dependency: "direct main"
     description:
@@ -2106,14 +2106,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.1"
-  speed_test_dart:
-    dependency: transitive
-    description:
-      name: speed_test_dart
-      sha256: "4131faa68d5c9259766626450a10e552bc11ff6e651bb6377cc56476443e1cfa"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.5+0"
   sprintf:
     dependency: transitive
     description:
@@ -2258,14 +2250,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.1"
-  sync:
-    dependency: transitive
-    description:
-      name: sync
-      sha256: f2ebb89eac969abb02b498562a35c4da63d6843396c4fe81948cd06a76845fce
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.0"
   synchronized:
     dependency: transitive
     description:
@@ -2314,6 +2298,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.8"
+  textfield_tags:
+    dependency: "direct main"
+    description:
+      name: textfield_tags
+      sha256: d1f2204114157a1296bb97c20d7f8c8c7fd036212812afb2e19de7bb34acc55b
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.1"
   timezone:
     dependency: "direct main"
     description:
@@ -2351,7 +2343,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "55e0eecfb7a7af67be4a7b6e8e73d128d4460436"
+      resolved-ref: e33aa4f363104d083e681103b102037e212e32ab
       url: "https://github.com/LittleSheep2Code/tus_client.git"
     source: git
     version: "2.5.0"

@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/services/compose_storage_db.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class DraftManagerSheet extends HookConsumerWidget {
@@ -43,9 +44,9 @@ class DraftManagerSheet extends HookConsumerWidget {
       ],
     );
 
-    return Scaffold(
-      appBar: AppBar(title: Text('drafts'.tr())),
-      body:
+    return SheetScaffold(
+      titleText: 'drafts'.tr(),
+      child:
           isLoading.value
               ? const Center(child: CircularProgressIndicator())
               : Column(

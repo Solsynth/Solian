@@ -140,6 +140,8 @@ class ArticleComposeScreen extends HookConsumerWidget {
               titleController: state.titleController,
               descriptionController: state.descriptionController,
               visibility: state.visibility,
+              tagsController: state.tagsController,
+              categoriesController: state.categoriesController,
               onVisibilityChanged: () {
                 // Trigger rebuild if needed
               },

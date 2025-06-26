@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPost {
 
- String get id; String? get title; String? get description; String? get language; DateTime? get editedAt; DateTime? get publishedAt; int get visibility; String? get content; int get type; Map<String, dynamic>? get meta; int get viewsUnique; int get viewsTotal; int get upvotes; int get downvotes; int get repliesCount; String? get threadedPostId; SnPost? get threadedPost; String? get repliedPostId; SnPost? get repliedPost; String? get forwardedPostId; SnPost? get forwardedPost; List<SnCloudFile> get attachments; SnPublisher get publisher; Map<String, int> get reactionsCount; List<dynamic> get reactions; List<dynamic> get tags; List<dynamic> get categories; List<dynamic> get collections; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; bool get isTruncated;
+ String get id; String? get title; String? get description; String? get language; DateTime? get editedAt; DateTime? get publishedAt; int get visibility; String? get content; int get type; Map<String, dynamic>? get meta; int get viewsUnique; int get viewsTotal; int get upvotes; int get downvotes; int get repliesCount; String? get threadedPostId; SnPost? get threadedPost; String? get repliedPostId; SnPost? get repliedPost; String? get forwardedPostId; SnPost? get forwardedPost; List<SnCloudFile> get attachments; SnPublisher get publisher; Map<String, int> get reactionsCount; List<dynamic> get reactions; List<PostTag> get tags; List<PostCategory> get categories; List<dynamic> get collections; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; bool get isTruncated;
 /// Create a copy of SnPost
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,6 +25,7 @@ $SnPostCopyWith<SnPost> get copyWith => _$SnPostCopyWithImpl<SnPost>(this as SnP
 
   /// Serializes this SnPost to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -40,6 +41,7 @@ String toString() {
   return 'SnPost(id: $id, title: $title, description: $description, language: $language, editedAt: $editedAt, publishedAt: $publishedAt, visibility: $visibility, content: $content, type: $type, meta: $meta, viewsUnique: $viewsUnique, viewsTotal: $viewsTotal, upvotes: $upvotes, downvotes: $downvotes, repliesCount: $repliesCount, threadedPostId: $threadedPostId, threadedPost: $threadedPost, repliedPostId: $repliedPostId, repliedPost: $repliedPost, forwardedPostId: $forwardedPostId, forwardedPost: $forwardedPost, attachments: $attachments, publisher: $publisher, reactionsCount: $reactionsCount, reactions: $reactions, tags: $tags, categories: $categories, collections: $collections, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, isTruncated: $isTruncated)';
 }
 
+
 }
 
 /// @nodoc
@@ -47,8 +49,9 @@ abstract mixin class $SnPostCopyWith<$Res>  {
   factory $SnPostCopyWith(SnPost value, $Res Function(SnPost) _then) = _$SnPostCopyWithImpl;
 @useResult
 $Res call({
- String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, int type, Map<String, dynamic>? meta, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, List<dynamic> reactions, List<dynamic> tags, List<dynamic> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
+ String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, int type, Map<String, dynamic>? meta, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, List<dynamic> reactions, List<PostTag> tags, List<PostCategory> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
 });
+
 
 $SnPostCopyWith<$Res>? get threadedPost;$SnPostCopyWith<$Res>? get repliedPost;$SnPostCopyWith<$Res>? get forwardedPost;$SnPublisherCopyWith<$Res> get publisher;
 
@@ -91,8 +94,8 @@ as List<SnCloudFile>,publisher: null == publisher ? _self.publisher : publisher 
 as SnPublisher,reactionsCount: null == reactionsCount ? _self.reactionsCount : reactionsCount // ignore: cast_nullable_to_non_nullable
 as Map<String, int>,reactions: null == reactions ? _self.reactions : reactions // ignore: cast_nullable_to_non_nullable
 as List<dynamic>,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,collections: null == collections ? _self.collections : collections // ignore: cast_nullable_to_non_nullable
+as List<PostTag>,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
+as List<PostCategory>,collections: null == collections ? _self.collections : collections // ignore: cast_nullable_to_non_nullable
 as List<dynamic>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -148,11 +151,12 @@ $SnPublisherCopyWith<$Res> get publisher {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
 class _SnPost implements SnPost {
-  const _SnPost({required this.id, this.title, this.description, this.language, this.editedAt, this.publishedAt = null, this.visibility = 0, this.content, this.type = 0, final  Map<String, dynamic>? meta, this.viewsUnique = 0, this.viewsTotal = 0, this.upvotes = 0, this.downvotes = 0, this.repliesCount = 0, this.threadedPostId, this.threadedPost, this.repliedPostId, this.repliedPost, this.forwardedPostId, this.forwardedPost, final  List<SnCloudFile> attachments = const [], this.publisher = const SnPublisher(), final  Map<String, int> reactionsCount = const {}, final  List<dynamic> reactions = const [], final  List<dynamic> tags = const [], final  List<dynamic> categories = const [], final  List<dynamic> collections = const [], this.createdAt = null, this.updatedAt = null, this.deletedAt, this.isTruncated = false}): _meta = meta,_attachments = attachments,_reactionsCount = reactionsCount,_reactions = reactions,_tags = tags,_categories = categories,_collections = collections;
+  const _SnPost({required this.id, this.title, this.description, this.language, this.editedAt, this.publishedAt = null, this.visibility = 0, this.content, this.type = 0, final  Map<String, dynamic>? meta, this.viewsUnique = 0, this.viewsTotal = 0, this.upvotes = 0, this.downvotes = 0, this.repliesCount = 0, this.threadedPostId, this.threadedPost, this.repliedPostId, this.repliedPost, this.forwardedPostId, this.forwardedPost, final  List<SnCloudFile> attachments = const [], this.publisher = const SnPublisher(), final  Map<String, int> reactionsCount = const {}, final  List<dynamic> reactions = const [], final  List<PostTag> tags = const [], final  List<PostCategory> categories = const [], final  List<dynamic> collections = const [], this.createdAt = null, this.updatedAt = null, this.deletedAt, this.isTruncated = false}): _meta = meta,_attachments = attachments,_reactionsCount = reactionsCount,_reactions = reactions,_tags = tags,_categories = categories,_collections = collections;
   factory _SnPost.fromJson(Map<String, dynamic> json) => _$SnPostFromJson(json);
 
 @override final  String id;
@@ -206,15 +210,15 @@ class _SnPost implements SnPost {
   return EqualUnmodifiableListView(_reactions);
 }
 
- final  List<dynamic> _tags;
-@override@JsonKey() List<dynamic> get tags {
+ final  List<PostTag> _tags;
+@override@JsonKey() List<PostTag> get tags {
   if (_tags is EqualUnmodifiableListView) return _tags;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_tags);
 }
 
- final  List<dynamic> _categories;
-@override@JsonKey() List<dynamic> get categories {
+ final  List<PostCategory> _categories;
+@override@JsonKey() List<PostCategory> get categories {
   if (_categories is EqualUnmodifiableListView) return _categories;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_categories);
@@ -257,6 +261,7 @@ String toString() {
   return 'SnPost(id: $id, title: $title, description: $description, language: $language, editedAt: $editedAt, publishedAt: $publishedAt, visibility: $visibility, content: $content, type: $type, meta: $meta, viewsUnique: $viewsUnique, viewsTotal: $viewsTotal, upvotes: $upvotes, downvotes: $downvotes, repliesCount: $repliesCount, threadedPostId: $threadedPostId, threadedPost: $threadedPost, repliedPostId: $repliedPostId, repliedPost: $repliedPost, forwardedPostId: $forwardedPostId, forwardedPost: $forwardedPost, attachments: $attachments, publisher: $publisher, reactionsCount: $reactionsCount, reactions: $reactions, tags: $tags, categories: $categories, collections: $collections, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, isTruncated: $isTruncated)';
 }
 
+
 }
 
 /// @nodoc
@@ -264,8 +269,9 @@ abstract mixin class _$SnPostCopyWith<$Res> implements $SnPostCopyWith<$Res> {
   factory _$SnPostCopyWith(_SnPost value, $Res Function(_SnPost) _then) = __$SnPostCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, int type, Map<String, dynamic>? meta, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, List<dynamic> reactions, List<dynamic> tags, List<dynamic> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
+ String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, int type, Map<String, dynamic>? meta, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, List<dynamic> reactions, List<PostTag> tags, List<PostCategory> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
 });
+
 
 @override $SnPostCopyWith<$Res>? get threadedPost;@override $SnPostCopyWith<$Res>? get repliedPost;@override $SnPostCopyWith<$Res>? get forwardedPost;@override $SnPublisherCopyWith<$Res> get publisher;
 
@@ -308,8 +314,8 @@ as List<SnCloudFile>,publisher: null == publisher ? _self.publisher : publisher 
 as SnPublisher,reactionsCount: null == reactionsCount ? _self._reactionsCount : reactionsCount // ignore: cast_nullable_to_non_nullable
 as Map<String, int>,reactions: null == reactions ? _self._reactions : reactions // ignore: cast_nullable_to_non_nullable
 as List<dynamic>,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,collections: null == collections ? _self._collections : collections // ignore: cast_nullable_to_non_nullable
+as List<PostTag>,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
+as List<PostCategory>,collections: null == collections ? _self._collections : collections // ignore: cast_nullable_to_non_nullable
 as List<dynamic>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -366,6 +372,7 @@ $SnPublisherCopyWith<$Res> get publisher {
 }
 }
 
+
 /// @nodoc
 mixin _$SnPublisher {
 
@@ -378,6 +385,7 @@ $SnPublisherCopyWith<SnPublisher> get copyWith => _$SnPublisherCopyWithImpl<SnPu
 
   /// Serializes this SnPublisher to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -393,6 +401,7 @@ String toString() {
   return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification)';
 }
 
+
 }
 
 /// @nodoc
@@ -402,6 +411,7 @@ abstract mixin class $SnPublisherCopyWith<$Res>  {
 $Res call({
  String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification
 });
+
 
 $SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnAccountCopyWith<$Res>? get account;$SnVerificationMarkCopyWith<$Res>? get verification;
 
@@ -486,6 +496,7 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -533,6 +544,7 @@ String toString() {
   return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification)';
 }
 
+
 }
 
 /// @nodoc
@@ -542,6 +554,7 @@ abstract mixin class _$SnPublisherCopyWith<$Res> implements $SnPublisherCopyWith
 $Res call({
  String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification
 });
+
 
 @override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnAccountCopyWith<$Res>? get account;@override $SnVerificationMarkCopyWith<$Res>? get verification;
 
@@ -627,6 +640,7 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 }
 }
 
+
 /// @nodoc
 mixin _$SnPublisherStats {
 
@@ -639,6 +653,7 @@ $SnPublisherStatsCopyWith<SnPublisherStats> get copyWith => _$SnPublisherStatsCo
 
   /// Serializes this SnPublisherStats to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -654,6 +669,7 @@ String toString() {
   return 'SnPublisherStats(postsCreated: $postsCreated, stickerPacksCreated: $stickerPacksCreated, stickersCreated: $stickersCreated, upvoteReceived: $upvoteReceived, downvoteReceived: $downvoteReceived)';
 }
 
+
 }
 
 /// @nodoc
@@ -663,6 +679,9 @@ abstract mixin class $SnPublisherStatsCopyWith<$Res>  {
 $Res call({
  int postsCreated, int stickerPacksCreated, int stickersCreated, int upvoteReceived, int downvoteReceived
 });
+
+
+
 
 }
 /// @nodoc
@@ -687,6 +706,7 @@ as int,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -726,6 +746,7 @@ String toString() {
   return 'SnPublisherStats(postsCreated: $postsCreated, stickerPacksCreated: $stickerPacksCreated, stickersCreated: $stickersCreated, upvoteReceived: $upvoteReceived, downvoteReceived: $downvoteReceived)';
 }
 
+
 }
 
 /// @nodoc
@@ -735,6 +756,9 @@ abstract mixin class _$SnPublisherStatsCopyWith<$Res> implements $SnPublisherSta
 $Res call({
  int postsCreated, int stickerPacksCreated, int stickersCreated, int upvoteReceived, int downvoteReceived
 });
+
+
+
 
 }
 /// @nodoc
@@ -758,7 +782,9 @@ as int,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnSubscriptionStatus {
@@ -772,6 +798,7 @@ $SnSubscriptionStatusCopyWith<SnSubscriptionStatus> get copyWith => _$SnSubscrip
 
   /// Serializes this SnSubscriptionStatus to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -787,6 +814,7 @@ String toString() {
   return 'SnSubscriptionStatus(isSubscribed: $isSubscribed, publisherId: $publisherId, publisherName: $publisherName)';
 }
 
+
 }
 
 /// @nodoc
@@ -796,6 +824,9 @@ abstract mixin class $SnSubscriptionStatusCopyWith<$Res>  {
 $Res call({
  bool isSubscribed, String publisherId, String publisherName
 });
+
+
+
 
 }
 /// @nodoc
@@ -818,6 +849,7 @@ as String,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -855,6 +887,7 @@ String toString() {
   return 'SnSubscriptionStatus(isSubscribed: $isSubscribed, publisherId: $publisherId, publisherName: $publisherName)';
 }
 
+
 }
 
 /// @nodoc
@@ -864,6 +897,9 @@ abstract mixin class _$SnSubscriptionStatusCopyWith<$Res> implements $SnSubscrip
 $Res call({
  bool isSubscribed, String publisherId, String publisherName
 });
+
+
+
 
 }
 /// @nodoc
@@ -885,6 +921,7 @@ as String,
   ));
 }
 
+
 }
 
 /// @nodoc
@@ -897,10 +934,13 @@ mixin _$ReactInfo {
 @pragma('vm:prefer-inline')
 $ReactInfoCopyWith<ReactInfo> get copyWith => _$ReactInfoCopyWithImpl<ReactInfo>(this as ReactInfo, _$identity);
 
+
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is ReactInfo&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.attitude, attitude) || other.attitude == attitude));
 }
+
 
 @override
 int get hashCode => Object.hash(runtimeType,icon,attitude);
@@ -909,6 +949,7 @@ int get hashCode => Object.hash(runtimeType,icon,attitude);
 String toString() {
   return 'ReactInfo(icon: $icon, attitude: $attitude)';
 }
+
 
 }
 
@@ -919,6 +960,9 @@ abstract mixin class $ReactInfoCopyWith<$Res>  {
 $Res call({
  String icon, int attitude
 });
+
+
+
 
 }
 /// @nodoc
@@ -941,7 +985,9 @@ as int,
 
 }
 
+
 /// @nodoc
+
 
 class _ReactInfo implements ReactInfo {
   const _ReactInfo({required this.icon, required this.attitude});
@@ -956,10 +1002,13 @@ class _ReactInfo implements ReactInfo {
 @pragma('vm:prefer-inline')
 _$ReactInfoCopyWith<_ReactInfo> get copyWith => __$ReactInfoCopyWithImpl<_ReactInfo>(this, _$identity);
 
+
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReactInfo&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.attitude, attitude) || other.attitude == attitude));
 }
+
 
 @override
 int get hashCode => Object.hash(runtimeType,icon,attitude);
@@ -968,6 +1017,7 @@ int get hashCode => Object.hash(runtimeType,icon,attitude);
 String toString() {
   return 'ReactInfo(icon: $icon, attitude: $attitude)';
 }
+
 
 }
 
@@ -978,6 +1028,9 @@ abstract mixin class _$ReactInfoCopyWith<$Res> implements $ReactInfoCopyWith<$Re
 $Res call({
  String icon, int attitude
 });
+
+
+
 
 }
 /// @nodoc
@@ -997,6 +1050,7 @@ as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast
 as int,
   ));
 }
+
 
 }
 

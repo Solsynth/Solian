@@ -26,6 +26,7 @@ $AppTokenCopyWith<AppToken> get copyWith => _$AppTokenCopyWithImpl<AppToken>(thi
   /// Serializes this AppToken to a JSON map.
   Map<String, dynamic> toJson();
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is AppToken&&(identical(other.token, token) || other.token == token));
@@ -40,6 +41,7 @@ String toString() {
   return 'AppToken(token: $token)';
 }
 
+
 }
 
 /// @nodoc
@@ -49,6 +51,9 @@ abstract mixin class $AppTokenCopyWith<$Res>  {
 $Res call({
  String token
 });
+
+
+
 
 }
 /// @nodoc
@@ -69,6 +74,7 @@ as String,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -104,6 +110,7 @@ String toString() {
   return 'AppToken(token: $token)';
 }
 
+
 }
 
 /// @nodoc
@@ -113,6 +120,9 @@ abstract mixin class _$AppTokenCopyWith<$Res> implements $AppTokenCopyWith<$Res>
 $Res call({
  String token
 });
+
+
+
 
 }
 /// @nodoc
@@ -132,7 +142,9 @@ as String,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnAuthChallenge {
@@ -146,6 +158,7 @@ $SnAuthChallengeCopyWith<SnAuthChallenge> get copyWith => _$SnAuthChallengeCopyW
 
   /// Serializes this SnAuthChallenge to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -161,6 +174,7 @@ String toString() {
   return 'SnAuthChallenge(id: $id, expiredAt: $expiredAt, stepRemain: $stepRemain, stepTotal: $stepTotal, failedAttempts: $failedAttempts, platform: $platform, type: $type, blacklistFactors: $blacklistFactors, audiences: $audiences, scopes: $scopes, ipAddress: $ipAddress, userAgent: $userAgent, deviceId: $deviceId, nonce: $nonce, location: $location, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -170,6 +184,9 @@ abstract mixin class $SnAuthChallengeCopyWith<$Res>  {
 $Res call({
  String id, DateTime expiredAt, int stepRemain, int stepTotal, int failedAttempts, int platform, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String deviceId, String? nonce, String? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -208,6 +225,7 @@ as DateTime?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -279,6 +297,7 @@ String toString() {
   return 'SnAuthChallenge(id: $id, expiredAt: $expiredAt, stepRemain: $stepRemain, stepTotal: $stepTotal, failedAttempts: $failedAttempts, platform: $platform, type: $type, blacklistFactors: $blacklistFactors, audiences: $audiences, scopes: $scopes, ipAddress: $ipAddress, userAgent: $userAgent, deviceId: $deviceId, nonce: $nonce, location: $location, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -288,6 +307,9 @@ abstract mixin class _$SnAuthChallengeCopyWith<$Res> implements $SnAuthChallenge
 $Res call({
  String id, DateTime expiredAt, int stepRemain, int stepTotal, int failedAttempts, int platform, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String deviceId, String? nonce, String? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -325,7 +347,9 @@ as DateTime?,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnAuthSession {
@@ -339,6 +363,7 @@ $SnAuthSessionCopyWith<SnAuthSession> get copyWith => _$SnAuthSessionCopyWithImp
 
   /// Serializes this SnAuthSession to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -354,6 +379,7 @@ String toString() {
   return 'SnAuthSession(id: $id, label: $label, lastGrantedAt: $lastGrantedAt, expiredAt: $expiredAt, accountId: $accountId, challengeId: $challengeId, challenge: $challenge, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -363,6 +389,7 @@ abstract mixin class $SnAuthSessionCopyWith<$Res>  {
 $Res call({
  String id, String? label, DateTime lastGrantedAt, DateTime expiredAt, String accountId, String challengeId, SnAuthChallenge challenge, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 $SnAuthChallengeCopyWith<$Res> get challenge;
 
@@ -403,6 +430,7 @@ $SnAuthChallengeCopyWith<$Res> get challenge {
   });
 }
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -447,6 +475,7 @@ String toString() {
   return 'SnAuthSession(id: $id, label: $label, lastGrantedAt: $lastGrantedAt, expiredAt: $expiredAt, accountId: $accountId, challengeId: $challengeId, challenge: $challenge, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -456,6 +485,7 @@ abstract mixin class _$SnAuthSessionCopyWith<$Res> implements $SnAuthSessionCopy
 $Res call({
  String id, String? label, DateTime lastGrantedAt, DateTime expiredAt, String accountId, String challengeId, SnAuthChallenge challenge, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 @override $SnAuthChallengeCopyWith<$Res> get challenge;
 
@@ -498,6 +528,7 @@ $SnAuthChallengeCopyWith<$Res> get challenge {
 }
 }
 
+
 /// @nodoc
 mixin _$SnAuthFactor {
 
@@ -510,6 +541,7 @@ $SnAuthFactorCopyWith<SnAuthFactor> get copyWith => _$SnAuthFactorCopyWithImpl<S
 
   /// Serializes this SnAuthFactor to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -525,6 +557,7 @@ String toString() {
   return 'SnAuthFactor(id: $id, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, expiredAt: $expiredAt, enabledAt: $enabledAt, trustworthy: $trustworthy, createdResponse: $createdResponse)';
 }
 
+
 }
 
 /// @nodoc
@@ -534,6 +567,9 @@ abstract mixin class $SnAuthFactorCopyWith<$Res>  {
 $Res call({
  String id, int type, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, DateTime? expiredAt, DateTime? enabledAt, int trustworthy, Map<String, dynamic>? createdResponse
 });
+
+
+
 
 }
 /// @nodoc
@@ -563,6 +599,7 @@ as Map<String, dynamic>?,
 
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -586,6 +623,7 @@ class _SnAuthFactor implements SnAuthFactor {
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(value);
 }
+
 
 /// Create a copy of SnAuthFactor
 /// with the given fields replaced by the non-null parameter values.
@@ -612,6 +650,7 @@ String toString() {
   return 'SnAuthFactor(id: $id, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, expiredAt: $expiredAt, enabledAt: $enabledAt, trustworthy: $trustworthy, createdResponse: $createdResponse)';
 }
 
+
 }
 
 /// @nodoc
@@ -621,6 +660,9 @@ abstract mixin class _$SnAuthFactorCopyWith<$Res> implements $SnAuthFactorCopyWi
 $Res call({
  String id, int type, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, DateTime? expiredAt, DateTime? enabledAt, int trustworthy, Map<String, dynamic>? createdResponse
 });
+
+
+
 
 }
 /// @nodoc
@@ -648,7 +690,9 @@ as Map<String, dynamic>?,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnAuthDevice {
@@ -664,6 +708,7 @@ $SnAuthDeviceCopyWith<SnAuthDevice> get copyWith => _$SnAuthDeviceCopyWithImpl<S
   /// Serializes this SnAuthDevice to a JSON map.
   Map<String, dynamic> toJson();
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthDevice&&const DeepCollectionEquality().equals(other.label, label)&&(identical(other.userAgent, userAgent) || other.userAgent == userAgent)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other.sessions, sessions)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
@@ -678,6 +723,7 @@ String toString() {
   return 'SnAuthDevice(label: $label, userAgent: $userAgent, deviceId: $deviceId, platform: $platform, sessions: $sessions, isCurrent: $isCurrent)';
 }
 
+
 }
 
 /// @nodoc
@@ -687,6 +733,9 @@ abstract mixin class $SnAuthDeviceCopyWith<$Res>  {
 $Res call({
  dynamic label, String userAgent, String deviceId, int platform, List<SnAuthSession> sessions, bool isCurrent
 });
+
+
+
 
 }
 /// @nodoc
@@ -712,6 +761,7 @@ as bool,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -759,6 +809,7 @@ String toString() {
   return 'SnAuthDevice(label: $label, userAgent: $userAgent, deviceId: $deviceId, platform: $platform, sessions: $sessions, isCurrent: $isCurrent)';
 }
 
+
 }
 
 /// @nodoc
@@ -768,6 +819,9 @@ abstract mixin class _$SnAuthDeviceCopyWith<$Res> implements $SnAuthDeviceCopyWi
 $Res call({
  dynamic label, String userAgent, String deviceId, int platform, List<SnAuthSession> sessions, bool isCurrent
 });
+
+
+
 
 }
 /// @nodoc
@@ -792,7 +846,9 @@ as bool,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnAccountConnection {
@@ -806,6 +862,7 @@ $SnAccountConnectionCopyWith<SnAccountConnection> get copyWith => _$SnAccountCon
 
   /// Serializes this SnAccountConnection to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -821,6 +878,7 @@ String toString() {
   return 'SnAccountConnection(id: $id, accountId: $accountId, provider: $provider, providedIdentifier: $providedIdentifier, meta: $meta, lastUsedAt: $lastUsedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -830,6 +888,9 @@ abstract mixin class $SnAccountConnectionCopyWith<$Res>  {
 $Res call({
  String id, String accountId, String provider, String providedIdentifier, Map<String, dynamic> meta, DateTime lastUsedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -858,6 +919,7 @@ as DateTime?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -907,6 +969,7 @@ String toString() {
   return 'SnAccountConnection(id: $id, accountId: $accountId, provider: $provider, providedIdentifier: $providedIdentifier, meta: $meta, lastUsedAt: $lastUsedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -916,6 +979,9 @@ abstract mixin class _$SnAccountConnectionCopyWith<$Res> implements $SnAccountCo
 $Res call({
  String id, String accountId, String provider, String providedIdentifier, Map<String, dynamic> meta, DateTime lastUsedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -942,6 +1008,7 @@ as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ign
 as DateTime?,
   ));
 }
+
 
 }
 

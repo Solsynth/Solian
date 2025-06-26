@@ -26,6 +26,7 @@ $SnStickerCopyWith<SnSticker> get copyWith => _$SnStickerCopyWithImpl<SnSticker>
   /// Serializes this SnSticker to a JSON map.
   Map<String, dynamic> toJson();
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSticker&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.imageId, imageId) || other.imageId == imageId)&&(identical(other.image, image) || other.image == image)&&(identical(other.packId, packId) || other.packId == packId)&&(identical(other.pack, pack) || other.pack == pack)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
@@ -40,6 +41,7 @@ String toString() {
   return 'SnSticker(id: $id, slug: $slug, imageId: $imageId, image: $image, packId: $packId, pack: $pack, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -49,6 +51,7 @@ abstract mixin class $SnStickerCopyWith<$Res>  {
 $Res call({
  String id, String slug, String imageId, SnCloudFile image, String packId, SnStickerPack? pack, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 $SnCloudFileCopyWith<$Res> get image;$SnStickerPackCopyWith<$Res>? get pack;
 
@@ -101,6 +104,7 @@ $SnStickerPackCopyWith<$Res>? get pack {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -143,6 +147,7 @@ String toString() {
   return 'SnSticker(id: $id, slug: $slug, imageId: $imageId, image: $image, packId: $packId, pack: $pack, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -152,6 +157,7 @@ abstract mixin class _$SnStickerCopyWith<$Res> implements $SnStickerCopyWith<$Re
 $Res call({
  String id, String slug, String imageId, SnCloudFile image, String packId, SnStickerPack? pack, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 @override $SnCloudFileCopyWith<$Res> get image;@override $SnStickerPackCopyWith<$Res>? get pack;
 
@@ -205,6 +211,7 @@ $SnStickerPackCopyWith<$Res>? get pack {
 }
 }
 
+
 /// @nodoc
 mixin _$SnStickerPack {
 
@@ -217,6 +224,7 @@ $SnStickerPackCopyWith<SnStickerPack> get copyWith => _$SnStickerPackCopyWithImp
 
   /// Serializes this SnStickerPack to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -232,6 +240,7 @@ String toString() {
   return 'SnStickerPack(id: $id, name: $name, description: $description, prefix: $prefix, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -241,6 +250,7 @@ abstract mixin class $SnStickerPackCopyWith<$Res>  {
 $Res call({
  String id, String name, String description, String prefix, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 $SnPublisherCopyWith<$Res>? get publisher;
 
@@ -284,6 +294,7 @@ $SnPublisherCopyWith<$Res>? get publisher {
 }
 }
 
+
 /// @nodoc
 @JsonSerializable()
 
@@ -326,6 +337,7 @@ String toString() {
   return 'SnStickerPack(id: $id, name: $name, description: $description, prefix: $prefix, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -335,6 +347,7 @@ abstract mixin class _$SnStickerPackCopyWith<$Res> implements $SnStickerPackCopy
 $Res call({
  String id, String name, String description, String prefix, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
 
 @override $SnPublisherCopyWith<$Res>? get publisher;
 

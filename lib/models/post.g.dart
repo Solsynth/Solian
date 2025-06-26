@@ -58,8 +58,16 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
       ) ??
       const {},
   reactions: json['reactions'] as List<dynamic>? ?? const [],
-  tags: json['tags'] as List<dynamic>? ?? const [],
-  categories: json['categories'] as List<dynamic>? ?? const [],
+  tags:
+      (json['tags'] as List<dynamic>?)
+          ?.map((e) => PostTag.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  categories:
+      (json['categories'] as List<dynamic>?)
+          ?.map((e) => PostCategory.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   collections: json['collections'] as List<dynamic>? ?? const [],
   createdAt:
       json['created_at'] == null
@@ -102,8 +110,8 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'publisher': instance.publisher.toJson(),
   'reactions_count': instance.reactionsCount,
   'reactions': instance.reactions,
-  'tags': instance.tags,
-  'categories': instance.categories,
+  'tags': instance.tags.map((e) => e.toJson()).toList(),
+  'categories': instance.categories.map((e) => e.toJson()).toList(),
   'collections': instance.collections,
   'created_at': instance.createdAt?.toIso8601String(),
   'updated_at': instance.updatedAt?.toIso8601String(),

@@ -615,5 +615,9 @@
   "abuseReportTypeOffensiveContent": "Offensive Content",
   "abuseReportTypePrivacyViolation": "Privacy Violation",
   "abuseReportTypeIllegalContent": "Illegal Content",
-  "abuseReportTypeOther": "Other"
+  "abuseReportTypeOther": "Other",
+  "tags": "Tags",
+  "tagsHint": "Enter tags, separated by commas",
+  "categories": "Categories",
+  "categoriesHint": "Enter categories, separated by commas"
 }

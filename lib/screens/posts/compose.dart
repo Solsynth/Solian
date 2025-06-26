@@ -107,6 +107,21 @@ class PostComposeScreen extends HookConsumerWidget {
       [originalPost, effectiveForwardedPost, effectiveRepliedPost],
     );
 
+    // Add a listener to the entire state to trigger rebuilds
+    final stateNotifier = useMemoized(
+        () => Listenable.merge([
+              state.titleController,
+              state.descriptionController,
+              state.contentController,
+              state.visibility,
+              state.attachments,
+              state.attachmentProgress,
+              state.currentPublisher,
+              state.submitting,
+            ]),
+        [state]);
+    useListenable(stateNotifier);
+
     // Start auto-save when component mounts
     useEffect(() {
       if (originalPost == null) {
@@ -184,6 +199,8 @@ class PostComposeScreen extends HookConsumerWidget {
               titleController: state.titleController,
               descriptionController: state.descriptionController,
               visibility: state.visibility,
+              tagsController: state.tagsController,
+              categoriesController: state.categoriesController,
               onVisibilityChanged: () {
                 // Trigger rebuild if needed
               },
@@ -203,22 +220,18 @@ class PostComposeScreen extends HookConsumerWidget {
         ),
         itemCount: state.attachments.value.length,
         itemBuilder: (context, idx) {
-          return ValueListenableBuilder<Map<int, double>>(
-            valueListenable: state.attachmentProgress,
-            builder: (context, progressMap, _) {
-              return AttachmentPreview(
-                item: state.attachments.value[idx],
-                progress: progressMap[idx],
-                onRequestUpload:
-                    () => ComposeLogic.uploadAttachment(ref, state, idx),
-                onDelete: () => ComposeLogic.deleteAttachment(ref, state, idx),
-                onMove: (delta) {
-                  state.attachments.value = ComposeLogic.moveAttachment(
-                    state.attachments.value,
-                    idx,
-                    delta,
-                  );
-                },
+          final progressMap = state.attachmentProgress.value;
+          return AttachmentPreview(
+            item: state.attachments.value[idx],
+            progress: progressMap[idx],
+            onRequestUpload:
+                () => ComposeLogic.uploadAttachment(ref, state, idx),
+            onDelete: () => ComposeLogic.deleteAttachment(ref, state, idx),
+            onMove: (delta) {
+              state.attachments.value = ComposeLogic.moveAttachment(
+                state.attachments.value,
+                idx,
+                delta,
               );
             },
           );
@@ -232,26 +245,24 @@ class PostComposeScreen extends HookConsumerWidget {
           for (var idx = 0; idx < state.attachments.value.length; idx++)
             Container(
               margin: const EdgeInsets.only(bottom: 8),
-              child: ValueListenableBuilder<Map<int, double>>(
-                valueListenable: state.attachmentProgress,
-                builder: (context, progressMap, _) {
-                  return AttachmentPreview(
-                    item: state.attachments.value[idx],
-                    progress: progressMap[idx],
-                    onRequestUpload:
-                        () => ComposeLogic.uploadAttachment(ref, state, idx),
-                    onDelete:
-                        () => ComposeLogic.deleteAttachment(ref, state, idx),
-                    onMove: (delta) {
-                      state.attachments.value = ComposeLogic.moveAttachment(
-                        state.attachments.value,
-                        idx,
-                        delta,
-                      );
-                    },
-                  );
-                },
-              ),
+              child: () {
+                final progressMap = state.attachmentProgress.value;
+                return AttachmentPreview(
+                  item: state.attachments.value[idx],
+                  progress: progressMap[idx],
+                  onRequestUpload:
+                      () => ComposeLogic.uploadAttachment(ref, state, idx),
+                  onDelete:
+                      () => ComposeLogic.deleteAttachment(ref, state, idx),
+                  onMove: (delta) {
+                    state.attachments.value = ComposeLogic.moveAttachment(
+                      state.attachments.value,
+                      idx,
+                      delta,
+                    );
+                  },
+                );
+              }(),
             ),
         ],
       );
@@ -306,14 +317,11 @@ class PostComposeScreen extends HookConsumerWidget {
               onPressed: showSettingsSheet,
               tooltip: 'postSettings'.tr(),
             ),
-            ValueListenableBuilder<bool>(
-              valueListenable: state.submitting,
-              builder: (context, submitting, _) {
-                return IconButton(
-                  onPressed:
-                      submitting
-                          ? null
-                          : () => ComposeLogic.performAction(
+            IconButton(
+              onPressed:
+                  state.submitting.value
+                      ? null
+                      : () => ComposeLogic.performAction(
                             ref,
                             state,
                             context,
@@ -322,23 +330,21 @@ class PostComposeScreen extends HookConsumerWidget {
                             forwardedPost: forwardedPost,
                             postType: 0, // Regular post type
                           ),
-                  icon:
-                      submitting
-                          ? SizedBox(
-                            width: 28,
-                            height: 28,
-                            child: const CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          ).center()
-                          : Icon(
-                            originalPost != null
-                                ? Symbols.edit
-                                : Symbols.upload,
-                          ),
-                );
-              },
+              icon:
+                  state.submitting.value
+                      ? SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      ).center()
+                      : Icon(
+                        originalPost != null
+                            ? Symbols.edit
+                            : Symbols.upload,
+                      ),
             ),
             const Gap(8),
           ],
@@ -420,22 +426,17 @@ class PostComposeScreen extends HookConsumerWidget {
                             const Gap(8),
 
                             // Attachments preview
-                            ValueListenableBuilder<List<UniversalFile>>(
-                              valueListenable: state.attachments,
-                              builder: (context, attachments, _) {
-                                if (attachments.isEmpty) {
-                                  return const SizedBox.shrink();
-                                }
-                                return LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final isWide = isWideScreen(context);
-                                    return isWide
-                                        ? buildWideAttachmentGrid()
-                                        : buildNarrowAttachmentList();
-                                  },
-                                );
-                              },
-                            ),
+                            if (state.attachments.value.isNotEmpty)
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final isWide = isWideScreen(context);
+                                  return isWide
+                                      ? buildWideAttachmentGrid()
+                                      : buildNarrowAttachmentList();
+                                },
+                              )
+                            else
+                              const SizedBox.shrink(),
                           ],
                         ),
                       ),

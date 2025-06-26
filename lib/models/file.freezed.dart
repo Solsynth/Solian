@@ -26,6 +26,7 @@ $UniversalFileCopyWith<UniversalFile> get copyWith => _$UniversalFileCopyWithImp
   /// Serializes this UniversalFile to a JSON map.
   Map<String, dynamic> toJson();
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is UniversalFile&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.type, type) || other.type == type));
@@ -40,6 +41,7 @@ String toString() {
   return 'UniversalFile(data: $data, type: $type)';
 }
 
+
 }
 
 /// @nodoc
@@ -49,6 +51,9 @@ abstract mixin class $UniversalFileCopyWith<$Res>  {
 $Res call({
  dynamic data, UniversalFileType type
 });
+
+
+
 
 }
 /// @nodoc
@@ -70,6 +75,7 @@ as UniversalFileType,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -106,6 +112,7 @@ String toString() {
   return 'UniversalFile(data: $data, type: $type)';
 }
 
+
 }
 
 /// @nodoc
@@ -115,6 +122,9 @@ abstract mixin class _$UniversalFileCopyWith<$Res> implements $UniversalFileCopy
 $Res call({
  dynamic data, UniversalFileType type
 });
+
+
+
 
 }
 /// @nodoc
@@ -135,7 +145,9 @@ as UniversalFileType,
   ));
 }
 
+
 }
+
 
 /// @nodoc
 mixin _$SnCloudFile {
@@ -149,6 +161,7 @@ $SnCloudFileCopyWith<SnCloudFile> get copyWith => _$SnCloudFileCopyWithImpl<SnCl
 
   /// Serializes this SnCloudFile to a JSON map.
   Map<String, dynamic> toJson();
+
 
 @override
 bool operator ==(Object other) {
@@ -164,6 +177,7 @@ String toString() {
   return 'SnCloudFile(id: $id, name: $name, description: $description, fileMeta: $fileMeta, userMeta: $userMeta, mimeType: $mimeType, hash: $hash, size: $size, uploadedAt: $uploadedAt, uploadedTo: $uploadedTo, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -173,6 +187,9 @@ abstract mixin class $SnCloudFileCopyWith<$Res>  {
 $Res call({
  String id, String name, String? description, Map<String, dynamic>? fileMeta, Map<String, dynamic>? userMeta, String? mimeType, String? hash, int size, DateTime? uploadedAt, String? uploadedTo, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -205,6 +222,7 @@ as DateTime?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -268,6 +286,7 @@ String toString() {
   return 'SnCloudFile(id: $id, name: $name, description: $description, fileMeta: $fileMeta, userMeta: $userMeta, mimeType: $mimeType, hash: $hash, size: $size, uploadedAt: $uploadedAt, uploadedTo: $uploadedTo, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
+
 }
 
 /// @nodoc
@@ -277,6 +296,9 @@ abstract mixin class _$SnCloudFileCopyWith<$Res> implements $SnCloudFileCopyWith
 $Res call({
  String id, String name, String? description, Map<String, dynamic>? fileMeta, Map<String, dynamic>? userMeta, String? mimeType, String? hash, int size, DateTime? uploadedAt, String? uploadedTo, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
+
+
+
 
 }
 /// @nodoc
@@ -307,6 +329,7 @@ as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ign
 as DateTime?,
   ));
 }
+
 
 }
 

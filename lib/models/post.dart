@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/file.dart';
+import 'package:island/models/post_category.dart';
+import 'package:island/models/post_tag.dart';
 import 'package:island/models/user.dart';
 
 part 'post.freezed.dart';
@@ -33,8 +35,8 @@ sealed class SnPost with _$SnPost {
     @Default(SnPublisher()) SnPublisher publisher,
     @Default({}) Map<String, int> reactionsCount,
     @Default([]) List<dynamic> reactions,
-    @Default([]) List<dynamic> tags,
-    @Default([]) List<dynamic> categories,
+    @Default([]) List<PostTag> tags,
+    @Default([]) List<PostCategory> categories,
     @Default([]) List<dynamic> collections,
     @Default(null) DateTime? createdAt,
     @Default(null) DateTime? updatedAt,

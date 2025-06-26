@@ -22,10 +22,13 @@ mixin _$StickerWithPackQuery {
 @pragma('vm:prefer-inline')
 $StickerWithPackQueryCopyWith<StickerWithPackQuery> get copyWith => _$StickerWithPackQueryCopyWithImpl<StickerWithPackQuery>(this as StickerWithPackQuery, _$identity);
 
+
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is StickerWithPackQuery&&(identical(other.packId, packId) || other.packId == packId)&&(identical(other.id, id) || other.id == id));
 }
+
 
 @override
 int get hashCode => Object.hash(runtimeType,packId,id);
@@ -34,6 +37,7 @@ int get hashCode => Object.hash(runtimeType,packId,id);
 String toString() {
   return 'StickerWithPackQuery(packId: $packId, id: $id)';
 }
+
 
 }
 
@@ -44,6 +48,9 @@ abstract mixin class $StickerWithPackQueryCopyWith<$Res>  {
 $Res call({
  String packId, String id
 });
+
+
+
 
 }
 /// @nodoc
@@ -66,7 +73,9 @@ as String,
 
 }
 
+
 /// @nodoc
+
 
 class _StickerWithPackQuery implements StickerWithPackQuery {
   const _StickerWithPackQuery({required this.packId, required this.id});
@@ -81,10 +90,13 @@ class _StickerWithPackQuery implements StickerWithPackQuery {
 @pragma('vm:prefer-inline')
 _$StickerWithPackQueryCopyWith<_StickerWithPackQuery> get copyWith => __$StickerWithPackQueryCopyWithImpl<_StickerWithPackQuery>(this, _$identity);
 
+
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _StickerWithPackQuery&&(identical(other.packId, packId) || other.packId == packId)&&(identical(other.id, id) || other.id == id));
 }
+
 
 @override
 int get hashCode => Object.hash(runtimeType,packId,id);
@@ -93,6 +105,7 @@ int get hashCode => Object.hash(runtimeType,packId,id);
 String toString() {
   return 'StickerWithPackQuery(packId: $packId, id: $id)';
 }
+
 
 }
 
@@ -103,6 +116,9 @@ abstract mixin class _$StickerWithPackQueryCopyWith<$Res> implements $StickerWit
 $Res call({
  String packId, String id
 });
+
+
+
 
 }
 /// @nodoc
@@ -122,6 +138,7 @@ as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullabl
 as String,
   ));
 }
+
 
 }
 

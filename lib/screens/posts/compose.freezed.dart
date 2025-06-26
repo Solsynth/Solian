@@ -26,6 +26,7 @@ $PostComposeInitialStateCopyWith<PostComposeInitialState> get copyWith => _$Post
   /// Serializes this PostComposeInitialState to a JSON map.
   Map<String, dynamic> toJson();
 
+
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is PostComposeInitialState&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility));
@@ -40,6 +41,7 @@ String toString() {
   return 'PostComposeInitialState(title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility)';
 }
 
+
 }
 
 /// @nodoc
@@ -49,6 +51,9 @@ abstract mixin class $PostComposeInitialStateCopyWith<$Res>  {
 $Res call({
  String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility
 });
+
+
+
 
 }
 /// @nodoc
@@ -73,6 +78,7 @@ as int?,
 }
 
 }
+
 
 /// @nodoc
 @JsonSerializable()
@@ -118,6 +124,7 @@ String toString() {
   return 'PostComposeInitialState(title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility)';
 }
 
+
 }
 
 /// @nodoc
@@ -127,6 +134,9 @@ abstract mixin class _$PostComposeInitialStateCopyWith<$Res> implements $PostCom
 $Res call({
  String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility
 });
+
+
+
 
 }
 /// @nodoc
@@ -149,6 +159,7 @@ as List<UniversalFile>,visibility: freezed == visibility ? _self.visibility : vi
 as int?,
   ));
 }
+
 
 }
 
