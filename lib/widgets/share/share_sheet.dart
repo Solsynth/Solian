@@ -177,10 +177,10 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       );
 
       // Navigate to compose screen
-        if (mounted) {
-          context.push('/posts/compose', extra: initialState);
-          Navigator.of(context).pop(); // Close the share sheet
-        }
+      if (mounted) {
+        context.push('/posts/compose', extra: initialState);
+        Navigator.of(context).pop(); // Close the share sheet
+      }
     } catch (e) {
       showErrorAlert(e);
     } finally {
@@ -404,132 +404,153 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       heightFactor: 0.75,
       child: Column(
         children: [
-          // Content preview
-          Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'contentToShare'.tr(),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _ContentPreview(content: widget.content),
-              ],
-            ),
-          ),
-
-          // Share options
+          // Share options with keyboard avoidance
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Quick actions row (horizontally scrollable)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'quickActions'.tr(),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleSmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+            child: AnimatedPadding(
+              duration: const Duration(milliseconds: 300),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Content preview
+                    Container(
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'contentToShare'.tr(),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.labelMedium?.copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 80,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: [
-                              _CompactShareOption(
-                                icon: Symbols.post_add,
-                                title: 'post'.tr(),
-                                onTap: _isLoading ? null : _shareToPost,
-                              ),
-                              const SizedBox(width: 12),
-                              _CompactShareOption(
-                                icon: Symbols.content_copy,
-                                title: 'copy'.tr(),
-                                onTap: _isLoading ? null : _copyToClipboard,
-                              ),
-                              if (widget.toSystem) ...<Widget>[
+                          const SizedBox(height: 8),
+                          _ContentPreview(content: widget.content),
+                        ],
+                      ),
+                    ),
+                    // Quick actions row (horizontally scrollable)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'quickActions'.tr(),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleSmall?.copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 80,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: [
+                                _CompactShareOption(
+                                  icon: Symbols.post_add,
+                                  title: 'post'.tr(),
+                                  onTap: _isLoading ? null : _shareToPost,
+                                ),
                                 const SizedBox(width: 12),
                                 _CompactShareOption(
-                                  icon: Symbols.share,
-                                  title: 'share'.tr(),
-                                  onTap: _isLoading ? null : _shareToSystem,
+                                  icon: Symbols.content_copy,
+                                  title: 'copy'.tr(),
+                                  onTap: _isLoading ? null : _copyToClipboard,
                                 ),
+                                if (widget.toSystem) ...<Widget>[
+                                  const SizedBox(width: 12),
+                                  _CompactShareOption(
+                                    icon: Symbols.share,
+                                    title: 'share'.tr(),
+                                    onTap: _isLoading ? null : _shareToSystem,
+                                  ),
+                                ],
                               ],
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Chat section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'sendToChat'.tr(),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleSmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Additional message input
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: TextField(
-                            controller: _messageController,
-                            decoration: InputDecoration(
-                              hintText: 'addAdditionalMessage'.tr(),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
                             ),
-                            maxLines: 3,
-                            minLines: 1,
-                            enabled: !_isLoading,
                           ),
-                        ),
-
-                        _ChatRoomsList(
-                          onChatSelected:
-                              _isLoading ? null : _shareToSpecificChat,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 24),
+
+                    // Chat section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'sendToChat'.tr(),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleSmall?.copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Additional message input
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: TextField(
+                              controller: _messageController,
+                              decoration: InputDecoration(
+                                hintText: 'addAdditionalMessage'.tr(),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              onTapOutside:
+                                  (_) =>
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus(),
+                              maxLines: 3,
+                              minLines: 1,
+                              enabled: !_isLoading,
+                            ),
+                          ),
+
+                          _ChatRoomsList(
+                            onChatSelected:
+                                _isLoading ? null : _shareToSpecificChat,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
           ),
@@ -829,9 +850,7 @@ class _TextPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints(maxHeight: kPreviewMaxHeight),
-      child: SingleChildScrollView(
-        child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
-      ),
+      child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
     );
   }
 }
@@ -1000,13 +1019,11 @@ class _LinkPreview extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: SingleChildScrollView(
-              child: SelectableText(
-                link,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  decoration: TextDecoration.underline,
-                ),
+            child: SelectableText(
+              link,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                decoration: TextDecoration.underline,
               ),
             ),
           ),
@@ -1235,6 +1252,7 @@ void showShareSheet({
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    useRootNavigator: true,
     builder:
         (context) => ShareSheet(
           content: content,
