@@ -27,6 +27,7 @@ class ChipTagInputField extends StatelessWidget {
       decoration: InputDecoration(
         label: Text(labelText).tr(),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        contentPadding: const EdgeInsets.all(16),
         hintText: inputFieldValues.tags.isNotEmpty ? '' : hintText.tr(),
         errorText: inputFieldValues.error,
         prefixIconConstraints: BoxConstraints(
@@ -51,9 +52,7 @@ class ChipTagInputField extends StatelessWidget {
                                 ),
                                 color: Theme.of(context).colorScheme.primary,
                               ),
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 5.0,
-                              ),
+                              margin: const EdgeInsets.only(left: 5),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10.0,
                                 vertical: 5.0,
@@ -72,11 +71,8 @@ class ChipTagInputField extends StatelessWidget {
                                             ).colorScheme.onPrimary,
                                       ),
                                     ),
-                                    onTap: () {
-                                      //print("$tag selected");
-                                    },
                                   ),
-                                  const SizedBox(width: 4.0),
+                                  const Gap(4),
                                   InkWell(
                                     child: const Icon(
                                       Icons.cancel,

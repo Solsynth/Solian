@@ -242,6 +242,47 @@ class PostItem extends HookConsumerWidget {
                                       ? EdgeInsets.only(bottom: 8)
                                       : null,
                             ),
+                          // Render tags and categories if they exist
+                          if (item.tags.isNotEmpty || item.categories.isNotEmpty)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (item.tags.isNotEmpty)
+                                  Wrap(
+                                    children: [
+                                      for (final tag in item.tags)
+                                        InkWell(
+                                          child: Row(
+                                            spacing: 4,
+                                            children: [
+                                              const Icon(Symbols.label, size: 13),
+                                              Text(tag.name ?? '#${tag.slug}')
+                                                  .fontSize(13)
+                                            ],
+                                          ),
+                                          onTap: () {},
+                                        ),
+                                    ],
+                                  ),
+                                if (item.categories.isNotEmpty)
+                                  Wrap(
+                                    children: [
+                                      for (final category in item.categories)
+                                        InkWell(
+                                          child: Row(
+                                            spacing: 4,
+                                            children: [
+                                              const Icon(Symbols.category, size: 13),
+                                              Text(category.name ?? '#${category.slug}')
+                                                  .fontSize(13)
+                                            ],
+                                          ),
+                                          onTap: () {},
+                                        ),
+                                    ],
+                                  ),
+                              ],
+                            ),
                           // Show truncation hint if post is truncated
                           if (item.isTruncated && !isFullPost)
                             _PostTruncateHint().padding(

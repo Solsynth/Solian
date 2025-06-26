@@ -103,30 +103,32 @@ class PostComposeScreen extends HookConsumerWidget {
         originalPost: originalPost,
         forwardedPost: effectiveForwardedPost,
         repliedPost: effectiveRepliedPost,
+        postType: 0, // Regular post type
       ),
       [originalPost, effectiveForwardedPost, effectiveRepliedPost],
     );
 
     // Add a listener to the entire state to trigger rebuilds
     final stateNotifier = useMemoized(
-        () => Listenable.merge([
-              state.titleController,
-              state.descriptionController,
-              state.contentController,
-              state.visibility,
-              state.attachments,
-              state.attachmentProgress,
-              state.currentPublisher,
-              state.submitting,
-            ]),
-        [state]);
+      () => Listenable.merge([
+        state.titleController,
+        state.descriptionController,
+        state.contentController,
+        state.visibility,
+        state.attachments,
+        state.attachmentProgress,
+        state.currentPublisher,
+        state.submitting,
+      ]),
+      [state],
+    );
     useListenable(stateNotifier);
 
     // Start auto-save when component mounts
     useEffect(() {
       if (originalPost == null) {
         // Only auto-save for new posts, not edits
-        state.startAutoSave(ref, postType: 0);
+        state.startAutoSave(ref);
       }
       return () => state.stopAutoSave();
     }, [state]);
@@ -165,13 +167,18 @@ class PostComposeScreen extends HookConsumerWidget {
         final drafts = ref.read(composeStorageNotifierProvider);
         if (drafts.isNotEmpty) {
           final mostRecentDraft = drafts.values.reduce(
-            (a, b) => (a.updatedAt ?? DateTime(0)).isAfter(b.updatedAt ?? DateTime(0)) ? a : b,
+            (a, b) =>
+                (a.updatedAt ?? DateTime(0)).isAfter(b.updatedAt ?? DateTime(0))
+                    ? a
+                    : b,
           );
 
           // Only load if the draft has meaningful content
-          if (mostRecentDraft.content?.isNotEmpty == true || mostRecentDraft.title?.isNotEmpty == true) {
+          if (mostRecentDraft.content?.isNotEmpty == true ||
+              mostRecentDraft.title?.isNotEmpty == true) {
             state.titleController.text = mostRecentDraft.title ?? '';
-            state.descriptionController.text = mostRecentDraft.description ?? '';
+            state.descriptionController.text =
+                mostRecentDraft.description ?? '';
             state.contentController.text = mostRecentDraft.content ?? '';
             state.visibility.value = mostRecentDraft.visibility;
           }
@@ -298,7 +305,8 @@ class PostComposeScreen extends HookConsumerWidget {
                               state.titleController.text = draft.title ?? '';
                               state.descriptionController.text =
                                   draft.description ?? '';
-                              state.contentController.text = draft.content ?? '';
+                              state.contentController.text =
+                                  draft.content ?? '';
                               state.visibility.value = draft.visibility;
                             }
                           },
@@ -322,14 +330,13 @@ class PostComposeScreen extends HookConsumerWidget {
                   state.submitting.value
                       ? null
                       : () => ComposeLogic.performAction(
-                            ref,
-                            state,
-                            context,
-                            originalPost: originalPost,
-                            repliedPost: repliedPost,
-                            forwardedPost: forwardedPost,
-                            postType: 0, // Regular post type
-                          ),
+                        ref,
+                        state,
+                        context,
+                        originalPost: originalPost,
+                        repliedPost: repliedPost,
+                        forwardedPost: forwardedPost,
+                      ),
               icon:
                   state.submitting.value
                       ? SizedBox(
@@ -341,9 +348,7 @@ class PostComposeScreen extends HookConsumerWidget {
                         ),
                       ).center()
                       : Icon(
-                        originalPost != null
-                            ? Symbols.edit
-                            : Symbols.upload,
+                        originalPost != null ? Symbols.edit : Symbols.upload,
                       ),
             ),
             const Gap(8),
@@ -405,7 +410,6 @@ class PostComposeScreen extends HookConsumerWidget {
                                     originalPost: originalPost,
                                     repliedPost: repliedPost,
                                     forwardedPost: forwardedPost,
-                                    postType: 0, // Regular post type
                                   ),
                               child: TextField(
                                 controller: state.contentController,

@@ -122,7 +122,10 @@ dependencies:
   share_plus: ^11.0.0
   receive_sharing_intent: ^1.8.1
   top_snackbar_flutter: ^3.3.0
-  textfield_tags: ^3.0.1
+  textfield_tags:
+   git:
+      url: https://github.com/lionelmennig/textfield_tags.git
+      ref: fixes/allow-controller-re-registration
 
 dev_dependencies:
   flutter_test:

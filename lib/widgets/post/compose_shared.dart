@@ -27,9 +27,10 @@ class ComposeState {
   final ValueNotifier<Map<int, double>> attachmentProgress;
   final ValueNotifier<SnPublisher?> currentPublisher;
   final ValueNotifier<bool> submitting;
-  final StringTagController tagsController;
-  final StringTagController categoriesController;
+  StringTagController tagsController;
+  StringTagController categoriesController;
   final String draftId;
+  int postType;
   Timer? _autoSaveTimer;
 
   ComposeState({
@@ -44,12 +45,13 @@ class ComposeState {
     required this.tagsController,
     required this.categoriesController,
     required this.draftId,
+    this.postType = 0,
   });
 
-  void startAutoSave(WidgetRef ref, {int postType = 0}) {
+  void startAutoSave(WidgetRef ref) {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      ComposeLogic.saveDraftWithoutUpload(ref, this, postType: postType);
+      ComposeLogic.saveDraftWithoutUpload(ref, this);
     });
   }
 
@@ -65,6 +67,7 @@ class ComposeLogic {
     SnPost? forwardedPost,
     SnPost? repliedPost,
     String? draftId,
+    int postType = 0,
   }) {
     final id = draftId ?? DateTime.now().millisecondsSinceEpoch.toString();
     final tagsController = StringTagController();
@@ -110,10 +113,11 @@ class ComposeLogic {
       tagsController: tagsController,
       categoriesController: categoriesController,
       draftId: id,
+      postType: postType,
     );
   }
 
-  static ComposeState createStateFromDraft(SnPost draft) {
+  static ComposeState createStateFromDraft(SnPost draft, {int postType = 0}) {
     final tagsController = StringTagController();
     final categoriesController = StringTagController();
     for (var x in draft.tags) {
@@ -136,14 +140,11 @@ class ComposeLogic {
       tagsController: tagsController,
       categoriesController: categoriesController,
       draftId: draft.id,
+      postType: postType,
     );
   }
 
-  static Future<void> saveDraft(
-    WidgetRef ref,
-    ComposeState state, {
-    int postType = 0,
-  }) async {
+  static Future<void> saveDraft(WidgetRef ref, ComposeState state) async {
     final hasContent =
         state.titleController.text.trim().isNotEmpty ||
         state.descriptionController.text.trim().isNotEmpty ||
@@ -175,7 +176,7 @@ class ComposeLogic {
                   baseUrl: baseUrl,
                   filename:
                       attachment.data.name ??
-                      (postType == 1 ? 'Article media' : 'Post media'),
+                      (state.postType == 1 ? 'Article media' : 'Post media'),
                   mimetype:
                       attachment.data.mimeType ??
                       ComposeLogic.getMimeTypeFromFileType(attachment.type),
@@ -202,7 +203,7 @@ class ComposeLogic {
         publishedAt: DateTime.now(),
         visibility: state.visibility.value,
         content: state.contentController.text,
-        type: postType,
+        type: state.postType,
         meta: null,
         viewsUnique: 0,
         viewsTotal: 0,
@@ -252,9 +253,8 @@ class ComposeLogic {
 
   static Future<void> saveDraftWithoutUpload(
     WidgetRef ref,
-    ComposeState state, {
-    int postType = 0,
-  }) async {
+    ComposeState state,
+  ) async {
     final hasContent =
         state.titleController.text.trim().isNotEmpty ||
         state.descriptionController.text.trim().isNotEmpty ||
@@ -279,7 +279,7 @@ class ComposeLogic {
         publishedAt: DateTime.now(),
         visibility: state.visibility.value,
         content: state.contentController.text,
-        type: postType,
+        type: state.postType,
         meta: null,
         viewsUnique: 0,
         viewsTotal: 0,
@@ -333,54 +333,7 @@ class ComposeLogic {
     BuildContext context,
   ) async {
     try {
-      final draft = SnPost(
-        id: state.draftId,
-        title: state.titleController.text,
-        description: state.descriptionController.text,
-        language: null,
-        editedAt: null,
-        publishedAt: DateTime.now(),
-        visibility: state.visibility.value,
-        content: state.contentController.text,
-        type: 0,
-        meta: null,
-        viewsUnique: 0,
-        viewsTotal: 0,
-        upvotes: 0,
-        downvotes: 0,
-        repliesCount: 0,
-        threadedPostId: null,
-        threadedPost: null,
-        repliedPostId: null,
-        repliedPost: null,
-        forwardedPostId: null,
-        forwardedPost: null,
-        attachments: [], // TODO: Handle attachments
-        publisher: SnPublisher(
-          id: '',
-          type: 0,
-          name: '',
-          nick: '',
-          picture: null,
-          background: null,
-          account: null,
-          accountId: null,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          deletedAt: null,
-          realmId: null,
-          verification: null,
-        ),
-        reactions: [],
-        tags: [],
-        categories: [],
-        collections: [],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        deletedAt: null,
-      );
-
-      await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
+      await saveDraft(ref, state);
 
       if (context.mounted) {
         showSnackBar('draftSaved'.tr());
@@ -535,7 +488,6 @@ class ComposeLogic {
     SnPost? originalPost,
     SnPost? repliedPost,
     SnPost? forwardedPost,
-    int? postType, // 0 for regular post, 1 for article
   }) async {
     if (state.submitting.value) return;
 
@@ -581,7 +533,7 @@ class ComposeLogic {
                 .where((e) => e.isOnCloud)
                 .map((e) => e.data.id)
                 .toList(),
-        if (postType != null) 'type': postType,
+        'type': state.postType,
         if (repliedPost != null) 'replied_post_id': repliedPost.id,
         if (forwardedPost != null) 'forwarded_post_id': forwardedPost.id,
         'tags': state.tagsController.getTags,
@@ -599,7 +551,7 @@ class ComposeLogic {
       );
 
       // Delete draft after successful submission
-      if (postType == 1) {
+      if (state.postType == 1) {
         // Delete article draft
         await ref
             .read(composeStorageNotifierProvider.notifier)
@@ -642,7 +594,6 @@ class ComposeLogic {
     SnPost? originalPost,
     SnPost? repliedPost,
     SnPost? forwardedPost,
-    int? postType,
   }) {
     if (event is! RawKeyDownEvent) return;
 
@@ -663,7 +614,6 @@ class ComposeLogic {
         originalPost: originalPost,
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
-        postType: postType,
       );
     }
   }

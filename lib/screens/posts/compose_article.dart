@@ -60,7 +60,10 @@ class ArticleComposeScreen extends HookConsumerWidget {
 
     final publishers = ref.watch(publishersManagedProvider);
     final state = useMemoized(
-      () => ComposeLogic.createState(originalPost: originalPost),
+      () => ComposeLogic.createState(
+        originalPost: originalPost,
+        postType: 1, // Article type
+      ),
       [originalPost],
     );
 
@@ -70,7 +73,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
       if (originalPost == null) {
         // Only auto-save for new articles, not edits
         autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-          ComposeLogic.saveDraftWithoutUpload(ref, state, postType: 1);
+          ComposeLogic.saveDraftWithoutUpload(ref, state);
         });
       }
       return () {
@@ -78,7 +81,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
         state.stopAutoSave();
         // Save final draft before disposing
         if (originalPost == null) {
-          ComposeLogic.saveDraftWithoutUpload(ref, state, postType: 1);
+          ComposeLogic.saveDraftWithoutUpload(ref, state);
         }
         ComposeLogic.dispose(state);
         autoSaveTimer?.cancel();
@@ -362,7 +365,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
     return PopScope(
       onPopInvoked: (_) {
         if (originalPost == null) {
-          ComposeLogic.saveDraftWithoutUpload(ref, state, postType: 1);
+          ComposeLogic.saveDraftWithoutUpload(ref, state);
         }
       },
       child: AppScaffold(
@@ -410,7 +413,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
               ),
             IconButton(
               icon: const Icon(Symbols.save),
-              onPressed: () => ComposeLogic.saveDraft(ref, state, postType: 1),
+              onPressed: () => ComposeLogic.saveDraft(ref, state),
               tooltip: 'saveDraft'.tr(),
             ),
             IconButton(
@@ -437,7 +440,6 @@ class ArticleComposeScreen extends HookConsumerWidget {
                             state,
                             context,
                             originalPost: originalPost,
-                            postType: 1, // Article type
                           ),
                   icon:
                       submitting
@@ -530,18 +532,17 @@ class ArticleComposeScreen extends HookConsumerWidget {
     if (isPaste && isModifierPressed) {
       ComposeLogic.handlePaste(state);
     } else if (isSave && isModifierPressed) {
-      ComposeLogic.saveDraft(ref, state, postType: 1);
+      ComposeLogic.saveDraft(ref, state);
+      ComposeLogic.saveDraft(ref, state);
     } else if (isSubmit && isModifierPressed && !state.submitting.value) {
       ComposeLogic.performAction(
         ref,
         state,
         context,
         originalPost: originalPost,
-        postType: 1, // Article type
       );
     }
   }
 
   // Helper method to save article draft
-
 }
