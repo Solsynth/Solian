@@ -18,6 +18,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:island/pods/network.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/models/realm.dart';
 
 part 'explore.g.dart';
 
@@ -171,6 +172,129 @@ class ExploreScreen extends HookConsumerWidget {
   }
 }
 
+class _DiscoveryActivityItem extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _DiscoveryActivityItem({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final items =
+        (data['items'] as List)
+            .map((e) => SnRealm.fromJson(e['data'] as Map<String, dynamic>))
+            .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(Symbols.explore, size: 19),
+            const Gap(8),
+            Text(
+              'discoverCommunities'.tr(),
+              style: Theme.of(context).textTheme.titleMedium,
+            ).padding(top: 1),
+          ],
+        ).padding(horizontal: 20, top: 8, bottom: 4),
+        SizedBox(
+          height: 180,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: items.length,
+            padding: const EdgeInsets.only(right: 8),
+            itemBuilder: (context, index) {
+              final realm = items[index];
+              return _RealmCard(realm: realm);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RealmCard extends ConsumerWidget {
+  final SnRealm realm;
+
+  const _RealmCard({required this.realm});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final client = ref.watch(apiClientProvider);
+
+    Widget imageWidget;
+    if (realm.picture != null) {
+      final imageUrl = '${client.options.baseUrl}/files/${realm.picture!.id}';
+      imageWidget = Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
+    } else {
+      imageWidget = Container(
+        color: Theme.of(context).colorScheme.secondaryContainer,
+        child: Center(
+          child: Icon(
+            Symbols.photo_camera,
+            color: Theme.of(context).colorScheme.onSecondaryContainer,
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      margin: const EdgeInsets.only(left: 16, bottom: 8, top: 8),
+      child: InkWell(
+        onTap: () {
+          context.push('/realms/${realm.slug}');
+        },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: AspectRatio(
+            aspectRatio: 16 / 7,
+            child: Stack(
+              children: [
+                imageWidget,
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.7),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      realm.name,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ActivityListView extends HookConsumerWidget {
   final CursorPagingData<SnActivity> data;
   final int widgetCount;
@@ -214,10 +338,14 @@ class _ActivityListView extends HookConsumerWidget {
                 itemWidget = PostItem(
                   backgroundColor:
                       isWideScreen(context) ? Colors.transparent : null,
-                  item: SnPost.fromJson(item.data),
+                  item: SnPost.fromJson(item.data!),
                   padding:
                       isReply
-                          ? EdgeInsets.only(left: 16, right: 16, bottom: 16)
+                          ? const EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            bottom: 16,
+                          )
                           : null,
                   onRefresh: (_) {
                     activitiesNotifier.forceRefresh();
@@ -244,6 +372,9 @@ class _ActivityListView extends HookConsumerWidget {
                     ],
                   );
                 }
+                break;
+              case 'discovery':
+                itemWidget = _DiscoveryActivityItem(data: item.data!);
                 break;
               default:
                 itemWidget = const Placeholder();
