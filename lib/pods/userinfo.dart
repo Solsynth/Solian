@@ -32,7 +32,6 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
     state = const AsyncValue.data(null);
     final prefs = _ref.read(sharedPreferencesProvider);
     await prefs.remove(kTokenPairStoreKey);
-    _ref.invalidate(userInfoProvider);
     _ref.invalidate(tokenProvider);
   }
 }
