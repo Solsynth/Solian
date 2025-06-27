@@ -584,8 +584,8 @@ class _ChatMemberListSheet extends HookConsumerWidget {
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
-        isScrollControlled: true,
         context: context,
+        useRootNavigator: true,
         builder: (context) => const AccountPickerSheet(),
       );
       if (result == null) return;

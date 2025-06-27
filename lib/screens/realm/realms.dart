@@ -70,7 +70,7 @@ class RealmListScreen extends HookConsumerWidget {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
-                builder: (_) => _RealmInviteSheet(),
+                builder: (_) => const _RealmInviteSheet(),
               );
             },
           ),
@@ -78,7 +78,7 @@ class RealmListScreen extends HookConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        heroTag: Key("realms-page-fab"),
+        heroTag: const Key("realms-page-fab"),
         child: const Icon(Symbols.add),
         onPressed: () {
           context.push('/realms/new').then((value) {
@@ -110,7 +110,7 @@ class RealmListScreen extends HookConsumerWidget {
                           onTap: () {
                             context.push('/realms/${value[item].slug}');
                           },
-                          contentPadding: EdgeInsets.only(
+                          contentPadding: const EdgeInsets.only(
                             left: 16,
                             right: 14,
                             top: 8,
@@ -162,6 +162,8 @@ class EditRealmScreen extends HookConsumerWidget {
 
     final picture = useState<SnCloudFile?>(null);
     final background = useState<SnCloudFile?>(null);
+    final isPublic = useState(true);
+    final isCommunity = useState(false);
 
     final slugController = useTextEditingController();
     final nameController = useTextEditingController();
@@ -178,6 +180,8 @@ class EditRealmScreen extends HookConsumerWidget {
         slugController.text = realm.value!.slug;
         nameController.text = realm.value!.name;
         descriptionController.text = realm.value!.description;
+        isPublic.value = realm.value!.isPublic;
+        isCommunity.value = realm.value!.isCommunity;
       }
       return null;
     }, [realm]);
@@ -198,9 +202,9 @@ class EditRealmScreen extends HookConsumerWidget {
         image: result,
         allowedAspectRatios: [
           if (position == 'background')
-            CropAspectRatio(height: 7, width: 16)
+            const CropAspectRatio(height: 7, width: 16)
           else
-            CropAspectRatio(height: 1, width: 1),
+            const CropAspectRatio(height: 1, width: 1),
         ],
       );
       if (result == null) {
@@ -256,6 +260,8 @@ class EditRealmScreen extends HookConsumerWidget {
             'description': descriptionController.text,
             'background_id': background.value?.id,
             'picture_id': picture.value?.id,
+            'is_public': isPublic.value,
+            'is_community': isCommunity.value,
           },
           options: Options(method: slug == null ? 'POST' : 'PATCH'),
         );
@@ -288,9 +294,9 @@ class EditRealmScreen extends HookConsumerWidget {
                     child:
                         background.value != null
                             ? CloudFileWidget(
-                              item: background.value!,
-                              fit: BoxFit.cover,
-                            )
+                                item: background.value!,
+                                fit: BoxFit.cover,
+                              )
                             : const SizedBox.shrink(),
                   ),
                   onTap: () {
@@ -318,7 +324,6 @@ class EditRealmScreen extends HookConsumerWidget {
             key: formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 16,
               children: [
                 TextFormField(
                   controller: slugController,
@@ -329,12 +334,14 @@ class EditRealmScreen extends HookConsumerWidget {
                   onTapOutside:
                       (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: nameController,
                   decoration: InputDecoration(labelText: 'name'.tr()),
                   onTapOutside:
                       (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: descriptionController,
                   decoration: InputDecoration(labelText: 'description'.tr()),
@@ -343,6 +350,20 @@ class EditRealmScreen extends HookConsumerWidget {
                   onTapOutside:
                       (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
+                const SizedBox(height: 16),
+                CheckboxListTile(
+                  title: const Text('isPublic').tr(),
+                  subtitle: const Text('isPublicHint').tr(),
+                  value: isPublic.value,
+                  onChanged: (value) => isPublic.value = value ?? false,
+                ),
+                CheckboxListTile(
+                  title: const Text('isCommunity').tr(),
+                  subtitle: const Text('isCommunityHint').tr(),
+                  value: isCommunity.value,
+                  onChanged: (value) => isCommunity.value = value ?? false,
+                ),
+                const SizedBox(height: 16),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton.icon(
@@ -414,47 +435,47 @@ class _RealmInviteSheet extends HookConsumerWidget {
             (items) =>
                 items.isEmpty
                     ? Center(
-                      child:
-                          Text(
-                            'invitesEmpty',
-                            textAlign: TextAlign.center,
-                          ).tr(),
-                    )
+                        child:
+                            Text(
+                              'invitesEmpty',
+                              textAlign: TextAlign.center,
+                            ).tr(),
+                      )
                     : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final invite = items[index];
-                        return ListTile(
-                          leading: ProfilePictureWidget(
-                            fileId: invite.realm!.picture?.id,
-                            fallbackIcon: Symbols.group,
-                          ),
-                          title: Text(invite.realm!.name),
-                          subtitle:
-                              Text(
-                                invite.role >= 100
-                                    ? 'permissionOwner'
-                                    : invite.role >= 50
-                                    ? 'permissionModerator'
-                                    : 'permissionMember',
-                              ).tr(),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Symbols.check),
-                                onPressed: () => acceptInvite(invite),
-                              ),
-                              IconButton(
-                                icon: const Icon(Symbols.close),
-                                onPressed: () => declineInvite(invite),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                        shrinkWrap: true,
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          final invite = items[index];
+                          return ListTile(
+                            leading: ProfilePictureWidget(
+                              fileId: invite.realm!.picture?.id,
+                              fallbackIcon: Symbols.group,
+                            ),
+                            title: Text(invite.realm!.name),
+                            subtitle:
+                                Text(
+                                  invite.role >= 100
+                                      ? 'permissionOwner'
+                                      : invite.role >= 50
+                                      ? 'permissionModerator'
+                                      : 'permissionMember',
+                                ).tr(),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Symbols.check),
+                                  onPressed: () => acceptInvite(invite),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Symbols.close),
+                                  onPressed: () => declineInvite(invite),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error:
             (error, _) => ResponseErrorWidget(

@@ -201,15 +201,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const ChatListScreen(),
                 routes: [
                   GoRoute(
+                    path: 'new',
+                    builder: (context, state) => const NewChatScreen(),
+                  ),
+                  GoRoute(
                     path: ':id',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return ChatRoomScreen(id: id);
                     },
-                  ),
-                  GoRoute(
-                    path: 'new',
-                    builder: (context, state) => const NewChatScreen(),
                   ),
                   GoRoute(
                     path: ':id/edit',

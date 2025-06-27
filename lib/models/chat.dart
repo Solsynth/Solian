@@ -14,6 +14,7 @@ sealed class SnChatRoom with _$SnChatRoom {
     required String? description,
     required int type,
     required bool isPublic,
+    required bool isCommunity,
     required SnCloudFile? picture,
     required SnCloudFile? background,
     required String? realmId,

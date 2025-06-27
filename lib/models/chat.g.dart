@@ -12,6 +12,7 @@ _SnChatRoom _$SnChatRoomFromJson(Map<String, dynamic> json) => _SnChatRoom(
   description: json['description'] as String?,
   type: (json['type'] as num).toInt(),
   isPublic: json['is_public'] as bool,
+  isCommunity: json['is_community'] as bool,
   picture:
       json['picture'] == null
           ? null
@@ -44,6 +45,7 @@ Map<String, dynamic> _$SnChatRoomToJson(_SnChatRoom instance) =>
       'description': instance.description,
       'type': instance.type,
       'is_public': instance.isPublic,
+      'is_community': instance.isCommunity,
       'picture': instance.picture?.toJson(),
       'background': instance.background?.toJson(),
       'realm_id': instance.realmId,

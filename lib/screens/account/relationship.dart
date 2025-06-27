@@ -215,6 +215,7 @@ class RelationshipScreen extends HookConsumerWidget {
     Future<void> addFriend() async {
       final result = await showModalBottomSheet(
         context: context,
+        useRootNavigator: true,
         builder: (context) => AccountPickerSheet(),
       );
       if (result == null) return;

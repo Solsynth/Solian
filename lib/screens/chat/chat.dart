@@ -186,7 +186,7 @@ class ChatShellScreen extends HookConsumerWidget {
         child: Row(
           children: [
             Flexible(flex: 2, child: ChatListScreen(isAside: true)),
-            VerticalDivider(width: 1),
+            const VerticalDivider(width: 1),
             Flexible(flex: 4, child: child),
           ],
         ),
@@ -227,7 +227,8 @@ class ChatListScreen extends HookConsumerWidget {
     Future<void> createDirectMessage() async {
       final result = await showModalBottomSheet(
         context: context,
-        builder: (context) => AccountPickerSheet(),
+        useRootNavigator: true,
+        builder: (context) => const AccountPickerSheet(),
       );
       if (result == null) return;
       final client = ref.read(apiClientProvider);
@@ -242,7 +243,7 @@ class ChatListScreen extends HookConsumerWidget {
     return AppScaffold(
       extendBody: false, // Prevent conflicts with tabs navigation
       appBar: AppBar(
-        title: Text('chat').tr(),
+        title: const Text('chat').tr(),
         bottom: TabBar(
           controller: tabController,
           tabs: [
@@ -296,7 +297,7 @@ class ChatListScreen extends HookConsumerWidget {
               showModalBottomSheet(
                 isScrollControlled: true,
                 context: context,
-                builder: (context) => _ChatInvitesSheet(),
+                builder: (context) => const _ChatInvitesSheet(),
               );
             },
           ),
@@ -307,13 +308,14 @@ class ChatListScreen extends HookConsumerWidget {
         onPressed: () {
           showModalBottomSheet(
             context: context,
+            useRootNavigator: true,
             builder:
                 (context) => Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ListTile(
-                      title: Text('createChatRoom').tr(),
+                      title: const Text('createChatRoom').tr(),
                       leading: const Icon(Symbols.add),
                       onTap: () {
                         Navigator.pop(context);
@@ -325,7 +327,7 @@ class ChatListScreen extends HookConsumerWidget {
                       },
                     ),
                     ListTile(
-                      title: Text('createDirectMessage').tr(),
+                      title: const Text('createDirectMessage').tr(),
                       leading: const Icon(Symbols.person),
                       onTap: () {
                         Navigator.pop(context);
@@ -450,7 +452,7 @@ class NewChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return EditChatScreen();
+    return const EditChatScreen();
   }
 }
 
@@ -468,6 +470,8 @@ class EditChatScreen extends HookConsumerWidget {
     final descriptionController = useTextEditingController();
     final picture = useState<SnCloudFile?>(null);
     final background = useState<SnCloudFile?>(null);
+    final isPublic = useState(true);
+    final isCommunity = useState(false);
 
     final chat = ref.watch(chatroomProvider(id));
 
@@ -480,12 +484,14 @@ class EditChatScreen extends HookConsumerWidget {
         descriptionController.text = chat.value!.description ?? '';
         picture.value = chat.value!.picture;
         background.value = chat.value!.background;
+        isPublic.value = chat.value!.isPublic;
+        isCommunity.value = chat.value!.isCommunity;
         currentRealm.value = joinedRealms.value?.firstWhereOrNull(
           (realm) => realm.id == chat.value!.realmId,
         );
       }
       return;
-    }, [chat]);
+    }, [chat, joinedRealms]);
 
     void setPicture(String position) async {
       showLoadingModal(context);
@@ -503,9 +509,9 @@ class EditChatScreen extends HookConsumerWidget {
         image: result,
         allowedAspectRatios: [
           if (position == 'background')
-            CropAspectRatio(height: 7, width: 16)
+            const CropAspectRatio(height: 7, width: 16)
           else
-            CropAspectRatio(height: 1, width: 1),
+            const CropAspectRatio(height: 1, width: 1),
         ],
       );
       if (result == null) {
@@ -562,6 +568,8 @@ class EditChatScreen extends HookConsumerWidget {
             'background_id': background.value?.id,
             'picture_id': picture.value?.id,
             'realm_id': currentRealm.value?.id,
+            'is_public': isPublic.value,
+            'is_community': isCommunity.value,
           },
           options: Options(method: id == null ? 'POST' : 'PATCH'),
         );
@@ -652,6 +660,19 @@ class EditChatScreen extends HookConsumerWidget {
                   maxLines: null,
                   onTapOutside:
                       (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                ),
+                const SizedBox(height: 16),
+                CheckboxListTile(
+                  title: const Text('isPublic').tr(),
+                  subtitle: const Text('isPublicHint').tr(),
+                  value: isPublic.value,
+                  onChanged: (value) => isPublic.value = value ?? false,
+                ),
+                CheckboxListTile(
+                  title: const Text('isCommunity').tr(),
+                  subtitle: const Text('isCommunityHint').tr(),
+                  value: isCommunity.value,
+                  onChanged: (value) => isCommunity.value = value ?? false,
                 ),
                 const SizedBox(height: 16),
                 Align(
@@ -754,7 +775,7 @@ class _ChatInvitesSheet extends HookConsumerWidget {
                               ),
                               if (invite.chatRoom!.type == 1)
                                 Badge(
-                                  label: Text('directMessage').tr(),
+                                  label: const Text('directMessage').tr(),
                                   backgroundColor:
                                       Theme.of(context).colorScheme.primary,
                                   textColor:

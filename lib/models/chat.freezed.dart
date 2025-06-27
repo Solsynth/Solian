@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnChatRoom {
 
- String get id; String? get name; String? get description; int get type; bool get isPublic; SnCloudFile? get picture; SnCloudFile? get background; String? get realmId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members;
+ String get id; String? get name; String? get description; int get type; bool get isPublic; bool get isCommunity; SnCloudFile? get picture; SnCloudFile? get background; String? get realmId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members;
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $SnChatRoomCopyWith<SnChatRoom> get copyWith => _$SnChatRoomCopyWithImpl<SnChatR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatRoom&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.members, members));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatRoom&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.isCommunity, isCommunity) || other.isCommunity == isCommunity)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.members, members));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,type,isPublic,picture,background,realmId,realm,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(members));
+int get hashCode => Object.hash(runtimeType,id,name,description,type,isPublic,isCommunity,picture,background,realmId,realm,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(members));
 
 @override
 String toString() {
-  return 'SnChatRoom(id: $id, name: $name, description: $description, type: $type, isPublic: $isPublic, picture: $picture, background: $background, realmId: $realmId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members)';
+  return 'SnChatRoom(id: $id, name: $name, description: $description, type: $type, isPublic: $isPublic, isCommunity: $isCommunity, picture: $picture, background: $background, realmId: $realmId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $SnChatRoomCopyWith<$Res>  {
   factory $SnChatRoomCopyWith(SnChatRoom value, $Res Function(SnChatRoom) _then) = _$SnChatRoomCopyWithImpl;
 @useResult
 $Res call({
- String id, String? name, String? description, int type, bool isPublic, SnCloudFile? picture, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
+ String id, String? name, String? description, int type, bool isPublic, bool isCommunity, SnCloudFile? picture, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
 });
 
 
@@ -66,13 +66,14 @@ class _$SnChatRoomCopyWithImpl<$Res>
 
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? type = null,Object? isPublic = null,Object? picture = freezed,Object? background = freezed,Object? realmId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? type = null,Object? isPublic = null,Object? isCommunity = null,Object? picture = freezed,Object? background = freezed,Object? realmId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
+as bool,isCommunity: null == isCommunity ? _self.isCommunity : isCommunity // ignore: cast_nullable_to_non_nullable
 as bool,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
@@ -128,7 +129,7 @@ $SnRealmCopyWith<$Res>? get realm {
 @JsonSerializable()
 
 class _SnChatRoom implements SnChatRoom {
-  const _SnChatRoom({required this.id, required this.name, required this.description, required this.type, required this.isPublic, required this.picture, required this.background, required this.realmId, required this.realm, required this.createdAt, required this.updatedAt, required this.deletedAt, required final  List<SnChatMember>? members}): _members = members;
+  const _SnChatRoom({required this.id, required this.name, required this.description, required this.type, required this.isPublic, required this.isCommunity, required this.picture, required this.background, required this.realmId, required this.realm, required this.createdAt, required this.updatedAt, required this.deletedAt, required final  List<SnChatMember>? members}): _members = members;
   factory _SnChatRoom.fromJson(Map<String, dynamic> json) => _$SnChatRoomFromJson(json);
 
 @override final  String id;
@@ -136,6 +137,7 @@ class _SnChatRoom implements SnChatRoom {
 @override final  String? description;
 @override final  int type;
 @override final  bool isPublic;
+@override final  bool isCommunity;
 @override final  SnCloudFile? picture;
 @override final  SnCloudFile? background;
 @override final  String? realmId;
@@ -166,16 +168,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatRoom&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._members, _members));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatRoom&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.isCommunity, isCommunity) || other.isCommunity == isCommunity)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._members, _members));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,type,isPublic,picture,background,realmId,realm,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(_members));
+int get hashCode => Object.hash(runtimeType,id,name,description,type,isPublic,isCommunity,picture,background,realmId,realm,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(_members));
 
 @override
 String toString() {
-  return 'SnChatRoom(id: $id, name: $name, description: $description, type: $type, isPublic: $isPublic, picture: $picture, background: $background, realmId: $realmId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members)';
+  return 'SnChatRoom(id: $id, name: $name, description: $description, type: $type, isPublic: $isPublic, isCommunity: $isCommunity, picture: $picture, background: $background, realmId: $realmId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members)';
 }
 
 
@@ -186,7 +188,7 @@ abstract mixin class _$SnChatRoomCopyWith<$Res> implements $SnChatRoomCopyWith<$
   factory _$SnChatRoomCopyWith(_SnChatRoom value, $Res Function(_SnChatRoom) _then) = __$SnChatRoomCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? name, String? description, int type, bool isPublic, SnCloudFile? picture, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
+ String id, String? name, String? description, int type, bool isPublic, bool isCommunity, SnCloudFile? picture, SnCloudFile? background, String? realmId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members
 });
 
 
@@ -203,13 +205,14 @@ class __$SnChatRoomCopyWithImpl<$Res>
 
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? type = null,Object? isPublic = null,Object? picture = freezed,Object? background = freezed,Object? realmId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? type = null,Object? isPublic = null,Object? isCommunity = null,Object? picture = freezed,Object? background = freezed,Object? realmId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,}) {
   return _then(_SnChatRoom(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
+as bool,isCommunity: null == isCommunity ? _self.isCommunity : isCommunity // ignore: cast_nullable_to_non_nullable
 as bool,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
