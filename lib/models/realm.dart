@@ -11,7 +11,7 @@ sealed class SnRealm with _$SnRealm {
     required String id,
     required String slug,
     required String name,
-    required String description,
+    @Default('') String description,
     required String? verifiedAs,
     required DateTime? verifiedAt,
     required bool isCommunity,

@@ -200,7 +200,7 @@ class AccountScreen extends HookConsumerWidget {
                 ],
               ),
               onTap: () {
-                context.push('/notification');
+                context.push('/account/notifications');
               },
             ),
             ListTile(

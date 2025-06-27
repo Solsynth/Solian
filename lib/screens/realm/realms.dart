@@ -47,6 +47,10 @@ class RealmListScreen extends HookConsumerWidget {
         title: const Text('realms').tr(),
         actions: [
           IconButton(
+            icon: const Icon(Symbols.travel_explore),
+            onPressed: () => context.push('/discovery/realms'),
+          ),
+          IconButton(
             icon: Badge(
               label: Text(
                 realmInvites.when(

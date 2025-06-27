@@ -41,9 +41,16 @@ Future<Color?> realmAppbarForegroundColor(Ref ref, String realmSlug) async {
 
 @riverpod
 Future<SnRealmMember?> realmIdentity(Ref ref, String realmSlug) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/realms/$realmSlug/members/me');
-  return SnRealmMember.fromJson(response.data);
+  try {
+    final apiClient = ref.watch(apiClientProvider);
+    final response = await apiClient.get('/realms/$realmSlug/members/me');
+    return SnRealmMember.fromJson(response.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null; // No identity found, user is not a member
+    }
+    rethrow;
+  }
 }
 
 @riverpod
@@ -135,12 +142,14 @@ class RealmDetailScreen extends HookConsumerWidget {
                                   tilePadding: EdgeInsets.symmetric(
                                     horizontal: 20,
                                   ),
+                                  expandedCrossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     Text(
                                       realm.description,
                                       style: const TextStyle(fontSize: 16),
                                     ).padding(
-                                      horizontal: 16,
+                                      horizontal: 20,
                                       bottom: 16,
                                       top: 8,
                                     ),
@@ -160,13 +169,14 @@ class RealmDetailScreen extends HookConsumerWidget {
                                           realmIdentityProvider(slug),
                                         );
                                         ref.invalidate(realmsJoinedProvider);
+                                        showSnackBar('joinRealmSuccess'.tr());
                                       } catch (err) {
                                         showErrorAlert(err);
                                       }
                                     },
                                     icon: const Icon(Symbols.add),
                                     label: const Text('joinRealm').tr(),
-                                  ).padding(horizontal: 16, vertical: 4)
+                                  ).padding(horizontal: 16, vertical: 8)
                                 else
                                   const SizedBox.shrink(),
                               ],

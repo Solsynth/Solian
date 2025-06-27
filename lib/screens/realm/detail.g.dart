@@ -155,7 +155,7 @@ class _RealmAppbarForegroundColorProviderElement
       (origin as RealmAppbarForegroundColorProvider).realmSlug;
 }
 
-String _$realmIdentityHash() => r'eac6e829b5b46bcfadbf201ab6f918d78c894b9f';
+String _$realmIdentityHash() => r'308d43eef8a6145c762d27bdf7e12e27149524db';
 
 /// See also [realmIdentity].
 @ProviderFor(realmIdentity)

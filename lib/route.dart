@@ -31,6 +31,7 @@ import 'package:island/screens/settings.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/screens/realm/detail.dart';
 import 'package:island/screens/account/event_calendar.dart';
+import 'package:island/screens/discovery/realms.dart';
 
 // Shell route keys for nested navigation
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -105,10 +106,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   final packId = state.pathParameters['packId']!;
-                  return EditStickerPacksScreen(
-                    pubName: name,
-                    packId: packId,
-                  );
+                  return EditStickerPacksScreen(pubName: name, packId: packId);
                 },
               ),
               GoRoute(
@@ -190,6 +188,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                       return PublisherProfileScreen(name: name);
                     },
                   ),
+                  GoRoute(
+                    path: 'discovery/realms',
+                    builder: (context, state) => const DiscoveryRealmsScreen(),
+                  ),
                 ],
               ),
 
@@ -227,9 +229,9 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
 
               // Realms tab
-               GoRoute(
-                 path: '/realms',
-                 builder: (context, state) => const RealmListScreen(),
+              GoRoute(
+                path: '/realms',
+                builder: (context, state) => const RealmListScreen(),
                 routes: [
                   GoRoute(
                     path: 'new',

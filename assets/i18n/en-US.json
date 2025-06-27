@@ -98,7 +98,9 @@
   "explore": "Explore",
   "exploreFilterSubscriptions": "Subscriptions",
   "exploreFilterFriends": "Friends",
-  "discoverCommunities": "Discover Communities",
+  "discover": "Discover",
+  "discoverRealms": "Discover Realms",
+  "joinRealm": "Join Realm",
   "account": "Account",
   "name": "Name",
   "slug": "Slug",
@@ -621,5 +623,5 @@
   "tagsHint": "Enter tags, separated by commas",
   "categories": "Categories",
   "categoriesHint": "Enter categories, separated by commas",
-  "joinRealm": "Join the Realm"
+  "joinRealmSuccess": "Successfully joined realm!"
 }

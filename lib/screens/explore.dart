@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
+import 'package:island/models/realm.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -17,8 +18,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/realm/realm_card.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:island/models/realm.dart';
 
 part 'explore.g.dart';
 
@@ -206,91 +207,11 @@ class _DiscoveryActivityItem extends StatelessWidget {
             padding: const EdgeInsets.only(right: 8),
             itemBuilder: (context, index) {
               final realm = items[index];
-              return _RealmCard(realm: realm);
+              return RealmCard(realm: realm);
             },
           ),
         ),
       ],
-    );
-  }
-}
-
-class _RealmCard extends ConsumerWidget {
-  final SnRealm realm;
-
-  const _RealmCard({required this.realm});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final client = ref.watch(apiClientProvider);
-
-    Widget imageWidget;
-    if (realm.picture != null) {
-      final imageUrl = '${client.options.baseUrl}/files/${realm.picture!.id}';
-      imageWidget = Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-      );
-    } else {
-      imageWidget = Container(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        child: Center(
-          child: Icon(
-            Symbols.photo_camera,
-            color: Theme.of(context).colorScheme.onSecondaryContainer,
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      margin: const EdgeInsets.only(left: 16, bottom: 8, top: 8),
-      child: InkWell(
-        onTap: () {
-          context.push('/realms/${realm.slug}');
-        },
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 280),
-          child: AspectRatio(
-            aspectRatio: 16 / 7,
-            child: Stack(
-              children: [
-                imageWidget,
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.7),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child: Text(
-                      realm.name,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

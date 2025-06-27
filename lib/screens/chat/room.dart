@@ -295,6 +295,20 @@ class ChatRoomScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatRoom = ref.watch(chatroomProvider(id));
     final chatIdentity = ref.watch(chatroomIdentityProvider(id));
+
+    if (chatIdentity.isLoading || chatRoom.isLoading) {
+      return AppScaffold(
+        appBar: AppBar(leading: const PageBackButton()),
+        body: CircularProgressIndicator().center(),
+      );
+    } else if (chatIdentity.value == null) {
+      // Identity was not found, user was not joined
+      return AppScaffold(
+        appBar: AppBar(leading: const PageBackButton()),
+        body: Center(child: Text('You are not a member of this chat room')),
+      );
+    }
+
     final messages = ref.watch(messagesNotifierProvider(id));
     final messagesNotifier = ref.read(messagesNotifierProvider(id).notifier);
     final ws = ref.watch(websocketProvider);
