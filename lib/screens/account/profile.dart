@@ -53,17 +53,21 @@ Future<List<SnAccountBadge>> accountBadges(Ref ref, String uname) async {
 
 @riverpod
 Future<Color?> accountAppbarForcegroundColor(Ref ref, String uname) async {
-  final account = await ref.watch(accountProvider(uname).future);
-  if (account.profile.background == null) return null;
-  final palette = await PaletteGenerator.fromImageProvider(
-    CloudImageWidget.provider(
-      fileId: account.profile.background!.id,
-      serverUrl: ref.watch(serverUrlProvider),
-    ),
-  );
-  final dominantColor = palette.dominantColor?.color;
-  if (dominantColor == null) return null;
-  return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+  try {
+    final account = await ref.watch(accountProvider(uname).future);
+    if (account.profile.background == null) return null;
+    final palette = await PaletteGenerator.fromImageProvider(
+      CloudImageWidget.provider(
+        fileId: account.profile.background!.id,
+        serverUrl: ref.watch(serverUrlProvider),
+      ),
+    );
+    final dominantColor = palette.dominantColor?.color;
+    if (dominantColor == null) return null;
+    return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+  } catch (_) {
+    return null;
+  }
 }
 
 @riverpod

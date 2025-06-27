@@ -4,19 +4,18 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/user.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
-import 'package:island/widgets/alert.dart';
+import 'package:island/route.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 part 'notification.g.dart';
 
@@ -180,36 +179,17 @@ class NotificationScreen extends HookConsumerWidget {
                             ),
                           ),
                   onTap: () {
-                    if (notification.meta['link'] is String) {
-                      final href = notification.meta['link'];
-                      final uri = Uri.tryParse(href);
-                      if (uri == null) {
-                        showSnackBar(
-                          'brokenLink'.tr(args: []),
-                          action: SnackBarAction(
-                            label: 'copyToClipboard'.tr(),
-                            onPressed: () {
-                              Clipboard.setData(ClipboardData(text: href));
-                              clearSnackBar(context);
-                            },
-                          ),
+                    if (notification.meta['action_uri'] != null) {
+                      var uri = notification.meta['action_uri'] as String;
+                      if (uri.startsWith('/')) {
+                        // In-app routes
+                        rootNavigatorKey.currentContext?.push(
+                          notification.meta['action_uri'],
                         );
-                        return;
+                      } else {
+                        // External URLs
+                        launchUrlString(uri);
                       }
-                      if (uri.scheme == 'solian') {
-                        context.push(
-                          ['', uri.host, ...uri.pathSegments].join('/'),
-                        );
-                        return;
-                      }
-                      showConfirmAlert(
-                        'openLinkConfirmDescription'.tr(args: [href]),
-                        'openLinkConfirm'.tr(),
-                      ).then((value) {
-                        if (value) {
-                          launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
-                      });
                     }
                   },
                 );

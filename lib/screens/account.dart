@@ -143,7 +143,7 @@ class AccountScreen extends HookConsumerWidget {
                 progress: user.value!.profile.levelingProgress,
               ),
               onTap: () {
-                context.push('/account/leveling');
+                context.push('/account/me/leveling');
               },
             ).padding(horizontal: 12),
             Row(
@@ -210,7 +210,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('wallet').tr(),
               onTap: () {
-                context.push('/wallet');
+                context.push('/account/wallet');
               },
             ),
             ListTile(

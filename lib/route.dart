@@ -79,33 +79,37 @@ final routerProvider = Provider<GoRouter>((ref) {
               return EventCalanderScreen(name: name);
             },
           ),
-          GoRoute(
-            path: '/creators',
-            builder: (context, state) => const CreatorHubScreen(),
+          ShellRoute(
+            builder:
+                (context, state, child) => CreatorHubShellScreen(child: child),
             routes: [
               GoRoute(
-                path: ':name/posts',
+                path: '/creators',
+                builder: (context, state) => const CreatorHubScreen(),
+              ),
+              GoRoute(
+                path: '/creators/:name/posts',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return CreatorPostListScreen(pubName: name);
                 },
               ),
               GoRoute(
-                path: ':name/stickers',
+                path: '/creators/:name/stickers',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return StickersScreen(pubName: name);
                 },
               ),
               GoRoute(
-                path: ':name/stickers/new',
+                path: '/creators/:name/stickers/new',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return NewStickerPacksScreen(pubName: name);
                 },
               ),
               GoRoute(
-                path: ':name/stickers/:packId/edit',
+                path: '/creators/:name/stickers/:packId/edit',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   final packId = state.pathParameters['packId']!;
@@ -113,7 +117,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
-                path: ':name/stickers/:packId',
+                path: '/creators/:name/stickers/:packId',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   final packId = state.pathParameters['packId']!;
@@ -121,14 +125,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
-                path: ':name/stickers/:packId/new',
+                path: '/creators/:name/stickers/:packId/new',
                 builder: (context, state) {
                   final packId = state.pathParameters['packId']!;
                   return NewStickersScreen(packId: packId);
                 },
               ),
               GoRoute(
-                path: ':name/stickers/:packId/:id/edit',
+                path: '/creators/:name/stickers/:packId/:id/edit',
                 builder: (context, state) {
                   final packId = state.pathParameters['packId']!;
                   final id = state.pathParameters['id']!;
@@ -136,11 +140,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
-                path: 'new',
+                path: '/creators/new',
                 builder: (context, state) => const NewPublisherScreen(),
               ),
               GoRoute(
-                path: ':name/edit',
+                path: '/creators/:name/edit',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return EditPublisherScreen(name: name);
@@ -173,56 +177,64 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
             routes: [
               // Explore tab
-              GoRoute(
-                path: '/',
-                builder: (context, state) => const ExploreScreen(),
+              ShellRoute(
+                builder:
+                    (context, state, child) => ExploreShellScreen(child: child),
                 routes: [
                   GoRoute(
-                    path: 'posts/:id',
+                    path: '/',
+                    builder: (context, state) => const ExploreScreen(),
+                  ),
+                  GoRoute(
+                    path: '/posts/:id',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return PostDetailScreen(id: id);
                     },
                   ),
                   GoRoute(
-                    path: 'publishers/:name',
+                    path: '/publishers/:name',
                     builder: (context, state) {
                       final name = state.pathParameters['name']!;
                       return PublisherProfileScreen(name: name);
                     },
                   ),
                   GoRoute(
-                    path: 'discovery/realms',
+                    path: '/discovery/realms',
                     builder: (context, state) => const DiscoveryRealmsScreen(),
                   ),
                 ],
               ),
 
               // Chat tab
-              GoRoute(
-                path: '/chat',
-                builder: (context, state) => const ChatListScreen(),
+              ShellRoute(
+                builder:
+                    (context, state, child) => ChatShellScreen(child: child),
                 routes: [
                   GoRoute(
-                    path: 'new',
+                    path: '/chat',
+                    builder: (context, state) => const ChatListScreen(),
+                  ),
+                  GoRoute(
+                    path: '/chat/new',
                     builder: (context, state) => const NewChatScreen(),
                   ),
                   GoRoute(
-                    path: ':id',
+                    path: '/chat/:id',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return ChatRoomScreen(id: id);
                     },
                   ),
                   GoRoute(
-                    path: ':id/edit',
+                    path: '/chat/:id/edit',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return EditChatScreen(id: id);
                     },
                   ),
                   GoRoute(
-                    path: ':id/detail',
+                    path: '/chat/:id/detail',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return ChatDetailScreen(id: id);
@@ -258,39 +270,43 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
 
               // Account tab
-              GoRoute(
-                path: '/account',
-                builder: (context, state) => const AccountScreen(),
+              ShellRoute(
+                builder:
+                    (context, state, child) => AccountShellScreen(child: child),
                 routes: [
                   GoRoute(
-                    path: 'notifications',
+                    path: '/account',
+                    builder: (context, state) => const AccountScreen(),
+                  ),
+                  GoRoute(
+                    path: '/account/notifications',
                     builder: (context, state) => const NotificationScreen(),
                   ),
                   GoRoute(
-                    path: 'wallet',
+                    path: '/account/wallet',
                     builder: (context, state) => const WalletScreen(),
                   ),
                   GoRoute(
-                    path: 'relationships',
+                    path: '/account/relationships',
                     builder: (context, state) => const RelationshipScreen(),
                   ),
                   GoRoute(
-                    path: ':name',
+                    path: '/account/:name',
                     builder: (context, state) {
                       final name = state.pathParameters['name']!;
                       return AccountProfileScreen(name: name);
                     },
                   ),
                   GoRoute(
-                    path: 'me/update',
+                    path: '/account/me/update',
                     builder: (context, state) => const UpdateProfileScreen(),
                   ),
                   GoRoute(
-                    path: 'me/leveling',
+                    path: '/account/me/leveling',
                     builder: (context, state) => const LevelingScreen(),
                   ),
                   GoRoute(
-                    path: 'settings',
+                    path: '/account/settings',
                     builder: (context, state) => const AccountSettingsScreen(),
                   ),
                 ],

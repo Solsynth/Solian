@@ -72,6 +72,7 @@ class MessagingService: FirebaseMessagingService() {
 
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        intent.putExtra("room_id", roomId)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, pendingIntentFlags)
 
         val notificationBuilder = NotificationCompat.Builder(this, "messages")

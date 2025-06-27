@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker_android/image_picker_android.dart';
@@ -158,6 +159,28 @@ class IslandApp extends HookConsumerWidget {
     }
 
     useEffect(() {
+      const channel = MethodChannel('dev.solsynth.solian/notifications');
+
+      Future<void> handleInitialLink() async {
+        final String? link = await channel.invokeMethod('initialLink');
+        if (link != null) {
+          final router = ref.read(routerProvider);
+          router.go(link);
+        }
+      }
+
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        handleInitialLink();
+      }
+
+      channel.setMethodCallHandler((call) async {
+        if (call.method == 'newLink') {
+          final String link = call.arguments;
+          final router = ref.read(routerProvider);
+          router.go(link);
+        }
+      });
+
       // When the app is opened from a terminated state.
       FirebaseMessaging.instance.getInitialMessage().then((message) {
         if (message != null) {
