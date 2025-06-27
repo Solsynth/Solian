@@ -276,6 +276,128 @@ class _RealmIdentityProviderElement
   String get realmSlug => (origin as RealmIdentityProvider).realmSlug;
 }
 
+String _$realmChatRoomsHash() => r'8207c1e6f0922323967f208efeed027e943039cc';
+
+/// See also [realmChatRooms].
+@ProviderFor(realmChatRooms)
+const realmChatRoomsProvider = RealmChatRoomsFamily();
+
+/// See also [realmChatRooms].
+class RealmChatRoomsFamily extends Family<AsyncValue<List<SnChatRoom>>> {
+  /// See also [realmChatRooms].
+  const RealmChatRoomsFamily();
+
+  /// See also [realmChatRooms].
+  RealmChatRoomsProvider call(String realmSlug) {
+    return RealmChatRoomsProvider(realmSlug);
+  }
+
+  @override
+  RealmChatRoomsProvider getProviderOverride(
+    covariant RealmChatRoomsProvider provider,
+  ) {
+    return call(provider.realmSlug);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'realmChatRoomsProvider';
+}
+
+/// See also [realmChatRooms].
+class RealmChatRoomsProvider
+    extends AutoDisposeFutureProvider<List<SnChatRoom>> {
+  /// See also [realmChatRooms].
+  RealmChatRoomsProvider(String realmSlug)
+    : this._internal(
+        (ref) => realmChatRooms(ref as RealmChatRoomsRef, realmSlug),
+        from: realmChatRoomsProvider,
+        name: r'realmChatRoomsProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$realmChatRoomsHash,
+        dependencies: RealmChatRoomsFamily._dependencies,
+        allTransitiveDependencies:
+            RealmChatRoomsFamily._allTransitiveDependencies,
+        realmSlug: realmSlug,
+      );
+
+  RealmChatRoomsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.realmSlug,
+  }) : super.internal();
+
+  final String realmSlug;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<SnChatRoom>> Function(RealmChatRoomsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: RealmChatRoomsProvider._internal(
+        (ref) => create(ref as RealmChatRoomsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        realmSlug: realmSlug,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<SnChatRoom>> createElement() {
+    return _RealmChatRoomsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RealmChatRoomsProvider && other.realmSlug == realmSlug;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, realmSlug.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin RealmChatRoomsRef on AutoDisposeFutureProviderRef<List<SnChatRoom>> {
+  /// The parameter `realmSlug` of this provider.
+  String get realmSlug;
+}
+
+class _RealmChatRoomsProviderElement
+    extends AutoDisposeFutureProviderElement<List<SnChatRoom>>
+    with RealmChatRoomsRef {
+  _RealmChatRoomsProviderElement(super.provider);
+
+  @override
+  String get realmSlug => (origin as RealmChatRoomsProvider).realmSlug;
+}
+
 String _$realmMemberListNotifierHash() =>
     r'b2e3eefc62a597f45df9470b2058fdda62f8853f';
 

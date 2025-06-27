@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:island/screens/chat/chat.dart';
 import 'package:flutter/material.dart';
+import 'package:island/models/chat.dart';
 import 'package:island/services/color.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -42,6 +44,13 @@ Future<SnRealmMember?> realmIdentity(Ref ref, String realmSlug) async {
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get('/realms/$realmSlug/members/me');
   return SnRealmMember.fromJson(response.data);
+}
+
+@riverpod
+Future<List<SnChatRoom>> realmChatRooms(Ref ref, String realmSlug) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get('/realms/$realmSlug/chat');
+  return (response.data as List).map((e) => SnChatRoom.fromJson(e)).toList();
 }
 
 class RealmDetailScreen extends HookConsumerWidget {
@@ -111,59 +120,94 @@ class RealmDetailScreen extends HookConsumerWidget {
                   ],
                 ),
                 SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ref
-                          .watch(realmIdentityProvider(slug))
-                          .when(
-                            loading: () => const SizedBox.shrink(),
-                            error: (_, _) => const SizedBox.shrink(),
-                            data:
-                                (identity) => Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                  child: ref
+                      .watch(realmIdentityProvider(slug))
+                      .when(
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, _) => const SizedBox.shrink(),
+                        data:
+                            (identity) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ExpansionTile(
+                                  title: const Text('description').tr(),
+                                  initiallyExpanded: identity == null,
+                                  tilePadding: EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                  ),
                                   children: [
-                                    ExpansionTile(
-                                      title: const Text('description').tr(),
-                                      initiallyExpanded: identity == null,
-                                      children: [
-                                        Text(
-                                          realm.description,
-                                          style: const TextStyle(fontSize: 16),
-                                        ).padding(horizontal: 16, vertical: 16),
-                                      ],
+                                    Text(
+                                      realm.description,
+                                      style: const TextStyle(fontSize: 16),
+                                    ).padding(
+                                      horizontal: 16,
+                                      bottom: 16,
+                                      top: 8,
                                     ),
-                                    const Gap(4),
-                                    if (identity != null && realm.isPublic)
-                                      FilledButton.tonalIcon(
-                                        onPressed: () async {
-                                          try {
-                                            final apiClient = ref.read(
-                                              apiClientProvider,
-                                            );
-                                            await apiClient.post(
-                                              '/realms/$slug/members/me',
-                                            );
-                                            ref.invalidate(
-                                              realmIdentityProvider(slug),
-                                            );
-                                            ref.invalidate(
-                                              realmsJoinedProvider,
-                                            );
-                                          } catch (err) {
-                                            showErrorAlert(err);
-                                          }
-                                        },
-                                        icon: const Icon(Symbols.add),
-                                        label: const Text('joinRealm').tr(),
-                                      ).padding(horizontal: 16)
-                                    else
-                                      const SizedBox.shrink(),
                                   ],
                                 ),
+                                if (identity == null && realm.isPublic)
+                                  FilledButton.tonalIcon(
+                                    onPressed: () async {
+                                      try {
+                                        final apiClient = ref.read(
+                                          apiClientProvider,
+                                        );
+                                        await apiClient.post(
+                                          '/realms/$slug/members/me',
+                                        );
+                                        ref.invalidate(
+                                          realmIdentityProvider(slug),
+                                        );
+                                        ref.invalidate(realmsJoinedProvider);
+                                      } catch (err) {
+                                        showErrorAlert(err);
+                                      }
+                                    },
+                                    icon: const Icon(Symbols.add),
+                                    label: const Text('joinRealm').tr(),
+                                  ).padding(horizontal: 16, vertical: 4)
+                                else
+                                  const SizedBox.shrink(),
+                              ],
+                            ),
+                      ),
+                ),
+                const SliverToBoxAdapter(child: Divider(height: 1)),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final chatRooms = ref.watch(realmChatRoomsProvider(slug));
+                    return chatRooms.when(
+                      loading:
+                          () => const SliverToBoxAdapter(
+                            child: Center(child: CircularProgressIndicator()),
                           ),
-                    ],
-                  ),
+                      error:
+                          (error, _) => SliverToBoxAdapter(
+                            child: Center(child: Text('Error: $error')),
+                          ),
+                      data: (rooms) {
+                        if (rooms.isEmpty) {
+                          return const SliverToBoxAdapter(
+                            child: SizedBox.shrink(),
+                          );
+                        }
+                        return SliverList(
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            return ChatRoomListTile(
+                              room: rooms[index],
+                              onTap: () {
+                                context.push('/chat/${rooms[index].id}');
+                              },
+                            );
+                          }, childCount: rooms.length),
+                        );
+                      },
+                    );
+                  },
                 ),
               ],
             ),

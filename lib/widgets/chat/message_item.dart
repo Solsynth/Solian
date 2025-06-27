@@ -233,16 +233,27 @@ class MessageItem extends HookConsumerWidget {
                           if (remoteMessage.meta['embeds'] != null)
                             ...((remoteMessage.meta['embeds'] as List<dynamic>)
                                 .where((embed) => embed['Type'] == 'link')
-                                .map((embed) => SnEmbedLink.fromJson(embed as Map<String, dynamic>))
-                                .map((link) => LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        return EmbedLinkWidget(
-                                          link: link,
-                                          maxWidth: math.min(constraints.maxWidth, 480),
-                                          margin: const EdgeInsets.symmetric(vertical: 4),
-                                        );
-                                      },
-                                    ))
+                                .map(
+                                  (embed) => SnEmbedLink.fromJson(
+                                    embed as Map<String, dynamic>,
+                                  ),
+                                )
+                                .map(
+                                  (link) => LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return EmbedLinkWidget(
+                                        link: link,
+                                        maxWidth: math.min(
+                                          constraints.maxWidth,
+                                          480,
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                          vertical: 4,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                )
                                 .toList()),
                           if (progress != null && progress!.isNotEmpty)
                             Column(
@@ -482,7 +493,11 @@ class _MessageItemContent extends StatelessWidget {
         );
       case 'text':
       default:
-        return MarkdownTextContent(content: item.content!, isSelectable: true);
+        return MarkdownTextContent(
+          content: item.content!,
+          isSelectable: true,
+          linesMargin: EdgeInsets.zero,
+        );
     }
   }
 
