@@ -563,5 +563,6 @@
   "realmJoin": "Join the Realm",
   "realmJoinSuccess": "Successfully joined the realm.",
   "discoverRealms": "Discover Realms",
-  "discoverPublishers": "Discover Publishers"
+  "discoverPublishers": "Discover Publishers",
+  "search": "Search"
 }

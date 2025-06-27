@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
@@ -14,16 +15,23 @@ class RealmListNotifier extends _$RealmListNotifier
   static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnRealm>> build() {
-    return fetch(cursor: null);
+  Future<CursorPagingData<SnRealm>> build(String? query) {
+    return fetch(cursor: null, query: query);
   }
 
   @override
-  Future<CursorPagingData<SnRealm>> fetch({required String? cursor}) async {
+  Future<CursorPagingData<SnRealm>> fetch({
+    required String? cursor,
+    String? query,
+  }) async {
     final client = ref.read(apiClientProvider);
     final offset = cursor == null ? 0 : int.parse(cursor);
 
-    final queryParams = {'offset': offset, 'take': _pageSize};
+    final queryParams = {
+      'offset': offset,
+      'take': _pageSize,
+      if (query != null && query.isNotEmpty) 'query': query,
+    };
 
     final response = await client.get(
       '/discovery/realms',
@@ -45,16 +53,18 @@ class RealmListNotifier extends _$RealmListNotifier
 }
 
 class SliverRealmList extends HookConsumerWidget {
-  const SliverRealmList({super.key});
+  const SliverRealmList({super.key, this.query});
+
+  final String? query;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PagingHelperSliverView(
-      provider: realmListNotifierProvider,
-      futureRefreshable: realmListNotifierProvider.future,
-      notifierRefreshable: realmListNotifierProvider.notifier,
+      provider: realmListNotifierProvider(query),
+      futureRefreshable: realmListNotifierProvider(query).future,
+      notifierRefreshable: realmListNotifierProvider(query).notifier,
       contentBuilder:
-          (data, widgetCount, endItemView) => SliverList.builder(
+          (data, widgetCount, endItemView) => SliverList.separated(
             itemCount: widgetCount,
             itemBuilder: (context, index) {
               if (index == widgetCount - 1) {
@@ -71,6 +81,7 @@ class SliverRealmList extends HookConsumerWidget {
                 child: RealmCard(realm: realm),
               );
             },
+            separatorBuilder: (_, _) => const Gap(8),
           ),
     );
   }
