@@ -29,6 +29,12 @@ import 'package:image_picker_platform_interface/image_picker_platform_interface.
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  log('Handling a background message: ${message.messageId}');
+}
+
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
@@ -43,6 +49,7 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     log("[SplashScreen] Firebase is ready!");
   } catch (err) {
     showErrorAlert(err);
@@ -151,17 +158,30 @@ class IslandApp extends HookConsumerWidget {
     }
 
     useEffect(() {
-      Future(() async {
-        RemoteMessage? initialMessage =
-            await FirebaseMessaging.instance.getInitialMessage();
-        if (initialMessage != null) {
-          handleMessage(initialMessage);
+      // When the app is opened from a terminated state.
+      FirebaseMessaging.instance.getInitialMessage().then((message) {
+        if (message != null) {
+          handleMessage(message);
         }
-
-        FirebaseMessaging.onMessageOpenedApp.listen(handleMessage);
       });
 
-      return null;
+      // When the app is in the background and opened.
+      final onMessageOpenedAppSubscription = FirebaseMessaging
+          .onMessageOpenedApp
+          .listen(handleMessage);
+
+      // When the app is in the foreground.
+      final onMessageSubscription = FirebaseMessaging.onMessage.listen((
+        message,
+      ) {
+        log('Foreground message received: ${message.messageId}');
+        handleMessage(message);
+      });
+
+      return () {
+        onMessageOpenedAppSubscription.cancel();
+        onMessageSubscription.cancel();
+      };
     }, []);
 
     useEffect(() {
@@ -185,7 +205,7 @@ class IslandApp extends HookConsumerWidget {
     }, []);
 
     final router = ref.watch(routerProvider);
-    
+
     return MaterialApp.router(
       theme: theme?.light,
       darkTheme: theme?.dark,
@@ -204,9 +224,8 @@ class IslandApp extends HookConsumerWidget {
           initialEntries: [
             OverlayEntry(
               builder:
-                  (_) => WindowScaffold(
-                    child: child ?? const SizedBox.shrink(),
-                  ),
+                  (_) =>
+                      WindowScaffold(child: child ?? const SizedBox.shrink()),
             ),
           ],
         );

@@ -6,7 +6,8 @@ part of 'detail.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$realmIdentityHash() => r'eac6e829b5b46bcfadbf201ab6f918d78c894b9f';
+String _$realmAppbarForegroundColorHash() =>
+    r'14b5563d861996ea182d0d2db7aa5c2bb3bbaf48';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -28,6 +29,133 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// See also [realmAppbarForegroundColor].
+@ProviderFor(realmAppbarForegroundColor)
+const realmAppbarForegroundColorProvider = RealmAppbarForegroundColorFamily();
+
+/// See also [realmAppbarForegroundColor].
+class RealmAppbarForegroundColorFamily extends Family<AsyncValue<Color?>> {
+  /// See also [realmAppbarForegroundColor].
+  const RealmAppbarForegroundColorFamily();
+
+  /// See also [realmAppbarForegroundColor].
+  RealmAppbarForegroundColorProvider call(String realmSlug) {
+    return RealmAppbarForegroundColorProvider(realmSlug);
+  }
+
+  @override
+  RealmAppbarForegroundColorProvider getProviderOverride(
+    covariant RealmAppbarForegroundColorProvider provider,
+  ) {
+    return call(provider.realmSlug);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'realmAppbarForegroundColorProvider';
+}
+
+/// See also [realmAppbarForegroundColor].
+class RealmAppbarForegroundColorProvider
+    extends AutoDisposeFutureProvider<Color?> {
+  /// See also [realmAppbarForegroundColor].
+  RealmAppbarForegroundColorProvider(String realmSlug)
+    : this._internal(
+        (ref) => realmAppbarForegroundColor(
+          ref as RealmAppbarForegroundColorRef,
+          realmSlug,
+        ),
+        from: realmAppbarForegroundColorProvider,
+        name: r'realmAppbarForegroundColorProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$realmAppbarForegroundColorHash,
+        dependencies: RealmAppbarForegroundColorFamily._dependencies,
+        allTransitiveDependencies:
+            RealmAppbarForegroundColorFamily._allTransitiveDependencies,
+        realmSlug: realmSlug,
+      );
+
+  RealmAppbarForegroundColorProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.realmSlug,
+  }) : super.internal();
+
+  final String realmSlug;
+
+  @override
+  Override overrideWith(
+    FutureOr<Color?> Function(RealmAppbarForegroundColorRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: RealmAppbarForegroundColorProvider._internal(
+        (ref) => create(ref as RealmAppbarForegroundColorRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        realmSlug: realmSlug,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Color?> createElement() {
+    return _RealmAppbarForegroundColorProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RealmAppbarForegroundColorProvider &&
+        other.realmSlug == realmSlug;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, realmSlug.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin RealmAppbarForegroundColorRef on AutoDisposeFutureProviderRef<Color?> {
+  /// The parameter `realmSlug` of this provider.
+  String get realmSlug;
+}
+
+class _RealmAppbarForegroundColorProviderElement
+    extends AutoDisposeFutureProviderElement<Color?>
+    with RealmAppbarForegroundColorRef {
+  _RealmAppbarForegroundColorProviderElement(super.provider);
+
+  @override
+  String get realmSlug =>
+      (origin as RealmAppbarForegroundColorProvider).realmSlug;
+}
+
+String _$realmIdentityHash() => r'eac6e829b5b46bcfadbf201ab6f918d78c894b9f';
 
 /// See also [realmIdentity].
 @ProviderFor(realmIdentity)

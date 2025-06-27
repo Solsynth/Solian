@@ -1,12 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:island/services/color.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
@@ -18,6 +21,21 @@ import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'detail.g.dart';
+
+@riverpod
+Future<Color?> realmAppbarForegroundColor(Ref ref, String realmSlug) async {
+  final realm = await ref.watch(realmProvider(realmSlug).future);
+  if (realm?.background == null) return null;
+  final palette = await PaletteGenerator.fromImageProvider(
+    CloudImageWidget.provider(
+      fileId: realm!.background!.id,
+      serverUrl: ref.watch(serverUrlProvider),
+    ),
+  );
+  final dominantColor = palette.dominantColor?.color;
+  if (dominantColor == null) return null;
+  return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+}
 
 @riverpod
 Future<SnRealmMember?> realmIdentity(Ref ref, String realmSlug) async {
@@ -34,9 +52,10 @@ class RealmDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final realmState = ref.watch(realmProvider(slug));
+    final appbarColor = ref.watch(realmAppbarForegroundColorProvider(slug));
 
-    const iconShadow = Shadow(
-      color: Colors.black54,
+    final iconShadow = Shadow(
+      color: appbarColor.value?.invert ?? Colors.black54,
       blurRadius: 5.0,
       offset: Offset(1.0, 1.0),
     );
@@ -51,7 +70,11 @@ class RealmDetailScreen extends HookConsumerWidget {
                 SliverAppBar(
                   expandedHeight: 180,
                   pinned: true,
-                  leading: PageBackButton(shadows: [iconShadow]),
+                  foregroundColor: appbarColor.value,
+                  leading: PageBackButton(
+                    color: appbarColor.value,
+                    shadows: [iconShadow],
+                  ),
                   flexibleSpace: FlexibleSpaceBar(
                     background:
                         realm!.background?.id != null
@@ -63,14 +86,16 @@ class RealmDetailScreen extends HookConsumerWidget {
                     title: Text(
                       realm.name,
                       style: TextStyle(
-                        color: Theme.of(context).appBarTheme.foregroundColor,
+                        color:
+                            appbarColor.value ??
+                            Theme.of(context).appBarTheme.foregroundColor,
                         shadows: [iconShadow],
                       ),
                     ),
                   ),
                   actions: [
                     IconButton(
-                      icon: const Icon(Icons.people, shadows: [iconShadow]),
+                      icon: Icon(Icons.people, shadows: [iconShadow]),
                       onPressed: () {
                         showModalBottomSheet(
                           isScrollControlled: true,
@@ -86,17 +111,58 @@ class RealmDetailScreen extends HookConsumerWidget {
                   ],
                 ),
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          realm.description,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ],
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ref
+                          .watch(realmIdentityProvider(slug))
+                          .when(
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, _) => const SizedBox.shrink(),
+                            data:
+                                (identity) => Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ExpansionTile(
+                                      title: const Text('description').tr(),
+                                      initiallyExpanded: identity == null,
+                                      children: [
+                                        Text(
+                                          realm.description,
+                                          style: const TextStyle(fontSize: 16),
+                                        ).padding(horizontal: 16, vertical: 16),
+                                      ],
+                                    ),
+                                    const Gap(4),
+                                    if (identity != null && realm.isPublic)
+                                      FilledButton.tonalIcon(
+                                        onPressed: () async {
+                                          try {
+                                            final apiClient = ref.read(
+                                              apiClientProvider,
+                                            );
+                                            await apiClient.post(
+                                              '/realms/$slug/members/me',
+                                            );
+                                            ref.invalidate(
+                                              realmIdentityProvider(slug),
+                                            );
+                                            ref.invalidate(
+                                              realmsJoinedProvider,
+                                            );
+                                          } catch (err) {
+                                            showErrorAlert(err);
+                                          }
+                                        },
+                                        icon: const Icon(Symbols.add),
+                                        label: const Text('joinRealm').tr(),
+                                      ).padding(horizontal: 16)
+                                    else
+                                      const SizedBox.shrink(),
+                                  ],
+                                ),
+                          ),
+                    ],
                   ),
                 ),
               ],
@@ -114,8 +180,8 @@ class _RealmActionMenu extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final realmIdentityAsync = ref.watch(realmIdentityProvider(realmSlug));
-    final isModerator = realmIdentityAsync.when(
+    final realmIdentity = ref.watch(realmIdentityProvider(realmSlug));
+    final isModerator = realmIdentity.when(
       data: (identity) => (identity?.role ?? 0) >= 50,
       loading: () => false,
       error: (_, _) => false,
@@ -141,7 +207,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                   ],
                 ),
               ),
-            realmIdentityAsync.when(
+            realmIdentity.when(
               data:
                   (identity) =>
                       (identity?.role ?? 0) >= 100
