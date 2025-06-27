@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -12,13 +13,13 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/post/post_item.dart';
-import 'package:island/widgets/tour/tour.dart';
 import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/realm/realm_card.dart';
+import 'package:island/widgets/publisher/publisher_card.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'explore.g.dart';
@@ -85,64 +86,63 @@ class ExploreScreen extends HookConsumerWidget {
       activityListNotifierProvider(currentFilter.value).notifier,
     );
 
-    return TourTriggerWidget(
-      child: AppScaffold(
-        extendBody: false, // Prevent conflicts with tabs navigation
-        appBar: AppBar(
-          toolbarHeight: 0,
-          bottom: TabBar(
-            controller: tabController,
-            tabs: [
-              Tab(
-                child: Text(
-                  'explore'.tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor!,
-                  ),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'exploreFilterSubscriptions'.tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor!,
-                  ),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'exploreFilterFriends'.tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor!,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          heroTag: Key("explore-page-fab"),
-          onPressed: () {
-            context.push('/posts/compose').then((value) {
-              if (value != null) {
-                activitiesNotifier.forceRefresh();
-              }
-            });
-          },
-          child: const Icon(Symbols.edit),
-        ),
-        floatingActionButtonLocation: TabbedFabLocation(context),
-        body: TabBarView(
+    return AppScaffold(
+      extendBody: false, // Prevent conflicts with tabs navigation
+      appBar: AppBar(
+        toolbarHeight: 0,
+        bottom: TabBar(
           controller: tabController,
-          children: [
-            _buildActivityList(ref, null),
-            _buildActivityList(ref, 'subscriptions'),
-            _buildActivityList(ref, 'friends'),
+          tabs: [
+            Tab(
+              child: Text(
+                'explore'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).appBarTheme.foregroundColor!,
+                ),
+              ),
+            ),
+            Tab(
+              child: Text(
+                'exploreFilterSubscriptions'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).appBarTheme.foregroundColor!,
+                ),
+              ),
+            ),
+            Tab(
+              child: Text(
+                'exploreFilterFriends'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).appBarTheme.foregroundColor!,
+                ),
+              ),
+            ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: Key("explore-page-fab"),
+        onPressed: () {
+          context.push('/posts/compose').then((value) {
+            if (value != null) {
+              activitiesNotifier.forceRefresh();
+            }
+          });
+        },
+        child: const Icon(Symbols.edit),
+      ),
+      floatingActionButtonLocation: TabbedFabLocation(context),
+      body: TabBarView(
+        controller: tabController,
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          _buildActivityList(ref, null),
+          _buildActivityList(ref, 'subscriptions'),
+          _buildActivityList(ref, 'friends'),
+        ],
       ),
     );
   }
@@ -180,10 +180,8 @@ class _DiscoveryActivityItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items =
-        (data['items'] as List)
-            .map((e) => SnRealm.fromJson(e['data'] as Map<String, dynamic>))
-            .toList();
+    final items = data['items'] as List;
+    final type = items.firstOrNull?['type'] ?? 'unknown';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +192,11 @@ class _DiscoveryActivityItem extends StatelessWidget {
             const Icon(Symbols.explore, size: 19),
             const Gap(8),
             Text(
-              'discoverCommunities'.tr(),
+              (switch (type) {
+                'realm' => 'discoverRealms',
+                'publisher' => 'discoverPublishers',
+                _ => 'unknown',
+              }).tr(),
               style: Theme.of(context).textTheme.titleMedium,
             ).padding(top: 1),
           ],
@@ -204,13 +206,26 @@ class _DiscoveryActivityItem extends StatelessWidget {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: items.length,
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             itemBuilder: (context, index) {
-              final realm = items[index];
-              return RealmCard(realm: realm);
+              final item = items[index];
+              switch (type) {
+                case 'realm':
+                  return RealmCard(
+                    realm: SnRealm.fromJson(item['data']),
+                    maxWidth: 280,
+                  );
+                case 'publisher':
+                  return PublisherCard(
+                    publisher: SnPublisher.fromJson(item['data']),
+                    maxWidth: 280,
+                  );
+                default:
+                  return Placeholder();
+              }
             },
           ),
-        ),
+        ).padding(bottom: 4),
       ],
     );
   }
@@ -326,6 +341,7 @@ class ActivityListNotifier extends _$ActivityListNotifier
       if (cursor != null) 'cursor': cursor,
       'take': take,
       if (filter != null) 'filter': filter,
+      if (kDebugMode) 'debugInclude': 'realms,publishers',
     };
 
     final response = await client.get(

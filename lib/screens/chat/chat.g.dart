@@ -25,7 +25,7 @@ final chatroomsJoinedProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ChatroomsJoinedRef = AutoDisposeFutureProviderRef<List<SnChatRoom>>;
-String _$chatroomHash() => r'dce3c0fc407f178bb7c306a08b9fa545795a9205';
+String _$chatroomHash() => r'8dac7aaac50932e6dd213039102d43c1cf5f1d4e';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -164,7 +164,7 @@ class _ChatroomProviderElement
   String? get identifier => (origin as ChatroomProvider).identifier;
 }
 
-String _$chatroomIdentityHash() => r'4c349ea4265df7b0498cf26c82dbaabe3d868727';
+String _$chatroomIdentityHash() => r'ad6ad09b6fc4cf7c4abe146ea97f8e364a3d4fd0';
 
 /// See also [chatroomIdentity].
 @ProviderFor(chatroomIdentity)

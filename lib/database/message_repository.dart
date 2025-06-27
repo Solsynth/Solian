@@ -71,25 +71,32 @@ class MessageRepository {
     bool synced = false,
   }) async {
     try {
+      // For initial load, fetch latest messages in the background to sync.
+      if (offset == 0 && !synced) {
+        // Not awaiting this is intentional, for a quicker UI response.
+        // The UI should rely on a stream from the database to get updates.
+        _fetchAndCacheMessages(room.id, offset: 0, take: take).catchError((_) {
+          // Best effort, errors will be handled by later fetches.
+          return <LocalChatMessage>[];
+        });
+      }
+
       final localMessages = await _getCachedMessages(
         room.id,
         offset: offset,
         take: take,
       );
 
-      // If it already synced with the remote, skip this
-      if (offset == 0 && !synced) {
-        // Fetch latest messages
-        _fetchAndCacheMessages(room.id, offset: offset, take: take);
-
-        if (localMessages.isNotEmpty) {
-          return localMessages;
-        }
+      // If local cache has messages, return them. This is the common case for scrolling up.
+      if (localMessages.isNotEmpty) {
+        return localMessages;
       }
 
+      // If local cache is empty, we've probably reached the end of cached history.
+      // Fetch from remote. This will also be hit on first load if cache is empty.
       return await _fetchAndCacheMessages(room.id, offset: offset, take: take);
     } catch (e) {
-      // If API fails but we have local messages, return them
+      // Final fallback to cache in case of network errors during fetch.
       final localMessages = await _getCachedMessages(
         room.id,
         offset: offset,
@@ -117,24 +124,26 @@ class MessageRepository {
     final dbLocalMessages =
         dbMessages.map(_database.companionToMessage).toList();
 
-    // Combine with pending messages
-    final pendingForRoom =
-        pendingMessages.values.where((msg) => msg.roomId == roomId).toList();
+    // Combine with pending messages for the first page
+    if (offset == 0) {
+      final pendingForRoom =
+          pendingMessages.values.where((msg) => msg.roomId == roomId).toList();
 
-    // Sort by timestamp descending (newest first)
-    final allMessages = [...pendingForRoom, ...dbLocalMessages];
-    allMessages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      final allMessages = [...pendingForRoom, ...dbLocalMessages];
+      allMessages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-    // Apply pagination
-    if (offset >= allMessages.length) {
-      return [];
+      // Remove duplicates by ID, preserving the order
+      final uniqueMessages = <LocalChatMessage>[];
+      final seenIds = <String>{};
+      for (final message in allMessages) {
+        if (seenIds.add(message.id)) {
+          uniqueMessages.add(message);
+        }
+      }
+      return uniqueMessages;
     }
 
-    final end =
-        (offset + take) > allMessages.length
-            ? allMessages.length
-            : (offset + take);
-    return allMessages.sublist(offset, end);
+    return dbLocalMessages;
   }
 
   Future<List<LocalChatMessage>> _fetchAndCacheMessages(

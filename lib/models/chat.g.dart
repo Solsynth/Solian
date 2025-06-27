@@ -11,8 +11,8 @@ _SnChatRoom _$SnChatRoomFromJson(Map<String, dynamic> json) => _SnChatRoom(
   name: json['name'] as String?,
   description: json['description'] as String?,
   type: (json['type'] as num).toInt(),
-  isPublic: json['is_public'] as bool,
-  isCommunity: json['is_community'] as bool,
+  isPublic: json['is_public'] as bool? ?? false,
+  isCommunity: json['is_community'] as bool? ?? false,
   picture:
       json['picture'] == null
           ? null

@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/sharing_intent.dart';
+import 'package:island/widgets/tour/tour.dart';
 
 class AppWrapper extends HookConsumerWidget {
   final Widget child;
@@ -24,6 +25,6 @@ class AppWrapper extends HookConsumerWidget {
       };
     }, const []);
 
-    return child;
+    return TourTriggerWidget(child: child);
   }
 }

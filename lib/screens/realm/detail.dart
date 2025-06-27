@@ -155,7 +155,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                                     ),
                                   ],
                                 ),
-                                if (identity == null && realm.isPublic)
+                                if (identity == null && realm.isCommunity)
                                   FilledButton.tonalIcon(
                                     onPressed: () async {
                                       try {
@@ -169,14 +169,14 @@ class RealmDetailScreen extends HookConsumerWidget {
                                           realmIdentityProvider(slug),
                                         );
                                         ref.invalidate(realmsJoinedProvider);
-                                        showSnackBar('joinRealmSuccess'.tr());
+                                        showSnackBar('realmJoinSuccess'.tr());
                                       } catch (err) {
                                         showErrorAlert(err);
                                       }
                                     },
                                     icon: const Icon(Symbols.add),
-                                    label: const Text('joinRealm').tr(),
-                                  ).padding(horizontal: 16, vertical: 8)
+                                    label: const Text('realmJoin').tr(),
+                                  ).padding(horizontal: 16, vertical: 16)
                                 else
                                   const SizedBox.shrink(),
                               ],

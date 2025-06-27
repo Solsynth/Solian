@@ -10,7 +10,7 @@ sealed class SnRealm with _$SnRealm {
   const factory SnRealm({
     required String id,
     required String slug,
-    required String name,
+    @Default('') String name,
     @Default('') String description,
     required String? verifiedAs,
     required DateTime? verifiedAt,

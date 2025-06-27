@@ -117,12 +117,12 @@ $SnCloudFileCopyWith<$Res>? get background {
 @JsonSerializable()
 
 class _SnRealm implements SnRealm {
-  const _SnRealm({required this.id, required this.slug, required this.name, this.description = '', required this.verifiedAs, required this.verifiedAt, required this.isCommunity, required this.isPublic, required this.picture, required this.background, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnRealm({required this.id, required this.slug, this.name = '', this.description = '', required this.verifiedAs, required this.verifiedAt, required this.isCommunity, required this.isPublic, required this.picture, required this.background, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt});
   factory _SnRealm.fromJson(Map<String, dynamic> json) => _$SnRealmFromJson(json);
 
 @override final  String id;
 @override final  String slug;
-@override final  String name;
+@override@JsonKey() final  String name;
 @override@JsonKey() final  String description;
 @override final  String? verifiedAs;
 @override final  DateTime? verifiedAt;

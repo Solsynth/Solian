@@ -2,25 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/realm.dart';
+import 'package:island/models/post.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:material_symbols_icons/symbols.dart';
 
-class RealmCard extends ConsumerWidget {
-  final SnRealm realm;
+class PublisherCard extends ConsumerWidget {
+  final SnPublisher publisher;
   final double? maxWidth;
 
-  const RealmCard({super.key, required this.realm, this.maxWidth});
+  const PublisherCard({super.key, required this.publisher, this.maxWidth});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Widget imageWidget;
-    if (realm.picture != null) {
-      imageWidget =
-          imageWidget = CloudImageWidget(
-            file: realm.background,
-            fit: BoxFit.cover,
-          );
+    if (publisher.picture != null) {
+      imageWidget = CloudImageWidget(
+        file: publisher.background,
+        fit: BoxFit.cover,
+      );
     } else {
       imageWidget = ColoredBox(
         color: Theme.of(context).colorScheme.secondaryContainer,
@@ -31,7 +29,7 @@ class RealmCard extends ConsumerWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          context.push('/realms/${realm.slug}');
+          context.push('/publishers/${publisher.id}');
         },
         child: AspectRatio(
           aspectRatio: 16 / 7,
@@ -70,14 +68,13 @@ class RealmCard extends ConsumerWidget {
                           ],
                         ),
                         child: ProfilePictureWidget(
-                          file: realm.picture,
-                          fallbackIcon: Symbols.group,
+                          file: publisher.picture,
                           radius: 12,
                         ),
                       ),
                       const Gap(2),
                       Text(
-                        realm.name,
+                        publisher.nick,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,

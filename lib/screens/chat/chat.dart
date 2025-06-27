@@ -434,17 +434,31 @@ class ChatListScreen extends HookConsumerWidget {
 @riverpod
 Future<SnChatRoom?> chatroom(Ref ref, String? identifier) async {
   if (identifier == null) return null;
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/chat/$identifier');
-  return SnChatRoom.fromJson(resp.data);
+  try {
+    final client = ref.watch(apiClientProvider);
+    final resp = await client.get('/chat/$identifier');
+    return SnChatRoom.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null; // Chat room not found
+    }
+    rethrow; // Rethrow other errors
+  }
 }
 
 @riverpod
 Future<SnChatMember?> chatroomIdentity(Ref ref, String? identifier) async {
   if (identifier == null) return null;
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/chat/$identifier/members/me');
-  return SnChatMember.fromJson(resp.data);
+  try {
+    final client = ref.watch(apiClientProvider);
+    final resp = await client.get('/chat/$identifier/members/me');
+    return SnChatMember.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null; // Chat member not found
+    }
+    rethrow; // Rethrow other errors
+  }
 }
 
 class NewChatScreen extends StatelessWidget {

@@ -9,7 +9,7 @@ part of 'realm.dart';
 _SnRealm _$SnRealmFromJson(Map<String, dynamic> json) => _SnRealm(
   id: json['id'] as String,
   slug: json['slug'] as String,
-  name: json['name'] as String,
+  name: json['name'] as String? ?? '',
   description: json['description'] as String? ?? '',
   verifiedAs: json['verified_as'] as String?,
   verifiedAt:

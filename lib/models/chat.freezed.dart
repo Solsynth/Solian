@@ -129,15 +129,15 @@ $SnRealmCopyWith<$Res>? get realm {
 @JsonSerializable()
 
 class _SnChatRoom implements SnChatRoom {
-  const _SnChatRoom({required this.id, required this.name, required this.description, required this.type, required this.isPublic, required this.isCommunity, required this.picture, required this.background, required this.realmId, required this.realm, required this.createdAt, required this.updatedAt, required this.deletedAt, required final  List<SnChatMember>? members}): _members = members;
+  const _SnChatRoom({required this.id, required this.name, required this.description, required this.type, this.isPublic = false, this.isCommunity = false, required this.picture, required this.background, required this.realmId, required this.realm, required this.createdAt, required this.updatedAt, required this.deletedAt, required final  List<SnChatMember>? members}): _members = members;
   factory _SnChatRoom.fromJson(Map<String, dynamic> json) => _$SnChatRoomFromJson(json);
 
 @override final  String id;
 @override final  String? name;
 @override final  String? description;
 @override final  int type;
-@override final  bool isPublic;
-@override final  bool isCommunity;
+@override@JsonKey() final  bool isPublic;
+@override@JsonKey() final  bool isCommunity;
 @override final  SnCloudFile? picture;
 @override final  SnCloudFile? background;
 @override final  String? realmId;

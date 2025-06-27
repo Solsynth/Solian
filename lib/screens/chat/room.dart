@@ -305,7 +305,55 @@ class ChatRoomScreen extends HookConsumerWidget {
       // Identity was not found, user was not joined
       return AppScaffold(
         appBar: AppBar(leading: const PageBackButton()),
-        body: Center(child: Text('You are not a member of this chat room')),
+        body: Center(
+          child:
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 280),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      chatRoom.value?.isCommunity == true
+                          ? Symbols.person_add
+                          : Symbols.person_remove,
+                      size: 36,
+                      fill: 1,
+                    ).padding(bottom: 4),
+                    Text('chatNotJoined').tr(),
+                    if (chatRoom.value?.isCommunity != true)
+                      Text(
+                        'chatUnableJoin',
+                        textAlign: TextAlign.center,
+                      ).tr().bold()
+                    else
+                      FilledButton.tonalIcon(
+                        onPressed: () async {
+                          try {
+                            showLoadingModal(context);
+                            final apiClient = ref.read(apiClientProvider);
+                            if (chatRoom.value == null) {
+                              hideLoadingModal(context);
+                              return;
+                            }
+
+                            await apiClient.post(
+                              '/chat/${chatRoom.value!.id}/members/me',
+                            );
+                            ref.invalidate(chatroomIdentityProvider(id));
+                          } catch (err) {
+                            showErrorAlert(err);
+                          } finally {
+                            if (context.mounted) hideLoadingModal(context);
+                          }
+                        },
+                        label: Text('chatJoin').tr(),
+                        icon: const Icon(Icons.add),
+                      ).padding(top: 8),
+                  ],
+                ),
+              ).center(),
+        ),
       );
     }
 
@@ -442,6 +490,28 @@ class ChatRoomScreen extends HookConsumerWidget {
       final subscription = ws.dataStream.listen(onMessage);
       return () => subscription.cancel();
     }, [ws, chatRoom]);
+
+    useEffect(() {
+      final wsState = ref.read(websocketStateProvider.notifier);
+      wsState.sendMessage(
+        jsonEncode(
+          WebSocketPacket(
+            type: 'messages.subscribe',
+            data: {'chat_room_id': id},
+          ),
+        ),
+      );
+      return () {
+        wsState.sendMessage(
+          jsonEncode(
+            WebSocketPacket(
+              type: 'messages.unsubscribe',
+              data: {'chat_room_id': id},
+            ),
+          ),
+        );
+      };
+    }, [id]);
 
     Future<void> pickPhotoMedia() async {
       final result = await ref
@@ -617,7 +687,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
-              context.push('/chat/id/detail');
+              context.push('/chat/$id/detail');
             },
           ),
           const Gap(8),

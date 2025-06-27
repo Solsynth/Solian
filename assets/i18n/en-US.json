@@ -556,5 +556,12 @@
   "tags": "Tags",
   "tagsHint": "Enter tags, separated by commas",
   "categories": "Categories",
-  "categoriesHint": "Enter categories, separated by commas"
+  "categoriesHint": "Enter categories, separated by commas",
+  "chatNotJoined": "You have not joined this chat yet.",
+  "chatUnableJoin": "You can't join this chat due to it's access control settings.",
+  "chatJoin": "Join the Chat",
+  "realmJoin": "Join the Realm",
+  "realmJoinSuccess": "Successfully joined the realm.",
+  "discoverRealms": "Discover Realms",
+  "discoverPublishers": "Discover Publishers"
 }
