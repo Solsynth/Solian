@@ -32,7 +32,9 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             var uri = notification.meta['action_uri'] as String;
             if (uri.startsWith('/')) {
               // In-app routes
-              rootNavigatorKey.currentContext?.push(notification.meta['action_uri']);
+              rootNavigatorKey.currentContext?.push(
+                notification.meta['action_uri'],
+              );
             } else {
               // External URLs
               launchUrlString(uri);
@@ -46,8 +48,14 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         padding: EdgeInsets.only(
           left: 16,
           right: 16,
-          // ignore: use_build_context_synchronously
-          top: MediaQuery.of(context).padding.top + 24,
+          top:
+              (!kIsWeb &&
+                      (Platform.isMacOS ||
+                          Platform.isWindows ||
+                          Platform.isLinux))
+                  ? 24
+                  // ignore: use_build_context_synchronously
+                  : MediaQuery.of(context).padding.top + 8,
           bottom: 16,
         ),
       );
