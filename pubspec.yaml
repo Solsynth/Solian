@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 3.0.0+108
+version: 3.0.0+109
 
 environment:
   sdk: ^3.7.2
@@ -123,7 +123,7 @@ dependencies:
   receive_sharing_intent: ^1.8.1
   top_snackbar_flutter: ^3.3.0
   textfield_tags:
-   git:
+    git:
       url: https://github.com/lionelmennig/textfield_tags.git
       ref: fixes/allow-controller-re-registration
   mime: ^2.0.0
