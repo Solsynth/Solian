@@ -13,6 +13,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/file.dart';
+import 'package:mime/mime.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -149,9 +150,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
         case ShareContentType.file:
           if (widget.content.files != null) {
             // Convert XFiles to UniversalFiles
-            for (final xFile in widget.content.files!) {
-              final file = File(xFile.path);
-              final mimeType = xFile.mimeType;
+            for (final file in widget.content.files!) {
+              var mimeType = file.mimeType;
+              mimeType ??= lookupMimeType(file.path);
 
               UniversalFileType fileType;
               if (mimeType?.startsWith('image/') == true) {

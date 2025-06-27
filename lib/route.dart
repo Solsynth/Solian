@@ -53,7 +53,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           // Standalone routes without bottom navigation
           GoRoute(
             path: '/posts/compose',
-            builder: (context, state) => const PostComposeScreen(),
+            builder:
+                (context, state) => PostComposeScreen(
+                  initialState: state.extra as PostComposeInitialState?,
+                ),
           ),
           GoRoute(
             path: '/posts/:id/edit',

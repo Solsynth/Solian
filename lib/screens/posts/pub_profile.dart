@@ -54,25 +54,26 @@ Future<SnSubscriptionStatus> publisherSubscriptionStatus(
 
 @riverpod
 Future<Color?> publisherAppbarForcegroundColor(Ref ref, String pubName) async {
-  final publisher = await ref.watch(publisherProvider(pubName).future);
-  if (publisher.background == null) return null;
-  final palette = await PaletteGenerator.fromImageProvider(
-    CloudImageWidget.provider(
-      fileId: publisher.background!.id,
-      serverUrl: ref.watch(serverUrlProvider),
-    ),
-  );
-  final dominantColor = palette.dominantColor?.color;
-  if (dominantColor == null) return null;
-  return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+  try {
+    final publisher = await ref.watch(publisherProvider(pubName).future);
+    if (publisher.background == null) return null;
+    final palette = await PaletteGenerator.fromImageProvider(
+      CloudImageWidget.provider(
+        fileId: publisher.background!.id,
+        serverUrl: ref.watch(serverUrlProvider),
+      ),
+    );
+    final dominantColor = palette.dominantColor?.color;
+    if (dominantColor == null) return null;
+    return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+  } catch (_) {
+    return null;
+  }
 }
 
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
-  const PublisherProfileScreen({
-    super.key,
-    required this.name,
-  });
+  const PublisherProfileScreen({super.key, required this.name});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

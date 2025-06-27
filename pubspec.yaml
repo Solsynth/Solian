@@ -126,6 +126,7 @@ dependencies:
    git:
       url: https://github.com/lionelmennig/textfield_tags.git
       ref: fixes/allow-controller-re-registration
+  mime: ^2.0.0
 
 dev_dependencies:
   flutter_test:

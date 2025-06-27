@@ -29,7 +29,7 @@ class PublisherCard extends ConsumerWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          context.push('/publishers/${publisher.id}');
+          context.push('/publishers/${publisher.name}');
         },
         child: AspectRatio(
           aspectRatio: 16 / 7,

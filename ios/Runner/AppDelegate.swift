@@ -11,6 +11,21 @@ import UIKit
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = notifyDelegate
         
+        let replyableMessageCategory = UNNotificationCategory(
+            identifier: "REPLYABLE_MESSAGE",
+            actions: [
+                UNTextInputNotificationAction(
+                    identifier: "reply_action",
+                    title: "Reply",
+                    options: []
+                ),
+            ],
+            intentIdentifiers: [],
+            options: []
+        )
+        
+        UNUserNotificationCenter.current().setNotificationCategories([replyableMessageCategory])
+        
         GeneratedPluginRegistrant.register(with: self)
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }

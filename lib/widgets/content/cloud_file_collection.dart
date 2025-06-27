@@ -186,13 +186,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
     Future<void> saveToGallery() async {
       try {
         // Show loading indicator
-        final scaffold = ScaffoldMessenger.of(context);
-        scaffold.showSnackBar(
-          const SnackBar(
-            content: Text('Saving image to gallery...'),
-            duration: Duration(seconds: 1),
-          ),
-        );
+        showSnackBar('Saving image to gallery...');
 
         // Get the image URL
         final client = ref.watch(apiClientProvider);
@@ -209,12 +203,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
         await Gal.putImage(filePath, album: 'Solar Network');
 
         // Show success message
-        scaffold.showSnackBar(
-          const SnackBar(
-            content: Text('Image saved to gallery'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        showSnackBar('Image saved to gallery');
       } catch (e) {
         showErrorAlert(e);
       }

@@ -60,21 +60,7 @@ class NotificationService: UNNotificationServiceExtension {
         
         let pfpIdentifier = meta["pfp"] as? String
         
-        let replyableMessageCategory = UNNotificationCategory(
-            identifier: content.categoryIdentifier,
-            actions: [
-                UNTextInputNotificationAction(
-                    identifier: "reply_action",
-                    title: "Reply",
-                    options: []
-                ),
-            ],
-            intentIdentifiers: [],
-            options: []
-        )
-        
-        UNUserNotificationCenter.current().setNotificationCategories([replyableMessageCategory])
-        content.categoryIdentifier = replyableMessageCategory.identifier
+        content.categoryIdentifier = "REPLYABLE_MESSAGE"
         
         let metaCopy = meta as? [String: Any] ?? [:]
         let pfpUrl = pfpIdentifier != nil ? getAttachmentUrl(for: pfpIdentifier!) : nil
