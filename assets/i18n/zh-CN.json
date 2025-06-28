@@ -1050,7 +1050,7 @@
     {
         "identifier": "accountConnectionsEmpty",
         "source_string": "No connections found. Add a connection to get started.",
-        "translation": "No connections found. Add a connection to get started.",
+        "translation": "未找到连接。请添加连接以便开始。",
         "context": " -> accountConnectionsEmpty",
         "labels": "en-US.json",
         "max_length": null
@@ -1058,7 +1058,7 @@
     {
         "identifier": "accountConnectionProvider",
         "source_string": "Provider",
-        "translation": "Provider",
+        "translation": "平台",
         "context": " -> accountConnectionProvider",
         "labels": "en-US.json",
         "max_length": null
@@ -1066,7 +1066,7 @@
     {
         "identifier": "accountConnectionProviderHint",
         "source_string": "Enter provider name",
-        "translation": "Enter provider name",
+        "translation": "输入提平台名称",
         "context": " -> accountConnectionProviderHint",
         "labels": "en-US.json",
         "max_length": null
@@ -1074,7 +1074,7 @@
     {
         "identifier": "accountConnectionIdentifier",
         "source_string": "Identifier",
-        "translation": "Identifier",
+        "translation": "标识",
         "context": " -> accountConnectionIdentifier",
         "labels": "en-US.json",
         "max_length": null
@@ -1082,7 +1082,7 @@
     {
         "identifier": "accountConnectionIdentifierHint",
         "source_string": "Enter your identifier for this provider",
-        "translation": "Enter your identifier for this provider",
+        "translation": "输入此平台的标识",
         "context": " -> accountConnectionIdentifierHint",
         "labels": "en-US.json",
         "max_length": null
@@ -1098,7 +1098,7 @@
     {
         "identifier": "accountConnectionAddSuccess",
         "source_string": "Connection added successfully.",
-        "translation": "Connection added successfully.",
+        "translation": "添加连接成功。",
         "context": " -> accountConnectionAddSuccess",
         "labels": "en-US.json",
         "max_length": null
@@ -1106,7 +1106,7 @@
     {
         "identifier": "accountConnectionAddError",
         "source_string": "Unable to setup connection.",
-        "translation": "Unable to setup connection.",
+        "translation": "无法建立连接。",
         "context": " -> accountConnectionAddError",
         "labels": "en-US.json",
         "max_length": null
@@ -1130,7 +1130,7 @@
     {
         "identifier": "accountConnectionProviderGoogle",
         "source_string": "Google",
-        "translation": "Google",
+        "translation": "谷歌",
         "context": " -> accountConnectionProviderGoogle",
         "labels": "en-US.json",
         "max_length": null
@@ -1154,7 +1154,7 @@
     {
         "identifier": "accountConnectionProviderAfdian",
         "source_string": "Afdian",
-        "translation": "Afdian",
+        "translation": "爱发电",
         "context": " -> accountConnectionProviderAfdian",
         "labels": "en-US.json",
         "max_length": null
@@ -1250,7 +1250,7 @@
     {
         "identifier": "fortuneGraph",
         "source_string": "Fortune Trend",
-        "translation": "Fortune Trend",
+        "translation": "时运趋势",
         "context": " -> fortuneGraph",
         "labels": "en-US.json",
         "max_length": null
@@ -2578,7 +2578,7 @@
     {
         "identifier": "accountPasswordChangeDescription",
         "source_string": "We will send an email to your primary email address to reset your password.",
-        "translation": "We will send an email to your primary email address to reset your password.",
+        "translation": "我们将向您的电子邮件地址发送一封电子邮件以重置您的密码。",
         "context": " -> accountPasswordChangeDescription",
         "labels": "en-US.json",
         "max_length": null
@@ -2586,7 +2586,7 @@
     {
         "identifier": "accountAuthFactor",
         "source_string": "Auth factors",
-        "translation": "Auth factors",
+        "translation": "认证因子",
         "context": " -> accountAuthFactor",
         "labels": "en-US.json",
         "max_length": null
@@ -2594,7 +2594,7 @@
     {
         "identifier": "accountAuthFactorDescription",
         "source_string": "Multi-factor authentication to ensure safety and convience",
-        "translation": "Multi-factor authentication to ensure safety and convience",
+        "translation": "确保安全和多因子身份验证矶",
         "context": " -> accountAuthFactorDescription",
         "labels": "en-US.json",
         "max_length": null
@@ -2602,7 +2602,7 @@
     {
         "identifier": "accountDeletionDescription",
         "source_string": "Permanently delete your account and all your data",
-        "translation": "Permanently delete your account and all your data",
+        "translation": "永久删除您的帐户和所有数据",
         "context": " -> accountDeletionDescription",
         "labels": "en-US.json",
         "max_length": null
@@ -2610,7 +2610,7 @@
     {
         "identifier": "accountSettingsHelp",
         "source_string": "Account Settings Help",
-        "translation": "Account Settings Help",
+        "translation": "账户设置帮助",
         "context": " -> accountSettingsHelp",
         "labels": "en-US.json",
         "max_length": null
@@ -2618,7 +2618,7 @@
     {
         "identifier": "accountSettingsHelpContent",
         "source_string": "This page allows you to manage your account security, privacy, and other settings. If you need assistance, please contact support.",
-        "translation": "This page allows you to manage your account security, privacy, and other settings. If you need assistance, please contact support.",
+        "translation": "此页面允许您管理您的帐户安全性、隐私和其他设置。如果您需要帮助，请联系管理员。",
         "context": " -> accountSettingsHelpContent",
         "labels": "en-US.json",
         "max_length": null
@@ -2626,7 +2626,7 @@
     {
         "identifier": "unauthorized",
         "source_string": "Unauthorized",
-        "translation": "Unauthorized",
+        "translation": "未授权",
         "context": " -> unauthorized",
         "labels": "en-US.json",
         "max_length": null
@@ -2634,7 +2634,7 @@
     {
         "identifier": "unauthorizedHint",
         "source_string": "You're not signed in or session expired, please sign in again.",
-        "translation": "You're not signed in or session expired, please sign in again.",
+        "translation": "您未登录或会话已过期，请重新登录。",
         "context": " -> unauthorizedHint",
         "labels": "en-US.json",
         "max_length": null
@@ -2642,7 +2642,7 @@
     {
         "identifier": "publisherBelongsTo",
         "source_string": "Belongs to {}",
-        "translation": "Belongs to {}",
+        "translation": "属于",
         "context": " -> publisherBelongsTo",
         "labels": "en-US.json",
         "max_length": null
@@ -2650,7 +2650,7 @@
     {
         "identifier": "postContent",
         "source_string": "Content",
-        "translation": "Content",
+        "translation": "内容",
         "context": " -> postContent",
         "labels": "en-US.json",
         "max_length": null
@@ -2658,7 +2658,7 @@
     {
         "identifier": "postSettings",
         "source_string": "Settings",
-        "translation": "Settings",
+        "translation": "设置",
         "context": " -> postSettings",
         "labels": "en-US.json",
         "max_length": null
@@ -2666,7 +2666,7 @@
     {
         "identifier": "postPublisherUnselected",
         "source_string": "Publisher Unspecified",
-        "translation": "Publisher Unspecified",
+        "translation": "未指定发布器",
         "context": " -> postPublisherUnselected",
         "labels": "en-US.json",
         "max_length": null
@@ -2722,7 +2722,7 @@
     {
         "identifier": "copyMessage",
         "source_string": "Copy Message",
-        "translation": "Copy Message",
+        "translation": "复制消息",
         "context": " -> copyMessage",
         "labels": "en-US.json",
         "max_length": null
@@ -2730,7 +2730,7 @@
     {
         "identifier": "authFactor",
         "source_string": "Authentication Factor",
-        "translation": "Authentication Factor",
+        "translation": "身份验证因子",
         "context": " -> authFactor",
         "labels": "en-US.json",
         "max_length": null
@@ -2738,7 +2738,7 @@
     {
         "identifier": "authFactorDelete",
         "source_string": "Delete the Factor",
-        "translation": "Delete the Factor",
+        "translation": "删除验证因子",
         "context": " -> authFactorDelete",
         "labels": "en-US.json",
         "max_length": null
@@ -2746,7 +2746,7 @@
     {
         "identifier": "authFactorDeleteHint",
         "source_string": "Are you sure you want to delete this authentication factor? This action cannot be undone.",
-        "translation": "Are you sure you want to delete this authentication factor? This action cannot be undone.",
+        "translation": "您确定要删除此连接吗？此操作无法撤消。",
         "context": " -> authFactorDeleteHint",
         "labels": "en-US.json",
         "max_length": null
@@ -2754,7 +2754,7 @@
     {
         "identifier": "authFactorDisable",
         "source_string": "Disable the Factor",
-        "translation": "Disable the Factor",
+        "translation": "禁用因子认证",
         "context": " -> authFactorDisable",
         "labels": "en-US.json",
         "max_length": null
@@ -2762,7 +2762,7 @@
     {
         "identifier": "authFactorDisableHint",
         "source_string": "Are you sure you want to disable this authentication factor? You can enable it again later.",
-        "translation": "Are you sure you want to disable this authentication factor? You can enable it again later.",
+        "translation": "您确定要禁用此身份验证因素吗？您可以稍后再启用它。",
         "context": " -> authFactorDisableHint",
         "labels": "en-US.json",
         "max_length": null
@@ -2770,7 +2770,7 @@
     {
         "identifier": "authFactorEnable",
         "source_string": "Enable the Factor",
-        "translation": "Enable the Factor",
+        "translation": "启用双因子认证",
         "context": " -> authFactorEnable",
         "labels": "en-US.json",
         "max_length": null
@@ -2778,7 +2778,7 @@
     {
         "identifier": "authFactorEnableHint",
         "source_string": "Please enter the code that generated by the factor to enable it.",
-        "translation": "Please enter the code that generated by the factor to enable it.",
+        "translation": "授权因子生成的代码来启用它。",
         "context": " -> authFactorEnableHint",
         "labels": "en-US.json",
         "max_length": null
@@ -2786,7 +2786,7 @@
     {
         "identifier": "authFactorNew",
         "source_string": "Create Auth Factor",
-        "translation": "Create Auth Factor",
+        "translation": "创建认证的因子",
         "context": " -> authFactorNew",
         "labels": "en-US.json",
         "max_length": null
@@ -2794,7 +2794,7 @@
     {
         "identifier": "authFactorSecret",
         "source_string": "Secret",
-        "translation": "Secret",
+        "translation": "密钥",
         "context": " -> authFactorSecret",
         "labels": "en-US.json",
         "max_length": null
@@ -2802,7 +2802,7 @@
     {
         "identifier": "authFactorSecretHint",
         "source_string": "Create an secret for this factor.",
-        "translation": "Create an secret for this factor.",
+        "translation": "为此因子创建一个秘密。",
         "context": " -> authFactorSecretHint",
         "labels": "en-US.json",
         "max_length": null
@@ -2810,7 +2810,7 @@
     {
         "identifier": "authFactorQrCodeScan",
         "source_string": "Scan this QR code with your authenticator app to set up TOTP authentication",
-        "translation": "Scan this QR code with your authenticator app to set up TOTP authentication",
+        "translation": "用您的身份验证程序扫描这个二维码来设置TOTP身份验证",
         "context": " -> authFactorQrCodeScan",
         "labels": "en-US.json",
         "max_length": null
@@ -2818,7 +2818,7 @@
     {
         "identifier": "authFactorNoQrCode",
         "source_string": "No QR code available for this authentication factor",
-        "translation": "No QR code available for this authentication factor",
+        "translation": "此身份验证因子没有可用的 QR 代码",
         "context": " -> authFactorNoQrCode",
         "labels": "en-US.json",
         "max_length": null
@@ -2826,7 +2826,7 @@
     {
         "identifier": "cancel",
         "source_string": "Cancel",
-        "translation": "Cancel",
+        "translation": "取消",
         "context": " -> cancel",
         "labels": "en-US.json",
         "max_length": null
@@ -2834,7 +2834,7 @@
     {
         "identifier": "confirm",
         "source_string": "Confirm",
-        "translation": "Confirm",
+        "translation": "确认",
         "context": " -> confirm",
         "labels": "en-US.json",
         "max_length": null
@@ -2842,7 +2842,7 @@
     {
         "identifier": "authFactorAdditional",
         "source_string": "One more step",
-        "translation": "One more step",
+        "translation": "最后一步",
         "context": " -> authFactorAdditional",
         "labels": "en-US.json",
         "max_length": null
@@ -2850,7 +2850,7 @@
     {
         "identifier": "authFactorHint",
         "source_string": "Contact method hint",
-        "translation": "Contact method hint",
+        "translation": "联系方式",
         "context": " -> authFactorHint",
         "labels": "en-US.json",
         "max_length": null
@@ -2858,7 +2858,7 @@
     {
         "identifier": "authFactorHintHelper",
         "source_string": "You need provide a part of your contact method and we will send the verification code to that contact method if it matched our records",
-        "translation": "You need provide a part of your contact method and we will send the verification code to that contact method if it matched our records",
+        "translation": "您需要提供您的联系方式，若与我们的记录相符，我们将会向该联系方式发送验证码",
         "context": " -> authFactorHintHelper",
         "labels": "en-US.json",
         "max_length": null
@@ -2866,7 +2866,7 @@
     {
         "identifier": "authSessions",
         "source_string": "Active Sessions",
-        "translation": "Active Sessions",
+        "translation": "活跃会话",
         "context": " -> authSessions",
         "labels": "en-US.json",
         "max_length": null
@@ -2874,7 +2874,7 @@
     {
         "identifier": "authSessionsDescription",
         "source_string": "See devices you currently logged in.",
-        "translation": "See devices you currently logged in.",
+        "translation": "查看您当前登录的设备。",
         "context": " -> authSessionsDescription",
         "labels": "en-US.json",
         "max_length": null
@@ -2882,7 +2882,7 @@
     {
         "identifier": "authSessionsCount.one",
         "source_string": "{} session",
-        "translation": "{} session",
+        "translation": "{} 会话",
         "context": "authSessionsCount -> one",
         "labels": "en-US.json",
         "max_length": null
@@ -2890,7 +2890,7 @@
     {
         "identifier": "authSessionsCount.other",
         "source_string": "{} sessions",
-        "translation": "{} sessions",
+        "translation": "{} 会话",
         "context": "authSessionsCount -> other",
         "labels": "en-US.json",
         "max_length": null
@@ -2914,7 +2914,7 @@
     {
         "identifier": "authDeviceLogout",
         "source_string": "Logout",
-        "translation": "Logout",
+        "translation": "登出",
         "context": " -> authDeviceLogout",
         "labels": "en-US.json",
         "max_length": null
@@ -2922,7 +2922,7 @@
     {
         "identifier": "authDeviceLogoutHint",
         "source_string": "Are you sure you want to logout this device? This will also disable the push notification to this device.",
-        "translation": "Are you sure you want to logout this device? This will also disable the push notification to this device.",
+        "translation": "您确定要注销此设备吗？这也会禁用掉此设备的推送通知哦。",
         "context": " -> authDeviceLogoutHint",
         "labels": "en-US.json",
         "max_length": null
@@ -2930,7 +2930,7 @@
     {
         "identifier": "authDeviceEditLabel",
         "source_string": "Edit Label",
-        "translation": "Edit Label",
+        "translation": "编辑标签",
         "context": " -> authDeviceEditLabel",
         "labels": "en-US.json",
         "max_length": null
@@ -2938,7 +2938,7 @@
     {
         "identifier": "authDeviceLabelTitle",
         "source_string": "Edit Device Label",
-        "translation": "Edit Device Label",
+        "translation": "编辑设备标签",
         "context": " -> authDeviceLabelTitle",
         "labels": "en-US.json",
         "max_length": null
@@ -2946,7 +2946,7 @@
     {
         "identifier": "authDeviceLabelHint",
         "source_string": "Enter a name for this device",
-        "translation": "Enter a name for this device",
+        "translation": "给设备命名",
         "context": " -> authDeviceLabelHint",
         "labels": "en-US.json",
         "max_length": null
@@ -2954,7 +2954,7 @@
     {
         "identifier": "authDeviceSwipeEditHint",
         "source_string": "Swipe left to edit label",
-        "translation": "Swipe left to edit label",
+        "translation": "左滑编辑标签",
         "context": " -> authDeviceSwipeEditHint",
         "labels": "en-US.json",
         "max_length": null
@@ -2962,7 +2962,7 @@
     {
         "identifier": "authDeviceSwipeLogoutHint",
         "source_string": "Swipe right to logout device",
-        "translation": "Swipe right to logout device",
+        "translation": "右滑登出设备",
         "context": " -> authDeviceSwipeLogoutHint",
         "labels": "en-US.json",
         "max_length": null
@@ -3450,7 +3450,7 @@
     {
         "identifier": "pronouns",
         "source_string": "Pronouns",
-        "translation": "Pronouns",
+        "translation": "代词",
         "context": " -> pronouns",
         "labels": "en-US.json",
         "max_length": null
@@ -3458,7 +3458,7 @@
     {
         "identifier": "location",
         "source_string": "Location",
-        "translation": "Location",
+        "translation": "位置",
         "context": " -> location",
         "labels": "en-US.json",
         "max_length": null
@@ -3466,7 +3466,7 @@
     {
         "identifier": "timeZone",
         "source_string": "Time Zone",
-        "translation": "Time Zone",
+        "translation": "时区",
         "context": " -> timeZone",
         "labels": "en-US.json",
         "max_length": null
@@ -3474,7 +3474,7 @@
     {
         "identifier": "birthday",
         "source_string": "Birthday",
-        "translation": "Birthday",
+        "translation": "生日",
         "context": " -> birthday",
         "labels": "en-US.json",
         "max_length": null
@@ -3482,7 +3482,7 @@
     {
         "identifier": "selectADate",
         "source_string": "Select a date",
-        "translation": "Select a date",
+        "translation": "选择日期",
         "context": " -> selectADate",
         "labels": "en-US.json",
         "max_length": null
@@ -3530,7 +3530,7 @@
     {
         "identifier": "accountProfileView",
         "source_string": "View Profile",
-        "translation": "View Profile",
+        "translation": "查看个人资料",
         "context": " -> accountProfileView",
         "labels": "en-US.json",
         "max_length": null
@@ -3538,7 +3538,7 @@
     {
         "identifier": "unspecified",
         "source_string": "Unspecified",
-        "translation": "Unspecified",
+        "translation": "未指定",
         "context": " -> unspecified",
         "labels": "en-US.json",
         "max_length": null
@@ -3546,7 +3546,7 @@
     {
         "identifier": "added",
         "source_string": "Added",
-        "translation": "Added",
+        "translation": "已添加",
         "context": " -> added",
         "labels": "en-US.json",
         "max_length": null
@@ -3554,7 +3554,7 @@
     {
         "identifier": "preview",
         "source_string": "Preview",
-        "translation": "Preview",
+        "translation": "预览",
         "context": " -> preview",
         "labels": "en-US.json",
         "max_length": null
@@ -3562,7 +3562,7 @@
     {
         "identifier": "togglePreview",
         "source_string": "Toggle Preview",
-        "translation": "Toggle Preview",
+        "translation": "切换预览",
         "context": " -> togglePreview",
         "labels": "en-US.json",
         "max_length": null
@@ -3570,7 +3570,7 @@
     {
         "identifier": "subscribe",
         "source_string": "Subscribe",
-        "translation": "Subscribe",
+        "translation": "订阅",
         "context": " -> subscribe",
         "labels": "en-US.json",
         "max_length": null
@@ -3578,7 +3578,7 @@
     {
         "identifier": "unsubscribe",
         "source_string": "Unsubscribe",
-        "translation": "Unsubscribe",
+        "translation": "取消订阅",
         "context": " -> unsubscribe",
         "labels": "en-US.json",
         "max_length": null
@@ -3586,7 +3586,7 @@
     {
         "identifier": "paymentVerification",
         "source_string": "Payment Verification",
-        "translation": "Payment Verification",
+        "translation": "支付验证",
         "context": " -> paymentVerification",
         "labels": "en-US.json",
         "max_length": null
@@ -3594,7 +3594,7 @@
     {
         "identifier": "paymentSummary",
         "source_string": "Payment Summary",
-        "translation": "Payment Summary",
+        "translation": "付款摘要",
         "context": " -> paymentSummary",
         "labels": "en-US.json",
         "max_length": null
@@ -3602,7 +3602,7 @@
     {
         "identifier": "amount",
         "source_string": "Amount",
-        "translation": "Amount",
+        "translation": "数量",
         "context": " -> amount",
         "labels": "en-US.json",
         "max_length": null
@@ -3618,7 +3618,7 @@
     {
         "identifier": "pinCode",
         "source_string": "PIN Code",
-        "translation": "PIN Code",
+        "translation": "PIN 码",
         "context": " -> pinCode",
         "labels": "en-US.json",
         "max_length": null
@@ -3626,7 +3626,7 @@
     {
         "identifier": "biometric",
         "source_string": "Biometric",
-        "translation": "Biometric",
+        "translation": "生物识别",
         "context": " -> biometric",
         "labels": "en-US.json",
         "max_length": null
@@ -3634,7 +3634,7 @@
     {
         "identifier": "enterPinToConfirm",
         "source_string": "Enter your 6-digit PIN to confirm payment",
-        "translation": "Enter your 6-digit PIN to confirm payment",
+        "translation": "请输入您的6位数字PIN 以确认付款",
         "context": " -> enterPinToConfirm",
         "labels": "en-US.json",
         "max_length": null
@@ -3642,7 +3642,7 @@
     {
         "identifier": "clearPin",
         "source_string": "Clear PIN",
-        "translation": "Clear PIN",
+        "translation": "清除 PIN 码",
         "context": " -> clearPin",
         "labels": "en-US.json",
         "max_length": null
@@ -3650,7 +3650,7 @@
     {
         "identifier": "useBiometricToConfirm",
         "source_string": "Use biometric authentication to confirm payment",
-        "translation": "Use biometric authentication to confirm payment",
+        "translation": "使用生物特征认证来确认付款",
         "context": " -> useBiometricToConfirm",
         "labels": "en-US.json",
         "max_length": null
@@ -3658,7 +3658,7 @@
     {
         "identifier": "touchSensorToAuthenticate",
         "source_string": "Touch the sensor to authenticate",
-        "translation": "Touch the sensor to authenticate",
+        "translation": "触摸传感器进行身份验证",
         "context": " -> touchSensorToAuthenticate",
         "labels": "en-US.json",
         "max_length": null
@@ -3674,7 +3674,7 @@
     {
         "identifier": "authenticateNow",
         "source_string": "Authenticate Now",
-        "translation": "Authenticate Now",
+        "translation": "立即认证",
         "context": " -> authenticateNow",
         "labels": "en-US.json",
         "max_length": null
@@ -3714,7 +3714,7 @@
     {
         "identifier": "invalidPin",
         "source_string": "Invalid PIN. Please try again.",
-        "translation": "Invalid PIN. Please try again.",
+        "translation": "错误的 PIN。请再试一次吧。",
         "context": " -> invalidPin",
         "labels": "en-US.json",
         "max_length": null
@@ -3722,7 +3722,7 @@
     {
         "identifier": "biometricAuthFailed",
         "source_string": "Biometric authentication failed. Please try again.",
-        "translation": "Biometric authentication failed. Please try again.",
+        "translation": "生物识别身份验证失败。请重试。",
         "context": " -> biometricAuthFailed",
         "labels": "en-US.json",
         "max_length": null
@@ -3738,7 +3738,7 @@
     {
         "identifier": "membershipPurchaseSuccess",
         "source_string": "Membership purchased successfully!",
-        "translation": "Membership purchased successfully!",
+        "translation": "好耶，会员购买成功！",
         "context": " -> membershipPurchaseSuccess",
         "labels": "en-US.json",
         "max_length": null
@@ -3746,7 +3746,7 @@
     {
         "identifier": "paymentError",
         "source_string": "Payment failed: {error}",
-        "translation": "Payment failed: {error}",
+        "translation": "付款失败: {error}",
         "context": " -> paymentError",
         "labels": "en-US.json",
         "max_length": null
@@ -3754,7 +3754,7 @@
     {
         "identifier": "usePinInstead",
         "source_string": "Use PIN Code",
-        "translation": "Use PIN Code",
+        "translation": "使用 PIN 码",
         "context": " -> usePinInstead",
         "labels": "en-US.json",
         "max_length": null
@@ -3762,7 +3762,7 @@
     {
         "identifier": "levelProgress",
         "source_string": "Level Progress",
-        "translation": "Level Progress",
+        "translation": "等级进度",
         "context": " -> levelProgress",
         "labels": "en-US.json",
         "max_length": null
@@ -3770,7 +3770,7 @@
     {
         "identifier": "unlockedFeatures",
         "source_string": "Unlocked Features",
-        "translation": "Unlocked Features",
+        "translation": "已解锁的功能",
         "context": " -> unlockedFeatures",
         "labels": "en-US.json",
         "max_length": null
@@ -3778,7 +3778,7 @@
     {
         "identifier": "unlockedFeaturesDescription",
         "source_string": "Features unlocked at your current level will be displayed here.",
-        "translation": "Features unlocked at your current level will be displayed here.",
+        "translation": "在您当前级别上解锁的功能将显示在这里。",
         "context": " -> unlockedFeaturesDescription",
         "labels": "en-US.json",
         "max_length": null
@@ -3786,7 +3786,7 @@
     {
         "identifier": "stellarMembership",
         "source_string": "Stellar Membership",
-        "translation": "Stellar Membership",
+        "translation": "恒星计划",
         "context": " -> stellarMembership",
         "labels": "en-US.json",
         "max_length": null
@@ -3794,7 +3794,7 @@
     {
         "identifier": "upgradeYourPlan",
         "source_string": "Upgrade Your Plan",
-        "translation": "Upgrade Your Plan",
+        "translation": "升级您的计划",
         "context": " -> upgradeYourPlan",
         "labels": "en-US.json",
         "max_length": null
@@ -3802,7 +3802,7 @@
     {
         "identifier": "chooseYourPlan",
         "source_string": "Choose Your Plan",
-        "translation": "Choose Your Plan",
+        "translation": "选择你的方案",
         "context": " -> chooseYourPlan",
         "labels": "en-US.json",
         "max_length": null
@@ -3810,7 +3810,7 @@
     {
         "identifier": "currentMembership",
         "source_string": "Current: {}",
-        "translation": "Current: {}",
+        "translation": "当前：{}",
         "context": " -> currentMembership",
         "labels": "en-US.json",
         "max_length": null
@@ -3818,7 +3818,7 @@
     {
         "identifier": "membershipExpires",
         "source_string": "Expires: {}",
-        "translation": "Expires: {}",
+        "translation": "过期：{}",
         "context": " -> membershipExpires",
         "labels": "en-US.json",
         "max_length": null
@@ -3826,7 +3826,7 @@
     {
         "identifier": "membershipTierStellar",
         "source_string": "Stellar",
-        "translation": "Stellar",
+        "translation": "恒星",
         "context": " -> membershipTierStellar",
         "labels": "en-US.json",
         "max_length": null
@@ -3834,7 +3834,7 @@
     {
         "identifier": "membershipTierNova",
         "source_string": "Nova",
-        "translation": "Nova",
+        "translation": "新星",
         "context": " -> membershipTierNova",
         "labels": "en-US.json",
         "max_length": null
@@ -3842,7 +3842,7 @@
     {
         "identifier": "membershipTierSupernova",
         "source_string": "Supernova",
-        "translation": "Supernova",
+        "translation": "超新星",
         "context": " -> membershipTierSupernova",
         "labels": "en-US.json",
         "max_length": null
@@ -3850,7 +3850,7 @@
     {
         "identifier": "membershipTierUnknown",
         "source_string": "Unknown",
-        "translation": "Unknown",
+        "translation": "未知",
         "context": " -> membershipTierUnknown",
         "labels": "en-US.json",
         "max_length": null
@@ -3858,7 +3858,7 @@
     {
         "identifier": "membershipPriceStellar",
         "source_string": "10 NS$ per month",
-        "translation": "10 NS$ per month",
+        "translation": "每月10金点",
         "context": " -> membershipPriceStellar",
         "labels": "en-US.json",
         "max_length": null
@@ -3866,7 +3866,7 @@
     {
         "identifier": "membershipPriceNova",
         "source_string": "20 NS$ per month",
-        "translation": "20 NS$ per month",
+        "translation": "每月20金点",
         "context": " -> membershipPriceNova",
         "labels": "en-US.json",
         "max_length": null
@@ -3874,7 +3874,7 @@
     {
         "identifier": "membershipPriceSupernova",
         "source_string": "30 NS$ per month",
-        "translation": "30 NS$ per month",
+        "translation": "每月30金点",
         "context": " -> membershipPriceSupernova",
         "labels": "en-US.json",
         "max_length": null
@@ -3882,7 +3882,7 @@
     {
         "identifier": "membershipFeatureBasic",
         "source_string": "Basic features",
-        "translation": "Basic features",
+        "translation": "基础功能",
         "context": " -> membershipFeatureBasic",
         "labels": "en-US.json",
         "max_length": null
@@ -3890,7 +3890,7 @@
     {
         "identifier": "membershipFeaturePrioritySupport",
         "source_string": "Priority support",
-        "translation": "Priority support",
+        "translation": "优先支持",
         "context": " -> membershipFeaturePrioritySupport",
         "labels": "en-US.json",
         "max_length": null
@@ -3898,7 +3898,7 @@
     {
         "identifier": "membershipFeatureAdFree",
         "source_string": "Ad-free experience",
-        "translation": "Ad-free experience",
+        "translation": "无广告",
         "context": " -> membershipFeatureAdFree",
         "labels": "en-US.json",
         "max_length": null
@@ -3906,7 +3906,7 @@
     {
         "identifier": "membershipFeatureAllPrimary",
         "source_string": "All Primary features",
-        "translation": "All Primary features",
+        "translation": "所有主要功能",
         "context": " -> membershipFeatureAllPrimary",
         "labels": "en-US.json",
         "max_length": null
@@ -3914,7 +3914,7 @@
     {
         "identifier": "membershipFeatureAdvancedCustomization",
         "source_string": "Advanced customization",
-        "translation": "Advanced customization",
+        "translation": "高级自定义",
         "context": " -> membershipFeatureAdvancedCustomization",
         "labels": "en-US.json",
         "max_length": null
@@ -3922,7 +3922,7 @@
     {
         "identifier": "membershipFeatureEarlyAccess",
         "source_string": "Early access",
-        "translation": "Early access",
+        "translation": "抢先体验",
         "context": " -> membershipFeatureEarlyAccess",
         "labels": "en-US.json",
         "max_length": null
@@ -3930,7 +3930,7 @@
     {
         "identifier": "membershipFeatureAllNova",
         "source_string": "All Nova features",
-        "translation": "All Nova features",
+        "translation": "所有「新星」功能",
         "context": " -> membershipFeatureAllNova",
         "labels": "en-US.json",
         "max_length": null
@@ -3938,7 +3938,7 @@
     {
         "identifier": "membershipFeatureExclusiveContent",
         "source_string": "Exclusive content",
-        "translation": "Exclusive content",
+        "translation": "限定内容",
         "context": " -> membershipFeatureExclusiveContent",
         "labels": "en-US.json",
         "max_length": null
