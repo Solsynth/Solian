@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
+import 'package:island/models/publisher.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/widgets/alert.dart';

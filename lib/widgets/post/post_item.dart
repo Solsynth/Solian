@@ -362,6 +362,7 @@ class PostItem extends HookConsumerWidget {
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
+                            useRootNavigator: true,
                             builder: (context) => PostRepliesSheet(post: item),
                           );
                         }

@@ -169,7 +169,7 @@ class IslandApp extends HookConsumerWidget {
         }
       }
 
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      if (!kIsWeb && Platform.isAndroid) {
         handleInitialLink();
       }
 

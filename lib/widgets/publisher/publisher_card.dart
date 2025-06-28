@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/post.dart';
+import 'package:island/models/publisher.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 
 class PublisherCard extends ConsumerWidget {

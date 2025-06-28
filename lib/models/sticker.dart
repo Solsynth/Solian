@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/file.dart';
-import 'package:island/models/post.dart';
+import 'package:island/models/publisher.dart';
 
 part 'sticker.freezed.dart';
 part 'sticker.g.dart';

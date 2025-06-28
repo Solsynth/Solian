@@ -149,5 +149,300 @@ class _PublisherStatsProviderElement
   String? get uname => (origin as PublisherStatsProvider).uname;
 }
 
+String _$publisherIdentityHash() => r'f7fd986a303a729ca5557022fceb37cd01fa17f3';
+
+/// See also [publisherIdentity].
+@ProviderFor(publisherIdentity)
+const publisherIdentityProvider = PublisherIdentityFamily();
+
+/// See also [publisherIdentity].
+class PublisherIdentityFamily extends Family<AsyncValue<SnPublisherMember?>> {
+  /// See also [publisherIdentity].
+  const PublisherIdentityFamily();
+
+  /// See also [publisherIdentity].
+  PublisherIdentityProvider call(String uname) {
+    return PublisherIdentityProvider(uname);
+  }
+
+  @override
+  PublisherIdentityProvider getProviderOverride(
+    covariant PublisherIdentityProvider provider,
+  ) {
+    return call(provider.uname);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'publisherIdentityProvider';
+}
+
+/// See also [publisherIdentity].
+class PublisherIdentityProvider
+    extends AutoDisposeFutureProvider<SnPublisherMember?> {
+  /// See also [publisherIdentity].
+  PublisherIdentityProvider(String uname)
+    : this._internal(
+        (ref) => publisherIdentity(ref as PublisherIdentityRef, uname),
+        from: publisherIdentityProvider,
+        name: r'publisherIdentityProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$publisherIdentityHash,
+        dependencies: PublisherIdentityFamily._dependencies,
+        allTransitiveDependencies:
+            PublisherIdentityFamily._allTransitiveDependencies,
+        uname: uname,
+      );
+
+  PublisherIdentityProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.uname,
+  }) : super.internal();
+
+  final String uname;
+
+  @override
+  Override overrideWith(
+    FutureOr<SnPublisherMember?> Function(PublisherIdentityRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PublisherIdentityProvider._internal(
+        (ref) => create(ref as PublisherIdentityRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        uname: uname,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<SnPublisherMember?> createElement() {
+    return _PublisherIdentityProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherIdentityProvider && other.uname == uname;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, uname.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PublisherIdentityRef on AutoDisposeFutureProviderRef<SnPublisherMember?> {
+  /// The parameter `uname` of this provider.
+  String get uname;
+}
+
+class _PublisherIdentityProviderElement
+    extends AutoDisposeFutureProviderElement<SnPublisherMember?>
+    with PublisherIdentityRef {
+  _PublisherIdentityProviderElement(super.provider);
+
+  @override
+  String get uname => (origin as PublisherIdentityProvider).uname;
+}
+
+String _$publisherInvitesHash() => r'488cd443407895ce11f4edff07cb6ea58f2aa018';
+
+/// See also [publisherInvites].
+@ProviderFor(publisherInvites)
+final publisherInvitesProvider =
+    AutoDisposeFutureProvider<List<SnPublisherMember>>.internal(
+      publisherInvites,
+      name: r'publisherInvitesProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$publisherInvitesHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef PublisherInvitesRef =
+    AutoDisposeFutureProviderRef<List<SnPublisherMember>>;
+String _$publisherMemberListNotifierHash() =>
+    r'237e8f39c9757a6cbdff817853c697539242ad2a';
+
+abstract class _$PublisherMemberListNotifier
+    extends
+        BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnPublisherMember>> {
+  late final String uname;
+
+  FutureOr<CursorPagingData<SnPublisherMember>> build(String uname);
+}
+
+/// See also [PublisherMemberListNotifier].
+@ProviderFor(PublisherMemberListNotifier)
+const publisherMemberListNotifierProvider = PublisherMemberListNotifierFamily();
+
+/// See also [PublisherMemberListNotifier].
+class PublisherMemberListNotifierFamily
+    extends Family<AsyncValue<CursorPagingData<SnPublisherMember>>> {
+  /// See also [PublisherMemberListNotifier].
+  const PublisherMemberListNotifierFamily();
+
+  /// See also [PublisherMemberListNotifier].
+  PublisherMemberListNotifierProvider call(String uname) {
+    return PublisherMemberListNotifierProvider(uname);
+  }
+
+  @override
+  PublisherMemberListNotifierProvider getProviderOverride(
+    covariant PublisherMemberListNotifierProvider provider,
+  ) {
+    return call(provider.uname);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'publisherMemberListNotifierProvider';
+}
+
+/// See also [PublisherMemberListNotifier].
+class PublisherMemberListNotifierProvider
+    extends
+        AutoDisposeAsyncNotifierProviderImpl<
+          PublisherMemberListNotifier,
+          CursorPagingData<SnPublisherMember>
+        > {
+  /// See also [PublisherMemberListNotifier].
+  PublisherMemberListNotifierProvider(String uname)
+    : this._internal(
+        () => PublisherMemberListNotifier()..uname = uname,
+        from: publisherMemberListNotifierProvider,
+        name: r'publisherMemberListNotifierProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$publisherMemberListNotifierHash,
+        dependencies: PublisherMemberListNotifierFamily._dependencies,
+        allTransitiveDependencies:
+            PublisherMemberListNotifierFamily._allTransitiveDependencies,
+        uname: uname,
+      );
+
+  PublisherMemberListNotifierProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.uname,
+  }) : super.internal();
+
+  final String uname;
+
+  @override
+  FutureOr<CursorPagingData<SnPublisherMember>> runNotifierBuild(
+    covariant PublisherMemberListNotifier notifier,
+  ) {
+    return notifier.build(uname);
+  }
+
+  @override
+  Override overrideWith(PublisherMemberListNotifier Function() create) {
+    return ProviderOverride(
+      origin: this,
+      override: PublisherMemberListNotifierProvider._internal(
+        () => create()..uname = uname,
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        uname: uname,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeAsyncNotifierProviderElement<
+    PublisherMemberListNotifier,
+    CursorPagingData<SnPublisherMember>
+  >
+  createElement() {
+    return _PublisherMemberListNotifierProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherMemberListNotifierProvider && other.uname == uname;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, uname.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PublisherMemberListNotifierRef
+    on
+        AutoDisposeAsyncNotifierProviderRef<
+          CursorPagingData<SnPublisherMember>
+        > {
+  /// The parameter `uname` of this provider.
+  String get uname;
+}
+
+class _PublisherMemberListNotifierProviderElement
+    extends
+        AutoDisposeAsyncNotifierProviderElement<
+          PublisherMemberListNotifier,
+          CursorPagingData<SnPublisherMember>
+        >
+    with PublisherMemberListNotifierRef {
+  _PublisherMemberListNotifierProviderElement(super.provider);
+
+  @override
+  String get uname => (origin as PublisherMemberListNotifierProvider).uname;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

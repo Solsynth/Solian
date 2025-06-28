@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -6,14 +7,19 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
+import 'package:island/models/publisher.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'hub.g.dart';
@@ -24,6 +30,65 @@ Future<SnPublisherStats?> publisherStats(Ref ref, String? uname) async {
   final apiClient = ref.watch(apiClientProvider);
   final resp = await apiClient.get('/publishers/$uname/stats');
   return SnPublisherStats.fromJson(resp.data);
+}
+
+@riverpod
+Future<SnPublisherMember?> publisherIdentity(Ref ref, String uname) async {
+  try {
+    final apiClient = ref.watch(apiClientProvider);
+    final response = await apiClient.get('/publishers/$uname/members/me');
+    return SnPublisherMember.fromJson(response.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null; // No identity found, user is not a member
+    }
+    rethrow;
+  }
+}
+
+@riverpod
+Future<List<SnPublisherMember>> publisherInvites(Ref ref) async {
+  final client = ref.watch(apiClientProvider);
+  final resp = await client.get('/publishers/invites');
+  return resp.data
+      .map((e) => SnPublisherMember.fromJson(e))
+      .cast<SnPublisherMember>()
+      .toList();
+}
+
+@riverpod
+class PublisherMemberListNotifier extends _$PublisherMemberListNotifier
+    with CursorPagingNotifierMixin<SnPublisherMember> {
+  static const int _pageSize = 20;
+
+  @override
+  Future<CursorPagingData<SnPublisherMember>> build(String uname) async {
+    return fetch();
+  }
+
+  @override
+  Future<CursorPagingData<SnPublisherMember>> fetch({String? cursor}) async {
+    final apiClient = ref.read(apiClientProvider);
+    final offset = cursor != null ? int.parse(cursor) : 0;
+
+    final response = await apiClient.get(
+      '/publishers/$uname/members',
+      queryParameters: {'offset': offset, 'take': _pageSize},
+    );
+
+    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    final List<dynamic> data = response.data;
+    final members = data.map((e) => SnPublisherMember.fromJson(e)).toList();
+
+    final hasMore = offset + members.length < total;
+    final nextCursor = hasMore ? (offset + members.length).toString() : null;
+
+    return CursorPagingData(
+      items: members,
+      hasMore: hasMore,
+      nextCursor: nextCursor,
+    );
+  }
 }
 
 class CreatorHubShellScreen extends StatelessWidget {
@@ -58,21 +123,20 @@ class CreatorHubScreen extends HookConsumerWidget {
     }
 
     final publishers = ref.watch(publishersManagedProvider);
+    final publisherInvites = ref.watch(publisherInvitesProvider);
     final currentPublisher = useState<SnPublisher?>(
       publishers.value?.firstOrNull,
     );
 
     void updatePublisher() {
-      context
-          .push('/creators/${currentPublisher.value!.name}/edit')
-          .then((value) async {
-            if (value == null) return;
-            final data = await ref.refresh(publishersManagedProvider.future);
-            currentPublisher.value =
-                data
-                    .where((e) => e.id == currentPublisher.value!.id)
-                    .firstOrNull;
-          });
+      context.push('/creators/${currentPublisher.value!.name}/edit').then((
+        value,
+      ) async {
+        if (value == null) return;
+        final data = await ref.refresh(publishersManagedProvider.future);
+        currentPublisher.value =
+            data.where((e) => e.id == currentPublisher.value!.id).firstOrNull;
+      });
     }
 
     void deletePublisher() {
@@ -126,6 +190,30 @@ class CreatorHubScreen extends HookConsumerWidget {
         leading: !isWide ? const PageBackButton() : null,
         title: Text('creatorHub').tr(),
         actions: [
+          IconButton(
+            icon: Badge(
+              label: Text(
+                publisherInvites.when(
+                  data: (invites) => invites.length.toString(),
+                  error: (_, _) => '0',
+                  loading: () => '0',
+                ),
+              ),
+              isLabelVisible: publisherInvites.when(
+                data: (invites) => invites.isNotEmpty,
+                error: (_, _) => false,
+                loading: () => false,
+              ),
+              child: const Icon(Symbols.email),
+            ),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => const _PublisherInviteSheet(),
+              );
+            },
+          ),
           DropdownButtonHideUnderline(
             child: DropdownButton2<SnPublisher>(
               alignment: Alignment.centerRight,
@@ -203,7 +291,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                           ...(publishers.value?.map(
                                 (publisher) => ListTile(
                                   leading: ProfilePictureWidget(
-                                    fileId: publisher.picture?.id,
+                                    file: publisher.picture,
                                   ),
                                   title: Text(publisher.nick),
                                   subtitle: Text('@${publisher.name}'),
@@ -263,6 +351,32 @@ class CreatorHubScreen extends HookConsumerWidget {
                             onTap: () {
                               context.push(
                                 '/creators/${currentPublisher.value!.name}/posts',
+                              );
+                            },
+                          ),
+                          ListTile(
+                            minTileHeight: 48,
+                            title: Text('members').plural(
+                              ref
+                                  .watch(publisherMemberStateProvider(
+                                    currentPublisher.value!.name,
+                                  ))
+                                  .total,
+                            ),
+                            trailing: Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.group),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            onTap: () {
+                              showModalBottomSheet(
+                                isScrollControlled: true,
+                                context: context,
+                                builder:
+                                    (context) => _PublisherMemberListSheet(
+                                      publisherUname:
+                                          currentPublisher.value!.name,
+                                    ),
                               );
                             },
                           ),
@@ -389,6 +503,486 @@ class _PublisherStatsWidget extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class PublisherMemberState {
+  final List<SnPublisherMember> members;
+  final bool isLoading;
+  final int total;
+  final String? error;
+
+  const PublisherMemberState({
+    required this.members,
+    required this.isLoading,
+    required this.total,
+    this.error,
+  });
+
+  PublisherMemberState copyWith({
+    List<SnPublisherMember>? members,
+    bool? isLoading,
+    int? total,
+    String? error,
+  }) {
+    return PublisherMemberState(
+      members: members ?? this.members,
+      isLoading: isLoading ?? this.isLoading,
+      total: total ?? this.total,
+      error: error ?? this.error,
+    );
+  }
+}
+
+final publisherMemberStateProvider = StateNotifierProvider.family<
+    PublisherMemberNotifier, PublisherMemberState, String>(
+  (ref, publisherUname) {
+    final apiClient = ref.watch(apiClientProvider);
+    return PublisherMemberNotifier(apiClient, publisherUname);
+  },
+);
+
+class PublisherMemberNotifier extends StateNotifier<PublisherMemberState> {
+  final String publisherUname;
+  final Dio _apiClient;
+
+  PublisherMemberNotifier(this._apiClient, this.publisherUname)
+      : super(const PublisherMemberState(
+          members: [],
+          isLoading: false,
+          total: 0,
+        ));
+
+  Future<void> loadMore({int offset = 0, int take = 20}) async {
+    if (state.isLoading) return;
+    if (state.total > 0 && state.members.length >= state.total) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final response = await _apiClient.get(
+        '/publishers/$publisherUname/members',
+        queryParameters: {'offset': offset, 'take': take},
+      );
+
+      final total = int.parse(response.headers.value('X-Total') ?? '0');
+      final List<dynamic> data = response.data;
+      final members =
+          data.map((e) => SnPublisherMember.fromJson(e)).toList();
+
+      state = state.copyWith(
+        members: [...state.members, ...members],
+        total: total,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
+  }
+
+  void reset() {
+    state = const PublisherMemberState(members: [], isLoading: false, total: 0);
+  }
+}
+
+class _PublisherMemberListSheet extends HookConsumerWidget {
+  final String publisherUname;
+  const _PublisherMemberListSheet({required this.publisherUname});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final publisherIdentity = ref.watch(
+      publisherIdentityProvider(publisherUname),
+    );
+    final memberListProvider =
+        publisherMemberListNotifierProvider(publisherUname);
+    final memberState = ref.watch(publisherMemberStateProvider(publisherUname));
+    final memberNotifier = ref.read(
+      publisherMemberStateProvider(publisherUname).notifier,
+    );
+
+    useEffect(() {
+      Future(() {
+        memberNotifier.loadMore();
+      });
+      return null;
+    }, []);
+
+    Future<void> invitePerson() async {
+      final result = await showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (context) => const AccountPickerSheet(),
+      );
+      if (result == null) return;
+      try {
+        final apiClient = ref.watch(apiClientProvider);
+        await apiClient.post(
+          '/publishers/$publisherUname/invites',
+          data: {'related_user_id': result.id, 'role': 0},
+        );
+        ref.invalidate(memberListProvider);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
+            child: Row(
+              children: [
+                Text(
+                  'members'.plural(memberState.total),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5,
+                      ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Symbols.person_add),
+                  onPressed: invitePerson,
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.refresh),
+                  onPressed: () {
+                    memberNotifier.reset();
+                    memberNotifier.loadMore();
+                    ref.invalidate(memberListProvider);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.close),
+                  onPressed: () => Navigator.pop(context),
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: PagingHelperView(
+              provider: memberListProvider,
+              futureRefreshable: memberListProvider.future,
+              notifierRefreshable: memberListProvider.notifier,
+              contentBuilder: (data, widgetCount, endItemView) {
+                return ListView.builder(
+                  itemCount: widgetCount,
+                  itemBuilder: (context, index) {
+                    if (index == data.items.length) {
+                      return endItemView;
+                    }
+
+                    final member = data.items[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.only(left: 16, right: 12),
+                      leading: ProfilePictureWidget(
+                        fileId: member.account!.profile.picture?.id,
+                      ),
+                      title: Row(
+                        spacing: 6,
+                        children: [
+                          Flexible(child: Text(member.account!.nick)),
+                          if (member.joinedAt == null)
+                            const Icon(Symbols.pending_actions, size: 20),
+                        ],
+                      ),
+                      subtitle: Row(
+                        children: [
+                          Text(
+                            member.role >= 100
+                                ? 'permissionOwner'
+                                : member.role >= 50
+                                ? 'permissionModerator'
+                                : 'permissionMember',
+                          ).tr(),
+                          Text('·').bold().padding(horizontal: 6),
+                          Expanded(child: Text("@${member.account!.name}")),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if ((publisherIdentity.value?.role ?? 0) >= 50)
+                            IconButton(
+                              icon: const Icon(Symbols.edit),
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  isScrollControlled: true,
+                                  context: context,
+                                  builder:
+                                      (context) => _PublisherMemberRoleSheet(
+                                        publisherUname: publisherUname,
+                                        member: member,
+                                      ),
+                                ).then((value) {
+                                  if (value != null) {
+                                    ref.invalidate(memberListProvider);
+                                  }
+                                });
+                              },
+                            ),
+                          if ((publisherIdentity.value?.role ?? 0) >= 50)
+                            IconButton(
+                              icon: const Icon(Symbols.delete),
+                              onPressed: () {
+                                showConfirmAlert(
+                                  'removePublisherMemberHint'.tr(),
+                                  'removePublisherMember'.tr(),
+                                ).then((confirm) async {
+                                  if (confirm != true) return;
+                                  try {
+                                    final apiClient = ref.watch(
+                                      apiClientProvider,
+                                    );
+                                    await apiClient.delete(
+                                      '/publishers/$publisherUname/members/${member.accountId}',
+                                    );
+                                    ref.invalidate(memberListProvider);
+                                  } catch (err) {
+                                    showErrorAlert(err);
+                                  }
+                                });
+                              },
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PublisherMemberRoleSheet extends HookConsumerWidget {
+  final String publisherUname;
+  final SnPublisherMember member;
+
+  const _PublisherMemberRoleSheet({
+    required this.publisherUname,
+    required this.member,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roleController = useTextEditingController(
+      text: member.role.toString(),
+    );
+
+    return Container(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                top: 16,
+                left: 20,
+                right: 16,
+                bottom: 12,
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'memberRoleEdit'.tr(args: [member.account!.name]),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Symbols.close),
+                    onPressed: () => Navigator.pop(context),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(36, 36),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Autocomplete<int>(
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text.isEmpty) {
+                      return const [100, 50, 0];
+                    }
+                    final int? value = int.tryParse(textEditingValue.text);
+                    if (value == null) return const [100, 50, 0];
+                    return [100, 50, 0].where(
+                      (option) =>
+                          option.toString().contains(textEditingValue.text),
+                    );
+                  },
+                  onSelected: (int selection) {
+                    roleController.text = selection.toString();
+                  },
+                  fieldViewBuilder: (
+                    context,
+                    controller,
+                    focusNode,
+                    onFieldSubmitted,
+                  ) {
+                    return TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'memberRole'.tr(),
+                        helperText: 'memberRoleHint'.tr(),
+                      ),
+                      onTapOutside: (event) => focusNode.unfocus(),
+                    );
+                  },
+                ),
+                const Gap(16),
+                FilledButton.icon(
+                  onPressed: () async {
+                    try {
+                      final newRole = int.parse(roleController.text);
+                      if (newRole < 0 || newRole > 100) {
+                        throw 'Role must be between 0 and 100';
+                      }
+
+                      final apiClient = ref.read(apiClientProvider);
+                      await apiClient.patch(
+                        '/publishers/$publisherUname/members/${member.accountId}/role',
+                        data: newRole,
+                      );
+
+                      if (context.mounted) Navigator.pop(context, true);
+                    } catch (err) {
+                      showErrorAlert(err);
+                    }
+                  },
+                  icon: const Icon(Symbols.save),
+                  label: const Text('saveChanges').tr(),
+                ),
+              ],
+            ).padding(vertical: 16, horizontal: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PublisherInviteSheet extends HookConsumerWidget {
+  const _PublisherInviteSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final invites = ref.watch(publisherInvitesProvider);
+
+    Future<void> acceptInvite(SnPublisherMember invite) async {
+      try {
+        final client = ref.read(apiClientProvider);
+        await client.post(
+          '/publishers/invites/${invite.publisher!.name}/accept',
+        );
+        ref.invalidate(publisherInvitesProvider);
+        ref.invalidate(publishersManagedProvider);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> declineInvite(SnPublisherMember invite) async {
+      try {
+        final client = ref.read(apiClientProvider);
+        await client.post(
+          '/publishers/invites/${invite.publisher!.name}/decline',
+        );
+        ref.invalidate(publisherInvitesProvider);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    return SheetScaffold(
+      titleText: 'invites'.tr(),
+      actions: [
+        IconButton(
+          icon: const Icon(Symbols.refresh),
+          style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+          onPressed: () {
+            ref.invalidate(publisherInvitesProvider);
+          },
+        ),
+      ],
+      child: invites.when(
+        data:
+            (items) =>
+                items.isEmpty
+                    ? Center(
+                      child:
+                          Text(
+                            'invitesEmpty',
+                            textAlign: TextAlign.center,
+                          ).tr(),
+                    )
+                    : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final invite = items[index];
+                        return ListTile(
+                          leading: ProfilePictureWidget(
+                            fileId: invite.publisher!.picture?.id,
+                            fallbackIcon: Symbols.group,
+                          ),
+                          title: Text(invite.publisher!.nick),
+                          subtitle:
+                              Text(
+                                invite.role >= 100
+                                    ? 'permissionOwner'
+                                    : invite.role >= 50
+                                    ? 'permissionModerator'
+                                    : 'permissionMember',
+                              ).tr(),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Symbols.check),
+                                onPressed: () => acceptInvite(invite),
+                              ),
+                              IconButton(
+                                icon: const Icon(Symbols.close),
+                                onPressed: () => declineInvite(invite),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error:
+            (error, _) => ResponseErrorWidget(
+              error: error,
+              onRetry: () => ref.invalidate(publisherInvitesProvider),
+            ),
       ),
     );
   }

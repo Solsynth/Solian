@@ -2,7 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post_category.dart';
 import 'package:island/models/post_tag.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/publisher.dart';
 
 part 'post.freezed.dart';
 part 'post.g.dart';
@@ -32,7 +32,7 @@ sealed class SnPost with _$SnPost {
     String? forwardedPostId,
     SnPost? forwardedPost,
     @Default([]) List<SnCloudFile> attachments,
-    @Default(SnPublisher()) SnPublisher publisher,
+    required SnPublisher publisher,
     @Default({}) Map<String, int> reactionsCount,
     @Default([]) List<dynamic> reactions,
     @Default([]) List<PostTag> tags,
@@ -45,29 +45,6 @@ sealed class SnPost with _$SnPost {
   }) = _SnPost;
 
   factory SnPost.fromJson(Map<String, dynamic> json) => _$SnPostFromJson(json);
-}
-
-@freezed
-sealed class SnPublisher with _$SnPublisher {
-  const factory SnPublisher({
-    @Default('') String id,
-    @Default(0) int type,
-    @Default('') String name,
-    @Default('') String nick,
-    @Default('') String bio,
-    SnCloudFile? picture,
-    SnCloudFile? background,
-    SnAccount? account,
-    String? accountId,
-    @Default(null) DateTime? createdAt,
-    @Default(null) DateTime? updatedAt,
-    DateTime? deletedAt,
-    String? realmId,
-    SnVerificationMark? verification,
-  }) = _SnPublisher;
-
-  factory SnPublisher.fromJson(Map<String, dynamic> json) =>
-      _$SnPublisherFromJson(json);
 }
 
 @freezed

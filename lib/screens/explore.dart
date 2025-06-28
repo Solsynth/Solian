@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
+import 'package:island/models/publisher.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/responsive.dart';

@@ -125,6 +125,7 @@ class CloudFileList extends HookConsumerWidget {
               if (!disableZoomIn) {
                 context.pushTransparentRoute(
                   CloudFileZoomIn(item: files[i], heroTag: heroTags[i]),
+                  rootNavigator: true,
                 );
               }
             },
