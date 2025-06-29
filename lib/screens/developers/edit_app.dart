@@ -17,6 +17,7 @@ import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/widgets/content/sheet.dart';
 
 part 'edit_app.g.dart';
 
@@ -39,13 +40,32 @@ class EditAppScreen extends HookConsumerWidget {
 
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
+    final submitting = useState(false);
+
     final nameController = useTextEditingController();
     final slugController = useTextEditingController();
     final descriptionController = useTextEditingController();
     final picture = useState<SnCloudFile?>(null);
     final background = useState<SnCloudFile?>(null);
 
-    final submitting = useState(false);
+    final enableLinks = useState(false); // Only for UI purposes
+    final homePageController = useTextEditingController();
+    final privacyPolicyController = useTextEditingController();
+    final termsController = useTextEditingController();
+    final oauthEnabled = useState(false);
+    final redirectUris = useState<List<String>>([]);
+    final postLogoutUris = useState<List<String>>([]);
+    final allowedScopes = useState<List<String>>([
+      'openid',
+      'profile',
+      'email',
+    ]);
+    final allowedGrantTypes = useState<List<String>>([
+      'authorization_code',
+      'refresh_token',
+    ]);
+    final requirePkce = useState(true);
+    final allowOfflineAccess = useState(false);
 
     useEffect(() {
       if (app?.value != null) {
@@ -54,6 +74,19 @@ class EditAppScreen extends HookConsumerWidget {
         descriptionController.text = app.value!.description ?? '';
         picture.value = app.value!.picture;
         background.value = app.value!.background;
+        homePageController.text = app.value!.links?.homePage ?? '';
+        privacyPolicyController.text = app.value!.links?.privacyPolicy ?? '';
+        termsController.text = app.value!.links?.termsOfService ?? '';
+        if (app.value!.oauthConfig != null) {
+          oauthEnabled.value = true;
+          redirectUris.value = app.value!.oauthConfig!.redirectUris;
+          postLogoutUris.value =
+              app.value!.oauthConfig!.postLogoutRedirectUris ?? [];
+          allowedScopes.value = app.value!.oauthConfig!.allowedScopes;
+          allowedGrantTypes.value = app.value!.oauthConfig!.allowedGrantTypes;
+          requirePkce.value = app.value!.oauthConfig!.requirePkce;
+          allowOfflineAccess.value = app.value!.oauthConfig!.allowOfflineAccess;
+        }
       }
       return null;
     }, [app]);
@@ -119,6 +152,100 @@ class EditAppScreen extends HookConsumerWidget {
       }
     }
 
+    void showAddScopeDialog() {
+      final scopeController = TextEditingController();
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder:
+            (context) => SheetScaffold(
+              titleText: 'addScope'.tr(),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: scopeController,
+                      decoration: InputDecoration(labelText: 'scopeName'.tr()),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.tonalIcon(
+                      onPressed: () {
+                        if (scopeController.text.isNotEmpty) {
+                          allowedScopes.value = [
+                            ...allowedScopes.value,
+                            scopeController.text,
+                          ];
+                          Navigator.pop(context);
+                        }
+                      },
+                      icon: const Icon(Symbols.add),
+                      label: Text('add').tr(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+      );
+    }
+
+    void showAddRedirectUriDialog() {
+      final uriController = TextEditingController();
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder:
+            (context) => SheetScaffold(
+              titleText: 'addRedirectUri'.tr(),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: uriController,
+                      decoration: InputDecoration(
+                        labelText: 'redirectUri'.tr(),
+                        hintText: 'https://example.com/auth/callback',
+                        helperText: 'redirectUriHint'.tr(),
+                        helperMaxLines: 3,
+                      ),
+                      keyboardType: TextInputType.url,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'uriRequired'.tr();
+                        }
+                        final uri = Uri.tryParse(value);
+                        if (uri == null || !uri.hasAbsolutePath) {
+                          return 'invalidUri'.tr();
+                        }
+                        return null;
+                      },
+                      onTapOutside:
+                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.tonalIcon(
+                      onPressed: () {
+                        if (uriController.text.isNotEmpty) {
+                          redirectUris.value = [
+                            ...redirectUris.value,
+                            uriController.text,
+                          ];
+                          Navigator.pop(context);
+                        }
+                      },
+                      icon: const Icon(Symbols.add),
+                      label: Text('add').tr(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+      );
+    }
+
     void performAction() async {
       final client = ref.read(apiClientProvider);
       final data = {
@@ -127,6 +254,32 @@ class EditAppScreen extends HookConsumerWidget {
         'description': descriptionController.text,
         'picture_id': picture.value?.id,
         'background_id': background.value?.id,
+        'links': {
+          'home_page':
+              homePageController.text.isNotEmpty
+                  ? homePageController.text
+                  : null,
+          'privacy_policy':
+              privacyPolicyController.text.isNotEmpty
+                  ? privacyPolicyController.text
+                  : null,
+          'terms_of_service':
+              termsController.text.isNotEmpty ? termsController.text : null,
+        },
+        'oauth_config':
+            oauthEnabled.value
+                ? {
+                  'redirect_uris': redirectUris.value,
+                  'post_logout_redirect_uris':
+                      postLogoutUris.value.isNotEmpty
+                          ? postLogoutUris.value
+                          : null,
+                  'allowed_scopes': allowedScopes.value,
+                  'allowed_grant_types': allowedGrantTypes.value,
+                  'require_pkce': requirePkce.value,
+                  'allow_offline_access': allowOfflineAccess.value,
+                }
+                : null,
       };
       if (isNew) {
         await client.post('/developers/$publisherName/apps', data: data);
@@ -231,6 +384,157 @@ class EditAppScreen extends HookConsumerWidget {
                                 (_) =>
                                     FocusManager.instance.primaryFocus
                                         ?.unfocus(),
+                          ),
+                          const SizedBox(height: 16),
+                          ExpansionPanelList(
+                            expansionCallback: (index, isExpanded) {
+                              switch (index) {
+                                case 0:
+                                  enableLinks.value = isExpanded;
+                                  break;
+                                case 1:
+                                  oauthEnabled.value = isExpanded;
+                                  break;
+                              }
+                            },
+                            children: [
+                              ExpansionPanel(
+                                headerBuilder:
+                                    (context, isExpanded) =>
+                                        ListTile(title: Text('appLinks').tr()),
+                                body: Column(
+                                  spacing: 16,
+                                  children: [
+                                    TextFormField(
+                                      controller: homePageController,
+                                      decoration: InputDecoration(
+                                        labelText: 'homePageUrl'.tr(),
+                                        hintText: 'https://example.com',
+                                      ),
+                                      keyboardType: TextInputType.url,
+                                    ),
+                                    TextFormField(
+                                      controller: privacyPolicyController,
+                                      decoration: InputDecoration(
+                                        labelText: 'privacyPolicyUrl'.tr(),
+                                        hintText: 'https://example.com/privacy',
+                                      ),
+                                      keyboardType: TextInputType.url,
+                                    ),
+                                    TextFormField(
+                                      controller: termsController,
+                                      decoration: InputDecoration(
+                                        labelText: 'termsOfServiceUrl'.tr(),
+                                        hintText: 'https://example.com/terms',
+                                      ),
+                                      keyboardType: TextInputType.url,
+                                    ),
+                                  ],
+                                ).padding(horizontal: 16, bottom: 24),
+                                isExpanded: enableLinks.value,
+                              ),
+                              ExpansionPanel(
+                                headerBuilder:
+                                    (context, isExpanded) => ListTile(
+                                      title: Text('oauthConfig').tr(),
+                                    ),
+                                body: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('redirectUris'.tr()),
+                                    Card(
+                                      margin: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          ...redirectUris.value.map(
+                                            (uri) => ListTile(
+                                              title: Text(uri),
+                                              trailing: IconButton(
+                                                icon: const Icon(
+                                                  Symbols.delete,
+                                                ),
+                                                onPressed: () {
+                                                  redirectUris.value =
+                                                      redirectUris.value
+                                                          .where(
+                                                            (u) => u != uri,
+                                                          )
+                                                          .toList();
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          if (redirectUris.value.isNotEmpty)
+                                            const Divider(height: 1),
+                                          ListTile(
+                                            leading: const Icon(Symbols.add),
+                                            title: Text('addRedirectUri'.tr()),
+                                            onTap: showAddRedirectUriDialog,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text('allowedScopes'.tr()),
+                                    Card(
+                                      margin: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          ...allowedScopes.value.map(
+                                            (scope) => ListTile(
+                                              title: Text(scope),
+                                              trailing: IconButton(
+                                                icon: const Icon(
+                                                  Symbols.delete,
+                                                ),
+                                                onPressed: () {
+                                                  allowedScopes.value =
+                                                      allowedScopes.value
+                                                          .where(
+                                                            (s) => s != scope,
+                                                          )
+                                                          .toList();
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          if (allowedScopes.value.isNotEmpty)
+                                            const Divider(height: 1),
+                                          ListTile(
+                                            leading: const Icon(Symbols.add),
+                                            title: Text('add').tr(),
+                                            onTap: showAddScopeDialog,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    SwitchListTile(
+                                      title: Text('requirePkce'.tr()),
+                                      value: requirePkce.value,
+                                      onChanged:
+                                          (value) => requirePkce.value = value,
+                                    ),
+                                    SwitchListTile(
+                                      title: Text('allowOfflineAccess'.tr()),
+                                      value: allowOfflineAccess.value,
+                                      onChanged:
+                                          (value) =>
+                                              allowOfflineAccess.value = value,
+                                    ),
+                                  ],
+                                ).padding(horizontal: 16, bottom: 24),
+                                isExpanded: oauthEnabled.value,
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
                           Align(

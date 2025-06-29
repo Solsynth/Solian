@@ -536,7 +536,7 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
         ),
       ],
     ),
-  ).gestures(onTap: () => context.push('/posts/referencePost.id'));
+  ).gestures(onTap: () => context.push('/posts/${referencePost.id}'));
 }
 
 class PostReactionList extends HookConsumerWidget {

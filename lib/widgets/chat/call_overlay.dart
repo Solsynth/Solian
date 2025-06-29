@@ -360,7 +360,7 @@ class CallOverlayBar extends HookConsumerWidget {
         ).padding(all: 16),
       ),
       onTap: () {
-        context.push('/chat/call/callNotifier.roomId!');
+        context.push('/chat/call/${callNotifier.roomId!}');
       },
     );
   }
