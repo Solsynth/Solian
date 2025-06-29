@@ -631,5 +631,11 @@
   "realmJoinSuccess": "Successfully joined the realm.",
   "discoverRealms": "Discover Realms",
   "discoverPublishers": "Discover Publishers",
-  "search": "Search"
+  "search": "Search",
+  "developerHub": "Developer Hub",
+  "developerHubUnselectedHint": "Select a developer to see stats or enroll a new one.",
+  "enrollDeveloper": "Enroll as a Developer",
+  "enrollDeveloperHint": "Enroll one of your publishers to become a developer.",
+  "noPublishersToEnroll": "You don't have any publishers that can be enrolled as a developer.",
+  "totalCustomApps": "Total Custom Apps"
 }

@@ -178,7 +178,9 @@ class AccountScreen extends HookConsumerWidget {
                           Text('developerPortalDescription').tr(),
                         ],
                       ).padding(horizontal: 16, vertical: 12),
-                      onTap: () {},
+                      onTap: () {
+                        context.push('/developers');
+                      },
                     ),
                   ).height(140),
                 ),
