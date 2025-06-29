@@ -670,5 +670,10 @@
   "uriInvalid": "The URI is invalid.",
   "add": "Add",
   "addScope": "Add Scope",
-  "scope": "Scope"
+  "scope": "Scope",
+  "publisherFeatures": "Features",
+  "publisherFeatureDevelop": "Developer Program",
+  "publisherFeatureDevelopDescription": "Unlock development abilities for your publisher, including custom apps, API keys, and more.",
+  "publisherFeatureDevelopHint": "Currently, this feature is under active development, you need send a request to unlock this feature.",
+  "learnMore": "Learn More"
 }

@@ -271,6 +271,128 @@ class _PublisherIdentityProviderElement
   String get uname => (origin as PublisherIdentityProvider).uname;
 }
 
+String _$publisherFeaturesHash() => r'34db65d9a4b6b0c6961733ae79e67f25d5d111d3';
+
+/// See also [publisherFeatures].
+@ProviderFor(publisherFeatures)
+const publisherFeaturesProvider = PublisherFeaturesFamily();
+
+/// See also [publisherFeatures].
+class PublisherFeaturesFamily extends Family<AsyncValue<Map<String, bool>>> {
+  /// See also [publisherFeatures].
+  const PublisherFeaturesFamily();
+
+  /// See also [publisherFeatures].
+  PublisherFeaturesProvider call(String? uname) {
+    return PublisherFeaturesProvider(uname);
+  }
+
+  @override
+  PublisherFeaturesProvider getProviderOverride(
+    covariant PublisherFeaturesProvider provider,
+  ) {
+    return call(provider.uname);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'publisherFeaturesProvider';
+}
+
+/// See also [publisherFeatures].
+class PublisherFeaturesProvider
+    extends AutoDisposeFutureProvider<Map<String, bool>> {
+  /// See also [publisherFeatures].
+  PublisherFeaturesProvider(String? uname)
+    : this._internal(
+        (ref) => publisherFeatures(ref as PublisherFeaturesRef, uname),
+        from: publisherFeaturesProvider,
+        name: r'publisherFeaturesProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$publisherFeaturesHash,
+        dependencies: PublisherFeaturesFamily._dependencies,
+        allTransitiveDependencies:
+            PublisherFeaturesFamily._allTransitiveDependencies,
+        uname: uname,
+      );
+
+  PublisherFeaturesProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.uname,
+  }) : super.internal();
+
+  final String? uname;
+
+  @override
+  Override overrideWith(
+    FutureOr<Map<String, bool>> Function(PublisherFeaturesRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PublisherFeaturesProvider._internal(
+        (ref) => create(ref as PublisherFeaturesRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        uname: uname,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Map<String, bool>> createElement() {
+    return _PublisherFeaturesProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherFeaturesProvider && other.uname == uname;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, uname.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PublisherFeaturesRef on AutoDisposeFutureProviderRef<Map<String, bool>> {
+  /// The parameter `uname` of this provider.
+  String? get uname;
+}
+
+class _PublisherFeaturesProviderElement
+    extends AutoDisposeFutureProviderElement<Map<String, bool>>
+    with PublisherFeaturesRef {
+  _PublisherFeaturesProviderElement(super.provider);
+
+  @override
+  String? get uname => (origin as PublisherFeaturesProvider).uname;
+}
+
 String _$publisherInvitesHash() => r'488cd443407895ce11f4edff07cb6ea58f2aa018';
 
 /// See also [publisherInvites].

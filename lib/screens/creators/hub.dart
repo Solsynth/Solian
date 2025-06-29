@@ -11,6 +11,7 @@ import 'package:island/models/publisher.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/services/text.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -44,6 +45,14 @@ Future<SnPublisherMember?> publisherIdentity(Ref ref, String uname) async {
     }
     rethrow;
   }
+}
+
+@riverpod
+Future<Map<String, bool>> publisherFeatures(Ref ref, String? uname) async {
+  if (uname == null) return {};
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get('/publishers/$uname/features');
+  return Map<String, bool>.from(response.data);
 }
 
 @riverpod
@@ -182,6 +191,10 @@ class CreatorHubScreen extends HookConsumerWidget {
 
     final publisherStats = ref.watch(
       publisherStatsProvider(currentPublisher.value?.name),
+    );
+
+    final publisherFeatures = ref.watch(
+      publisherFeaturesProvider(currentPublisher.value?.name),
     );
 
     return AppScaffold(
@@ -373,6 +386,52 @@ class CreatorHubScreen extends HookConsumerWidget {
                                     ),
                               );
                             },
+                          ),
+                          ExpansionTile(
+                            title: Text('publisherFeatures').tr(),
+                            leading: const Icon(Symbols.flag),
+                            tilePadding: EdgeInsets.symmetric(horizontal: 24),
+                            minTileHeight: 48,
+                            children: [
+                              ...publisherFeatures.when(
+                                data: (data) {
+                                  return data.entries.map((entry) {
+                                    final keyPrefix =
+                                        'publisherFeature${entry.key.capitalizeEachWord()}';
+                                    return ListTile(
+                                      minTileHeight: 48,
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                      ),
+                                      leading: Icon(
+                                        Symbols.circle,
+                                        color:
+                                            entry.value
+                                                ? Colors.green
+                                                : Colors.red,
+                                        fill: 1,
+                                        size: 16,
+                                      ).padding(left: 2, top: 4),
+                                      title: Text(keyPrefix).tr(),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text('${keyPrefix}Description').tr(),
+                                          if (!entry.value)
+                                            Text(
+                                              '${keyPrefix}Hint',
+                                            ).tr().bold(),
+                                        ],
+                                      ),
+                                      isThreeLine: true,
+                                    );
+                                  }).toList();
+                                },
+                                error: (_, _) => [],
+                                loading: () => [],
+                              ),
+                            ],
                           ),
                           Divider(height: 1).padding(vertical: 8),
                           ListTile(
