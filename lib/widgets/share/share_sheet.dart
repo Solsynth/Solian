@@ -11,7 +11,6 @@ import 'package:island/models/file.dart';
 import 'package:island/pods/link_preview.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/pods/userinfo.dart';
 import 'package:island/services/file.dart';
 import 'package:mime/mime.dart';
 
@@ -193,7 +192,6 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
     setState(() => _isLoading = true);
     try {
       final apiClient = ref.read(apiClientProvider);
-      final userInfo = ref.read(userInfoProvider.notifier);
       final serverUrl = ref.read(serverUrlProvider);
 
       String content = _messageController.text.trim();
@@ -218,7 +216,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
         case ShareContentType.file:
           // Upload files to cloud storage
           if (widget.content.files?.isNotEmpty == true) {
-            final token = await userInfo.getAccessToken();
+            final token = ref.watch(tokenProvider)?.token;
             if (token == null) {
               throw Exception('Authentication required');
             }

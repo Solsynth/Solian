@@ -11,11 +11,6 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
 
   UserInfoNotifier(this._ref) : super(const AsyncValue.data(null));
 
-  Future<String?> getAccessToken() async {
-    final prefs = _ref.read(sharedPreferencesProvider);
-    return prefs.getString(kTokenPairStoreKey);
-  }
-
   Future<void> fetchUser() async {
     try {
       final client = _ref.read(apiClientProvider);

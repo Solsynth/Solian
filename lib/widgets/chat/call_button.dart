@@ -44,7 +44,7 @@ class AudioCallButton extends HookConsumerWidget {
       try {
         await apiClient.post('/chat/realtime/$roomId');
         if (context.mounted) {
-          context.push('/chat/call/roomId');
+          context.push('/chat/call/$roomId');
         }
       } catch (e) {
         showErrorAlert(e);
@@ -96,7 +96,7 @@ class AudioCallButton extends HookConsumerWidget {
         tooltip: 'Join Ongoing Call',
         onPressed: () {
           if (context.mounted) {
-            context.push('/chat/call/roomId');
+            context.push('/chat/$roomId/call');
           }
         },
       );
