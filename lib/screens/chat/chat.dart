@@ -676,17 +676,36 @@ class EditChatScreen extends HookConsumerWidget {
                       (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
                 const SizedBox(height: 16),
-                CheckboxListTile(
-                  title: const Text('isPublic').tr(),
-                  subtitle: const Text('isPublicHint').tr(),
-                  value: isPublic.value,
-                  onChanged: (value) => isPublic.value = value ?? false,
-                ),
-                CheckboxListTile(
-                  title: const Text('isCommunity').tr(),
-                  subtitle: const Text('isCommunityHint').tr(),
-                  value: isCommunity.value,
-                  onChanged: (value) => isCommunity.value = value ?? false,
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      CheckboxListTile(
+                        secondary: const Icon(Symbols.public),
+                        title: Text('publicChat').tr(),
+                        subtitle: Text('publicChatDescription').tr(),
+                        value: isPublic.value,
+                        onChanged: (value) {
+                          isPublic.value = value ?? true;
+                        },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      CheckboxListTile(
+                        secondary: const Icon(Symbols.travel_explore),
+                        title: Text('communityChat').tr(),
+                        subtitle: Text('communityChatDescription').tr(),
+                        value: isCommunity.value,
+                        onChanged: (value) {
+                          isCommunity.value = value ?? false;
+                        },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Align(

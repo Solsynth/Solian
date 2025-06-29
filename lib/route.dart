@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/screens/developers/apps.dart';
+import 'package:island/screens/developers/edit_app.dart';
+import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
 import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/screens/tabs.dart';
@@ -161,6 +164,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/developers',
                 builder: (context, state) => const DeveloperHubScreen(),
+              ),
+              GoRoute(
+                path: '/developers/:name/apps',
+                builder: (context, state) => CustomAppsScreen(
+                  publisherName: state.pathParameters['name']!,
+                ),
+              ),
+              GoRoute(
+                path: '/developers/:name/apps/new',
+                builder: (context, state) => NewCustomAppScreen(
+                  publisherName: state.pathParameters['name']!,
+                ),
+              ),
+              GoRoute(
+                path: '/developers/:name/apps/:id',
+                builder: (context, state) => EditAppScreen(
+                  publisherName: state.pathParameters['name']!,
+                  id: state.pathParameters['id']!,
+                ),
               ),
             ],
           ),

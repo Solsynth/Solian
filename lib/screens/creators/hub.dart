@@ -356,13 +356,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                           ),
                           ListTile(
                             minTileHeight: 48,
-                            title: Text('members').plural(
-                              ref
-                                  .watch(publisherMemberStateProvider(
-                                    currentPublisher.value!.name,
-                                  ))
-                                  .total,
-                            ),
+                            title: Text('publisherMembers').tr(),
                             trailing: Icon(Symbols.chevron_right),
                             leading: const Icon(Symbols.group),
                             contentPadding: EdgeInsets.symmetric(
@@ -537,23 +531,22 @@ class PublisherMemberState {
 }
 
 final publisherMemberStateProvider = StateNotifierProvider.family<
-    PublisherMemberNotifier, PublisherMemberState, String>(
-  (ref, publisherUname) {
-    final apiClient = ref.watch(apiClientProvider);
-    return PublisherMemberNotifier(apiClient, publisherUname);
-  },
-);
+  PublisherMemberNotifier,
+  PublisherMemberState,
+  String
+>((ref, publisherUname) {
+  final apiClient = ref.watch(apiClientProvider);
+  return PublisherMemberNotifier(apiClient, publisherUname);
+});
 
 class PublisherMemberNotifier extends StateNotifier<PublisherMemberState> {
   final String publisherUname;
   final Dio _apiClient;
 
   PublisherMemberNotifier(this._apiClient, this.publisherUname)
-      : super(const PublisherMemberState(
-          members: [],
-          isLoading: false,
-          total: 0,
-        ));
+    : super(
+        const PublisherMemberState(members: [], isLoading: false, total: 0),
+      );
 
   Future<void> loadMore({int offset = 0, int take = 20}) async {
     if (state.isLoading) return;
@@ -569,8 +562,7 @@ class PublisherMemberNotifier extends StateNotifier<PublisherMemberState> {
 
       final total = int.parse(response.headers.value('X-Total') ?? '0');
       final List<dynamic> data = response.data;
-      final members =
-          data.map((e) => SnPublisherMember.fromJson(e)).toList();
+      final members = data.map((e) => SnPublisherMember.fromJson(e)).toList();
 
       state = state.copyWith(
         members: [...state.members, ...members],
@@ -596,8 +588,9 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
     final publisherIdentity = ref.watch(
       publisherIdentityProvider(publisherUname),
     );
-    final memberListProvider =
-        publisherMemberListNotifierProvider(publisherUname);
+    final memberListProvider = publisherMemberListNotifierProvider(
+      publisherUname,
+    );
     final memberState = ref.watch(publisherMemberStateProvider(publisherUname));
     final memberNotifier = ref.read(
       publisherMemberStateProvider(publisherUname).notifier,
@@ -642,9 +635,9 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                 Text(
                   'members'.plural(memberState.total),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.5,
-                      ),
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(

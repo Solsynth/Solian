@@ -341,6 +341,25 @@ class SettingsScreen extends HookConsumerWidget {
     ];
 
     final behaviorSettings = [
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('creatorHub').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.rocket_launch),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () => context.push('/creators'),
+      ),
+
+      // Developer Hub
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('developerHub').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.hub),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () => context.push('/developers'),
+      ),
+
       // Auto translate settings
       ListTile(
         minLeadingWidth: 48,

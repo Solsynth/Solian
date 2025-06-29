@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/developer.dart';
 import 'package:island/models/publisher.dart';
@@ -227,6 +228,20 @@ class DeveloperHubScreen extends HookConsumerWidget {
                             _DeveloperStatsWidget(
                               stats: stats,
                             ).padding(vertical: 12, horizontal: 12),
+                          ListTile(
+                            minTileHeight: 48,
+                            title: Text('customApps').tr(),
+                            trailing: Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.apps),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            onTap: () {
+                              context.push(
+                          '/developers/${currentDeveloper.value!.name}/apps',
+                        );
+                            },
+                          ),
                         ],
                       ),
             ),
