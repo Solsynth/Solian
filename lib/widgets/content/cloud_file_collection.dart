@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -212,28 +211,117 @@ class CloudFileZoomIn extends HookConsumerWidget {
       }
     }
 
+    Widget buildInfoRow(IconData icon, String label, String value) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+            ),
+            const Spacer(),
+            Flexible(
+              child: Text(
+                value,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                textAlign: TextAlign.end,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    String _formatFileSize(int bytes) {
+      if (bytes <= 0) return '0 B';
+      if (bytes < 1024) return '$bytes B';
+      if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(2)} KB';
+      if (bytes < 1024 * 1024 * 1024) {
+        return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+      }
+      return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+    }
+
     void showInfoSheet() {
-      final exifData = item.fileMeta?['exif'] ?? {};
+      final theme = Theme.of(context);
+      final exifData = item.fileMeta?['exif'] as Map<String, dynamic>? ?? {};
+
       showModalBottomSheet(
         useRootNavigator: true,
         context: context,
+        isScrollControlled: true,
         builder:
             (context) => SheetScaffold(
-              titleText: 'File Info',
+              titleText: 'File Information',
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Name: ${item.name}'),
-                    Text('Size: ${item.size} bytes'),
-                    Text('Type: ${item.mimeType ?? 'Unknown'}'),
+                    buildInfoRow(Icons.description, 'Name', item.name),
+                    const Divider(height: 1),
+                    buildInfoRow(
+                      Icons.storage,
+                      'Size',
+                      _formatFileSize(item.size),
+                    ),
+                    const Divider(height: 1),
+                    buildInfoRow(
+                      Icons.category,
+                      'Type',
+                      item.mimeType?.toUpperCase() ?? 'UNKNOWN',
+                    ),
                     if (exifData.isNotEmpty) ...[
-                      const Gap(16),
-                      Text('EXIF Data:'),
-                      const Gap(8),
-                      for (var entry in exifData.entries)
-                        Text('${entry.key}: ${entry.value}'),
+                      const SizedBox(height: 16),
+                      Text(
+                        'EXIF Data',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ).padding(horizontal: 24),
+                      const SizedBox(height: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...exifData.entries.map(
+                            (entry) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '• ${entry.key.contains('-') ? entry.key.split('-').last : entry.key}: ',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      '${entry.value}'.isNotEmpty
+                                          ? '${entry.value}'
+                                          : 'N/A',
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ).padding(horizontal: 24),
                     ],
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
