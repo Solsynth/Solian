@@ -29,13 +29,13 @@ import 'package:island/screens/creators/publishers.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
 import 'package:island/screens/creators/webfeed/webfeed_edit.dart';
 import 'package:island/screens/posts/compose.dart';
-import 'package:island/screens/posts/detail.dart';
+import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/screens/posts/pub_profile.dart';
 import 'package:island/screens/auth/login.dart';
 import 'package:island/screens/auth/create_account.dart';
 import 'package:island/screens/settings.dart';
 import 'package:island/screens/realm/realms.dart';
-import 'package:island/screens/realm/detail.dart';
+import 'package:island/screens/realm/realm_detail.dart';
 import 'package:island/screens/account/event_calendar.dart';
 import 'package:island/screens/discovery/realms.dart';
 

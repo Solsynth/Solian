@@ -22,7 +22,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'detail.g.dart';
+part 'realm_detail.g.dart';
 
 @riverpod
 Future<Color?> realmAppbarForegroundColor(Ref ref, String realmSlug) async {

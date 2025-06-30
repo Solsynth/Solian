@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -13,6 +14,7 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:path/path.dart' show extension;
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
@@ -210,6 +212,35 @@ class CloudFileZoomIn extends HookConsumerWidget {
       }
     }
 
+    void showInfoSheet() {
+      final exifData = item.fileMeta?['exif'] ?? {};
+      showModalBottomSheet(
+        useRootNavigator: true,
+        context: context,
+        builder:
+            (context) => SheetScaffold(
+              titleText: 'File Info',
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Name: ${item.name}'),
+                    Text('Size: ${item.size} bytes'),
+                    Text('Type: ${item.mimeType ?? 'Unknown'}'),
+                    if (exifData.isNotEmpty) ...[
+                      const Gap(16),
+                      Text('EXIF Data:'),
+                      const Gap(8),
+                      for (var entry in exifData.entries)
+                        Text('${entry.key}: ${entry.value}'),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+      );
+    }
+
     return DismissiblePage(
       isFullScreen: true,
       backgroundColor: Colors.transparent,
@@ -288,8 +319,22 @@ class CloudFileZoomIn extends HookConsumerWidget {
             left: 16,
             right: 16,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.info_outline,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black54,
+                        blurRadius: 5.0,
+                        offset: Offset(1.0, 1.0),
+                      ),
+                    ],
+                  ),
+                  onPressed: showInfoSheet,
+                ),
+                Spacer(),
                 IconButton(
                   icon: Icon(Icons.remove, color: Colors.white),
                   onPressed: () {
