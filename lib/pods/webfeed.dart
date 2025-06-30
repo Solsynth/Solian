@@ -1,28 +1,31 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/network.dart';
 
-final webFeedListProvider = FutureProvider.family<List<WebFeed>, String>((
+final webFeedListProvider = FutureProvider.family<List<SnWebFeed>, String>((
   ref,
   pubName,
 ) async {
   final client = ref.watch(apiClientProvider);
   final response = await client.get('/publishers/$pubName/feeds');
-  return (response.data as List).map((json) => WebFeed.fromJson(json)).toList();
+  return (response.data as List)
+      .map((json) => SnWebFeed.fromJson(json))
+      .toList();
 });
 
 class WebFeedNotifier
     extends
         AutoDisposeFamilyAsyncNotifier<
-          WebFeed,
+          SnWebFeed,
           ({String pubName, String? feedId})
         > {
   @override
-  FutureOr<WebFeed> build(({String pubName, String? feedId}) arg) async {
+  FutureOr<SnWebFeed> build(({String pubName, String? feedId}) arg) async {
     if (arg.feedId == null || arg.feedId!.isEmpty) {
-      return WebFeed(
+      return SnWebFeed(
         id: '',
         url: '',
         title: '',
@@ -38,13 +41,13 @@ class WebFeedNotifier
       final response = await client.get(
         '/publishers/${arg.pubName}/feeds/${arg.feedId}',
       );
-      return WebFeed.fromJson(response.data);
+      return SnWebFeed.fromJson(response.data);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> saveFeed(WebFeed feed) async {
+  Future<void> saveFeed(SnWebFeed feed) async {
     state = const AsyncValue.loading();
     try {
       final client = ref.read(apiClientProvider);
@@ -55,7 +58,7 @@ class WebFeedNotifier
               ? await client.post(url, data: feed.toJson())
               : await client.patch('$url/${feed.id}', data: feed.toJson());
 
-      state = AsyncValue.data(WebFeed.fromJson(response.data));
+      state = AsyncValue.data(SnWebFeed.fromJson(response.data));
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;
@@ -71,7 +74,7 @@ class WebFeedNotifier
       final client = ref.read(apiClientProvider);
       await client.delete('/publishers/${arg.pubName}/feeds/$feedId');
       state = AsyncValue.data(
-        WebFeed(
+        SnWebFeed(
           id: '',
           url: '',
           title: '',
@@ -94,13 +97,19 @@ class WebFeedNotifier
     state = const AsyncValue.loading();
     try {
       final client = ref.read(apiClientProvider);
-      await client.post('/publishers/${arg.pubName}/feeds/$feedId/scrap');
+      await client.post(
+        '/publishers/${arg.pubName}/feeds/$feedId/scrap',
+        options: Options(
+          sendTimeout: const Duration(seconds: 60),
+          receiveTimeout: const Duration(seconds: 180),
+        ),
+      );
 
       // Reload the feed
       final response = await client.get(
         '/publishers/${arg.pubName}/feeds/$feedId',
       );
-      state = AsyncValue.data(WebFeed.fromJson(response.data));
+      state = AsyncValue.data(SnWebFeed.fromJson(response.data));
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;
@@ -109,6 +118,6 @@ class WebFeedNotifier
 }
 
 final webFeedNotifierProvider = AsyncNotifierProvider.autoDispose
-    .family<WebFeedNotifier, WebFeed, ({String pubName, String? feedId})>(
+    .family<WebFeedNotifier, SnWebFeed, ({String pubName, String? feedId})>(
       WebFeedNotifier.new,
     );

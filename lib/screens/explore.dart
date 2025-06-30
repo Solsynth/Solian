@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/models/realm.dart';
+import 'package:island/models/webfeed.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -15,6 +16,7 @@ import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/screens/tabs.dart';
+import 'package:island/widgets/web_article_card.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -196,6 +198,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
               (switch (type) {
                 'realm' => 'discoverRealms',
                 'publisher' => 'discoverPublishers',
+                'article' => 'discoverWebArticles',
                 _ => 'unknown',
               }).tr(),
               style: Theme.of(context).textTheme.titleMedium,
@@ -219,6 +222,11 @@ class _DiscoveryActivityItem extends StatelessWidget {
                 case 'publisher':
                   return PublisherCard(
                     publisher: SnPublisher.fromJson(item['data']),
+                    maxWidth: 280,
+                  );
+                case 'article':
+                  return WebArticleCard(
+                    article: SnWebArticle.fromJson(item['data']),
                     maxWidth: 280,
                   );
                 default:
@@ -342,7 +350,7 @@ class ActivityListNotifier extends _$ActivityListNotifier
       if (cursor != null) 'cursor': cursor,
       'take': take,
       if (filter != null) 'filter': filter,
-      if (kDebugMode) 'debugInclude': 'realms,publishers',
+      if (kDebugMode) 'debugInclude': 'realms,publishers,articles',
     };
 
     final response = await client.get(

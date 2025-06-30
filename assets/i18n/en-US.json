@@ -675,5 +675,6 @@
   "publisherFeatureDevelop": "Developer Program",
   "publisherFeatureDevelopDescription": "Unlock development abilities for your publisher, including custom apps, API keys, and more.",
   "publisherFeatureDevelopHint": "Currently, this feature is under active development, you need send a request to unlock this feature.",
-  "learnMore": "Learn More"
+  "learnMore": "Learn More",
+  "discoverWebArticles": "Articles from external sites"
 }

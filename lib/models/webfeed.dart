@@ -7,57 +7,58 @@ part 'webfeed.freezed.dart';
 part 'webfeed.g.dart';
 
 @freezed
-sealed class WebFeedConfig with _$WebFeedConfig {
-  const factory WebFeedConfig({@Default(false) bool scrapPage}) =
-      _WebFeedConfig;
+sealed class SnWebFeedConfig with _$SnWebFeedConfig {
+  const factory SnWebFeedConfig({@Default(false) bool scrapPage}) =
+      _SnWebFeedConfig;
 
-  factory WebFeedConfig.fromJson(Map<String, dynamic> json) =>
-      _$WebFeedConfigFromJson(json);
+  factory SnWebFeedConfig.fromJson(Map<String, dynamic> json) =>
+      _$SnWebFeedConfigFromJson(json);
 }
 
 @freezed
-sealed class WebFeed with _$WebFeed {
-  const factory WebFeed({
+sealed class SnWebFeed with _$SnWebFeed {
+  const factory SnWebFeed({
     required String id,
     required String url,
     required String title,
     String? description,
     SnScrappedLink? preview,
-    @Default(WebFeedConfig()) WebFeedConfig config,
+    @Default(SnWebFeedConfig()) SnWebFeedConfig config,
     required String publisherId,
-    @Default([]) List<WebArticle> articles,
+    @Default([]) List<SnWebArticle> articles,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,
-  }) = _WebFeed;
+  }) = _SnWebFeed;
 
-  factory WebFeed.fromJson(Map<String, dynamic> json) =>
-      _$WebFeedFromJson(json);
+  factory SnWebFeed.fromJson(Map<String, dynamic> json) =>
+      _$SnWebFeedFromJson(json);
 
-  factory WebFeed.fromJsonString(String jsonString) =>
-      WebFeed.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
+  factory SnWebFeed.fromJsonString(String jsonString) =>
+      SnWebFeed.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
 }
 
 @freezed
-sealed class WebArticle with _$WebArticle {
-  const factory WebArticle({
+sealed class SnWebArticle with _$SnWebArticle {
+  const factory SnWebArticle({
     required String id,
     required String title,
     required String url,
     String? author,
     Map<String, dynamic>? meta,
     SnScrappedLink? preview,
+    SnWebFeed? feed,
     String? content,
     DateTime? publishedAt,
     required String feedId,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,
-  }) = _WebArticle;
+  }) = _SnWebArticle;
 
-  factory WebArticle.fromJson(Map<String, dynamic> json) =>
-      _$WebArticleFromJson(json);
+  factory SnWebArticle.fromJson(Map<String, dynamic> json) =>
+      _$SnWebArticleFromJson(json);
 
-  factory WebArticle.fromJsonString(String jsonString) =>
-      WebArticle.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
+  factory SnWebArticle.fromJsonString(String jsonString) =>
+      SnWebArticle.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
 }

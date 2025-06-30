@@ -40,12 +40,12 @@ class WebFeedEditScreen extends HookConsumerWidget {
       isLoading.value = true;
 
       try {
-        final feed = WebFeed(
+        final feed = SnWebFeed(
           id: feedId ?? '',
           title: titleController.text,
           url: urlController.text,
           description: descriptionController.text,
-          config: WebFeedConfig(scrapPage: isScrapEnabled.value),
+          config: SnWebFeedConfig(scrapPage: isScrapEnabled.value),
           publisherId: pubName,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
