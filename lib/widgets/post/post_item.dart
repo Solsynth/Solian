@@ -542,14 +542,14 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
 class PostReactionList extends HookConsumerWidget {
   final String parentId;
   final Map<String, int> reactions;
-  final Function(String symbol, int attitude, int delta) onReact;
+  final Function(String symbol, int attitude, int delta)? onReact;
   final EdgeInsets? padding;
   const PostReactionList({
     super.key,
     required this.parentId,
     required this.reactions,
     this.padding,
-    required this.onReact,
+    this.onReact,
   });
 
   @override
@@ -570,7 +570,7 @@ class PostReactionList extends HookConsumerWidget {
           })
           .then((resp) {
             var isRemoving = resp.statusCode == 204;
-            onReact(symbol, attitude, isRemoving ? -1 : 1);
+            onReact?.call(symbol, attitude, isRemoving ? -1 : 1);
             HapticFeedback.heavyImpact();
           });
       submitting.value = false;
@@ -582,33 +582,34 @@ class PostReactionList extends HookConsumerWidget {
         scrollDirection: Axis.horizontal,
         padding: padding ?? EdgeInsets.zero,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ActionChip(
-              avatar: Icon(Symbols.add_reaction),
-              label: Text('react').tr(),
-              visualDensity: const VisualDensity(
-                horizontal: VisualDensity.minimumDensity,
-                vertical: VisualDensity.minimumDensity,
+          if (onReact != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ActionChip(
+                avatar: Icon(Symbols.add_reaction),
+                label: Text('react').tr(),
+                visualDensity: const VisualDensity(
+                  horizontal: VisualDensity.minimumDensity,
+                  vertical: VisualDensity.minimumDensity,
+                ),
+                onPressed:
+                    submitting.value
+                        ? null
+                        : () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return _PostReactionSheet(
+                                reactionsCount: reactions,
+                                onReact: (symbol, attitude) {
+                                  reactPost(symbol, attitude);
+                                },
+                              );
+                            },
+                          );
+                        },
               ),
-              onPressed:
-                  submitting.value
-                      ? null
-                      : () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return _PostReactionSheet(
-                              reactionsCount: reactions,
-                              onReact: (symbol, attitude) {
-                                reactPost(symbol, attitude);
-                              },
-                            );
-                          },
-                        );
-                      },
             ),
-          ),
           for (final symbol in reactions.keys)
             Padding(
               padding: const EdgeInsets.only(right: 8),

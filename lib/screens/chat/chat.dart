@@ -669,7 +669,10 @@ class EditChatScreen extends HookConsumerWidget {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    alignLabelWithHint: true,
+                  ),
                   minLines: 3,
                   maxLines: null,
                   onTapOutside:

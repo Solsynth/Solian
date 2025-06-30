@@ -344,7 +344,10 @@ class EditRealmScreen extends HookConsumerWidget {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: descriptionController,
-                  decoration: InputDecoration(labelText: 'description'.tr()),
+                  decoration: InputDecoration(
+                    labelText: 'description'.tr(),
+                    alignLabelWithHint: true,
+                  ),
                   minLines: 3,
                   maxLines: null,
                   onTapOutside:

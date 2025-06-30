@@ -370,9 +370,9 @@ class CreatorHubScreen extends HookConsumerWidget {
                           ListTile(
                             minTileHeight: 48,
                             title: Text('publisherMembers').tr(),
-                            trailing: Icon(Symbols.chevron_right),
+                            trailing: const Icon(Symbols.chevron_right),
                             leading: const Icon(Symbols.group),
-                            contentPadding: EdgeInsets.symmetric(
+                            contentPadding: const EdgeInsets.symmetric(
                               horizontal: 24,
                             ),
                             onTap: () {
@@ -384,6 +384,20 @@ class CreatorHubScreen extends HookConsumerWidget {
                                       publisherUname:
                                           currentPublisher.value!.name,
                                     ),
+                              );
+                            },
+                          ),
+                          ListTile(
+                            minTileHeight: 48,
+                            title: const Text('Web Feeds').tr(),
+                            trailing: const Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.rss_feed),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            onTap: () {
+                              context.push(
+                                '/creators/${currentPublisher.value!.name}/feeds',
                               );
                             },
                           ),

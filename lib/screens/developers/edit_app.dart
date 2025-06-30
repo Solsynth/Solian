@@ -378,6 +378,7 @@ class EditAppScreen extends HookConsumerWidget {
                             controller: descriptionController,
                             decoration: InputDecoration(
                               labelText: 'description'.tr(),
+                              alignLabelWithHint: true,
                             ),
                             maxLines: 3,
                             onTapOutside:

@@ -22,10 +22,12 @@ import 'package:island/screens/chat/room.dart';
 import 'package:island/screens/chat/room_detail.dart';
 import 'package:island/screens/chat/call.dart';
 import 'package:island/screens/creators/hub.dart';
-import 'package:island/screens/creators/posts/list.dart';
+import 'package:island/screens/creators/posts/post_manage_list.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
 import 'package:island/screens/creators/stickers/pack_detail.dart';
 import 'package:island/screens/creators/publishers.dart';
+import 'package:island/screens/creators/webfeed/webfeed_list.dart';
+import 'package:island/screens/creators/webfeed/webfeed_edit.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/screens/posts/detail.dart';
 import 'package:island/screens/posts/pub_profile.dart';
@@ -90,6 +92,33 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/creators',
                 builder: (context, state) => const CreatorHubScreen(),
+              ),
+              // Web Feed Routes
+              GoRoute(
+                path: '/creators/:name/feeds',
+                builder: (context, state) {
+                  final name = state.pathParameters['name']!;
+                  return WebFeedListScreen(pubName: name);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (context, state) {
+                      return WebFeedNewScreen(
+                        pubName: state.pathParameters['name']!,
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: ':feedId',
+                    builder: (context, state) {
+                      return WebFeedEditScreen(
+                        pubName: state.pathParameters['name']!,
+                        feedId: state.pathParameters['feedId'],
+                      );
+                    },
+                  ),
+                ],
               ),
               GoRoute(
                 path: '/creators/:name/posts',
@@ -167,22 +196,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: '/developers/:name/apps',
-                builder: (context, state) => CustomAppsScreen(
-                  publisherName: state.pathParameters['name']!,
-                ),
+                builder:
+                    (context, state) => CustomAppsScreen(
+                      publisherName: state.pathParameters['name']!,
+                    ),
               ),
               GoRoute(
                 path: '/developers/:name/apps/new',
-                builder: (context, state) => NewCustomAppScreen(
-                  publisherName: state.pathParameters['name']!,
-                ),
+                builder:
+                    (context, state) => NewCustomAppScreen(
+                      publisherName: state.pathParameters['name']!,
+                    ),
               ),
               GoRoute(
                 path: '/developers/:name/apps/:id',
-                builder: (context, state) => EditAppScreen(
-                  publisherName: state.pathParameters['name']!,
-                  id: state.pathParameters['id']!,
-                ),
+                builder:
+                    (context, state) => EditAppScreen(
+                      publisherName: state.pathParameters['name']!,
+                      id: state.pathParameters['id']!,
+                    ),
               ),
             ],
           ),

@@ -365,11 +365,6 @@ class PostItemCreator extends HookConsumerWidget {
           parentId: item.id,
           reactions: item.reactionsCount,
           padding: EdgeInsets.zero,
-          onReact: (symbol, attitude, delta) {
-            final reactionsCount = Map<String, int>.from(item.reactionsCount);
-            reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
-            onUpdate?.call(item.copyWith(reactionsCount: reactionsCount));
-          },
         ),
         const Gap(16),
       ],

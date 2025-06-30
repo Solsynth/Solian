@@ -71,9 +71,7 @@ class SliverStickerPacksList extends HookConsumerWidget {
                 subtitle: Text(sticker.description),
                 trailing: const Icon(Symbols.chevron_right),
                 onTap: () {
-                  context.push(
-                    '/creators/$pubName/stickers/${sticker.id}',
-                  );
+                  context.push('/creators/$pubName/stickers/${sticker.id}');
                 },
               );
             },
@@ -230,6 +228,7 @@ class EditStickerPacksScreen extends HookConsumerWidget {
                   decoration: InputDecoration(
                     labelText: 'description'.tr(),
                     border: const UnderlineInputBorder(),
+                    alignLabelWithHint: true,
                   ),
                   minLines: 3,
                   maxLines: null,

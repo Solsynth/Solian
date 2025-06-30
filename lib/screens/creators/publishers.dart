@@ -270,7 +270,10 @@ class EditPublisherScreen extends HookConsumerWidget {
                     ),
                     TextFormField(
                       controller: bioController,
-                      decoration: InputDecoration(labelText: 'bio'.tr()),
+                      decoration: InputDecoration(
+                        labelText: 'bio'.tr(),
+                        alignLabelWithHint: true,
+                      ),
                       minLines: 3,
                       maxLines: null,
                       onTapOutside:

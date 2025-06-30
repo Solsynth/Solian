@@ -341,7 +341,10 @@ class UpdateProfileScreen extends HookConsumerWidget {
                   ),
 
                   TextFormField(
-                    decoration: InputDecoration(labelText: 'bio'.tr()),
+                    decoration: InputDecoration(
+                      labelText: 'bio'.tr(),
+                      alignLabelWithHint: true,
+                    ),
                     maxLines: null,
                     minLines: 3,
                     controller: bioController,
