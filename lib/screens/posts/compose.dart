@@ -15,7 +15,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
-import 'package:island/screens/posts/detail.dart';
+import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/post/draft_manager.dart';

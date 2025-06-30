@@ -12,7 +12,7 @@ import 'package:island/models/post.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
-import 'package:island/screens/posts/detail.dart';
+import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/widgets/content/attachment_preview.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';

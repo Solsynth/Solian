@@ -9,10 +9,11 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_quick_reply.dart';
 import 'package:island/widgets/post/post_replies.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'detail.g.dart';
+part 'post_detail.g.dart';
 
 @riverpod
 Future<SnPost?> post(Ref ref, String id) async {
@@ -21,20 +22,43 @@ Future<SnPost?> post(Ref ref, String id) async {
   return SnPost.fromJson(resp.data);
 }
 
+final postStateProvider = StateNotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(
+  (ref, id) => PostState(ref, id),
+);
+
+class PostState extends StateNotifier<AsyncValue<SnPost?>> {
+  final Ref _ref;
+  final String _id;
+
+  PostState(this._ref, this._id) : super(const AsyncValue.loading()) {
+    // Initialize with the initial post data
+    _ref.listen<AsyncValue<SnPost?>>(
+      postProvider(_id),
+      (_, next) => state = next,
+    );
+  }
+
+  void updatePost(SnPost? newPost) {
+    if (newPost != null) {
+      state = AsyncData(newPost);
+    }
+  }
+}
+
 class PostDetailScreen extends HookConsumerWidget {
   final String id;
   const PostDetailScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final post = ref.watch(postProvider(id));
+    final postState = ref.watch(postStateProvider(id));
     final user = ref.watch(userInfoProvider);
 
     final isWide = isWideScreen(context);
 
     return AppScaffold(
       appBar: AppBar(title: const Text('Post')),
-      body: post.when(
+      body: postState.when(
         data: (post) {
           return Stack(
             fit: StackFit.expand,
@@ -49,6 +73,10 @@ class PostDetailScreen extends HookConsumerWidget {
                           isOpenable: false,
                           isFullPost: true,
                           backgroundColor: isWide ? Colors.transparent : null,
+                          onUpdate: (newItem) {
+                            // Update the local state with the new post data
+                            ref.read(postStateProvider(id).notifier).updatePost(newItem);
+                          },
                         ),
                         const Divider(height: 1),
                       ],
@@ -65,11 +93,15 @@ class PostDetailScreen extends HookConsumerWidget {
                   right: 0,
                   child: Material(
                     elevation: 2,
-                    child: PostQuickReply(
-                      parent: post,
-                      onPosted: () {
-                        ref.invalidate(postRepliesNotifierProvider(id));
-                      },
+                    child: postState.when(
+                      data: (post) => PostQuickReply(
+                        parent: post!,
+                        onPosted: () {
+                          ref.invalidate(postRepliesNotifierProvider(id));
+                        },
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     ).padding(
                       bottom: MediaQuery.of(context).padding.bottom + 16,
                       top: 16,
