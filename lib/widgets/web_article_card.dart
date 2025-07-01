@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:styled_widget/styled_widget.dart';
-import 'package:url_launcher/url_launcher_string.dart';
+import 'package:go_router/go_router.dart';
 import 'package:island/models/webfeed.dart';
 
 class WebArticleCard extends StatelessWidget {
@@ -9,6 +8,10 @@ class WebArticleCard extends StatelessWidget {
   final double? maxWidth;
 
   const WebArticleCard({super.key, required this.article, this.maxWidth});
+
+  void _onTap(BuildContext context) {
+    context.push('/articles/${article.id}');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,14 +23,7 @@ class WebArticleCard extends StatelessWidget {
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () async {
-            if (await canLaunchUrlString(article.url)) {
-              await launchUrlString(
-                article.url,
-                mode: LaunchMode.externalApplication,
-              );
-            }
-          },
+          onTap: () => _onTap(context),
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: Stack(
@@ -88,9 +84,14 @@ class WebArticleCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
+                        const SizedBox(height: 2),
                         Text(
                           article.feed?.title ?? 'Unknown Source',
-                        ).fontSize(9).opacity(0.75).padding(top: 2),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            color: Colors.white70,
+                          ),
+                        ),
                       ],
                     ),
                   ),

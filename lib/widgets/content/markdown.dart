@@ -74,9 +74,7 @@ class MarkdownTextContent extends HookConsumerWidget {
               final url = Uri.tryParse(href);
               if (url != null) {
                 if (url.scheme == 'solian') {
-                  context.push(
-                    ['', url.host, ...url.pathSegments].join('/'),
-                  );
+                  context.push(['', url.host, ...url.pathSegments].join('/'));
                   return;
                 }
                 final whitelistDomains = ['solian.app', 'solsynth.dev'];
@@ -143,15 +141,25 @@ class MarkdownTextContent extends HookConsumerWidget {
           ),
         ],
       ),
-      generator: MarkdownGenerator(
-        generators: [latexGenerator],
-        inlineSyntaxList: [
-          _UserNameCardInlineSyntax(),
-          _StickerInlineSyntax(),
-          LatexSyntax(isDark),
-        ],
-        linesMargin: linesMargin ?? EdgeInsets.symmetric(vertical: 4),
+      generator: MarkdownTextContent.buildGenerator(
+        isDark: isDark,
+        linesMargin: linesMargin,
       ),
+    );
+  }
+
+  static MarkdownGenerator buildGenerator({
+    bool isDark = false,
+    EdgeInsets? linesMargin,
+  }) {
+    return MarkdownGenerator(
+      generators: [latexGenerator],
+      inlineSyntaxList: [
+        _UserNameCardInlineSyntax(),
+        _StickerInlineSyntax(),
+        LatexSyntax(isDark),
+      ],
+      linesMargin: linesMargin ?? EdgeInsets.symmetric(vertical: 4),
     );
   }
 }

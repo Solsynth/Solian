@@ -9,6 +9,7 @@ import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/screens/tabs.dart';
 
 import 'package:island/screens/explore.dart';
+import 'package:island/screens/article_detail_screen.dart';
 import 'package:island/screens/account.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/screens/wallet.dart';
@@ -242,6 +243,18 @@ final routerProvider = Provider<GoRouter>((ref) {
               return TabsScreen(child: child);
             },
             routes: [
+              // Article detail route
+              GoRoute(
+                path: '/articles/:id',
+                pageBuilder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return MaterialPage(
+                    key: state.pageKey,
+                    child: ArticleDetailScreen(articleId: id),
+                  );
+                },
+              ),
+
               // Explore tab
               ShellRoute(
                 builder:
