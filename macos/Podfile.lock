@@ -11,32 +11,32 @@ PODS:
     - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
-  - Firebase/CoreOnly (11.13.0):
-    - FirebaseCore (~> 11.13.0)
-  - Firebase/Messaging (11.13.0):
+  - Firebase/CoreOnly (11.15.0):
+    - FirebaseCore (~> 11.15.0)
+  - Firebase/Messaging (11.15.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 11.13.0)
-  - firebase_core (3.14.0):
-    - Firebase/CoreOnly (~> 11.13.0)
+    - FirebaseMessaging (~> 11.15.0)
+  - firebase_core (3.15.0):
+    - Firebase/CoreOnly (~> 11.15.0)
     - FlutterMacOS
-  - firebase_messaging (15.2.7):
-    - Firebase/CoreOnly (~> 11.13.0)
-    - Firebase/Messaging (~> 11.13.0)
+  - firebase_messaging (15.2.8):
+    - Firebase/CoreOnly (~> 11.15.0)
+    - Firebase/Messaging (~> 11.15.0)
     - firebase_core
     - FlutterMacOS
-  - FirebaseCore (11.13.0):
-    - FirebaseCoreInternal (~> 11.13.0)
+  - FirebaseCore (11.15.0):
+    - FirebaseCoreInternal (~> 11.15.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
-  - FirebaseCoreInternal (11.13.0):
+  - FirebaseCoreInternal (11.15.0):
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
-  - FirebaseInstallations (11.13.0):
-    - FirebaseCore (~> 11.13.0)
+  - FirebaseInstallations (11.15.0):
+    - FirebaseCore (~> 11.15.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
-  - FirebaseMessaging (11.13.0):
-    - FirebaseCore (~> 11.13.0)
+  - FirebaseMessaging (11.15.0):
+    - FirebaseCore (~> 11.15.0)
     - FirebaseInstallations (~> 11.0)
     - GoogleDataTransport (~> 10.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
@@ -92,7 +92,7 @@ PODS:
     - GoogleUtilities/Privacy
   - irondash_engine_context (0.0.1):
     - FlutterMacOS
-  - livekit_client (2.4.8):
+  - livekit_client (2.4.9):
     - flutter_webrtc
     - FlutterMacOS
     - WebRTC-SDK (= 125.6422.07)
@@ -291,13 +291,13 @@ SPEC CHECKSUMS:
   device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_selector_macos: 6280b52b459ae6c590af5d78fc35c7267a3c4b31
-  Firebase: 3435bc66b4d494c2f22c79fd3aae4c1db6662327
-  firebase_core: 1095fcf33161d99bc34aa10f7c0d89414a208d15
-  firebase_messaging: 6417056ffb85141607618ddfef9fec9f3caab3ea
-  FirebaseCore: c692c7f1c75305ab6aff2b367f25e11d73aa8bd0
-  FirebaseCoreInternal: 29d7b3af4aaf0b8f3ed20b568c13df399b06f68c
-  FirebaseInstallations: 0ee9074f2c1e86561ace168ee1470dc67aabaf02
-  FirebaseMessaging: 195bbdb73e6ca1dbc76cd46e73f3552c084ef6e4
+  Firebase: d99ac19b909cd2c548339c2241ecd0d1599ab02e
+  firebase_core: 177f51be1650b15d2d5b9f1abf48792619288070
+  firebase_messaging: 8748a5d4bb435993cffa7f5501292f3e914a23d7
+  FirebaseCore: efb3893e5b94f32b86e331e3bd6dadf18b66568e
+  FirebaseCoreInternal: 9afa45b1159304c963da48addb78275ef701c6b4
+  FirebaseInstallations: 317270fec08a5d418fdbc8429282238cab3ac843
+  FirebaseMessaging: 3b26e2cee503815e01c3701236b020aa9b576f09
   flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
   flutter_platform_alert: 8fa7a7c21f95b26d08b4a3891936ca27e375f284
   flutter_secure_storage_macos: 7f45e30f838cf2659862a4e4e3ee1c347c2b3b54
@@ -309,7 +309,7 @@ SPEC CHECKSUMS:
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
-  livekit_client: 6a35243df3da61750c98e266e02dedcf5d25c888
+  livekit_client: c9d9f41996f5cf22b9ba0e8483e6af4ca5094059
   local_auth_darwin: 553ce4f9b16d3fdfeafce9cf042e7c9f77c1c391
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
