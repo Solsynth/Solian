@@ -283,6 +283,16 @@ class AccountScreen extends HookConsumerWidget {
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
               minTileHeight: 48,
+              leading: const Icon(Symbols.info),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('about').tr(),
+              onTap: () {
+                context.push('/about');
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
               leading: const Icon(Symbols.logout),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/screens/about.dart';
 import 'package:island/screens/developers/apps.dart';
 import 'package:island/screens/developers/edit_app.dart';
 import 'package:island/screens/developers/new_app.dart';
@@ -248,6 +249,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: '/about',
+            builder: (context, state) => const AboutScreen(),
           ),
 
           // Main tabs with TabsScreen shell
