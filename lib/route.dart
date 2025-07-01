@@ -5,6 +5,7 @@ import 'package:island/screens/developers/apps.dart';
 import 'package:island/screens/developers/edit_app.dart';
 import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
+import 'package:island/screens/posts/post_search.dart';
 import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/screens/tabs.dart';
 import 'package:island/screens/explore.dart';
@@ -262,6 +263,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: '/',
                     builder: (context, state) => const ExploreScreen(),
+                  ),
+                  GoRoute(
+                    path: '/posts/search',
+                    builder: (context, state) => const PostSearchScreen(),
                   ),
                   GoRoute(
                     path: '/posts/:id',

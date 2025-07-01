@@ -93,37 +93,67 @@ class ExploreScreen extends HookConsumerWidget {
       extendBody: false, // Prevent conflicts with tabs navigation
       appBar: AppBar(
         toolbarHeight: 0,
-        bottom: TabBar(
-          controller: tabController,
-          tabs: [
-            Tab(
-              child: Text(
-                'explore'.tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).appBarTheme.foregroundColor!,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Row(
+            children: [
+              Expanded(
+                child: TabBar(
+                  controller: tabController,
+                  tabAlignment: TabAlignment.start,
+                  isScrollable: true,
+                  tabs: [
+                    Tab(
+                      icon: Tooltip(
+                        message: 'explore'.tr(),
+                        child: Icon(
+                          Symbols.explore,
+                          color: Theme.of(context).appBarTheme.foregroundColor!,
+                        ),
+                      ),
+                    ),
+                    Tab(
+                      icon: Tooltip(
+                        message: 'exploreFilterSubscriptions'.tr(),
+                        child: Icon(
+                          Symbols.subscriptions,
+                          color: Theme.of(context).appBarTheme.foregroundColor!,
+                        ),
+                      ),
+                    ),
+                    Tab(
+                      icon: Tooltip(
+                        message: 'exploreFilterFriends'.tr(),
+                        child: Icon(
+                          Symbols.people,
+                          color: Theme.of(context).appBarTheme.foregroundColor!,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            Tab(
-              child: Text(
-                'exploreFilterSubscriptions'.tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
+              Spacer(),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(
+                  Symbols.auto_stories,
                   color: Theme.of(context).appBarTheme.foregroundColor!,
                 ),
+                tooltip: 'webArticlesStand'.tr(),
               ),
-            ),
-            Tab(
-              child: Text(
-                'exploreFilterFriends'.tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
+              IconButton(
+                onPressed: () {
+                  context.push('/posts/search');
+                },
+                icon: Icon(
+                  Symbols.search,
                   color: Theme.of(context).appBarTheme.foregroundColor!,
                 ),
+                tooltip: 'search'.tr(),
               ),
-            ),
-          ],
+            ],
+          ).padding(horizontal: 8),
         ),
       ),
       floatingActionButton: FloatingActionButton(
