@@ -7,7 +7,6 @@ import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
 import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/screens/tabs.dart';
-
 import 'package:island/screens/explore.dart';
 import 'package:island/screens/article_detail_screen.dart';
 import 'package:island/screens/account.dart';
