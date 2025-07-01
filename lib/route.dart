@@ -5,6 +5,7 @@ import 'package:island/screens/developers/apps.dart';
 import 'package:island/screens/developers/edit_app.dart';
 import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
+import 'package:island/screens/discovery/articles.dart';
 import 'package:island/screens/posts/post_search.dart';
 import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/screens/tabs.dart';
@@ -220,6 +221,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
+          // Web articles
+          GoRoute(
+            path: '/feeds/articles',
+            builder: (context, state) => const ArticlesScreen(),
+          ),
+          GoRoute(
+            path: '/feeds/articles/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return ArticleDetailScreen(articleId: id);
+            },
+          ),
+
           // Auth routes
           GoRoute(
             path: '/auth/login',
@@ -243,18 +257,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               return TabsScreen(child: child);
             },
             routes: [
-              // Article detail route
-              GoRoute(
-                path: '/articles/:id',
-                pageBuilder: (context, state) {
-                  final id = state.pathParameters['id']!;
-                  return MaterialPage(
-                    key: state.pageKey,
-                    child: ArticleDetailScreen(articleId: id),
-                  );
-                },
-              ),
-
               // Explore tab
               ShellRoute(
                 builder:

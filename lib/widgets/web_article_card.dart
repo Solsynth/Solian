@@ -2,15 +2,22 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/models/webfeed.dart';
+import 'package:island/services/time.dart';
 
 class WebArticleCard extends StatelessWidget {
   final SnWebArticle article;
   final double? maxWidth;
+  final bool showDetails;
 
-  const WebArticleCard({super.key, required this.article, this.maxWidth});
+  const WebArticleCard({
+    super.key,
+    required this.article,
+    this.maxWidth,
+    this.showDetails = false,
+  });
 
   void _onTap(BuildContext context) {
-    context.push('/articles/${article.id}');
+    context.push('/feeds/articles/${article.id}');
   }
 
   @override
@@ -74,6 +81,7 @@ class WebArticleCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (showDetails) const SizedBox(height: 8),
                         Text(
                           article.title,
                           style: theme.textTheme.titleSmall?.copyWith(
@@ -81,10 +89,32 @@ class WebArticleCard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             height: 1.3,
                           ),
-                          maxLines: 2,
+                          maxLines: showDetails ? 3 : 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
+                        if (showDetails &&
+                            article.author?.isNotEmpty == true) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            article.author!,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                        const Spacer(),
+                        if (showDetails && article.publishedAt != null) ...[
+                          Text(
+                            '${article.publishedAt!.formatSystem()} · ${article.publishedAt!.formatRelative(context)}',
+                            style: const TextStyle(
+                              fontSize: 9,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                        ],
                         Text(
                           article.feed?.title ?? 'Unknown Source',
                           style: const TextStyle(

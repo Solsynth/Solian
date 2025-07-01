@@ -135,7 +135,9 @@ class ExploreScreen extends HookConsumerWidget {
               ),
               Spacer(),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.push('/feeds/articles');
+                },
                 icon: Icon(
                   Symbols.auto_stories,
                   color: Theme.of(context).appBarTheme.foregroundColor!,
