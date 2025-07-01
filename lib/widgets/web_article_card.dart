@@ -81,7 +81,10 @@ class WebArticleCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (showDetails) const SizedBox(height: 8),
+                        if (showDetails)
+                          const SizedBox(height: 8)
+                        else
+                          Spacer(),
                         Text(
                           article.title,
                           style: theme.textTheme.titleSmall?.copyWith(
@@ -104,7 +107,7 @@ class WebArticleCard extends StatelessWidget {
                             ),
                           ),
                         ],
-                        const Spacer(),
+                        if (showDetails) const Spacer(),
                         if (showDetails && article.publishedAt != null) ...[
                           Text(
                             '${article.publishedAt!.formatSystem()} · ${article.publishedAt!.formatRelative(context)}',
