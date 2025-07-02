@@ -542,6 +542,7 @@
   "upgradeYourPlan": "Upgrade Your Plan",
   "chooseYourPlan": "Choose Your Plan",
   "currentMembership": "Current: {}",
+  "currentMembershipMember": "A member of Stellar Program · {}",
   "membershipExpires": "Expires: {}",
   "membershipTierStellar": "Stellar",
   "membershipTierNova": "Nova",
