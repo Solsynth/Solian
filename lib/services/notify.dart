@@ -63,7 +63,10 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
   });
 }
 
-Future<void> subscribePushNotification(Dio apiClient) async {
+Future<void> subscribePushNotification(
+  Dio apiClient, {
+  bool detailedErrors = false,
+}) async {
   await FirebaseMessaging.instance.requestPermission(
     provisional: true,
     alert: true,
@@ -97,6 +100,8 @@ Future<void> subscribePushNotification(Dio apiClient) async {
       deviceToken,
       !kIsWeb && (Platform.isIOS || Platform.isMacOS) ? 0 : 1,
     );
+  } else if (detailedErrors) {
+    throw Exception("Failed to get device token for push notifications.");
   }
 }
 

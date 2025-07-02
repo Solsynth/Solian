@@ -1,24 +1,33 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/network.dart';
+import 'package:island/services/notify.dart';
+import 'package:island/services/udid.native.dart';
+import 'package:island/widgets/alert.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-class AboutScreen extends StatefulWidget {
+class AboutScreen extends ConsumerStatefulWidget {
   const AboutScreen({super.key});
 
   @override
-  State<AboutScreen> createState() => _AboutScreenState();
+  ConsumerState<AboutScreen> createState() => _AboutScreenState();
 }
 
-class _AboutScreenState extends State<AboutScreen> {
+class _AboutScreenState extends ConsumerState<AboutScreen> {
   PackageInfo _packageInfo = PackageInfo(
     appName: 'Solian',
     packageName: 'dev.solsynth.solian',
     version: '1.0.0',
     buildNumber: '1',
   );
+  BaseDeviceInfo? _deviceInfo;
+  String? _deviceUdid;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -26,6 +35,7 @@ class _AboutScreenState extends State<AboutScreen> {
   void initState() {
     super.initState();
     _initPackageInfo();
+    _initDeviceInfo();
   }
 
   Future<void> _initPackageInfo() async {
@@ -44,6 +54,25 @@ class _AboutScreenState extends State<AboutScreen> {
             args: [e.toString()],
           );
           _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _initDeviceInfo() async {
+    try {
+      final deviceInfoPlugin = DeviceInfoPlugin();
+      _deviceInfo = await deviceInfoPlugin.deviceInfo;
+      _deviceUdid = await getUdid();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'aboutScreenFailedToLoadDeviceInfo'.tr(
+            args: [e.toString()],
+          );
         });
       }
     }
@@ -126,6 +155,47 @@ class _AboutScreenState extends State<AboutScreen> {
                         ),
                       ],
                     ),
+
+                    if (_deviceInfo != null) const SizedBox(height: 16),
+
+                    if (_deviceInfo != null)
+                      _buildSection(
+                        context,
+                        title: 'Device Information',
+                        children: [
+                          _buildInfoItem(
+                            context,
+                            icon: Symbols.label,
+                            label: 'Device Name',
+                            value: _deviceInfo?.data['name'],
+                          ),
+                          _buildInfoItem(
+                            context,
+                            icon: Symbols.fingerprint,
+                            label: 'Device Identifier',
+                            value: _deviceUdid ?? 'N/A',
+                            copyable: true,
+                          ),
+                          const Divider(height: 1),
+                          _buildListTile(
+                            context,
+                            icon: Symbols.notifications_active,
+                            title: 'Reactivate Push Notifications',
+                            onTap: () async {
+                              showLoadingModal(context);
+                              try {
+                                await subscribePushNotification(
+                                  ref.watch(apiClientProvider),
+                                );
+                              } catch (err) {
+                                showErrorAlert(err);
+                              } finally {
+                                if (context.mounted) hideLoadingModal(context);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
 
                     const SizedBox(height: 16),
 
@@ -247,6 +317,7 @@ class _AboutScreenState extends State<AboutScreen> {
     required IconData icon,
     required String label,
     required String value,
+    bool copyable = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -263,11 +334,12 @@ class _AboutScreenState extends State<AboutScreen> {
                 SelectableText(
                   value,
                   style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: copyable ? 1 : null,
                 ),
               ],
             ),
           ),
-          if (value.startsWith('http') || value.contains('@'))
+          if (value.startsWith('http') || value.contains('@') || copyable)
             IconButton(
               icon: const Icon(Icons.copy, size: 16),
               onPressed: () {
