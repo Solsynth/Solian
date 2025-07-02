@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -6,11 +7,14 @@ import 'package:flutter_highlight/themes/a11y-dark.dart';
 import 'package:flutter_highlight/themes/a11y-light.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown_latex.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:markdown_widget/markdown_widget.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'image.dart';
@@ -23,6 +27,7 @@ class MarkdownTextContent extends HookConsumerWidget {
   final TextStyle? linkStyle;
   final EdgeInsets? linesMargin;
   final bool isSelectable;
+  final List<SnCloudFile>? attachments;
 
   const MarkdownTextContent({
     super.key,
@@ -33,6 +38,7 @@ class MarkdownTextContent extends HookConsumerWidget {
     this.linkStyle,
     this.isSelectable = false,
     this.linesMargin,
+    this.attachments,
   });
 
   @override
@@ -109,6 +115,29 @@ class MarkdownTextContent extends HookConsumerWidget {
               final uri = Uri.parse(url);
               if (uri.scheme == 'solian') {
                 switch (uri.host) {
+                  case 'files':
+                    final file = attachments?.firstWhereOrNull(
+                      (file) => file.id == uri.pathSegments[0],
+                    );
+                    if (file == null) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                        ),
+                        child: CloudFileWidget(
+                          item: file,
+                          fit: BoxFit.cover,
+                        ).clipRRect(all: 8),
+                      ),
+                    );
                   case 'stickers':
                     final size = doesEnlargeSticker ? 96.0 : 24.0;
                     return ClipRRect(
@@ -132,9 +161,9 @@ class MarkdownTextContent extends HookConsumerWidget {
                     );
                 }
               }
-              final content = UniversalImage(
-                uri: uri.toString(),
-                fit: BoxFit.cover,
+              final content = ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: 360),
+                child: UniversalImage(uri: uri.toString(), fit: BoxFit.contain),
               );
               return content;
             },

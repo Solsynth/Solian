@@ -480,8 +480,7 @@ class ComposeLogic {
       return;
     }
     final cloudFile = attachment.data as SnCloudFile;
-    final baseUrl = ref.read(serverUrlProvider);
-    final markdown = '![${cloudFile.name}]($baseUrl/files/${cloudFile.id})';
+    final markdown = '![${cloudFile.name}](solian://files/${cloudFile.id})';
     final controller = state.contentController;
     final text = controller.text;
     final selection = controller.selection;

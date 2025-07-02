@@ -331,6 +331,7 @@ class PostItem extends HookConsumerWidget {
                                   item.type == 0
                                       ? EdgeInsets.only(bottom: 8)
                                       : null,
+                              attachments: item.attachments,
                             ),
                         ],
                         // Render tags and categories if they exist
@@ -689,6 +690,7 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
                           referencePost.type == 0
                               ? EdgeInsets.only(bottom: 4)
                               : null,
+                      attachments: item.attachments,
                     ).padding(bottom: 4),
                   // Truncation hint for referenced post
                   if (referencePost.isTruncated)
@@ -696,7 +698,8 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
                       isCompact: true,
                       margin: const EdgeInsets.only(top: 4, bottom: 8),
                     ),
-                  if (referencePost.attachments.isNotEmpty && referencePost.type != 1)
+                  if (referencePost.attachments.isNotEmpty &&
+                      referencePost.type != 1)
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -1030,6 +1033,7 @@ class _ArticlePostDisplay extends StatelessWidget {
             MarkdownTextContent(
               content: item.content!,
               textStyle: Theme.of(context).textTheme.bodyLarge,
+              attachments: item.attachments,
             ),
         ],
       );
