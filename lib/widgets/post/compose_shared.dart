@@ -474,6 +474,23 @@ class ComposeLogic {
     state.attachments.value = clone;
   }
 
+  static void insertAttachment(ComposeState state, int index) {
+    final attachment = state.attachments.value[index];
+    if (!attachment.isOnCloud) {
+      return;
+    }
+    final cloudFile = attachment.data as SnCloudFile;
+    final markdown = '![${cloudFile.name}](${cloudFile.id})';
+    final controller = state.contentController;
+    final text = controller.text;
+    final selection = controller.selection;
+    final newText = text.replaceRange(selection.start, selection.end, markdown);
+    controller.text = newText;
+    controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: selection.start + markdown.length),
+    );
+  }
+
   static Future<void> performAction(
     WidgetRef ref,
     ComposeState state,
