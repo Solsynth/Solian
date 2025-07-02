@@ -286,7 +286,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   }
 
   String _formatCurrency(int amount, String currency) {
-    final value = amount / 100.0;
+    final value = amount;
     return '${value.toStringAsFixed(2)} $currency';
   }
 

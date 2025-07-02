@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,7 +17,9 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/payment/payment_overlay.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 part 'leveling.g.dart';
 
@@ -84,35 +89,6 @@ class LevelingScreen extends HookConsumerWidget {
                 // Membership section
                 _buildMembershipSection(context, ref, stellarSubscription),
                 const Gap(16),
-
-                // Unlocked features section
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'unlockedFeatures'.tr(),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Gap(8),
-                      Text(
-                        'unlockedFeaturesDescription'.tr(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
@@ -292,6 +268,31 @@ class LevelingScreen extends HookConsumerWidget {
   ) {
     final isActive = membership?.isActive ?? false;
 
+    Future<void> membershipCancel() async {
+      if (!isActive || membership == null) return;
+
+      final confirm = await showConfirmAlert(
+        'membershipCancelHint'.tr(),
+        'membershipCancelConfirm'.tr(),
+      );
+      if (!confirm || !context.mounted) return;
+
+      try {
+        showLoadingModal(context);
+        final client = ref.watch(apiClientProvider);
+        await client.post('/subscriptions/${membership.identifier}/cancel');
+        ref.invalidate(accountStellarSubscriptionProvider);
+        ref.read(userInfoProvider.notifier).fetchUser();
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showSnackBar('membershipCancelSuccess'.tr());
+        }
+      } catch (err) {
+        if (context.mounted) hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -307,7 +308,7 @@ class LevelingScreen extends HookConsumerWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
@@ -327,27 +328,42 @@ class LevelingScreen extends HookConsumerWidget {
 
           if (isActive) ...[
             _buildCurrentMembershipCard(context, membership!),
-            const Gap(16),
+            const Gap(12),
+            FilledButton.icon(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(
+                  Theme.of(context).colorScheme.error,
+                ),
+                foregroundColor: WidgetStateProperty.all(
+                  Theme.of(context).colorScheme.onError,
+                ),
+              ),
+              onPressed: membershipCancel,
+              icon: const Icon(Symbols.cancel),
+              label: Text('membershipCancel'.tr()),
+            ),
           ],
 
-          Text(
-            isActive ? 'upgradeYourPlan'.tr() : 'chooseYourPlan'.tr(),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          const Gap(12),
-
-          _buildMembershipTiers(context, ref, membership),
-          const Gap(12),
+          if (!isActive) ...[
+            Text(
+              'chooseYourPlan'.tr(),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const Gap(12),
+            _buildMembershipTiers(context, ref, membership),
+          ],
 
           // Restore Purchase Button
-          OutlinedButton.icon(
-            onPressed: () => _showRestorePurchaseSheet(context, ref),
-            icon: const Icon(Icons.restore),
-            label: Text('restorePurchase'.tr()),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 48),
-            ),
-          ),
+          // As you know Apple platform need IAP
+          if (kIsWeb || !(Platform.isIOS || Platform.isMacOS))
+            OutlinedButton.icon(
+              onPressed: () => _showRestorePurchaseSheet(context, ref),
+              icon: const Icon(Icons.restore),
+              label: Text('restorePurchase'.tr()),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ).padding(top: 12),
         ],
       ),
     );
@@ -410,33 +426,18 @@ class LevelingScreen extends HookConsumerWidget {
         'id': 'solian.stellar.primary',
         'name': 'membershipTierStellar'.tr(),
         'price': 'membershipPriceStellar'.tr(),
-        'features': [
-          'membershipFeatureBasic'.tr(),
-          'membershipFeaturePrioritySupport'.tr(),
-          'membershipFeatureAdFree'.tr(),
-        ],
         'color': Colors.blue,
       },
       {
         'id': 'solian.stellar.nova',
         'name': 'membershipTierNova'.tr(),
         'price': 'membershipPriceNova'.tr(),
-        'features': [
-          'membershipFeatureAllPrimary'.tr(),
-          'membershipFeatureAdvancedCustomization'.tr(),
-          'membershipFeatureEarlyAccess'.tr(),
-        ],
-        'color': Colors.purple,
+        'color': Colors.indigo,
       },
       {
         'id': 'solian.stellar.supernova',
         'name': 'membershipTierSupernova'.tr(),
         'price': 'membershipPriceSupernova'.tr(),
-        'features': [
-          'membershipFeatureAllNova'.tr(),
-          'membershipFeatureExclusiveContent'.tr(),
-          'membershipFeatureVipSupport'.tr(),
-        ],
         'color': Colors.orange,
       },
     ];
