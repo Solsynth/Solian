@@ -238,7 +238,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
         children: [
           // Publisher row
           Card(
-            margin: EdgeInsets.only(bottom: 8),
+            margin: EdgeInsets.only(top: 8),
             elevation: 1,
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -265,12 +265,22 @@ class ArticleComposeScreen extends HookConsumerWidget {
                       });
                     },
                   ),
-                  const Gap(12),
-                  Text(
-                    state.currentPublisher.value?.name ??
-                        'postPublisherUnselected'.tr(),
-                    style: theme.textTheme.bodyMedium,
-                  ),
+                  const Gap(16),
+                  if (state.currentPublisher.value == null)
+                    Text(
+                      'postPublisherUnselected'.tr(),
+                      style: theme.textTheme.bodyMedium,
+                    )
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(state.currentPublisher.value!.nick).bold(),
+                        Text(
+                          '@${state.currentPublisher.value!.name}',
+                        ).fontSize(12),
+                      ],
+                    ),
                 ],
               ),
             ),

@@ -324,9 +324,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                             subtitle: Text('createPublisherHint').tr(),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () {
-                              context.push('/creators/publishers/new').then((
-                                value,
-                              ) {
+                              context.push('/creators/new').then((value) {
                                 if (value != null) {
                                   ref.invalidate(publishersManagedProvider);
                                 }
