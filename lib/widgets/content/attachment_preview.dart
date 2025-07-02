@@ -15,6 +15,7 @@ class AttachmentPreview extends StatelessWidget {
   final double? progress;
   final Function(int)? onMove;
   final Function? onDelete;
+  final Function? onInsert;
   final Function? onRequestUpload;
   const AttachmentPreview({
     super.key,
@@ -23,6 +24,7 @@ class AttachmentPreview extends StatelessWidget {
     this.onRequestUpload,
     this.onMove,
     this.onDelete,
+    this.onInsert,
   });
 
   @override
@@ -164,6 +166,18 @@ class AttachmentPreview extends StatelessWidget {
                             ).padding(horizontal: 8, vertical: 6),
                             onTap: () {
                               onMove?.call(1);
+                            },
+                          ),
+                        if (onInsert != null)
+                          InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            child: const Icon(
+                              Symbols.add,
+                              size: 14,
+                              color: Colors.white,
+                            ).padding(horizontal: 8, vertical: 6),
+                            onTap: () {
+                              onInsert?.call();
                             },
                           ),
                       ],

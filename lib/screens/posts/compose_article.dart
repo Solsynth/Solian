@@ -358,6 +358,10 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                     delta,
                                   );
                                 },
+                                onInsert: () => ComposeLogic.insertAttachment(
+                                  state,
+                                  idx,
+                                ),
                               ),
                             ),
                         ],

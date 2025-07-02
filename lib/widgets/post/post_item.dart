@@ -163,7 +163,7 @@ class PostItem extends HookConsumerWidget {
             if ((item.repliedPost != null || item.forwardedPost != null) &&
                 showReferencePost)
               _buildReferencePost(context, item),
-            if (item.attachments.isNotEmpty)
+            if (item.attachments.isNotEmpty && item.type != 1)
               CloudFileList(
                 files: item.attachments,
                 maxWidth: math.min(
@@ -389,7 +389,7 @@ class PostItem extends HookConsumerWidget {
                                 item.forwardedPost != null) &&
                             showReferencePost)
                           _buildReferencePost(context, item),
-                        if (item.attachments.isNotEmpty)
+                        if (item.attachments.isNotEmpty && item.type != 1)
                           CloudFileList(
                             files: item.attachments,
                             maxWidth: math.min(
@@ -696,7 +696,7 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
                       isCompact: true,
                       margin: const EdgeInsets.only(top: 4, bottom: 8),
                     ),
-                  if (referencePost.attachments.isNotEmpty)
+                  if (referencePost.attachments.isNotEmpty && referencePost.type != 1)
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
