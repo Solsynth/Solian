@@ -68,7 +68,6 @@ Future<void> subscribePushNotification(
   bool detailedErrors = false,
 }) async {
   await FirebaseMessaging.instance.requestPermission(
-    provisional: true,
     alert: true,
     badge: true,
     sound: true,
