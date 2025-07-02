@@ -87,7 +87,7 @@ class PostItemCreator extends HookConsumerWidget {
         );
       },
       child: Material(
-        color: Colors.transparent,
+        color: backgroundColor ?? Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         elevation: 1,
         child: InkWell(

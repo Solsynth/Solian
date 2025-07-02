@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PostComposeInitialState {
 
- String? get title; String? get description; String? get content; List<UniversalFile> get attachments; int? get visibility;
+ String? get title; String? get description; String? get content; List<UniversalFile> get attachments; int? get visibility; SnPost? get replyingTo; SnPost? get forwardingTo;
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $PostComposeInitialStateCopyWith<PostComposeInitialState> get copyWith => _$Post
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostComposeInitialState&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostComposeInitialState&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,description,content,const DeepCollectionEquality().hash(attachments),visibility);
+int get hashCode => Object.hash(runtimeType,title,description,content,const DeepCollectionEquality().hash(attachments),visibility,replyingTo,forwardingTo);
 
 @override
 String toString() {
-  return 'PostComposeInitialState(title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility)';
+  return 'PostComposeInitialState(title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo)';
 }
 
 
@@ -49,11 +49,11 @@ abstract mixin class $PostComposeInitialStateCopyWith<$Res>  {
   factory $PostComposeInitialStateCopyWith(PostComposeInitialState value, $Res Function(PostComposeInitialState) _then) = _$PostComposeInitialStateCopyWithImpl;
 @useResult
 $Res call({
- String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility
+ String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo
 });
 
 
-
+$SnPostCopyWith<$Res>? get replyingTo;$SnPostCopyWith<$Res>? get forwardingTo;
 
 }
 /// @nodoc
@@ -66,17 +66,43 @@ class _$PostComposeInitialStateCopyWithImpl<$Res>
 
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,}) {
   return _then(_self.copyWith(
 title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String?,attachments: null == attachments ? _self.attachments : attachments // ignore: cast_nullable_to_non_nullable
 as List<UniversalFile>,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,replyingTo: freezed == replyingTo ? _self.replyingTo : replyingTo // ignore: cast_nullable_to_non_nullable
+as SnPost?,forwardingTo: freezed == forwardingTo ? _self.forwardingTo : forwardingTo // ignore: cast_nullable_to_non_nullable
+as SnPost?,
   ));
 }
+/// Create a copy of PostComposeInitialState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPostCopyWith<$Res>? get replyingTo {
+    if (_self.replyingTo == null) {
+    return null;
+  }
 
+  return $SnPostCopyWith<$Res>(_self.replyingTo!, (value) {
+    return _then(_self.copyWith(replyingTo: value));
+  });
+}/// Create a copy of PostComposeInitialState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPostCopyWith<$Res>? get forwardingTo {
+    if (_self.forwardingTo == null) {
+    return null;
+  }
+
+  return $SnPostCopyWith<$Res>(_self.forwardingTo!, (value) {
+    return _then(_self.copyWith(forwardingTo: value));
+  });
+}
 }
 
 
@@ -84,7 +110,7 @@ as int?,
 @JsonSerializable()
 
 class _PostComposeInitialState implements PostComposeInitialState {
-  const _PostComposeInitialState({this.title, this.description, this.content, final  List<UniversalFile> attachments = const [], this.visibility}): _attachments = attachments;
+  const _PostComposeInitialState({this.title, this.description, this.content, final  List<UniversalFile> attachments = const [], this.visibility, this.replyingTo, this.forwardingTo}): _attachments = attachments;
   factory _PostComposeInitialState.fromJson(Map<String, dynamic> json) => _$PostComposeInitialStateFromJson(json);
 
 @override final  String? title;
@@ -98,6 +124,8 @@ class _PostComposeInitialState implements PostComposeInitialState {
 }
 
 @override final  int? visibility;
+@override final  SnPost? replyingTo;
+@override final  SnPost? forwardingTo;
 
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
@@ -112,16 +140,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostComposeInitialState&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostComposeInitialState&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,description,content,const DeepCollectionEquality().hash(_attachments),visibility);
+int get hashCode => Object.hash(runtimeType,title,description,content,const DeepCollectionEquality().hash(_attachments),visibility,replyingTo,forwardingTo);
 
 @override
 String toString() {
-  return 'PostComposeInitialState(title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility)';
+  return 'PostComposeInitialState(title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo)';
 }
 
 
@@ -132,11 +160,11 @@ abstract mixin class _$PostComposeInitialStateCopyWith<$Res> implements $PostCom
   factory _$PostComposeInitialStateCopyWith(_PostComposeInitialState value, $Res Function(_PostComposeInitialState) _then) = __$PostComposeInitialStateCopyWithImpl;
 @override @useResult
 $Res call({
- String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility
+ String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo
 });
 
 
-
+@override $SnPostCopyWith<$Res>? get replyingTo;@override $SnPostCopyWith<$Res>? get forwardingTo;
 
 }
 /// @nodoc
@@ -149,18 +177,44 @@ class __$PostComposeInitialStateCopyWithImpl<$Res>
 
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,}) {
   return _then(_PostComposeInitialState(
 title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String?,attachments: null == attachments ? _self._attachments : attachments // ignore: cast_nullable_to_non_nullable
 as List<UniversalFile>,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,replyingTo: freezed == replyingTo ? _self.replyingTo : replyingTo // ignore: cast_nullable_to_non_nullable
+as SnPost?,forwardingTo: freezed == forwardingTo ? _self.forwardingTo : forwardingTo // ignore: cast_nullable_to_non_nullable
+as SnPost?,
   ));
 }
 
+/// Create a copy of PostComposeInitialState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPostCopyWith<$Res>? get replyingTo {
+    if (_self.replyingTo == null) {
+    return null;
+  }
 
+  return $SnPostCopyWith<$Res>(_self.replyingTo!, (value) {
+    return _then(_self.copyWith(replyingTo: value));
+  });
+}/// Create a copy of PostComposeInitialState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPostCopyWith<$Res>? get forwardingTo {
+    if (_self.forwardingTo == null) {
+    return null;
+  }
+
+  return $SnPostCopyWith<$Res>(_self.forwardingTo!, (value) {
+    return _then(_self.copyWith(forwardingTo: value));
+  });
+}
 }
 
 // dart format on

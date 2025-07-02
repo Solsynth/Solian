@@ -21,9 +21,10 @@ Future<SnPost?> post(Ref ref, String id) async {
   return SnPost.fromJson(resp.data);
 }
 
-final postStateProvider = StateNotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(
-  (ref, id) => PostState(ref, id),
-);
+final postStateProvider =
+    StateNotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(
+      (ref, id) => PostState(ref, id),
+    );
 
 class PostState extends StateNotifier<AsyncValue<SnPost?>> {
   final Ref _ref;
@@ -74,7 +75,9 @@ class PostDetailScreen extends HookConsumerWidget {
                           backgroundColor: isWide ? Colors.transparent : null,
                           onUpdate: (newItem) {
                             // Update the local state with the new post data
-                            ref.read(postStateProvider(id).notifier).updatePost(newItem);
+                            ref
+                                .read(postStateProvider(id).notifier)
+                                .updatePost(newItem);
                           },
                         ),
                         const Divider(height: 1),
@@ -92,20 +95,25 @@ class PostDetailScreen extends HookConsumerWidget {
                   right: 0,
                   child: Material(
                     elevation: 2,
-                    child: postState.when(
-                      data: (post) => PostQuickReply(
-                        parent: post!,
-                        onPosted: () {
-                          ref.invalidate(postRepliesNotifierProvider(id));
-                        },
-                      ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
-                    ).padding(
-                      bottom: MediaQuery.of(context).padding.bottom + 16,
-                      top: 16,
-                      horizontal: 16,
-                    ),
+                    child: postState
+                        .when(
+                          data:
+                              (post) => PostQuickReply(
+                                parent: post!,
+                                onPosted: () {
+                                  ref.invalidate(
+                                    postRepliesNotifierProvider(id),
+                                  );
+                                },
+                              ),
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, _) => const SizedBox.shrink(),
+                        )
+                        .padding(
+                          bottom: MediaQuery.of(context).padding.bottom + 16,
+                          top: 16,
+                          horizontal: 16,
+                        ),
                   ),
                 ),
             ],

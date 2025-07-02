@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/firebase_options.dart';
@@ -43,6 +44,10 @@ void main() async {
       "[SplashScreen] Keeping the flash screen to loading other resources...",
     );
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  }
+
+  if (kIsWeb) {
+    GoRouter.optionURLReflectsImperativeAPIs = true;
   }
 
   try {

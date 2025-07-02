@@ -33,6 +33,8 @@ sealed class PostComposeInitialState with _$PostComposeInitialState {
     String? content,
     @Default([]) List<UniversalFile> attachments,
     int? visibility,
+    SnPost? replyingTo,
+    SnPost? forwardingTo,
   }) = _PostComposeInitialState;
 
   factory PostComposeInitialState.fromJson(Map<String, dynamic> json) =>
@@ -66,23 +68,22 @@ class PostEditScreen extends HookConsumerWidget {
 
 class PostComposeScreen extends HookConsumerWidget {
   final SnPost? originalPost;
-  final SnPost? repliedPost;
-  final SnPost? forwardedPost;
   final int? type;
   final PostComposeInitialState? initialState;
   const PostComposeScreen({
     super.key,
-    this.originalPost,
-    this.repliedPost,
-    this.forwardedPost,
     this.type,
     this.initialState,
+    this.originalPost,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Determine the compose type: auto-detect from edited post or use query parameter
     final composeType = originalPost?.type ?? type ?? 0;
+    final repliedPost = initialState?.replyingTo ?? originalPost?.repliedPost;
+    final forwardedPost =
+        initialState?.forwardingTo ?? originalPost?.forwardedPost;
 
     // If type is 1 (article), return ArticleComposeScreen
     if (composeType == 1) {
@@ -136,7 +137,10 @@ class PostComposeScreen extends HookConsumerWidget {
     // Initialize publisher once when data is available
     useEffect(() {
       if (publishers.value?.isNotEmpty ?? false) {
-        state.currentPublisher.value = publishers.value!.first;
+        if (state.currentPublisher.value == null) {
+          // If no publisher is set, use the first available one
+          state.currentPublisher.value = publishers.value!.first;
+        }
       }
       return null;
     }, [publishers]);
@@ -480,8 +484,10 @@ class PostComposeScreen extends HookConsumerWidget {
 
   Widget _buildInfoBanner(BuildContext context) {
     // When editing, preserve the original replied/forwarded post references
-    final effectiveRepliedPost = repliedPost ?? originalPost?.repliedPost;
-    final effectiveForwardedPost = forwardedPost ?? originalPost?.forwardedPost;
+    final effectiveRepliedPost =
+        initialState?.replyingTo ?? originalPost?.repliedPost;
+    final effectiveForwardedPost =
+        initialState?.forwardingTo ?? originalPost?.forwardedPost;
 
     // Show editing banner when editing a post
     if (originalPost != null) {
@@ -497,15 +503,15 @@ class PostComposeScreen extends HookConsumerWidget {
                   size: 16,
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                 ),
-                const Gap(4),
+                const Gap(8),
                 Text(
-                  'edit'.tr(),
+                  'postEditing'.tr(),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),
               ],
-            ).padding(all: 16),
+            ).padding(horizontal: 16, vertical: 8),
           ),
           // Show reply/forward banners below editing banner if they exist
           if (effectiveRepliedPost != null)
@@ -615,6 +621,7 @@ class PostComposeScreen extends HookConsumerWidget {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
+          backgroundColor: Colors.transparent,
           builder:
               (context) => DraggableScrollableSheet(
                 initialChildSize: 0.7,

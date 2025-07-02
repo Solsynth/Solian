@@ -18,6 +18,14 @@ _PostComposeInitialState _$PostComposeInitialStateFromJson(
           .toList() ??
       const [],
   visibility: (json['visibility'] as num?)?.toInt(),
+  replyingTo:
+      json['replying_to'] == null
+          ? null
+          : SnPost.fromJson(json['replying_to'] as Map<String, dynamic>),
+  forwardingTo:
+      json['forwarding_to'] == null
+          ? null
+          : SnPost.fromJson(json['forwarding_to'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$PostComposeInitialStateToJson(
@@ -28,4 +36,6 @@ Map<String, dynamic> _$PostComposeInitialStateToJson(
   'content': instance.content,
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
   'visibility': instance.visibility,
+  'replying_to': instance.replyingTo?.toJson(),
+  'forwarding_to': instance.forwardingTo?.toJson(),
 };

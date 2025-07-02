@@ -47,15 +47,21 @@ class DeveloperHubShellScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isWide = isWideScreen(context);
     if (isWide) {
-      return Row(
-        children: [
-          SizedBox(width: 360, child: const DeveloperHubScreen(isAside: true)),
-          const VerticalDivider(width: 1),
-          Expanded(child: child),
-        ],
+      return AppBackground(
+        isRoot: true,
+        child: Row(
+          children: [
+            SizedBox(
+              width: 360,
+              child: const DeveloperHubScreen(isAside: true),
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(child: child),
+          ],
+        ),
       );
     }
-    return child;
+    return AppBackground(isRoot: true, child: child);
   }
 }
 
@@ -238,8 +244,8 @@ class DeveloperHubScreen extends HookConsumerWidget {
                             ),
                             onTap: () {
                               context.push(
-                          '/developers/${currentDeveloper.value!.name}/apps',
-                        );
+                                '/developers/${currentDeveloper.value!.name}/apps',
+                              );
                             },
                           ),
                         ],

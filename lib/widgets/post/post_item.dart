@@ -11,6 +11,7 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/screens/posts/compose.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_name.dart';
@@ -116,14 +117,20 @@ class PostItem extends HookConsumerWidget {
               title: 'reply'.tr(),
               image: MenuImage.icon(Symbols.reply),
               callback: () {
-                context.push('/posts/compose', extra: {'repliedPost': item});
+                context.push(
+                  '/posts/compose',
+                  extra: PostComposeInitialState(replyingTo: item),
+                );
               },
             ),
             MenuAction(
               title: 'forward'.tr(),
               image: MenuImage.icon(Symbols.forward),
               callback: () {
-                context.push('/posts/compose', extra: {'forwardedPost': item});
+                context.push(
+                  '/posts/compose',
+                  extra: PostComposeInitialState(forwardingTo: item),
+                );
               },
             ),
             MenuSeparator(),

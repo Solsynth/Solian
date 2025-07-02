@@ -98,19 +98,11 @@ class ComposeLogic {
       descriptionController: TextEditingController(
         text: originalPost?.description,
       ),
-      contentController: TextEditingController(
-        text:
-            originalPost?.content ??
-            (forwardedPost != null
-                ? '''> ${forwardedPost.content}
-
-'''
-                : null),
-      ),
+      contentController: TextEditingController(text: originalPost?.content),
       visibility: ValueNotifier<int>(originalPost?.visibility ?? 0),
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
-      currentPublisher: ValueNotifier<SnPublisher?>(null),
+      currentPublisher: ValueNotifier<SnPublisher?>(originalPost?.publisher),
       tagsController: tagsController,
       categoriesController: categoriesController,
       draftId: id,

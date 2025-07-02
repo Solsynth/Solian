@@ -690,5 +690,8 @@
   "aboutScreenCopyright": "© {} {}. All rights reserved.",
   "aboutScreenFailedToLoadPackageInfo": "Failed to load package info: {error}",
   "copiedToClipboard": "Copied to clipboard",
-  "copyToClipboardTooltip": "Copy to clipboard"
+  "copyToClipboardTooltip": "Copy to clipboard",
+  "postForwardingTo": "Forwarding to",
+  "postReplyingTo": "Replying to",
+  "postEditing": "You are editing an existing post"
 }

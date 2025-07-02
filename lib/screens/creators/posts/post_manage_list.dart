@@ -26,7 +26,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
                 children: [
                   ListTile(
                     leading: const Icon(Symbols.edit),
-                    title: Text('postContent'.tr()),
+                    title: Text('Post'),
                     subtitle: Text('Create a regular post'),
                     onTap: () async {
                       Navigator.pop(context);

@@ -65,6 +65,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder:
                 (context, state) => PostComposeScreen(
                   initialState: state.extra as PostComposeInitialState?,
+                  type:
+                      int.tryParse(state.uri.queryParameters['type'] ?? '0') ??
+                      0,
                 ),
           ),
           GoRoute(
