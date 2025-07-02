@@ -1,371 +1,4026 @@
-{
-  "login": "登入",
-  "loginDescription": "既有用戶？歡迎您回來！",
-  "forgotPassword": "忘記密碼",
-  "loginPickFactor": "選擇驗證方式",
-  "loginMultiFactor": {
-    "one": "還剩 {} 步驟",
-    "other": "還剩 {} 步驟"
-  },
-  "loginEnterPassword": "輸入驗證碼",
-  "loginSuccess": "已登入為 {}",
-  "loginGreeting": "歡迎回來！",
-  "username": "使用者名稱",
-  "usernameCannotChangeHint": "使用者名稱建立後無法更改。",
-  "usernameLookupHint": "您也可以輸入電子郵件地址。",
-  "unknown": "未知",
-  "termAcceptNextWithAgree": "繼續即表示您同意我們的服務條款及其他條款和條件。",
-  "termAcceptLink": "查看詳情",
-  "loginResetPasswordHint": "請提供您的使用者名稱以接收密碼重設連結。",
-  "password": "密碼",
-  "next": "下一步",
-  "createAccount": "建立帳號",
-  "createAccountDescription": "新來乍到？我們隨時為您服務！",
-  "nickname": "暱稱",
-  "email": "電子郵件",
-  "bio": "個人簡介",
-  "fieldCannotBeEmpty": "此欄位不能為空。",
-  "fieldEmailAddressMustBeValid": "電子郵件地址必須有效。",
-  "logout": "登出",
-  "updateYourProfile": "編輯個人資料",
-  "accountBasicInfo": "基本資料",
-  "accountProfile": "您的個人資料",
-  "saveChanges": "儲存變更",
-  "publishers": "發佈者",
-  "managedPublisher": "已管理發佈者",
-  "createPublisher": "建立發佈者",
-  "createPublisherHint": "用於建立貼文、收藏等。",
-  "editPublisher": "編輯發佈者",
-  "syncPublisher": "使用帳號資料",
-  "syncPublisherRealm": "使用領域資料",
-  "create": "建立",
-  "update": "更新",
-  "edit": "編輯",
-  "delete": "刪除",
-  "deletePublisher": "刪除發佈者",
-  "deletePublisherHint": "確定要刪除此發佈者嗎？這也將刪除此發佈者下的所有貼文和收藏。",
-  "somethingWentWrong": "發生了一些錯誤...",
-  "deletePost": "刪除貼文",
-  "deletePostHint": "確定要刪除這篇貼文嗎？",
-  "copyLink": "複製連結",
-  "postCreateAccountTitle": "感謝您的加入！",
-  "postCreateAccountNext": "下一步？",
-  "postCreateAccountNext1": "前往您的電子郵件收件匣並接收帳號啟用電子郵件。",
-  "postCreateAccountNext2": "登入您的帳號並開始探索 Solar Network ！",
-  "postPlaceholder": "在想些什麼？",
-  "publishersEmpty": "尚未有發佈者",
-  "publishersEmptyDescription": "您需要建立一個發佈者才能開始發佈您的貼文。",
-  "authFactorPassword": "密碼",
-  "authFactorPasswordDescription": "您註冊時設定的密碼。",
-  "authFactorEmail": "電子郵件驗證碼",
-  "authFactorEmailDescription": "發送到您註冊時設定的電子郵件地址的一次性驗證碼。",
-  "authFactorTOTP": "時間基於一次性密碼 (TOTP)",
-  "authFactorTOTPDescription": "由 TOTP 驗證器（例如 Google Authenticator 或 Authy）生成的一次性驗證碼。",
-  "authFactorInAppNotify": "應用程式內通知",
-  "authFactorInAppNotifyDescription": "透過應用程式內通知發送的一次性驗證碼。",
-  "realms": "領域",
-  "createRealm": "建立領域",
-  "createRealmHint": "結識志同道合的朋友、建立社群等等。",
-  "editRealm": "編輯領域",
-  "deleteRealm": "刪除領域",
-  "deleteRealmHint": "確定要刪除此領域嗎？這也將刪除該領域下的所有頻道、發佈者和貼文。",
-  "explore": "探索",
-  "account": "帳號",
-  "name": "名稱",
-  "description": "描述",
-  "slug": "代稱",
-  "slugHint": "此代稱將用於 URL 以存取此資源，它應該是獨一無二且 URL 安全的。",
-  "createChatRoom": "建立聊天室",
-  "editChatRoom": "編輯聊天室",
-  "deleteChatRoom": "刪除聊天室",
-  "deleteChatRoomHint": "確定要刪除此聊天室嗎？此操作無法撤銷。",
-  "chat": "聊天",
-  "chatTabAll": "全部",
-  "chatTabDirect": "私人訊息",
-  "chatTabGroup": "群組聊天",
-  "chatMessageHint": "在 {} 訊息",
-  "chatDirectMessageHint": "訊息給 {}",
-  "directMessage": "私人訊息",
-  "loading": "載入中...",
-  "descriptionNone": "尚未有描述。",
-  "invites": "邀請",
-  "invitesEmpty": "尚未有邀請，真是個寂寞的人...",
-  "members": {
-    "one": "{} 位成員",
-    "other": "{} 位成員"
-  },
-  "permissionOwner": "擁有者",
-  "permissionModerator": "版主",
-  "permissionMember": "成員",
-  "reply": "回覆",
-  "forward": "轉發",
-  "repliedTo": "回覆了",
-  "forwarded": "轉發了",
-  "hasAttachments": {
-    "other": "{}個附件"
-  },
-  "postHasAttachments": {
-    "other": "{}個附件"
-  },
-  "edited": "已編輯",
-  "addVideo": "新增影片",
-  "addPhoto": "新增照片",
-  "addFile": "新增檔案",
-  "createDirectMessage": "建立新私人訊息",
-  "react": "反應",
-  "reactions": {
-    "zero": "反應",
-    "one": "{} 個反應",
-    "other": "{} 個反應"
-  },
-  "reactionPositive": "正面",
-  "reactionNegative": "負面",
-  "reactionNeutral": "中立",
-  "connectionConnected": "已連線",
-  "connectionDisconnected": "已中斷連線",
-  "connectionReconnecting": "重新連線中",
-  "checkIn": "簽到",
-  "checkInNone": "尚未簽到",
-  "checkInNoneHint": "透過簽到獲取您的財富提示和每日獎勵。",
-  "checkInResultLevel0": "最差運氣",
-  "checkInResultLevel1": "壞運氣",
-  "checkInResultLevel2": "一個普通的日子",
-  "checkInResultLevel3": "好運",
-  "checkInResultLevel4": "最佳運氣",
-  "checkInResultLevelShort0": "最差",
-  "checkInResultLevelShort1": "壞",
-  "checkInResultLevelShort2": "普通",
-  "checkInResultLevelShort3": "好",
-  "checkInResultLevelShort4": "最佳",
-  "checkInActivityTitle": "{} 在 {} 簽到並獲得了 {}",
-  "eventCalander": "活動日曆",
-  "eventCalanderEmpty": "該日無活動。",
-  "creatorHub": "創作者中心",
-  "creatorHubDescription": "管理貼文、分析等。",
-  "developerPortal": "開發者入口",
-  "developerPortalDescription": "使用 Solar Network ™ 進行建構。",
-  "statusCreateHint": "您在想些什麼？新增狀態。",
-  "statusCreate": "新增狀態",
-  "statusUpdate": "更新狀態",
-  "statusLabel": "狀態",
-  "statusAttitude": "態度",
-  "attitudePositive": "正面",
-  "attitudeNeutral": "中立",
-  "attitudeNegative": "負面",
-  "statusInvisible": "隱身",
-  "statusInvisibleDescription": "您將顯示為離線狀態。",
-  "statusNotDisturb": "勿擾",
-  "statusNotDisturbDescription": "推播通知將被禁用。",
-  "statusClearTime": "清除於",
-  "statusNoAutoClear": "不自動清除",
-  "online": "線上",
-  "offline": "離線",
-  "status": "狀態",
-  "statusActivityTitle": "{} 正在 {} {}",
-  "statusActivityEndedTitle": "{} 正在 {} {} 直到 {}",
-  "appSettings": "應用程式設定",
-  "accountSettings": "帳號設定",
-  "settings": "設定",
-  "language": "語言",
-  "accountLanguageHint": "此語言將用於電子郵件和推播通知。",
-  "settingsDisplayLanguage": "顯示語言",
-  "languageFollowSystem": "跟隨系統",
-  "postsCreatedCount": "貼文",
-  "stickerPacksCreatedCount": "貼圖包",
-  "stickersCreatedCount": "貼圖",
-  "upvoteReceived": "收到的讚",
-  "downvoteReceived": "收到的倒讚",
-  "stickerPacks": "貼圖包",
-  "createStickerPack": "建立貼圖包",
-  "editStickerPack": "編輯貼圖包",
-  "deleteStickerPack": "刪除貼圖包",
-  "deleteStickerPackHint": "確定要刪除此貼圖包嗎？此操作無法撤銷。",
-  "stickerPackPrefix": "前綴",
-  "stickerPackPrefixHint": "此前綴將添加在此包中每個貼圖的代稱之前。",
-  "stickers": "貼圖",
-  "createSticker": "建立貼圖",
-  "editSticker": "編輯貼圖",
-  "deleteSticker": "刪除貼圖",
-  "deleteStickerHint": "確定要刪除此貼圖嗎？此操作無法撤銷。",
-  "stickerImage": "圖片",
-  "stickerSlug": "代稱",
-  "stickerSlugHint": "此代稱將與前綴結合形成貼圖的唯一識別碼。",
-  "dataEmpty": "這裡什麼都沒有。",
-  "pickFile": "選擇檔案",
-  "uploading": "上傳中",
-  "uploadingProgress": "正在上傳 {} / {}",
-  "uploadAll": "全部上傳",
-  "stickerCopyPlaceholder": "複製佔位符",
-  "realmSelection": "選擇一個領域",
-  "individual": "個人",
-  "firstPostBadgeName": "首篇貼文",
-  "firstPostBadgeDescription": "在 Solar Network 建立您的首篇貼文",
-  "popularPostBadgeName": "熱門貼文",
-  "popularPostBadgeDescription": "您的貼文獲得了社群的顯著參與",
-  "viralPostBadgeName": "病毒式貼文",
-  "viralPostBadgeDescription": "您的貼文廣為流傳並觸及了廣泛的受眾",
-  "helpfulCommentBadgeName": "有幫助的評論",
-  "helpfulCommentBadgeDescription": "您的評論被其他人標記為有幫助",
-  "newcomerBadgeName": "新成員",
-  "newcomerBadgeDescription": "歡迎來到 Solar Network ！開始探索和聯繫",
-  "contributorBadgeName": "貢獻者",
-  "contributorBadgeDescription": "積極為 Solar Network 社群做出貢獻",
-  "expertBadgeName": "專家",
-  "expertBadgeDescription": "因您的專業知識和寶貴貢獻而受到認可",
-  "founderBadgeName": "創始人",
-  "founderBadgeDescription": " Solar Network 最早的成員之一",
-  "betaTesterBadgeName": "Beta 測試員",
-  "betaTesterBadgeDescription": "在 Beta 測試期間協助測試和改進 Solar Network ",
-  "moderatorBadgeName": "版主",
-  "moderatorBadgeDescription": "協助維護和管理社群",
-  "developerBadgeName": "開發者",
-  "developerBadgeDescription": "為 Solar Network 的開發做出貢獻",
-  "translatorBadgeName": "翻譯者",
-  "translatorBadgeDescription": "協助將 Solar Network 翻譯成不同語言",
-  "wallet": "錢包",
-  "walletCurrencyPoints": "新太陽點",
-  "walletCurrencyShortPoints": "NSP",
-  "walletCurrencyGolds": "太陽幣",
-  "walletCurrencyShortGolds": "TSD",
-  "retry": "重試",
-  "creatorHubUnselectedHint": "選擇/建立一個發佈者以開始使用。",
-  "relationships": "關係",
-  "addFriend": "傳送好友邀請",
-  "addFriendHint": "將朋友新增到您的關係清單。",
-  "pendingRequest": "待處理",
-  "waitingRequest": "等待中",
-  "relationshipStatusFriend": "朋友",
-  "relationshipStatusBlocked": "已封鎖",
-  "blockUser": "封鎖用戶",
-  "unblockUser": "解除封鎖用戶",
-  "friendRequestAccepted": "已接受 {} 的好友邀請",
-  "friendRequestDeclined": "已拒絕 {} 的好友邀請",
-  "requestExpiredIn": "{} 後過期",
-  "friendSentRequest": "已傳送的好友邀請",
-  "friendSentRequestEmpty": "尚未傳送好友邀請",
-  "friendSentRequestHint": {
-    "one": "已傳送 {} 個好友邀請",
-    "other": "已傳送 {} 個好友邀請"
-  },
-  "levelingProgress": "等級進度",
-  "levelingProgressExperience": "{} 經驗值",
-  "levelingProgressLevel": "等級 {}",
-  "fileUploadingProgress": "正在上傳檔案 #{}: {}%",
-  "removeChatMember": "移除聊天室成員",
-  "removeChatMemberHint": "確定要將此成員從聊天室中移除嗎？",
-  "removeRealmMember": "移除領域成員",
-  "removeRealmMemberHint": "確定要將此成員從領域中移除嗎？",
-  "memberRole": "成員角色",
-  "memberRoleHint": "數字越大權限越高。",
-  "memberRoleEdit": "編輯 @{} 的角色",
-  "openLinkConfirm": "離開 Solar Network ",
-  "openLinkConfirmDescription": "您將離開 Solar Network 並在瀏覽器中開啟連結 ({})。它與 Solar Network 無關。請注意網路釣魚和詐騙。",
-  "brokenLink": "無法開啟連結 {}... 它可能已損壞或缺少 URI 部分...",
-  "copyToClipboard": "複製到剪貼簿",
-  "leaveChatRoom": "離開聊天室",
-  "leaveChatRoomHint": "確定要離開此聊天室嗎？",
-  "leaveRealm": "離開領域",
-  "leaveRealmHint": "確定要離開此領域嗎？",
-  "walletNotFound": "找不到錢包",
-  "walletCreateHint": "您尚未有錢包。建立一個以開始使用 Solar Network 電子錢包。",
-  "walletCreate": "建立錢包",
-  "settingsServerUrl": "伺服器 URL",
-  "settingsApplied": "設定已應用。",
-  "notifications": "通知",
-  "posts": "貼文",
-  "settingsBackgroundImage": "背景圖片",
-  "settingsBackgroundImageClear": "清除背景圖片",
-  "messageNone": "沒有內容可顯示",
-  "unreadMessages": {
-    "one": "{} 條未讀訊息",
-    "other": "{} 條未讀訊息"
-  },
-  "settingsRealmCompactView": "精簡領域視圖",
-  "settingsMixedFeed": "混合動態",
-  "settingsAutoTranslate": "自動翻譯",
-  "settingsHideBottomNav": "隱藏底部導航",
-  "settingsSoundEffects": "音效",
-  "settingsAprilFoolFeatures": "愚人節功能",
-  "settingsEnterToSend": "按下 Enter 傳送",
-  "postVisibility": "可見性",
-  "postVisibilityPublic": "公開",
-  "postVisibilityFriends": "僅好友可見",
-  "postVisibilityUnlisted": "不公開",
-  "postVisibilityPrivate": "私密",
-  "chatNotifyLevel": "通知等級",
-  "chatNotifyLevelDescription": "決定您將收到多少通知。",
-  "chatNotifyLevelAll": "全部",
-  "chatNotifyLevelMention": "提及",
-  "chatNotifyLevelNone": "無",
-  "chatNotifyLevelUpdated": "通知等級已更新為 {}。",
-  "chatBreak": "暫停聊天",
-  "chatBreakDescription": "設定一個時間，在該時間之前，您的通知等級將僅為提及，以暫時休息當前討論的話題。",
-  "chatBreakClear": "清除暫停時間",
-  "chatBreakHour": "暫停 {} 分鐘",
-  "chatBreakDay": "暫停 {} 天",
-  "chatBreakSet": "已設定暫停 {}",
-  "chatBreakCleared": "聊天暫停已清除。",
-  "chatBreakCustom": "自訂時長",
-  "chatBreakEnterMinutes": "輸入分鐘數",
-  "chatBreakNone": "無",
-  "paymentError": "付款失敗：{error}",
-  "usePinInstead": "使用密碼",
-  "levelProgress": "等級進度",
-  "unlockedFeatures": "已解鎖功能",
-  "unlockedFeaturesDescription": "您目前等級解鎖的功能將會顯示在此。",
-  "stellarMembership": "星際會員",
-  "upgradeYourPlan": "升級您的方案",
-  "chooseYourPlan": "選擇您的方案",
-  "currentMembership": "目前：{}",
-  "membershipExpires": "到期：{}",
-  "membershipTierStellar": "星際",
-  "membershipTierNova": "新星",
-  "membershipTierSupernova": "超新星",
-  "membershipTierUnknown": "未知",
-  "membershipPriceStellar": "每月 10 星幣",
-  "membershipPriceNova": "每月 20 星幣",
-  "membershipPriceSupernova": "每月 30 星幣",
-  "membershipFeatureBasic": "基本功能",
-  "membershipFeaturePrioritySupport": "優先支援",
-  "membershipFeatureAdFree": "無廣告體驗",
-  "membershipFeatureAllPrimary": "所有主要功能",
-  "membershipFeatureAdvancedCustomization": "進階自訂",
-  "membershipFeatureEarlyAccess": "搶先體驗",
-  "membershipFeatureAllNova": "所有新星功能",
-  "membershipFeatureExclusiveContent": "獨家內容",
-  "membershipFeatureVipSupport": "VIP 支援",
-  "membershipCurrentBadge": "目前",
-  "drafts": "草稿",
-  "noDrafts": "暫無草稿",
-  "articleDrafts": "文章草稿",
-  "postDrafts": "貼文草稿",
-  "saveDraft": "儲存草稿",
-  "draftSaved": "草稿已儲存",
-  "draftSaveFailed": "儲存草稿失敗",
-  "clearAllDrafts": "清空所有草稿",
-  "clearAllDraftsConfirm": "確定要刪除所有草稿嗎？此操作無法復原。",
-  "clearAll": "清空全部",
-  "untitled": "無標題",
-  "noContent": "無內容",
-  "justNow": "剛剛",
-  "minutesAgo": "{} 分鐘前",
-  "hoursAgo": "{} 小時前",
-  "postContentEmpty": "貼文內容不能為空",
-  "share": "分享",
-  "quickActions": "快速操作",
-  "post": "貼文",
-  "copy": "複製",
-  "sendToChat": "傳送到聊天",
-  "failedToShareToPost": "分享到貼文失敗：{}",
-  "shareToChatComingSoon": "聊天分享功能即將推出",
-  "failedToShareToChat": "分享到聊天失敗：{}",
-  "shareToSpecificChatComingSoon": "分享到 {} 即將推出",
-  "directChat": "私人聊天",
-  "systemShareComingSoon": "系統分享功能即將推出",
-  "failedToShareToSystem": "系統分享失敗：{}",
-  "copiedToClipboard": "已複製到剪貼簿",
-  "failedToCopy": "複製失敗：{}",
-  "noChatRoomsAvailable": "沒有可用的聊天室",
-  "failedToLoadChats": "載入聊天失敗",
-  "unknownChat": "未知聊天"
-}
+[
+    {
+        "identifier": "login",
+        "source_string": "Login",
+        "translation": "登入",
+        "context": " -> login",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginDescription",
+        "source_string": "Existing user? We're welcome you back!",
+        "translation": "既有用戶？歡迎您回來！",
+        "context": " -> loginDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "forgotPassword",
+        "source_string": "Forgot password",
+        "translation": "忘記密碼",
+        "context": " -> forgotPassword",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginPickFactor",
+        "source_string": "Pick a factor",
+        "translation": "選擇驗證方式",
+        "context": " -> loginPickFactor",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginMultiFactor.one",
+        "source_string": "{} step left",
+        "translation": "還剩 {} 步驟",
+        "context": "loginMultiFactor -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginMultiFactor.other",
+        "source_string": "{} steps left",
+        "translation": "還剩 {} 步驟",
+        "context": "loginMultiFactor -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginEnterPassword",
+        "source_string": "Enter the code",
+        "translation": "輸入驗證碼",
+        "context": " -> loginEnterPassword",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginSuccess",
+        "source_string": "Logged in as {}",
+        "translation": "已登入為 {}",
+        "context": " -> loginSuccess",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginGreeting",
+        "source_string": "Welcome back!",
+        "translation": "歡迎回來！",
+        "context": " -> loginGreeting",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginOr",
+        "source_string": "Or login with\nthird parties",
+        "translation": "Or login with\nthird parties",
+        "context": " -> loginOr",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginInProgress",
+        "source_string": "Logging you in...",
+        "translation": "Logging you in...",
+        "context": " -> loginInProgress",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "username",
+        "source_string": "Username",
+        "translation": "使用者名稱",
+        "context": " -> username",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "usernameCannotChangeHint",
+        "source_string": "Username cannot be updated after created.",
+        "translation": "使用者名稱建立後無法更改。",
+        "context": " -> usernameCannotChangeHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "usernameLookupHint",
+        "source_string": "We also take your email address.",
+        "translation": "您也可以輸入電子郵件地址。",
+        "context": " -> usernameLookupHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unknown",
+        "source_string": "Unknown",
+        "translation": "未知",
+        "context": " -> unknown",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "termAcceptNextWithAgree",
+        "source_string": "By continuing, you agree to our terms of services and other terms and conditions.",
+        "translation": "繼續即表示您同意我們的服務條款及其他條款和條件。",
+        "context": " -> termAcceptNextWithAgree",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "termAcceptLink",
+        "source_string": "Check them out",
+        "translation": "查看詳情",
+        "context": " -> termAcceptLink",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginResetPasswordHint",
+        "source_string": "Provide your username to receive a password reset link.",
+        "translation": "請提供您的使用者名稱以接收密碼重設連結。",
+        "context": " -> loginResetPasswordHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "password",
+        "source_string": "Password",
+        "translation": "密碼",
+        "context": " -> password",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "next",
+        "source_string": "Next",
+        "translation": "下一步",
+        "context": " -> next",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createAccount",
+        "source_string": "Create an Account",
+        "translation": "建立帳號",
+        "context": " -> createAccount",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createAccountDescription",
+        "source_string": "New to here? We got you covered!",
+        "translation": "新來乍到？我們隨時為您服務！",
+        "context": " -> createAccountDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "nickname",
+        "source_string": "Nickname",
+        "translation": "暱稱",
+        "context": " -> nickname",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "email",
+        "source_string": "Email",
+        "translation": "電子郵件",
+        "context": " -> email",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "bio",
+        "source_string": "Bio",
+        "translation": "個人簡介",
+        "context": " -> bio",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "fieldCannotBeEmpty",
+        "source_string": "This field cannot be empty.",
+        "translation": "此欄位不能為空。",
+        "context": " -> fieldCannotBeEmpty",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "fieldEmailAddressMustBeValid",
+        "source_string": "The email address must be valid.",
+        "translation": "電子郵件地址必須有效。",
+        "context": " -> fieldEmailAddressMustBeValid",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "logout",
+        "source_string": "Logout",
+        "translation": "登出",
+        "context": " -> logout",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "updateYourProfile",
+        "source_string": "Profile Settings",
+        "translation": "編輯個人資料",
+        "context": " -> updateYourProfile",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountBasicInfo",
+        "source_string": "Basic Info",
+        "translation": "基本資料",
+        "context": " -> accountBasicInfo",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountProfile",
+        "source_string": "Your Profile",
+        "translation": "您的個人資料",
+        "context": " -> accountProfile",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "saveChanges",
+        "source_string": "Save Changes",
+        "translation": "儲存變更",
+        "context": " -> saveChanges",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "publishers",
+        "source_string": "Publishers",
+        "translation": "發佈者",
+        "context": " -> publishers",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "managedPublisher",
+        "source_string": "Managed Publishers",
+        "translation": "已管理發佈者",
+        "context": " -> managedPublisher",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createPublisher",
+        "source_string": "Create a Publisher",
+        "translation": "建立發佈者",
+        "context": " -> createPublisher",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createPublisherHint",
+        "source_string": "To create posts, collections, etc.",
+        "translation": "用於建立貼文、收藏等。",
+        "context": " -> createPublisherHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "editPublisher",
+        "source_string": "Edit Publisher",
+        "translation": "編輯發佈者",
+        "context": " -> editPublisher",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "syncPublisher",
+        "source_string": "Use Account Data",
+        "translation": "使用帳號資料",
+        "context": " -> syncPublisher",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "syncPublisherRealm",
+        "source_string": "Use Realm Data",
+        "translation": "使用領域資料",
+        "context": " -> syncPublisherRealm",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "create",
+        "source_string": "Create",
+        "translation": "建立",
+        "context": " -> create",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "update",
+        "source_string": "Update",
+        "translation": "更新",
+        "context": " -> update",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "edit",
+        "source_string": "Edit",
+        "translation": "編輯",
+        "context": " -> edit",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "delete",
+        "source_string": "Delete",
+        "translation": "刪除",
+        "context": " -> delete",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deletePublisher",
+        "source_string": "Delete Publisher",
+        "translation": "刪除發佈者",
+        "context": " -> deletePublisher",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deletePublisherHint",
+        "source_string": "Are you sure to delete this publisher? This will also deleted all the post and collections under this publisher.",
+        "translation": "確定要刪除此發佈者嗎？這也將刪除此發佈者下的所有貼文和收藏。",
+        "context": " -> deletePublisherHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "somethingWentWrong",
+        "source_string": "Something went wrong...",
+        "translation": "發生了一些錯誤...",
+        "context": " -> somethingWentWrong",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deletePost",
+        "source_string": "Delete Post",
+        "translation": "刪除貼文",
+        "context": " -> deletePost",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deletePostHint",
+        "source_string": "Are you sure to delete this post?",
+        "translation": "確定要刪除這篇貼文嗎？",
+        "context": " -> deletePostHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "copyLink",
+        "source_string": "Copy Link",
+        "translation": "複製連結",
+        "context": " -> copyLink",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postCreateAccountTitle",
+        "source_string": "Thanks for joining!",
+        "translation": "感謝您的加入！",
+        "context": " -> postCreateAccountTitle",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postCreateAccountNext",
+        "source_string": "What's next?",
+        "translation": "下一步？",
+        "context": " -> postCreateAccountNext",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postCreateAccountNext1",
+        "source_string": "Go to your email inbox and receive the account activation email.",
+        "translation": "前往您的電子郵件收件匣並接收帳號啟用電子郵件。",
+        "context": " -> postCreateAccountNext1",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postCreateAccountNext2",
+        "source_string": "Log in to your account and start exploring the Solar Network!",
+        "translation": "登入您的帳號並開始探索 Solar Network ！",
+        "context": " -> postCreateAccountNext2",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postPlaceholder",
+        "source_string": "What's on your mind?",
+        "translation": "在想些什麼？",
+        "context": " -> postPlaceholder",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "publishersEmpty",
+        "source_string": "No publishers yet",
+        "translation": "尚未有發佈者",
+        "context": " -> publishersEmpty",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "publishersEmptyDescription",
+        "source_string": "You can need to create a publisher to start publishing your posts.",
+        "translation": "您需要建立一個發佈者才能開始發佈您的貼文。",
+        "context": " -> publishersEmptyDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorPassword",
+        "source_string": "Password",
+        "translation": "密碼",
+        "context": " -> authFactorPassword",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorPasswordDescription",
+        "source_string": "The password you set when you registered.",
+        "translation": "您註冊時設定的密碼。",
+        "context": " -> authFactorPasswordDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorEmail",
+        "source_string": "Email verification code",
+        "translation": "電子郵件驗證碼",
+        "context": " -> authFactorEmail",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorEmailDescription",
+        "source_string": "An one-time code sent to the email address you set when you registered.",
+        "translation": "發送到您註冊時設定的電子郵件地址的一次性驗證碼。",
+        "context": " -> authFactorEmailDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorTOTP",
+        "source_string": "Time-based OTP",
+        "translation": "時間基於一次性密碼 (TOTP)",
+        "context": " -> authFactorTOTP",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorTOTPDescription",
+        "source_string": "A one-time code generated by a TOTP authenticator such as Google Authenticator or Authy.",
+        "translation": "由 TOTP 驗證器（例如 Google Authenticator 或 Authy）生成的一次性驗證碼。",
+        "context": " -> authFactorTOTPDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorInAppNotify",
+        "source_string": "In-app notification",
+        "translation": "應用程式內通知",
+        "context": " -> authFactorInAppNotify",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorInAppNotifyDescription",
+        "source_string": "A one-time code sent via in-app notification.",
+        "translation": "透過應用程式內通知發送的一次性驗證碼。",
+        "context": " -> authFactorInAppNotifyDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorPin",
+        "source_string": "Pin Code",
+        "translation": "Pin Code",
+        "context": " -> authFactorPin",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorPinDescription",
+        "source_string": "It consists of 6 digits. It cannot be used to log in. When performing some dangerous operations, the system will ask you to enter this PIN for confirmation.",
+        "translation": "It consists of 6 digits. It cannot be used to log in. When performing some dangerous operations, the system will ask you to enter this PIN for confirmation.",
+        "context": " -> authFactorPinDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "realms",
+        "source_string": "Realms",
+        "translation": "領域",
+        "context": " -> realms",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createRealm",
+        "source_string": "Create a Realm",
+        "translation": "建立領域",
+        "context": " -> createRealm",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createRealmHint",
+        "source_string": "Meet friends with same interests, build communities, and more.",
+        "translation": "結識志同道合的朋友、建立社群等等。",
+        "context": " -> createRealmHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "editRealm",
+        "source_string": "Edit Realm",
+        "translation": "編輯領域",
+        "context": " -> editRealm",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deleteRealm",
+        "source_string": "Delete Realm",
+        "translation": "刪除領域",
+        "context": " -> deleteRealm",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deleteRealmHint",
+        "source_string": "Are you sure to delete this realm? This will also deleted all the channels, publishers, and posts under this realm.",
+        "translation": "確定要刪除此領域嗎？這也將刪除該領域下的所有頻道、發佈者和貼文。",
+        "context": " -> deleteRealmHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "explore",
+        "source_string": "Explore",
+        "translation": "探索",
+        "context": " -> explore",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "exploreFilterSubscriptions",
+        "source_string": "Subscriptions",
+        "translation": "Subscriptions",
+        "context": " -> exploreFilterSubscriptions",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "exploreFilterFriends",
+        "source_string": "Friends",
+        "translation": "Friends",
+        "context": " -> exploreFilterFriends",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "account",
+        "source_string": "Account",
+        "translation": "帳號",
+        "context": " -> account",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "name",
+        "source_string": "Name",
+        "translation": "名稱",
+        "context": " -> name",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "slug",
+        "source_string": "Slug",
+        "translation": "代稱",
+        "context": " -> slug",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "slugHint",
+        "source_string": "The slug will be used in the URL to access this resource, it should be unique and URL safe.",
+        "translation": "此代稱將用於 URL 以存取此資源，它應該是獨一無二且 URL 安全的。",
+        "context": " -> slugHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createChatRoom",
+        "source_string": "Create a Room",
+        "translation": "建立聊天室",
+        "context": " -> createChatRoom",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "editChatRoom",
+        "source_string": "Edit Room",
+        "translation": "編輯聊天室",
+        "context": " -> editChatRoom",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deleteChatRoom",
+        "source_string": "Delete Room",
+        "translation": "刪除聊天室",
+        "context": " -> deleteChatRoom",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deleteChatRoomHint",
+        "source_string": "Are you sure to delete this room? This action cannot be undone.",
+        "translation": "確定要刪除此聊天室嗎？此操作無法撤銷。",
+        "context": " -> deleteChatRoomHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chat",
+        "source_string": "Chat",
+        "translation": "聊天",
+        "context": " -> chat",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatTabAll",
+        "source_string": "All",
+        "translation": "全部",
+        "context": " -> chatTabAll",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatTabDirect",
+        "source_string": "Direct Messages",
+        "translation": "私人訊息",
+        "context": " -> chatTabDirect",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatTabGroup",
+        "source_string": "Group Chats",
+        "translation": "群組聊天",
+        "context": " -> chatTabGroup",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatMessageHint",
+        "source_string": "Message in {}",
+        "translation": "在 {} 訊息",
+        "context": " -> chatMessageHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatDirectMessageHint",
+        "source_string": "Message to {}",
+        "translation": "訊息給 {}",
+        "context": " -> chatDirectMessageHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "directMessage",
+        "source_string": "Direct Message",
+        "translation": "私人訊息",
+        "context": " -> directMessage",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loading",
+        "source_string": "Loading...",
+        "translation": "載入中...",
+        "context": " -> loading",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "descriptionNone",
+        "source_string": "No description yet.",
+        "translation": "尚未有描述。",
+        "context": " -> descriptionNone",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "invites",
+        "source_string": "Invites",
+        "translation": "邀請",
+        "context": " -> invites",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "invitesEmpty",
+        "source_string": "No invites yet, such a lonely person...",
+        "translation": "尚未有邀請，真是個寂寞的人...",
+        "context": " -> invitesEmpty",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "members.one",
+        "source_string": "{} member",
+        "translation": "{} 位成員",
+        "context": "members -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "members.other",
+        "source_string": "{} members",
+        "translation": "{} 位成員",
+        "context": "members -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "permissionOwner",
+        "source_string": "Owner",
+        "translation": "擁有者",
+        "context": " -> permissionOwner",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "permissionModerator",
+        "source_string": "Moderator",
+        "translation": "版主",
+        "context": " -> permissionModerator",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "permissionMember",
+        "source_string": "Member",
+        "translation": "成員",
+        "context": " -> permissionMember",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "reply",
+        "source_string": "Reply",
+        "translation": "回覆",
+        "context": " -> reply",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "repliesCount.zero",
+        "source_string": "No reply",
+        "translation": "No reply",
+        "context": "repliesCount -> zero",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "repliesCount.one",
+        "source_string": "{} reply",
+        "translation": "{} reply",
+        "context": "repliesCount -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "repliesCount.other",
+        "source_string": "{} replies",
+        "translation": "{} replies",
+        "context": "repliesCount -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "forward",
+        "source_string": "Forward",
+        "translation": "轉發",
+        "context": " -> forward",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "repliedTo",
+        "source_string": "Replied to",
+        "translation": "回覆了",
+        "context": " -> repliedTo",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "forwarded",
+        "source_string": "Forwarded",
+        "translation": "轉發了",
+        "context": " -> forwarded",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "hasAttachments.one",
+        "source_string": "{} attachment",
+        "translation": "{} attachment",
+        "context": "hasAttachments -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "hasAttachments.other",
+        "source_string": "{} attachments",
+        "translation": "{}個附件",
+        "context": "hasAttachments -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postHasAttachments.one",
+        "source_string": "{} attachment",
+        "translation": "{} attachment",
+        "context": "postHasAttachments -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postHasAttachments.other",
+        "source_string": "{} attachments",
+        "translation": "{}個附件",
+        "context": "postHasAttachments -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "edited",
+        "source_string": "Edited",
+        "translation": "已編輯",
+        "context": " -> edited",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "addVideo",
+        "source_string": "Add video",
+        "translation": "新增影片",
+        "context": " -> addVideo",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "addPhoto",
+        "source_string": "Add photo",
+        "translation": "新增照片",
+        "context": " -> addPhoto",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "addFile",
+        "source_string": "Add file",
+        "translation": "新增檔案",
+        "context": " -> addFile",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createDirectMessage",
+        "source_string": "Send new DM",
+        "translation": "建立新私人訊息",
+        "context": " -> createDirectMessage",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "gotoDirectMessage",
+        "source_string": "Go to DM",
+        "translation": "Go to DM",
+        "context": " -> gotoDirectMessage",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "react",
+        "source_string": "React",
+        "translation": "反應",
+        "context": " -> react",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "reactions.zero",
+        "source_string": "Reactions",
+        "translation": "反應",
+        "context": "reactions -> zero",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "reactions.one",
+        "source_string": "{} reaction",
+        "translation": "{} 個反應",
+        "context": "reactions -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "reactions.other",
+        "source_string": "{} reactions",
+        "translation": "{} 個反應",
+        "context": "reactions -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "reactionPositive",
+        "source_string": "Postive",
+        "translation": "正面",
+        "context": " -> reactionPositive",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "reactionNegative",
+        "source_string": "Negative",
+        "translation": "負面",
+        "context": " -> reactionNegative",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "reactionNeutral",
+        "source_string": "Neutral",
+        "translation": "中立",
+        "context": " -> reactionNeutral",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "connectionConnected",
+        "source_string": "Connected",
+        "translation": "已連線",
+        "context": " -> connectionConnected",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "connectionDisconnected",
+        "source_string": "Disconnected",
+        "translation": "已中斷連線",
+        "context": " -> connectionDisconnected",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "connectionReconnecting",
+        "source_string": "Reconnecting",
+        "translation": "重新連線中",
+        "context": " -> connectionReconnecting",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnections",
+        "source_string": "Account Connections",
+        "translation": "Account Connections",
+        "context": " -> accountConnections",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionsDescription",
+        "source_string": "Manage your external account connections",
+        "translation": "Manage your external account connections",
+        "context": " -> accountConnectionsDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionAdd",
+        "source_string": "Add Connection",
+        "translation": "Add Connection",
+        "context": " -> accountConnectionAdd",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionDelete",
+        "source_string": "Delete Connection",
+        "translation": "Delete Connection",
+        "context": " -> accountConnectionDelete",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionDeleteHint",
+        "source_string": "Are you sure you want to delete this connection? This action cannot be undone.",
+        "translation": "Are you sure you want to delete this connection? This action cannot be undone.",
+        "context": " -> accountConnectionDeleteHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionsEmpty",
+        "source_string": "No connections found. Add a connection to get started.",
+        "translation": "No connections found. Add a connection to get started.",
+        "context": " -> accountConnectionsEmpty",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionProvider",
+        "source_string": "Provider",
+        "translation": "Provider",
+        "context": " -> accountConnectionProvider",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionProviderHint",
+        "source_string": "Enter provider name",
+        "translation": "Enter provider name",
+        "context": " -> accountConnectionProviderHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionIdentifier",
+        "source_string": "Identifier",
+        "translation": "Identifier",
+        "context": " -> accountConnectionIdentifier",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionIdentifierHint",
+        "source_string": "Enter your identifier for this provider",
+        "translation": "Enter your identifier for this provider",
+        "context": " -> accountConnectionIdentifierHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionDescription",
+        "source_string": "Add a connection to link your account with external services.",
+        "translation": "Add a connection to link your account with external services.",
+        "context": " -> accountConnectionDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionAddSuccess",
+        "source_string": "Connection added successfully.",
+        "translation": "Connection added successfully.",
+        "context": " -> accountConnectionAddSuccess",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionAddError",
+        "source_string": "Unable to setup connection.",
+        "translation": "Unable to setup connection.",
+        "context": " -> accountConnectionAddError",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionProviderApple",
+        "source_string": "Apple",
+        "translation": "Apple",
+        "context": " -> accountConnectionProviderApple",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionProviderMicrosoft",
+        "source_string": "Microsoft",
+        "translation": "Microsoft",
+        "context": " -> accountConnectionProviderMicrosoft",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionProviderGoogle",
+        "source_string": "Google",
+        "translation": "Google",
+        "context": " -> accountConnectionProviderGoogle",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionProviderGithub",
+        "source_string": "GitHub",
+        "translation": "GitHub",
+        "context": " -> accountConnectionProviderGithub",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionProviderDiscord",
+        "source_string": "Discord",
+        "translation": "Discord",
+        "context": " -> accountConnectionProviderDiscord",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountConnectionProviderAfdian",
+        "source_string": "Afdian",
+        "translation": "Afdian",
+        "context": " -> accountConnectionProviderAfdian",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkIn",
+        "source_string": "Check In",
+        "translation": "簽到",
+        "context": " -> checkIn",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInNone",
+        "source_string": "Not checked-in yet",
+        "translation": "尚未簽到",
+        "context": " -> checkInNone",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInNoneHint",
+        "source_string": "Get your fortune tips and daily rewards by checking in.",
+        "translation": "透過簽到獲取您的財富提示和每日獎勵。",
+        "context": " -> checkInNoneHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultLevel0",
+        "source_string": "Wrost Luck",
+        "translation": "最差運氣",
+        "context": " -> checkInResultLevel0",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultLevel1",
+        "source_string": "Bad Luck",
+        "translation": "壞運氣",
+        "context": " -> checkInResultLevel1",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultLevel2",
+        "source_string": "A Normal Day",
+        "translation": "一個普通的日子",
+        "context": " -> checkInResultLevel2",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultLevel3",
+        "source_string": "Good Luck",
+        "translation": "好運",
+        "context": " -> checkInResultLevel3",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultLevel4",
+        "source_string": "Best Luck",
+        "translation": "最佳運氣",
+        "context": " -> checkInResultLevel4",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInActivityTitle",
+        "source_string": "{} checked in on {} and got a {}",
+        "translation": "{} 在 {} 簽到並獲得了 {}",
+        "context": " -> checkInActivityTitle",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "eventCalander",
+        "source_string": "Event Calander",
+        "translation": "活動日曆",
+        "context": " -> eventCalander",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "eventCalanderEmpty",
+        "source_string": "No events on that day.",
+        "translation": "該日無活動。",
+        "context": " -> eventCalanderEmpty",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "fortuneGraph",
+        "source_string": "Fortune Trend",
+        "translation": "Fortune Trend",
+        "context": " -> fortuneGraph",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "noFortuneData",
+        "source_string": "No fortune data available for this month.",
+        "translation": "No fortune data available for this month.",
+        "context": " -> noFortuneData",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "creatorHub",
+        "source_string": "Creator Hub",
+        "translation": "創作者中心",
+        "context": " -> creatorHub",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "creatorHubDescription",
+        "source_string": "Manage posts, analytics, and more.",
+        "translation": "管理貼文、分析等。",
+        "context": " -> creatorHubDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "developerPortal",
+        "source_string": "Developer Portal",
+        "translation": "開發者入口",
+        "context": " -> developerPortal",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "developerPortalDescription",
+        "source_string": "Build with Solar Network™.",
+        "translation": "使用 Solar Network ™ 進行建構。",
+        "context": " -> developerPortalDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusCreateHint",
+        "source_string": "What's on your mind? Add a status.",
+        "translation": "您在想些什麼？新增狀態。",
+        "context": " -> statusCreateHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusCreate",
+        "source_string": "Add a Status",
+        "translation": "新增狀態",
+        "context": " -> statusCreate",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusUpdate",
+        "source_string": "Update Status",
+        "translation": "更新狀態",
+        "context": " -> statusUpdate",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusLabel",
+        "source_string": "Status",
+        "translation": "狀態",
+        "context": " -> statusLabel",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusAttitude",
+        "source_string": "Attitude",
+        "translation": "態度",
+        "context": " -> statusAttitude",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "attitudePositive",
+        "source_string": "Positive",
+        "translation": "正面",
+        "context": " -> attitudePositive",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "attitudeNeutral",
+        "source_string": "Neutral",
+        "translation": "中立",
+        "context": " -> attitudeNeutral",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "attitudeNegative",
+        "source_string": "Negative",
+        "translation": "負面",
+        "context": " -> attitudeNegative",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusInvisible",
+        "source_string": "Invisible",
+        "translation": "隱身",
+        "context": " -> statusInvisible",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusInvisibleDescription",
+        "source_string": "Your will be showing as offline to others.",
+        "translation": "您將顯示為離線狀態。",
+        "context": " -> statusInvisibleDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusNotDisturb",
+        "source_string": "Do Not Disturb",
+        "translation": "勿擾",
+        "context": " -> statusNotDisturb",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusNotDisturbDescription",
+        "source_string": "Push notification will be disabled.",
+        "translation": "推播通知將被禁用。",
+        "context": " -> statusNotDisturbDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusClearTime",
+        "source_string": "Cleared At",
+        "translation": "清除於",
+        "context": " -> statusClearTime",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusNoAutoClear",
+        "source_string": "Do not auto clear",
+        "translation": "不自動清除",
+        "context": " -> statusNoAutoClear",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "online",
+        "source_string": "Online",
+        "translation": "線上",
+        "context": " -> online",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "offline",
+        "source_string": "Offline",
+        "translation": "離線",
+        "context": " -> offline",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "status",
+        "source_string": "Status",
+        "translation": "狀態",
+        "context": " -> status",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusActivityTitle",
+        "source_string": "{} is {} {}",
+        "translation": "{} 正在 {} {}",
+        "context": " -> statusActivityTitle",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "statusActivityEndedTitle",
+        "source_string": "{} is {} {} until {}",
+        "translation": "{} 正在 {} {} 直到 {}",
+        "context": " -> statusActivityEndedTitle",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "appSettings",
+        "source_string": "App Settings",
+        "translation": "應用程式設定",
+        "context": " -> appSettings",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountSettings",
+        "source_string": "Account Settings",
+        "translation": "帳號設定",
+        "context": " -> accountSettings",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settings",
+        "source_string": "Settings",
+        "translation": "設定",
+        "context": " -> settings",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "language",
+        "source_string": "Language",
+        "translation": "語言",
+        "context": " -> language",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountLanguageHint",
+        "source_string": "This language will be used for email and push notifications.",
+        "translation": "此語言將用於電子郵件和推播通知。",
+        "context": " -> accountLanguageHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsDisplayLanguage",
+        "source_string": "Display Language",
+        "translation": "顯示語言",
+        "context": " -> settingsDisplayLanguage",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "languageFollowSystem",
+        "source_string": "Follow System",
+        "translation": "跟隨系統",
+        "context": " -> languageFollowSystem",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postsCreatedCount",
+        "source_string": "Posts",
+        "translation": "貼文",
+        "context": " -> postsCreatedCount",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickerPacksCreatedCount",
+        "source_string": "Sticker Packs",
+        "translation": "貼圖包",
+        "context": " -> stickerPacksCreatedCount",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickersCreatedCount",
+        "source_string": "Stickers",
+        "translation": "貼圖",
+        "context": " -> stickersCreatedCount",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "upvoteReceived",
+        "source_string": "Upvotes Recieved",
+        "translation": "收到的讚",
+        "context": " -> upvoteReceived",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "downvoteReceived",
+        "source_string": "Downvotes Recieved",
+        "translation": "收到的倒讚",
+        "context": " -> downvoteReceived",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickerPacks",
+        "source_string": "Sticker Packs",
+        "translation": "貼圖包",
+        "context": " -> stickerPacks",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createStickerPack",
+        "source_string": "Create a Sticker Pack",
+        "translation": "建立貼圖包",
+        "context": " -> createStickerPack",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "editStickerPack",
+        "source_string": "Edit Sticker Pack",
+        "translation": "編輯貼圖包",
+        "context": " -> editStickerPack",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deleteStickerPack",
+        "source_string": "Delete Sticker Pack",
+        "translation": "刪除貼圖包",
+        "context": " -> deleteStickerPack",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deleteStickerPackHint",
+        "source_string": "Are you sure to delete this sticker pack? This action cannot be undone.",
+        "translation": "確定要刪除此貼圖包嗎？此操作無法撤銷。",
+        "context": " -> deleteStickerPackHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickerPackPrefix",
+        "source_string": "Prefix",
+        "translation": "前綴",
+        "context": " -> stickerPackPrefix",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickerPackPrefixHint",
+        "source_string": "The prefix will be added before each stickers' slug in this pack.",
+        "translation": "此前綴將添加在此包中每個貼圖的代稱之前。",
+        "context": " -> stickerPackPrefixHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickers",
+        "source_string": "Stickers",
+        "translation": "貼圖",
+        "context": " -> stickers",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "createSticker",
+        "source_string": "Create a Sticker",
+        "translation": "建立貼圖",
+        "context": " -> createSticker",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "editSticker",
+        "source_string": "Edit Sticker",
+        "translation": "編輯貼圖",
+        "context": " -> editSticker",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deleteSticker",
+        "source_string": "Delete Sticker",
+        "translation": "刪除貼圖",
+        "context": " -> deleteSticker",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "deleteStickerHint",
+        "source_string": "Are you sure to delete this sticker? This action cannot be undone.",
+        "translation": "確定要刪除此貼圖嗎？此操作無法撤銷。",
+        "context": " -> deleteStickerHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickerImage",
+        "source_string": "Image",
+        "translation": "圖片",
+        "context": " -> stickerImage",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickerSlug",
+        "source_string": "Slug",
+        "translation": "代稱",
+        "context": " -> stickerSlug",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickerSlugHint",
+        "source_string": "The slug will be combined with the prefix to form the sticker's unique identifier.",
+        "translation": "此代稱將與前綴結合形成貼圖的唯一識別碼。",
+        "context": " -> stickerSlugHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "dataEmpty",
+        "source_string": "Nothing's here yet.",
+        "translation": "這裡什麼都沒有。",
+        "context": " -> dataEmpty",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "pickFile",
+        "source_string": "Pick a file",
+        "translation": "選擇檔案",
+        "context": " -> pickFile",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "uploading",
+        "source_string": "Uploading",
+        "translation": "上傳中",
+        "context": " -> uploading",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "uploadingProgress",
+        "source_string": "Uploading {} of {}",
+        "translation": "正在上傳 {} / {}",
+        "context": " -> uploadingProgress",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "uploadAll",
+        "source_string": "Upload All",
+        "translation": "全部上傳",
+        "context": " -> uploadAll",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stickerCopyPlaceholder",
+        "source_string": "Copy Placeholder",
+        "translation": "複製佔位符",
+        "context": " -> stickerCopyPlaceholder",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "realmSelection",
+        "source_string": "Select a Realm",
+        "translation": "選擇一個領域",
+        "context": " -> realmSelection",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "individual",
+        "source_string": "Individual",
+        "translation": "個人",
+        "context": " -> individual",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "firstPostBadgeName",
+        "source_string": "First Post",
+        "translation": "首篇貼文",
+        "context": " -> firstPostBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "firstPostBadgeDescription",
+        "source_string": "Created your first post on Solar Network",
+        "translation": "在 Solar Network 建立您的首篇貼文",
+        "context": " -> firstPostBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "popularPostBadgeName",
+        "source_string": "Popular Post",
+        "translation": "熱門貼文",
+        "context": " -> popularPostBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "popularPostBadgeDescription",
+        "source_string": "Your post received significant engagement from the community",
+        "translation": "您的貼文獲得了社群的顯著參與",
+        "context": " -> popularPostBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "viralPostBadgeName",
+        "source_string": "Viral Post",
+        "translation": "病毒式貼文",
+        "context": " -> viralPostBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "viralPostBadgeDescription",
+        "source_string": "Your post went viral and reached a wide audience",
+        "translation": "您的貼文廣為流傳並觸及了廣泛的受眾",
+        "context": " -> viralPostBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "helpfulCommentBadgeName",
+        "source_string": "Helpful Comment",
+        "translation": "有幫助的評論",
+        "context": " -> helpfulCommentBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "helpfulCommentBadgeDescription",
+        "source_string": "Your comment was marked as helpful by others",
+        "translation": "您的評論被其他人標記為有幫助",
+        "context": " -> helpfulCommentBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "newcomerBadgeName",
+        "source_string": "Newcomer",
+        "translation": "新成員",
+        "context": " -> newcomerBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "newcomerBadgeDescription",
+        "source_string": "Welcome to Solar Network! Start exploring and connecting",
+        "translation": "歡迎來到 Solar Network ！開始探索和聯繫",
+        "context": " -> newcomerBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contributorBadgeName",
+        "source_string": "Contributor",
+        "translation": "貢獻者",
+        "context": " -> contributorBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contributorBadgeDescription",
+        "source_string": "Actively contributing to the Solar Network community",
+        "translation": "積極為 Solar Network 社群做出貢獻",
+        "context": " -> contributorBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "expertBadgeName",
+        "source_string": "Expert",
+        "translation": "專家",
+        "context": " -> expertBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "expertBadgeDescription",
+        "source_string": "Recognized for your expertise and valuable contributions",
+        "translation": "因您的專業知識和寶貴貢獻而受到認可",
+        "context": " -> expertBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "founderBadgeName",
+        "source_string": "Founder",
+        "translation": "創始人",
+        "context": " -> founderBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "founderBadgeDescription",
+        "source_string": "One of the earliest members of Solar Network",
+        "translation": " Solar Network 最早的成員之一",
+        "context": " -> founderBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "betaTesterBadgeName",
+        "source_string": "Beta Tester",
+        "translation": "Beta 測試員",
+        "context": " -> betaTesterBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "betaTesterBadgeDescription",
+        "source_string": "Helped test and improve Solar Network during beta",
+        "translation": "在 Beta 測試期間協助測試和改進 Solar Network ",
+        "context": " -> betaTesterBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "moderatorBadgeName",
+        "source_string": "Moderator",
+        "translation": "版主",
+        "context": " -> moderatorBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "moderatorBadgeDescription",
+        "source_string": "Helping maintain and moderate the community",
+        "translation": "協助維護和管理社群",
+        "context": " -> moderatorBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "developerBadgeName",
+        "source_string": "Developer",
+        "translation": "開發者",
+        "context": " -> developerBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "developerBadgeDescription",
+        "source_string": "Contributing to Solar Network's development",
+        "translation": "為 Solar Network 的開發做出貢獻",
+        "context": " -> developerBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "translatorBadgeName",
+        "source_string": "Translator",
+        "translation": "翻譯者",
+        "context": " -> translatorBadgeName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "translatorBadgeDescription",
+        "source_string": "Helping translate Solar Network into different languages",
+        "translation": "協助將 Solar Network 翻譯成不同語言",
+        "context": " -> translatorBadgeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "wallet",
+        "source_string": "Wallet",
+        "translation": "錢包",
+        "context": " -> wallet",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "walletCurrencyPoints",
+        "source_string": "New Solar Points",
+        "translation": "新太陽點",
+        "context": " -> walletCurrencyPoints",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "walletCurrencyShortPoints",
+        "source_string": "NSP",
+        "translation": "NSP",
+        "context": " -> walletCurrencyShortPoints",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "walletCurrencyGolds",
+        "source_string": "The Solar Dollars",
+        "translation": "太陽幣",
+        "context": " -> walletCurrencyGolds",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "walletCurrencyShortGolds",
+        "source_string": "NSD",
+        "translation": "TSD",
+        "context": " -> walletCurrencyShortGolds",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "retry",
+        "source_string": "Retry",
+        "translation": "重試",
+        "context": " -> retry",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "creatorHubUnselectedHint",
+        "source_string": "Pick / create a publisher to get started.",
+        "translation": "選擇/建立一個發佈者以開始使用。",
+        "context": " -> creatorHubUnselectedHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "relationships",
+        "source_string": "Relationships",
+        "translation": "關係",
+        "context": " -> relationships",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "addFriend",
+        "source_string": "Send a Friend Request",
+        "translation": "傳送好友邀請",
+        "context": " -> addFriend",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "addFriendShort",
+        "source_string": "Add as Friend",
+        "translation": "Add as Friend",
+        "context": " -> addFriendShort",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "addFriendHint",
+        "source_string": "Add a friend to your relationship list.",
+        "translation": "將朋友新增到您的關係清單。",
+        "context": " -> addFriendHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "pendingRequest",
+        "source_string": "Pending",
+        "translation": "待處理",
+        "context": " -> pendingRequest",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "waitingRequest",
+        "source_string": "Waiting",
+        "translation": "等待中",
+        "context": " -> waitingRequest",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "relationshipStatusFriend",
+        "source_string": "Friend",
+        "translation": "朋友",
+        "context": " -> relationshipStatusFriend",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "relationshipStatusBlocked",
+        "source_string": "Blocked",
+        "translation": "已封鎖",
+        "context": " -> relationshipStatusBlocked",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "blockUser",
+        "source_string": "Block User",
+        "translation": "封鎖用戶",
+        "context": " -> blockUser",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unblockUser",
+        "source_string": "Unblock User",
+        "translation": "解除封鎖用戶",
+        "context": " -> unblockUser",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "friendRequestAccepted",
+        "source_string": "Accepted friend request from {}",
+        "translation": "已接受 {} 的好友邀請",
+        "context": " -> friendRequestAccepted",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "friendRequestDeclined",
+        "source_string": "Declined friend request from {}",
+        "translation": "已拒絕 {} 的好友邀請",
+        "context": " -> friendRequestDeclined",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "requestExpiredIn",
+        "source_string": "Expired in {}",
+        "translation": "{} 後過期",
+        "context": " -> requestExpiredIn",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "friendSentRequest",
+        "source_string": "Sent Friend Requests",
+        "translation": "已傳送的好友邀請",
+        "context": " -> friendSentRequest",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "friendSentRequestEmpty",
+        "source_string": "No sent friend requests",
+        "translation": "尚未傳送好友邀請",
+        "context": " -> friendSentRequestEmpty",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "friendSentRequestHint.one",
+        "source_string": "{} friend request sent",
+        "translation": "已傳送 {} 個好友邀請",
+        "context": "friendSentRequestHint -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "friendSentRequestHint.other",
+        "source_string": "{} friend requests sent",
+        "translation": "已傳送 {} 個好友邀請",
+        "context": "friendSentRequestHint -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "levelingProgress",
+        "source_string": "Leveling Progress",
+        "translation": "等級進度",
+        "context": " -> levelingProgress",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "levelingProgressExperience",
+        "source_string": "{} EXP",
+        "translation": "{} 經驗值",
+        "context": " -> levelingProgressExperience",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "levelingProgressLevel",
+        "source_string": "Level {}",
+        "translation": "等級 {}",
+        "context": " -> levelingProgressLevel",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "fileUploadingProgress",
+        "source_string": "Uploading file #{}: {}%",
+        "translation": "正在上傳檔案 #{}: {}%",
+        "context": " -> fileUploadingProgress",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "removeChatMember",
+        "source_string": "Remove Chat Room Member",
+        "translation": "移除聊天室成員",
+        "context": " -> removeChatMember",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "removeChatMemberHint",
+        "source_string": "Are you sure to remove this member from the room?",
+        "translation": "確定要將此成員從聊天室中移除嗎？",
+        "context": " -> removeChatMemberHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "removeRealmMember",
+        "source_string": "Remove Realm Member",
+        "translation": "移除領域成員",
+        "context": " -> removeRealmMember",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "removeRealmMemberHint",
+        "source_string": "Are you sure to remove this member from the realm?",
+        "translation": "確定要將此成員從領域中移除嗎？",
+        "context": " -> removeRealmMemberHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "memberRole",
+        "source_string": "Member Role",
+        "translation": "成員角色",
+        "context": " -> memberRole",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "memberRoleHint",
+        "source_string": "Greater number has higher permission.",
+        "translation": "數字越大權限越高。",
+        "context": " -> memberRoleHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "memberRoleEdit",
+        "source_string": "Edit role for @{}",
+        "translation": "編輯 @{} 的角色",
+        "context": " -> memberRoleEdit",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "openLinkConfirm",
+        "source_string": "Leaving the Solar Network",
+        "translation": "離開 Solar Network ",
+        "context": " -> openLinkConfirm",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "openLinkConfirmDescription",
+        "source_string": "You're going to leave the Solar Network and open the link ({}) in your browser. It is not related to Solar Network. Beware of phishing and scams.",
+        "translation": "您將離開 Solar Network 並在瀏覽器中開啟連結 ({})。它與 Solar Network 無關。請注意網路釣魚和詐騙。",
+        "context": " -> openLinkConfirmDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "brokenLink",
+        "source_string": "Unable open link {}... It might be broken or missing uri parts...",
+        "translation": "無法開啟連結 {}... 它可能已損壞或缺少 URI 部分...",
+        "context": " -> brokenLink",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "copyToClipboard",
+        "source_string": "Copy to clipboard",
+        "translation": "複製到剪貼簿",
+        "context": " -> copyToClipboard",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "leaveChatRoom",
+        "source_string": "Leave Chat Room",
+        "translation": "離開聊天室",
+        "context": " -> leaveChatRoom",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "leaveChatRoomHint",
+        "source_string": "Are you sure to leave this chat room?",
+        "translation": "確定要離開此聊天室嗎？",
+        "context": " -> leaveChatRoomHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "leaveRealm",
+        "source_string": "Leave Realm",
+        "translation": "離開領域",
+        "context": " -> leaveRealm",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "leaveRealmHint",
+        "source_string": "Are you sure to leave this realm?",
+        "translation": "確定要離開此領域嗎？",
+        "context": " -> leaveRealmHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "walletNotFound",
+        "source_string": "Wallet not found",
+        "translation": "找不到錢包",
+        "context": " -> walletNotFound",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "walletCreateHint",
+        "source_string": "You don't have a wallet yet. Create one to start using the Solar Network eWallet.",
+        "translation": "您尚未有錢包。建立一個以開始使用 Solar Network 電子錢包。",
+        "context": " -> walletCreateHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "walletCreate",
+        "source_string": "Create a Wallet",
+        "translation": "建立錢包",
+        "context": " -> walletCreate",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsServerUrl",
+        "source_string": "Server URL",
+        "translation": "伺服器 URL",
+        "context": " -> settingsServerUrl",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsApplied",
+        "source_string": "The settings has been applied.",
+        "translation": "設定已應用。",
+        "context": " -> settingsApplied",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "notifications",
+        "source_string": "Notifications",
+        "translation": "通知",
+        "context": " -> notifications",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "posts",
+        "source_string": "Posts",
+        "translation": "貼文",
+        "context": " -> posts",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsBackgroundImage",
+        "source_string": "Background Image",
+        "translation": "背景圖片",
+        "context": " -> settingsBackgroundImage",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsBackgroundImageClear",
+        "source_string": "Clear Background Image",
+        "translation": "清除背景圖片",
+        "context": " -> settingsBackgroundImageClear",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsBackgroundGenerateColor",
+        "source_string": "Generate color scheme from Bacground Image",
+        "translation": "Generate color scheme from Bacground Image",
+        "context": " -> settingsBackgroundGenerateColor",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "messageNone",
+        "source_string": "No content to display",
+        "translation": "沒有內容可顯示",
+        "context": " -> messageNone",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unreadMessages.one",
+        "source_string": "{} unread message",
+        "translation": "{} 條未讀訊息",
+        "context": "unreadMessages -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unreadMessages.other",
+        "source_string": "{} unread messages",
+        "translation": "{} 條未讀訊息",
+        "context": "unreadMessages -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreakNone",
+        "source_string": "None",
+        "translation": "無",
+        "context": " -> chatBreakNone",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsRealmCompactView",
+        "source_string": "Compact Realm View",
+        "translation": "精簡領域視圖",
+        "context": " -> settingsRealmCompactView",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsMixedFeed",
+        "source_string": "Mixed Feed",
+        "translation": "混合動態",
+        "context": " -> settingsMixedFeed",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsAutoTranslate",
+        "source_string": "Auto Translate",
+        "translation": "自動翻譯",
+        "context": " -> settingsAutoTranslate",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsHideBottomNav",
+        "source_string": "Hide Bottom Navigation",
+        "translation": "隱藏底部導航",
+        "context": " -> settingsHideBottomNav",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsSoundEffects",
+        "source_string": "Sound Effects",
+        "translation": "音效",
+        "context": " -> settingsSoundEffects",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsAprilFoolFeatures",
+        "source_string": "April Fool Features",
+        "translation": "愚人節功能",
+        "context": " -> settingsAprilFoolFeatures",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsEnterToSend",
+        "source_string": "Enter to Send",
+        "translation": "按下 Enter 傳送",
+        "context": " -> settingsEnterToSend",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsTransparentAppBar",
+        "source_string": "Transparent App Bar",
+        "translation": "Transparent App Bar",
+        "context": " -> settingsTransparentAppBar",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsCustomFonts",
+        "source_string": "Custom Fonts",
+        "translation": "Custom Fonts",
+        "context": " -> settingsCustomFonts",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsCustomFontsHint",
+        "source_string": "Custom fonts will be used for all text in the app. Make sure it is installed on your device.",
+        "translation": "Custom fonts will be used for all text in the app. Make sure it is installed on your device.",
+        "context": " -> settingsCustomFontsHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsColorScheme",
+        "source_string": "Color Scheme",
+        "translation": "Color Scheme",
+        "context": " -> settingsColorScheme",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postTitle",
+        "source_string": "Title",
+        "translation": "Title",
+        "context": " -> postTitle",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postDescription",
+        "source_string": "Description",
+        "translation": "Description",
+        "context": " -> postDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "call",
+        "source_string": "Call",
+        "translation": "Call",
+        "context": " -> call",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "done",
+        "source_string": "Done",
+        "translation": "Done",
+        "context": " -> done",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "loginResetPasswordSent",
+        "source_string": "Password reset link sent, please check your email inbox.",
+        "translation": "Password reset link sent, please check your email inbox.",
+        "context": " -> loginResetPasswordSent",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountDeletion",
+        "source_string": "Delete Account",
+        "translation": "Delete Account",
+        "context": " -> accountDeletion",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountDeletionHint",
+        "source_string": "Are you sure to delete your account? If you confirmed, we will send an confirmation email to your primary email address, you can continue the deletion process by follow the insturctions in the email.",
+        "translation": "Are you sure to delete your account? If you confirmed, we will send an confirmation email to your primary email address, you can continue the deletion process by follow the insturctions in the email.",
+        "context": " -> accountDeletionHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountDeletionSent",
+        "source_string": "Account deletion confirmation email sent, please check your email inbox.",
+        "translation": "Account deletion confirmation email sent, please check your email inbox.",
+        "context": " -> accountDeletionSent",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountSecurityTitle",
+        "source_string": "Security",
+        "translation": "Security",
+        "context": " -> accountSecurityTitle",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountDangerZoneTitle",
+        "source_string": "Danger Zone",
+        "translation": "Danger Zone",
+        "context": " -> accountDangerZoneTitle",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountPassword",
+        "source_string": "Password",
+        "translation": "Password",
+        "context": " -> accountPassword",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountPasswordDescription",
+        "source_string": "Change your account password",
+        "translation": "Change your account password",
+        "context": " -> accountPasswordDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountPasswordChange",
+        "source_string": "Change Password",
+        "translation": "Change Password",
+        "context": " -> accountPasswordChange",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountPasswordChangeSent",
+        "source_string": "Password reset link sent, please check your email inbox.",
+        "translation": "Password reset link sent, please check your email inbox.",
+        "context": " -> accountPasswordChangeSent",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountPasswordChangeDescription",
+        "source_string": "We will send an email to your primary email address to reset your password.",
+        "translation": "We will send an email to your primary email address to reset your password.",
+        "context": " -> accountPasswordChangeDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountAuthFactor",
+        "source_string": "Auth factors",
+        "translation": "Auth factors",
+        "context": " -> accountAuthFactor",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountAuthFactorDescription",
+        "source_string": "Multi-factor authentication to ensure safety and convience",
+        "translation": "Multi-factor authentication to ensure safety and convience",
+        "context": " -> accountAuthFactorDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountDeletionDescription",
+        "source_string": "Permanently delete your account and all your data",
+        "translation": "Permanently delete your account and all your data",
+        "context": " -> accountDeletionDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountSettingsHelp",
+        "source_string": "Account Settings Help",
+        "translation": "Account Settings Help",
+        "context": " -> accountSettingsHelp",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountSettingsHelpContent",
+        "source_string": "This page allows you to manage your account security, privacy, and other settings. If you need assistance, please contact support.",
+        "translation": "This page allows you to manage your account security, privacy, and other settings. If you need assistance, please contact support.",
+        "context": " -> accountSettingsHelpContent",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unauthorized",
+        "source_string": "Unauthorized",
+        "translation": "Unauthorized",
+        "context": " -> unauthorized",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unauthorizedHint",
+        "source_string": "You're not signed in or session expired, please sign in again.",
+        "translation": "You're not signed in or session expired, please sign in again.",
+        "context": " -> unauthorizedHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "publisherBelongsTo",
+        "source_string": "Belongs to {}",
+        "translation": "Belongs to {}",
+        "context": " -> publisherBelongsTo",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postContent",
+        "source_string": "Content",
+        "translation": "Content",
+        "context": " -> postContent",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postSettings",
+        "source_string": "Settings",
+        "translation": "Settings",
+        "context": " -> postSettings",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postPublisherUnselected",
+        "source_string": "Publisher Unspecified",
+        "translation": "Publisher Unspecified",
+        "context": " -> postPublisherUnselected",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postVisibility",
+        "source_string": "Visibility",
+        "translation": "可見性",
+        "context": " -> postVisibility",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postVisibilityPublic",
+        "source_string": "Public",
+        "translation": "公開",
+        "context": " -> postVisibilityPublic",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postVisibilityFriends",
+        "source_string": "Friends Only",
+        "translation": "僅好友可見",
+        "context": " -> postVisibilityFriends",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postVisibilityUnlisted",
+        "source_string": "Unlisted",
+        "translation": "不公開",
+        "context": " -> postVisibilityUnlisted",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postVisibilityPrivate",
+        "source_string": "Private",
+        "translation": "私密",
+        "context": " -> postVisibilityPrivate",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "postTruncated",
+        "source_string": "Content truncated, tap to view full post",
+        "translation": "Content truncated, tap to view full post",
+        "context": " -> postTruncated",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "copyMessage",
+        "source_string": "Copy Message",
+        "translation": "Copy Message",
+        "context": " -> copyMessage",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactor",
+        "source_string": "Authentication Factor",
+        "translation": "Authentication Factor",
+        "context": " -> authFactor",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorDelete",
+        "source_string": "Delete the Factor",
+        "translation": "Delete the Factor",
+        "context": " -> authFactorDelete",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorDeleteHint",
+        "source_string": "Are you sure you want to delete this authentication factor? This action cannot be undone.",
+        "translation": "Are you sure you want to delete this authentication factor? This action cannot be undone.",
+        "context": " -> authFactorDeleteHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorDisable",
+        "source_string": "Disable the Factor",
+        "translation": "Disable the Factor",
+        "context": " -> authFactorDisable",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorDisableHint",
+        "source_string": "Are you sure you want to disable this authentication factor? You can enable it again later.",
+        "translation": "Are you sure you want to disable this authentication factor? You can enable it again later.",
+        "context": " -> authFactorDisableHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorEnable",
+        "source_string": "Enable the Factor",
+        "translation": "Enable the Factor",
+        "context": " -> authFactorEnable",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorEnableHint",
+        "source_string": "Please enter the code that generated by the factor to enable it.",
+        "translation": "Please enter the code that generated by the factor to enable it.",
+        "context": " -> authFactorEnableHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorNew",
+        "source_string": "Create Auth Factor",
+        "translation": "Create Auth Factor",
+        "context": " -> authFactorNew",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorSecret",
+        "source_string": "Secret",
+        "translation": "Secret",
+        "context": " -> authFactorSecret",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorSecretHint",
+        "source_string": "Create an secret for this factor.",
+        "translation": "Create an secret for this factor.",
+        "context": " -> authFactorSecretHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorQrCodeScan",
+        "source_string": "Scan this QR code with your authenticator app to set up TOTP authentication",
+        "translation": "Scan this QR code with your authenticator app to set up TOTP authentication",
+        "context": " -> authFactorQrCodeScan",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorNoQrCode",
+        "source_string": "No QR code available for this authentication factor",
+        "translation": "No QR code available for this authentication factor",
+        "context": " -> authFactorNoQrCode",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "cancel",
+        "source_string": "Cancel",
+        "translation": "Cancel",
+        "context": " -> cancel",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "confirm",
+        "source_string": "Confirm",
+        "translation": "Confirm",
+        "context": " -> confirm",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorAdditional",
+        "source_string": "One more step",
+        "translation": "One more step",
+        "context": " -> authFactorAdditional",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorHint",
+        "source_string": "Contact method hint",
+        "translation": "Contact method hint",
+        "context": " -> authFactorHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorHintHelper",
+        "source_string": "You need provide a part of your contact method and we will send the verification code to that contact method if it matched our records",
+        "translation": "You need provide a part of your contact method and we will send the verification code to that contact method if it matched our records",
+        "context": " -> authFactorHintHelper",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authSessions",
+        "source_string": "Active Sessions",
+        "translation": "Active Sessions",
+        "context": " -> authSessions",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authSessionsDescription",
+        "source_string": "See devices you currently logged in.",
+        "translation": "See devices you currently logged in.",
+        "context": " -> authSessionsDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authSessionsCount.one",
+        "source_string": "{} session",
+        "translation": "{} session",
+        "context": "authSessionsCount -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authSessionsCount.other",
+        "source_string": "{} sessions",
+        "translation": "{} sessions",
+        "context": "authSessionsCount -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authDeviceCurrent",
+        "source_string": "Current device",
+        "translation": "Current device",
+        "context": " -> authDeviceCurrent",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "lastActiveAt",
+        "source_string": "Last active at {}",
+        "translation": "Last active at {}",
+        "context": " -> lastActiveAt",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authDeviceLogout",
+        "source_string": "Logout",
+        "translation": "Logout",
+        "context": " -> authDeviceLogout",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authDeviceLogoutHint",
+        "source_string": "Are you sure you want to logout this device? This will also disable the push notification to this device.",
+        "translation": "Are you sure you want to logout this device? This will also disable the push notification to this device.",
+        "context": " -> authDeviceLogoutHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authDeviceEditLabel",
+        "source_string": "Edit Label",
+        "translation": "Edit Label",
+        "context": " -> authDeviceEditLabel",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authDeviceLabelTitle",
+        "source_string": "Edit Device Label",
+        "translation": "Edit Device Label",
+        "context": " -> authDeviceLabelTitle",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authDeviceLabelHint",
+        "source_string": "Enter a name for this device",
+        "translation": "Enter a name for this device",
+        "context": " -> authDeviceLabelHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authDeviceSwipeEditHint",
+        "source_string": "Swipe left to edit label",
+        "translation": "Swipe left to edit label",
+        "context": " -> authDeviceSwipeEditHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authDeviceSwipeLogoutHint",
+        "source_string": "Swipe right to logout device",
+        "translation": "Swipe right to logout device",
+        "context": " -> authDeviceSwipeLogoutHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "typingHint.one",
+        "source_string": "{} is typing...",
+        "translation": "{} is typing...",
+        "context": "typingHint -> one",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "typingHint.other",
+        "source_string": "{} are typing...",
+        "translation": "{} are typing...",
+        "context": "typingHint -> other",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsAppearance",
+        "source_string": "Appearance",
+        "translation": "Appearance",
+        "context": " -> settingsAppearance",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsServer",
+        "source_string": "Server",
+        "translation": "Server",
+        "context": " -> settingsServer",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsBehavior",
+        "source_string": "Behavior",
+        "translation": "Behavior",
+        "context": " -> settingsBehavior",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsDesktop",
+        "source_string": "Desktop",
+        "translation": "Desktop",
+        "context": " -> settingsDesktop",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsKeyboardShortcuts",
+        "source_string": "Keyboard Shortcuts",
+        "translation": "Keyboard Shortcuts",
+        "context": " -> settingsKeyboardShortcuts",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsEnterToSendDesktopHint",
+        "source_string": "Press Enter to send messages, use Shift+Enter for new line.",
+        "translation": "Press Enter to send messages, use Shift+Enter for new line.",
+        "context": " -> settingsEnterToSendDesktopHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsHelp",
+        "source_string": "Settings Help",
+        "translation": "Settings Help",
+        "context": " -> settingsHelp",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsHelpContent",
+        "source_string": "This page allows you to manage your app settings, appearance, and behavior. If you need assistance, please contact support.",
+        "translation": "This page allows you to manage your app settings, appearance, and behavior. If you need assistance, please contact support.",
+        "context": " -> settingsHelpContent",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsKeyboardShortcutSearch",
+        "source_string": "Search",
+        "translation": "Search",
+        "context": " -> settingsKeyboardShortcutSearch",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsKeyboardShortcutSettings",
+        "source_string": "Settings",
+        "translation": "Settings",
+        "context": " -> settingsKeyboardShortcutSettings",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsKeyboardShortcutNewMessage",
+        "source_string": "New Message",
+        "translation": "New Message",
+        "context": " -> settingsKeyboardShortcutNewMessage",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "settingsKeyboardShortcutCloseDialog",
+        "source_string": "Close Dialog",
+        "translation": "Close Dialog",
+        "context": " -> settingsKeyboardShortcutCloseDialog",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "close",
+        "source_string": "Close",
+        "translation": "Close",
+        "context": " -> close",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethod",
+        "source_string": "Contact Method",
+        "translation": "Contact Method",
+        "context": " -> contactMethod",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodType",
+        "source_string": "Contact Type",
+        "translation": "Contact Type",
+        "context": " -> contactMethodType",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodTypeEmail",
+        "source_string": "Email",
+        "translation": "Email",
+        "context": " -> contactMethodTypeEmail",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodTypePhone",
+        "source_string": "Phone",
+        "translation": "Phone",
+        "context": " -> contactMethodTypePhone",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodTypeAddress",
+        "source_string": "Address",
+        "translation": "Address",
+        "context": " -> contactMethodTypeAddress",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodEmailHint",
+        "source_string": "Enter your email address",
+        "translation": "Enter your email address",
+        "context": " -> contactMethodEmailHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodPhoneHint",
+        "source_string": "Enter your phone number",
+        "translation": "Enter your phone number",
+        "context": " -> contactMethodPhoneHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodAddressHint",
+        "source_string": "Enter your physical address",
+        "translation": "Enter your physical address",
+        "context": " -> contactMethodAddressHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodEmailDescription",
+        "source_string": "Your email will be used for account recovery and notifications",
+        "translation": "Your email will be used for account recovery and notifications",
+        "context": " -> contactMethodEmailDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodPhoneDescription",
+        "source_string": "Your phone number will be used for account recovery and notifications",
+        "translation": "Your phone number will be used for account recovery and notifications",
+        "context": " -> contactMethodPhoneDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodAddressDescription",
+        "source_string": "Your physical address will be used for shipping and billing purposes.",
+        "translation": "Your physical address will be used for shipping and billing purposes.",
+        "context": " -> contactMethodAddressDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodVerified",
+        "source_string": "Verified",
+        "translation": "Verified",
+        "context": " -> contactMethodVerified",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodUnverified",
+        "source_string": "Unverified",
+        "translation": "Unverified",
+        "context": " -> contactMethodUnverified",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodVerify",
+        "source_string": "Verify Contact",
+        "translation": "Verify Contact",
+        "context": " -> contactMethodVerify",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodDelete",
+        "source_string": "Delete Contact",
+        "translation": "Delete Contact",
+        "context": " -> contactMethodDelete",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodNew",
+        "source_string": "New Contact Method",
+        "translation": "New Contact Method",
+        "context": " -> contactMethodNew",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodContentEmpty",
+        "source_string": "Contact content cannot be empty",
+        "translation": "Contact content cannot be empty",
+        "context": " -> contactMethodContentEmpty",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodVerificationSent",
+        "source_string": "Verification code sent to your contact method",
+        "translation": "Verification code sent to your contact method",
+        "context": " -> contactMethodVerificationSent",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodVerificationNeeded",
+        "source_string": "The contact method is added, but not verified yet. You can verify it by tapping it and select verify.",
+        "translation": "The contact method is added, but not verified yet. You can verify it by tapping it and select verify.",
+        "context": " -> contactMethodVerificationNeeded",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountContactMethod",
+        "source_string": "Contact Methods",
+        "translation": "Contact Methods",
+        "context": " -> accountContactMethod",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountContactMethodDescription",
+        "source_string": "Manage your contact methods for account recovery and notifications",
+        "translation": "Manage your contact methods for account recovery and notifications",
+        "context": " -> accountContactMethodDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authFactorVerificationNeeded",
+        "source_string": "The auth factor is added, but it is not enabled yet. You can enable it by tapping it and enter the verification code.",
+        "translation": "The auth factor is added, but it is not enabled yet. You can enable it by tapping it and enter the verification code.",
+        "context": " -> authFactorVerificationNeeded",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodPrimary",
+        "source_string": "Primary",
+        "translation": "Primary",
+        "context": " -> contactMethodPrimary",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodSetPrimary",
+        "source_string": "Set as Primary",
+        "translation": "Set as Primary",
+        "context": " -> contactMethodSetPrimary",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodSetPrimaryHint",
+        "source_string": "Set this contact method as your primary contact method for account recovery and notifications",
+        "translation": "Set this contact method as your primary contact method for account recovery and notifications",
+        "context": " -> contactMethodSetPrimaryHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "contactMethodDeleteHint",
+        "source_string": "Are you sure to delete this contact method? This action cannot be undone.",
+        "translation": "Are you sure to delete this contact method? This action cannot be undone.",
+        "context": " -> contactMethodDeleteHint",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatNotifyLevel",
+        "source_string": "Notify Level",
+        "translation": "通知等級",
+        "context": " -> chatNotifyLevel",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatNotifyLevelDescription",
+        "source_string": "Decide how many notifications you will receive.",
+        "translation": "決定您將收到多少通知。",
+        "context": " -> chatNotifyLevelDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatNotifyLevelAll",
+        "source_string": "All",
+        "translation": "全部",
+        "context": " -> chatNotifyLevelAll",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatNotifyLevelMention",
+        "source_string": "Mentions",
+        "translation": "提及",
+        "context": " -> chatNotifyLevelMention",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatNotifyLevelNone",
+        "source_string": "None",
+        "translation": "無",
+        "context": " -> chatNotifyLevelNone",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatNotifyLevelUpdated",
+        "source_string": "The notify level has been updated to {}.",
+        "translation": "通知等級已更新為 {}。",
+        "context": " -> chatNotifyLevelUpdated",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreak",
+        "source_string": "Take a Break",
+        "translation": "暫停聊天",
+        "context": " -> chatBreak",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreakDescription",
+        "source_string": "Set a time, before that time, your notification level will be metions only, to take a break of the current topic they're talking about.",
+        "translation": "設定一個時間，在該時間之前，您的通知等級將僅為提及，以暫時休息當前討論的話題。",
+        "context": " -> chatBreakDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreakClear",
+        "source_string": "Clear the break time",
+        "translation": "清除暫停時間",
+        "context": " -> chatBreakClear",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreakHour",
+        "source_string": "{} break",
+        "translation": "暫停 {} 分鐘",
+        "context": " -> chatBreakHour",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreakDay",
+        "source_string": "{} day break",
+        "translation": "暫停 {} 天",
+        "context": " -> chatBreakDay",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreakSet",
+        "source_string": "Break set for {}",
+        "translation": "已設定暫停 {}",
+        "context": " -> chatBreakSet",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreakCleared",
+        "source_string": "Chat break has been cleared.",
+        "translation": "聊天暫停已清除。",
+        "context": " -> chatBreakCleared",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreakCustom",
+        "source_string": "Custom duration",
+        "translation": "自訂時長",
+        "context": " -> chatBreakCustom",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chatBreakEnterMinutes",
+        "source_string": "Enter minutes",
+        "translation": "輸入分鐘數",
+        "context": " -> chatBreakEnterMinutes",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "firstName",
+        "source_string": "First Name",
+        "translation": "First Name",
+        "context": " -> firstName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "middleName",
+        "source_string": "Middle Name",
+        "translation": "Middle Name",
+        "context": " -> middleName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "lastName",
+        "source_string": "Last Name",
+        "translation": "Last Name",
+        "context": " -> lastName",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "gender",
+        "source_string": "Gender",
+        "translation": "Gender",
+        "context": " -> gender",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "pronouns",
+        "source_string": "Pronouns",
+        "translation": "Pronouns",
+        "context": " -> pronouns",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "location",
+        "source_string": "Location",
+        "translation": "Location",
+        "context": " -> location",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "timeZone",
+        "source_string": "Time Zone",
+        "translation": "Time Zone",
+        "context": " -> timeZone",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "birthday",
+        "source_string": "Birthday",
+        "translation": "Birthday",
+        "context": " -> birthday",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "selectADate",
+        "source_string": "Select a date",
+        "translation": "Select a date",
+        "context": " -> selectADate",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultT0",
+        "source_string": "Worst",
+        "translation": "Worst",
+        "context": " -> checkInResultT0",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultT1",
+        "source_string": "Poor",
+        "translation": "Poor",
+        "context": " -> checkInResultT1",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultT2",
+        "source_string": "Mid",
+        "translation": "Mid",
+        "context": " -> checkInResultT2",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultT3",
+        "source_string": "Good",
+        "translation": "Good",
+        "context": " -> checkInResultT3",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "checkInResultT4",
+        "source_string": "Best",
+        "translation": "Best",
+        "context": " -> checkInResultT4",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "accountProfileView",
+        "source_string": "View Profile",
+        "translation": "View Profile",
+        "context": " -> accountProfileView",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unspecified",
+        "source_string": "Unspecified",
+        "translation": "Unspecified",
+        "context": " -> unspecified",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "added",
+        "source_string": "Added",
+        "translation": "Added",
+        "context": " -> added",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "preview",
+        "source_string": "Preview",
+        "translation": "Preview",
+        "context": " -> preview",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "togglePreview",
+        "source_string": "Toggle Preview",
+        "translation": "Toggle Preview",
+        "context": " -> togglePreview",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "subscribe",
+        "source_string": "Subscribe",
+        "translation": "Subscribe",
+        "context": " -> subscribe",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unsubscribe",
+        "source_string": "Unsubscribe",
+        "translation": "Unsubscribe",
+        "context": " -> unsubscribe",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "paymentVerification",
+        "source_string": "Payment Verification",
+        "translation": "Payment Verification",
+        "context": " -> paymentVerification",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "paymentSummary",
+        "source_string": "Payment Summary",
+        "translation": "Payment Summary",
+        "context": " -> paymentSummary",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "amount",
+        "source_string": "Amount",
+        "translation": "Amount",
+        "context": " -> amount",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "description",
+        "source_string": "Description",
+        "translation": "描述",
+        "context": " -> description",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "pinCode",
+        "source_string": "PIN Code",
+        "translation": "PIN Code",
+        "context": " -> pinCode",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "biometric",
+        "source_string": "Biometric",
+        "translation": "Biometric",
+        "context": " -> biometric",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "enterPinToConfirm",
+        "source_string": "Enter your 6-digit PIN to confirm payment",
+        "translation": "Enter your 6-digit PIN to confirm payment",
+        "context": " -> enterPinToConfirm",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "clearPin",
+        "source_string": "Clear PIN",
+        "translation": "Clear PIN",
+        "context": " -> clearPin",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "useBiometricToConfirm",
+        "source_string": "Use biometric authentication to confirm payment",
+        "translation": "Use biometric authentication to confirm payment",
+        "context": " -> useBiometricToConfirm",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "touchSensorToAuthenticate",
+        "source_string": "Touch the sensor to authenticate",
+        "translation": "Touch the sensor to authenticate",
+        "context": " -> touchSensorToAuthenticate",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authenticating",
+        "source_string": "Authenticating...",
+        "translation": "Authenticating...",
+        "context": " -> authenticating",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "authenticateNow",
+        "source_string": "Authenticate Now",
+        "translation": "Authenticate Now",
+        "context": " -> authenticateNow",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "processing",
+        "source_string": "Processing...",
+        "translation": "Processing...",
+        "context": " -> processing",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "processingPayment",
+        "source_string": "Processing Payment...",
+        "translation": "Processing Payment...",
+        "context": " -> processingPayment",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "pleaseWait",
+        "source_string": "Please wait",
+        "translation": "Please wait",
+        "context": " -> pleaseWait",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "paymentFailed",
+        "source_string": "Payment failed. Please try again.",
+        "translation": "Payment failed. Please try again.",
+        "context": " -> paymentFailed",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "invalidPin",
+        "source_string": "Invalid PIN. Please try again.",
+        "translation": "Invalid PIN. Please try again.",
+        "context": " -> invalidPin",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "biometricAuthFailed",
+        "source_string": "Biometric authentication failed. Please try again.",
+        "translation": "Biometric authentication failed. Please try again.",
+        "context": " -> biometricAuthFailed",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "paymentSuccess",
+        "source_string": "Payment completed successfully!",
+        "translation": "Payment completed successfully!",
+        "context": " -> paymentSuccess",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipPurchaseSuccess",
+        "source_string": "Membership purchased successfully!",
+        "translation": "Membership purchased successfully!",
+        "context": " -> membershipPurchaseSuccess",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "paymentError",
+        "source_string": "Payment failed: {error}",
+        "translation": "付款失敗：{error}",
+        "context": " -> paymentError",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "usePinInstead",
+        "source_string": "Use PIN Code",
+        "translation": "使用密碼",
+        "context": " -> usePinInstead",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "levelProgress",
+        "source_string": "Level Progress",
+        "translation": "等級進度",
+        "context": " -> levelProgress",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unlockedFeatures",
+        "source_string": "Unlocked Features",
+        "translation": "已解鎖功能",
+        "context": " -> unlockedFeatures",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "unlockedFeaturesDescription",
+        "source_string": "Features unlocked at your current level will be displayed here.",
+        "translation": "您目前等級解鎖的功能將會顯示在此。",
+        "context": " -> unlockedFeaturesDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "stellarMembership",
+        "source_string": "Stellar Membership",
+        "translation": "星際會員",
+        "context": " -> stellarMembership",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "upgradeYourPlan",
+        "source_string": "Upgrade Your Plan",
+        "translation": "升級您的方案",
+        "context": " -> upgradeYourPlan",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "chooseYourPlan",
+        "source_string": "Choose Your Plan",
+        "translation": "選擇您的方案",
+        "context": " -> chooseYourPlan",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "currentMembership",
+        "source_string": "Current: {}",
+        "translation": "目前：{}",
+        "context": " -> currentMembership",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipExpires",
+        "source_string": "Expires: {}",
+        "translation": "到期：{}",
+        "context": " -> membershipExpires",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipTierStellar",
+        "source_string": "Stellar",
+        "translation": "星際",
+        "context": " -> membershipTierStellar",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipTierNova",
+        "source_string": "Nova",
+        "translation": "新星",
+        "context": " -> membershipTierNova",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipTierSupernova",
+        "source_string": "Supernova",
+        "translation": "超新星",
+        "context": " -> membershipTierSupernova",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipTierUnknown",
+        "source_string": "Unknown",
+        "translation": "未知",
+        "context": " -> membershipTierUnknown",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipPriceStellar",
+        "source_string": "10 NS$ per month",
+        "translation": "每月 10 星幣",
+        "context": " -> membershipPriceStellar",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipPriceNova",
+        "source_string": "20 NS$ per month",
+        "translation": "每月 20 星幣",
+        "context": " -> membershipPriceNova",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipPriceSupernova",
+        "source_string": "30 NS$ per month",
+        "translation": "每月 30 星幣",
+        "context": " -> membershipPriceSupernova",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipFeatureBasic",
+        "source_string": "Basic features",
+        "translation": "基本功能",
+        "context": " -> membershipFeatureBasic",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipFeaturePrioritySupport",
+        "source_string": "Priority support",
+        "translation": "優先支援",
+        "context": " -> membershipFeaturePrioritySupport",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipFeatureAdFree",
+        "source_string": "Ad-free experience",
+        "translation": "無廣告體驗",
+        "context": " -> membershipFeatureAdFree",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipFeatureAllPrimary",
+        "source_string": "All Primary features",
+        "translation": "所有主要功能",
+        "context": " -> membershipFeatureAllPrimary",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipFeatureAdvancedCustomization",
+        "source_string": "Advanced customization",
+        "translation": "進階自訂",
+        "context": " -> membershipFeatureAdvancedCustomization",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipFeatureEarlyAccess",
+        "source_string": "Early access",
+        "translation": "搶先體驗",
+        "context": " -> membershipFeatureEarlyAccess",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipFeatureAllNova",
+        "source_string": "All Nova features",
+        "translation": "所有新星功能",
+        "context": " -> membershipFeatureAllNova",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipFeatureExclusiveContent",
+        "source_string": "Exclusive content",
+        "translation": "獨家內容",
+        "context": " -> membershipFeatureExclusiveContent",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipFeatureVipSupport",
+        "source_string": "VIP support",
+        "translation": "VIP 支援",
+        "context": " -> membershipFeatureVipSupport",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "membershipCurrentBadge",
+        "source_string": "CURRENT",
+        "translation": "目前",
+        "context": " -> membershipCurrentBadge",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "restorePurchase",
+        "source_string": "Restore Purchase",
+        "translation": "Restore Purchase",
+        "context": " -> restorePurchase",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "restorePurchaseDescription",
+        "source_string": "Enter your payment provider and order ID to restore your purchase.",
+        "translation": "Enter your payment provider and order ID to restore your purchase.",
+        "context": " -> restorePurchaseDescription",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "provider",
+        "source_string": "Provider",
+        "translation": "Provider",
+        "context": " -> provider",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "selectProvider",
+        "source_string": "Select a provider",
+        "translation": "Select a provider",
+        "context": " -> selectProvider",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "orderId",
+        "source_string": "Order ID",
+        "translation": "Order ID",
+        "context": " -> orderId",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "enterOrderId",
+        "source_string": "Enter your order ID",
+        "translation": "Enter your order ID",
+        "context": " -> enterOrderId",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "restore",
+        "source_string": "Restore",
+        "translation": "Restore",
+        "context": " -> restore",
+        "labels": "en-US.json",
+        "max_length": null
+    },
+    {
+        "identifier": "keyboardShortcuts",
+        "source_string": "Keyboard Shortcuts",
+        "translation": "Keyboard Shortcuts",
+        "context": " -> keyboardShortcuts",
+        "labels": "en-US.json",
+        "max_length": null
+    }
+]
