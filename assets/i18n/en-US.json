@@ -693,5 +693,6 @@
   "copyToClipboardTooltip": "Copy to clipboard",
   "postForwardingTo": "Forwarding to",
   "postReplyingTo": "Replying to",
-  "postEditing": "You are editing an existing post"
+  "postEditing": "You are editing an existing post",
+  "postArticle": "Article"
 }

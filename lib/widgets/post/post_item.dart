@@ -63,6 +63,424 @@ class PostItem extends HookConsumerWidget {
     final hasBackground =
         ref.watch(backgroundImageFileProvider).valueOrNull != null;
 
+    Widget child;
+    if (item.type == 1 && isFullPost) {
+      child = Padding(
+        padding: renderingPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () {
+                context.push('/publishers/${item.publisher.name}');
+              },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ProfilePictureWidget(file: item.publisher.picture),
+                  const Gap(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.publisher.nick).bold(),
+                        if (item.publisher.verification != null)
+                          VerificationMark(
+                            mark: item.publisher.verification!,
+                          ).padding(left: 4),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    isFullPost
+                        ? item.publishedAt?.formatSystem() ?? ''
+                        : item.publishedAt?.formatRelative(context) ?? '',
+                  ).fontSize(11),
+                ],
+              ),
+            ),
+            if (item.visibility != 0)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _getVisibilityIcon(item.visibility),
+                    size: 14,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _getVisibilityText(item.visibility).tr(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                ],
+              ).padding(top: 10, bottom: 2),
+            const Gap(16),
+            _ArticlePostDisplay(item: item, isFullPost: isFullPost),
+            if (item.tags.isNotEmpty || item.categories.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (item.tags.isNotEmpty)
+                    Wrap(
+                      children: [
+                        for (final tag in item.tags)
+                          InkWell(
+                            child: Row(
+                              spacing: 4,
+                              children: [
+                                const Icon(Symbols.label, size: 13),
+                                Text(tag.name ?? '#${tag.slug}').fontSize(13),
+                              ],
+                            ),
+                            onTap: () {},
+                          ),
+                      ],
+                    ),
+                  if (item.categories.isNotEmpty)
+                    Wrap(
+                      children: [
+                        for (final category in item.categories)
+                          InkWell(
+                            child: Row(
+                              spacing: 4,
+                              children: [
+                                const Icon(Symbols.category, size: 13),
+                                Text(
+                                  category.name ?? '#${category.slug}',
+                                ).fontSize(13),
+                              ],
+                            ),
+                            onTap: () {},
+                          ),
+                      ],
+                    ),
+                ],
+              ),
+            if ((item.repliedPost != null || item.forwardedPost != null) &&
+                showReferencePost)
+              _buildReferencePost(context, item),
+            if (item.attachments.isNotEmpty)
+              CloudFileList(
+                files: item.attachments,
+                maxWidth: math.min(
+                  MediaQuery.of(context).size.width,
+                  kWideScreenWidth,
+                ),
+                minWidth: math.min(
+                  MediaQuery.of(context).size.width,
+                  kWideScreenWidth,
+                ),
+              ),
+            if (item.meta?['embeds'] != null)
+              ...((item.meta!['embeds'] as List<dynamic>)
+                  .where((embed) => embed['Type'] == 'link')
+                  .map(
+                    (embedData) => EmbedLinkWidget(
+                      link: SnEmbedLink.fromJson(
+                        embedData as Map<String, dynamic>,
+                      ),
+                      maxWidth: math.min(
+                        MediaQuery.of(context).size.width,
+                        kWideScreenWidth,
+                      ),
+                      margin: EdgeInsets.only(top: 8),
+                    ),
+                  )),
+            const Gap(8),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: ActionChip(
+                    avatar: Icon(Symbols.reply, size: 16),
+                    label: Text(
+                      (item.repliesCount > 0)
+                          ? 'repliesCount'.plural(item.repliesCount)
+                          : 'reply'.tr(),
+                    ),
+                    visualDensity: const VisualDensity(
+                      horizontal: VisualDensity.minimumDensity,
+                      vertical: VisualDensity.minimumDensity,
+                    ),
+                    onPressed: () {
+                      if (isOpenable) {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useRootNavigator: true,
+                          builder: (context) => PostRepliesSheet(post: item),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: PostReactionList(
+                    parentId: item.id,
+                    reactions: item.reactionsCount,
+                    padding: EdgeInsets.zero,
+                    onReact: (symbol, attitude, delta) {
+                      final reactionsCount = Map<String, int>.from(
+                        item.reactionsCount,
+                      );
+                      reactionsCount[symbol] =
+                          (reactionsCount[symbol] ?? 0) + delta;
+                      onUpdate?.call(
+                        item.copyWith(reactionsCount: reactionsCount),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    } else {
+      child = Padding(
+        padding: renderingPadding,
+        child: Column(
+          spacing: 8,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 12,
+              children: [
+                GestureDetector(
+                  child: ProfilePictureWidget(file: item.publisher.picture),
+                  onTap: () {
+                    context.push('/publishers/${item.publisher.name}');
+                  },
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(item.publisher.nick).bold(),
+                            if (item.publisher.verification != null)
+                              VerificationMark(
+                                mark: item.publisher.verification!,
+                              ).padding(left: 4),
+                            Spacer(),
+                            Text(
+                              isFullPost
+                                  ? item.publishedAt?.formatSystem() ?? ''
+                                  : item.publishedAt?.formatRelative(context) ??
+                                      '',
+                            ).fontSize(11).alignment(Alignment.bottomRight),
+                            const Gap(4),
+                          ],
+                        ),
+                        // Add visibility indicator if not public (visibility != 0)
+                        if (item.visibility != 0)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _getVisibilityIcon(item.visibility),
+                                size: 14,
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _getVisibilityText(item.visibility).tr(),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                ),
+                              ),
+                            ],
+                          ).padding(top: 2, bottom: 2),
+                        if (item.type == 1)
+                          _ArticlePostDisplay(
+                            item: item,
+                            isFullPost: isFullPost,
+                          )
+                        else ...[
+                          if (item.title?.isNotEmpty ?? false)
+                            Text(
+                              item.title!,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          if (item.description?.isNotEmpty ?? false)
+                            Text(
+                              item.description!,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.copyWith(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                              ),
+                            ).padding(bottom: 8),
+                          if (item.content?.isNotEmpty ?? false)
+                            MarkdownTextContent(
+                              content: item.content!,
+                              linesMargin:
+                                  item.type == 0
+                                      ? EdgeInsets.only(bottom: 8)
+                                      : null,
+                            ),
+                        ],
+                        // Render tags and categories if they exist
+                        if (item.tags.isNotEmpty || item.categories.isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (item.tags.isNotEmpty)
+                                Wrap(
+                                  children: [
+                                    for (final tag in item.tags)
+                                      InkWell(
+                                        child: Row(
+                                          spacing: 4,
+                                          children: [
+                                            const Icon(Symbols.label, size: 13),
+                                            Text(
+                                              tag.name ?? '#${tag.slug}',
+                                            ).fontSize(13),
+                                          ],
+                                        ),
+                                        onTap: () {},
+                                      ),
+                                  ],
+                                ),
+                              if (item.categories.isNotEmpty)
+                                Wrap(
+                                  children: [
+                                    for (final category in item.categories)
+                                      InkWell(
+                                        child: Row(
+                                          spacing: 4,
+                                          children: [
+                                            const Icon(
+                                              Symbols.category,
+                                              size: 13,
+                                            ),
+                                            Text(
+                                              category.name ??
+                                                  '#${category.slug}',
+                                            ).fontSize(13),
+                                          ],
+                                        ),
+                                        onTap: () {},
+                                      ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        // Show truncation hint if post is truncated
+                        if (item.isTruncated && !isFullPost && item.type != 1)
+                          _PostTruncateHint().padding(
+                            bottom: item.attachments.isNotEmpty ? 8 : null,
+                          ),
+                        if ((item.repliedPost != null ||
+                                item.forwardedPost != null) &&
+                            showReferencePost)
+                          _buildReferencePost(context, item),
+                        if (item.attachments.isNotEmpty)
+                          CloudFileList(
+                            files: item.attachments,
+                            maxWidth: math.min(
+                              MediaQuery.of(context).size.width * 0.85,
+                              kWideScreenWidth - 160,
+                            ),
+                            minWidth: math.min(
+                              MediaQuery.of(context).size.width * 0.9,
+                              kWideScreenWidth - 160,
+                            ),
+                          ),
+                        // Render embed links
+                        if (item.meta?['embeds'] != null)
+                          ...((item.meta!['embeds'] as List<dynamic>)
+                              .where((embed) => embed['Type'] == 'link')
+                              .map(
+                                (embedData) => EmbedLinkWidget(
+                                  link: SnEmbedLink.fromJson(
+                                    embedData as Map<String, dynamic>,
+                                  ),
+                                  maxWidth: math.min(
+                                    MediaQuery.of(context).size.width * 0.85,
+                                    kWideScreenWidth - 160,
+                                  ),
+                                  margin: EdgeInsets.only(top: 8),
+                                ),
+                              )),
+                      ],
+                    ),
+                    onTap: () {
+                      if (isOpenable) {
+                        context.push('/posts/${item.id}');
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                // Replies count button
+                Padding(
+                  padding: const EdgeInsets.only(left: 52, right: 12),
+                  child: ActionChip(
+                    avatar: Icon(Symbols.reply, size: 16),
+                    label: Text(
+                      (item.repliesCount > 0)
+                          ? 'repliesCount'.plural(item.repliesCount)
+                          : 'reply'.tr(),
+                    ),
+                    visualDensity: const VisualDensity(
+                      horizontal: VisualDensity.minimumDensity,
+                      vertical: VisualDensity.minimumDensity,
+                    ),
+                    onPressed: () {
+                      if (isOpenable) {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useRootNavigator: true,
+                          builder: (context) => PostRepliesSheet(post: item),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                // Reactions list
+                Expanded(
+                  child: PostReactionList(
+                    parentId: item.id,
+                    reactions: item.reactionsCount,
+                    padding: EdgeInsets.zero,
+                    onReact: (symbol, attitude, delta) {
+                      final reactionsCount = Map<String, int>.from(
+                        item.reactionsCount,
+                      );
+                      reactionsCount[symbol] =
+                          (reactionsCount[symbol] ?? 0) + delta;
+                      onUpdate?.call(
+                        item.copyWith(reactionsCount: reactionsCount),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     return ContextMenuWidget(
       menuProvider: (_) {
         return Menu(
@@ -161,244 +579,7 @@ class PostItem extends HookConsumerWidget {
       },
       child: Material(
         color: hasBackground ? Colors.transparent : backgroundColor,
-        child: Padding(
-          padding: renderingPadding,
-          child: Column(
-            spacing: 8,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 12,
-                children: [
-                  GestureDetector(
-                    child: ProfilePictureWidget(file: item.publisher.picture),
-                    onTap: () {
-                      context.push('/publishers/${item.publisher.name}');
-                    },
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(item.publisher.nick).bold(),
-                              if (item.publisher.verification != null)
-                                VerificationMark(
-                                  mark: item.publisher.verification!,
-                                ).padding(left: 4),
-                              Spacer(),
-                              Text(
-                                isFullPost
-                                    ? item.publishedAt?.formatSystem() ?? ''
-                                    : item.publishedAt?.formatRelative(
-                                          context,
-                                        ) ??
-                                        '',
-                              ).fontSize(11).alignment(Alignment.bottomRight),
-                              const Gap(4),
-                            ],
-                          ),
-                          // Add visibility indicator if not public (visibility != 0)
-                          if (item.visibility != 0)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _getVisibilityIcon(item.visibility),
-                                  size: 14,
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _getVisibilityText(item.visibility).tr(),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
-                                  ),
-                                ),
-                              ],
-                            ).padding(top: 2, bottom: 2),
-                          if (item.title?.isNotEmpty ?? false)
-                            Text(
-                              item.title!,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          if (item.description?.isNotEmpty ?? false)
-                            Text(
-                              item.description!,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                              ),
-                            ).padding(bottom: 8),
-                          if (item.content?.isNotEmpty ?? false)
-                            MarkdownTextContent(
-                              content: item.content!,
-                              linesMargin:
-                                  item.type == 0
-                                      ? EdgeInsets.only(bottom: 8)
-                                      : null,
-                            ),
-                          // Render tags and categories if they exist
-                          if (item.tags.isNotEmpty ||
-                              item.categories.isNotEmpty)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (item.tags.isNotEmpty)
-                                  Wrap(
-                                    children: [
-                                      for (final tag in item.tags)
-                                        InkWell(
-                                          child: Row(
-                                            spacing: 4,
-                                            children: [
-                                              const Icon(
-                                                Symbols.label,
-                                                size: 13,
-                                              ),
-                                              Text(
-                                                tag.name ?? '#${tag.slug}',
-                                              ).fontSize(13),
-                                            ],
-                                          ),
-                                          onTap: () {},
-                                        ),
-                                    ],
-                                  ),
-                                if (item.categories.isNotEmpty)
-                                  Wrap(
-                                    children: [
-                                      for (final category in item.categories)
-                                        InkWell(
-                                          child: Row(
-                                            spacing: 4,
-                                            children: [
-                                              const Icon(
-                                                Symbols.category,
-                                                size: 13,
-                                              ),
-                                              Text(
-                                                category.name ??
-                                                    '#${category.slug}',
-                                              ).fontSize(13),
-                                            ],
-                                          ),
-                                          onTap: () {},
-                                        ),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                          // Show truncation hint if post is truncated
-                          if (item.isTruncated && !isFullPost)
-                            _PostTruncateHint().padding(
-                              bottom: item.attachments.isNotEmpty ? 8 : null,
-                            ),
-                          if ((item.repliedPost != null ||
-                                  item.forwardedPost != null) &&
-                              showReferencePost)
-                            _buildReferencePost(context, item),
-                          if (item.attachments.isNotEmpty)
-                            CloudFileList(
-                              files: item.attachments,
-                              maxWidth: math.min(
-                                MediaQuery.of(context).size.width * 0.85,
-                                kWideScreenWidth - 160,
-                              ),
-                              minWidth: math.min(
-                                MediaQuery.of(context).size.width * 0.9,
-                                kWideScreenWidth - 160,
-                              ),
-                            ),
-                          // Render embed links
-                          if (item.meta?['embeds'] != null)
-                            ...((item.meta!['embeds'] as List<dynamic>)
-                                .where((embed) => embed['Type'] == 'link')
-                                .map(
-                                  (embedData) => EmbedLinkWidget(
-                                    link: SnEmbedLink.fromJson(
-                                      embedData as Map<String, dynamic>,
-                                    ),
-                                    maxWidth: math.min(
-                                      MediaQuery.of(context).size.width * 0.85,
-                                      kWideScreenWidth - 160,
-                                    ),
-                                    margin: EdgeInsets.only(top: 8),
-                                  ),
-                                )),
-                        ],
-                      ),
-                      onTap: () {
-                        if (isOpenable) {
-                          context.push('/posts/${item.id}');
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  // Replies count button
-                  Padding(
-                    padding: const EdgeInsets.only(left: 52, right: 12),
-                    child: ActionChip(
-                      avatar: Icon(Symbols.reply, size: 16),
-                      label: Text(
-                        (item.repliesCount > 0)
-                            ? 'repliesCount'.plural(item.repliesCount)
-                            : 'reply'.tr(),
-                      ),
-                      visualDensity: const VisualDensity(
-                        horizontal: VisualDensity.minimumDensity,
-                        vertical: VisualDensity.minimumDensity,
-                      ),
-                      onPressed: () {
-                        if (isOpenable) {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            useRootNavigator: true,
-                            builder: (context) => PostRepliesSheet(post: item),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  // Reactions list
-                  Expanded(
-                    child: PostReactionList(
-                      parentId: item.id,
-                      reactions: item.reactionsCount,
-                      padding: EdgeInsets.zero,
-                      onReact: (symbol, attitude, delta) {
-                        final reactionsCount = Map<String, int>.from(
-                          item.reactionsCount,
-                        );
-                        reactionsCount[symbol] =
-                            (reactionsCount[symbol] ?? 0) + delta;
-                        onUpdate?.call(
-                          item.copyWith(reactionsCount: reactionsCount),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+        child: child,
       ),
     );
   }
@@ -809,6 +990,128 @@ class _PostTruncateHint extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _ArticlePostDisplay extends StatelessWidget {
+  final SnPost item;
+  final bool isFullPost;
+
+  const _ArticlePostDisplay({required this.item, required this.isFullPost});
+
+  @override
+  Widget build(BuildContext context) {
+    if (isFullPost) {
+      // Full article view
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (item.title?.isNotEmpty ?? false)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                item.title!,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          if (item.description?.isNotEmpty ?? false)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Text(
+                item.description!,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          if (item.content?.isNotEmpty ?? false)
+            MarkdownTextContent(
+              content: item.content!,
+              textStyle: Theme.of(context).textTheme.bodyLarge,
+            ),
+        ],
+      );
+    } else {
+      // Truncated/Card view
+      String? previewContent;
+      if (item.description?.isNotEmpty ?? false) {
+        previewContent = item.description!;
+      } else if (item.content?.isNotEmpty ?? false) {
+        previewContent = item.content!;
+      }
+
+      return Card(
+        elevation: 0,
+        margin: const EdgeInsets.only(top: 4),
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (item.title?.isNotEmpty ?? false)
+                Text(
+                  item.title!,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              if (previewContent != null) ...[
+                const Gap(8),
+                Text(
+                  previewContent,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Symbols.article,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'postArticle'.tr(),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 }
 
