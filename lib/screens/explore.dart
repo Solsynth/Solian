@@ -96,66 +96,80 @@ class ExploreScreen extends HookConsumerWidget {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Row(
-            children: [
-              Expanded(
-                child: TabBar(
-                  controller: tabController,
-                  tabAlignment: TabAlignment.start,
-                  isScrollable: true,
-                  tabs: [
-                    Tab(
-                      icon: Tooltip(
-                        message: 'explore'.tr(),
-                        child: Icon(
-                          Symbols.explore,
-                          color: Theme.of(context).appBarTheme.foregroundColor!,
+                children: [
+                  Expanded(
+                    child: TabBar(
+                      controller: tabController,
+                      tabAlignment: TabAlignment.start,
+                      isScrollable: true,
+                      dividerColor: Colors.transparent,
+                      tabs: [
+                        Tab(
+                          icon: Tooltip(
+                            message: 'explore'.tr(),
+                            child: Icon(
+                              Symbols.explore,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).appBarTheme.foregroundColor!,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    Tab(
-                      icon: Tooltip(
-                        message: 'exploreFilterSubscriptions'.tr(),
-                        child: Icon(
-                          Symbols.subscriptions,
-                          color: Theme.of(context).appBarTheme.foregroundColor!,
+                        Tab(
+                          icon: Tooltip(
+                            message: 'exploreFilterSubscriptions'.tr(),
+                            child: Icon(
+                              Symbols.subscriptions,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).appBarTheme.foregroundColor!,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    Tab(
-                      icon: Tooltip(
-                        message: 'exploreFilterFriends'.tr(),
-                        child: Icon(
-                          Symbols.people,
-                          color: Theme.of(context).appBarTheme.foregroundColor!,
+                        Tab(
+                          icon: Tooltip(
+                            message: 'exploreFilterFriends'.tr(),
+                            child: Icon(
+                              Symbols.people,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).appBarTheme.foregroundColor!,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      context.push('/feeds/articles');
+                    },
+                    icon: Icon(
+                      Symbols.auto_stories,
+                      color: Theme.of(context).appBarTheme.foregroundColor!,
+                    ),
+                    tooltip: 'webArticlesStand'.tr(),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      context.push('/posts/search');
+                    },
+                    icon: Icon(
+                      Symbols.search,
+                      color: Theme.of(context).appBarTheme.foregroundColor!,
+                    ),
+                    tooltip: 'search'.tr(),
+                  ),
+                ],
+              )
+              .padding(horizontal: 8)
+              .border(
+                bottom: 1 / MediaQuery.of(context).devicePixelRatio,
+                color: Theme.of(context).dividerColor,
               ),
-              Spacer(),
-              IconButton(
-                onPressed: () {
-                  context.push('/feeds/articles');
-                },
-                icon: Icon(
-                  Symbols.auto_stories,
-                  color: Theme.of(context).appBarTheme.foregroundColor!,
-                ),
-                tooltip: 'webArticlesStand'.tr(),
-              ),
-              IconButton(
-                onPressed: () {
-                  context.push('/posts/search');
-                },
-                icon: Icon(
-                  Symbols.search,
-                  color: Theme.of(context).appBarTheme.foregroundColor!,
-                ),
-                tooltip: 'search'.tr(),
-              ),
-            ],
-          ).padding(horizontal: 8),
         ),
       ),
       floatingActionButton: FloatingActionButton(
