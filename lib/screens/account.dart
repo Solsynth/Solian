@@ -59,7 +59,7 @@ class AccountScreen extends HookConsumerWidget {
       notificationUnreadCountNotifierProvider,
     );
 
-    if (!user.hasValue || user.value == null) {
+    if (user.value == null || user.value == null) {
       return _UnauthorizedAccountScreen();
     }
 
@@ -367,12 +367,23 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   ),
                 ),
                 const Gap(8),
-                TextButton(
-                  onPressed: () {
-                    context.push('/settings');
-                  },
-                  child: Text('appSettings').tr(),
-                ).center(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        context.push('/about');
+                      },
+                      child: Text('about').tr(),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        context.push('/settings');
+                      },
+                      child: Text('appSettings').tr(),
+                    ),
+                  ],
+                ),
               ],
             ),
           ).center(),

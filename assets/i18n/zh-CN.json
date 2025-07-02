@@ -532,7 +532,7 @@
   "aboutScreenContactUsTitle": "联系我们",
   "aboutScreenLicenseTitle": "许可证",
   "aboutScreenLicenseContent": "GNU Affero General Public License v3.0",
-  "aboutScreenCopyright": "版权所有 © Solsynth {}",
+  "aboutScreenCopyright": "版权所有 © 索尔辛茨 {}",
   "aboutScreenMadeWith": "由 Solar Network Team 用 ❤︎️ 制作",
   "aboutScreenFailedToLoadPackageInfo": "加载包信息失败：{error}",
   "copiedToClipboard": "已复制到剪贴板",

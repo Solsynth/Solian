@@ -221,7 +221,7 @@ class IslandApp extends HookConsumerWidget {
       Future(() {
         userNotifier.fetchUser().then((_) {
           final user = ref.watch(userInfoProvider);
-          if (user.hasValue) {
+          if (user.value != null) {
             final apiClient = ref.read(apiClientProvider);
             subscribePushNotification(apiClient);
             final wsNotifier = ref.read(websocketStateProvider.notifier);

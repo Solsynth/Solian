@@ -350,7 +350,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
     return AnimatedPositioned(
       duration: Duration(milliseconds: 1850),
       top:
-          !user.hasValue ||
+          user.value == null ||
                   user.value == null ||
                   websocketState == WebSocketState.connected()
               ? -indicatorHeight
@@ -362,7 +362,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
       child: IgnorePointer(
         child: Material(
           elevation:
-              !user.hasValue || websocketState == WebSocketState.connected()
+              user.value == null || websocketState == WebSocketState.connected()
                   ? 0
                   : 4,
           child: AnimatedContainer(

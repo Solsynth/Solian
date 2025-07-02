@@ -82,7 +82,7 @@ class EventCalanderScreen extends HookConsumerWidget {
                       ),
 
                       // Show user profile if viewing someone else's calendar
-                      if (name != 'me' && user.hasValue)
+                      if (name != 'me' && user.value != null)
                         AccountNameplate(name: name),
                     ],
                   ),
@@ -106,7 +106,7 @@ class EventCalanderScreen extends HookConsumerWidget {
                     ).padding(horizontal: 8, vertical: 4),
 
                     // Show user profile if viewing someone else's calendar
-                    if (name != 'me' && user.hasValue)
+                    if (name != 'me' && user.value != null)
                       AccountNameplate(name: name),
                     Gap(MediaQuery.of(context).padding.bottom + 16),
                   ],

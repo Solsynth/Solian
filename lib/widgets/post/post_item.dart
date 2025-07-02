@@ -56,7 +56,7 @@ class PostItem extends HookConsumerWidget {
 
     final user = ref.watch(userInfoProvider);
     final isAuthor = useMemoized(
-      () => user.hasValue && user.value?.id == item.publisher.accountId,
+      () => user.value != null && user.value?.id == item.publisher.accountId,
       [user],
     );
 

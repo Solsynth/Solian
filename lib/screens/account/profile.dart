@@ -72,6 +72,8 @@ Future<Color?> accountAppbarForcegroundColor(Ref ref, String uname) async {
 
 @riverpod
 Future<SnChatRoom?> accountDirectChat(Ref ref, String uname) async {
+  final userInfo = ref.watch(userInfoProvider);
+  if (userInfo.value == null) return null;
   final account = await ref.watch(accountProvider(uname).future);
   final apiClient = ref.watch(apiClientProvider);
   try {
@@ -87,6 +89,8 @@ Future<SnChatRoom?> accountDirectChat(Ref ref, String uname) async {
 
 @riverpod
 Future<SnRelationship?> accountRelationship(Ref ref, String uname) async {
+  final userInfo = ref.watch(userInfoProvider);
+  if (userInfo.value == null) return null;
   final account = await ref.watch(accountProvider(uname).future);
   final apiClient = ref.watch(apiClientProvider);
   try {
@@ -218,6 +222,8 @@ class AccountProfileScreen extends HookConsumerWidget {
           ),
       ];
     }
+
+    final user = ref.watch(userInfoProvider);
 
     return account.when(
       data:
@@ -379,56 +385,60 @@ class AccountProfileScreen extends HookConsumerWidget {
                   ).padding(horizontal: 24),
                 ),
 
-                SliverToBoxAdapter(
-                  child: const Divider(height: 1).padding(top: 24, bottom: 12),
-                ),
-                SliverToBoxAdapter(
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      Expanded(
-                        child: FilledButton.icon(
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(
-                              accountRelationship.value == null
-                                  ? null
-                                  : Theme.of(context).colorScheme.secondary,
-                            ),
-                            foregroundColor: WidgetStatePropertyAll(
-                              accountRelationship.value == null
-                                  ? null
-                                  : Theme.of(context).colorScheme.onSecondary,
-                            ),
-                          ),
-                          onPressed: relationshipAction,
-                          label:
-                              Text(
+                if (user.value != null)
+                  SliverToBoxAdapter(
+                    child: const Divider(
+                      height: 1,
+                    ).padding(top: 24, bottom: 12),
+                  ),
+                if (user.value != null)
+                  SliverToBoxAdapter(
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        Expanded(
+                          child: FilledButton.icon(
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStatePropertyAll(
                                 accountRelationship.value == null
-                                    ? 'addFriendShort'
-                                    : 'added',
-                              ).tr(),
-                          icon:
-                              accountRelationship.value == null
-                                  ? const Icon(Symbols.person_add)
-                                  : const Icon(Symbols.person_check),
+                                    ? null
+                                    : Theme.of(context).colorScheme.secondary,
+                              ),
+                              foregroundColor: WidgetStatePropertyAll(
+                                accountRelationship.value == null
+                                    ? null
+                                    : Theme.of(context).colorScheme.onSecondary,
+                              ),
+                            ),
+                            onPressed: relationshipAction,
+                            label:
+                                Text(
+                                  accountRelationship.value == null
+                                      ? 'addFriendShort'
+                                      : 'added',
+                                ).tr(),
+                            icon:
+                                accountRelationship.value == null
+                                    ? const Icon(Symbols.person_add)
+                                    : const Icon(Symbols.person_check),
+                          ),
                         ),
-                      ),
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: directMessageAction,
-                          icon: const Icon(Symbols.message),
-                          label:
-                              Text(
-                                accountChat.value == null
-                                    ? 'createDirectMessage'
-                                    : 'gotoDirectMessage',
-                                maxLines: 1,
-                              ).tr(),
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: directMessageAction,
+                            icon: const Icon(Symbols.message),
+                            label:
+                                Text(
+                                  accountChat.value == null
+                                      ? 'createDirectMessage'
+                                      : 'gotoDirectMessage',
+                                  maxLines: 1,
+                                ).tr(),
+                          ),
                         ),
-                      ),
-                    ],
-                  ).padding(horizontal: 16),
-                ),
+                      ],
+                    ).padding(horizontal: 16),
+                  ),
                 SliverToBoxAdapter(
                   child: const Divider(height: 1).padding(top: 12),
                 ),

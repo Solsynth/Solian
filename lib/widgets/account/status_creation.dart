@@ -59,7 +59,7 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
           },
           options: Options(method: initialStatus == null ? 'POST' : 'PATCH'),
         );
-        if (user.hasValue) {
+        if (user.value != null) {
           ref.invalidate(accountStatusProvider(user.value!.name));
         }
         if (!context.mounted) return;

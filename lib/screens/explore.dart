@@ -307,7 +307,7 @@ class _ActivityListView extends HookConsumerWidget {
 
     return CustomScrollView(
       slivers: [
-        if (user.hasValue && !contentOnly)
+        if (user.value != null && !contentOnly)
           SliverToBoxAdapter(child: CheckInWidget()),
         SliverList.builder(
           itemCount: widgetCount,
