@@ -21,11 +21,23 @@ class AccountName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var nameStyle = (style ?? TextStyle());
+    if (account.profile.stellarMembership != null) {
+      nameStyle = nameStyle.copyWith(
+        color: (switch (account.profile.stellarMembership!.identifier) {
+          'solian.stellar.primary' => Colors.blueAccent,
+          'solian.stellar.nova' => Colors.indigoAccent,
+          'solian.stellar.supernova' => Colors.amberAccent,
+          _ => null,
+        }),
+      );
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       spacing: 4,
       children: [
-        Flexible(child: Text(account.nick, style: style)),
+        Flexible(child: Text(account.nick, style: nameStyle)),
         if (account.profile.stellarMembership != null)
           StellarMembershipMark(membership: account.profile.stellarMembership!),
         if (account.profile.verification != null)
@@ -87,26 +99,13 @@ class StellarMembershipMark extends StatelessWidget {
   Color _getMembershipTierColor(String identifier) {
     switch (identifier) {
       case 'solian.stellar.primary':
-        return Colors.amber;
-      case 'solian.stellar.nova':
         return Colors.blue;
+      case 'solian.stellar.nova':
+        return Colors.indigo;
       case 'solian.stellar.supernova':
-        return Colors.purple;
+        return Colors.amber;
       default:
         return Colors.grey;
-    }
-  }
-
-  IconData _getMembershipTierIcon(String identifier) {
-    switch (identifier) {
-      case 'solian.stellar.primary':
-        return Symbols.star;
-      case 'solian.stellar.nova':
-        return Symbols.auto_awesome;
-      case 'solian.stellar.supernova':
-        return Symbols.diamond;
-      default:
-        return Symbols.workspace_premium;
     }
   }
 
@@ -116,7 +115,7 @@ class StellarMembershipMark extends StatelessWidget {
 
     final tierName = _getMembershipTierName(membership.identifier);
     final tierColor = _getMembershipTierColor(membership.identifier);
-    final tierIcon = _getMembershipTierIcon(membership.identifier);
+    final tierIcon = Symbols.award_star;
 
     return Tooltip(
       richMessage: TextSpan(
@@ -124,7 +123,7 @@ class StellarMembershipMark extends StatelessWidget {
         children: [
           TextSpan(text: '\n'),
           TextSpan(
-            text: 'currentMembership'.tr(args: [tierName]),
+            text: 'currentMembershipMember'.tr(args: [tierName]),
             style: TextStyle(fontWeight: FontWeight.normal),
           ),
         ],
