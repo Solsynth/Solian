@@ -106,7 +106,11 @@ class AttachmentPreview extends StatelessWidget {
                           style: TextStyle(color: Colors.white),
                         ),
                       Gap(6),
-                      Center(child: LinearProgressIndicator(value: progress)),
+                      Center(
+                        child: LinearProgressIndicator(
+                          value: progress != null ? progress! / 100.0 : null,
+                        ),
+                      ),
                     ],
                   ),
                 ),

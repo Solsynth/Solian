@@ -321,8 +321,15 @@ class ArticleComposeScreen extends HookConsumerWidget {
             builder: (context, attachments, _) {
               if (attachments.isEmpty) return const SizedBox.shrink();
               return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Gap(16),
+                  Text(
+                    'articleAttachmentHint'.tr(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ).padding(bottom: 8),
                   ValueListenableBuilder<Map<int, double>>(
                     valueListenable: state.attachmentProgress,
                     builder: (context, progressMap, _) {
@@ -332,8 +339,8 @@ class ArticleComposeScreen extends HookConsumerWidget {
                         children: [
                           for (var idx = 0; idx < attachments.length; idx++)
                             SizedBox(
-                              width: 120,
-                              height: 120,
+                              width: 280,
+                              height: 280,
                               child: AttachmentPreview(
                                 item: attachments[idx],
                                 progress: progressMap[idx],
@@ -358,10 +365,12 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                     delta,
                                   );
                                 },
-                                onInsert: () => ComposeLogic.insertAttachment(
-                                  state,
-                                  idx,
-                                ),
+                                onInsert:
+                                    () => ComposeLogic.insertAttachment(
+                                      ref,
+                                      state,
+                                      idx,
+                                    ),
                               ),
                             ),
                         ],

@@ -474,13 +474,14 @@ class ComposeLogic {
     state.attachments.value = clone;
   }
 
-  static void insertAttachment(ComposeState state, int index) {
+  static void insertAttachment(WidgetRef ref, ComposeState state, int index) {
     final attachment = state.attachments.value[index];
     if (!attachment.isOnCloud) {
       return;
     }
     final cloudFile = attachment.data as SnCloudFile;
-    final markdown = '![${cloudFile.name}](${cloudFile.id})';
+    final baseUrl = ref.read(serverUrlProvider);
+    final markdown = '![${cloudFile.name}]($baseUrl/files/${cloudFile.id})';
     final controller = state.contentController;
     final text = controller.text;
     final selection = controller.selection;
