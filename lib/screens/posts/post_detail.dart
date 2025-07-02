@@ -9,7 +9,6 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_quick_reply.dart';
 import 'package:island/widgets/post/post_replies.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 

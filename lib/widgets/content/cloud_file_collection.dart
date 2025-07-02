@@ -244,7 +244,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
       );
     }
 
-    String _formatFileSize(int bytes) {
+    String formatFileSize(int bytes) {
       if (bytes <= 0) return '0 B';
       if (bytes < 1024) return '$bytes B';
       if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(2)} KB';
@@ -274,7 +274,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
                     buildInfoRow(
                       Icons.storage,
                       'Size',
-                      _formatFileSize(item.size),
+                      formatFileSize(item.size),
                     ),
                     const Divider(height: 1),
                     buildInfoRow(

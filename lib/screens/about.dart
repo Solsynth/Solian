@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -12,8 +14,8 @@ class AboutScreen extends StatefulWidget {
 
 class _AboutScreenState extends State<AboutScreen> {
   PackageInfo _packageInfo = PackageInfo(
-    appName: 'Island',
-    packageName: 'com.example.island',
+    appName: 'Solian',
+    packageName: 'dev.solsynth.solian',
     version: '1.0.0',
     buildNumber: '1',
   );
@@ -38,7 +40,9 @@ class _AboutScreenState extends State<AboutScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Failed to load package info: $e';
+          _errorMessage = 'aboutScreenFailedToLoadPackageInfo'.tr(
+            args: [e.toString()],
+          );
           _isLoading = false;
         });
       }
@@ -57,7 +61,7 @@ class _AboutScreenState extends State<AboutScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('About'), elevation: 0),
+      appBar: AppBar(title: Text('about'.tr()), elevation: 0),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -88,7 +92,9 @@ class _AboutScreenState extends State<AboutScreen> {
                       ),
                     ),
                     Text(
-                      'Version ${_packageInfo.version} (${_packageInfo.buildNumber})',
+                      'aboutScreenVersionInfo'.tr(
+                        args: [_packageInfo.version, _packageInfo.buildNumber],
+                      ),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.textTheme.bodySmall?.color,
                       ),
@@ -98,24 +104,24 @@ class _AboutScreenState extends State<AboutScreen> {
                     // App Info Card
                     _buildSection(
                       context,
-                      title: 'App Information',
+                      title: 'aboutScreenAppInfoSectionTitle'.tr(),
                       children: [
                         _buildInfoItem(
                           context,
                           icon: Icons.info_outline,
-                          label: 'Package Name',
+                          label: 'aboutScreenPackageNameLabel'.tr(),
                           value: _packageInfo.packageName,
                         ),
                         _buildInfoItem(
                           context,
                           icon: Icons.update,
-                          label: 'Version',
+                          label: 'aboutScreenVersionLabel'.tr(),
                           value: _packageInfo.version,
                         ),
                         _buildInfoItem(
                           context,
                           icon: Icons.build,
-                          label: 'Build Number',
+                          label: 'aboutScreenBuildNumberLabel'.tr(),
                           value: _packageInfo.buildNumber,
                         ),
                       ],
@@ -126,12 +132,12 @@ class _AboutScreenState extends State<AboutScreen> {
                     // Links Card
                     _buildSection(
                       context,
-                      title: 'Links',
+                      title: 'aboutScreenLinksSectionTitle'.tr(),
                       children: [
                         _buildListTile(
                           context,
                           icon: Icons.privacy_tip_outlined,
-                          title: 'Privacy Policy',
+                          title: 'aboutScreenPrivacyPolicyTitle'.tr(),
                           onTap:
                               () => _launchURL(
                                 'https://solsynth.dev/terms/privacy-policy',
@@ -140,16 +146,16 @@ class _AboutScreenState extends State<AboutScreen> {
                         _buildListTile(
                           context,
                           icon: Icons.description_outlined,
-                          title: 'Terms of Service',
+                          title: 'aboutScreenTermsOfServiceTitle'.tr(),
                           onTap:
                               () => _launchURL(
-                                'https://example.com/terms/basic-law',
+                                'https://solsynth.dev/terms/basic-law',
                               ),
                         ),
                         _buildListTile(
                           context,
                           icon: Icons.code,
-                          title: 'Open Source Licenses',
+                          title: 'aboutScreenOpenSourceLicensesTitle'.tr(),
                           onTap: () {
                             showLicensePage(
                               context: context,
@@ -167,21 +173,22 @@ class _AboutScreenState extends State<AboutScreen> {
                     // Developer Info
                     _buildSection(
                       context,
-                      title: 'Developer',
+                      title: 'aboutScreenDeveloperSectionTitle'.tr(),
                       children: [
                         _buildListTile(
                           context,
                           icon: Icons.email_outlined,
-                          title: 'Contact Us',
+                          title: 'aboutScreenContactUsTitle'.tr(),
                           subtitle: 'lily@solsynth.dev',
                           onTap: () => _launchURL('mailto:lily@solsynth.dev'),
                         ),
                         _buildListTile(
                           context,
                           icon: Icons.copyright,
-                          title: 'License',
-                          subtitle:
-                              'Copyright reserved © ${DateTime.now().year} Solsynth\nGNU Affero General Public License v3.0',
+                          title: 'aboutScreenLicenseTitle'.tr(),
+                          subtitle: 'aboutScreenLicenseContent'.tr(
+                            args: [DateTime.now().year.toString()],
+                          ),
                           onTap:
                               () => _launchURL(
                                 'https://github.com/Solsynth/Solian/blob/v3/LICENSE.txt',
@@ -196,7 +203,9 @@ class _AboutScreenState extends State<AboutScreen> {
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(
-                        '© ${DateTime.now().year} ${_packageInfo.appName}. All rights reserved.',
+                        'aboutScreenCopyright'.tr(
+                          args: [DateTime.now().year.toString(), "Solsynth"],
+                        ),
                         style: theme.textTheme.bodySmall,
                         textAlign: TextAlign.center,
                       ),
@@ -264,12 +273,12 @@ class _AboutScreenState extends State<AboutScreen> {
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: value));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Copied to clipboard')),
+                  SnackBar(content: Text('copiedToClipboard'.tr())),
                 );
               },
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              tooltip: 'Copy to clipboard',
+              tooltip: 'copyToClipboardTooltip'.tr(),
             ),
         ],
       ),
@@ -283,13 +292,18 @@ class _AboutScreenState extends State<AboutScreen> {
     String? subtitle,
     required VoidCallback onTap,
   }) {
+    final multipleLines = subtitle?.contains('\n') ?? false;
     return Column(
       children: [
         ListTile(
-          leading: Icon(icon),
+          leading: Icon(icon).padding(top: multipleLines ? 8 : 0),
           title: Text(title),
           subtitle: subtitle != null ? Text(subtitle) : null,
-          trailing: const Icon(Icons.chevron_right),
+          isThreeLine: multipleLines,
+          trailing: const Icon(
+            Icons.chevron_right,
+          ).padding(top: multipleLines ? 8 : 0),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           onTap: onTap,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
           minLeadingWidth: 24,
