@@ -1,6 +1,7 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/notify.dart';
@@ -137,19 +138,19 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                       children: [
                         _buildInfoItem(
                           context,
-                          icon: Icons.info_outline,
+                          icon: Symbols.info,
                           label: 'aboutScreenPackageNameLabel'.tr(),
                           value: _packageInfo.packageName,
                         ),
                         _buildInfoItem(
                           context,
-                          icon: Icons.update,
+                          icon: Symbols.update,
                           label: 'aboutScreenVersionLabel'.tr(),
                           value: _packageInfo.version,
                         ),
                         _buildInfoItem(
                           context,
-                          icon: Icons.build,
+                          icon: Symbols.build,
                           label: 'aboutScreenBuildNumberLabel'.tr(),
                           value: _packageInfo.buildNumber,
                         ),
@@ -206,7 +207,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                       children: [
                         _buildListTile(
                           context,
-                          icon: Icons.privacy_tip_outlined,
+                          icon: Symbols.privacy_tip,
                           title: 'aboutScreenPrivacyPolicyTitle'.tr(),
                           onTap:
                               () => _launchURL(
@@ -215,7 +216,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                         ),
                         _buildListTile(
                           context,
-                          icon: Icons.description_outlined,
+                          icon: Symbols.description,
                           title: 'aboutScreenTermsOfServiceTitle'.tr(),
                           onTap:
                               () => _launchURL(
@@ -224,7 +225,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                         ),
                         _buildListTile(
                           context,
-                          icon: Icons.code,
+                          icon: Symbols.code,
                           title: 'aboutScreenOpenSourceLicensesTitle'.tr(),
                           onTap: () {
                             showLicensePage(
@@ -247,14 +248,14 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                       children: [
                         _buildListTile(
                           context,
-                          icon: Icons.email_outlined,
+                          icon: Symbols.email,
                           title: 'aboutScreenContactUsTitle'.tr(),
                           subtitle: 'lily@solsynth.dev',
                           onTap: () => _launchURL('mailto:lily@solsynth.dev'),
                         ),
                         _buildListTile(
                           context,
-                          icon: Icons.copyright,
+                          icon: Symbols.copyright,
                           title: 'aboutScreenLicenseTitle'.tr(),
                           subtitle: 'aboutScreenLicenseContent'.tr(
                             args: [DateTime.now().year.toString()],
@@ -272,14 +273,25 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                     // Copyright
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'aboutScreenCopyright'.tr(
-                          args: [DateTime.now().year.toString(), "Solsynth"],
-                        ),
-                        style: theme.textTheme.bodySmall,
-                        textAlign: TextAlign.center,
+                      child: Column(
+                        children: [
+                          Text(
+                            'aboutScreenCopyright'.tr(
+                              args: [DateTime.now().year.toString()],
+                            ),
+                            style: theme.textTheme.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                          const Gap(1),
+                          Text(
+                            'aboutScreenMadeWith'.tr(),
+                            textAlign: TextAlign.center,
+                          ).fontSize(10).opacity(0.8),
+                        ],
                       ),
                     ),
+
+                    Gap(MediaQuery.of(context).padding.bottom + 16),
                   ],
                 ),
               ),
@@ -341,7 +353,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
           ),
           if (value.startsWith('http') || value.contains('@') || copyable)
             IconButton(
-              icon: const Icon(Icons.copy, size: 16),
+              icon: const Icon(Symbols.content_copy, size: 16),
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: value));
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -373,7 +385,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
           subtitle: subtitle != null ? Text(subtitle) : null,
           isThreeLine: multipleLines,
           trailing: const Icon(
-            Icons.chevron_right,
+            Symbols.chevron_right,
           ).padding(top: multipleLines ? 8 : 0),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           onTap: onTap,
