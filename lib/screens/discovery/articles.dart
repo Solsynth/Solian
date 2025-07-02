@@ -126,16 +126,21 @@ class ArticlesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: Text(title ?? 'Articles')),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
-            sliver: SliverArticlesList(
-              feedId: feedId,
-              publisherId: publisherId,
-            ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
+                sliver: SliverArticlesList(
+                  feedId: feedId,
+                  publisherId: publisherId,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

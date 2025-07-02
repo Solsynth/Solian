@@ -51,54 +51,59 @@ class _ArticleDetailContent extends HookConsumerWidget {
     );
 
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (article.preview?.imageUrl != null)
-            Image.network(
-              article.preview!.imageUrl!,
-              width: double.infinity,
-              height: 200,
-              fit: BoxFit.cover,
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  article.title,
-                  style: Theme.of(context).textTheme.headlineSmall,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (article.preview?.imageUrl != null)
+                Image.network(
+                  article.preview!.imageUrl!,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
                 ),
-                const SizedBox(height: 8),
-                if (article.feed?.title != null)
-                  Text(
-                    article.feed!.title,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      article.title,
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                  ),
-                const Divider(height: 32),
-                if (article.content != null)
-                  ...MarkdownTextContent.buildGenerator(
-                    isDark: Theme.of(context).brightness == Brightness.dark,
-                  ).buildWidgets(markdownContent)
-                else if (article.preview?.description != null)
-                  Text(article.preview!.description!),
-                const Gap(24),
-                FilledButton(
-                  onPressed:
-                      () => launchUrlString(
-                        article.url,
-                        mode: LaunchMode.externalApplication,
+                    const SizedBox(height: 8),
+                    if (article.feed?.title != null)
+                      Text(
+                        article.feed!.title,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                  child: const Text('Read Full Article'),
+                    const Divider(height: 32),
+                    if (article.content != null)
+                      ...MarkdownTextContent.buildGenerator(
+                        isDark: Theme.of(context).brightness == Brightness.dark,
+                      ).buildWidgets(markdownContent)
+                    else if (article.preview?.description != null)
+                      Text(article.preview!.description!),
+                    const Gap(24),
+                    FilledButton(
+                      onPressed:
+                          () => launchUrlString(
+                            article.url,
+                            mode: LaunchMode.externalApplication,
+                          ),
+                      child: const Text('Read Full Article'),
+                    ),
+                    Gap(MediaQuery.of(context).padding.bottom),
+                  ],
                 ),
-                Gap(MediaQuery.of(context).padding.bottom),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
