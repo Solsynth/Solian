@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/widgets/tour/techincal_review_intro.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tour.g.dart';
@@ -12,7 +11,7 @@ part 'tour.freezed.dart';
 const kAppTourStatusKey = "app_tour_statuses";
 
 const List<Tour> kAllTours = [
-  Tour(id: 'technical_review_intro', isStartup: true),
+  // Tour(id: 'technical_review_intro', isStartup: true),
 ];
 
 @freezed
@@ -22,7 +21,7 @@ sealed class Tour with _$Tour {
   const factory Tour({required String id, required bool isStartup}) = _Tour;
 
   Widget get widget => switch (id) {
-    'technical_review_intro' => const TechicalReviewIntroWidget(),
+    // 'technical_review_intro' => const TechicalReviewIntroWidget(),
     _ => throw UnimplementedError(),
   };
 }
