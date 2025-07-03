@@ -18,10 +18,6 @@ _SnAbuseReport _$SnAbuseReportFromJson(Map<String, dynamic> json) =>
               : DateTime.parse(json['resolved_at'] as String),
       resolution: json['resolution'] as String?,
       accountId: json['account_id'] as String,
-      account:
-          json['account'] == null
-              ? null
-              : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt:
@@ -39,7 +35,6 @@ Map<String, dynamic> _$SnAbuseReportToJson(_SnAbuseReport instance) =>
       'resolved_at': instance.resolvedAt?.toIso8601String(),
       'resolution': instance.resolution,
       'account_id': instance.accountId,
-      'account': instance.account?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),

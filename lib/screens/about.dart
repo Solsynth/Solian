@@ -7,6 +7,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/udid.native.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -90,7 +91,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(title: Text('about'.tr()), elevation: 0),
       body:
           _isLoading

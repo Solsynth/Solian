@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
@@ -107,7 +108,7 @@ class _PostSearchScreenState extends ConsumerState<PostSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: TextField(
           controller: _searchController,

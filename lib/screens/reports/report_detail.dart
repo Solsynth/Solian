@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/abuse_report.dart';
+import 'package:island/models/abuse_report_type.dart';
 import 'package:island/services/abuse_report_service.dart';
+import 'package:island/widgets/app_scaffold.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class AbuseReportDetailScreen extends ConsumerStatefulWidget {
   final String reportId;
@@ -20,16 +23,15 @@ class _AbuseReportDetailScreenState
   @override
   void initState() {
     super.initState();
-    _reportFuture =
-        ref.read(abuseReportServiceProvider).getReport(widget.reportId);
+    _reportFuture = ref
+        .read(abuseReportServiceProvider)
+        .getReport(widget.reportId);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Abuse Report Details'),
-      ),
+    return AppScaffold(
+      appBar: AppBar(title: const Text('Abuse Report Details')),
       body: FutureBuilder<SnAbuseReport>(
         future: _reportFuture,
         builder: (context, snapshot) {
@@ -44,15 +46,39 @@ class _AbuseReportDetailScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Report ID: ${report.id}'),
-                  Text('Resource Identifier: ${report.resourceIdentifier}'),
-                  Text('Type: ${report.type}'),
-                  Text('Reason: ${report.reason}'),
-                  Text('Resolved At: ${report.resolvedAt}'),
-                  Text('Resolution: ${report.resolution}'),
-                  Text('Account ID: ${report.accountId}'),
-                  Text('Created At: ${report.createdAt}'),
-                  Text('Updated At: ${report.updatedAt}'),
+                  _buildDetailRow(context, 'Report ID', report.id),
+                  _buildDetailRow(
+                    context,
+                    'Resource Identifier',
+                    report.resourceIdentifier,
+                  ),
+                  _buildDetailRow(
+                    context,
+                    'Type',
+                    AbuseReportType.fromValue(report.type).displayName,
+                  ),
+                  _buildDetailRow(context, 'Reason', report.reason),
+                  _buildDetailRow(
+                    context,
+                    'Resolved At',
+                    report.resolvedAt?.toString() ?? 'N/A',
+                  ),
+                  _buildDetailRow(
+                    context,
+                    'Resolution',
+                    report.resolution ?? 'N/A',
+                  ),
+                  _buildDetailRow(context, 'Account ID', report.accountId),
+                  _buildDetailRow(
+                    context,
+                    'Created At',
+                    report.createdAt.toString(),
+                  ),
+                  _buildDetailRow(
+                    context,
+                    'Updated At',
+                    report.updatedAt.toString(),
+                  ),
                 ],
               ),
             );
@@ -60,6 +86,19 @@ class _AbuseReportDetailScreenState
             return const Center(child: Text('No data'));
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.titleMedium).bold(),
+          Text(value, style: Theme.of(context).textTheme.bodyLarge),
+        ],
       ),
     );
   }
