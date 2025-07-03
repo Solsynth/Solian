@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/webfeed.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -183,7 +184,7 @@ class WebFeedEditScreen extends HookConsumerWidget {
       }
     }, [pubName, feedId, ref, context]);
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: Text(hasFeedId ? 'Edit Web Feed' : 'New Web Feed'),
         actions: [

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/web_article_card.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -124,7 +125,7 @@ class ArticlesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(title: Text(title ?? 'Articles')),
       body: Center(
         child: ConstrainedBox(
