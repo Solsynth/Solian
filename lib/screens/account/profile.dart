@@ -143,6 +143,23 @@ class AccountProfileScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> blockAction() async {
+      showLoadingModal(context);
+      try {
+        final client = ref.watch(apiClientProvider);
+        if (accountRelationship.value == null) {
+          await client.post('/relationships/${account.value!.id}/block');
+        } else {
+          await client.delete('/relationships/${account.value!.id}/block');
+        }
+        ref.invalidate(accountRelationshipProvider(name));
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
     Future<void> directMessageAction() async {
       if (!account.hasValue) return;
       if (accountChat.value != null) {
@@ -396,33 +413,68 @@ class AccountProfileScreen extends HookConsumerWidget {
                     child: Row(
                       spacing: 8,
                       children: [
-                        Expanded(
-                          child: FilledButton.icon(
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStatePropertyAll(
-                                accountRelationship.value == null
-                                    ? null
-                                    : Theme.of(context).colorScheme.secondary,
-                              ),
-                              foregroundColor: WidgetStatePropertyAll(
-                                accountRelationship.value == null
-                                    ? null
-                                    : Theme.of(context).colorScheme.onSecondary,
-                              ),
-                            ),
-                            onPressed: relationshipAction,
-                            label:
-                                Text(
+                        if (accountRelationship.value == null ||
+                            accountRelationship.value!.status > -100)
+                          Expanded(
+                            child: FilledButton.icon(
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(
                                   accountRelationship.value == null
-                                      ? 'addFriendShort'
-                                      : 'added',
-                                ).tr(),
-                            icon:
-                                accountRelationship.value == null
-                                    ? const Icon(Symbols.person_add)
-                                    : const Icon(Symbols.person_check),
+                                      ? null
+                                      : Theme.of(context).colorScheme.secondary,
+                                ),
+                                foregroundColor: WidgetStatePropertyAll(
+                                  accountRelationship.value == null
+                                      ? null
+                                      : Theme.of(
+                                        context,
+                                      ).colorScheme.onSecondary,
+                                ),
+                              ),
+                              onPressed: relationshipAction,
+                              label:
+                                  Text(
+                                    accountRelationship.value == null
+                                        ? 'addFriendShort'
+                                        : 'added',
+                                  ).tr(),
+                              icon:
+                                  accountRelationship.value == null
+                                      ? const Icon(Symbols.person_add)
+                                      : const Icon(Symbols.person_check),
+                            ),
                           ),
-                        ),
+                        if (accountRelationship.value == null ||
+                            accountRelationship.value!.status <= -100)
+                          Expanded(
+                            child: FilledButton.icon(
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(
+                                  accountRelationship.value == null
+                                      ? null
+                                      : Theme.of(context).colorScheme.secondary,
+                                ),
+                                foregroundColor: WidgetStatePropertyAll(
+                                  accountRelationship.value == null
+                                      ? null
+                                      : Theme.of(
+                                        context,
+                                      ).colorScheme.onSecondary,
+                                ),
+                              ),
+                              onPressed: blockAction,
+                              label:
+                                  Text(
+                                    accountRelationship.value == null
+                                        ? 'blockUser'
+                                        : 'unblockUser',
+                                  ).tr(),
+                              icon:
+                                  accountRelationship.value == null
+                                      ? const Icon(Symbols.block)
+                                      : const Icon(Symbols.person_cancel),
+                            ),
+                          ),
                         Expanded(
                           child: FilledButton.icon(
                             onPressed: directMessageAction,
