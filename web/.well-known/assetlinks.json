@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "dev.solsynth.solian",
+      "sha256_cert_fingerprints": [
+        "57:0C:A4:E6:1F:57:DF:56:70:42:05:4B:43:E2:DD:9E:00:E6:77:C3:D8:3C:5F:D5:A0:05:59:30:5A:85:F9:BC"
+      ]
+    }
+  }
+]
