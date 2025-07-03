@@ -395,7 +395,7 @@ class _AccountAppbarForcegroundColorProviderElement
   String get uname => (origin as AccountAppbarForcegroundColorProvider).uname;
 }
 
-String _$accountDirectChatHash() => r'60d0015fc2a3c8fc2190bb41d6818cf3027d9d0a';
+String _$accountDirectChatHash() => r'3d28c8ba8079159f724fe3cd47bbe00db55cedcc';
 
 /// See also [accountDirectChat].
 @ProviderFor(accountDirectChat)
@@ -517,7 +517,7 @@ class _AccountDirectChatProviderElement
 }
 
 String _$accountRelationshipHash() =>
-    r'cb7d0d3f8cd4f23ad9d2d529872c540dac483d4f';
+    r'0be2420e1f6a65b8dcead9617191471924aaf232';
 
 /// See also [accountRelationship].
 @ProviderFor(accountRelationship)
