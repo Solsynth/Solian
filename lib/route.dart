@@ -11,7 +11,7 @@ import 'package:island/screens/posts/post_search.dart';
 import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/screens/tabs.dart';
 import 'package:island/screens/explore.dart';
-import 'package:island/screens/article_detail_screen.dart';
+import 'package:island/screens/discovery/article_detail.dart';
 import 'package:island/screens/account.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/screens/wallet.dart';
@@ -41,6 +41,8 @@ import 'package:island/screens/realm/realms.dart';
 import 'package:island/screens/realm/realm_detail.dart';
 import 'package:island/screens/account/event_calendar.dart';
 import 'package:island/screens/discovery/realms.dart';
+import 'package:island/screens/reports/report_detail.dart';
+import 'package:island/screens/reports/report_list.dart';
 
 // Shell route keys for nested navigation
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -256,6 +258,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/about',
             builder: (context, state) => const AboutScreen(),
+          ),
+
+          GoRoute(
+            path: '/safety/reports/me',
+            builder: (context, state) => const AbuseReportListScreen(),
+          ),
+
+          GoRoute(
+            path: '/safety/reports/me/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return AbuseReportDetailScreen(reportId: id);
+            },
           ),
 
           // Main tabs with TabsScreen shell

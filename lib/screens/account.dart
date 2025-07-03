@@ -222,8 +222,16 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('relationships').tr(),
               onTap: () {
-                context.push('/account/relationship');
+                context.push('/account/relationships');
               },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              title: Text('abuseReports').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.gavel),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () => context.push('/safety/reports/me'),
             ),
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
