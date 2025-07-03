@@ -338,7 +338,7 @@ class _ActivityListView extends HookConsumerWidget {
                             bottom: 16,
                           )
                           : null,
-                  onRefresh: (_) {
+                  onRefresh: () {
                     activitiesNotifier.forceRefresh();
                   },
                   onUpdate: (post) {
