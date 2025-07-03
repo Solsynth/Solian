@@ -576,7 +576,7 @@ class PostItem extends HookConsumerWidget {
               callback: () {
                 showAbuseReportSheet(
                   context,
-                  resourceIdentifier: 'posts:${item.id}',
+                  resourceIdentifier: 'post/${item.id}',
                 );
               },
             ),

@@ -22,6 +22,7 @@ import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -475,22 +476,46 @@ class AccountProfileScreen extends HookConsumerWidget {
                                       : const Icon(Symbols.person_cancel),
                             ),
                           ),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: directMessageAction,
-                            icon: const Icon(Symbols.message),
-                            label:
-                                Text(
-                                  accountChat.value == null
-                                      ? 'createDirectMessage'
-                                      : 'gotoDirectMessage',
-                                  maxLines: 1,
-                                ).tr(),
-                          ),
-                        ),
                       ],
                     ).padding(horizontal: 16),
                   ),
+                SliverToBoxAdapter(
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: directMessageAction,
+                          icon: const Icon(Symbols.message),
+                          label:
+                              Text(
+                                accountChat.value == null
+                                    ? 'createDirectMessage'
+                                    : 'gotoDirectMessage',
+                                maxLines: 1,
+                              ).tr(),
+                        ),
+                      ),
+                      IconButton.filled(
+                        onPressed: () {
+                          showAbuseReportSheet(
+                            context,
+                            resourceIdentifier: 'account/${data.id}',
+                          );
+                        },
+                        icon: Icon(
+                          Symbols.flag,
+                          color: Theme.of(context).colorScheme.onError,
+                        ),
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(
+                            Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ).padding(horizontal: 16, top: 4),
+                ),
                 SliverToBoxAdapter(
                   child: const Divider(height: 1).padding(top: 12),
                 ),
