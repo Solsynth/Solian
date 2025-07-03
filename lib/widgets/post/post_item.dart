@@ -384,7 +384,12 @@ class PostItem extends HookConsumerWidget {
                         // Show truncation hint if post is truncated
                         if (item.isTruncated && !isFullPost && item.type != 1)
                           _PostTruncateHint().padding(
-                            bottom: item.attachments.isNotEmpty ? 8 : null,
+                            bottom:
+                                (item.attachments.isNotEmpty ||
+                                        item.repliedPost != null ||
+                                        item.forwardedPost != null)
+                                    ? 8
+                                    : null,
                           ),
                         if ((item.repliedPost != null ||
                                 item.forwardedPost != null) &&
