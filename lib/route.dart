@@ -414,7 +414,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const LevelingScreen(),
                   ),
                   GoRoute(
-                    path: '/account/settings',
+                    path: '/account/me/settings',
                     builder: (context, state) => const AccountSettingsScreen(),
                   ),
                 ],

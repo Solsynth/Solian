@@ -336,7 +336,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   child: Card(
                     child: InkWell(
                       onTap: () {
-                        context.push('/auth/create');
+                        context.push('/auth/create-account');
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(16),
