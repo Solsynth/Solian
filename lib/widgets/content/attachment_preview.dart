@@ -29,9 +29,12 @@ class AttachmentPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var ratio =
+        (item.isOnCloud ? (item.data.fileMeta?['ratio'] ?? 1) : 1).toDouble();
+    if (ratio == 0) ratio = 1.0;
+
     return AspectRatio(
-      aspectRatio:
-          (item.isOnCloud ? (item.data.fileMeta?['ratio'] ?? 1) : 1).toDouble(),
+      aspectRatio: ratio,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Stack(

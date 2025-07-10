@@ -27,20 +27,19 @@ class CloudFileWidget extends ConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/api/files/${item.id}';
 
+    var ratio = (item.fileMeta?['ratio'] ?? 1).toDouble();
+    if (ratio == 0) ratio = 1.0;
     final content = switch (item.mimeType?.split('/').firstOrNull) {
       "image" => AspectRatio(
-        aspectRatio: (item.fileMeta?['ratio'] ?? 1).toDouble(),
+        aspectRatio: ratio,
         child: UniversalImage(
           uri: uri,
           blurHash: noBlurhash ? null : item.fileMeta?['blur'],
         ),
       ),
       "video" => AspectRatio(
-        aspectRatio: (item.fileMeta?['ratio'] ?? 16 / 9).toDouble(),
-        child: UniversalVideo(
-          uri: uri,
-          aspectRatio: (item.fileMeta?['ratio'] ?? 16 / 9).toDouble(),
-        ),
+        aspectRatio: ratio,
+        child: UniversalVideo(uri: uri, aspectRatio: ratio),
       ),
       _ => Text('Unable render for ${item.mimeType}'),
     };
