@@ -44,7 +44,7 @@ class AudioCallButton extends HookConsumerWidget {
       try {
         await apiClient.post('/chat/realtime/$roomId');
         if (context.mounted) {
-          context.push('/chat/call/$roomId');
+          context.push('/chat/$roomId/call');
         }
       } catch (e) {
         showErrorAlert(e);
