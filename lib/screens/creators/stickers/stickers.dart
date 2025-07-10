@@ -28,7 +28,7 @@ class StickersScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             onPressed: () {
-              context.push('/creators/stickers/new?pubName=pubName').then((
+              context.push('/creators/stickers/new?pubName=$pubName').then((
                 value,
               ) {
                 if (value != null) {
