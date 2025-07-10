@@ -70,7 +70,7 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
 
     return Video(
       controller: _videoController!,
-      aspectRatio: widget.aspectRatio,
+      aspectRatio: widget.aspectRatio != 1 ? widget.aspectRatio : null,
       controls:
           !kIsWeb && (Platform.isAndroid || Platform.isIOS)
               ? MaterialVideoControls

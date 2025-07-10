@@ -16,10 +16,10 @@ PODS:
   - Firebase/Messaging (11.15.0):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 11.15.0)
-  - firebase_core (3.15.0):
+  - firebase_core (3.15.1):
     - Firebase/CoreOnly (~> 11.15.0)
     - FlutterMacOS
-  - firebase_messaging (15.2.8):
+  - firebase_messaging (15.2.9):
     - Firebase/CoreOnly (~> 11.15.0)
     - Firebase/Messaging (~> 11.15.0)
     - firebase_core
@@ -292,8 +292,8 @@ SPEC CHECKSUMS:
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_selector_macos: 6280b52b459ae6c590af5d78fc35c7267a3c4b31
   Firebase: d99ac19b909cd2c548339c2241ecd0d1599ab02e
-  firebase_core: 177f51be1650b15d2d5b9f1abf48792619288070
-  firebase_messaging: 8748a5d4bb435993cffa7f5501292f3e914a23d7
+  firebase_core: 8dc569d17b3a9fc3ee5ebc21b322411b4a796833
+  firebase_messaging: adaf7fc22897a7aa49410d15f8a595bef2dbca2d
   FirebaseCore: efb3893e5b94f32b86e331e3bd6dadf18b66568e
   FirebaseCoreInternal: 9afa45b1159304c963da48addb78275ef701c6b4
   FirebaseInstallations: 317270fec08a5d418fdbc8429282238cab3ac843
@@ -310,7 +310,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
   livekit_client: c9d9f41996f5cf22b9ba0e8483e6af4ca5094059
-  local_auth_darwin: 553ce4f9b16d3fdfeafce9cf042e7c9f77c1c391
+  local_auth_darwin: d2e8c53ef0c4f43c646462e3415432c4dab3ae19
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
