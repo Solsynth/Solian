@@ -25,7 +25,7 @@ class CloudFileWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/files/${item.id}';
+    final uri = '$serverUrl/api/files/${item.id}';
 
     final content = switch (item.mimeType?.split('/').firstOrNull) {
       "image" => AspectRatio(
@@ -71,7 +71,7 @@ class CloudImageWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/files/${file?.id ?? fileId}';
+    final uri = '$serverUrl/api/files/${file?.id ?? fileId}';
 
     return AspectRatio(
       aspectRatio: aspectRatio,
@@ -87,7 +87,7 @@ class CloudImageWidget extends ConsumerWidget {
     required String serverUrl,
     bool original = false,
   }) {
-    final uri = '$serverUrl/files/$fileId?original=$original';
+    final uri = '$serverUrl/api/files/$fileId?original=$original';
     return CachedNetworkImageProvider(uri);
   }
 }
@@ -110,7 +110,7 @@ class ProfilePictureWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/files/${file?.id ?? fileId}';
+    final uri = '$serverUrl/api/files/${file?.id ?? fileId}';
 
     return ClipRRect(
       borderRadius: BorderRadius.all(Radius.circular(radius)),
@@ -303,7 +303,7 @@ class SplitAvatarWidget extends ConsumerWidget {
     }
 
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/files/$fileId';
+    final uri = '$serverUrl/api/files/$fileId';
 
     return SizedBox(
       width: radius,
