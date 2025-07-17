@@ -1,27 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'chat_summary.dart';
+part of 'captcha.config.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$chatSummaryHash() => r'87a10e4cefa37dc5fa8eadb175ef1b2bed6070bf';
+String _$captchaUrlHash() => r'627caa2f2eb020a28a4b138122fe8e99915185f9';
 
-/// See also [ChatSummary].
-@ProviderFor(ChatSummary)
-final chatSummaryProvider = AutoDisposeAsyncNotifierProvider<
-  ChatSummary,
-  Map<String, SnChatSummary>
->.internal(
-  ChatSummary.new,
-  name: r'chatSummaryProvider',
+/// See also [captchaUrl].
+@ProviderFor(captchaUrl)
+final captchaUrlProvider = AutoDisposeFutureProvider<String>.internal(
+  captchaUrl,
+  name: r'captchaUrlProvider',
   debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$chatSummaryHash,
+      const bool.fromEnvironment('dart.vm.product') ? null : _$captchaUrlHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$ChatSummary = AutoDisposeAsyncNotifier<Map<String, SnChatSummary>>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CaptchaUrlRef = AutoDisposeFutureProviderRef<String>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

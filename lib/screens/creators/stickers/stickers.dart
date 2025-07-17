@@ -28,7 +28,7 @@ class StickersScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             onPressed: () {
-              context.push('/creators/stickers/new?pubName=$pubName').then((
+              context.pushNamed('creatorStickerPackNew', queryParameters: {'pubName': pubName}).then((
                 value,
               ) {
                 if (value != null) {
@@ -71,7 +71,7 @@ class SliverStickerPacksList extends HookConsumerWidget {
                 subtitle: Text(sticker.description),
                 trailing: const Icon(Symbols.chevron_right),
                 onTap: () {
-                  context.push('/creators/$pubName/stickers/${sticker.id}');
+                  context.pushNamed('creatorStickerPackDetail', pathParameters: {'pubName': pubName, 'packId': sticker.id});
                 },
               );
             },

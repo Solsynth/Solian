@@ -6,7 +6,7 @@ part of 'publishers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$publishersManagedHash() => r'1ea611c8d45c46002976c99bf4ee7f60bd6dbf8e';
+String _$publishersManagedHash() => r'ea83759fed9bd5119738b4d09f12b4476959e0a3';
 
 /// See also [publishersManaged].
 @ProviderFor(publishersManaged)
@@ -25,7 +25,7 @@ final publishersManagedProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef PublishersManagedRef = AutoDisposeFutureProviderRef<List<SnPublisher>>;
-String _$publisherHash() => r'd66f2efba7ae449b9b460a4da34ce48cf3b16fe5';
+String _$publisherHash() => r'18fb5c6b3d79dd8af4fbee108dec1a0e8a034038';
 
 /// Copied from Dart SDK
 class _SystemHash {

@@ -3,6 +3,7 @@
 import 'dart:ui_web' as ui;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/screens/auth/captcha.config.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class CaptchaScreen extends ConsumerStatefulWidget {
 class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
   bool _isInitialized = false;
 
-  void _setupWebListener(String serverUrl) {
+  void _setupWebListener(String serverUrl) async {
     web.window.onMessage.listen((event) {
       if (event.data != null && event.data is String) {
         final message = event.data as String;
@@ -29,9 +30,11 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
       }
     });
 
+    final captchaUrl = await ref.watch(captchaUrlProvider.future);
+
     final iframe =
         web.HTMLIFrameElement()
-          ..src = '$serverUrl/auth/captcha'
+          ..src = captchaUrl
           ..style.border = 'none'
           ..width = '100%'
           ..height = '100%';

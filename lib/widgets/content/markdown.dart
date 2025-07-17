@@ -80,7 +80,9 @@ class MarkdownTextContent extends HookConsumerWidget {
               final url = Uri.tryParse(href);
               if (url != null) {
                 if (url.scheme == 'solian') {
-                  context.push(['', url.host, ...url.pathSegments].join('/'));
+                  if (url.host == 'account') {
+                    context.pushNamed('accountProfile', pathParameters: {'name': url.pathSegments[0]});
+                  }
                   return;
                 }
                 final whitelistDomains = ['solian.app', 'solsynth.dev'];

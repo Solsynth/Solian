@@ -135,7 +135,7 @@ class AccountProfileScreen extends HookConsumerWidget {
       showLoadingModal(context);
       try {
         final client = ref.watch(apiClientProvider);
-        await client.post('/relationships/${account.value!.id}/friends');
+        await client.post('/id/relationships/${account.value!.id}/friends');
         ref.invalidate(accountRelationshipProvider(name));
       } catch (err) {
         showErrorAlert(err);
@@ -149,9 +149,9 @@ class AccountProfileScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         if (accountRelationship.value == null) {
-          await client.post('/relationships/${account.value!.id}/block');
+          await client.post('/id/relationships/${account.value!.id}/block');
         } else {
-          await client.delete('/relationships/${account.value!.id}/block');
+          await client.delete('/id/relationships/${account.value!.id}/block');
         }
         ref.invalidate(accountRelationshipProvider(name));
       } catch (err) {
@@ -164,7 +164,10 @@ class AccountProfileScreen extends HookConsumerWidget {
     Future<void> directMessageAction() async {
       if (!account.hasValue) return;
       if (accountChat.value != null) {
-        context.push('/chat/${accountChat.value!.id}');
+        context.pushNamed(
+          'chatRoom',
+          pathParameters: {'id': accountChat.value!.id},
+        );
         return;
       }
       showLoadingModal(context);
@@ -175,7 +178,9 @@ class AccountProfileScreen extends HookConsumerWidget {
           data: {'related_user_id': account.value!.id},
         );
         final chat = SnChatRoom.fromJson(resp.data);
-        if (context.mounted) context.push('/chat/${chat.id}');
+        if (context.mounted) {
+          context.pushNamed('chatRoom', pathParameters: {'id': chat.id});
+        }
         ref.invalidate(accountDirectChatProvider(name));
       } catch (err) {
         showErrorAlert(err);

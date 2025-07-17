@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -47,6 +46,148 @@ class $WebSocketStateCopyWith<$Res>  {
 $WebSocketStateCopyWith(WebSocketState _, $Res Function(WebSocketState) __);
 }
 
+
+/// Adds pattern-matching-related methods to [WebSocketState].
+extension WebSocketStatePatterns on WebSocketState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Connected value)?  connected,TResult Function( _Connecting value)?  connecting,TResult Function( _Disconnected value)?  disconnected,TResult Function( _Error value)?  error,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Connected() when connected != null:
+return connected(_that);case _Connecting() when connecting != null:
+return connecting(_that);case _Disconnected() when disconnected != null:
+return disconnected(_that);case _Error() when error != null:
+return error(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Connected value)  connected,required TResult Function( _Connecting value)  connecting,required TResult Function( _Disconnected value)  disconnected,required TResult Function( _Error value)  error,}){
+final _that = this;
+switch (_that) {
+case _Connected():
+return connected(_that);case _Connecting():
+return connecting(_that);case _Disconnected():
+return disconnected(_that);case _Error():
+return error(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Connected value)?  connected,TResult? Function( _Connecting value)?  connecting,TResult? Function( _Disconnected value)?  disconnected,TResult? Function( _Error value)?  error,}){
+final _that = this;
+switch (_that) {
+case _Connected() when connected != null:
+return connected(_that);case _Connecting() when connecting != null:
+return connecting(_that);case _Disconnected() when disconnected != null:
+return disconnected(_that);case _Error() when error != null:
+return error(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  connected,TResult Function()?  connecting,TResult Function()?  disconnected,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Connected() when connected != null:
+return connected();case _Connecting() when connecting != null:
+return connecting();case _Disconnected() when disconnected != null:
+return disconnected();case _Error() when error != null:
+return error(_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  connected,required TResult Function()  connecting,required TResult Function()  disconnected,required TResult Function( String message)  error,}) {final _that = this;
+switch (_that) {
+case _Connected():
+return connected();case _Connecting():
+return connecting();case _Disconnected():
+return disconnected();case _Error():
+return error(_that.message);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  connected,TResult? Function()?  connecting,TResult? Function()?  disconnected,TResult? Function( String message)?  error,}) {final _that = this;
+switch (_that) {
+case _Connected() when connected != null:
+return connected();case _Connecting() when connecting != null:
+return connecting();case _Disconnected() when disconnected != null:
+return disconnected();case _Error() when error != null:
+return error(_that.message);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 
@@ -305,6 +446,130 @@ as String?,
 
 }
 
+
+/// Adds pattern-matching-related methods to [WebSocketPacket].
+extension WebSocketPacketPatterns on WebSocketPacket {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _WebSocketPacket value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _WebSocketPacket() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _WebSocketPacket value)  $default,){
+final _that = this;
+switch (_that) {
+case _WebSocketPacket():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _WebSocketPacket value)?  $default,){
+final _that = this;
+switch (_that) {
+case _WebSocketPacket() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  Map<String, dynamic>? data,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _WebSocketPacket() when $default != null:
+return $default(_that.type,_that.data,_that.errorMessage);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  Map<String, dynamic>? data,  String? errorMessage)  $default,) {final _that = this;
+switch (_that) {
+case _WebSocketPacket():
+return $default(_that.type,_that.data,_that.errorMessage);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  Map<String, dynamic>? data,  String? errorMessage)?  $default,) {final _that = this;
+switch (_that) {
+case _WebSocketPacket() when $default != null:
+return $default(_that.type,_that.data,_that.errorMessage);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

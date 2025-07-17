@@ -25,7 +25,7 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/accounts/me/contacts/${contact.id}');
+        await client.delete('/id/accounts/me/contacts/${contact.id}');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -38,7 +38,7 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/accounts/me/contacts/${contact.id}/verify');
+        await client.post('/id/accounts/me/contacts/${contact.id}/verify');
         if (context.mounted) {
           showSnackBar('contactMethodVerificationSent'.tr());
         }
@@ -53,7 +53,7 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/accounts/me/contacts/${contact.id}/primary');
+        await client.post('/id/accounts/me/contacts/${contact.id}/primary');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);

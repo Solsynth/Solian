@@ -687,7 +687,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
-              context.push('/chat/$id/detail');
+              context.pushNamed('chatDetail', pathParameters: {'id': id});
             },
           ),
           const Gap(8),

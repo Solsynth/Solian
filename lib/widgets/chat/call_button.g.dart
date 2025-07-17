@@ -6,7 +6,7 @@ part of 'call_button.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$ongoingCallHash() => r'ab7337bcd4d766897bd6d6a38f418c6bdd15eb94';
+String _$ongoingCallHash() => r'48031badb79efa07aefb3a4fc51635be457bd3f9';
 
 /// Copied from Dart SDK
 class _SystemHash {

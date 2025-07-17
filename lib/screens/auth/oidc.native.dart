@@ -120,7 +120,7 @@ class _OidcScreenState extends ConsumerState<OidcScreen> {
                       final queryParams = url.queryParameters;
 
                       // Check if we're on the token page
-                      if (path.endsWith('/auth/callback')) {
+                      if (path.endsWith('/id/auth/callback')) {
                         // Extract token from URL
                         final challenge = queryParams['challenge'];
                         // Return the token and close the webview

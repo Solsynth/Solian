@@ -9,10 +9,10 @@ part 'event_calendar.g.dart';
 class EventCalendarQuery {
   /// Username to fetch calendar for, null means current user ('me')
   final String? uname;
-  
+
   /// Year to fetch calendar for
   final int year;
-  
+
   /// Month to fetch calendar for
   final int month;
 
@@ -43,11 +43,9 @@ Future<List<SnEventCalendarEntry>> eventCalendar(
   EventCalendarQuery query,
 ) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/accounts/${query.uname ?? 'me'}/calendar', 
-    queryParameters: {
-      'year': query.year,
-      'month': query.month,
-    },
+  final resp = await client.get(
+    '/id/accounts/${query.uname ?? 'me'}/calendar',
+    queryParameters: {'year': query.year, 'month': query.month},
   );
   return resp.data
       .map((e) => SnEventCalendarEntry.fromJson(e))

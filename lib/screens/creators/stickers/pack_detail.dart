@@ -74,7 +74,7 @@ class StickerPackDetailScreen extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Symbols.add_circle),
             onPressed: () {
-              context.push('/creators/stickers/$id/new').then((
+              context.pushNamed('creatorStickerNew', pathParameters: {'packId': id}).then((
                 value,
               ) {
                 if (value != null) {
@@ -173,9 +173,9 @@ class StickerPackDetailScreen extends HookConsumerWidget {
                                         title: 'edit'.tr(),
                                         image: MenuImage.icon(Symbols.edit),
                                         callback: () {
-                                          context
-                                              .push(
-                                                '/creators/stickers/$id/edit/${sticker.id}',
+                                          context.pushNamed(
+                                                'creatorStickerEdit',
+                                                pathParameters: {'packId': id, 'id': sticker.id},
                                               )
                                               .then((value) {
                                                 if (value != null) {

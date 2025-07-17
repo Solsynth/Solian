@@ -389,7 +389,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
             if ((chatIdentity.value?.role ?? 0) >= 50)
               PopupMenuItem(
                 onTap: () {
-                  context.pushReplacement('/chat/$id/edit');
+                  context.pushReplacement('/sphere/chat/$id/edit');
                 },
                 child: Row(
                   children: [
@@ -421,7 +421,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                   ).then((confirm) {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
-                      client.delete('/chat/$id');
+                      client.delete('/sphere/chat/$id');
                       ref.invalidate(chatroomsJoinedProvider);
                       if (context.mounted) {
                         context.pop();
@@ -454,7 +454,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                   ).then((confirm) {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
-                      client.delete('/chat/$id/members/me');
+                      client.delete('/sphere/chat/$id/members/me');
                       ref.invalidate(chatroomsJoinedProvider);
                       if (context.mounted) {
                         context.pop();

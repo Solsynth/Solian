@@ -10,7 +10,7 @@ final webFeedListProvider = FutureProvider.family<List<SnWebFeed>, String>((
   pubName,
 ) async {
   final client = ref.watch(apiClientProvider);
-  final response = await client.get('/publishers/$pubName/feeds');
+  final response = await client.get('/sphere/publishers/$pubName/feeds');
   return (response.data as List)
       .map((json) => SnWebFeed.fromJson(json))
       .toList();
@@ -72,7 +72,7 @@ class WebFeedNotifier
     state = const AsyncValue.loading();
     try {
       final client = ref.read(apiClientProvider);
-      await client.delete('/publishers/${arg.pubName}/feeds/$feedId');
+      await client.delete('/sphere/publishers/${arg.pubName}/feeds/$feedId');
       state = AsyncValue.data(
         SnWebFeed(
           id: '',

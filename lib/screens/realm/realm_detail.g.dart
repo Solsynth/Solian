@@ -155,7 +155,7 @@ class _RealmAppbarForegroundColorProviderElement
       (origin as RealmAppbarForegroundColorProvider).realmSlug;
 }
 
-String _$realmIdentityHash() => r'308d43eef8a6145c762d27bdf7e12e27149524db';
+String _$realmIdentityHash() => r'c5e2977d243260947b919bc27146c134e34f0db1';
 
 /// See also [realmIdentity].
 @ProviderFor(realmIdentity)
@@ -276,7 +276,7 @@ class _RealmIdentityProviderElement
   String get realmSlug => (origin as RealmIdentityProvider).realmSlug;
 }
 
-String _$realmChatRoomsHash() => r'8207c1e6f0922323967f208efeed027e943039cc';
+String _$realmChatRoomsHash() => r'5f199906fb287b109e2a2d2a81dcb6675bdcb816';
 
 /// See also [realmChatRooms].
 @ProviderFor(realmChatRooms)

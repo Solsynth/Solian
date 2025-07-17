@@ -37,7 +37,7 @@ class CustomAppsScreen extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Symbols.add),
             onPressed: () {
-              context.push('/developers/$publisherName/apps/new');
+              context.pushNamed('developerAppNew', pathParameters: {'name': publisherName});
             },
           ),
         ],
@@ -121,9 +121,7 @@ class CustomAppsScreen extends HookConsumerWidget {
                               ],
                           onSelected: (value) {
                             if (value == 'edit') {
-                              context.push(
-                                '/developers/$publisherName/apps/${app.id}',
-                              );
+                              context.pushNamed('developerAppEdit', pathParameters: {'name': publisherName, 'id': app.id});
                             } else if (value == 'delete') {
                               showConfirmAlert(
                                 'deleteCustomAppHint'.tr(),

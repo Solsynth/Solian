@@ -43,7 +43,9 @@ Future<Color?> realmAppbarForegroundColor(Ref ref, String realmSlug) async {
 Future<SnRealmMember?> realmIdentity(Ref ref, String realmSlug) async {
   try {
     final apiClient = ref.watch(apiClientProvider);
-    final response = await apiClient.get('/realms/$realmSlug/members/me');
+    final response = await apiClient.get(
+      '/sphere/realms/$realmSlug/members/me',
+    );
     return SnRealmMember.fromJson(response.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -56,7 +58,7 @@ Future<SnRealmMember?> realmIdentity(Ref ref, String realmSlug) async {
 @riverpod
 Future<List<SnChatRoom>> realmChatRooms(Ref ref, String realmSlug) async {
   final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/realms/$realmSlug/chat');
+  final response = await apiClient.get('/sphere/realms/$realmSlug/chat');
   return (response.data as List).map((e) => SnChatRoom.fromJson(e)).toList();
 }
 
@@ -211,7 +213,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                             return ChatRoomListTile(
                               room: rooms[index],
                               onTap: () {
-                                context.push('/chat/${rooms[index].id}');
+                                context.pushNamed('chatRoom', pathParameters: {'id': rooms[index].id});
                               },
                             );
                           }, childCount: rooms.length),
@@ -249,7 +251,7 @@ class _RealmActionMenu extends HookConsumerWidget {
             if (isModerator)
               PopupMenuItem(
                 onTap: () {
-                  context.pushReplacement('/realms/$realmSlug/edit');
+                  context.pushReplacement('/sphere/realms/$realmSlug/edit');
                 },
                 child: Row(
                   children: [
@@ -284,7 +286,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                               ).then((confirm) {
                                 if (confirm) {
                                   final client = ref.watch(apiClientProvider);
-                                  client.delete('/realms/$realmSlug');
+                                  client.delete('/sphere/realms/$realmSlug');
                                   ref.invalidate(realmsJoinedProvider);
                                   if (context.mounted) {
                                     context.pop(true);
@@ -356,7 +358,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                       ).then((confirm) {
                         if (confirm) {
                           final client = ref.watch(apiClientProvider);
-                          client.delete('/realms/$realmSlug/members/me');
+                          client.delete('/sphere/realms/$realmSlug/members/me');
                           ref.invalidate(realmsJoinedProvider);
                           if (context.mounted) {
                             context.pop(true);

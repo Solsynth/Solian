@@ -14,7 +14,7 @@ class RealmTile extends HookConsumerWidget {
       leading: ProfilePictureWidget(file: realm.picture),
       title: Text(realm.name),
       subtitle: Text(realm.description),
-      onTap: () => context.push('/realms/${realm.slug}'),
+      onTap: () => context.pushNamed('realmDetail', pathParameters: {'slug': realm.slug}),
     );
   }
 }

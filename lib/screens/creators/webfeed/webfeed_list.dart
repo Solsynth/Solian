@@ -20,7 +20,7 @@ class WebFeedListScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Symbols.add),
         onPressed: () {
-          context.push('/creators/$pubName/feeds/new');
+          context.pushNamed('creatorFeedNew', pathParameters: {'name': pubName});
         },
       ),
       body: feedsAsync.when(
@@ -62,7 +62,7 @@ class WebFeedListScreen extends ConsumerWidget {
                     ),
                     trailing: const Icon(Symbols.chevron_right),
                     onTap: () {
-                      context.push('/creators/$pubName/feeds/${feed.id}');
+                      context.pushNamed('creatorFeedEdit', pathParameters: {'name': pubName, 'feedId': feed.id});
                     },
                   ),
                 );

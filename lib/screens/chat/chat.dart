@@ -165,7 +165,7 @@ class ChatRoomListTile extends HookConsumerWidget {
 @riverpod
 Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/chat');
+  final resp = await client.get('/sphere/chat');
   return resp.data
       .map((e) => SnChatRoom.fromJson(e))
       .cast<SnChatRoom>()
@@ -233,7 +233,10 @@ class ChatListScreen extends HookConsumerWidget {
       if (result == null) return;
       final client = ref.read(apiClientProvider);
       try {
-        await client.post('/chat/direct', data: {'related_user_id': result.id});
+        await client.post(
+          '/sphere/chat/direct',
+          data: {'related_user_id': result.id},
+        );
         ref.invalidate(chatroomsJoinedProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -319,7 +322,7 @@ class ChatListScreen extends HookConsumerWidget {
                       leading: const Icon(Symbols.add),
                       onTap: () {
                         Navigator.pop(context);
-                        context.push('/chat/new').then((value) {
+                        context.pushNamed('chatNew').then((value) {
                           if (value != null) {
                             ref.invalidate(chatroomsJoinedProvider);
                           }
@@ -400,7 +403,10 @@ class ChatListScreen extends HookConsumerWidget {
                               room: item,
                               isDirect: item.type == 1,
                               onTap: () {
-                                context.push('/chat/${item.id}');
+                                context.pushNamed(
+                                  'chatRoom',
+                                  pathParameters: {'id': item.id},
+                                );
                               },
                             );
                           },
@@ -436,7 +442,7 @@ Future<SnChatRoom?> chatroom(Ref ref, String? identifier) async {
   if (identifier == null) return null;
   try {
     final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/chat/$identifier');
+    final resp = await client.get('/sphere/chat/$identifier');
     return SnChatRoom.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -451,7 +457,7 @@ Future<SnChatMember?> chatroomIdentity(Ref ref, String? identifier) async {
   if (identifier == null) return null;
   try {
     final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/chat/$identifier/members/me');
+    final resp = await client.get('/sphere/chat/$identifier/members/me');
     return SnChatMember.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -575,7 +581,7 @@ class EditChatScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         final resp = await client.request(
-          id == null ? '/chat' : '/chat/$id',
+          id == null ? '/sphere/chat' : '/sphere/chat/$id',
           data: {
             'name': nameController.text,
             'description': descriptionController.text,
@@ -731,7 +737,7 @@ class EditChatScreen extends HookConsumerWidget {
 @riverpod
 Future<List<SnChatMember>> chatroomInvites(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/chat/invites');
+  final resp = await client.get('/sphere/chat/invites');
   return resp.data
       .map((e) => SnChatMember.fromJson(e))
       .cast<SnChatMember>()
@@ -748,7 +754,7 @@ class _ChatInvitesSheet extends HookConsumerWidget {
     Future<void> acceptInvite(SnChatMember invite) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.post('/chat/invites/${invite.chatRoom!.id}/accept');
+        await client.post('/sphere/chat/invites/${invite.chatRoom!.id}/accept');
         ref.invalidate(chatroomInvitesProvider);
         ref.invalidate(chatroomsJoinedProvider);
       } catch (err) {
@@ -759,7 +765,9 @@ class _ChatInvitesSheet extends HookConsumerWidget {
     Future<void> declineInvite(SnChatMember invite) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.post('/chat/invites/${invite.chatRoom!.id}/decline');
+        await client.post(
+          '/sphere/chat/invites/${invite.chatRoom!.id}/decline',
+        );
         ref.invalidate(chatroomInvitesProvider);
       } catch (err) {
         showErrorAlert(err);

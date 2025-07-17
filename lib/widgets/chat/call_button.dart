@@ -16,7 +16,7 @@ Future<SnRealtimeCall?> ongoingCall(Ref ref, String roomId) async {
   if (roomId.isEmpty) return null;
   try {
     final apiClient = ref.watch(apiClientProvider);
-    final resp = await apiClient.get('/chat/realtime/$roomId');
+    final resp = await apiClient.get('/sphere/chat/realtime/$roomId');
     return SnRealtimeCall.fromJson(resp.data);
   } catch (e) {
     if (e is DioException && e.response?.statusCode == 404) {
@@ -42,9 +42,9 @@ class AudioCallButton extends HookConsumerWidget {
     Future<void> handleJoin() async {
       isLoading.value = true;
       try {
-        await apiClient.post('/chat/realtime/$roomId');
+        await apiClient.post('/sphere/chat/realtime/$roomId');
         if (context.mounted) {
-          context.push('/chat/$roomId/call');
+          context.pushNamed('chatCall', pathParameters: {'id': roomId});
         }
       } catch (e) {
         showErrorAlert(e);
@@ -56,7 +56,7 @@ class AudioCallButton extends HookConsumerWidget {
     Future<void> handleEnd() async {
       isLoading.value = true;
       try {
-        await apiClient.delete('/chat/realtime/$roomId');
+        await apiClient.delete('/sphere/chat/realtime/$roomId');
         callNotifier.dispose(); // Clean up call resources
       } catch (e) {
         showErrorAlert(e);
@@ -96,7 +96,7 @@ class AudioCallButton extends HookConsumerWidget {
         tooltip: 'Join Ongoing Call',
         onPressed: () {
           if (context.mounted) {
-            context.push('/chat/$roomId/call');
+            context.pushNamed('chatCall', pathParameters: {'id': roomId});
           }
         },
       );

@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -84,6 +83,130 @@ as DateTime?,
 
 }
 
+
+/// Adds pattern-matching-related methods to [SnEmbedLink].
+extension SnEmbedLinkPatterns on SnEmbedLink {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnEmbedLink value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnEmbedLink() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnEmbedLink value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnEmbedLink():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnEmbedLink value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnEmbedLink() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'Type')  String type, @JsonKey(name: 'Url')  String url, @JsonKey(name: 'Title')  String title, @JsonKey(name: 'Description')  String? description, @JsonKey(name: 'ImageUrl')  String? imageUrl, @JsonKey(name: 'FaviconUrl')  String faviconUrl, @JsonKey(name: 'SiteName')  String siteName, @JsonKey(name: 'ContentType')  String? contentType, @JsonKey(name: 'Author')  String? author, @JsonKey(name: 'PublishedDate')  DateTime? publishedDate)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnEmbedLink() when $default != null:
+return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUrl,_that.faviconUrl,_that.siteName,_that.contentType,_that.author,_that.publishedDate);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'Type')  String type, @JsonKey(name: 'Url')  String url, @JsonKey(name: 'Title')  String title, @JsonKey(name: 'Description')  String? description, @JsonKey(name: 'ImageUrl')  String? imageUrl, @JsonKey(name: 'FaviconUrl')  String faviconUrl, @JsonKey(name: 'SiteName')  String siteName, @JsonKey(name: 'ContentType')  String? contentType, @JsonKey(name: 'Author')  String? author, @JsonKey(name: 'PublishedDate')  DateTime? publishedDate)  $default,) {final _that = this;
+switch (_that) {
+case _SnEmbedLink():
+return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUrl,_that.faviconUrl,_that.siteName,_that.contentType,_that.author,_that.publishedDate);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'Type')  String type, @JsonKey(name: 'Url')  String url, @JsonKey(name: 'Title')  String title, @JsonKey(name: 'Description')  String? description, @JsonKey(name: 'ImageUrl')  String? imageUrl, @JsonKey(name: 'FaviconUrl')  String faviconUrl, @JsonKey(name: 'SiteName')  String siteName, @JsonKey(name: 'ContentType')  String? contentType, @JsonKey(name: 'Author')  String? author, @JsonKey(name: 'PublishedDate')  DateTime? publishedDate)?  $default,) {final _that = this;
+switch (_that) {
+case _SnEmbedLink() when $default != null:
+return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUrl,_that.faviconUrl,_that.siteName,_that.contentType,_that.author,_that.publishedDate);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()
@@ -244,6 +367,130 @@ as DateTime?,
 
 }
 
+
+/// Adds pattern-matching-related methods to [SnScrappedLink].
+extension SnScrappedLinkPatterns on SnScrappedLink {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnScrappedLink value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnScrappedLink() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnScrappedLink value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnScrappedLink():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnScrappedLink value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnScrappedLink() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String url,  String title,  String? description,  String? imageUrl,  String faviconUrl,  String siteName,  String? contentType,  String? author,  DateTime? publishedDate)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnScrappedLink() when $default != null:
+return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUrl,_that.faviconUrl,_that.siteName,_that.contentType,_that.author,_that.publishedDate);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String url,  String title,  String? description,  String? imageUrl,  String faviconUrl,  String siteName,  String? contentType,  String? author,  DateTime? publishedDate)  $default,) {final _that = this;
+switch (_that) {
+case _SnScrappedLink():
+return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUrl,_that.faviconUrl,_that.siteName,_that.contentType,_that.author,_that.publishedDate);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String url,  String title,  String? description,  String? imageUrl,  String faviconUrl,  String siteName,  String? contentType,  String? author,  DateTime? publishedDate)?  $default,) {final _that = this;
+switch (_that) {
+case _SnScrappedLink() when $default != null:
+return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUrl,_that.faviconUrl,_that.siteName,_that.contentType,_that.author,_that.publishedDate);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

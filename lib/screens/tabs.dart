@@ -19,7 +19,7 @@ class TabsScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // final useHorizontalLayout = isWideScreen(context);
     final currentLocation = GoRouterState.of(context).uri.toString();
-    
+
     // Update the current route provider whenever the location changes
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -52,17 +52,12 @@ class TabsScreen extends HookConsumerWidget {
       ),
     ];
 
-    final routes = [
-      '/',
-      '/chat',
-      '/realms',
-      '/account',
-    ];
+    final routes = ['/', '/chat', '/realms', '/account'];
 
     int getCurrentIndex() {
-      if (currentLocation.startsWith('/chat')) return 1;
-      if (currentLocation.startsWith('/realms')) return 2;
-      if (currentLocation.startsWith('/account')) return 3;
+      if (currentLocation.startsWith('/sphere/chat')) return 1;
+      if (currentLocation.startsWith('/sphere/realms')) return 2;
+      if (currentLocation.startsWith('/id/account')) return 3;
       return 0; // Default to explore
     }
 

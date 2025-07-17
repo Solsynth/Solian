@@ -6,7 +6,7 @@ part of 'settings.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authFactorsHash() => r'4bb65bc0c065c4091c209ee81e57ddef41051ae2';
+String _$authFactorsHash() => r'24fe2f7b375b019d87fc3b85cbedbe857f399c0f';
 
 /// See also [authFactors].
 @ProviderFor(authFactors)
@@ -25,7 +25,7 @@ final authFactorsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AuthFactorsRef = AutoDisposeFutureProviderRef<List<SnAuthFactor>>;
-String _$contactMethodsHash() => r'4d7952fc196dce4dc646314565a49c115fd1d292';
+String _$contactMethodsHash() => r'76a1a93f61c51c44b32b4821f5112d58406155f0';
 
 /// See also [contactMethods].
 @ProviderFor(contactMethods)
@@ -45,7 +45,7 @@ final contactMethodsProvider =
 // ignore: unused_element
 typedef ContactMethodsRef = AutoDisposeFutureProviderRef<List<SnContactMethod>>;
 String _$accountConnectionsHash() =>
-    r'38a309d596e0ea2539cd92ea86984e1e4fb346e4';
+    r'9f69e7f23e3e53c528d38b93d76f0c9efc9a83db';
 
 /// See also [accountConnections].
 @ProviderFor(accountConnections)

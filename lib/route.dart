@@ -63,6 +63,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           // Standalone routes without bottom navigation
           GoRoute(
+            name: 'postCompose',
             path: '/posts/compose',
             builder:
                 (context, state) => PostComposeScreen(
@@ -73,6 +74,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 ),
           ),
           GoRoute(
+            name: 'postEdit',
             path: '/posts/:id/edit',
             builder: (context, state) {
               final id = state.pathParameters['id']!;
@@ -80,6 +82,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
           GoRoute(
+            name: 'chatCall',
             path: '/chat/:id/call',
             builder: (context, state) {
               final id = state.pathParameters['id']!;
@@ -87,6 +90,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
           GoRoute(
+            name: 'accountCalendar',
             path: '/account/:name/calendar',
             builder: (context, state) {
               final name = state.pathParameters['name']!;
@@ -98,11 +102,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 (context, state, child) => CreatorHubShellScreen(child: child),
             routes: [
               GoRoute(
+                name: 'creatorHub',
                 path: '/creators',
                 builder: (context, state) => const CreatorHubScreen(),
               ),
               // Web Feed Routes
               GoRoute(
+                name: 'creatorFeeds',
                 path: '/creators/:name/feeds',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
@@ -110,6 +116,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
                 routes: [
                   GoRoute(
+                    name: 'creatorFeedNew',
                     path: 'new',
                     builder: (context, state) {
                       return WebFeedNewScreen(
@@ -118,6 +125,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                   GoRoute(
+                    name: 'creatorFeedEdit',
                     path: ':feedId',
                     builder: (context, state) {
                       return WebFeedEditScreen(
@@ -129,6 +137,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 ],
               ),
               GoRoute(
+                name: 'creatorPosts',
                 path: '/creators/:name/posts',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
@@ -136,6 +145,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                name: 'creatorStickers',
                 path: '/creators/:name/stickers',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
@@ -143,6 +153,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                name: 'creatorStickerPackNew',
                 path: '/creators/:name/stickers/new',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
@@ -150,6 +161,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                name: 'creatorStickerPackEdit',
                 path: '/creators/:name/stickers/:packId/edit',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
@@ -158,6 +170,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                name: 'creatorStickerPackDetail',
                 path: '/creators/:name/stickers/:packId',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
@@ -166,6 +179,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                name: 'creatorStickerNew',
                 path: '/creators/:name/stickers/:packId/new',
                 builder: (context, state) {
                   final packId = state.pathParameters['packId']!;
@@ -173,6 +187,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                name: 'creatorStickerEdit',
                 path: '/creators/:name/stickers/:packId/:id/edit',
                 builder: (context, state) {
                   final packId = state.pathParameters['packId']!;
@@ -181,10 +196,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                name: 'creatorNew',
                 path: '/creators/new',
                 builder: (context, state) => const NewPublisherScreen(),
               ),
               GoRoute(
+                name: 'creatorEdit',
                 path: '/creators/:name/edit',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
@@ -199,10 +216,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                     DeveloperHubShellScreen(child: child),
             routes: [
               GoRoute(
+                name: 'developerHub',
                 path: '/developers',
                 builder: (context, state) => const DeveloperHubScreen(),
               ),
               GoRoute(
+                name: 'developerApps',
                 path: '/developers/:name/apps',
                 builder:
                     (context, state) => CustomAppsScreen(
@@ -210,6 +229,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     ),
               ),
               GoRoute(
+                name: 'developerAppNew',
                 path: '/developers/:name/apps/new',
                 builder:
                     (context, state) => NewCustomAppScreen(
@@ -217,6 +237,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     ),
               ),
               GoRoute(
+                name: 'developerAppEdit',
                 path: '/developers/:name/apps/:id',
                 builder:
                     (context, state) => EditAppScreen(
@@ -229,10 +250,12 @@ final routerProvider = Provider<GoRouter>((ref) {
 
           // Web articles
           GoRoute(
+            name: 'articles',
             path: '/feeds/articles',
             builder: (context, state) => const ArticlesScreen(),
           ),
           GoRoute(
+            name: 'articleDetail',
             path: '/feeds/articles/:id',
             builder: (context, state) {
               final id = state.pathParameters['id']!;
@@ -242,30 +265,36 @@ final routerProvider = Provider<GoRouter>((ref) {
 
           // Auth routes
           GoRoute(
+            name: 'login',
             path: '/auth/login',
             builder: (context, state) => const LoginScreen(),
           ),
           GoRoute(
+            name: 'createAccount',
             path: '/auth/create-account',
             builder: (context, state) => const CreateAccountScreen(),
           ),
 
           // Other routes
           GoRoute(
+            name: 'settings',
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),
           ),
           GoRoute(
+            name: 'about',
             path: '/about',
             builder: (context, state) => const AboutScreen(),
           ),
 
           GoRoute(
+            name: 'reportList',
             path: '/safety/reports/me',
             builder: (context, state) => const AbuseReportListScreen(),
           ),
 
           GoRoute(
+            name: 'reportDetail',
             path: '/safety/reports/me/:id',
             builder: (context, state) {
               final id = state.pathParameters['id']!;
@@ -286,14 +315,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                     (context, state, child) => ExploreShellScreen(child: child),
                 routes: [
                   GoRoute(
+                    name: 'explore',
                     path: '/',
                     builder: (context, state) => const ExploreScreen(),
                   ),
                   GoRoute(
+                    name: 'postSearch',
                     path: '/posts/search',
                     builder: (context, state) => const PostSearchScreen(),
                   ),
                   GoRoute(
+                    name: 'postDetail',
                     path: '/posts/:id',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
@@ -301,6 +333,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                   GoRoute(
+                    name: 'publisherProfile',
                     path: '/publishers/:name',
                     builder: (context, state) {
                       final name = state.pathParameters['name']!;
@@ -308,6 +341,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                   GoRoute(
+                    name: 'discoveryRealms',
                     path: '/discovery/realms',
                     builder: (context, state) => const DiscoveryRealmsScreen(),
                   ),
@@ -320,14 +354,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                     (context, state, child) => ChatShellScreen(child: child),
                 routes: [
                   GoRoute(
+                    name: 'chatList',
                     path: '/chat',
                     builder: (context, state) => const ChatListScreen(),
                   ),
                   GoRoute(
+                    name: 'chatNew',
                     path: '/chat/new',
                     builder: (context, state) => const NewChatScreen(),
                   ),
                   GoRoute(
+                    name: 'chatRoom',
                     path: '/chat/:id',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
@@ -335,6 +372,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                   GoRoute(
+                    name: 'chatEdit',
                     path: '/chat/:id/edit',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
@@ -342,6 +380,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                   GoRoute(
+                    name: 'chatDetail',
                     path: '/chat/:id/detail',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
@@ -353,14 +392,17 @@ final routerProvider = Provider<GoRouter>((ref) {
 
               // Realms tab
               GoRoute(
+                name: 'realmList',
                 path: '/realms',
                 builder: (context, state) => const RealmListScreen(),
                 routes: [
                   GoRoute(
+                    name: 'realmNew',
                     path: 'new',
                     builder: (context, state) => const NewRealmScreen(),
                   ),
                   GoRoute(
+                    name: 'realmDetail',
                     path: ':slug',
                     builder: (context, state) {
                       final slug = state.pathParameters['slug']!;
@@ -368,6 +410,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                   GoRoute(
+                    name: 'realmEdit',
                     path: ':slug/edit',
                     builder: (context, state) {
                       final slug = state.pathParameters['slug']!;
@@ -383,22 +426,27 @@ final routerProvider = Provider<GoRouter>((ref) {
                     (context, state, child) => AccountShellScreen(child: child),
                 routes: [
                   GoRoute(
+                    name: 'account',
                     path: '/account',
                     builder: (context, state) => const AccountScreen(),
                   ),
                   GoRoute(
+                    name: 'notifications',
                     path: '/account/notifications',
                     builder: (context, state) => const NotificationScreen(),
                   ),
                   GoRoute(
+                    name: 'wallet',
                     path: '/account/wallet',
                     builder: (context, state) => const WalletScreen(),
                   ),
                   GoRoute(
+                    name: 'relationships',
                     path: '/account/relationships',
                     builder: (context, state) => const RelationshipScreen(),
                   ),
                   GoRoute(
+                    name: 'accountProfile',
                     path: '/account/:name',
                     builder: (context, state) {
                       final name = state.pathParameters['name']!;
@@ -406,14 +454,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                   GoRoute(
+                    name: 'profileUpdate',
                     path: '/account/me/update',
                     builder: (context, state) => const UpdateProfileScreen(),
                   ),
                   GoRoute(
+                    name: 'leveling',
                     path: '/account/me/leveling',
                     builder: (context, state) => const LevelingScreen(),
                   ),
                   GoRoute(
+                    name: 'accountSettings',
                     path: '/account/me/settings',
                     builder: (context, state) => const AccountSettingsScreen(),
                   ),
@@ -439,6 +490,10 @@ class AppRouter {
 
   static void push(BuildContext context, String path) {
     context.push(path);
+  }
+
+  static void pushNamed(BuildContext context, String name) {
+    context.pushNamed(name);
   }
 
   static void pop(BuildContext context) {

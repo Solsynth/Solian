@@ -30,7 +30,10 @@ class PostListNotifier extends _$PostListNotifier
       if (pubName != null) 'pub': pubName,
     };
 
-    final response = await client.get('/posts', queryParameters: queryParams);
+    final response = await client.get(
+      '/sphere/posts',
+      queryParameters: queryParams,
+    );
     final total = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
     final posts = data.map((json) => SnPost.fromJson(json)).toList();

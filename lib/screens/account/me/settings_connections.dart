@@ -74,7 +74,7 @@ class AccountConnectionSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/accounts/me/connections/${connection.id}');
+        await client.delete('/id/accounts/me/connections/${connection.id}');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);

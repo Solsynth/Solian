@@ -36,7 +36,7 @@ class NotificationUnreadCountNotifier
 
     try {
       final client = ref.read(apiClientProvider);
-      final response = await client.get('/notifications/count');
+      final response = await client.get('/pusher/notifications/count');
       return (response.data as num).toInt();
     } catch (_) {
       return 0;

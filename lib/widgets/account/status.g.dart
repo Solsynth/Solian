@@ -6,7 +6,7 @@ part of 'status.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$accountStatusHash() => r'8c3ba5242da1d1e75e3cbf1f2934ff7d5683d0d6';
+String _$accountStatusHash() => r'c861a0565d6229fd35666bba7cb2f5c6b7298e46';
 
 /// Copied from Dart SDK
 class _SystemHash {

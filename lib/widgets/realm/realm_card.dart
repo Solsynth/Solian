@@ -31,7 +31,7 @@ class RealmCard extends ConsumerWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          context.push('/realms/${realm.slug}');
+          context.pushNamed('realmDetail', pathParameters: {'slug': realm.slug});
         },
         child: AspectRatio(
           aspectRatio: 16 / 7,

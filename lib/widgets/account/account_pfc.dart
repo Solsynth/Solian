@@ -105,7 +105,7 @@ class AccountProfileCard extends HookConsumerWidget {
                       FilledButton.tonalIcon(
                         onPressed: () {
                           Navigator.pop(context);
-                          context.push('/account/${data.name}');
+                          context.pushNamed('accountProfile', pathParameters: {'name': data.name});
                         },
                         icon: const Icon(Symbols.launch),
                         label: Text('accountProfileView').tr(),

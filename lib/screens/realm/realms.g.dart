@@ -6,7 +6,7 @@ part of 'realms.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$realmsJoinedHash() => r'7c3367db97079365ec9973733cad9db6d8d50800';
+String _$realmsJoinedHash() => r'e8083f02ffae450bba2470c31757675b4df32cd0';
 
 /// See also [realmsJoined].
 @ProviderFor(realmsJoined)
@@ -22,7 +22,7 @@ final realmsJoinedProvider = AutoDisposeFutureProvider<List<SnRealm>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef RealmsJoinedRef = AutoDisposeFutureProviderRef<List<SnRealm>>;
-String _$realmHash() => r'369d2f3dd80de9ab91457a772727ee89a0759c74';
+String _$realmHash() => r'4650b17608a9ee14170ef20295eb14d295e909c9';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -156,7 +156,7 @@ class _RealmProviderElement extends AutoDisposeFutureProviderElement<SnRealm?>
   String? get identifier => (origin as RealmProvider).identifier;
 }
 
-String _$realmInvitesHash() => r'e265999a03932f8077fb95a619fd8849a215375a';
+String _$realmInvitesHash() => r'ed73443c6423b92ed72982be2a93b7dcc7ce3945';
 
 /// See also [realmInvites].
 @ProviderFor(realmInvites)

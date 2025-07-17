@@ -43,8 +43,7 @@ class PublisherModal extends HookConsumerWidget {
                                     const Gap(12),
                                     ElevatedButton(
                                       onPressed: () {
-                                        context.push('/creators/publishers/new')
-                                            .then((value) {
+                                        context.pushNamed('creatorNew').then((value) {
                                               if (value != null) {
                                                 ref.invalidate(
                                                   publishersManagedProvider,

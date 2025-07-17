@@ -17,7 +17,7 @@ class WebArticleCard extends StatelessWidget {
   });
 
   void _onTap(BuildContext context) {
-    context.push('/feeds/articles/${article.id}');
+    context.pushNamed('articleDetail', pathParameters: {'id': article.id});
   }
 
   @override

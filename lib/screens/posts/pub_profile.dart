@@ -187,7 +187,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         ),
                         onTap: () {
                           Navigator.pop(context, true);
-                          context.push('/account/${data.account?.name}');
+                          if (data.account?.name != null) {
+                            context.pushNamed('accountProfile', pathParameters: {'name': data.account!.name});
+                          }
                         },
                       ),
                       Expanded(

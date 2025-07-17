@@ -145,7 +145,7 @@ class ExploreScreen extends HookConsumerWidget {
                   ),
                   IconButton(
                     onPressed: () {
-                      context.push('/feeds/articles');
+                      context.pushNamed('articles');
                     },
                     icon: Icon(
                       Symbols.auto_stories,
@@ -155,7 +155,7 @@ class ExploreScreen extends HookConsumerWidget {
                   ),
                   IconButton(
                     onPressed: () {
-                      context.push('/posts/search');
+                      context.pushNamed('postSearch');
                     },
                     icon: Icon(
                       Symbols.search,
@@ -175,7 +175,7 @@ class ExploreScreen extends HookConsumerWidget {
       floatingActionButton: FloatingActionButton(
         heroTag: Key("explore-page-fab"),
         onPressed: () {
-          context.push('/posts/compose').then((value) {
+          context.pushNamed('postCompose').then((value) {
             if (value != null) {
               activitiesNotifier.forceRefresh();
             }
@@ -400,7 +400,7 @@ class ActivityListNotifier extends _$ActivityListNotifier
     };
 
     final response = await client.get(
-      '/activities',
+      '/sphere/activities',
       queryParameters: queryParameters,
     );
 

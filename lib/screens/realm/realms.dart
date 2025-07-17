@@ -28,7 +28,7 @@ part 'realms.g.dart';
 @riverpod
 Future<List<SnRealm>> realmsJoined(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/realms');
+  final resp = await client.get('/sphere/realms');
   return resp.data.map((e) => SnRealm.fromJson(e)).cast<SnRealm>().toList();
 }
 
@@ -48,7 +48,7 @@ class RealmListScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Symbols.travel_explore),
-            onPressed: () => context.push('/discovery/realms'),
+            onPressed: () => context.pushNamed('discoveryRealms'),
           ),
           IconButton(
             icon: Badge(
@@ -81,7 +81,7 @@ class RealmListScreen extends HookConsumerWidget {
         heroTag: const Key("realms-page-fab"),
         child: const Icon(Symbols.add),
         onPressed: () {
-          context.push('/realms/new').then((value) {
+          context.pushNamed('realmNew').then((value) {
             if (value != null) {
               ref.invalidate(realmsJoinedProvider);
             }
@@ -108,7 +108,7 @@ class RealmListScreen extends HookConsumerWidget {
                           title: Text(value[item].name),
                           subtitle: Text(value[item].description),
                           onTap: () {
-                            context.push('/realms/${value[item].slug}');
+                            context.pushNamed('realmDetail', pathParameters: {'slug': value[item].slug});
                           },
                           contentPadding: const EdgeInsets.only(
                             left: 16,
@@ -139,7 +139,7 @@ class RealmListScreen extends HookConsumerWidget {
 Future<SnRealm?> realm(Ref ref, String? identifier) async {
   if (identifier == null) return null;
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/realms/$identifier');
+  final resp = await client.get('/sphere/realms/$identifier');
   return SnRealm.fromJson(resp.data);
 }
 
@@ -406,7 +406,7 @@ class EditRealmScreen extends HookConsumerWidget {
 @riverpod
 Future<List<SnRealmMember>> realmInvites(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/realms/invites');
+  final resp = await client.get('/sphere/realms/invites');
   return resp.data
       .map((e) => SnRealmMember.fromJson(e))
       .cast<SnRealmMember>()
@@ -423,7 +423,9 @@ class _RealmInviteSheet extends HookConsumerWidget {
     Future<void> acceptInvite(SnRealmMember invite) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.post('/realms/invites/${invite.realm!.slug}/accept');
+        await client.post(
+          '/sphere/realms/invites/${invite.realm!.slug}/accept',
+        );
         ref.invalidate(realmInvitesProvider);
         ref.invalidate(realmsJoinedProvider);
       } catch (err) {
@@ -434,7 +436,9 @@ class _RealmInviteSheet extends HookConsumerWidget {
     Future<void> declineInvite(SnRealmMember invite) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.post('/realms/invites/${invite.realm!.slug}/decline');
+        await client.post(
+          '/sphere/realms/invites/${invite.realm!.slug}/decline',
+        );
         ref.invalidate(realmInvitesProvider);
       } catch (err) {
         showErrorAlert(err);

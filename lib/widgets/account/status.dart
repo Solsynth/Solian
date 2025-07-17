@@ -17,7 +17,7 @@ part 'status.g.dart';
 Future<SnAccountStatus?> accountStatus(Ref ref, String uname) async {
   final apiClient = ref.watch(apiClientProvider);
   try {
-    final resp = await apiClient.get('/accounts/$uname/statuses');
+    final resp = await apiClient.get('/id/accounts/$uname/statuses');
     return SnAccountStatus.fromJson(resp.data);
   } catch (err) {
     if (err is DioException) {

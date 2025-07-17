@@ -29,7 +29,7 @@ part 'publishers.g.dart';
 @riverpod
 Future<List<SnPublisher>> publishersManaged(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/publishers');
+  final resp = await client.get('/sphere/publishers');
   return resp.data
       .map((e) => SnPublisher.fromJson(e))
       .cast<SnPublisher>()
@@ -40,7 +40,7 @@ Future<List<SnPublisher>> publishersManaged(Ref ref) async {
 Future<SnPublisher?> publisher(Ref ref, String? identifier) async {
   if (identifier == null) return null;
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/publishers/$identifier');
+  final resp = await client.get('/sphere/publishers/$identifier');
   return SnPublisher.fromJson(resp.data);
 }
 

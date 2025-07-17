@@ -178,7 +178,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
       // Navigate to compose screen
       if (mounted) {
-        context.push('/posts/compose', extra: initialState);
+        context.pushNamed('postCompose', extra: initialState);
         Navigator.of(context).pop(); // Close the share sheet
       }
     } catch (e) {
@@ -323,7 +323,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
         // Navigate to chat if requested
         if (shouldNavigate == true && mounted) {
-          context.push('/chat/${chatRoom.id}');
+          context.push('/sphere/chat/${chatRoom.id}');
         }
       }
     } catch (e) {

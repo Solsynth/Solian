@@ -18,7 +18,7 @@ Future<List<SnAccount>> searchAccounts(Ref ref, {required String query}) async {
 
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get(
-    '/accounts/search',
+    '/id/accounts/search',
     queryParameters: {'query': query},
   );
 

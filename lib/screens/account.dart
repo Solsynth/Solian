@@ -98,7 +98,10 @@ class AccountScreen extends HookConsumerWidget {
                           radius: 24,
                         ),
                         onTap: () {
-                          context.push('/account/${user.value!.name}');
+                          context.pushNamed(
+                            'accountProfile',
+                            pathParameters: {'name': user.value!.name},
+                          );
                         },
                       ),
                       Expanded(
@@ -143,7 +146,7 @@ class AccountScreen extends HookConsumerWidget {
                 progress: user.value!.profile.levelingProgress,
               ),
               onTap: () {
-                context.push('/account/me/leveling');
+                context.pushNamed('leveling');
               },
             ).padding(horizontal: 12),
             Row(
@@ -161,7 +164,7 @@ class AccountScreen extends HookConsumerWidget {
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {
-                        context.push('/creators');
+                        context.pushNamed('creatorHub');
                       },
                     ),
                   ).height(140),
@@ -179,7 +182,7 @@ class AccountScreen extends HookConsumerWidget {
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {
-                        context.push('/developers');
+                        context.pushNamed('developerHub');
                       },
                     ),
                   ).height(140),
@@ -202,7 +205,7 @@ class AccountScreen extends HookConsumerWidget {
                 ],
               ),
               onTap: () {
-                context.push('/account/notifications');
+                context.pushNamed('notifications');
               },
             ),
             ListTile(
@@ -212,7 +215,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('wallet').tr(),
               onTap: () {
-                context.push('/account/wallet');
+                context.pushNamed('wallet');
               },
             ),
             ListTile(
@@ -222,7 +225,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('relationships').tr(),
               onTap: () {
-                context.push('/account/relationships');
+                context.pushNamed('relationships');
               },
             ),
             ListTile(
@@ -231,7 +234,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: const EdgeInsets.only(left: 24, right: 17),
               leading: const Icon(Symbols.gavel),
               trailing: const Icon(Symbols.chevron_right),
-              onTap: () => context.push('/safety/reports/me'),
+              onTap: () => context.pushNamed('reportList'),
             ),
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
@@ -241,7 +244,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('appSettings').tr(),
               onTap: () {
-                context.push('/settings');
+                context.pushNamed('settings');
               },
             ),
             ListTile(
@@ -251,7 +254,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('updateYourProfile').tr(),
               onTap: () {
-                context.push('/account/me/update');
+                context.pushNamed('profileUpdate');
               },
             ),
             ListTile(
@@ -261,7 +264,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('accountSettings').tr(),
               onTap: () {
-                context.push('/account/me/settings');
+                context.pushNamed('accountSettings');
               },
             ),
             if (kDebugMode) const Divider(height: 1).padding(vertical: 8),
@@ -296,7 +299,7 @@ class AccountScreen extends HookConsumerWidget {
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('about').tr(),
               onTap: () {
-                context.push('/about');
+                context.pushNamed('about');
               },
             ),
             ListTile(
@@ -336,7 +339,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   child: Card(
                     child: InkWell(
                       onTap: () {
-                        context.push('/auth/create-account');
+                        context.pushNamed('createAccount');
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -358,7 +361,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   child: Card(
                     child: InkWell(
                       onTap: () {
-                        context.push('/auth/login');
+                        context.pushNamed('login');
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -380,13 +383,13 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () {
-                        context.push('/about');
+                        context.pushNamed('about');
                       },
                       child: Text('about').tr(),
                     ),
                     TextButton(
                       onPressed: () {
-                        context.push('/settings');
+                        context.pushNamed('settings');
                       },
                       child: Text('appSettings').tr(),
                     ),

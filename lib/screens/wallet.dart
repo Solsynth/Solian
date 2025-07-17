@@ -18,7 +18,7 @@ part 'wallet.g.dart';
 Future<SnWallet?> walletCurrent(Ref ref) async {
   try {
     final apiClient = ref.watch(apiClientProvider);
-    final resp = await apiClient.get('/wallets');
+    final resp = await apiClient.get('/id/wallets');
     return SnWallet.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -81,7 +81,7 @@ class WalletScreen extends HookConsumerWidget {
     Future<void> createWallet() async {
       final client = ref.read(apiClientProvider);
       try {
-        await client.post('/wallets');
+        await client.post('/id/wallets');
         ref.invalidate(walletCurrentProvider);
       } catch (err) {
         showErrorAlert(err);

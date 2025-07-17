@@ -38,7 +38,7 @@ class MessageRepository {
     if (lastMessage == null) return false;
     try {
       final resp = await _apiClient.post(
-        '/chat/${room.id}/sync',
+        '/sphere/chat/${room.id}/sync',
         data: {
           'last_sync_timestamp':
               lastMessage.toRemoteMessage().updatedAt.millisecondsSinceEpoch,
@@ -154,7 +154,7 @@ class MessageRepository {
     // Use cached total count if available, otherwise fetch it
     if (_totalCount == null) {
       final response = await _apiClient.get(
-        '/chat/$roomId/messages',
+        '/sphere/chat/$roomId/messages',
         queryParameters: {'offset': 0, 'take': 1},
       );
       _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
@@ -165,7 +165,7 @@ class MessageRepository {
     }
 
     final response = await _apiClient.get(
-      '/chat/$roomId/messages',
+      '/sphere/chat/$roomId/messages',
       queryParameters: {'offset': offset, 'take': take},
     );
 
@@ -269,8 +269,8 @@ class MessageRepository {
       // Send to server
       final response = await _apiClient.request(
         editingTo == null
-            ? '/chat/$roomId/messages'
-            : '/chat/$roomId/messages/${editingTo.id}',
+            ? '/sphere/chat/$roomId/messages'
+            : '/sphere/chat/$roomId/messages/${editingTo.id}',
         data: {
           'content': content,
           'attachments_id': cloudAttachments.map((e) => e.id).toList(),
@@ -325,7 +325,7 @@ class MessageRepository {
       // Send to server
       var remoteMessage = message.toRemoteMessage();
       final response = await _apiClient.post(
-        '/chat/${message.roomId}/messages',
+        '/sphere/chat/${message.roomId}/messages',
         data: {
           'content': remoteMessage.content,
           'attachments_id': remoteMessage.attachments,
@@ -423,7 +423,7 @@ class MessageRepository {
     try {
       // Update on server
       final response = await _apiClient.put(
-        '/chat/${room.id}/messages/$messageId',
+        '/sphere/chat/${room.id}/messages/$messageId',
         data: {'content': content, 'attachments': attachments, 'meta': meta},
       );
 
@@ -444,7 +444,7 @@ class MessageRepository {
 
   Future<void> deleteMessage(String messageId) async {
     try {
-      await _apiClient.delete('/chat/${room.id}/messages/$messageId');
+      await _apiClient.delete('/sphere/chat/${room.id}/messages/$messageId');
       pendingMessages.remove(messageId);
       await _database.deleteMessage(messageId);
     } catch (e) {
@@ -464,7 +464,7 @@ class MessageRepository {
 
       // If not found locally, fetch from the server
       final response = await _apiClient.get(
-        '/chat/${room.id}/messages/$messageId',
+        '/sphere/chat/${room.id}/messages/$messageId',
       );
       final remoteMessage = SnChatMessage.fromJson(response.data);
       final message = LocalChatMessage.fromRemoteMessage(

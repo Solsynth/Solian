@@ -6,7 +6,7 @@ part of 'account_session_sheet.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authDevicesHash() => r'19807110962206a9637075d03cd372233cae2f49';
+String _$authDevicesHash() => r'8bc41a1ffc37df8e757c977b4ddae11db8faaeb5';
 
 /// See also [authDevices].
 @ProviderFor(authDevices)

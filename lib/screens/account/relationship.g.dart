@@ -6,7 +6,7 @@ part of 'relationship.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sentFriendRequestHash() => r'2efa72835b1740e0fe96bd347bce0f98b6ae80d6';
+String _$sentFriendRequestHash() => r'dc02ace6cb755a01ab862c9fcff3b26de7f946cb';
 
 /// See also [sentFriendRequest].
 @ProviderFor(sentFriendRequest)

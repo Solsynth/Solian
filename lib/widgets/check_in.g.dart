@@ -7,7 +7,7 @@ part of 'check_in.dart';
 // **************************************************************************
 
 String _$checkInResultTodayHash() =>
-    r'0e2af6c1f419b2ee74ee38b6fb5d8071498e75c8';
+    r'402e3a3be0d441ae12b2370d19d09bf81326933f';
 
 /// See also [checkInResultToday].
 @ProviderFor(checkInResultToday)

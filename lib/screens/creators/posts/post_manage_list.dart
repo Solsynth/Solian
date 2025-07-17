@@ -30,8 +30,9 @@ class CreatorPostListScreen extends HookConsumerWidget {
                     subtitle: Text('Create a regular post'),
                     onTap: () async {
                       Navigator.pop(context);
-                      final result = await context.push(
-                        '/posts/compose?type=0',
+                      final result = await context.pushNamed(
+                        'postCompose',
+                        queryParameters: {'type': '0'},
                       );
                       if (result == true) {
                         refreshKey.value++;
@@ -44,8 +45,9 @@ class CreatorPostListScreen extends HookConsumerWidget {
                     subtitle: Text('Create a detailed article'),
                     onTap: () async {
                       Navigator.pop(context);
-                      final result = await context.push(
-                        '/posts/compose?type=1',
+                      final result = await context.pushNamed(
+                        'postCompose',
+                        queryParameters: {'type': '1'},
                       );
                       if (result == true) {
                         refreshKey.value++;

@@ -29,7 +29,7 @@ part 'hub.g.dart';
 Future<SnPublisherStats?> publisherStats(Ref ref, String? uname) async {
   if (uname == null) return null;
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/publishers/$uname/stats');
+  final resp = await apiClient.get('/sphere/publishers/$uname/stats');
   return SnPublisherStats.fromJson(resp.data);
 }
 
@@ -37,7 +37,9 @@ Future<SnPublisherStats?> publisherStats(Ref ref, String? uname) async {
 Future<SnPublisherMember?> publisherIdentity(Ref ref, String uname) async {
   try {
     final apiClient = ref.watch(apiClientProvider);
-    final response = await apiClient.get('/publishers/$uname/members/me');
+    final response = await apiClient.get(
+      '/sphere/publishers/$uname/members/me',
+    );
     return SnPublisherMember.fromJson(response.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -51,14 +53,14 @@ Future<SnPublisherMember?> publisherIdentity(Ref ref, String uname) async {
 Future<Map<String, bool>> publisherFeatures(Ref ref, String? uname) async {
   if (uname == null) return {};
   final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/publishers/$uname/features');
+  final response = await apiClient.get('/sphere/publishers/$uname/features');
   return Map<String, bool>.from(response.data);
 }
 
 @riverpod
 Future<List<SnPublisherMember>> publisherInvites(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/publishers/invites');
+  final resp = await client.get('/sphere/publishers/invites');
   return resp.data
       .map((e) => SnPublisherMember.fromJson(e))
       .cast<SnPublisherMember>()
@@ -141,7 +143,7 @@ class CreatorHubScreen extends HookConsumerWidget {
     );
 
     void updatePublisher() {
-      context.push('/creators/${currentPublisher.value!.name}/edit').then((
+      context.pushNamed('creatorEdit', pathParameters: {'name': currentPublisher.value!.name}).then((
         value,
       ) async {
         if (value == null) return;
@@ -156,7 +158,7 @@ class CreatorHubScreen extends HookConsumerWidget {
         (confirm) {
           if (confirm) {
             final client = ref.watch(apiClientProvider);
-            client.delete('/publishers/${currentPublisher.value!.name}');
+            client.delete('/sphere/publishers/${currentPublisher.value!.name}');
             ref.invalidate(publishersManagedProvider);
             currentPublisher.value = null;
           }
@@ -324,7 +326,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                             subtitle: Text('createPublisherHint').tr(),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () {
-                              context.push('/creators/new').then((value) {
+                              context.pushNamed('creatorNew').then((value) {
                                 if (value != null) {
                                   ref.invalidate(publishersManagedProvider);
                                 }
@@ -348,9 +350,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                               horizontal: 24,
                             ),
                             onTap: () {
-                              context.push(
-                                '/creators/${currentPublisher.value!.name}/stickers',
-                              );
+                              context.pushNamed('creatorStickers', pathParameters: {'name': currentPublisher.value!.name});
                             },
                           ),
                           ListTile(
@@ -362,9 +362,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                               horizontal: 24,
                             ),
                             onTap: () {
-                              context.push(
-                                '/creators/${currentPublisher.value!.name}/posts',
-                              );
+                              context.pushNamed('creatorPosts', pathParameters: {'name': currentPublisher.value!.name});
                             },
                           ),
                           ListTile(

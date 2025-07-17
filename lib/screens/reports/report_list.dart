@@ -58,7 +58,7 @@ class _AbuseReportListScreenState extends ConsumerState<AbuseReportListScreen> {
                   ),
                   child: InkWell(
                     onTap: () {
-                      context.push('/safety/reports/me/${report.id}');
+                      context.pushNamed('reportDetail', pathParameters: {'id': report.id});
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),

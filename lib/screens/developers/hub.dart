@@ -243,9 +243,7 @@ class DeveloperHubScreen extends HookConsumerWidget {
                               horizontal: 24,
                             ),
                             onTap: () {
-                              context.push(
-                                '/developers/${currentDeveloper.value!.name}/apps',
-                              );
+                              context.pushNamed('developerApps', pathParameters: {'name': currentDeveloper.value!.name});
                             },
                           ),
                         ],

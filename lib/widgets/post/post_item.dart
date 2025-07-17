@@ -72,7 +72,7 @@ class PostItem extends HookConsumerWidget {
           children: [
             GestureDetector(
               onTap: () {
-                context.push('/publishers/${item.publisher.name}');
+                context.pushNamed('publisherProfile', pathParameters: {'name': item.publisher.name});
               },
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -254,7 +254,7 @@ class PostItem extends HookConsumerWidget {
                 GestureDetector(
                   child: ProfilePictureWidget(file: item.publisher.picture),
                   onTap: () {
-                    context.push('/publishers/${item.publisher.name}');
+                    context.pushNamed('publisherProfile', pathParameters: {'name': item.publisher.name});
                   },
                 ),
                 Expanded(
@@ -427,7 +427,7 @@ class PostItem extends HookConsumerWidget {
                     ),
                     onTap: () {
                       if (isOpenable) {
-                        context.push('/posts/${item.id}');
+                        context.pushNamed('postDetail', pathParameters: {'id': item.id});
                       }
                     },
                   ),
@@ -496,7 +496,7 @@ class PostItem extends HookConsumerWidget {
                 title: 'edit'.tr(),
                 image: MenuImage.icon(Symbols.edit),
                 callback: () {
-                  context.push('/posts/${item.id}/edit').then((value) {
+                  context.pushNamed('postEdit', pathParameters: {'id': item.id}).then((value) {
                     if (value != null) {
                       onRefresh?.call();
                     }
@@ -515,7 +515,7 @@ class PostItem extends HookConsumerWidget {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
                       client
-                          .delete('/posts/${item.id}')
+                          .delete('/sphere/posts/${item.id}')
                           .catchError((err) {
                             showErrorAlert(err);
                             return err;
@@ -541,8 +541,8 @@ class PostItem extends HookConsumerWidget {
               title: 'reply'.tr(),
               image: MenuImage.icon(Symbols.reply),
               callback: () {
-                context.push(
-                  '/posts/compose',
+                context.pushNamed(
+                  'postCompose',
                   extra: PostComposeInitialState(replyingTo: item),
                 );
               },
@@ -551,8 +551,8 @@ class PostItem extends HookConsumerWidget {
               title: 'forward'.tr(),
               image: MenuImage.icon(Symbols.forward),
               callback: () {
-                context.push(
-                  '/posts/compose',
+                context.pushNamed(
+                  'postCompose',
                   extra: PostComposeInitialState(forwardingTo: item),
                 );
               },
@@ -732,7 +732,7 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
         ),
       ],
     ),
-  ).gestures(onTap: () => context.push('/posts/${referencePost.id}'));
+  ).gestures(onTap: () => context.pushNamed('postDetail', pathParameters: {'id': referencePost.id}));
 }
 
 class PostReactionList extends HookConsumerWidget {

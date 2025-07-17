@@ -20,7 +20,7 @@ part 'relationship.g.dart';
 @riverpod
 Future<List<SnRelationship>> sentFriendRequest(Ref ref) async {
   final client = ref.read(apiClientProvider);
-  final resp = await client.get('/relationships/requests');
+  final resp = await client.get('/id/relationships/requests');
   return resp.data
       .map((e) => SnRelationship.fromJson(e))
       .cast<SnRelationship>()
@@ -221,7 +221,7 @@ class RelationshipScreen extends HookConsumerWidget {
       if (result == null) return;
 
       final client = ref.read(apiClientProvider);
-      await client.post('/relationships/${result.id}/friends');
+      await client.post('/id/relationships/${result.id}/friends');
       ref.invalidate(sentFriendRequestProvider);
     }
 
@@ -345,7 +345,7 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
     Future<void> cancelRequest(SnRelationship request) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.delete('/relationships/${request.relatedId}/friends');
+        await client.delete('/id/relationships/${request.relatedId}/friends');
         ref.invalidate(sentFriendRequestProvider);
       } catch (err) {
         showErrorAlert(err);

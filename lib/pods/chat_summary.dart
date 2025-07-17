@@ -9,7 +9,7 @@ class ChatSummary extends _$ChatSummary {
   @override
   Future<Map<String, SnChatSummary>> build() async {
     final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/chat/summary');
+    final resp = await client.get('/sphere/chat/summary');
 
     final Map<String, dynamic> data = resp.data;
     return data.map(

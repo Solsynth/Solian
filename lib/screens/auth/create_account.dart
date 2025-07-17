@@ -49,7 +49,7 @@ class CreateAccountScreen extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/accounts',
+          '/id/accounts',
           data: {
             'name': usernameController.text,
             'nick': nicknameController.text,
@@ -305,7 +305,7 @@ class _PostCreateModal extends HookConsumerWidget {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                context.pushReplacement('/auth/login');
+                context.pushReplacementNamed('login');
               },
               child: Text('login'.tr()),
             ),

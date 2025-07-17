@@ -65,13 +65,12 @@ final apiClientProvider = Provider<Dio>((ref) {
   final serverUrl = ref.watch(serverUrlProvider);
   final dio = Dio(
     BaseOptions(
-      baseUrl: '$serverUrl/api',
+      baseUrl: serverUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-Client': 'Solian',
       },
     ),
   );

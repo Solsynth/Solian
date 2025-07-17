@@ -32,7 +32,7 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
         submitting.value = true;
         final user = ref.watch(userInfoProvider);
         final apiClient = ref.read(apiClientProvider);
-        await apiClient.delete('/accounts/me/statuses');
+        await apiClient.delete('/id/accounts/me/statuses');
         if (!context.mounted) return;
         ref.invalidate(accountStatusProvider(user.value!.name));
         Navigator.pop(context);

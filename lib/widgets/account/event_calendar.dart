@@ -1,11 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/widgets/account/event_details_widget.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 /// A reusable widget for displaying an event calendar with event details
@@ -123,57 +122,10 @@ class EventCalendarWidget extends HookConsumerWidget {
                     events.value
                         ?.where((e) => isSameDay(e.date, selectedDay.value))
                         .firstOrNull;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(DateFormat.EEEE().format(selectedDay.value))
-                        .fontSize(16)
-                        .bold()
-                        .textColor(
-                          Theme.of(context).colorScheme.onSecondaryContainer,
-                        ),
-                    Text(DateFormat.yMd().format(selectedDay.value))
-                        .fontSize(12)
-                        .textColor(
-                          Theme.of(context).colorScheme.onSecondaryContainer,
-                        ),
-                    const Gap(16),
-                    if (event?.checkInResult != null)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'checkInResultLevel${event!.checkInResult!.level}',
-                          ).tr().fontSize(16).bold(),
-                          for (final tip in event.checkInResult!.tips)
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 8,
-                              children: [
-                                Icon(
-                                  Symbols.circle,
-                                  size: 12,
-                                  fill: 1,
-                                ).padding(top: 4, right: 4),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(tip.title).bold(),
-                                      Text(tip.content),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ).padding(top: 8),
-                        ],
-                      ),
-                    if (event?.checkInResult == null &&
-                        (event?.statuses.isEmpty ?? true))
-                      Text('eventCalanderEmpty').tr(),
-                  ],
-                ).padding(vertical: 24, horizontal: 24);
+                return EventDetailsWidget(
+                  selectedDay: selectedDay.value,
+                  event: event,
+                );
               },
             ),
           ),

@@ -45,7 +45,7 @@ class PostItemCreator extends HookConsumerWidget {
               title: 'edit'.tr(),
               image: MenuImage.icon(Symbols.edit),
               callback: () {
-                context.push('/posts/${item.id}/edit').then((value) {
+                context.pushNamed('postEdit', pathParameters: {'id': item.id}).then((value) {
                   if (value != null) {
                     onRefresh?.call();
                   }
@@ -61,7 +61,7 @@ class PostItemCreator extends HookConsumerWidget {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
                       client
-                          .delete('/posts/${item.id}')
+                          .delete('/sphere/posts/${item.id}')
                           .catchError((err) {
                             showErrorAlert(err);
                             return err;
@@ -80,7 +80,7 @@ class PostItemCreator extends HookConsumerWidget {
               image: MenuImage.icon(Symbols.link),
               callback: () {
                 // Copy post link to clipboard
-                context.push('/posts/${item.id}');
+                context.pushNamed('postDetail', pathParameters: {'id': item.id});
               },
             ),
           ],
@@ -94,7 +94,7 @@ class PostItemCreator extends HookConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: () {
             if (isOpenable) {
-              context.push('/posts/${item.id}');
+              context.pushNamed('postDetail', pathParameters: {'id': item.id});
             }
           },
           child: Padding(

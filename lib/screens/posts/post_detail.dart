@@ -17,7 +17,7 @@ part 'post_detail.g.dart';
 @riverpod
 Future<SnPost?> post(Ref ref, String id) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/posts/$id');
+  final resp = await client.get('/sphere/posts/$id');
   return SnPost.fromJson(resp.data);
 }
 

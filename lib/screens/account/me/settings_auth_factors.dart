@@ -31,7 +31,7 @@ class AuthFactorSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/accounts/me/factors/${factor.id}');
+        await client.delete('/id/accounts/me/factors/${factor.id}');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -49,7 +49,7 @@ class AuthFactorSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/accounts/me/factors/${factor.id}/disable');
+        await client.post('/id/accounts/me/factors/${factor.id}/disable');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);

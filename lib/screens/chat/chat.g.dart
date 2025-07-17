@@ -6,7 +6,7 @@ part of 'chat.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$chatroomsJoinedHash() => r'0c93fd3cb8fe5c87626836ced4f244bfa7598582';
+String _$chatroomsJoinedHash() => r'3bb6389af07e81007680484d04bf5fe6f6c10571';
 
 /// See also [chatroomsJoined].
 @ProviderFor(chatroomsJoined)
@@ -25,7 +25,7 @@ final chatroomsJoinedProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ChatroomsJoinedRef = AutoDisposeFutureProviderRef<List<SnChatRoom>>;
-String _$chatroomHash() => r'8dac7aaac50932e6dd213039102d43c1cf5f1d4e';
+String _$chatroomHash() => r'2b17d94728026420d18d6c383d2400cf4a070913';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -164,7 +164,7 @@ class _ChatroomProviderElement
   String? get identifier => (origin as ChatroomProvider).identifier;
 }
 
-String _$chatroomIdentityHash() => r'ad6ad09b6fc4cf7c4abe146ea97f8e364a3d4fd0';
+String _$chatroomIdentityHash() => r'35e19a5a3e31752c79b97ba0358a7ec8fb8f6e99';
 
 /// See also [chatroomIdentity].
 @ProviderFor(chatroomIdentity)
@@ -286,7 +286,7 @@ class _ChatroomIdentityProviderElement
   String? get identifier => (origin as ChatroomIdentityProvider).identifier;
 }
 
-String _$chatroomInvitesHash() => r'c15f06c1e9c6074e6159d9d1f4404f31250ce523';
+String _$chatroomInvitesHash() => r'5cd6391b09c5517ede19bacce43b45c8d71dd087';
 
 /// See also [chatroomInvites].
 @ProviderFor(chatroomInvites)

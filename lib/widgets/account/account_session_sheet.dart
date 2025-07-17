@@ -16,7 +16,9 @@ part 'account_session_sheet.g.dart';
 
 @riverpod
 Future<List<SnAuthDevice>> authDevices(Ref ref) async {
-  final resp = await ref.watch(apiClientProvider).get('/accounts/me/devices');
+  final resp = await ref
+      .watch(apiClientProvider)
+      .get('/id/accounts/me/devices');
   final sessionId = resp.headers.value('x-auth-session');
   final data =
       resp.data.map<SnAuthDevice>((e) {
@@ -122,7 +124,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final apiClient = ref.watch(apiClientProvider);
-        await apiClient.delete('/accounts/me/sessions/$sessionId');
+        await apiClient.delete('/id/accounts/me/sessions/$sessionId');
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);

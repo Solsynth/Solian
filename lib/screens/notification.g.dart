@@ -7,7 +7,7 @@ part of 'notification.dart';
 // **************************************************************************
 
 String _$notificationUnreadCountNotifierHash() =>
-    r'0d5b07caa625c24575c5581d5fcd3089effc2844';
+    r'd199abf0d16944587e747798399a267a790341f3';
 
 /// See also [NotificationUnreadCountNotifier].
 @ProviderFor(NotificationUnreadCountNotifier)

@@ -6,7 +6,7 @@ part of 'hub.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$publisherStatsHash() => r'315705881d116b2aeac93f94f5ee2bc816d9f0f6';
+String _$publisherStatsHash() => r'eea4ed98bf165cc785874f83b912bb7e23d1f7bc';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -149,7 +149,7 @@ class _PublisherStatsProviderElement
   String? get uname => (origin as PublisherStatsProvider).uname;
 }
 
-String _$publisherIdentityHash() => r'f7fd986a303a729ca5557022fceb37cd01fa17f3';
+String _$publisherIdentityHash() => r'299372f25fa4b2bf8e11a8ba2d645100fc38e76f';
 
 /// See also [publisherIdentity].
 @ProviderFor(publisherIdentity)
@@ -271,7 +271,7 @@ class _PublisherIdentityProviderElement
   String get uname => (origin as PublisherIdentityProvider).uname;
 }
 
-String _$publisherFeaturesHash() => r'34db65d9a4b6b0c6961733ae79e67f25d5d111d3';
+String _$publisherFeaturesHash() => r'08bace2d9a3da227ecec0cbf8709e55ee0646ca2';
 
 /// See also [publisherFeatures].
 @ProviderFor(publisherFeatures)
@@ -393,7 +393,7 @@ class _PublisherFeaturesProviderElement
   String? get uname => (origin as PublisherFeaturesProvider).uname;
 }
 
-String _$publisherInvitesHash() => r'488cd443407895ce11f4edff07cb6ea58f2aa018';
+String _$publisherInvitesHash() => r'93aafc2f02af0a7a055ec1770b3999363dfaabdc';
 
 /// See also [publisherInvites].
 @ProviderFor(publisherInvites)
