@@ -38,7 +38,7 @@ class CloudFileList extends HookConsumerWidget {
   double calculateAspectRatio() {
     double total = 0;
     for (var ratio in files.map((e) => e.fileMeta?['ratio'] ?? 1)) {
-      total += ratio;
+      total += double.parse(ratio);
     }
     if (total == 0) return 1;
     return total / files.length;
