@@ -6,7 +6,7 @@ part of 'account_picker.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$searchAccountsHash() => r'4923cd06876d04515d95d3c58ee3ea9e05c58e4a';
+String _$searchAccountsHash() => r'fa3b8b7d51e14cf40d4116ba0ff0b6955fa0ff54';
 
 /// Copied from Dart SDK
 class _SystemHash {

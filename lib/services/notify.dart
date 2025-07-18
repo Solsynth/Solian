@@ -110,7 +110,7 @@ Future<void> _putTokenToRemote(
   int provider,
 ) async {
   await apiClient.put(
-    "/notifications/subscription",
+    "/pusher/notifications/subscription",
     data: {"provider": provider, "device_token": token},
   );
 }

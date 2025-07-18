@@ -175,8 +175,8 @@ Completer<SnCloudFile?> _processUpload(
   final client = TusClient(file);
   client
       .upload(
-        uri: Uri.parse('$baseUrl/files/tus'),
-        headers: {'Authorization': 'Bearer $atk'},
+        uri: Uri.parse('$baseUrl/drive/tus'),
+        headers: {'Authorization': 'AtField $atk'},
         metadata: metadata,
         onComplete: (lastResponse) {
           final resp = jsonDecode(lastResponse!.headers['x-fileinfo']!);

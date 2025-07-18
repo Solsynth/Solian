@@ -26,6 +26,7 @@ sealed class WebSocketPacket with _$WebSocketPacket {
   const factory WebSocketPacket({
     required String type,
     required Map<String, dynamic>? data,
+    String? endpoint,
     String? errorMessage,
   }) = _WebSocketPacket;
 

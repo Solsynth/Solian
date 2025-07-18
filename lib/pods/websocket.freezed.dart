@@ -379,7 +379,7 @@ as String,
 /// @nodoc
 mixin _$WebSocketPacket implements DiagnosticableTreeMixin {
 
- String get type; Map<String, dynamic>? get data; String? get errorMessage;
+ String get type; Map<String, dynamic>? get data; String? get endpoint; String? get errorMessage;
 /// Create a copy of WebSocketPacket
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -393,21 +393,21 @@ $WebSocketPacketCopyWith<WebSocketPacket> get copyWith => _$WebSocketPacketCopyW
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'WebSocketPacket'))
-    ..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('data', data))..add(DiagnosticsProperty('errorMessage', errorMessage));
+    ..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('data', data))..add(DiagnosticsProperty('endpoint', endpoint))..add(DiagnosticsProperty('errorMessage', errorMessage));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WebSocketPacket&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WebSocketPacket&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(data),errorMessage);
+int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(data),endpoint,errorMessage);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'WebSocketPacket(type: $type, data: $data, errorMessage: $errorMessage)';
+  return 'WebSocketPacket(type: $type, data: $data, endpoint: $endpoint, errorMessage: $errorMessage)';
 }
 
 
@@ -418,7 +418,7 @@ abstract mixin class $WebSocketPacketCopyWith<$Res>  {
   factory $WebSocketPacketCopyWith(WebSocketPacket value, $Res Function(WebSocketPacket) _then) = _$WebSocketPacketCopyWithImpl;
 @useResult
 $Res call({
- String type, Map<String, dynamic>? data, String? errorMessage
+ String type, Map<String, dynamic>? data, String? endpoint, String? errorMessage
 });
 
 
@@ -435,11 +435,12 @@ class _$WebSocketPacketCopyWithImpl<$Res>
 
 /// Create a copy of WebSocketPacket
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? data = freezed,Object? errorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? data = freezed,Object? endpoint = freezed,Object? errorMessage = freezed,}) {
   return _then(_self.copyWith(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,endpoint: freezed == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
+as String?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -522,10 +523,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  Map<String, dynamic>? data,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  Map<String, dynamic>? data,  String? endpoint,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WebSocketPacket() when $default != null:
-return $default(_that.type,_that.data,_that.errorMessage);case _:
+return $default(_that.type,_that.data,_that.endpoint,_that.errorMessage);case _:
   return orElse();
 
 }
@@ -543,10 +544,10 @@ return $default(_that.type,_that.data,_that.errorMessage);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  Map<String, dynamic>? data,  String? errorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  Map<String, dynamic>? data,  String? endpoint,  String? errorMessage)  $default,) {final _that = this;
 switch (_that) {
 case _WebSocketPacket():
-return $default(_that.type,_that.data,_that.errorMessage);}
+return $default(_that.type,_that.data,_that.endpoint,_that.errorMessage);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -560,10 +561,10 @@ return $default(_that.type,_that.data,_that.errorMessage);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  Map<String, dynamic>? data,  String? errorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  Map<String, dynamic>? data,  String? endpoint,  String? errorMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _WebSocketPacket() when $default != null:
-return $default(_that.type,_that.data,_that.errorMessage);case _:
+return $default(_that.type,_that.data,_that.endpoint,_that.errorMessage);case _:
   return null;
 
 }
@@ -575,7 +576,7 @@ return $default(_that.type,_that.data,_that.errorMessage);case _:
 @JsonSerializable()
 
 class _WebSocketPacket with DiagnosticableTreeMixin implements WebSocketPacket {
-  const _WebSocketPacket({required this.type, required final  Map<String, dynamic>? data, this.errorMessage}): _data = data;
+  const _WebSocketPacket({required this.type, required final  Map<String, dynamic>? data, this.endpoint, this.errorMessage}): _data = data;
   factory _WebSocketPacket.fromJson(Map<String, dynamic> json) => _$WebSocketPacketFromJson(json);
 
 @override final  String type;
@@ -588,6 +589,7 @@ class _WebSocketPacket with DiagnosticableTreeMixin implements WebSocketPacket {
   return EqualUnmodifiableMapView(value);
 }
 
+@override final  String? endpoint;
 @override final  String? errorMessage;
 
 /// Create a copy of WebSocketPacket
@@ -604,21 +606,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'WebSocketPacket'))
-    ..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('data', data))..add(DiagnosticsProperty('errorMessage', errorMessage));
+    ..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('data', data))..add(DiagnosticsProperty('endpoint', endpoint))..add(DiagnosticsProperty('errorMessage', errorMessage));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WebSocketPacket&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._data, _data)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WebSocketPacket&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._data, _data)&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(_data),errorMessage);
+int get hashCode => Object.hash(runtimeType,type,const DeepCollectionEquality().hash(_data),endpoint,errorMessage);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'WebSocketPacket(type: $type, data: $data, errorMessage: $errorMessage)';
+  return 'WebSocketPacket(type: $type, data: $data, endpoint: $endpoint, errorMessage: $errorMessage)';
 }
 
 
@@ -629,7 +631,7 @@ abstract mixin class _$WebSocketPacketCopyWith<$Res> implements $WebSocketPacket
   factory _$WebSocketPacketCopyWith(_WebSocketPacket value, $Res Function(_WebSocketPacket) _then) = __$WebSocketPacketCopyWithImpl;
 @override @useResult
 $Res call({
- String type, Map<String, dynamic>? data, String? errorMessage
+ String type, Map<String, dynamic>? data, String? endpoint, String? errorMessage
 });
 
 
@@ -646,11 +648,12 @@ class __$WebSocketPacketCopyWithImpl<$Res>
 
 /// Create a copy of WebSocketPacket
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? data = freezed,Object? errorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? data = freezed,Object? endpoint = freezed,Object? errorMessage = freezed,}) {
   return _then(_WebSocketPacket(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,data: freezed == data ? _self._data : data // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,endpoint: freezed == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
+as String?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

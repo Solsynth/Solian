@@ -376,7 +376,11 @@ class ChatRoomScreen extends HookConsumerWidget {
       final wsState = ref.read(websocketStateProvider.notifier);
       wsState.sendMessage(
         jsonEncode(
-          WebSocketPacket(type: 'messages.read', data: {'chat_room_id': id}),
+          WebSocketPacket(
+            type: 'messages.read',
+            data: {'chat_room_id': id},
+            endpoint: 'DysonNetwork.Sphere',
+          ),
         ),
       );
     }
@@ -393,7 +397,11 @@ class ChatRoomScreen extends HookConsumerWidget {
       final wsState = ref.read(websocketStateProvider.notifier);
       wsState.sendMessage(
         jsonEncode(
-          WebSocketPacket(type: 'messages.typing', data: {'chat_room_id': id}),
+          WebSocketPacket(
+            type: 'messages.typing',
+            data: {'chat_room_id': id},
+            endpoint: 'DysonNetwork.Sphere',
+          ),
         ),
       );
 

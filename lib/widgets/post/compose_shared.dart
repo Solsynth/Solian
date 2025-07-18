@@ -467,7 +467,7 @@ class ComposeLogic {
     final attachment = state.attachments.value[index];
     if (attachment.isOnCloud) {
       final client = ref.watch(apiClientProvider);
-      await client.delete('/files/${attachment.data.id}');
+      await client.delete('/drive/files/${attachment.data.id}');
     }
     final clone = List.of(state.attachments.value);
     clone.removeAt(index);
@@ -530,7 +530,8 @@ class ComposeLogic {
       // Prepare API request
       final client = ref.watch(apiClientProvider);
       final isNewPost = originalPost == null;
-      final endpoint = isNewPost ? '/posts' : '/posts/${originalPost.id}';
+      final endpoint =
+          '/sphere${isNewPost ? '/posts' : '/posts/${originalPost.id}'}';
 
       // Create request payload
       final payload = {
