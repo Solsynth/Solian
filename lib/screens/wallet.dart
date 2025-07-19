@@ -51,7 +51,7 @@ class TransactionListNotifier extends _$TransactionListNotifier
     final queryParams = {'offset': offset, 'take': _pageSize};
 
     final response = await client.get(
-      '/wallets/transactions',
+      '/id/wallets/transactions',
       queryParameters: queryParams,
     );
     final total = int.parse(response.headers.value('X-Total') ?? '0');
@@ -110,7 +110,7 @@ class WalletScreen extends HookConsumerWidget {
                   ),
                 ],
               ),
-            );
+            ).center();
           }
 
           return Column(

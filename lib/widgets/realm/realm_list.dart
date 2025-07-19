@@ -34,7 +34,7 @@ class RealmListNotifier extends _$RealmListNotifier
     };
 
     final response = await client.get(
-      '/discovery/realms',
+      '/sphere/discovery/realms',
       queryParameters: queryParams,
     );
     final total = int.parse(response.headers.value('X-Total') ?? '0');

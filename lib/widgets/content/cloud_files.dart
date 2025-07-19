@@ -27,7 +27,10 @@ class CloudFileWidget extends ConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/drive/files/${item.id}';
 
-    var ratio = double.parse(item.fileMeta?['ratio'] ?? 1);
+    var ratio =
+        item.fileMeta?['ratio'] is num
+            ? item.fileMeta!['ratio'].toDouble()
+            : double.parse(item.fileMeta?['ratio'] ?? 1);
     if (ratio == 0) ratio = 1.0;
     final content = switch (item.mimeType?.split('/').firstOrNull) {
       "image" => AspectRatio(

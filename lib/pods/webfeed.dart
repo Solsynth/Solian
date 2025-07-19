@@ -39,7 +39,7 @@ class WebFeedNotifier
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.get(
-        '/publishers/${arg.pubName}/feeds/${arg.feedId}',
+        '/sphere/publishers/${arg.pubName}/feeds/${arg.feedId}',
       );
       return SnWebFeed.fromJson(response.data);
     } catch (e) {
@@ -51,7 +51,7 @@ class WebFeedNotifier
     state = const AsyncValue.loading();
     try {
       final client = ref.read(apiClientProvider);
-      final url = '/publishers/${feed.publisherId}/feeds';
+      final url = '/sphere/publishers/${feed.publisherId}/feeds';
 
       final response =
           feed.id.isEmpty
@@ -98,7 +98,7 @@ class WebFeedNotifier
     try {
       final client = ref.read(apiClientProvider);
       await client.post(
-        '/publishers/${arg.pubName}/feeds/$feedId/scrap',
+        '/sphere/publishers/${arg.pubName}/feeds/$feedId/scrap',
         options: Options(
           sendTimeout: const Duration(seconds: 60),
           receiveTimeout: const Duration(seconds: 180),
@@ -107,7 +107,7 @@ class WebFeedNotifier
 
       // Reload the feed
       final response = await client.get(
-        '/publishers/${arg.pubName}/feeds/$feedId',
+        '/sphere/publishers/${arg.pubName}/feeds/$feedId',
       );
       state = AsyncValue.data(SnWebFeed.fromJson(response.data));
     } catch (error, stackTrace) {

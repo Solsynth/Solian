@@ -166,7 +166,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                                           apiClientProvider,
                                         );
                                         await apiClient.post(
-                                          '/realms/$slug/members/me',
+                                          '/sphere/realms/$slug/members/me',
                                         );
                                         ref.invalidate(
                                           realmIdentityProvider(slug),
@@ -213,7 +213,10 @@ class RealmDetailScreen extends HookConsumerWidget {
                             return ChatRoomListTile(
                               room: rooms[index],
                               onTap: () {
-                                context.pushNamed('chatRoom', pathParameters: {'id': rooms[index].id});
+                                context.pushNamed(
+                                  'chatRoom',
+                                  pathParameters: {'id': rooms[index].id},
+                                );
                               },
                             );
                           }, childCount: rooms.length),
@@ -251,7 +254,10 @@ class _RealmActionMenu extends HookConsumerWidget {
             if (isModerator)
               PopupMenuItem(
                 onTap: () {
-                  context.pushReplacement('/sphere/realms/$realmSlug/edit');
+                  context.pushReplacementNamed(
+                    'realmEdit',
+                    pathParameters: {'slug': realmSlug},
+                  );
                 },
                 child: Row(
                   children: [
@@ -319,7 +325,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                                 if (confirm) {
                                   final client = ref.watch(apiClientProvider);
                                   client.delete(
-                                    '/realms/$realmSlug/members/me',
+                                    '/sphere/realms/$realmSlug/members/me',
                                   );
                                   ref.invalidate(realmsJoinedProvider);
                                   if (context.mounted) {
@@ -389,7 +395,7 @@ class RealmMemberListNotifier extends _$RealmMemberListNotifier
     final offset = cursor != null ? int.parse(cursor) : 0;
 
     final response = await apiClient.get(
-      '/realms/$realmSlug/members',
+      '/sphere/realms/$realmSlug/members',
       queryParameters: {'offset': offset, 'take': _pageSize},
     );
 
@@ -432,7 +438,7 @@ class RealmMemberNotifier extends StateNotifier<RealmMemberState> {
 
     try {
       final response = await _apiClient.get(
-        '/realms/$realmSlug/members',
+        '/sphere/realms/$realmSlug/members',
         queryParameters: {'offset': offset, 'take': take},
       );
 
@@ -487,7 +493,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.post(
-          '/realms/invites/$realmSlug',
+          '/sphere/realms/invites/$realmSlug',
           data: {'related_user_id': result.id, 'role': 0},
         );
         // Refresh both providers
@@ -619,7 +625,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                                       apiClientProvider,
                                     );
                                     await apiClient.delete(
-                                      '/realms/$realmSlug/members/${member.accountId}',
+                                      '/sphere/realms/$realmSlug/members/${member.accountId}',
                                     );
                                     // Refresh both providers
                                     memberNotifier.reset();
@@ -769,7 +775,7 @@ class _RealmMemberRoleSheet extends HookConsumerWidget {
 
                       final apiClient = ref.read(apiClientProvider);
                       await apiClient.patch(
-                        '/realms/$realmSlug/members/${member.accountId}/role',
+                        '/sphere/realms/$realmSlug/members/${member.accountId}/role',
                         data: newRole,
                       );
 

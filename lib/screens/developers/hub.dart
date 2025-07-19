@@ -25,14 +25,14 @@ part 'hub.g.dart';
 Future<DeveloperStats?> developerStats(Ref ref, String? uname) async {
   if (uname == null) return null;
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/developers/$uname/stats');
+  final resp = await apiClient.get('/sphere/developers/$uname/stats');
   return DeveloperStats.fromJson(resp.data);
 }
 
 @riverpod
 Future<List<SnPublisher>> developers(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/developers');
+  final resp = await client.get('/sphere/developers');
   return resp.data
       .map((e) => SnPublisher.fromJson(e))
       .cast<SnPublisher>()
@@ -243,7 +243,12 @@ class DeveloperHubScreen extends HookConsumerWidget {
                               horizontal: 24,
                             ),
                             onTap: () {
-                              context.pushNamed('developerApps', pathParameters: {'name': currentDeveloper.value!.name});
+                              context.pushNamed(
+                                'developerApps',
+                                pathParameters: {
+                                  'name': currentDeveloper.value!.name,
+                                },
+                              );
                             },
                           ),
                         ],
@@ -334,7 +339,7 @@ class _DeveloperEnrollmentSheet extends HookConsumerWidget {
     Future<void> enroll(SnPublisher publisher) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.post('/developers/${publisher.name}/enroll');
+        await client.post('/sphere/developers/${publisher.name}/enroll');
         if (context.mounted) {
           Navigator.pop(context, true);
         }

@@ -83,7 +83,7 @@ class PublisherMemberListNotifier extends _$PublisherMemberListNotifier
     final offset = cursor != null ? int.parse(cursor) : 0;
 
     final response = await apiClient.get(
-      '/publishers/$uname/members',
+      '/sphere/publishers/$uname/members',
       queryParameters: {'offset': offset, 'take': _pageSize},
     );
 
@@ -143,14 +143,19 @@ class CreatorHubScreen extends HookConsumerWidget {
     );
 
     void updatePublisher() {
-      context.pushNamed('creatorEdit', pathParameters: {'name': currentPublisher.value!.name}).then((
-        value,
-      ) async {
-        if (value == null) return;
-        final data = await ref.refresh(publishersManagedProvider.future);
-        currentPublisher.value =
-            data.where((e) => e.id == currentPublisher.value!.id).firstOrNull;
-      });
+      context
+          .pushNamed(
+            'creatorEdit',
+            pathParameters: {'name': currentPublisher.value!.name},
+          )
+          .then((value) async {
+            if (value == null) return;
+            final data = await ref.refresh(publishersManagedProvider.future);
+            currentPublisher.value =
+                data
+                    .where((e) => e.id == currentPublisher.value!.id)
+                    .firstOrNull;
+          });
     }
 
     void deletePublisher() {
@@ -350,7 +355,12 @@ class CreatorHubScreen extends HookConsumerWidget {
                               horizontal: 24,
                             ),
                             onTap: () {
-                              context.pushNamed('creatorStickers', pathParameters: {'name': currentPublisher.value!.name});
+                              context.pushNamed(
+                                'creatorStickers',
+                                pathParameters: {
+                                  'name': currentPublisher.value!.name,
+                                },
+                              );
                             },
                           ),
                           ListTile(
@@ -362,7 +372,12 @@ class CreatorHubScreen extends HookConsumerWidget {
                               horizontal: 24,
                             ),
                             onTap: () {
-                              context.pushNamed('creatorPosts', pathParameters: {'name': currentPublisher.value!.name});
+                              context.pushNamed(
+                                'creatorPosts',
+                                pathParameters: {
+                                  'name': currentPublisher.value!.name,
+                                },
+                              );
                             },
                           ),
                           ListTile(

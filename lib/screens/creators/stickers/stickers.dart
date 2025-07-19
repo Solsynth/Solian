@@ -28,13 +28,16 @@ class StickersScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             onPressed: () {
-              context.pushNamed('creatorStickerPackNew', queryParameters: {'pubName': pubName}).then((
-                value,
-              ) {
-                if (value != null) {
-                  ref.invalidate(stickerPacksNotifierProvider(pubName));
-                }
-              });
+              context
+                  .pushNamed(
+                    'creatorStickerPackNew',
+                    queryParameters: {'pubName': pubName},
+                  )
+                  .then((value) {
+                    if (value != null) {
+                      ref.invalidate(stickerPacksNotifierProvider(pubName));
+                    }
+                  });
             },
             icon: const Icon(Symbols.add_circle),
           ),
@@ -71,7 +74,10 @@ class SliverStickerPacksList extends HookConsumerWidget {
                 subtitle: Text(sticker.description),
                 trailing: const Icon(Symbols.chevron_right),
                 onTap: () {
-                  context.pushNamed('creatorStickerPackDetail', pathParameters: {'pubName': pubName, 'packId': sticker.id});
+                  context.pushNamed(
+                    'creatorStickerPackDetail',
+                    pathParameters: {'pubName': pubName, 'packId': sticker.id},
+                  );
                 },
               );
             },
@@ -99,7 +105,7 @@ class StickerPacksNotifier extends _$StickerPacksNotifier
 
     try {
       final response = await client.get(
-        '/stickers',
+        '/sphere/stickers',
         queryParameters: {
           'offset': offset,
           'take': _pageSize,
@@ -129,7 +135,7 @@ class StickerPacksNotifier extends _$StickerPacksNotifier
 Future<SnStickerPack?> stickerPack(Ref ref, String? packId) async {
   if (packId == null) return null;
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/stickers/$packId');
+  final resp = await apiClient.get('/sphere/stickers/$packId');
   return SnStickerPack.fromJson(resp.data);
 }
 
@@ -175,7 +181,7 @@ class EditStickerPacksScreen extends HookConsumerWidget {
         submitting.value = true;
         final apiClient = ref.watch(apiClientProvider);
         final resp = await apiClient.request(
-          '/stickers',
+          '/sphere/stickers',
           data: {
             'name': nameController.text,
             'description': descriptionController.text,

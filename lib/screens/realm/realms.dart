@@ -108,7 +108,10 @@ class RealmListScreen extends HookConsumerWidget {
                           title: Text(value[item].name),
                           subtitle: Text(value[item].description),
                           onTap: () {
-                            context.pushNamed('realmDetail', pathParameters: {'slug': value[item].slug});
+                            context.pushNamed(
+                              'realmDetail',
+                              pathParameters: {'slug': value[item].slug},
+                            );
                           },
                           contentPadding: const EdgeInsets.only(
                             left: 16,
@@ -253,7 +256,7 @@ class EditRealmScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         final resp = await client.request(
-          slug == null ? '/realms' : '/realms/$slug',
+          '/sphere${slug == null ? '/realms' : '/realms/$slug'}',
           data: {
             'slug': slugController.text,
             'name': nameController.text,
