@@ -106,7 +106,7 @@ class AuthFactorSheet extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/accounts/me/factors/${factor.id}/enable',
+          '/id/accounts/me/factors/${factor.id}/enable',
           data: jsonEncode(password),
         );
         if (context.mounted) Navigator.pop(context, true);
@@ -193,7 +193,7 @@ class AuthFactorNewSheet extends HookConsumerWidget {
         showLoadingModal(context);
         final apiClient = ref.read(apiClientProvider);
         final resp = await apiClient.post(
-          '/accounts/me/factors',
+          '/id/accounts/me/factors',
           data: {'type': factorType.value, 'secret': secretController.text},
         );
         final factor = SnAuthFactor.fromJson(resp.data);

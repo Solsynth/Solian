@@ -43,7 +43,7 @@ class PostQuickReply extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/posts',
+          '/sphere/posts',
           data: {
             'content': contentController.text,
             'replied_post_id': parent.id,

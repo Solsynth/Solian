@@ -389,7 +389,10 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
             if ((chatIdentity.value?.role ?? 0) >= 50)
               PopupMenuItem(
                 onTap: () {
-                  context.pushReplacement('/sphere/chat/$id/edit');
+                  context.pushReplacementNamed(
+                    'chatEdit',
+                    pathParameters: {'id': id},
+                  );
                 },
                 child: Row(
                   children: [
@@ -502,7 +505,7 @@ class ChatMemberNotifier extends StateNotifier<ChatRoomMemberState> {
 
     try {
       final response = await _apiClient.get(
-        '/chat/$roomId/members',
+        '/sphere/chat/$roomId/members',
         queryParameters: {'offset': offset, 'take': take},
       );
 
@@ -540,7 +543,7 @@ class ChatMemberListNotifier extends _$ChatMemberListNotifier
 
     final apiClient = ref.watch(apiClientProvider);
     final response = await apiClient.get(
-      '/chat/$roomId/members',
+      '/sphere/chat/$roomId/members',
       queryParameters: {'offset': offset, 'take': take},
     );
 
@@ -592,7 +595,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.post(
-          '/chat/invites/$roomId',
+          '/sphere/chat/invites/$roomId',
           data: {'related_user_id': result.id, 'role': 0},
         );
         // Refresh both providers
@@ -846,7 +849,7 @@ class _ChatMemberRoleSheet extends HookConsumerWidget {
 
                       final apiClient = ref.read(apiClientProvider);
                       await apiClient.patch(
-                        '/chat/$roomId/members/${member.accountId}/role',
+                        '/sphere/chat/$roomId/members/${member.accountId}/role',
                         data: newRole,
                       );
 

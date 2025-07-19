@@ -1,18 +1,19 @@
+import 'dart:io';
+
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pods/network.dart';
-import 'package:island/services/notify.dart';
 import 'package:island/services/udid.native.dart';
-import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class AboutScreen extends ConsumerStatefulWidget {
   const AboutScreen({super.key});
@@ -168,33 +169,15 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                           _buildInfoItem(
                             context,
                             icon: Symbols.label,
-                            label: 'Device Name',
+                            label: 'aboutDeviceName'.tr(),
                             value: _deviceInfo?.data['name'],
                           ),
                           _buildInfoItem(
                             context,
                             icon: Symbols.fingerprint,
-                            label: 'Device Identifier',
+                            label: 'aboutDeviceIdentifier'.tr(),
                             value: _deviceUdid ?? 'N/A',
                             copyable: true,
-                          ),
-                          const Divider(height: 1),
-                          _buildListTile(
-                            context,
-                            icon: Symbols.notifications_active,
-                            title: 'Reactivate Push Notifications',
-                            onTap: () async {
-                              showLoadingModal(context);
-                              try {
-                                await subscribePushNotification(
-                                  ref.watch(apiClientProvider),
-                                );
-                              } catch (err) {
-                                showErrorAlert(err);
-                              } finally {
-                                if (context.mounted) hideLoadingModal(context);
-                              }
-                            },
                           ),
                         ],
                       ),
@@ -266,6 +249,18 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                                 'https://github.com/Solsynth/Solian/blob/v3/LICENSE.txt',
                               ),
                         ),
+                        if (kIsWeb || !(Platform.isMacOS || Platform.isIOS))
+                          _buildListTile(
+                            context,
+                            icon: Symbols.favorite,
+                            title: 'donate'.tr(),
+                            subtitle: 'donateDescription'.tr(),
+                            onTap: () {
+                              launchUrlString(
+                                'https://afdian.com/@littlesheep',
+                              );
+                            },
+                          ),
                       ],
                     ),
 

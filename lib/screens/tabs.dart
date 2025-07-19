@@ -55,9 +55,9 @@ class TabsScreen extends HookConsumerWidget {
     final routes = ['/', '/chat', '/realms', '/account'];
 
     int getCurrentIndex() {
-      if (currentLocation.startsWith('/sphere/chat')) return 1;
-      if (currentLocation.startsWith('/sphere/realms')) return 2;
-      if (currentLocation.startsWith('/id/account')) return 3;
+      if (currentLocation.startsWith('/chat')) return 1;
+      if (currentLocation.startsWith('/realms')) return 2;
+      if (currentLocation.startsWith('/account')) return 3;
       return 0; // Default to explore
     }
 

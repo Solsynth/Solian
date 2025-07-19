@@ -414,7 +414,7 @@ final publisherInvitesProvider =
 typedef PublisherInvitesRef =
     AutoDisposeFutureProviderRef<List<SnPublisherMember>>;
 String _$publisherMemberListNotifierHash() =>
-    r'237e8f39c9757a6cbdff817853c697539242ad2a';
+    r'b4afd5d591a6f3d29f1b45fb1b6d17cb34f3f11b';
 
 abstract class _$PublisherMemberListNotifier
     extends

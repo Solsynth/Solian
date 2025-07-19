@@ -6,7 +6,7 @@ part of 'stickers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$stickerPackHash() => r'4f70d26e695ba1d8c7273d12730f77da79361733';
+String _$stickerPackHash() => r'71ef84471237c8191918095094bdfc87d3920e77';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -148,7 +148,7 @@ class _StickerPackProviderElement
 }
 
 String _$stickerPacksNotifierHash() =>
-    r'dc0cc4ec27fdd6d5da28f982ff10c852f8107a18';
+    r'0a8edcf9c35396c411f1214f5e77b1e8fac6a3e6';
 
 abstract class _$StickerPacksNotifier
     extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnStickerPack>> {

@@ -174,7 +174,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
             if (context.mounted) showLoadingModal(context);
 
             await client.post(
-              '/auth/connect/apple/mobile',
+              '/id/auth/connect/apple/mobile',
               data: {
                 'identity_token': credential.identityToken!,
                 'authorization_code': credential.authorizationCode,
@@ -336,7 +336,7 @@ class AccountConnectionsSheet extends HookConsumerWidget {
                                 try {
                                   final client = ref.read(apiClientProvider);
                                   await client.delete(
-                                    '/accounts/me/connections/${connection.id}',
+                                    '/id/accounts/me/connections/${connection.id}',
                                   );
                                   ref.invalidate(accountConnectionsProvider);
                                   return true;

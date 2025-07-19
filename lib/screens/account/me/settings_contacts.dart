@@ -160,7 +160,7 @@ class ContactMethodNewSheet extends HookConsumerWidget {
         showLoadingModal(context);
         final apiClient = ref.read(apiClientProvider);
         await apiClient.post(
-          '/accounts/me/contacts',
+          '/id/accounts/me/contacts',
           data: {'type': contactType.value, 'content': contentController.text},
         );
         if (context.mounted) {

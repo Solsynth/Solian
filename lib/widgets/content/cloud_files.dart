@@ -30,7 +30,9 @@ class CloudFileWidget extends ConsumerWidget {
     var ratio =
         item.fileMeta?['ratio'] is num
             ? item.fileMeta!['ratio'].toDouble()
-            : double.parse(item.fileMeta?['ratio'] ?? 1);
+            : item.fileMeta?['ratio'] is String
+            ? double.parse(item.fileMeta!['ratio'])
+            : 1.0;
     if (ratio == 0) ratio = 1.0;
     final content = switch (item.mimeType?.split('/').firstOrNull) {
       "image" => AspectRatio(

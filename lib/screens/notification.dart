@@ -82,7 +82,7 @@ class NotificationListNotifier extends _$NotificationListNotifier
     final queryParams = {'offset': offset, 'take': _pageSize};
 
     final response = await client.get(
-      '/notifications',
+      '/pusher/notifications',
       queryParameters: queryParams,
     );
     final total = int.parse(response.headers.value('X-Total') ?? '0');

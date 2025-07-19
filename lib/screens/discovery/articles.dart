@@ -39,7 +39,7 @@ class ArticlesListNotifier extends _$ArticlesListNotifier
 
     try {
       final response = await client.get(
-        '/feeds/articles',
+        '/sphere/feeds/articles',
         queryParameters: queryParams,
       );
 

@@ -698,5 +698,9 @@
   "postForwardingTo": "Forwarding to",
   "postReplyingTo": "Replying to",
   "postEditing": "You are editing an existing post",
-  "postArticle": "Article"
+  "postArticle": "Article",
+  "aboutDeviceName": "Device Name",
+  "aboutDeviceIdentifier": "Device Identifier",
+  "donate": "Donate",
+  "donateDescription": "Support us to continue developing the Solar Network and keep the server up and running."
 }

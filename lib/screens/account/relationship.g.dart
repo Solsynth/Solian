@@ -27,7 +27,7 @@ final sentFriendRequestProvider =
 typedef SentFriendRequestRef =
     AutoDisposeFutureProviderRef<List<SnRelationship>>;
 String _$relationshipListNotifierHash() =>
-    r'560410cba6e4c26affd91aa86b3666319bd31f24';
+    r'0a134ce69489a4f2002d2223853855b6f22e4e9f';
 
 /// See also [RelationshipListNotifier].
 @ProviderFor(RelationshipListNotifier)

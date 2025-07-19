@@ -399,7 +399,7 @@ class _RealmChatRoomsProviderElement
 }
 
 String _$realmMemberListNotifierHash() =>
-    r'b2e3eefc62a597f45df9470b2058fdda62f8853f';
+    r'022bcef5a90cbae05ff23b937851afc3ef913d42';
 
 abstract class _$RealmMemberListNotifier
     extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnRealmMember>> {

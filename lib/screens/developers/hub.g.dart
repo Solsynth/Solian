@@ -6,7 +6,7 @@ part of 'hub.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$developerStatsHash() => r'783398cbde09c3d956c3e20b02a1cebd1f8ab748';
+String _$developerStatsHash() => r'baa708f3586e8987e221cc8ab825d759658c0f55';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -149,7 +149,7 @@ class _DeveloperStatsProviderElement
   String? get uname => (origin as DeveloperStatsProvider).uname;
 }
 
-String _$developersHash() => r'f52639d3c21aafbf235c8ae33f35448baf2989a1';
+String _$developersHash() => r'f11335fdf553c661110281edeec70ef89c64727d';
 
 /// See also [developers].
 @ProviderFor(developers)

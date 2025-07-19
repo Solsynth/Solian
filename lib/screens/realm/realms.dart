@@ -41,7 +41,6 @@ class RealmListScreen extends HookConsumerWidget {
     final realmInvites = ref.watch(realmInvitesProvider);
 
     return AppScaffold(
-      extendBody: false, // Prevent conflicts with tabs navigation
       noBackground: false,
       appBar: AppBar(
         title: const Text('realms').tr(),
@@ -70,6 +69,7 @@ class RealmListScreen extends HookConsumerWidget {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
+                useRootNavigator: true,
                 builder: (_) => const _RealmInviteSheet(),
               );
             },
@@ -279,128 +279,131 @@ class EditRealmScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      noBackground: false,
       appBar: AppBar(
         title: Text(slug == null ? 'createRealm'.tr() : 'editRealm'.tr()),
         leading: const PageBackButton(),
       ),
-      body: Column(
-        children: [
-          AspectRatio(
-            aspectRatio: 16 / 7,
-            child: Stack(
-              clipBehavior: Clip.none,
-              fit: StackFit.expand,
-              children: [
-                GestureDetector(
-                  child: Container(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    child:
-                        background.value != null
-                            ? CloudFileWidget(
-                              item: background.value!,
-                              fit: BoxFit.cover,
-                            )
-                            : const SizedBox.shrink(),
-                  ),
-                  onTap: () {
-                    setPicture('background');
-                  },
-                ),
-                Positioned(
-                  left: 20,
-                  bottom: -32,
-                  child: GestureDetector(
-                    child: ProfilePictureWidget(
-                      fileId: picture.value?.id,
-                      radius: 40,
-                      fallbackIcon: Symbols.group,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 7,
+              child: Stack(
+                clipBehavior: Clip.none,
+                fit: StackFit.expand,
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      child:
+                          background.value != null
+                              ? CloudFileWidget(
+                                item: background.value!,
+                                fit: BoxFit.cover,
+                              )
+                              : const SizedBox.shrink(),
                     ),
                     onTap: () {
-                      setPicture('picture');
+                      setPicture('background');
                     },
                   ),
-                ),
-              ],
+                  Positioned(
+                    left: 20,
+                    bottom: -32,
+                    child: GestureDetector(
+                      child: ProfilePictureWidget(
+                        fileId: picture.value?.id,
+                        radius: 40,
+                        fallbackIcon: Symbols.group,
+                      ),
+                      onTap: () {
+                        setPicture('picture');
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ).padding(bottom: 32),
+            Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: slugController,
+                    decoration: InputDecoration(
+                      labelText: 'slug'.tr(),
+                      helperText: 'slugHint'.tr(),
+                    ),
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(labelText: 'name'.tr()),
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(
+                      labelText: 'description'.tr(),
+                      alignLabelWithHint: true,
+                    ),
+                    minLines: 3,
+                    maxLines: null,
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        CheckboxListTile(
+                          secondary: const Icon(Symbols.public),
+                          title: Text('publicRealm').tr(),
+                          subtitle: Text('publicRealmDescription').tr(),
+                          value: isPublic.value,
+                          onChanged: (value) {
+                            isPublic.value = value ?? true;
+                          },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        CheckboxListTile(
+                          secondary: const Icon(Symbols.travel_explore),
+                          title: Text('communityRealm').tr(),
+                          subtitle: Text('communityRealmDescription').tr(),
+                          value: isCommunity.value,
+                          onChanged: (value) {
+                            isCommunity.value = value ?? false;
+                          },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: submitting.value ? null : performAction,
+                      label: Text('saveChanges'.tr()),
+                      icon: const Icon(Symbols.save),
+                    ),
+                  ),
+                ],
+              ).padding(all: 24),
             ),
-          ).padding(bottom: 32),
-          Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: slugController,
-                  decoration: InputDecoration(
-                    labelText: 'slug'.tr(),
-                    helperText: 'slugHint'.tr(),
-                  ),
-                  onTapOutside:
-                      (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: nameController,
-                  decoration: InputDecoration(labelText: 'name'.tr()),
-                  onTapOutside:
-                      (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'description'.tr(),
-                    alignLabelWithHint: true,
-                  ),
-                  minLines: 3,
-                  maxLines: null,
-                  onTapOutside:
-                      (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  margin: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      CheckboxListTile(
-                        secondary: const Icon(Symbols.public),
-                        title: Text('publicRealm').tr(),
-                        subtitle: Text('publicRealmDescription').tr(),
-                        value: isPublic.value,
-                        onChanged: (value) {
-                          isPublic.value = value ?? true;
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      CheckboxListTile(
-                        secondary: const Icon(Symbols.travel_explore),
-                        title: Text('communityRealm').tr(),
-                        subtitle: Text('communityRealmDescription').tr(),
-                        value: isCommunity.value,
-                        onChanged: (value) {
-                          isCommunity.value = value ?? false;
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: submitting.value ? null : performAction,
-                    label: Text('saveChanges'.tr()),
-                    icon: const Icon(Symbols.save),
-                  ),
-                ),
-              ],
-            ).padding(all: 24),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -38,7 +38,8 @@ class CloudFileList extends HookConsumerWidget {
   double calculateAspectRatio() {
     double total = 0;
     for (var ratio in files.map((e) => e.fileMeta?['ratio'] ?? 1)) {
-      total += double.parse(ratio);
+      if (ratio is double) total += ratio;
+      if (ratio is String) total += double.parse(ratio);
     }
     if (total == 0) return 1;
     return total / files.length;
@@ -78,6 +79,7 @@ class CloudFileList extends HookConsumerWidget {
                 if (!disableZoomIn) {
                   context.pushTransparentRoute(
                     CloudFileZoomIn(item: files.first, heroTag: heroTags.first),
+                    rootNavigator: true,
                   );
                 }
               },
@@ -505,7 +507,7 @@ class _CloudFileListEntry extends StatelessWidget {
         if (isImage)
           Positioned.fill(
             child:
-                file.fileMeta?['blur'] != null
+                file.fileMeta?['blur'] is String
                     ? BlurHash(hash: file.fileMeta?['blur'])
                     : ImageFiltered(
                       imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),

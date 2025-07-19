@@ -72,7 +72,10 @@ class PostItem extends HookConsumerWidget {
           children: [
             GestureDetector(
               onTap: () {
-                context.pushNamed('publisherProfile', pathParameters: {'name': item.publisher.name});
+                context.pushNamed(
+                  'publisherProfile',
+                  pathParameters: {'name': item.publisher.name},
+                );
               },
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -254,7 +257,10 @@ class PostItem extends HookConsumerWidget {
                 GestureDetector(
                   child: ProfilePictureWidget(file: item.publisher.picture),
                   onTap: () {
-                    context.pushNamed('publisherProfile', pathParameters: {'name': item.publisher.name});
+                    context.pushNamed(
+                      'publisherProfile',
+                      pathParameters: {'name': item.publisher.name},
+                    );
                   },
                 ),
                 Expanded(
@@ -427,7 +433,10 @@ class PostItem extends HookConsumerWidget {
                     ),
                     onTap: () {
                       if (isOpenable) {
-                        context.pushNamed('postDetail', pathParameters: {'id': item.id});
+                        context.pushNamed(
+                          'postDetail',
+                          pathParameters: {'id': item.id},
+                        );
                       }
                     },
                   ),
@@ -496,11 +505,13 @@ class PostItem extends HookConsumerWidget {
                 title: 'edit'.tr(),
                 image: MenuImage.icon(Symbols.edit),
                 callback: () {
-                  context.pushNamed('postEdit', pathParameters: {'id': item.id}).then((value) {
-                    if (value != null) {
-                      onRefresh?.call();
-                    }
-                  });
+                  context
+                      .pushNamed('postEdit', pathParameters: {'id': item.id})
+                      .then((value) {
+                        if (value != null) {
+                          onRefresh?.call();
+                        }
+                      });
                 },
               ),
             if (isAuthor)
@@ -732,7 +743,13 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
         ),
       ],
     ),
-  ).gestures(onTap: () => context.pushNamed('postDetail', pathParameters: {'id': referencePost.id}));
+  ).gestures(
+    onTap:
+        () => context.pushNamed(
+          'postDetail',
+          pathParameters: {'id': referencePost.id},
+        ),
+  );
 }
 
 class PostReactionList extends HookConsumerWidget {
@@ -757,7 +774,7 @@ class PostReactionList extends HookConsumerWidget {
       submitting.value = true;
       await client
           .post(
-            '/posts/$parentId/reactions',
+            '/sphere/posts/$parentId/reactions',
             data: {'symbol': symbol, 'attitude': attitude},
           )
           .catchError((err) {

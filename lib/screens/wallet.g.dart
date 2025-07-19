@@ -25,7 +25,7 @@ final walletCurrentProvider = AutoDisposeFutureProvider<SnWallet?>.internal(
 // ignore: unused_element
 typedef WalletCurrentRef = AutoDisposeFutureProviderRef<SnWallet?>;
 String _$transactionListNotifierHash() =>
-    r'148ffb0ee9e3be3b92de432f314d8ee2f09e9a24';
+    r'7b777cd44f3351f68f7bd1dd76bfe8b388381bdb';
 
 /// See also [TransactionListNotifier].
 @ProviderFor(TransactionListNotifier)

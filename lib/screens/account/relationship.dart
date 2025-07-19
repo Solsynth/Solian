@@ -42,7 +42,7 @@ class RelationshipListNotifier extends _$RelationshipListNotifier
     final take = 20;
 
     final response = await client.get(
-      '/relationships',
+      '/id/relationships',
       queryParameters: {'offset': offset, 'take': take},
     );
 
@@ -235,7 +235,7 @@ class RelationshipScreen extends HookConsumerWidget {
         submitting.value = true;
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
+          '/id/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
         );
         relationshipNotifier.forceRefresh();
         if (!context.mounted) return;
@@ -262,7 +262,7 @@ class RelationshipScreen extends HookConsumerWidget {
     ) async {
       final client = ref.read(apiClientProvider);
       await client.patch(
-        '/relationships/${relationship.accountId}',
+        '/id/relationships/${relationship.accountId}',
         data: {'status': newStatus},
       );
       relationshipNotifier.forceRefresh();

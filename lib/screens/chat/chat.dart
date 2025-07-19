@@ -298,6 +298,7 @@ class ChatListScreen extends HookConsumerWidget {
             ),
             onPressed: () {
               showModalBottomSheet(
+                useRootNavigator: true,
                 isScrollControlled: true,
                 context: context,
                 builder: (context) => const _ChatInvitesSheet(),
@@ -608,127 +609,129 @@ class EditChatScreen extends HookConsumerWidget {
         title: Text(id == null ? 'createChatRoom' : 'editChatRoom').tr(),
         leading: const PageBackButton(),
       ),
-      body: Column(
-        children: [
-          RealmSelectionDropdown(
-            value: currentRealm.value,
-            realms: joinedRealms.when(
-              data: (realms) => realms,
-              loading: () => [],
-              error: (_, _) => [],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            RealmSelectionDropdown(
+              value: currentRealm.value,
+              realms: joinedRealms.when(
+                data: (realms) => realms,
+                loading: () => [],
+                error: (_, _) => [],
+              ),
+              onChanged: (SnRealm? value) {
+                currentRealm.value = value;
+              },
+              isLoading: joinedRealms.isLoading,
+              error: joinedRealms.error?.toString(),
             ),
-            onChanged: (SnRealm? value) {
-              currentRealm.value = value;
-            },
-            isLoading: joinedRealms.isLoading,
-            error: joinedRealms.error?.toString(),
-          ),
-          AspectRatio(
-            aspectRatio: 16 / 7,
-            child: Stack(
-              clipBehavior: Clip.none,
-              fit: StackFit.expand,
-              children: [
-                GestureDetector(
-                  child: Container(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    child:
-                        background.value != null
-                            ? CloudFileWidget(
-                              item: background.value!,
-                              fit: BoxFit.cover,
-                            )
-                            : const SizedBox.shrink(),
-                  ),
-                  onTap: () {
-                    setPicture('background');
-                  },
-                ),
-                Positioned(
-                  left: 20,
-                  bottom: -32,
-                  child: GestureDetector(
-                    child: ProfilePictureWidget(
-                      fileId: picture.value?.id,
-                      radius: 40,
-                      fallbackIcon: Symbols.group,
+            AspectRatio(
+              aspectRatio: 16 / 7,
+              child: Stack(
+                clipBehavior: Clip.none,
+                fit: StackFit.expand,
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      child:
+                          background.value != null
+                              ? CloudFileWidget(
+                                item: background.value!,
+                                fit: BoxFit.cover,
+                              )
+                              : const SizedBox.shrink(),
                     ),
                     onTap: () {
-                      setPicture('picture');
+                      setPicture('background');
                     },
                   ),
-                ),
-              ],
+                  Positioned(
+                    left: 20,
+                    bottom: -32,
+                    child: GestureDetector(
+                      child: ProfilePictureWidget(
+                        fileId: picture.value?.id,
+                        radius: 40,
+                        fallbackIcon: Symbols.group,
+                      ),
+                      onTap: () {
+                        setPicture('picture');
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ).padding(bottom: 32),
+            Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Name'),
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      alignLabelWithHint: true,
+                    ),
+                    minLines: 3,
+                    maxLines: null,
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        CheckboxListTile(
+                          secondary: const Icon(Symbols.public),
+                          title: Text('publicChat').tr(),
+                          subtitle: Text('publicChatDescription').tr(),
+                          value: isPublic.value,
+                          onChanged: (value) {
+                            isPublic.value = value ?? true;
+                          },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        CheckboxListTile(
+                          secondary: const Icon(Symbols.travel_explore),
+                          title: Text('communityChat').tr(),
+                          subtitle: Text('communityChatDescription').tr(),
+                          value: isCommunity.value,
+                          onChanged: (value) {
+                            isCommunity.value = value ?? false;
+                          },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: submitting.value ? null : performAction,
+                      label: const Text('Save'),
+                      icon: const Icon(Symbols.save),
+                    ),
+                  ),
+                ],
+              ).padding(all: 24),
             ),
-          ).padding(bottom: 32),
-          Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                  onTapOutside:
-                      (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    alignLabelWithHint: true,
-                  ),
-                  minLines: 3,
-                  maxLines: null,
-                  onTapOutside:
-                      (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  margin: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      CheckboxListTile(
-                        secondary: const Icon(Symbols.public),
-                        title: Text('publicChat').tr(),
-                        subtitle: Text('publicChatDescription').tr(),
-                        value: isPublic.value,
-                        onChanged: (value) {
-                          isPublic.value = value ?? true;
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      CheckboxListTile(
-                        secondary: const Icon(Symbols.travel_explore),
-                        title: Text('communityChat').tr(),
-                        subtitle: Text('communityChatDescription').tr(),
-                        value: isCommunity.value,
-                        onChanged: (value) {
-                          isCommunity.value = value ?? false;
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: submitting.value ? null : performAction,
-                    label: const Text('Save'),
-                    icon: const Icon(Symbols.save),
-                  ),
-                ),
-              ],
-            ).padding(all: 24),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

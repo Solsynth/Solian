@@ -67,7 +67,8 @@ class FortuneGraphWidget extends HookConsumerWidget {
                 constraints: const BoxConstraints(),
                 onPressed: () {
                   context.pushNamed(
-                    '/account/$eventCalanderUser/calendar',
+                    'accountCalendar',
+                    pathParameters: {'name': eventCalanderUser!},
                   );
                 },
               ),

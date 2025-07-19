@@ -43,7 +43,7 @@ class AbuseReportSheet extends HookConsumerWidget {
       try {
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/safety/reports',
+          '/id/safety/reports',
           data: {
             'resource_identifier': resourceIdentifier,
             'type': selectedType.value,

@@ -50,7 +50,7 @@ class PostSearchNotifier
       final offset = cursor == null ? 0 : int.parse(cursor);
 
       final response = await client.get(
-        '/posts/search',
+        '/sphere/posts/search',
         queryParameters: {
           'query': _currentQuery,
           'offset': offset,

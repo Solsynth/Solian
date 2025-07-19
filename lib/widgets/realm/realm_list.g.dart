@@ -6,7 +6,7 @@ part of 'realm_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$realmListNotifierHash() => r'02dee373a5609a5617b04ffec395d09dea7ae070';
+String _$realmListNotifierHash() => r'8ae5c3ae2837acae4c7bf5e44578518afc9ea1a6';
 
 /// Copied from Dart SDK
 class _SystemHash {

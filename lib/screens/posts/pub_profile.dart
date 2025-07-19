@@ -28,7 +28,7 @@ part 'pub_profile.g.dart';
 @riverpod
 Future<SnPublisher> publisher(Ref ref, String uname) async {
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/publishers/$uname");
+  final resp = await apiClient.get("/sphere/publishers/$uname");
   return SnPublisher.fromJson(resp.data);
 }
 
@@ -37,7 +37,7 @@ Future<List<SnAccountBadge>> publisherBadges(Ref ref, String pubName) async {
   final pub = await ref.watch(publisherProvider(pubName).future);
   if (pub.type != 0 || pub.account == null) return [];
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/accounts/${pub.account!.name}/badges");
+  final resp = await apiClient.get("/id/accounts/${pub.account!.name}/badges");
   return List<SnAccountBadge>.from(
     resp.data.map((x) => SnAccountBadge.fromJson(x)),
   );
@@ -49,7 +49,7 @@ Future<SnSubscriptionStatus> publisherSubscriptionStatus(
   String pubName,
 ) async {
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/publishers/$pubName/subscription");
+  final resp = await apiClient.get("/sphere/publishers/$pubName/subscription");
   return SnSubscriptionStatus.fromJson(resp.data);
 }
 
@@ -188,7 +188,10 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         onTap: () {
                           Navigator.pop(context, true);
                           if (data.account?.name != null) {
-                            context.pushNamed('accountProfile', pathParameters: {'name': data.account!.name});
+                            context.pushNamed(
+                              'accountProfile',
+                              pathParameters: {'name': data.account!.name},
+                            );
                           }
                         },
                       ),

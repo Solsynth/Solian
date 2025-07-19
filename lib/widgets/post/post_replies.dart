@@ -35,7 +35,7 @@ class PostRepliesNotifier extends _$PostRepliesNotifier
     final offset = cursor == null ? 0 : int.parse(cursor);
 
     final response = await client.get(
-      '/posts/$_postId/replies',
+      '/sphere/posts/$_postId/replies',
       queryParameters: {'offset': offset, 'take': _pageSize},
     );
 
@@ -57,7 +57,11 @@ class PostRepliesNotifier extends _$PostRepliesNotifier
 class PostRepliesList extends HookConsumerWidget {
   final String postId;
   final Color? backgroundColor;
-  const PostRepliesList({super.key, required this.postId, this.backgroundColor});
+  const PostRepliesList({
+    super.key,
+    required this.postId,
+    this.backgroundColor,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,7 +97,8 @@ class PostRepliesList extends HookConsumerWidget {
               children: [
                 PostItem(
                   item: data.items[index],
-                  backgroundColor: backgroundColor ?? (isWide ? Colors.transparent : null),
+                  backgroundColor:
+                      backgroundColor ?? (isWide ? Colors.transparent : null),
                   showReferencePost: false,
                 ),
                 const Divider(height: 1),

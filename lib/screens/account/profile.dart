@@ -39,14 +39,14 @@ Future<SnAccount> account(Ref ref, String uname) async {
     }
   }
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/accounts/$uname");
+  final resp = await apiClient.get("/id/accounts/$uname");
   return SnAccount.fromJson(resp.data);
 }
 
 @riverpod
 Future<List<SnAccountBadge>> accountBadges(Ref ref, String uname) async {
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/accounts/$uname/badges");
+  final resp = await apiClient.get("/id/accounts/$uname/badges");
   return List<SnAccountBadge>.from(
     resp.data.map((x) => SnAccountBadge.fromJson(x)),
   );
@@ -78,7 +78,7 @@ Future<SnChatRoom?> accountDirectChat(Ref ref, String uname) async {
   final account = await ref.watch(accountProvider(uname).future);
   final apiClient = ref.watch(apiClientProvider);
   try {
-    final resp = await apiClient.get("/chat/direct/${account.id}");
+    final resp = await apiClient.get("/sphere/chat/direct/${account.id}");
     return SnChatRoom.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -95,7 +95,7 @@ Future<SnRelationship?> accountRelationship(Ref ref, String uname) async {
   final account = await ref.watch(accountProvider(uname).future);
   final apiClient = ref.watch(apiClientProvider);
   try {
-    final resp = await apiClient.get("/relationships/${account.id}");
+    final resp = await apiClient.get("/id/relationships/${account.id}");
     return SnRelationship.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -174,7 +174,7 @@ class AccountProfileScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         final resp = await client.post(
-          '/chat/direct',
+          '/sphere/chat/direct',
           data: {'related_user_id': account.value!.id},
         );
         final chat = SnChatRoom.fromJson(resp.data);

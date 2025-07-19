@@ -6,7 +6,7 @@ part of 'profile.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$accountHash() => r'd2b0579617e6264452d98f47f695a9cdf45b24ec';
+String _$accountHash() => r'ce7264a04f69e32a5cb07bc10ca5fa47ae1fddaa';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -145,7 +145,7 @@ class _AccountProviderElement
   String get uname => (origin as AccountProvider).uname;
 }
 
-String _$accountBadgesHash() => r'4bfe5fb0d6ac0d4cde4563460bde289289188f6d';
+String _$accountBadgesHash() => r'1de05e122c23ff2c6ac6d318977165761e2ad177';
 
 /// See also [accountBadges].
 @ProviderFor(accountBadges)
@@ -395,7 +395,7 @@ class _AccountAppbarForcegroundColorProviderElement
   String get uname => (origin as AccountAppbarForcegroundColorProvider).uname;
 }
 
-String _$accountDirectChatHash() => r'3d28c8ba8079159f724fe3cd47bbe00db55cedcc';
+String _$accountDirectChatHash() => r'149ea3a3730672cfbbb8c16fe1f2caa0bb9f0e17';
 
 /// See also [accountDirectChat].
 @ProviderFor(accountDirectChat)
@@ -517,7 +517,7 @@ class _AccountDirectChatProviderElement
 }
 
 String _$accountRelationshipHash() =>
-    r'0be2420e1f6a65b8dcead9617191471924aaf232';
+    r'9a3a4e8c6c6706f73df95feccb86736fcad33f30';
 
 /// See also [accountRelationship].
 @ProviderFor(accountRelationship)
