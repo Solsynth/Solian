@@ -10,7 +10,7 @@ part 'config.g.dart';
 
 const kTokenPairStoreKey = 'dyn_user_tk';
 
-const kNetworkServerDefault = 'https://nt.solian.app';
+const kNetworkServerDefault = 'https://api.solian.app';
 const kNetworkServerStoreKey = 'app_server_url';
 
 const kAppbarTransparentStoreKey = 'app_bar_transparent';
@@ -82,7 +82,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Size? _getWindowSizeFromPrefs(SharedPreferences prefs) {
     final sizeString = prefs.getString(kAppWindowSize);
     if (sizeString == null) return null;
-    
+
     try {
       final parts = sizeString.split(',');
       if (parts.length == 2) {
