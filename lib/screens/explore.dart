@@ -9,8 +9,11 @@ import 'package:island/models/activity.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/models/webfeed.dart';
+import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/event_calendar.dart';
+import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
@@ -57,6 +60,29 @@ class ExploreScreen extends HookConsumerWidget {
     final activitiesNotifier = ref.watch(
       activityListNotifierProvider(currentFilter.value).notifier,
     );
+
+    final now = DateTime.now();
+
+    final query = useState(
+      EventCalendarQuery(uname: 'me', year: now.year, month: now.month),
+    );
+
+    final events = ref.watch(eventCalendarProvider(query.value));
+
+    final selectedDay = useState(now);
+
+    void onMonthChanged(int year, int month) {
+      query.value = EventCalendarQuery(
+        uname: query.value.uname,
+        year: year,
+        month: month,
+      );
+    }
+
+    // Function to handle day selection for synchronizing between widgets
+    void onDaySelected(DateTime day) {
+      selectedDay.value = day;
+    }
 
     return AppScaffold(
       noBackground: false,
@@ -153,22 +179,75 @@ class ExploreScreen extends HookConsumerWidget {
         child: const Icon(Symbols.edit),
       ),
       floatingActionButtonLocation: TabbedFabLocation(context),
-      body: TabBarView(
-        controller: tabController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [
-          _buildActivityList(ref, null),
-          _buildActivityList(ref, 'subscriptions'),
-          _buildActivityList(ref, 'friends'),
-        ],
+      body: Builder(
+        builder: (context) {
+          final isWider = isWiderScreen(context);
+
+          final bodyView = TabBarView(
+            controller: tabController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _buildActivityList(context, ref, null),
+              _buildActivityList(context, ref, 'subscriptions'),
+              _buildActivityList(context, ref, 'friends'),
+            ],
+          );
+
+          if (isWider) {
+            return Row(
+              children: [
+                Flexible(flex: 3, child: bodyView),
+                const VerticalDivider(width: 1),
+                Flexible(
+                  flex: 2,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        CheckInWidget(),
+                        Card(
+                          margin: EdgeInsets.only(left: 16, right: 16, top: 8),
+                          child: Column(
+                            children: [
+                              // Use the reusable EventCalendarWidget
+                              EventCalendarWidget(
+                                events: events,
+                                initialDate: now,
+                                showEventDetails: true,
+                                onMonthChanged: onMonthChanged,
+                                onDaySelected: onDaySelected,
+                              ),
+                            ],
+                          ),
+                        ),
+                        FortuneGraphWidget(
+                          events: events,
+                          constrainWidth: true,
+                          onPointSelected: onDaySelected,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return bodyView;
+        },
       ),
     );
   }
 
-  Widget _buildActivityList(WidgetRef ref, String? filter) {
+  Widget _buildActivityList(
+    BuildContext context,
+    WidgetRef ref,
+    String? filter,
+  ) {
     final activitiesNotifier = ref.watch(
       activityListNotifierProvider(filter).notifier,
     );
+
+    final isWider = isWiderScreen(context);
 
     return RefreshIndicator(
       onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
@@ -183,7 +262,7 @@ class ExploreScreen extends HookConsumerWidget {
                 widgetCount: widgetCount,
                 endItemView: endItemView,
                 activitiesNotifier: activitiesNotifier,
-                contentOnly: filter != null,
+                contentOnly: isWider || filter != null,
               ),
             ),
       ),
