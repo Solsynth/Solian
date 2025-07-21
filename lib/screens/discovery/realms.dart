@@ -17,6 +17,7 @@ class DiscoveryRealmsScreen extends HookConsumerWidget {
     final currentQuery = useState<String?>(null);
 
     return AppScaffold(
+      noBackground: false,
       appBar: AppBar(title: Text('discoverRealms'.tr())),
       body: Stack(
         children: [

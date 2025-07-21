@@ -124,6 +124,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
     return publisher.when(
       data:
           (data) => AppScaffold(
+            noBackground: false,
             body: CustomScrollView(
               slivers: [
                 SliverAppBar(

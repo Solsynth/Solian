@@ -57,6 +57,7 @@ class PostDetailScreen extends HookConsumerWidget {
     final isWide = isWideScreen(context);
 
     return AppScaffold(
+      noBackground: false,
       appBar: AppBar(title: const Text('Post')),
       body: postState.when(
         data: (post) {

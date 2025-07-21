@@ -310,42 +310,36 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
             routes: [
               // Explore tab
-              ShellRoute(
-                builder:
-                    (context, state, child) => ExploreShellScreen(child: child),
-                routes: [
-                  GoRoute(
-                    name: 'explore',
-                    path: '/',
-                    builder: (context, state) => const ExploreScreen(),
-                  ),
-                  GoRoute(
-                    name: 'postSearch',
-                    path: '/posts/search',
-                    builder: (context, state) => const PostSearchScreen(),
-                  ),
-                  GoRoute(
-                    name: 'postDetail',
-                    path: '/posts/:id',
-                    builder: (context, state) {
-                      final id = state.pathParameters['id']!;
-                      return PostDetailScreen(id: id);
-                    },
-                  ),
-                  GoRoute(
-                    name: 'publisherProfile',
-                    path: '/publishers/:name',
-                    builder: (context, state) {
-                      final name = state.pathParameters['name']!;
-                      return PublisherProfileScreen(name: name);
-                    },
-                  ),
-                  GoRoute(
-                    name: 'discoveryRealms',
-                    path: '/discovery/realms',
-                    builder: (context, state) => const DiscoveryRealmsScreen(),
-                  ),
-                ],
+              GoRoute(
+                name: 'explore',
+                path: '/',
+                builder: (context, state) => const ExploreScreen(),
+              ),
+              GoRoute(
+                name: 'postSearch',
+                path: '/posts/search',
+                builder: (context, state) => const PostSearchScreen(),
+              ),
+              GoRoute(
+                name: 'postDetail',
+                path: '/posts/:id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return PostDetailScreen(id: id);
+                },
+              ),
+              GoRoute(
+                name: 'publisherProfile',
+                path: '/publishers/:name',
+                builder: (context, state) {
+                  final name = state.pathParameters['name']!;
+                  return PublisherProfileScreen(name: name);
+                },
+              ),
+              GoRoute(
+                name: 'discoveryRealms',
+                path: '/discovery/realms',
+                builder: (context, state) => const DiscoveryRealmsScreen(),
               ),
 
               // Chat tab

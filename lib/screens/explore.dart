@@ -27,42 +27,11 @@ import 'package:styled_widget/styled_widget.dart';
 
 part 'explore.g.dart';
 
-class ExploreShellScreen extends HookConsumerWidget {
-  final Widget child;
-  const ExploreShellScreen({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = MediaQuery.of(context).size.width > 640;
-
-    if (isWide) {
-      return AppBackground(
-        isRoot: true,
-        child: Row(
-          children: [
-            Flexible(flex: 2, child: ExploreScreen(isAside: true)),
-            VerticalDivider(width: 1),
-            Flexible(flex: 3, child: child),
-          ],
-        ),
-      );
-    }
-
-    return AppBackground(isRoot: true, child: child);
-  }
-}
-
 class ExploreScreen extends HookConsumerWidget {
-  final bool isAside;
-  const ExploreScreen({super.key, this.isAside = false});
+  const ExploreScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = isWideScreen(context);
-    if (isWide && !isAside) {
-      return const EmptyPageHolder();
-    }
-
     final tabController = useTabController(initialLength: 3);
     final currentFilter = useState<String?>(null);
 
@@ -90,7 +59,7 @@ class ExploreScreen extends HookConsumerWidget {
     );
 
     return AppScaffold(
-      extendBody: false, // Prevent conflicts with tabs navigation
+      noBackground: false,
       appBar: AppBar(
         toolbarHeight: 0,
         bottom: PreferredSize(
