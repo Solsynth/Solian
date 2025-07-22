@@ -609,6 +609,7 @@ Widget _buildReferencePost(BuildContext context, SnPost item) {
   final isReply = item.repliedPost != null;
 
   return Container(
+    margin: const EdgeInsets.only(bottom: 8),
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
