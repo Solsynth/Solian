@@ -30,8 +30,6 @@ class CloudFileWidget extends ConsumerWidget {
     var ratio =
         item.fileMeta?['ratio'] is num
             ? item.fileMeta!['ratio'].toDouble()
-            : item.fileMeta?['ratio'] is String
-            ? double.parse(item.fileMeta!['ratio'])
             : 1.0;
     if (ratio == 0) ratio = 1.0;
     final content = switch (item.mimeType?.split('/').firstOrNull) {
@@ -39,7 +37,10 @@ class CloudFileWidget extends ConsumerWidget {
         aspectRatio: ratio,
         child: UniversalImage(
           uri: uri,
-          blurHash: noBlurhash ? null : item.fileMeta?['blur'],
+          blurHash:
+              noBlurhash
+                  ? null
+                  : (item.fileMeta is String ? item.fileMeta!['blur'] : null),
         ),
       ),
       "video" => AspectRatio(

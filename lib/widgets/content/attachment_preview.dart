@@ -30,7 +30,11 @@ class AttachmentPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var ratio =
-        (item.isOnCloud ? (item.data.fileMeta?['ratio'] ?? 1) : 1).toDouble();
+        item.isOnCloud
+            ? (item.data.fileMeta?['ratio'] is num
+                ? item.data.fileMeta!['ratio'].toDouble()
+                : 1.0)
+            : 1.0;
     if (ratio == 0) ratio = 1.0;
 
     return AspectRatio(
