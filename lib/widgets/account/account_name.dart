@@ -22,9 +22,9 @@ class AccountName extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var nameStyle = (style ?? TextStyle());
-    if (account.profile.stellarMembership != null) {
+    if (account.perkSubscription != null) {
       nameStyle = nameStyle.copyWith(
-        color: (switch (account.profile.stellarMembership!.identifier) {
+        color: (switch (account.perkSubscription!.identifier) {
           'solian.stellar.primary' => Colors.blueAccent,
           'solian.stellar.nova' => Colors.indigoAccent,
           'solian.stellar.supernova' => Colors.amberAccent,
@@ -38,8 +38,8 @@ class AccountName extends StatelessWidget {
       spacing: 4,
       children: [
         Flexible(child: Text(account.nick, style: nameStyle)),
-        if (account.profile.stellarMembership != null)
-          StellarMembershipMark(membership: account.profile.stellarMembership!),
+        if (account.perkSubscription != null)
+          StellarMembershipMark(membership: account.perkSubscription!),
         if (account.profile.verification != null)
           VerificationMark(mark: account.profile.verification!),
       ],

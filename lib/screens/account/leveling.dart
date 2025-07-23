@@ -27,7 +27,7 @@ part 'leveling.g.dart';
 Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
   try {
     final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/subscriptions/fuzzy/solian.stellar');
+    final resp = await client.get('/id/subscriptions/fuzzy/solian.stellar');
     return SnWalletSubscription.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) return null;

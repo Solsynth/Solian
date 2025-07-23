@@ -13,6 +13,12 @@ _SnAccount _$SnAccountFromJson(Map<String, dynamic> json) => _SnAccount(
   language: json['language'] as String,
   isSuperuser: json['is_superuser'] as bool,
   profile: SnAccountProfile.fromJson(json['profile'] as Map<String, dynamic>),
+  perkSubscription:
+      json['perk_subscription'] == null
+          ? null
+          : SnWalletSubscriptionRef.fromJson(
+            json['perk_subscription'] as Map<String, dynamic>,
+          ),
   badges:
       (json['badges'] as List<dynamic>?)
           ?.map((e) => SnAccountBadge.fromJson(e as Map<String, dynamic>))
@@ -34,6 +40,7 @@ Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
       'language': instance.language,
       'is_superuser': instance.isSuperuser,
       'profile': instance.profile.toJson(),
+      'perk_subscription': instance.perkSubscription?.toJson(),
       'badges': instance.badges.map((e) => e.toJson()).toList(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
@@ -84,12 +91,6 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
               : SnVerificationMark.fromJson(
                 json['verification'] as Map<String, dynamic>,
               ),
-      stellarMembership:
-          json['stellar_membership'] == null
-              ? null
-              : SnWalletSubscriptionRef.fromJson(
-                json['stellar_membership'] as Map<String, dynamic>,
-              ),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt:
@@ -118,7 +119,6 @@ Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
       'picture': instance.picture?.toJson(),
       'background': instance.background?.toJson(),
       'verification': instance.verification?.toJson(),
-      'stellar_membership': instance.stellarMembership?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),

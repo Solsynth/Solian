@@ -7,7 +7,7 @@ part of 'articles.dart';
 // **************************************************************************
 
 String _$articlesListNotifierHash() =>
-    r'924f2344c3bbf0ff7b92fe69e88d3b64a534b538';
+    r'579741af4d90c7c81f2e2697e57c4895b7a9dabc';
 
 /// Copied from Dart SDK
 class _SystemHash {
