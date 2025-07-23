@@ -432,7 +432,7 @@ class LevelingScreen extends HookConsumerWidget {
         'id': 'solian.stellar.nova',
         'name': 'membershipTierNova'.tr(),
         'price': 'membershipPriceNova'.tr(),
-        'color': Colors.indigo,
+        'color': Color.fromRGBO(57, 197, 187, 1),
       },
       {
         'id': 'solian.stellar.supernova',
