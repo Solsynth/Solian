@@ -26,7 +26,7 @@ class AccountProfileCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final account = ref.watch(accountProvider(uname));
     final width =
-        math.max(MediaQuery.of(context).size.width - 80, 360).toDouble();
+        math.min(MediaQuery.of(context).size.width - 80, 360).toDouble();
     return PopupCard(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
@@ -105,7 +105,10 @@ class AccountProfileCard extends HookConsumerWidget {
                       FilledButton.tonalIcon(
                         onPressed: () {
                           Navigator.pop(context);
-                          context.pushNamed('accountProfile', pathParameters: {'name': data.name});
+                          context.pushNamed(
+                            'accountProfile',
+                            pathParameters: {'name': data.name},
+                          );
                         },
                         icon: const Icon(Symbols.launch),
                         label: Text('accountProfileView').tr(),

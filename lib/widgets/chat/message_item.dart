@@ -12,6 +12,7 @@ import 'package:island/models/chat.dart';
 import 'package:island/models/embed.dart';
 import 'package:island/pods/call.dart';
 import 'package:island/screens/chat/room.dart';
+import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
@@ -166,8 +167,8 @@ class MessageItem extends HookConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           spacing: 5,
                           children: [
-                            Text(
-                              sender.account.nick,
+                            AccountName(
+                              account: sender.account,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             Badge(
