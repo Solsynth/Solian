@@ -26,6 +26,7 @@ class CloudFileList extends HookConsumerWidget {
   final double maxWidth;
   final double? minWidth;
   final bool disableZoomIn;
+  final bool disableConstraint;
   const CloudFileList({
     super.key,
     required this.files,
@@ -33,6 +34,7 @@ class CloudFileList extends HookConsumerWidget {
     this.maxWidth = double.infinity,
     this.minWidth,
     this.disableZoomIn = false,
+    this.disableConstraint = false,
   });
 
   double calculateAspectRatio() {
@@ -60,8 +62,15 @@ class CloudFileList extends HookConsumerWidget {
       final isImage = files.first.mimeType?.startsWith('image') ?? false;
       return ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: maxHeight,
+          maxHeight: disableConstraint ? double.infinity : maxHeight,
           minWidth: minWidth ?? 0,
+          maxWidth:
+              files.length == 1
+                  ? math.max(
+                    math.min(520, MediaQuery.of(context).size.width * 0.85),
+                    minWidth ?? 0,
+                  )
+                  : double.infinity,
         ),
         child: AspectRatio(
           aspectRatio: calculateAspectRatio(),

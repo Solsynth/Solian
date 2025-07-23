@@ -6,7 +6,7 @@ part of 'pub_profile.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$publisherHash() => r'3a7ae4d48765170aea42c7d6f4502d68f984dfab';
+String _$publisherHash() => r'a1da21f0275421382e2882fd52c4e061c4675cf7';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -145,7 +145,7 @@ class _PublisherProviderElement
   String get uname => (origin as PublisherProvider).uname;
 }
 
-String _$publisherBadgesHash() => r'a5781deded7e682a781ccd7854418f050438e3f4';
+String _$publisherBadgesHash() => r'527efad74225fbacf558ac5db160ecce53a60c62';
 
 /// See also [publisherBadges].
 @ProviderFor(publisherBadges)
@@ -268,7 +268,7 @@ class _PublisherBadgesProviderElement
 }
 
 String _$publisherSubscriptionStatusHash() =>
-    r'4eb6741c40775c814e71b6a98b8f1e2d84bf7e30';
+    r'634262ce519e1c8288267df11e08e1d4acaa4a44';
 
 /// See also [publisherSubscriptionStatus].
 @ProviderFor(publisherSubscriptionStatus)

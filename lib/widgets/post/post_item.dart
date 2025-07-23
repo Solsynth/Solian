@@ -168,6 +168,7 @@ class PostItem extends HookConsumerWidget {
               _buildReferencePost(context, item),
             if (item.attachments.isNotEmpty && item.type != 1)
               CloudFileList(
+                disableConstraint: isFullPost,
                 files: item.attachments,
                 maxWidth: math.min(
                   MediaQuery.of(context).size.width,
@@ -404,6 +405,7 @@ class PostItem extends HookConsumerWidget {
                         if (item.attachments.isNotEmpty && item.type != 1)
                           CloudFileList(
                             files: item.attachments,
+                            disableConstraint: isFullPost,
                             maxWidth: math.min(
                               MediaQuery.of(context).size.width * 0.85,
                               kWideScreenWidth - 160,
