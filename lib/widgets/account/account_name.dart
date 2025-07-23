@@ -26,7 +26,7 @@ class AccountName extends StatelessWidget {
       nameStyle = nameStyle.copyWith(
         color: (switch (account.perkSubscription!.identifier) {
           'solian.stellar.primary' => Colors.blueAccent,
-          'solian.stellar.nova' => Colors.indigoAccent,
+          'solian.stellar.nova' => Color.fromRGBO(57, 197, 187, 1),
           'solian.stellar.supernova' => Colors.amberAccent,
           _ => null,
         }),
@@ -101,7 +101,7 @@ class StellarMembershipMark extends StatelessWidget {
       case 'solian.stellar.primary':
         return Colors.blue;
       case 'solian.stellar.nova':
-        return Colors.indigo;
+        return Color.fromRGBO(57, 197, 187, 1);
       case 'solian.stellar.supernova':
         return Colors.amber;
       default:
@@ -115,7 +115,7 @@ class StellarMembershipMark extends StatelessWidget {
 
     final tierName = _getMembershipTierName(membership.identifier);
     final tierColor = _getMembershipTierColor(membership.identifier);
-    final tierIcon = Symbols.award_star;
+    final tierIcon = Symbols.kid_star;
 
     return Tooltip(
       richMessage: TextSpan(

@@ -94,7 +94,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
         final userInfo = ref.read(userInfoProvider);
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/accounts/recovery/password',
+          '/id/accounts/recovery/password',
           data: {'account': userInfo.value!.name, 'captcha_token': captchaTk},
         );
         if (context.mounted) {
