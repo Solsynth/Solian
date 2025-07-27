@@ -392,6 +392,94 @@ class ComposeLogic {
     ];
   }
 
+  static Future<void> addAttachmentById(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    final TextEditingController idController = TextEditingController();
+    String? errorMessage;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('addAttachmentById'.tr()),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: idController,
+                    decoration: InputDecoration(
+                      hintText: 'enterFileId'.tr(),
+                      errorText: errorMessage,
+                    ),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('cancel'.tr()),
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('add'.tr()),
+                  onPressed: () async {
+                    final fileId = idController.text.trim();
+                    if (fileId.isEmpty) {
+                      setState(() {
+                        errorMessage = 'fileIdCannotBeEmpty'.tr();
+                      });
+                      return;
+                    }
+
+                    try {
+                      final client = ref.read(apiClientProvider);
+                      final response = await client.get(
+                        '/drive/files/$fileId/info',
+                      );
+                      final SnCloudFile cloudFile = SnCloudFile.fromJson(
+                        response.data,
+                      );
+
+                      state.attachments.value = [
+                        ...state.attachments.value,
+                        UniversalFile(
+                          data: cloudFile,
+                          type: switch (cloudFile.mimeType
+                              ?.split('/')
+                              .firstOrNull) {
+                            'image' => UniversalFileType.image,
+                            'video' => UniversalFileType.video,
+                            'audio' => UniversalFileType.audio,
+                            _ => UniversalFileType.file,
+                          },
+                        ),
+                      ];
+                      if (context.mounted) {
+                        Navigator.of(dialogContext).pop();
+                      }
+                    } catch (e) {
+                      setState(() {
+                        errorMessage = 'failedToFetchFile'.tr(
+                          args: [e.toString()],
+                        );
+                      });
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   static Future<void> uploadAttachment(
     WidgetRef ref,
     ComposeState state,
