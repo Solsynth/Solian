@@ -469,6 +469,11 @@ class PostComposeScreen extends HookConsumerWidget {
                     icon: const Icon(Symbols.videocam),
                     color: colorScheme.primary,
                   ),
+                  IconButton(
+                    onPressed: () => ComposeLogic.addAttachmentById(ref, state, context),
+                    icon: const Icon(Symbols.attach_file),
+                    color: colorScheme.primary,
+                  ),
                 ],
               ).padding(
                 bottom: MediaQuery.of(context).padding.bottom + 16,

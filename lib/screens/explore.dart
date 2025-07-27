@@ -84,6 +84,8 @@ class ExploreScreen extends HookConsumerWidget {
       selectedDay.value = day;
     }
 
+    final user = ref.watch(userInfoProvider);
+
     return AppScaffold(
       noBackground: false,
       appBar: AppBar(
@@ -198,36 +200,60 @@ class ExploreScreen extends HookConsumerWidget {
               children: [
                 Flexible(flex: 3, child: bodyView),
                 const VerticalDivider(width: 1),
-                Flexible(
-                  flex: 2,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        CheckInWidget(),
-                        Card(
-                          margin: EdgeInsets.only(left: 16, right: 16, top: 8),
-                          child: Column(
-                            children: [
-                              // Use the reusable EventCalendarWidget
-                              EventCalendarWidget(
-                                events: events,
-                                initialDate: now,
-                                showEventDetails: true,
-                                onMonthChanged: onMonthChanged,
-                                onDaySelected: onDaySelected,
-                              ),
-                            ],
+                if (user.value != null)
+                  Flexible(
+                    flex: 2,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          CheckInWidget(),
+                          Card(
+                            margin: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 8,
+                            ),
+                            child: Column(
+                              children: [
+                                // Use the reusable EventCalendarWidget
+                                EventCalendarWidget(
+                                  events: events,
+                                  initialDate: now,
+                                  showEventDetails: true,
+                                  onMonthChanged: onMonthChanged,
+                                  onDaySelected: onDaySelected,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        FortuneGraphWidget(
-                          events: events,
-                          constrainWidth: true,
-                          onPointSelected: onDaySelected,
+                          FortuneGraphWidget(
+                            events: events,
+                            constrainWidth: true,
+                            onPointSelected: onDaySelected,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Flexible(
+                    flex: 2,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome to\nthe Solar Network',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ).bold(),
+                        const Gap(2),
+                        Text(
+                          'Login to explore more!',
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       ],
-                    ),
+                    ).padding(horizontal: 36, vertical: 16),
                   ),
-                ),
               ],
             );
           }
