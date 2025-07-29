@@ -46,6 +46,10 @@ class WebSocketService {
   final StreamController<WebSocketState> _statusStreamController =
       StreamController<WebSocketState>.broadcast();
   Timer? _reconnectTimer;
+  Timer? _heartbeatTimer;
+
+  DateTime? _heartbeatAt;
+  Duration? _heartbeatDelay;
 
   Stream<WebSocketPacket> get dataStream => _streamController.stream;
   Stream<WebSocketState> get statusStream => _statusStreamController.stream;
@@ -71,6 +75,7 @@ class WebSocketService {
       }
       await _channel!.ready;
       _statusStreamController.sink.add(WebSocketState.connected());
+      _scheduleHeartbeat();
       _channel!.stream.listen(
         (data) {
           final dataStr =
@@ -80,6 +85,13 @@ class WebSocketService {
           log(
             "[WebSocket] Received packet: ${packet.type} ${packet.errorMessage}",
           );
+          if (packet.type == 'pong' && _heartbeatAt != null) {
+            var now = DateTime.now();
+            _heartbeatDelay = now.difference(_heartbeatAt!);
+            log(
+              "[WebSocket] Server respond last heartbeat for ${_heartbeatDelay!.inMilliseconds} ms",
+            );
+          }
         },
         onDone: () {
           log('[WebSocket] Connection closed, attempting to reconnect...');
@@ -106,6 +118,19 @@ class WebSocketService {
       _statusStreamController.sink.add(WebSocketState.connecting());
       connect(_ref);
     });
+  }
+
+  void _scheduleHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _beatTheHeart();
+    });
+  }
+
+  void _beatTheHeart() {
+    _heartbeatAt = DateTime.now();
+    log('[WebSocket] We\'re beating the heart! $_heartbeatAt');
+    sendMessage(jsonEncode(WebSocketPacket(type: 'ping', data: null)));
   }
 
   WebSocketChannel? get ws => _channel;
