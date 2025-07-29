@@ -174,10 +174,6 @@ class PostItem extends HookConsumerWidget {
                   MediaQuery.of(context).size.width,
                   kWideScreenWidth,
                 ),
-                minWidth: math.min(
-                  MediaQuery.of(context).size.width,
-                  kWideScreenWidth,
-                ),
               ),
             if (item.meta?['embeds'] != null)
               ...((item.meta!['embeds'] as List<dynamic>)
@@ -408,10 +404,6 @@ class PostItem extends HookConsumerWidget {
                             disableConstraint: isFullPost,
                             maxWidth: math.min(
                               MediaQuery.of(context).size.width * 0.85,
-                              kWideScreenWidth - 160,
-                            ),
-                            minWidth: math.min(
-                              MediaQuery.of(context).size.width * 0.9,
                               kWideScreenWidth - 160,
                             ),
                           ),

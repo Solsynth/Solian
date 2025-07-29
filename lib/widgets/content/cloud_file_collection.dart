@@ -30,7 +30,7 @@ class CloudFileList extends HookConsumerWidget {
   const CloudFileList({
     super.key,
     required this.files,
-    this.maxHeight = 360,
+    this.maxHeight = 560,
     this.maxWidth = double.infinity,
     this.minWidth,
     this.disableZoomIn = false,
@@ -98,53 +98,8 @@ class CloudFileList extends HookConsumerWidget {
       ).padding(horizontal: 3);
     }
 
-    final allImages =
-        !files.any(
-          (e) => e.mimeType == null || !e.mimeType!.startsWith('image'),
-        );
-
-    if (allImages) {
-      return ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
-        child: AspectRatio(
-          aspectRatio: calculateAspectRatio(),
-          child: CarouselView(
-            itemExtent: math.min(
-              MediaQuery.of(context).size.width * 0.85,
-              maxWidth * 0.85,
-            ),
-            itemSnapping: true,
-            shape: RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(16)),
-            ),
-            children: [
-              for (var i = 0; i < files.length; i++)
-                _CloudFileListEntry(
-                  file: files[i],
-                  heroTag: heroTags[i],
-                  isImage: files[i].mimeType?.startsWith('image') ?? false,
-                  disableZoomIn: disableZoomIn,
-                  fit: BoxFit.cover,
-                ),
-            ],
-            onTap: (i) {
-              if (!(files[i].mimeType?.startsWith('image') ?? false)) {
-                return;
-              }
-              if (!disableZoomIn) {
-                context.pushTransparentRoute(
-                  CloudFileZoomIn(item: files[i], heroTag: heroTags[i]),
-                  rootNavigator: true,
-                );
-              }
-            },
-          ),
-        ),
-      );
-    }
-
     return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
+      constraints: BoxConstraints(maxHeight: maxHeight),
       child: AspectRatio(
         aspectRatio: calculateAspectRatio(),
         child: ListView.separated(
@@ -152,26 +107,49 @@ class CloudFileList extends HookConsumerWidget {
           itemCount: files.length,
           padding: EdgeInsets.symmetric(horizontal: 3),
           itemBuilder: (context, index) {
-            return ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(16)),
-              child: _CloudFileListEntry(
-                file: files[index],
-                heroTag: heroTags[index],
-                isImage: files[index].mimeType?.startsWith('image') ?? false,
-                disableZoomIn: disableZoomIn,
-                onTap: () {
-                  if (!(files[index].mimeType?.startsWith('image') ?? false)) {
-                    return;
-                  }
-                  if (!disableZoomIn) {
-                    context.pushTransparentRoute(
-                      CloudFileZoomIn(
-                        item: files[index],
-                        heroTag: heroTags[index],
-                      ),
-                    );
-                  }
-                },
+            return AspectRatio(
+              aspectRatio:
+                  files[index].fileMeta?['ratio'] is num
+                      ? files[index].fileMeta!['ratio'].toDouble()
+                      : 1.0,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                    child: _CloudFileListEntry(
+                      file: files[index],
+                      heroTag: heroTags[index],
+                      isImage:
+                          files[index].mimeType?.startsWith('image') ?? false,
+                      disableZoomIn: disableZoomIn,
+                      onTap: () {
+                        if (!(files[index].mimeType?.startsWith('image') ??
+                            false)) {
+                          return;
+                        }
+                        if (!disableZoomIn) {
+                          context.pushTransparentRoute(
+                            CloudFileZoomIn(
+                              item: files[index],
+                              heroTag: heroTags[index],
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 12,
+                    left: 16,
+                    child: Text('${index + 1}/${files.length}')
+                        .textColor(Colors.white)
+                        .textShadow(
+                          color: Colors.black54,
+                          offset: Offset(1, 1),
+                          blurRadius: 3,
+                        ),
+                  ),
+                ],
               ),
             );
           },
