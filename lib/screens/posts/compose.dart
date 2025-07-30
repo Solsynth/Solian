@@ -18,7 +18,8 @@ import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
 import 'package:island/services/compose_storage_db.dart';
-import 'package:island/widgets/post/draft_manager.dart';
+// DraftManagerSheet is now imported through compose_toolbar.dart
+import 'package:island/widgets/post/compose_toolbar.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -422,85 +423,17 @@ class PostComposeScreen extends HookConsumerWidget {
             ),
 
             // Bottom toolbar
-            Material(
-              elevation: 4,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 560),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed:
-                            () => ComposeLogic.pickPhotoMedia(ref, state),
-                        tooltip: 'addPhoto'.tr(),
-                        icon: const Icon(Symbols.add_a_photo),
-                        color: colorScheme.primary,
-                      ),
-                      IconButton(
-                        onPressed:
-                            () => ComposeLogic.pickVideoMedia(ref, state),
-                        tooltip: 'addVideo'.tr(),
-                        icon: const Icon(Symbols.videocam),
-                        color: colorScheme.primary,
-                      ),
-                      IconButton(
-                        onPressed:
-                            () => ComposeLogic.linkAttachment(
-                              ref,
-                              state,
-                              context,
-                            ),
-                        icon: const Icon(Symbols.attach_file),
-                        tooltip: 'linkAttachment'.tr(),
-                        color: colorScheme.primary,
-                      ),
-                      Spacer(),
-                      if (originalPost == null && state.isEmpty)
-                        IconButton(
-                          icon: const Icon(Symbols.draft),
-                          color: colorScheme.primary,
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              builder:
-                                  (context) => DraftManagerSheet(
-                                    onDraftSelected: (draftId) {
-                                      final draft =
-                                          ref.read(
-                                            composeStorageNotifierProvider,
-                                          )[draftId];
-                                      if (draft != null) {
-                                        state.titleController.text =
-                                            draft.title ?? '';
-                                        state.descriptionController.text =
-                                            draft.description ?? '';
-                                        state.contentController.text =
-                                            draft.content ?? '';
-                                        state.visibility.value =
-                                            draft.visibility;
-                                      }
-                                    },
-                                  ),
-                            );
-                          },
-                          tooltip: 'drafts'.tr(),
-                        )
-                      else if (originalPost == null)
-                        IconButton(
-                          icon: const Icon(Symbols.save),
-                          color: colorScheme.primary,
-                          onPressed: () => ComposeLogic.saveDraft(ref, state),
-                          tooltip: 'saveDraft'.tr(),
-                        ),
-                    ],
-                  ).padding(
-                    bottom: MediaQuery.of(context).padding.bottom + 16,
-                    horizontal: 16,
-                    top: 8,
-                  ),
-                ),
-              ),
+            ComposeToolbar(
+              ref: ref,
+              context: context,
+              colorScheme: colorScheme,
+              isEmpty: state.isEmpty,
+              titleController: state.titleController,
+              descriptionController: state.descriptionController,
+              contentController: state.contentController,
+              visibility: state.visibility,
+              attachments: state.attachments,
+              originalPost: originalPost,
             ),
           ],
         ),

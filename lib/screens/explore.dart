@@ -169,16 +169,27 @@ class ExploreScreen extends HookConsumerWidget {
               ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: Key("explore-page-fab"),
-        onPressed: () {
-          context.pushNamed('postCompose').then((value) {
-            if (value != null) {
-              activitiesNotifier.forceRefresh();
-            }
-          });
+      floatingActionButton: InkWell(
+        onLongPress: () {
+          context.pushNamed('postCompose', queryParameters: {'type': '1'}).then(
+            (value) {
+              if (value != null) {
+                activitiesNotifier.forceRefresh();
+              }
+            },
+          );
         },
-        child: const Icon(Symbols.edit),
+        child: FloatingActionButton(
+          heroTag: Key("explore-page-fab"),
+          onPressed: () {
+            context.pushNamed('postCompose').then((value) {
+              if (value != null) {
+                activitiesNotifier.forceRefresh();
+              }
+            });
+          },
+          child: const Icon(Symbols.edit),
+        ),
       ),
       floatingActionButtonLocation: TabbedFabLocation(context),
       body: Builder(
