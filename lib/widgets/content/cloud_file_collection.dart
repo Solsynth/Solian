@@ -27,6 +27,7 @@ class CloudFileList extends HookConsumerWidget {
   final double? minWidth;
   final bool disableZoomIn;
   final bool disableConstraint;
+  final EdgeInsets? padding;
   const CloudFileList({
     super.key,
     required this.files,
@@ -35,6 +36,7 @@ class CloudFileList extends HookConsumerWidget {
     this.minWidth,
     this.disableZoomIn = false,
     this.disableConstraint = false,
+    this.padding,
   });
 
   double calculateAspectRatio() {
@@ -60,7 +62,8 @@ class CloudFileList extends HookConsumerWidget {
     if (files.isEmpty) return const SizedBox.shrink();
     if (files.length == 1) {
       final isImage = files.first.mimeType?.startsWith('image') ?? false;
-      return ConstrainedBox(
+      return Container(
+        padding: padding,
         constraints: BoxConstraints(
           maxHeight: disableConstraint ? double.infinity : maxHeight,
           minWidth: minWidth ?? 0,
@@ -75,7 +78,7 @@ class CloudFileList extends HookConsumerWidget {
         child: AspectRatio(
           aspectRatio: calculateAspectRatio(),
           child: ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(16)),
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
             child: _CloudFileListEntry(
               file: files.first,
               heroTag: heroTags.first,
@@ -95,7 +98,7 @@ class CloudFileList extends HookConsumerWidget {
             ),
           ),
         ),
-      ).padding(horizontal: 3);
+      );
     }
 
     return ConstrainedBox(
@@ -105,7 +108,7 @@ class CloudFileList extends HookConsumerWidget {
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           itemCount: files.length,
-          padding: EdgeInsets.symmetric(horizontal: 3),
+          padding: padding,
           itemBuilder: (context, index) {
             return AspectRatio(
               aspectRatio:
@@ -133,6 +136,7 @@ class CloudFileList extends HookConsumerWidget {
                               item: files[index],
                               heroTag: heroTags[index],
                             ),
+                            rootNavigator: true,
                           );
                         }
                       },
@@ -184,7 +188,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
         final filePath = '${tempDir.path}/${item.id}.${extension(item.name)}';
 
         await client.download(
-          '/files/${item.id}',
+          '/drive/files/${item.id}',
           filePath,
           queryParameters: {'original': true},
         );
@@ -334,7 +338,6 @@ class CloudFileZoomIn extends HookConsumerWidget {
               imageProvider: CloudImageWidget.provider(
                 fileId: item.id,
                 serverUrl: serverUrl,
-                original: true,
               ),
               // Apply rotation transformation
               customSize: MediaQuery.of(context).size,
@@ -475,7 +478,6 @@ class _CloudFileListEntry extends StatelessWidget {
   final bool isImage;
   final bool disableZoomIn;
   final VoidCallback? onTap;
-  final BoxFit fit;
 
   const _CloudFileListEntry({
     required this.file,
@@ -483,7 +485,6 @@ class _CloudFileListEntry extends StatelessWidget {
     required this.isImage,
     required this.disableZoomIn,
     this.onTap,
-    this.fit = BoxFit.contain,
   });
 
   @override
@@ -506,10 +507,10 @@ class _CloudFileListEntry extends StatelessWidget {
             item: file,
             heroTag: heroTag,
             noBlurhash: true,
-            fit: fit,
+            fit: BoxFit.contain,
           )
         else
-          CloudFileWidget(item: file, heroTag: heroTag, fit: fit),
+          CloudFileWidget(item: file, heroTag: heroTag, fit: BoxFit.contain),
       ],
     );
 

@@ -71,7 +71,6 @@ class PostDetailScreen extends HookConsumerWidget {
                       children: [
                         PostItem(
                           item: post!,
-                          isOpenable: false,
                           isFullPost: true,
                           backgroundColor: isWide ? Colors.transparent : null,
                           onUpdate: (newItem) {

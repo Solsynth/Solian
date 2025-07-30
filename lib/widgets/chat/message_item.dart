@@ -228,7 +228,8 @@ class MessageItem extends HookConsumerWidget {
                                 return CloudFileList(
                                   files: remoteMessage.attachments,
                                   maxWidth: constraints.maxWidth,
-                                ).padding(vertical: 4);
+                                  padding: EdgeInsets.symmetric(vertical: 4),
+                                );
                               },
                             ),
                           if (remoteMessage.meta['embeds'] != null)

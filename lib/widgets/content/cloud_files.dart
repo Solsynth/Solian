@@ -92,7 +92,10 @@ class CloudImageWidget extends ConsumerWidget {
     required String serverUrl,
     bool original = false,
   }) {
-    final uri = '$serverUrl/drive/files/$fileId?original=$original';
+    final uri =
+        original
+            ? '$serverUrl/drive/files/$fileId?original=true'
+            : '$serverUrl/drive/files/$fileId';
     return CachedNetworkImageProvider(uri);
   }
 }

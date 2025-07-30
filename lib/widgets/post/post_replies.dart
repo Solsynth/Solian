@@ -99,7 +99,7 @@ class PostRepliesList extends HookConsumerWidget {
                   item: data.items[index],
                   backgroundColor:
                       backgroundColor ?? (isWide ? Colors.transparent : null),
-                  showReferencePost: false,
+                  isShowReference: false,
                 ),
                 const Divider(height: 1),
               ],

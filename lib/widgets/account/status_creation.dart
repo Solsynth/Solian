@@ -49,7 +49,7 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
         final user = ref.watch(userInfoProvider);
         final apiClient = ref.read(apiClientProvider);
         await apiClient.request(
-          '/accounts/me/statuses',
+          '/id/accounts/me/statuses',
           data: {
             'attitude': attitude.value,
             'is_invisible': isInvisible.value,

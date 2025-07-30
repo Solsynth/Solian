@@ -86,6 +86,7 @@ class AccountStatusCreationWidget extends HookConsumerWidget {
       onTap: () {
         showModalBottomSheet(
           context: context,
+          useRootNavigator: true,
           builder:
               (context) => AccountStatusCreationSheet(
                 initialStatus:
