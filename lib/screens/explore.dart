@@ -208,13 +208,12 @@ class ExploreScreen extends HookConsumerWidget {
                           CheckInWidget(
                             margin: EdgeInsets.only(
                               left: 8,
-                              right: 16,
+                              right: 12,
                               top: 16,
-                              bottom: 8,
                             ),
                           ),
                           Card(
-                            margin: EdgeInsets.only(left: 8, right: 16, top: 8),
+                            margin: EdgeInsets.only(left: 8, right: 12, top: 8),
                             child: Column(
                               children: [
                                 // Use the reusable EventCalendarWidget
@@ -229,11 +228,7 @@ class ExploreScreen extends HookConsumerWidget {
                             ),
                           ),
                           FortuneGraphWidget(
-                            margin: EdgeInsets.only(
-                              left: 8,
-                              right: 16,
-                              top: 16,
-                            ),
+                            margin: EdgeInsets.only(left: 8, right: 12, top: 8),
                             events: events,
                             constrainWidth: true,
                             onPointSelected: onDaySelected,
