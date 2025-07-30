@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -6,17 +8,25 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/embed.dart';
 import 'package:island/models/post.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/screens/posts/compose.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/safety/abuse_report_helper.dart';
+import 'package:island/widgets/share/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:super_context_menu/super_context_menu.dart';
 
 class PostActionableItem extends HookConsumerWidget {
   final Color? backgroundColor;
@@ -68,7 +78,113 @@ class PostActionableItem extends HookConsumerWidget {
       },
     );
 
-    return widgetItem;
+    return ContextMenuWidget(
+      menuProvider: (_) {
+        return Menu(
+          children: [
+            if (isAuthor)
+              MenuAction(
+                title: 'edit'.tr(),
+                image: MenuImage.icon(Symbols.edit),
+                callback: () {
+                  context
+                      .pushNamed('postEdit', pathParameters: {'id': item.id})
+                      .then((value) {
+                        if (value != null) {
+                          onRefresh?.call();
+                        }
+                      });
+                },
+              ),
+            if (isAuthor)
+              MenuAction(
+                title: 'delete'.tr(),
+                image: MenuImage.icon(Symbols.delete),
+                callback: () {
+                  showConfirmAlert(
+                    'deletePostHint'.tr(),
+                    'deletePost'.tr(),
+                  ).then((confirm) {
+                    if (confirm) {
+                      final client = ref.watch(apiClientProvider);
+                      client
+                          .delete('/sphere/posts/${item.id}')
+                          .catchError((err) {
+                            showErrorAlert(err);
+                            return err;
+                          })
+                          .then((_) {
+                            onRefresh?.call();
+                          });
+                    }
+                  });
+                },
+              ),
+            if (isAuthor) MenuSeparator(),
+            MenuAction(
+              title: 'copyLink'.tr(),
+              image: MenuImage.icon(Symbols.link),
+              callback: () {
+                Clipboard.setData(
+                  ClipboardData(text: 'https://solsynth.dev/posts/${item.id}'),
+                );
+              },
+            ),
+            MenuAction(
+              title: 'reply'.tr(),
+              image: MenuImage.icon(Symbols.reply),
+              callback: () {
+                context.pushNamed(
+                  'postCompose',
+                  extra: PostComposeInitialState(replyingTo: item),
+                );
+              },
+            ),
+            MenuAction(
+              title: 'forward'.tr(),
+              image: MenuImage.icon(Symbols.forward),
+              callback: () {
+                context.pushNamed(
+                  'postCompose',
+                  extra: PostComposeInitialState(forwardingTo: item),
+                );
+              },
+            ),
+            MenuSeparator(),
+            MenuAction(
+              title: 'share'.tr(),
+              image: MenuImage.icon(Symbols.share),
+              callback: () {
+                showShareSheetLink(
+                  context: context,
+                  link: '${ref.read(serverUrlProvider)}/posts/${item.id}',
+                  title: 'sharePost'.tr(),
+                  toSystem: true,
+                );
+              },
+            ),
+            MenuAction(
+              title: 'abuseReport'.tr(),
+              image: MenuImage.icon(Symbols.flag),
+              callback: () {
+                showAbuseReportSheet(
+                  context,
+                  resourceIdentifier: 'post/${item.id}',
+                );
+              },
+            ),
+          ],
+        );
+      },
+      child: Material(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius:
+            borderRadius != null
+                ? BorderRadius.all(Radius.circular(borderRadius!))
+                : null,
+        child: widgetItem,
+      ),
+    );
   }
 }
 
@@ -263,8 +379,18 @@ class PostItem extends HookConsumerWidget {
               right: renderingPadding.horizontal,
             ),
             child: MarkdownTextContent(
-              content: item.content!,
+              content: item.isTruncated ? '${item.content!}...' : item.content!,
               isSelectable: isTextSelectable,
+            ),
+          ),
+        if (item.isTruncated && item.type != 1)
+          _PostTruncateHint(
+            isCompact: true,
+            margin: EdgeInsets.only(
+              top: 4,
+              bottom: 4,
+              left: renderingPadding.horizontal,
+              right: renderingPadding.horizontal,
             ),
           ),
         if (item.attachments.isNotEmpty)
@@ -275,6 +401,24 @@ class PostItem extends HookConsumerWidget {
               vertical: 4,
             ),
           ),
+        if (item.meta?['embeds'] != null)
+          ...((item.meta!['embeds'] as List<dynamic>)
+              .where((embed) => embed['Type'] == 'link')
+              .map(
+                (embedData) => EmbedLinkWidget(
+                  link: SnEmbedLink.fromJson(embedData as Map<String, dynamic>),
+                  maxWidth: math.min(
+                    MediaQuery.of(context).size.width,
+                    kWideScreenWidth,
+                  ),
+                  margin: EdgeInsets.only(
+                    top: 4,
+                    bottom: 4,
+                    left: renderingPadding.horizontal,
+                    right: renderingPadding.horizontal,
+                  ),
+                ),
+              )),
         if (isShowReference)
           _buildReferencePost(context, item, renderingPadding),
         Gap(renderingPadding.vertical),
@@ -711,130 +855,6 @@ class _PostTruncateHint extends StatelessWidget {
   }
 }
 
-class _ArticlePostDisplay extends StatelessWidget {
-  final SnPost item;
-  final bool isFullPost;
-
-  const _ArticlePostDisplay({required this.item, required this.isFullPost});
-
-  @override
-  Widget build(BuildContext context) {
-    if (isFullPost) {
-      // Full article view
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (item.title?.isNotEmpty ?? false)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                item.title!,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          if (item.description?.isNotEmpty ?? false)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Text(
-                item.description!,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          if (item.content?.isNotEmpty ?? false)
-            MarkdownTextContent(
-              content: item.content!,
-              textStyle: Theme.of(context).textTheme.bodyLarge,
-              attachments: item.attachments,
-            ),
-        ],
-      );
-    } else {
-      // Truncated/Card view
-      String? previewContent;
-      if (item.description?.isNotEmpty ?? false) {
-        previewContent = item.description!;
-      } else if (item.content?.isNotEmpty ?? false) {
-        previewContent = item.content!;
-      }
-
-      return Card(
-        elevation: 0,
-        margin: const EdgeInsets.only(top: 4),
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (item.title?.isNotEmpty ?? false)
-                Text(
-                  item.title!,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              if (previewContent != null) ...[
-                const Gap(8),
-                Text(
-                  previewContent,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Symbols.article,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'postArticle'.tr(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-  }
-}
-
-// Helper method to get the appropriate icon for each visibility status
 IconData _getVisibilityIcon(int visibility) {
   switch (visibility) {
     case 1: // Friends

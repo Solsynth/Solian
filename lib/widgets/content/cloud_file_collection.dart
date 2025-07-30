@@ -102,7 +102,7 @@ class CloudFileList extends HookConsumerWidget {
     }
 
     return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
+      constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
       child: AspectRatio(
         aspectRatio: calculateAspectRatio(),
         child: ListView.separated(
