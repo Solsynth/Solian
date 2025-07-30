@@ -231,7 +231,7 @@ class AccountScreen extends HookConsumerWidget {
             ListTile(
               minTileHeight: 48,
               title: Text('abuseReports').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               leading: const Icon(Symbols.gavel),
               trailing: const Icon(Symbols.chevron_right),
               onTap: () => context.pushNamed('reportList'),

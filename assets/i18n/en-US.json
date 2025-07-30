@@ -147,8 +147,7 @@
   "addVideo": "Add video",
   "addPhoto": "Add photo",
   "addFile": "Add file",
-  "addAttachmentById": "Add Attachment by ID",
-  "enterFileId": "Enter File ID",
+  "linkAttachment": "Link Attachment",
   "fileIdCannotBeEmpty": "File ID cannot be empty",
   "failedToFetchFile": "Failed to fetch file: {}",
   "createDirectMessage": "Send new DM",
@@ -706,5 +705,7 @@
   "aboutDeviceName": "Device Name",
   "aboutDeviceIdentifier": "Device Identifier",
   "donate": "Donate",
-  "donateDescription": "Support us to continue developing the Solar Network and keep the server up and running."
+  "donateDescription": "Support us to continue developing the Solar Network and keep the server up and running.",
+  "fileId": "File ID",
+  "fileIdHint": "The file ID is the ID you get after upload the file via the Solar Network Drive."
 }

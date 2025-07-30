@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
@@ -13,7 +14,10 @@ import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/sheet.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:pasteboard/pasteboard.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'dart:async';
 import 'dart:developer';
 
@@ -60,6 +64,9 @@ class ComposeState {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = null;
   }
+
+  bool get isEmpty =>
+      attachments.value.isEmpty && contentController.text.isEmpty;
 }
 
 class ComposeLogic {
@@ -392,7 +399,7 @@ class ComposeLogic {
     ];
   }
 
-  static Future<void> addAttachmentById(
+  static Future<void> linkAttachment(
     WidgetRef ref,
     ComposeState state,
     BuildContext context,
@@ -400,79 +407,80 @@ class ComposeLogic {
     final TextEditingController idController = TextEditingController();
     String? errorMessage;
 
-    await showDialog(
+    await showModalBottomSheet(
       context: context,
       builder: (BuildContext dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              title: Text('addAttachmentById'.tr()),
-              content: Column(
+            return SheetScaffold(
+              titleText: 'linkAttachment'.tr(),
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextField(
                     controller: idController,
                     decoration: InputDecoration(
-                      hintText: 'enterFileId'.tr(),
+                      labelText: 'fileId'.tr(),
+                      helperText: 'fileIdHint'.tr(),
+                      helperMaxLines: 3,
                       errorText: errorMessage,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const Gap(16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      icon: const Icon(Symbols.add),
+                      label: Text('add'.tr()),
+                      onPressed: () async {
+                        final fileId = idController.text.trim();
+                        if (fileId.isEmpty) {
+                          setState(() {
+                            errorMessage = 'fileIdCannotBeEmpty'.tr();
+                          });
+                          return;
+                        }
+
+                        try {
+                          final client = ref.read(apiClientProvider);
+                          final response = await client.get(
+                            '/drive/files/$fileId/info',
+                          );
+                          final SnCloudFile cloudFile = SnCloudFile.fromJson(
+                            response.data,
+                          );
+
+                          state.attachments.value = [
+                            ...state.attachments.value,
+                            UniversalFile(
+                              data: cloudFile,
+                              type: switch (cloudFile.mimeType
+                                  ?.split('/')
+                                  .firstOrNull) {
+                                'image' => UniversalFileType.image,
+                                'video' => UniversalFileType.video,
+                                'audio' => UniversalFileType.audio,
+                                _ => UniversalFileType.file,
+                              },
+                            ),
+                          ];
+                          if (context.mounted) {
+                            Navigator.of(dialogContext).pop();
+                          }
+                        } catch (e) {
+                          setState(() {
+                            errorMessage = 'failedToFetchFile'.tr(
+                              args: [e.toString()],
+                            );
+                          });
+                        }
+                      },
                     ),
                   ),
                 ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('cancel'.tr()),
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop();
-                  },
-                ),
-                TextButton(
-                  child: Text('add'.tr()),
-                  onPressed: () async {
-                    final fileId = idController.text.trim();
-                    if (fileId.isEmpty) {
-                      setState(() {
-                        errorMessage = 'fileIdCannotBeEmpty'.tr();
-                      });
-                      return;
-                    }
-
-                    try {
-                      final client = ref.read(apiClientProvider);
-                      final response = await client.get(
-                        '/drive/files/$fileId/info',
-                      );
-                      final SnCloudFile cloudFile = SnCloudFile.fromJson(
-                        response.data,
-                      );
-
-                      state.attachments.value = [
-                        ...state.attachments.value,
-                        UniversalFile(
-                          data: cloudFile,
-                          type: switch (cloudFile.mimeType
-                              ?.split('/')
-                              .firstOrNull) {
-                            'image' => UniversalFileType.image,
-                            'video' => UniversalFileType.video,
-                            'audio' => UniversalFileType.audio,
-                            _ => UniversalFileType.file,
-                          },
-                        ),
-                      ];
-                      if (context.mounted) {
-                        Navigator.of(dialogContext).pop();
-                      }
-                    } catch (e) {
-                      setState(() {
-                        errorMessage = 'failedToFetchFile'.tr(
-                          args: [e.toString()],
-                        );
-                      });
-                    }
-                  },
-                ),
-              ],
+              ).padding(horizontal: 24, vertical: 24),
             );
           },
         );

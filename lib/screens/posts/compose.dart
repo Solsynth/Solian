@@ -291,39 +291,6 @@ class PostComposeScreen extends HookConsumerWidget {
         appBar: AppBar(
           leading: const PageBackButton(),
           actions: [
-            if (originalPost == null) // Only show drafts for new posts
-              IconButton(
-                icon: const Icon(Symbols.draft),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder:
-                        (context) => DraftManagerSheet(
-                          onDraftSelected: (draftId) {
-                            final draft =
-                                ref.read(
-                                  composeStorageNotifierProvider,
-                                )[draftId];
-                            if (draft != null) {
-                              state.titleController.text = draft.title ?? '';
-                              state.descriptionController.text =
-                                  draft.description ?? '';
-                              state.contentController.text =
-                                  draft.content ?? '';
-                              state.visibility.value = draft.visibility;
-                            }
-                          },
-                        ),
-                  );
-                },
-                tooltip: 'drafts'.tr(),
-              ),
-            IconButton(
-              icon: const Icon(Symbols.save),
-              onPressed: () => ComposeLogic.saveDraft(ref, state),
-              tooltip: 'saveDraft'.tr(),
-            ),
             IconButton(
               icon: const Icon(Symbols.settings),
               onPressed: showSettingsSheet,
@@ -457,30 +424,82 @@ class PostComposeScreen extends HookConsumerWidget {
             // Bottom toolbar
             Material(
               elevation: 4,
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => ComposeLogic.pickPhotoMedia(ref, state),
-                    icon: const Icon(Symbols.add_a_photo),
-                    color: colorScheme.primary,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 560),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed:
+                            () => ComposeLogic.pickPhotoMedia(ref, state),
+                        tooltip: 'addPhoto'.tr(),
+                        icon: const Icon(Symbols.add_a_photo),
+                        color: colorScheme.primary,
+                      ),
+                      IconButton(
+                        onPressed:
+                            () => ComposeLogic.pickVideoMedia(ref, state),
+                        tooltip: 'addVideo'.tr(),
+                        icon: const Icon(Symbols.videocam),
+                        color: colorScheme.primary,
+                      ),
+                      IconButton(
+                        onPressed:
+                            () => ComposeLogic.linkAttachment(
+                              ref,
+                              state,
+                              context,
+                            ),
+                        icon: const Icon(Symbols.attach_file),
+                        tooltip: 'linkAttachment'.tr(),
+                        color: colorScheme.primary,
+                      ),
+                      Spacer(),
+                      if (originalPost == null && state.isEmpty)
+                        IconButton(
+                          icon: const Icon(Symbols.draft),
+                          color: colorScheme.primary,
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              builder:
+                                  (context) => DraftManagerSheet(
+                                    onDraftSelected: (draftId) {
+                                      final draft =
+                                          ref.read(
+                                            composeStorageNotifierProvider,
+                                          )[draftId];
+                                      if (draft != null) {
+                                        state.titleController.text =
+                                            draft.title ?? '';
+                                        state.descriptionController.text =
+                                            draft.description ?? '';
+                                        state.contentController.text =
+                                            draft.content ?? '';
+                                        state.visibility.value =
+                                            draft.visibility;
+                                      }
+                                    },
+                                  ),
+                            );
+                          },
+                          tooltip: 'drafts'.tr(),
+                        )
+                      else if (originalPost == null)
+                        IconButton(
+                          icon: const Icon(Symbols.save),
+                          color: colorScheme.primary,
+                          onPressed: () => ComposeLogic.saveDraft(ref, state),
+                          tooltip: 'saveDraft'.tr(),
+                        ),
+                    ],
+                  ).padding(
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                    horizontal: 16,
+                    top: 8,
                   ),
-                  IconButton(
-                    onPressed: () => ComposeLogic.pickVideoMedia(ref, state),
-                    icon: const Icon(Symbols.videocam),
-                    color: colorScheme.primary,
-                  ),
-                  IconButton(
-                    onPressed:
-                        () =>
-                            ComposeLogic.addAttachmentById(ref, state, context),
-                    icon: const Icon(Symbols.attach_file),
-                    color: colorScheme.primary,
-                  ),
-                ],
-              ).padding(
-                bottom: MediaQuery.of(context).padding.bottom + 16,
-                horizontal: 16,
-                top: 8,
+                ),
               ),
             ),
           ],

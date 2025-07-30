@@ -288,12 +288,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
 
           GoRoute(
-            name: 'reportList',
-            path: '/safety/reports/me',
-            builder: (context, state) => const AbuseReportListScreen(),
-          ),
-
-          GoRoute(
             name: 'reportDetail',
             path: '/safety/reports/me/:id',
             builder: (context, state) {
@@ -461,6 +455,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                     name: 'accountSettings',
                     path: '/account/me/settings',
                     builder: (context, state) => const AccountSettingsScreen(),
+                  ),
+                  GoRoute(
+                    name: 'reportList',
+                    path: '/safety/reports/me',
+                    builder: (context, state) => const AbuseReportListScreen(),
                   ),
                 ],
               ),
