@@ -67,21 +67,16 @@ class PostDetailScreen extends HookConsumerWidget {
               CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        PostItem(
-                          item: post!,
-                          isFullPost: true,
-                          backgroundColor: isWide ? Colors.transparent : null,
-                          onUpdate: (newItem) {
-                            // Update the local state with the new post data
-                            ref
-                                .read(postStateProvider(id).notifier)
-                                .updatePost(newItem);
-                          },
-                        ),
-                        const Divider(height: 1),
-                      ],
+                    child: PostItem(
+                      item: post!,
+                      isFullPost: true,
+                      backgroundColor: isWide ? Colors.transparent : null,
+                      onUpdate: (newItem) {
+                        // Update the local state with the new post data
+                        ref
+                            .read(postStateProvider(id).notifier)
+                            .updatePost(newItem);
+                      },
                     ),
                   ),
                   PostRepliesList(postId: id),

@@ -140,30 +140,27 @@ class VerificationStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            mark.type == 4
-                ? Symbols.play_circle
-                : mark.type == 0
-                ? Symbols.build_circle
-                : Symbols.verified,
-            size: 32,
-            color: kVerificationMarkColors[mark.type],
-            fill: 1,
-          ),
-          const Gap(8),
-          Text(mark.title ?? 'No title').bold(),
-          Text(mark.description ?? 'descriptionNone'.tr()),
-          const Gap(6),
-          Text(
-            'Verified by\n${mark.verifiedBy ?? 'No one verified it'}',
-          ).fontSize(11).opacity(0.8),
-        ],
-      ).padding(horizontal: 24, vertical: 16),
-    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          mark.type == 4
+              ? Symbols.play_circle
+              : mark.type == 0
+              ? Symbols.build_circle
+              : Symbols.verified,
+          size: 32,
+          color: kVerificationMarkColors[mark.type],
+          fill: 1,
+        ),
+        const Gap(8),
+        Text(mark.title ?? 'No title').bold(),
+        Text(mark.description ?? 'descriptionNone'.tr()),
+        const Gap(6),
+        Text(
+          'Verified by\n${mark.verifiedBy ?? 'No one verified it'}',
+        ).fontSize(11).opacity(0.8),
+      ],
+    ).padding(horizontal: 24, vertical: 16);
   }
 }

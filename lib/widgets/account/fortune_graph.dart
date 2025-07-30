@@ -26,6 +26,8 @@ class FortuneGraphWidget extends HookConsumerWidget {
 
   final String? eventCalanderUser;
 
+  final EdgeInsets? margin;
+
   const FortuneGraphWidget({
     super.key,
     required this.events,
@@ -34,6 +36,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
     this.height = 180,
     this.onPointSelected,
     this.eventCalanderUser,
+    this.margin,
   });
 
   @override
@@ -249,7 +252,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
     if (constrainWidth) {
       return ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Card(margin: EdgeInsets.all(16), child: content),
+        child: Card(margin: margin ?? EdgeInsets.all(16), child: content),
       ).center();
     }
 

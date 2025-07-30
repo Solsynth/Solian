@@ -5,6 +5,7 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/response.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
 final postSearchNotifierProvider = StateNotifierProvider.autoDispose<
@@ -141,6 +142,7 @@ class _PostSearchScreenState extends ConsumerState<PostSearchScreen> {
               }
 
               return ListView.builder(
+                padding: EdgeInsets.zero,
                 itemCount: data.items.length + (data.hasMore ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index >= data.items.length) {
@@ -151,14 +153,19 @@ class _PostSearchScreenState extends ConsumerState<PostSearchScreen> {
                   }
 
                   final post = data.items[index];
-                  return Column(
-                    children: [PostItem(item: post), const Divider(height: 1)],
+                  return Card(
+                    margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: PostActionableItem(item: post, borderRadius: 8),
                   );
                 },
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(child: Text('Error: $error')),
+            error:
+                (error, stack) => ResponseErrorWidget(
+                  error: error,
+                  onRetry: () => ref.invalidate(postSearchNotifierProvider),
+                ),
           );
         },
       ),

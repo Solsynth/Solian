@@ -285,33 +285,31 @@ class PublisherProfileScreen extends HookConsumerWidget {
                   ).padding(horizontal: 24, top: 24),
                 ),
                 SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      if (badges.value?.isNotEmpty ?? false)
-                        BadgeList(badges: badges.value!).padding(top: 16),
-                      if (data.verification != null)
-                        VerificationStatusCard(
-                          mark: data.verification!,
-                        ).padding(top: 16),
-                    ],
-                  ).padding(horizontal: 24),
+                  child: Card(
+                    margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Column(
+                      children: [
+                        if (badges.value?.isNotEmpty ?? false)
+                          BadgeList(badges: badges.value!).padding(top: 16),
+                        if (data.verification != null)
+                          VerificationStatusCard(mark: data.verification!),
+                      ],
+                    ),
+                  ).padding(top: 16),
                 ),
                 SliverToBoxAdapter(
-                  child: const Divider(height: 1).padding(vertical: 24),
-                ),
-                SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text('bio').tr().bold(),
-                      Text(
-                        data.bio.isEmpty ? 'descriptionNone'.tr() : data.bio,
-                      ),
-                    ],
-                  ).padding(horizontal: 24),
-                ),
-                SliverToBoxAdapter(
-                  child: const Divider(height: 1).padding(top: 24),
+                  child: Card(
+                    margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text('bio').tr().bold().padding(bottom: 2),
+                        Text(
+                          data.bio.isEmpty ? 'descriptionNone'.tr() : data.bio,
+                        ),
+                      ],
+                    ).padding(horizontal: 20, vertical: 16),
+                  ),
                 ),
                 SliverPostList(pubName: name),
                 SliverGap(MediaQuery.of(context).padding.bottom + 16),

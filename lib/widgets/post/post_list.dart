@@ -94,9 +94,7 @@ class SliverPostList extends HookConsumerWidget {
 
               final post = data.items[index];
 
-              return Column(
-                children: [_buildPostItem(post), const Divider(height: 1)],
-              );
+              return _buildPostItem(post);
             },
           ),
     );
@@ -114,7 +112,10 @@ class SliverPostList extends HookConsumerWidget {
           onUpdate: onUpdate,
         );
       case PostItemType.regular:
-        return PostItem(item: post);
+        return Card(
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: PostActionableItem(item: post, borderRadius: 8),
+        );
     }
   }
 }

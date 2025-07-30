@@ -35,7 +35,8 @@ Future<SnCheckInResult?> checkInResultToday(Ref ref) async {
 }
 
 class CheckInWidget extends HookConsumerWidget {
-  const CheckInWidget({super.key});
+  final EdgeInsets? margin;
+  const CheckInWidget({super.key, this.margin});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,7 +67,8 @@ class CheckInWidget extends HookConsumerWidget {
     }
 
     return Card(
-      margin: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
+      margin:
+          margin ?? EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         spacing: 16,

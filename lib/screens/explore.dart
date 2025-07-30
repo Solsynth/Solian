@@ -198,21 +198,23 @@ class ExploreScreen extends HookConsumerWidget {
           if (isWider) {
             return Row(
               children: [
-                Flexible(flex: 3, child: bodyView),
-                const VerticalDivider(width: 1),
+                Flexible(flex: 3, child: bodyView.padding(left: 8)),
                 if (user.value != null)
                   Flexible(
                     flex: 2,
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          CheckInWidget(),
-                          Card(
+                          CheckInWidget(
                             margin: EdgeInsets.only(
-                              left: 16,
+                              left: 8,
                               right: 16,
-                              top: 8,
+                              top: 16,
+                              bottom: 8,
                             ),
+                          ),
+                          Card(
+                            margin: EdgeInsets.only(left: 8, right: 16, top: 8),
                             child: Column(
                               children: [
                                 // Use the reusable EventCalendarWidget
@@ -227,6 +229,11 @@ class ExploreScreen extends HookConsumerWidget {
                             ),
                           ),
                           FortuneGraphWidget(
+                            margin: EdgeInsets.only(
+                              left: 8,
+                              right: 16,
+                              top: 16,
+                            ),
                             events: events,
                             constrainWidth: true,
                             onPointSelected: onDaySelected,
@@ -306,56 +313,55 @@ class _DiscoveryActivityItem extends StatelessWidget {
     final items = data['items'] as List;
     final type = items.firstOrNull?['type'] ?? 'unknown';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Symbols.explore, size: 19),
-            const Gap(8),
-            Text(
-              (switch (type) {
-                'realm' => 'discoverRealms',
-                'publisher' => 'discoverPublishers',
-                'article' => 'discoverWebArticles',
-                _ => 'unknown',
-              }).tr(),
-              style: Theme.of(context).textTheme.titleMedium,
-            ).padding(top: 1),
-          ],
-        ).padding(horizontal: 20, top: 8, bottom: 4),
-        SizedBox(
-          height: 180,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: items.length,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            itemBuilder: (context, index) {
-              final item = items[index];
-              switch (type) {
-                case 'realm':
-                  return RealmCard(
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Symbols.explore, size: 19),
+              const Gap(8),
+              Text(
+                (switch (type) {
+                  'realm' => 'discoverRealms',
+                  'publisher' => 'discoverPublishers',
+                  'article' => 'discoverWebArticles',
+                  _ => 'unknown',
+                }).tr(),
+                style: Theme.of(context).textTheme.titleMedium,
+              ).padding(top: 1),
+            ],
+          ).padding(horizontal: 20, top: 8, bottom: 4),
+          SizedBox(
+            height: 180,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: items.length,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return switch (type) {
+                  'realm' => RealmCard(
                     realm: SnRealm.fromJson(item['data']),
                     maxWidth: 280,
-                  );
-                case 'publisher':
-                  return PublisherCard(
+                  ),
+                  'publisher' => PublisherCard(
                     publisher: SnPublisher.fromJson(item['data']),
                     maxWidth: 280,
-                  );
-                case 'article':
-                  return WebArticleCard(
+                  ),
+                  'article' => WebArticleCard(
                     article: SnWebArticle.fromJson(item['data']),
                     maxWidth: 280,
-                  );
-                default:
-                  return Placeholder();
-              }
-            },
-          ),
-        ).padding(bottom: 4),
-      ],
+                  ),
+                  _ => Placeholder(),
+                };
+              },
+            ),
+          ).padding(bottom: 8),
+        ],
+      ),
     );
   }
 }
@@ -381,6 +387,7 @@ class _ActivityListView extends HookConsumerWidget {
 
     return CustomScrollView(
       slivers: [
+        SliverGap(12),
         if (user.value != null && !contentOnly)
           SliverToBoxAdapter(child: CheckInWidget()),
         SliverList.builder(

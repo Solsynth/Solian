@@ -93,16 +93,14 @@ class PostRepliesList extends HookConsumerWidget {
               return endItemView;
             }
 
-            return Column(
-              children: [
-                PostItem(
-                  item: data.items[index],
-                  backgroundColor:
-                      backgroundColor ?? (isWide ? Colors.transparent : null),
-                  isShowReference: false,
-                ),
-                const Divider(height: 1),
-              ],
+            return Card(
+              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: PostActionableItem(
+                item: data.items[index],
+                backgroundColor:
+                    backgroundColor ?? (isWide ? Colors.transparent : null),
+                isShowReference: false,
+              ),
             );
           },
         );
