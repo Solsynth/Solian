@@ -19,6 +19,7 @@ import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
 import 'package:island/services/compose_storage_db.dart';
+import 'package:island/widgets/post/compose_toolbar.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:island/widgets/post/draft_manager.dart';
 
@@ -233,155 +234,112 @@ class ArticleComposeScreen extends HookConsumerWidget {
     }
 
     Widget buildEditorPane() {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Publisher row
-          Card(
-            margin: EdgeInsets.only(top: 8),
-            elevation: 1,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    child: ProfilePictureWidget(
-                      fileId: state.currentPublisher.value?.picture?.id,
-                      radius: 20,
-                      fallbackIcon:
-                          state.currentPublisher.value == null
-                              ? Symbols.question_mark
-                              : null,
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: RawKeyboardListener(
+                  focusNode: FocusNode(),
+                  onKey:
+                      (event) => _handleKeyPress(
+                        event,
+                        state,
+                        ref,
+                        context,
+                        originalPost: originalPost,
+                      ),
+                  child: TextField(
+                    controller: state.contentController,
+                    style: theme.textTheme.bodyMedium,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'postContent'.tr(),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 8,
+                      ),
                     ),
-                    onTap: () {
-                      showModalBottomSheet(
-                        isScrollControlled: true,
-                        context: context,
-                        builder: (context) => const PublisherModal(),
-                      ).then((value) {
-                        if (value != null) {
-                          state.currentPublisher.value = value;
-                        }
-                      });
-                    },
+                    maxLines: null,
+                    expands: true,
+                    textAlignVertical: TextAlignVertical.top,
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
-                  const Gap(16),
-                  if (state.currentPublisher.value == null)
-                    Text(
-                      'postPublisherUnselected'.tr(),
-                      style: theme.textTheme.bodyMedium,
-                    )
-                  else
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(state.currentPublisher.value!.nick).bold(),
-                        Text(
-                          '@${state.currentPublisher.value!.name}',
-                        ).fontSize(12),
-                      ],
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          // Content field with keyboard listener
-          Expanded(
-            child: RawKeyboardListener(
-              focusNode: FocusNode(),
-              onKey:
-                  (event) => _handleKeyPress(
-                    event,
-                    state,
-                    ref,
-                    context,
-                    originalPost: originalPost,
-                  ),
-              child: TextField(
-                controller: state.contentController,
-                style: theme.textTheme.bodyMedium,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'postContent'.tr(),
-                  contentPadding: const EdgeInsets.all(8),
                 ),
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
               ),
-            ),
-          ),
 
-          // Attachments preview
-          ValueListenableBuilder<List<UniversalFile>>(
-            valueListenable: state.attachments,
-            builder: (context, attachments, _) {
-              if (attachments.isEmpty) return const SizedBox.shrink();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Gap(16),
-                  Text(
-                    'articleAttachmentHint'.tr(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ).padding(bottom: 8),
-                  ValueListenableBuilder<Map<int, double>>(
-                    valueListenable: state.attachmentProgress,
-                    builder: (context, progressMap, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (var idx = 0; idx < attachments.length; idx++)
-                            SizedBox(
-                              width: 280,
-                              height: 280,
-                              child: AttachmentPreview(
-                                item: attachments[idx],
-                                progress: progressMap[idx],
-                                onRequestUpload:
-                                    () => ComposeLogic.uploadAttachment(
-                                      ref,
-                                      state,
-                                      idx,
-                                    ),
-                                onDelete:
-                                    () => ComposeLogic.deleteAttachment(
-                                      ref,
-                                      state,
-                                      idx,
-                                    ),
-                                onMove: (delta) {
-                                  state
-                                      .attachments
-                                      .value = ComposeLogic.moveAttachment(
-                                    state.attachments.value,
-                                    idx,
-                                    delta,
-                                  );
-                                },
-                                onInsert:
-                                    () => ComposeLogic.insertAttachment(
-                                      ref,
-                                      state,
-                                      idx,
-                                    ),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
+              // Attachments preview
+              ValueListenableBuilder<List<UniversalFile>>(
+                valueListenable: state.attachments,
+                builder: (context, attachments, _) {
+                  if (attachments.isEmpty) return const SizedBox.shrink();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Gap(16),
+                      Text(
+                        'articleAttachmentHint'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ).padding(bottom: 8),
+                      ValueListenableBuilder<Map<int, double>>(
+                        valueListenable: state.attachmentProgress,
+                        builder: (context, progressMap, _) {
+                          return Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (var idx = 0; idx < attachments.length; idx++)
+                                SizedBox(
+                                  width: 280,
+                                  height: 280,
+                                  child: AttachmentPreview(
+                                    item: attachments[idx],
+                                    progress: progressMap[idx],
+                                    onRequestUpload:
+                                        () => ComposeLogic.uploadAttachment(
+                                          ref,
+                                          state,
+                                          idx,
+                                        ),
+                                    onDelete:
+                                        () => ComposeLogic.deleteAttachment(
+                                          ref,
+                                          state,
+                                          idx,
+                                        ),
+                                    onMove: (delta) {
+                                      state
+                                          .attachments
+                                          .value = ComposeLogic.moveAttachment(
+                                        state.attachments.value,
+                                        idx,
+                                        delta,
+                                      );
+                                    },
+                                    onInsert:
+                                        () => ComposeLogic.insertAttachment(
+                                          ref,
+                                          state,
+                                          idx,
+                                        ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       );
     }
 
@@ -406,38 +364,26 @@ class ArticleComposeScreen extends HookConsumerWidget {
           actions: [
             // Info banner for article compose
             const SizedBox.shrink(),
-            if (originalPost == null) // Only show drafts for new articles
-              IconButton(
-                icon: const Icon(Symbols.draft),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder:
-                        (context) => DraftManagerSheet(
-                          onDraftSelected: (draftId) {
-                            final draft =
-                                ref.read(
-                                  composeStorageNotifierProvider,
-                                )[draftId];
-                            if (draft != null) {
-                              state.titleController.text = draft.title ?? '';
-                              state.descriptionController.text =
-                                  draft.description ?? '';
-                              state.contentController.text =
-                                  draft.content ?? '';
-                              state.visibility.value = draft.visibility;
-                            }
-                          },
-                        ),
-                  );
-                },
-                tooltip: 'drafts'.tr(),
-              ),
             IconButton(
-              icon: const Icon(Symbols.save),
-              onPressed: () => ComposeLogic.saveDraft(ref, state),
-              tooltip: 'saveDraft'.tr(),
+              icon: ProfilePictureWidget(
+                fileId: state.currentPublisher.value?.picture?.id,
+                radius: 12,
+                fallbackIcon:
+                    state.currentPublisher.value == null
+                        ? Symbols.question_mark
+                        : null,
+              ),
+              onPressed: () {
+                showModalBottomSheet(
+                  isScrollControlled: true,
+                  context: context,
+                  builder: (context) => const PublisherModal(),
+                ).then((value) {
+                  if (value != null) {
+                    state.currentPublisher.value = value;
+                  }
+                });
+              },
             ),
             IconButton(
               icon: const Icon(Symbols.settings),
@@ -500,7 +446,12 @@ class ArticleComposeScreen extends HookConsumerWidget {
                               child: buildEditorPane(),
                             ),
                             if (showPreview.value)
-                              Expanded(child: buildPreviewPane()),
+                              Expanded(
+                                child: buildPreviewPane().padding(
+                                  vertical: 16,
+                                  horizontal: 24,
+                                ),
+                              ),
                           ],
                         )
                         : showPreview.value
@@ -510,26 +461,17 @@ class ArticleComposeScreen extends HookConsumerWidget {
             ),
 
             // Bottom toolbar
-            Material(
-              elevation: 4,
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => ComposeLogic.pickPhotoMedia(ref, state),
-                    icon: const Icon(Symbols.add_a_photo),
-                    color: colorScheme.primary,
-                  ),
-                  IconButton(
-                    onPressed: () => ComposeLogic.pickVideoMedia(ref, state),
-                    icon: const Icon(Symbols.videocam),
-                    color: colorScheme.primary,
-                  ),
-                ],
-              ).padding(
-                bottom: MediaQuery.of(context).padding.bottom + 16,
-                horizontal: 16,
-                top: 8,
-              ),
+            ComposeToolbar(
+              ref: ref,
+              context: context,
+              colorScheme: colorScheme,
+              isEmpty: state.isEmpty,
+              titleController: state.titleController,
+              descriptionController: state.descriptionController,
+              contentController: state.contentController,
+              visibility: state.visibility,
+              attachments: state.attachments,
+              originalPost: originalPost,
             ),
           ],
         ),
