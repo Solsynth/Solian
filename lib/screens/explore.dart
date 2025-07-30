@@ -399,19 +399,9 @@ class _ActivityListView extends HookConsumerWidget {
             switch (item.type) {
               case 'posts.new':
               case 'posts.new.replies':
-                final isReply = item.type == 'posts.new.replies';
-                itemWidget = PostItem(
-                  backgroundColor:
-                      isWideScreen(context) ? Colors.transparent : null,
+                itemWidget = PostActionableItem(
+                  borderRadius: 8,
                   item: SnPost.fromJson(item.data!),
-                  padding:
-                      isReply
-                          ? const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            bottom: 16,
-                          )
-                          : null,
                   onRefresh: () {
                     activitiesNotifier.forceRefresh();
                   },
@@ -422,21 +412,10 @@ class _ActivityListView extends HookConsumerWidget {
                     );
                   },
                 );
-                if (isReply) {
-                  itemWidget = Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Symbols.reply),
-                          const Gap(8),
-                          Text('Replying your post'),
-                        ],
-                      ).padding(horizontal: 20, vertical: 8),
-                      itemWidget,
-                    ],
-                  );
-                }
+                itemWidget = Card(
+                  margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: itemWidget,
+                );
                 break;
               case 'discovery':
                 itemWidget = _DiscoveryActivityItem(data: item.data!);
@@ -445,7 +424,7 @@ class _ActivityListView extends HookConsumerWidget {
                 itemWidget = const Placeholder();
             }
 
-            return Column(children: [itemWidget, const Divider(height: 1)]);
+            return itemWidget;
           },
         ),
         SliverGap(getTabbedPadding(context).bottom),

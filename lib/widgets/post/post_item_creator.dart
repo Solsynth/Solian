@@ -45,11 +45,13 @@ class PostItemCreator extends HookConsumerWidget {
               title: 'edit'.tr(),
               image: MenuImage.icon(Symbols.edit),
               callback: () {
-                context.pushNamed('postEdit', pathParameters: {'id': item.id}).then((value) {
-                  if (value != null) {
-                    onRefresh?.call();
-                  }
-                });
+                context
+                    .pushNamed('postEdit', pathParameters: {'id': item.id})
+                    .then((value) {
+                      if (value != null) {
+                        onRefresh?.call();
+                      }
+                    });
               },
             ),
             MenuAction(
@@ -80,7 +82,10 @@ class PostItemCreator extends HookConsumerWidget {
               image: MenuImage.icon(Symbols.link),
               callback: () {
                 // Copy post link to clipboard
-                context.pushNamed('postDetail', pathParameters: {'id': item.id});
+                context.pushNamed(
+                  'postDetail',
+                  pathParameters: {'id': item.id},
+                );
               },
             ),
           ],
@@ -198,7 +203,8 @@ class PostItemCreator extends HookConsumerWidget {
             files: item.attachments,
             maxWidth: MediaQuery.of(context).size.width * 0.85,
             minWidth: MediaQuery.of(context).size.width * 0.9,
-          ).padding(top: 8),
+            padding: EdgeInsets.only(top: 8),
+          ),
 
         // Reference post indicator
         if (item.repliedPost != null || item.forwardedPost != null)
@@ -211,7 +217,7 @@ class PostItemCreator extends HookConsumerWidget {
                   size: 16,
                   color: Theme.of(context).colorScheme.secondary,
                 ),
-                const SizedBox(width: 4),
+                const Gap(4),
                 Text(
                   item.repliedPost != null
                       ? 'repliedTo'.tr()

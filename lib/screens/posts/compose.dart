@@ -470,7 +470,9 @@ class PostComposeScreen extends HookConsumerWidget {
                     color: colorScheme.primary,
                   ),
                   IconButton(
-                    onPressed: () => ComposeLogic.addAttachmentById(ref, state, context),
+                    onPressed:
+                        () =>
+                            ComposeLogic.addAttachmentById(ref, state, context),
                     icon: const Icon(Symbols.attach_file),
                     color: colorScheme.primary,
                   ),
@@ -655,7 +657,7 @@ class PostComposeScreen extends HookConsumerWidget {
                             child: SingleChildScrollView(
                               controller: scrollController,
                               padding: const EdgeInsets.all(16),
-                              child: PostItem(item: post, isOpenable: false),
+                              child: PostItem(item: post),
                             ),
                           ),
                         ],

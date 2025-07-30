@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -5,36 +6,79 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'dart:math' as math;
-import 'package:island/models/embed.dart';
 import 'package:island/models/post.dart';
-import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
-import 'package:island/screens/posts/compose.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
-import 'package:island/widgets/safety/abuse_report_helper.dart';
-import 'package:island/widgets/post/post_replies_sheet.dart';
-import 'package:island/widgets/share/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:super_context_menu/super_context_menu.dart';
 
-class PostItem extends HookConsumerWidget {
+class PostActionableItem extends HookConsumerWidget {
   final Color? backgroundColor;
   final SnPost item;
   final EdgeInsets? padding;
-  final bool isOpenable;
   final bool isFullPost;
-  final bool showReferencePost;
+  final bool isShowReference;
+  final double? borderRadius;
+  final Function? onRefresh;
+  final Function(SnPost)? onUpdate;
+  const PostActionableItem({
+    super.key,
+    required this.item,
+    this.backgroundColor,
+    this.padding,
+    this.isFullPost = false,
+    this.isShowReference = true,
+    this.borderRadius,
+    this.onRefresh,
+    this.onUpdate,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userInfoProvider);
+    final isAuthor = useMemoized(
+      () => user.value != null && user.value?.id == item.publisher.accountId,
+      [user],
+    );
+
+    final widgetItem = InkWell(
+      borderRadius:
+          borderRadius != null
+              ? BorderRadius.all(Radius.circular(borderRadius!))
+              : null,
+      child: PostItem(
+        key: key,
+        item: item,
+        backgroundColor: backgroundColor,
+        padding: padding,
+        isFullPost: isFullPost,
+        isShowReference: isShowReference,
+        isTextSelectable: false,
+        onRefresh: onRefresh,
+        onUpdate: onUpdate,
+      ),
+      onTap: () {
+        context.pushNamed('postDetail', pathParameters: {'id': item.id});
+      },
+    );
+
+    return widgetItem;
+  }
+}
+
+class PostItem extends HookConsumerWidget {
+  final SnPost item;
+  final Color? backgroundColor;
+  final EdgeInsets? padding;
+  final bool isFullPost;
+  final bool isShowReference;
+  final bool isTextSelectable;
   final Function? onRefresh;
   final Function(SnPost)? onUpdate;
   const PostItem({
@@ -42,9 +86,9 @@ class PostItem extends HookConsumerWidget {
     required this.item,
     this.backgroundColor,
     this.padding,
-    this.isOpenable = true,
     this.isFullPost = false,
-    this.showReferencePost = true,
+    this.isShowReference = true,
+    this.isTextSelectable = true,
     this.onRefresh,
     this.onUpdate,
   });
@@ -52,559 +96,213 @@ class PostItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final renderingPadding =
-        padding ?? EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+        padding ?? EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
-    final user = ref.watch(userInfoProvider);
-    final isAuthor = useMemoized(
-      () => user.value != null && user.value?.id == item.publisher.accountId,
-      [user],
-    );
+    final reacting = useState(false);
 
-    final hasBackground =
-        ref.watch(backgroundImageFileProvider).valueOrNull != null;
+    Future<void> reactPost(String symbol, int attitude) async {
+      final client = ref.watch(apiClientProvider);
+      reacting.value = true;
+      await client
+          .post(
+            '/sphere/posts/${item.id}/reactions',
+            data: {'symbol': symbol, 'attitude': attitude},
+          )
+          .catchError((err) {
+            showErrorAlert(err);
+            return err;
+          })
+          .then((resp) {
+            final isRemoving = resp.statusCode == 204;
+            final delta = isRemoving ? -1 : 1;
+            final reactionsCount = Map<String, int>.from(item.reactionsCount);
+            reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
+            onUpdate?.call(item.copyWith(reactionsCount: reactionsCount));
+            HapticFeedback.heavyImpact();
+          });
+      reacting.value = false;
+    }
 
-    Widget child;
-    if (item.type == 1 && isFullPost) {
-      child = Padding(
-        padding: renderingPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final mostReaction =
+        item.reactionsCount.isEmpty
+            ? null
+            : item.reactionsCount.entries
+                .sortedBy((e) => e.value)
+                .map((e) => e.key)
+                .first;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Gap(renderingPadding.horizontal),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: 12,
           children: [
             GestureDetector(
+              child: ProfilePictureWidget(
+                file: item.publisher.picture,
+                radius: 16,
+              ),
               onTap: () {
                 context.pushNamed(
                   'publisherProfile',
                   pathParameters: {'name': item.publisher.name},
                 );
               },
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+            ),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ProfilePictureWidget(file: item.publisher.picture),
-                  const Gap(12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(item.publisher.nick).bold(),
-                        if (item.publisher.verification != null)
-                          VerificationMark(
-                            mark: item.publisher.verification!,
-                          ).padding(left: 4),
-                      ],
-                    ),
+                  Row(
+                    spacing: 4,
+                    children: [
+                      Text(item.publisher.nick).bold(),
+                      if (item.publisher.verification != null)
+                        VerificationMark(mark: item.publisher.verification!),
+                      Text('@${item.publisher.name}').fontSize(11),
+                    ],
                   ),
                   Text(
                     isFullPost
-                        ? item.publishedAt?.formatSystem() ?? ''
-                        : item.publishedAt?.formatRelative(context) ?? '',
-                  ).fontSize(11),
+                        ? (item.publishedAt ?? item.createdAt)!.formatSystem()
+                        : (item.publishedAt ?? item.createdAt)!.formatRelative(
+                          context,
+                        ),
+                  ).fontSize(10),
                 ],
               ),
             ),
-            if (item.visibility != 0)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _getVisibilityIcon(item.visibility),
-                    size: 14,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _getVisibilityText(item.visibility).tr(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                  ),
-                ],
-              ).padding(top: 10, bottom: 2),
-            const Gap(16),
-            _ArticlePostDisplay(item: item, isFullPost: isFullPost),
-            if (item.tags.isNotEmpty || item.categories.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (item.tags.isNotEmpty)
-                    Wrap(
-                      children: [
-                        for (final tag in item.tags)
-                          InkWell(
-                            child: Row(
-                              spacing: 4,
-                              children: [
-                                const Icon(Symbols.label, size: 13),
-                                Text(tag.name ?? '#${tag.slug}').fontSize(13),
-                              ],
-                            ),
-                            onTap: () {},
-                          ),
-                      ],
-                    ),
-                  if (item.categories.isNotEmpty)
-                    Wrap(
-                      children: [
-                        for (final category in item.categories)
-                          InkWell(
-                            child: Row(
-                              spacing: 4,
-                              children: [
-                                const Icon(Symbols.category, size: 13),
-                                Text(
-                                  category.name ?? '#${category.slug}',
-                                ).fontSize(13),
-                              ],
-                            ),
-                            onTap: () {},
-                          ),
-                      ],
-                    ),
-                ],
-              ),
-            if ((item.repliedPost != null || item.forwardedPost != null) &&
-                showReferencePost)
-              _buildReferencePost(context, item),
-            if (item.attachments.isNotEmpty && item.type != 1)
-              CloudFileList(
-                disableConstraint: isFullPost,
-                files: item.attachments,
-                maxWidth: math.min(
-                  MediaQuery.of(context).size.width,
-                  kWideScreenWidth,
-                ),
-              ),
-            if (item.meta?['embeds'] != null)
-              ...((item.meta!['embeds'] as List<dynamic>)
-                  .where((embed) => embed['Type'] == 'link')
-                  .map(
-                    (embedData) => EmbedLinkWidget(
-                      link: SnEmbedLink.fromJson(
-                        embedData as Map<String, dynamic>,
+            IconButton(
+              icon:
+                  mostReaction == null
+                      ? const Icon(Symbols.add_reaction)
+                      : Badge(
+                        label: Text(
+                          'x${item.reactionsCount[mostReaction]}',
+                          style: TextStyle(fontSize: 11),
+                        ),
+                        offset: Offset(4, 20),
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.75),
+                        textColor: Theme.of(context).colorScheme.onPrimary,
+                        child: Text(
+                          kReactionTemplates[mostReaction]!.icon,
+                          style: TextStyle(fontSize: 20),
+                        ),
                       ),
-                      maxWidth: math.min(
-                        MediaQuery.of(context).size.width,
-                        kWideScreenWidth,
-                      ),
-                      margin: EdgeInsets.only(top: 8),
-                    ),
-                  )),
-            const Gap(8),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: ActionChip(
-                    avatar: Icon(Symbols.reply, size: 16),
-                    label: Text(
-                      (item.repliesCount > 0)
-                          ? 'repliesCount'.plural(item.repliesCount)
-                          : 'reply'.tr(),
-                    ),
-                    visualDensity: const VisualDensity(
-                      horizontal: VisualDensity.minimumDensity,
-                      vertical: VisualDensity.minimumDensity,
-                    ),
-                    onPressed: () {
-                      if (isOpenable) {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          useRootNavigator: true,
-                          builder: (context) => PostRepliesSheet(post: item),
-                        );
-                      }
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: PostReactionList(
-                    parentId: item.id,
-                    reactions: item.reactionsCount,
-                    padding: EdgeInsets.zero,
-                    onReact: (symbol, attitude, delta) {
-                      final reactionsCount = Map<String, int>.from(
-                        item.reactionsCount,
-                      );
-                      reactionsCount[symbol] =
-                          (reactionsCount[symbol] ?? 0) + delta;
-                      onUpdate?.call(
-                        item.copyWith(reactionsCount: reactionsCount),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    } else {
-      child = Padding(
-        padding: renderingPadding,
-        child: Column(
-          spacing: 8,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 12,
-              children: [
-                GestureDetector(
-                  child: ProfilePictureWidget(file: item.publisher.picture),
-                  onTap: () {
-                    context.pushNamed(
-                      'publisherProfile',
-                      pathParameters: {'name': item.publisher.name},
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  useRootNavigator: true,
+                  builder: (BuildContext context) {
+                    return _PostReactionSheet(
+                      reactionsCount: item.reactionsCount,
+                      onReact: (symbol, attitude) {
+                        reactPost(symbol, attitude);
+                      },
                     );
                   },
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(item.publisher.nick).bold(),
-                            if (item.publisher.verification != null)
-                              VerificationMark(
-                                mark: item.publisher.verification!,
-                              ).padding(left: 4),
-                            Spacer(),
-                            Text(
-                              isFullPost
-                                  ? item.publishedAt?.formatSystem() ?? ''
-                                  : item.publishedAt?.formatRelative(context) ??
-                                      '',
-                            ).fontSize(11).alignment(Alignment.bottomRight),
-                            const Gap(4),
-                          ],
-                        ),
-                        // Add visibility indicator if not public (visibility != 0)
-                        if (item.visibility != 0)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _getVisibilityIcon(item.visibility),
-                                size: 14,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _getVisibilityText(item.visibility).tr(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
-                                ),
-                              ),
-                            ],
-                          ).padding(top: 2, bottom: 2),
-                        if (item.type == 1)
-                          _ArticlePostDisplay(
-                            item: item,
-                            isFullPost: isFullPost,
-                          )
-                        else ...[
-                          if (item.title?.isNotEmpty ?? false)
-                            Text(
-                              item.title!,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          if (item.description?.isNotEmpty ?? false)
-                            Text(
-                              item.description!,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                              ),
-                            ).padding(bottom: 8),
-                          if (item.content?.isNotEmpty ?? false)
-                            MarkdownTextContent(
-                              content: item.content!,
-                              linesMargin:
-                                  item.type == 0
-                                      ? EdgeInsets.only(bottom: 8)
-                                      : null,
-                              attachments: item.attachments,
-                            ),
-                        ],
-                        // Render tags and categories if they exist
-                        if (item.tags.isNotEmpty || item.categories.isNotEmpty)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (item.tags.isNotEmpty)
-                                Wrap(
-                                  children: [
-                                    for (final tag in item.tags)
-                                      InkWell(
-                                        child: Row(
-                                          spacing: 4,
-                                          children: [
-                                            const Icon(Symbols.label, size: 13),
-                                            Text(
-                                              tag.name ?? '#${tag.slug}',
-                                            ).fontSize(13),
-                                          ],
-                                        ),
-                                        onTap: () {},
-                                      ),
-                                  ],
-                                ),
-                              if (item.categories.isNotEmpty)
-                                Wrap(
-                                  children: [
-                                    for (final category in item.categories)
-                                      InkWell(
-                                        child: Row(
-                                          spacing: 4,
-                                          children: [
-                                            const Icon(
-                                              Symbols.category,
-                                              size: 13,
-                                            ),
-                                            Text(
-                                              category.name ??
-                                                  '#${category.slug}',
-                                            ).fontSize(13),
-                                          ],
-                                        ),
-                                        onTap: () {},
-                                      ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                        // Show truncation hint if post is truncated
-                        if (item.isTruncated && !isFullPost && item.type != 1)
-                          _PostTruncateHint().padding(
-                            bottom:
-                                (item.attachments.isNotEmpty ||
-                                        item.repliedPost != null ||
-                                        item.forwardedPost != null)
-                                    ? 8
-                                    : null,
-                          ),
-                        if ((item.repliedPost != null ||
-                                item.forwardedPost != null) &&
-                            showReferencePost)
-                          _buildReferencePost(context, item),
-                        if (item.attachments.isNotEmpty && item.type != 1)
-                          CloudFileList(
-                            files: item.attachments,
-                            disableConstraint: isFullPost,
-                            maxWidth: math.min(
-                              MediaQuery.of(context).size.width * 0.85,
-                              kWideScreenWidth - 160,
-                            ),
-                          ),
-                        // Render embed links
-                        if (item.meta?['embeds'] != null)
-                          ...((item.meta!['embeds'] as List<dynamic>)
-                              .where((embed) => embed['Type'] == 'link')
-                              .map(
-                                (embedData) => EmbedLinkWidget(
-                                  link: SnEmbedLink.fromJson(
-                                    embedData as Map<String, dynamic>,
-                                  ),
-                                  maxWidth: math.min(
-                                    MediaQuery.of(context).size.width * 0.85,
-                                    kWideScreenWidth - 160,
-                                  ),
-                                  margin: EdgeInsets.only(top: 8),
-                                ),
-                              )),
-                      ],
-                    ),
-                    onTap: () {
-                      if (isOpenable) {
-                        context.pushNamed(
-                          'postDetail',
-                          pathParameters: {'id': item.id},
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ],
+                );
+              },
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity(horizontal: -3, vertical: -3),
             ),
-            Row(
+          ],
+        ).padding(horizontal: renderingPadding.horizontal, bottom: 4),
+        if (!isFullPost && item.type == 1)
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).dividerColor),
+              borderRadius: const BorderRadius.all(Radius.circular(16)),
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: EdgeInsets.only(
+              left: renderingPadding.horizontal,
+              right: renderingPadding.horizontal,
+              top: 4,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Replies count button
-                Padding(
-                  padding: const EdgeInsets.only(left: 52, right: 12),
-                  child: ActionChip(
-                    avatar: Icon(Symbols.reply, size: 16),
-                    label: Text(
-                      (item.repliesCount > 0)
-                          ? 'repliesCount'.plural(item.repliesCount)
-                          : 'reply'.tr(),
-                    ),
-                    visualDensity: const VisualDensity(
-                      horizontal: VisualDensity.minimumDensity,
-                      vertical: VisualDensity.minimumDensity,
-                    ),
-                    onPressed: () {
-                      if (isOpenable) {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          useRootNavigator: true,
-                          builder: (context) => PostRepliesSheet(post: item),
-                        );
-                      }
-                    },
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Badge(
+                    label: Text('postArticle').tr(),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    textColor: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
-                // Reactions list
-                Expanded(
-                  child: PostReactionList(
-                    parentId: item.id,
-                    reactions: item.reactionsCount,
-                    padding: EdgeInsets.zero,
-                    onReact: (symbol, attitude, delta) {
-                      final reactionsCount = Map<String, int>.from(
-                        item.reactionsCount,
-                      );
-                      reactionsCount[symbol] =
-                          (reactionsCount[symbol] ?? 0) + delta;
-                      onUpdate?.call(
-                        item.copyWith(reactionsCount: reactionsCount),
-                      );
-                    },
+                const Gap(4),
+                if (item.title != null)
+                  Text(
+                    item.title!,
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                if (item.description != null)
+                  Text(
+                    item.description!,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  )
+                else
+                  MarkdownTextContent(content: '${item.content!}...'),
               ],
             ),
-          ],
-        ),
-      );
-    }
-
-    return ContextMenuWidget(
-      menuProvider: (_) {
-        return Menu(
-          children: [
-            if (isAuthor)
-              MenuAction(
-                title: 'edit'.tr(),
-                image: MenuImage.icon(Symbols.edit),
-                callback: () {
-                  context
-                      .pushNamed('postEdit', pathParameters: {'id': item.id})
-                      .then((value) {
-                        if (value != null) {
-                          onRefresh?.call();
-                        }
-                      });
-                },
-              ),
-            if (isAuthor)
-              MenuAction(
-                title: 'delete'.tr(),
-                image: MenuImage.icon(Symbols.delete),
-                callback: () {
-                  showConfirmAlert(
-                    'deletePostHint'.tr(),
-                    'deletePost'.tr(),
-                  ).then((confirm) {
-                    if (confirm) {
-                      final client = ref.watch(apiClientProvider);
-                      client
-                          .delete('/sphere/posts/${item.id}')
-                          .catchError((err) {
-                            showErrorAlert(err);
-                            return err;
-                          })
-                          .then((_) {
-                            onRefresh?.call();
-                          });
-                    }
-                  });
-                },
-              ),
-            if (isAuthor) MenuSeparator(),
-            MenuAction(
-              title: 'copyLink'.tr(),
-              image: MenuImage.icon(Symbols.link),
-              callback: () {
-                Clipboard.setData(
-                  ClipboardData(text: 'https://solsynth.dev/posts/${item.id}'),
-                );
-              },
+          )
+        else if (item.content?.isNotEmpty ?? false)
+          Padding(
+            padding: EdgeInsets.only(
+              left: renderingPadding.horizontal,
+              right: renderingPadding.horizontal,
             ),
-            MenuAction(
-              title: 'reply'.tr(),
-              image: MenuImage.icon(Symbols.reply),
-              callback: () {
-                context.pushNamed(
-                  'postCompose',
-                  extra: PostComposeInitialState(replyingTo: item),
-                );
-              },
+            child: MarkdownTextContent(
+              content: item.content!,
+              isSelectable: isTextSelectable,
             ),
-            MenuAction(
-              title: 'forward'.tr(),
-              image: MenuImage.icon(Symbols.forward),
-              callback: () {
-                context.pushNamed(
-                  'postCompose',
-                  extra: PostComposeInitialState(forwardingTo: item),
-                );
-              },
+          ),
+        if (item.attachments.isNotEmpty)
+          CloudFileList(
+            files: item.attachments,
+            padding: EdgeInsets.symmetric(
+              horizontal: renderingPadding.horizontal,
+              vertical: 4,
             ),
-            MenuSeparator(),
-            MenuAction(
-              title: 'share'.tr(),
-              image: MenuImage.icon(Symbols.share),
-              callback: () {
-                showShareSheetLink(
-                  context: context,
-                  link: '${ref.read(serverUrlProvider)}/posts/${item.id}',
-                  title: 'sharePost'.tr(),
-                  toSystem: true,
-                );
-              },
-            ),
-            MenuAction(
-              title: 'abuseReport'.tr(),
-              image: MenuImage.icon(Symbols.flag),
-              callback: () {
-                showAbuseReportSheet(
-                  context,
-                  resourceIdentifier: 'post/${item.id}',
-                );
-              },
-            ),
-          ],
-        );
-      },
-      child: Material(
-        color: hasBackground ? Colors.transparent : backgroundColor,
-        child: child,
-      ),
+          ),
+        if (isShowReference)
+          _buildReferencePost(context, item, renderingPadding),
+        Gap(renderingPadding.vertical),
+      ],
     );
   }
 }
 
-Widget _buildReferencePost(BuildContext context, SnPost item) {
+Widget _buildReferencePost(
+  BuildContext context,
+  SnPost item,
+  EdgeInsets renderingPadding,
+) {
   final referencePost = item.repliedPost ?? item.forwardedPost;
   if (referencePost == null) return const SizedBox.shrink();
 
   final isReply = item.repliedPost != null;
 
   return Container(
-    margin: const EdgeInsets.only(bottom: 8),
-    padding: const EdgeInsets.all(12),
+    padding: EdgeInsets.symmetric(
+      horizontal: renderingPadding.horizontal,
+      vertical: 8,
+    ),
+    margin: EdgeInsets.only(
+      top: 8,
+      left: renderingPadding.vertical,
+      right: renderingPadding.vertical,
+    ),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
       borderRadius: BorderRadius.circular(12),
