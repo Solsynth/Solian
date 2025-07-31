@@ -2,34 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/call.dart';
 import 'package:island/screens/account/profile.dart';
-import 'package:island/widgets/account/account_pfc.dart';
+import 'package:island/widgets/chat/call_participant_card.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class SpeakingRippleAvatar extends HookConsumerWidget {
-  final bool isSpeaking;
-  final bool isMuted;
-  final double audioLevel;
-  final String identity;
+  final CallParticipantLive live;
   final double size;
 
-  const SpeakingRippleAvatar({
-    super.key,
-    required this.isSpeaking,
-    required this.isMuted,
-    required this.audioLevel,
-    required this.identity,
-    this.size = 96,
-  });
+  const SpeakingRippleAvatar({super.key, required this.live, this.size = 96});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final account = ref.watch(accountProvider(identity));
+    final account = ref.watch(accountProvider(live.participant.identity));
 
     final avatarRadius = size / 2;
-    final clampedLevel = audioLevel.clamp(0.0, 1.0);
+    final clampedLevel = live.remoteParticipant.audioLevel.clamp(0.0, 1.0);
     final rippleRadius = avatarRadius + clampedLevel * (size * 0.333);
     return SizedBox(
       width: size + 8,
@@ -37,7 +27,7 @@ class SpeakingRippleAvatar extends HookConsumerWidget {
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(
           begin: avatarRadius,
-          end: isSpeaking ? rippleRadius : avatarRadius,
+          end: live.remoteParticipant.isSpeaking ? rippleRadius : avatarRadius,
         ),
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOut,
@@ -45,7 +35,7 @@ class SpeakingRippleAvatar extends HookConsumerWidget {
           return Stack(
             alignment: Alignment.center,
             children: [
-              if (isSpeaking)
+              if (live.remoteParticipant.isSpeaking)
                 Container(
                   width: animatedRadius * 2,
                   height: animatedRadius * 2,
@@ -61,8 +51,8 @@ class SpeakingRippleAvatar extends HookConsumerWidget {
                 decoration: BoxDecoration(shape: BoxShape.circle),
                 child: account.when(
                   data:
-                      (value) => AccountPfcGestureDetector(
-                        uname: identity,
+                      (value) => CallParticipantGestureDetector(
+                        participant: live,
                         child: ProfilePictureWidget(
                           file: value.profile.picture,
                           radius: size / 2,
@@ -80,7 +70,7 @@ class SpeakingRippleAvatar extends HookConsumerWidget {
                       ),
                 ),
               ),
-              if (isMuted)
+              if (live.remoteParticipant.isMuted)
                 Positioned(
                   bottom: 4,
                   right: 4,
@@ -118,7 +108,6 @@ class CallParticipantTile extends HookConsumerWidget {
         live.remoteParticipant.trackPublications.values
             .where((pub) => pub.track != null && pub.kind == TrackType.VIDEO)
             .isNotEmpty;
-    final audioLevel = live.remoteParticipant.audioLevel;
 
     if (hasVideo) {
       return Stack(
@@ -159,13 +148,7 @@ class CallParticipantTile extends HookConsumerWidget {
         ],
       );
     } else {
-      return SpeakingRippleAvatar(
-        isSpeaking: live.isSpeaking,
-        isMuted: live.isMuted,
-        audioLevel: audioLevel,
-        identity: live.participant.identity,
-        size: 84,
-      );
+      return SpeakingRippleAvatar(size: 84, live: live);
     }
   }
 }

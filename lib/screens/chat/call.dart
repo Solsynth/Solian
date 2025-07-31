@@ -49,7 +49,7 @@ class CallScreen extends HookConsumerWidget {
             Text(
               callState.isConnected
                   ? formatDuration(callState.duration)
-                  : 'Connecting',
+                  : 'connecting',
               style: const TextStyle(fontSize: 14),
             ),
           ],
@@ -61,13 +61,7 @@ class CallScreen extends HookConsumerWidget {
                 spacing: 4,
                 children: [
                   for (final live in callNotifier.participants)
-                    SpeakingRippleAvatar(
-                      isSpeaking: live.isSpeaking,
-                      isMuted: live.isMuted,
-                      audioLevel: live.remoteParticipant.audioLevel,
-                      identity: live.participant.identity,
-                      size: 30,
-                    ),
+                    SpeakingRippleAvatar(live: live, size: 30),
                   const Gap(8),
                 ],
               ),
@@ -131,11 +125,7 @@ class CallScreen extends HookConsumerWidget {
                                 children: [
                                   for (final live in participants)
                                     SpeakingRippleAvatar(
-                                      isSpeaking: live.isSpeaking,
-                                      isMuted: live.isMuted,
-                                      audioLevel:
-                                          live.remoteParticipant.audioLevel,
-                                      identity: live.participant.identity,
+                                      live: live,
                                       size: 72,
                                     ).padding(horizontal: 4),
                                 ],

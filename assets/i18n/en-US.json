@@ -726,5 +726,6 @@
   "reactionHeart": "Heart",
   "selectMicrophone": "Select Microphone",
   "selectCamera": "Select Camera",
-  "switchedTo": "Switched to {}"
+  "switchedTo": "Switched to {}",
+  "connecting": "Connecting"
 }

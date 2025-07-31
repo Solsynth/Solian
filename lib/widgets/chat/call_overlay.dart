@@ -338,11 +338,7 @@ class CallOverlayBar extends HookConsumerWidget {
                         height: 40,
                         child:
                             SpeakingRippleAvatar(
-                              isSpeaking: lastSpeaker.isSpeaking,
-                              isMuted: lastSpeaker.isMuted,
-                              audioLevel:
-                                  lastSpeaker.remoteParticipant.audioLevel,
-                              identity: lastSpeaker.participant.identity,
+                              live: lastSpeaker,
                               size: 36,
                             ).center(),
                       );
