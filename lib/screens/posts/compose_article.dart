@@ -153,6 +153,57 @@ class ArticleComposeScreen extends HookConsumerWidget {
     }
 
     Widget buildPreviewPane() {
+      final widgetItem = SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        child: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: state.titleController,
+          builder: (context, titleValue, _) {
+            return ValueListenableBuilder<TextEditingValue>(
+              valueListenable: state.descriptionController,
+              builder: (context, descriptionValue, _) {
+                return ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: state.contentController,
+                  builder: (context, contentValue, _) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (titleValue.text.isNotEmpty) ...[
+                          Text(
+                            titleValue.text,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Gap(16),
+                        ],
+                        if (descriptionValue.text.isNotEmpty) ...[
+                          Text(
+                            descriptionValue.text,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                            ),
+                          ),
+                          const Gap(16),
+                        ],
+                        if (contentValue.text.isNotEmpty)
+                          MarkdownTextContent(
+                            content: contentValue.text,
+                            textStyle: theme.textTheme.bodyMedium,
+                          ),
+                      ],
+                    );
+                  },
+                );
+              },
+            );
+          },
+        ),
+      );
+
+      if (isWideScreen(context)) {
+        return Align(alignment: Alignment.topLeft, child: widgetItem);
+      }
+
       return Container(
         decoration: BoxDecoration(
           border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
@@ -178,55 +229,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                 ],
               ),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: state.titleController,
-                  builder: (context, titleValue, _) {
-                    return ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: state.descriptionController,
-                      builder: (context, descriptionValue, _) {
-                        return ValueListenableBuilder<TextEditingValue>(
-                          valueListenable: state.contentController,
-                          builder: (context, contentValue, _) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (titleValue.text.isNotEmpty) ...[
-                                  Text(
-                                    titleValue.text,
-                                    style: theme.textTheme.headlineSmall
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  const Gap(16),
-                                ],
-                                if (descriptionValue.text.isNotEmpty) ...[
-                                  Text(
-                                    descriptionValue.text,
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      color: colorScheme.onSurface.withOpacity(
-                                        0.7,
-                                      ),
-                                    ),
-                                  ),
-                                  const Gap(16),
-                                ],
-                                if (contentValue.text.isNotEmpty)
-                                  MarkdownTextContent(
-                                    content: contentValue.text,
-                                    textStyle: theme.textTheme.bodyMedium,
-                                  ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ),
+            Expanded(child: widgetItem),
           ],
         ),
       );
@@ -444,13 +447,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
                               flex: showPreview.value ? 1 : 2,
                               child: buildEditorPane(),
                             ),
+                            const VerticalDivider(),
                             if (showPreview.value)
-                              Expanded(
-                                child: buildPreviewPane().padding(
-                                  vertical: 16,
-                                  horizontal: 24,
-                                ),
-                              ),
+                              Expanded(child: buildPreviewPane()),
                           ],
                         )
                         : showPreview.value
