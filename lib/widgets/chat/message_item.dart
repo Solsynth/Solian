@@ -5,16 +5,19 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/database/message.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/models/embed.dart';
 import 'package:island/pods/call.dart';
+import 'package:island/pods/translate.dart';
 import 'package:island/screens/chat/room.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/content/alert.native.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/embed/link.dart';
@@ -67,6 +70,46 @@ class MessageItem extends HookConsumerWidget {
 
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
+    final messageLanguage =
+        remoteMessage.content != null
+            ? ref.watch(detectStringLanguageProvider(remoteMessage.content!))
+            : null;
+
+    final currentLanguage = context.locale.toString();
+    final translatableLanguage =
+        messageLanguage != null
+            ? messageLanguage.substring(0, 2) != currentLanguage.substring(0, 2)
+            : false;
+
+    final translating = useState(false);
+    final translatedText = useState<String?>(null);
+
+    Future<void> translate() async {
+      if (translatedText.value != null) {
+        translatedText.value = null;
+        return;
+      }
+
+      if (translating.value) return;
+      if (remoteMessage.content == null) return;
+      translating.value = true;
+      try {
+        final text = await ref.watch(
+          translateStringProvider(
+            TranslateQuery(
+              text: remoteMessage.content!,
+              lang: currentLanguage.substring(0, 2),
+            ),
+          ).future,
+        );
+        translatedText.value = text;
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        translating.value = false;
+      }
+    }
+
     return ContextMenuWidget(
       menuProvider: (_) {
         if (onAction == null) return Menu(children: []);
@@ -103,6 +146,18 @@ class MessageItem extends HookConsumerWidget {
                 onAction!.call(MessageItemAction.forward);
               },
             ),
+            if (translatableLanguage) MenuSeparator(),
+            if (translatableLanguage)
+              MenuAction(
+                title:
+                    translatedText.value == null
+                        ? 'translate'.tr()
+                        : translating.value
+                        ? 'translating'.tr()
+                        : 'translated'.tr(),
+                image: MenuImage.icon(Symbols.translate),
+                callback: translate,
+              ),
             if (isMobile) MenuSeparator(),
             if (isMobile)
               MenuAction(
@@ -221,7 +276,10 @@ class MessageItem extends HookConsumerWidget {
                               isReply: false,
                             ).padding(vertical: 4),
                           if (_MessageItemContent.hasContent(remoteMessage))
-                            _MessageItemContent(item: remoteMessage),
+                            _MessageItemContent(
+                              item: remoteMessage,
+                              translatedText: translatedText.value,
+                            ),
                           if (remoteMessage.attachments.isNotEmpty)
                             LayoutBuilder(
                               builder: (context, constraints) {
@@ -482,7 +540,8 @@ class MessageQuoteWidget extends HookConsumerWidget {
 
 class _MessageItemContent extends StatelessWidget {
   final SnChatMessage item;
-  const _MessageItemContent({required this.item});
+  final String? translatedText;
+  const _MessageItemContent({required this.item, this.translatedText});
 
   @override
   Widget build(BuildContext context) {
@@ -495,10 +554,40 @@ class _MessageItemContent extends StatelessWidget {
         );
       case 'text':
       default:
-        return MarkdownTextContent(
-          content: item.content!,
-          isSelectable: true,
-          linesMargin: EdgeInsets.zero,
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            MarkdownTextContent(
+              content: item.content!,
+              isSelectable: true,
+              linesMargin: EdgeInsets.zero,
+            ),
+            if (translatedText?.isNotEmpty ?? false)
+              ...([
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: math.min(
+                      280,
+                      MediaQuery.of(context).size.width * 0.4,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('translated').tr().fontSize(11).opacity(0.75),
+                      const Gap(8),
+                      Flexible(child: Divider()),
+                    ],
+                  ).padding(vertical: 4),
+                ),
+                MarkdownTextContent(
+                  content: translatedText!,
+                  isSelectable: true,
+                  linesMargin: EdgeInsets.zero,
+                ),
+              ]),
+          ],
         );
     }
   }
