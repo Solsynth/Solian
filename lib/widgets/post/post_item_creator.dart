@@ -93,8 +93,6 @@ class PostItemCreator extends HookConsumerWidget {
       },
       child: Material(
         color: backgroundColor ?? Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        elevation: 1,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
@@ -202,7 +200,6 @@ class PostItemCreator extends HookConsumerWidget {
           CloudFileList(
             files: item.attachments,
             maxWidth: MediaQuery.of(context).size.width * 0.85,
-            minWidth: MediaQuery.of(context).size.width * 0.9,
             padding: EdgeInsets.only(top: 8),
           ),
 

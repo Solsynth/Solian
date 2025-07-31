@@ -51,12 +51,9 @@ class DeveloperHubShellScreen extends StatelessWidget {
         isRoot: true,
         child: Row(
           children: [
-            SizedBox(
-              width: 360,
-              child: const DeveloperHubScreen(isAside: true),
-            ),
+            Flexible(flex: 2, child: const DeveloperHubScreen(isAside: true)),
             const VerticalDivider(width: 1),
-            Expanded(child: child),
+            Flexible(flex: 3, child: child),
           ],
         ),
       );

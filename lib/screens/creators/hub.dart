@@ -114,9 +114,9 @@ class CreatorHubShellScreen extends StatelessWidget {
         isRoot: true,
         child: Row(
           children: [
-            SizedBox(width: 360, child: const CreatorHubScreen(isAside: true)),
+            Flexible(flex: 2, child: const CreatorHubScreen(isAside: true)),
             const VerticalDivider(width: 1),
-            Expanded(child: child),
+            Flexible(flex: 3, child: child),
           ],
         ),
       );

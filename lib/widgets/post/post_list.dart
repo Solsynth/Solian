@@ -103,13 +103,18 @@ class SliverPostList extends HookConsumerWidget {
   Widget _buildPostItem(SnPost post) {
     switch (itemType) {
       case PostItemType.creator:
-        return PostItemCreator(
-          item: post,
-          backgroundColor: backgroundColor,
-          padding: padding,
-          isOpenable: isOpenable,
-          onRefresh: onRefresh,
-          onUpdate: onUpdate,
+        return Column(
+          children: [
+            PostItemCreator(
+              item: post,
+              backgroundColor: backgroundColor,
+              padding: padding,
+              isOpenable: isOpenable,
+              onRefresh: onRefresh,
+              onUpdate: onUpdate,
+            ),
+            const Divider(),
+          ],
         );
       case PostItemType.regular:
         return Card(
