@@ -56,7 +56,7 @@ class PostSearchNotifier
           'query': _currentQuery,
           'offset': offset,
           'take': _pageSize,
-          'useVector': true,
+          'useVector': false,
         },
       );
 
