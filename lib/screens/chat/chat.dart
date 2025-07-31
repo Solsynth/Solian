@@ -21,7 +21,6 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
-import 'package:island/widgets/chat/call_overlay.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/realms/selection_dropdown.dart';
@@ -346,91 +345,79 @@ class ChatListScreen extends HookConsumerWidget {
         child: const Icon(Symbols.add),
       ),
       floatingActionButtonLocation: TabbedFabLocation(context),
-      body: Stack(
+      body: Column(
         children: [
-          Column(
-            children: [
-              Consumer(
-                builder: (context, ref, _) {
-                  final summaryState = ref.watch(chatSummaryProvider);
-                  return summaryState.maybeWhen(
-                    loading:
-                        () => const LinearProgressIndicator(
-                          minHeight: 2,
-                          borderRadius: BorderRadius.zero,
-                        ),
-                    orElse: () => const SizedBox.shrink(),
-                  );
-                },
-              ),
-              Expanded(
-                child: chats.when(
-                  data:
-                      (items) => RefreshIndicator(
-                        onRefresh:
-                            () => Future.sync(() {
-                              ref.invalidate(chatroomsJoinedProvider);
-                            }),
-                        child: ListView.builder(
-                          padding: getTabbedPadding(
-                            context,
-                            bottom: callState.isConnected ? 96 : null,
-                          ),
-                          itemCount:
-                              items
-                                  .where(
-                                    (item) =>
-                                        selectedTab.value == 0 ||
-                                        (selectedTab.value == 1 &&
-                                            item.type == 1) ||
-                                        (selectedTab.value == 2 &&
-                                            item.type != 1),
-                                  )
-                                  .length,
-                          itemBuilder: (context, index) {
-                            final filteredItems =
-                                items
-                                    .where(
-                                      (item) =>
-                                          selectedTab.value == 0 ||
-                                          (selectedTab.value == 1 &&
-                                              item.type == 1) ||
-                                          (selectedTab.value == 2 &&
-                                              item.type != 1),
-                                    )
-                                    .toList();
-                            final item = filteredItems[index];
-                            return ChatRoomListTile(
-                              room: item,
-                              isDirect: item.type == 1,
-                              onTap: () {
-                                context.pushNamed(
-                                  'chatRoom',
-                                  pathParameters: {'id': item.id},
-                                );
-                              },
+          Consumer(
+            builder: (context, ref, _) {
+              final summaryState = ref.watch(chatSummaryProvider);
+              return summaryState.maybeWhen(
+                loading:
+                    () => const LinearProgressIndicator(
+                      minHeight: 2,
+                      borderRadius: BorderRadius.zero,
+                    ),
+                orElse: () => const SizedBox.shrink(),
+              );
+            },
+          ),
+          Expanded(
+            child: chats.when(
+              data:
+                  (items) => RefreshIndicator(
+                    onRefresh:
+                        () => Future.sync(() {
+                          ref.invalidate(chatroomsJoinedProvider);
+                        }),
+                    child: ListView.builder(
+                      padding: getTabbedPadding(
+                        context,
+                        bottom: callState.isConnected ? 96 : null,
+                      ),
+                      itemCount:
+                          items
+                              .where(
+                                (item) =>
+                                    selectedTab.value == 0 ||
+                                    (selectedTab.value == 1 &&
+                                        item.type == 1) ||
+                                    (selectedTab.value == 2 && item.type != 1),
+                              )
+                              .length,
+                      itemBuilder: (context, index) {
+                        final filteredItems =
+                            items
+                                .where(
+                                  (item) =>
+                                      selectedTab.value == 0 ||
+                                      (selectedTab.value == 1 &&
+                                          item.type == 1) ||
+                                      (selectedTab.value == 2 &&
+                                          item.type != 1),
+                                )
+                                .toList();
+                        final item = filteredItems[index];
+                        return ChatRoomListTile(
+                          room: item,
+                          isDirect: item.type == 1,
+                          onTap: () {
+                            context.pushNamed(
+                              'chatRoom',
+                              pathParameters: {'id': item.id},
                             );
                           },
-                        ),
-                      ),
-                  loading:
-                      () => const Center(child: CircularProgressIndicator()),
-                  error:
-                      (error, stack) => ResponseErrorWidget(
-                        error: error,
-                        onRetry: () {
-                          ref.invalidate(chatroomsJoinedProvider);
-                        },
-                      ),
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: getTabbedPadding(context).bottom + 8,
-            child: const CallOverlayBar().padding(horizontal: 16, vertical: 12),
+                        );
+                      },
+                    ),
+                  ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error:
+                  (error, stack) => ResponseErrorWidget(
+                    error: error,
+                    onRetry: () {
+                      ref.invalidate(chatroomsJoinedProvider);
+                    },
+                  ),
+            ),
           ),
         ],
       ),

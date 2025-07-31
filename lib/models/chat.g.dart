@@ -285,11 +285,6 @@ _CallParticipant _$CallParticipantFromJson(Map<String, dynamic> json) =>
       identity: json['identity'] as String,
       name: json['name'] as String,
       joinedAt: DateTime.parse(json['joined_at'] as String),
-      accountId: json['account_id'] as String?,
-      profile:
-          json['profile'] == null
-              ? null
-              : SnChatMember.fromJson(json['profile'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$CallParticipantToJson(_CallParticipant instance) =>
@@ -297,8 +292,6 @@ Map<String, dynamic> _$CallParticipantToJson(_CallParticipant instance) =>
       'identity': instance.identity,
       'name': instance.name,
       'joined_at': instance.joinedAt.toIso8601String(),
-      'account_id': instance.accountId,
-      'profile': instance.profile?.toJson(),
     };
 
 _SnRealtimeCall _$SnRealtimeCallFromJson(Map<String, dynamic> json) =>

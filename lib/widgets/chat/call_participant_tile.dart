@@ -1,69 +1,118 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/call.dart';
+import 'package:island/screens/account/profile.dart';
+import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
 
-class SpeakingRippleAvatar extends StatelessWidget {
+class SpeakingRippleAvatar extends HookConsumerWidget {
   final bool isSpeaking;
+  final bool isMuted;
   final double audioLevel;
-  final String? pictureId;
+  final String identity;
   final double size;
 
   const SpeakingRippleAvatar({
     super.key,
     required this.isSpeaking,
+    required this.isMuted,
     required this.audioLevel,
-    required this.pictureId,
+    required this.identity,
     this.size = 96,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final account = ref.watch(accountProvider(identity));
+
     final avatarRadius = size / 2;
     final clampedLevel = audioLevel.clamp(0.0, 1.0);
     final rippleRadius = avatarRadius + clampedLevel * (size * 0.333);
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(
-        begin: avatarRadius,
-        end: isSpeaking ? rippleRadius : avatarRadius,
-      ),
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-      builder: (context, animatedRadius, child) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            if (isSpeaking)
+    return SizedBox(
+      width: size + 8,
+      height: size + 8,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(
+          begin: avatarRadius,
+          end: isSpeaking ? rippleRadius : avatarRadius,
+        ),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        builder: (context, animatedRadius, child) {
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              if (isSpeaking)
+                Container(
+                  width: animatedRadius * 2,
+                  height: animatedRadius * 2,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.green.withOpacity(0.75 + 0.25 * clampedLevel),
+                  ),
+                ),
               Container(
-                width: animatedRadius * 2,
-                height: animatedRadius * 2,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.green.withOpacity(0.75 + 0.25 * clampedLevel),
+                width: size,
+                height: size,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(shape: BoxShape.circle),
+                child: account.when(
+                  data:
+                      (value) => AccountPfcGestureDetector(
+                        uname: identity,
+                        child: ProfilePictureWidget(
+                          file: value.profile.picture,
+                          radius: size / 2,
+                        ),
+                      ),
+                  error:
+                      (_, _) => CircleAvatar(
+                        radius: size / 2,
+                        child: const Icon(Symbols.person_remove),
+                      ),
+                  loading:
+                      () => CircleAvatar(
+                        radius: size / 2,
+                        child: CircularProgressIndicator(),
+                      ),
                 ),
               ),
-            Container(
-              width: size,
-              height: size,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(shape: BoxShape.circle),
-              child: ProfilePictureWidget(fileId: pictureId, radius: size / 2),
-            ),
-          ],
-        );
-      },
+              if (isMuted)
+                Positioned(
+                  bottom: 4,
+                  right: 4,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    ),
+                    child: const Icon(
+                      Symbols.mic_off,
+                      size: 14,
+                      fill: 1,
+                    ).padding(left: 1.5, top: 1.5),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
 
-class CallParticipantTile extends StatelessWidget {
+class CallParticipantTile extends HookConsumerWidget {
   final CallParticipantLive live;
 
   const CallParticipantTile({super.key, required this.live});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final hasVideo =
         live.hasVideo &&
         live.remoteParticipant.trackPublications.values
@@ -75,18 +124,15 @@ class CallParticipantTile extends StatelessWidget {
       return Stack(
         fit: StackFit.loose,
         children: [
-          Container(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: VideoTrackRenderer(
-                live.remoteParticipant.trackPublications.values
-                        .where((track) => track.kind == TrackType.VIDEO)
-                        .first
-                        .track
-                    as VideoTrack,
-                renderMode: VideoRenderMode.platformView,
-              ),
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: VideoTrackRenderer(
+              live.remoteParticipant.trackPublications.values
+                      .where((track) => track.kind == TrackType.VIDEO)
+                      .first
+                      .track
+                  as VideoTrack,
+              renderMode: VideoRenderMode.platformView,
             ),
           ),
           Positioned(
@@ -94,10 +140,20 @@ class CallParticipantTile extends StatelessWidget {
             right: 8,
             bottom: 8,
             child: Text(
-              live.participant.profile?.account.nick ??
-                  '${'unknown'.tr()}\'s video',
+              '@${live.participant.name}',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: Colors.white),
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+                shadows: [
+                  BoxShadow(
+                    color: Colors.black54,
+                    offset: Offset(1, 1),
+                    spreadRadius: 8,
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -105,8 +161,9 @@ class CallParticipantTile extends StatelessWidget {
     } else {
       return SpeakingRippleAvatar(
         isSpeaking: live.isSpeaking,
+        isMuted: live.isMuted,
         audioLevel: audioLevel,
-        pictureId: live.participant.profile?.account.profile.picture?.id,
+        identity: live.participant.identity,
         size: 84,
       );
     }

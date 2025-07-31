@@ -2498,7 +2498,7 @@ as List<CallParticipant>,
 /// @nodoc
 mixin _$CallParticipant {
 
- String get identity; String get name; DateTime get joinedAt; String? get accountId; SnChatMember? get profile;
+ String get identity; String get name; DateTime get joinedAt;
 /// Create a copy of CallParticipant
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2511,16 +2511,16 @@ $CallParticipantCopyWith<CallParticipant> get copyWith => _$CallParticipantCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CallParticipant&&(identical(other.identity, identity) || other.identity == identity)&&(identical(other.name, name) || other.name == name)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.profile, profile) || other.profile == profile));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CallParticipant&&(identical(other.identity, identity) || other.identity == identity)&&(identical(other.name, name) || other.name == name)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identity,name,joinedAt,accountId,profile);
+int get hashCode => Object.hash(runtimeType,identity,name,joinedAt);
 
 @override
 String toString() {
-  return 'CallParticipant(identity: $identity, name: $name, joinedAt: $joinedAt, accountId: $accountId, profile: $profile)';
+  return 'CallParticipant(identity: $identity, name: $name, joinedAt: $joinedAt)';
 }
 
 
@@ -2531,11 +2531,11 @@ abstract mixin class $CallParticipantCopyWith<$Res>  {
   factory $CallParticipantCopyWith(CallParticipant value, $Res Function(CallParticipant) _then) = _$CallParticipantCopyWithImpl;
 @useResult
 $Res call({
- String identity, String name, DateTime joinedAt, String? accountId, SnChatMember? profile
+ String identity, String name, DateTime joinedAt
 });
 
 
-$SnChatMemberCopyWith<$Res>? get profile;
+
 
 }
 /// @nodoc
@@ -2548,29 +2548,15 @@ class _$CallParticipantCopyWithImpl<$Res>
 
 /// Create a copy of CallParticipant
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? identity = null,Object? name = null,Object? joinedAt = null,Object? accountId = freezed,Object? profile = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? identity = null,Object? name = null,Object? joinedAt = null,}) {
   return _then(_self.copyWith(
 identity: null == identity ? _self.identity : identity // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,joinedAt: null == joinedAt ? _self.joinedAt : joinedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String?,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
-as SnChatMember?,
+as DateTime,
   ));
 }
-/// Create a copy of CallParticipant
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnChatMemberCopyWith<$Res>? get profile {
-    if (_self.profile == null) {
-    return null;
-  }
 
-  return $SnChatMemberCopyWith<$Res>(_self.profile!, (value) {
-    return _then(_self.copyWith(profile: value));
-  });
-}
 }
 
 
@@ -2649,10 +2635,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identity,  String name,  DateTime joinedAt,  String? accountId,  SnChatMember? profile)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identity,  String name,  DateTime joinedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CallParticipant() when $default != null:
-return $default(_that.identity,_that.name,_that.joinedAt,_that.accountId,_that.profile);case _:
+return $default(_that.identity,_that.name,_that.joinedAt);case _:
   return orElse();
 
 }
@@ -2670,10 +2656,10 @@ return $default(_that.identity,_that.name,_that.joinedAt,_that.accountId,_that.p
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identity,  String name,  DateTime joinedAt,  String? accountId,  SnChatMember? profile)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identity,  String name,  DateTime joinedAt)  $default,) {final _that = this;
 switch (_that) {
 case _CallParticipant():
-return $default(_that.identity,_that.name,_that.joinedAt,_that.accountId,_that.profile);}
+return $default(_that.identity,_that.name,_that.joinedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2687,10 +2673,10 @@ return $default(_that.identity,_that.name,_that.joinedAt,_that.accountId,_that.p
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identity,  String name,  DateTime joinedAt,  String? accountId,  SnChatMember? profile)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identity,  String name,  DateTime joinedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CallParticipant() when $default != null:
-return $default(_that.identity,_that.name,_that.joinedAt,_that.accountId,_that.profile);case _:
+return $default(_that.identity,_that.name,_that.joinedAt);case _:
   return null;
 
 }
@@ -2702,14 +2688,12 @@ return $default(_that.identity,_that.name,_that.joinedAt,_that.accountId,_that.p
 @JsonSerializable()
 
 class _CallParticipant implements CallParticipant {
-  const _CallParticipant({required this.identity, required this.name, required this.joinedAt, required this.accountId, required this.profile});
+  const _CallParticipant({required this.identity, required this.name, required this.joinedAt});
   factory _CallParticipant.fromJson(Map<String, dynamic> json) => _$CallParticipantFromJson(json);
 
 @override final  String identity;
 @override final  String name;
 @override final  DateTime joinedAt;
-@override final  String? accountId;
-@override final  SnChatMember? profile;
 
 /// Create a copy of CallParticipant
 /// with the given fields replaced by the non-null parameter values.
@@ -2724,16 +2708,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CallParticipant&&(identical(other.identity, identity) || other.identity == identity)&&(identical(other.name, name) || other.name == name)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.profile, profile) || other.profile == profile));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CallParticipant&&(identical(other.identity, identity) || other.identity == identity)&&(identical(other.name, name) || other.name == name)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identity,name,joinedAt,accountId,profile);
+int get hashCode => Object.hash(runtimeType,identity,name,joinedAt);
 
 @override
 String toString() {
-  return 'CallParticipant(identity: $identity, name: $name, joinedAt: $joinedAt, accountId: $accountId, profile: $profile)';
+  return 'CallParticipant(identity: $identity, name: $name, joinedAt: $joinedAt)';
 }
 
 
@@ -2744,11 +2728,11 @@ abstract mixin class _$CallParticipantCopyWith<$Res> implements $CallParticipant
   factory _$CallParticipantCopyWith(_CallParticipant value, $Res Function(_CallParticipant) _then) = __$CallParticipantCopyWithImpl;
 @override @useResult
 $Res call({
- String identity, String name, DateTime joinedAt, String? accountId, SnChatMember? profile
+ String identity, String name, DateTime joinedAt
 });
 
 
-@override $SnChatMemberCopyWith<$Res>? get profile;
+
 
 }
 /// @nodoc
@@ -2761,30 +2745,16 @@ class __$CallParticipantCopyWithImpl<$Res>
 
 /// Create a copy of CallParticipant
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? identity = null,Object? name = null,Object? joinedAt = null,Object? accountId = freezed,Object? profile = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? identity = null,Object? name = null,Object? joinedAt = null,}) {
   return _then(_CallParticipant(
 identity: null == identity ? _self.identity : identity // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,joinedAt: null == joinedAt ? _self.joinedAt : joinedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String?,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
-as SnChatMember?,
+as DateTime,
   ));
 }
 
-/// Create a copy of CallParticipant
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnChatMemberCopyWith<$Res>? get profile {
-    if (_self.profile == null) {
-    return null;
-  }
 
-  return $SnChatMemberCopyWith<$Res>(_self.profile!, (value) {
-    return _then(_self.copyWith(profile: value));
-  });
-}
 }
 
 
