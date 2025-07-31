@@ -31,7 +31,7 @@ class StickersScreen extends HookConsumerWidget {
               context
                   .pushNamed(
                     'creatorStickerPackNew',
-                    queryParameters: {'pubName': pubName},
+                    queryParameters: {'name': pubName},
                   )
                   .then((value) {
                     if (value != null) {
@@ -76,7 +76,7 @@ class SliverStickerPacksList extends HookConsumerWidget {
                 onTap: () {
                   context.pushNamed(
                     'creatorStickerPackDetail',
-                    pathParameters: {'pubName': pubName, 'packId': sticker.id},
+                    pathParameters: {'name': pubName, 'packId': sticker.id},
                   );
                 },
               );
