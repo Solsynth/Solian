@@ -355,6 +355,8 @@
   "postTitle": "Title",
   "postDescription": "Description",
   "call": "Call",
+  "callLeave": "Leave",
+  "callEnd": "End this call",
   "done": "Done",
   "loginResetPasswordSent": "Password reset link sent, please check your email inbox.",
   "accountDeletion": "Delete Account",
@@ -712,7 +714,7 @@
   "translating": "Translating",
   "translated": "Translated",
   "reactionThumbUp": "Thumbs Up",
-  "reactionThumbDown": "Thumbs Down", 
+  "reactionThumbDown": "Thumbs Down",
   "reactionJustOkay": "Just Okay",
   "reactionCry": "Cry",
   "reactionConfuse": "Confused",
@@ -721,5 +723,8 @@
   "reactionAngry": "Angry",
   "reactionParty": "Party",
   "reactionPray": "Pray",
-  "reactionHeart": "Heart"
+  "reactionHeart": "Heart",
+  "selectMicrophone": "Select Microphone",
+  "selectCamera": "Select Camera",
+  "switchedTo": "Switched to {}"
 }

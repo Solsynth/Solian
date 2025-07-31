@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/call.dart';
+import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/chat/call_participant_tile.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:livekit_client/livekit_client.dart';
 
@@ -55,7 +57,49 @@ class CallControlsBar extends HookConsumerWidget {
           const Gap(16),
           _buildCircularButton(
             icon: Icons.call_end,
-            onPressed: () => callNotifier.disconnect(),
+            onPressed:
+                () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useRootNavigator: true,
+                  builder:
+                      (context) => ClipRRect(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(8),
+                          topRight: Radius.circular(8),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Symbols.logout, fill: 1),
+                              title: Text('callLeave').tr(),
+                              onTap: () {
+                                callNotifier.disconnect();
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Symbols.call_end, fill: 1),
+                              iconColor: Colors.red,
+                              title: Text('callEnd').tr(),
+                              onTap: () async {
+                                callNotifier.disconnect();
+                                final apiClient = ref.watch(apiClientProvider);
+                                await apiClient.delete(
+                                  '/sphere/chat/realtime/${callNotifier.roomId}',
+                                );
+                                callNotifier.dispose();
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                            ),
+                            Gap(MediaQuery.of(context).padding.bottom),
+                          ],
+                        ),
+                      ),
+                ),
             backgroundColor: const Color(0xFFE53E3E),
             iconColor: Colors.white,
           ),
@@ -279,7 +323,7 @@ class CallOverlayBar extends HookConsumerWidget {
       child: Card(
         margin: EdgeInsets.zero,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Row(
@@ -295,16 +339,10 @@ class CallOverlayBar extends HookConsumerWidget {
                         child:
                             SpeakingRippleAvatar(
                               isSpeaking: lastSpeaker.isSpeaking,
+                              isMuted: lastSpeaker.isMuted,
                               audioLevel:
                                   lastSpeaker.remoteParticipant.audioLevel,
-                              pictureId:
-                                  lastSpeaker
-                                      .participant
-                                      .profile
-                                      ?.account
-                                      .profile
-                                      .picture
-                                      ?.id,
+                              identity: lastSpeaker.participant.identity,
                               size: 36,
                             ).center(),
                       );
@@ -314,10 +352,7 @@ class CallOverlayBar extends HookConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        lastSpeaker.participant.profile?.account.nick ??
-                            'unknown'.tr(),
-                      ).bold(),
+                      Text('@${lastSpeaker.participant.identity}').bold(),
                       Text(
                         formatDuration(callState.duration),
                         style: Theme.of(context).textTheme.bodySmall,
@@ -360,7 +395,10 @@ class CallOverlayBar extends HookConsumerWidget {
         ).padding(all: 16),
       ),
       onTap: () {
-        context.pushNamed('chatCall', pathParameters: {'id': callNotifier.roomId!});
+        context.pushNamed(
+          'chatCall',
+          pathParameters: {'id': callNotifier.roomId!},
+        );
       },
     );
   }

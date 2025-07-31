@@ -167,6 +167,7 @@ Future<void> showAccountProfileCard(
     offset: offset ?? Offset.zero,
     context: context,
     builder: (context) => AccountProfileCard(uname: uname),
+    alignment: Alignment.center,
     dimBackground: true,
   );
 }

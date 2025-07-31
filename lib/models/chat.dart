@@ -162,8 +162,6 @@ sealed class CallParticipant with _$CallParticipant {
     required String identity,
     required String name,
     required DateTime joinedAt,
-    required String? accountId,
-    required SnChatMember? profile,
   }) = _CallParticipant;
 
   factory CallParticipant.fromJson(Map<String, dynamic> json) =>

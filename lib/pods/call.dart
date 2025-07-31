@@ -1,13 +1,10 @@
-import 'package:island/pods/userinfo.dart';
-import 'package:island/screens/chat/chat.dart';
+import 'dart:async';
 import 'package:island/widgets/chat/call_button.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/models/chat.dart';
-import 'package:island/pods/websocket.dart';
 
 part 'call.g.dart';
 part 'call.freezed.dart';
@@ -42,7 +39,8 @@ sealed class CallParticipantLive with _$CallParticipantLive {
   }) = _CallParticipantLive;
 
   bool get isSpeaking => remoteParticipant.isSpeaking;
-  bool get isMuted => remoteParticipant.isMuted;
+  bool get isMuted =>
+      remoteParticipant.isMuted || !remoteParticipant.isMicrophoneEnabled();
   bool get isScreenSharing => remoteParticipant.isScreenShareEnabled();
   bool get isScreenSharingWithAudio =>
       remoteParticipant.isScreenShareAudioEnabled();
@@ -57,7 +55,6 @@ class CallNotifier extends _$CallNotifier {
   LocalParticipant? _localParticipant;
   List<CallParticipantLive> _participants = [];
   final Map<String, CallParticipant> _participantInfoByIdentity = {};
-  StreamSubscription? _wsSubscription;
   EventsListener? _roomListener;
 
   List<CallParticipantLive> get participants =>
@@ -71,34 +68,12 @@ class CallNotifier extends _$CallNotifier {
   @override
   CallState build() {
     // Subscribe to websocket updates
-    _subscribeToParticipantsUpdate();
     return const CallState(
       isConnected: false,
       isMicrophoneEnabled: true,
       isCameraEnabled: false,
       isScreenSharing: false,
     );
-  }
-
-  void _subscribeToParticipantsUpdate() {
-    // Only subscribe once
-    if (_wsSubscription != null) return;
-    final ws = ref.read(websocketProvider);
-    _wsSubscription = ws.dataStream.listen((packet) {
-      if (packet.type == 'call.participants.update' && packet.data != null) {
-        final participantsData = packet.data!["participants"];
-        if (participantsData is List) {
-          final parsed =
-              participantsData
-                  .map(
-                    (e) =>
-                        CallParticipant.fromJson(Map<String, dynamic>.from(e)),
-                  )
-                  .toList();
-          _updateLiveParticipants(parsed);
-        }
-      }
-    });
   }
 
   void _initRoomListeners() {
@@ -143,8 +118,6 @@ class CallNotifier extends _$CallNotifier {
               identity: remote.identity,
               name: remote.identity,
               joinedAt: DateTime.now(),
-              accountId: null,
-              profile: null,
             );
         return CallParticipantLive(
           participant: match,
@@ -169,16 +142,12 @@ class CallNotifier extends _$CallNotifier {
       if (idx != -1) return participants[idx];
     }
 
-    final userInfo = ref.read(userInfoProvider);
-    final roomIdentity = ref.read(chatroomIdentityProvider(_roomId));
     // Otherwise, use info from the identity map or fallback to minimal
     return _participantInfoByIdentity[_localParticipant!.identity] ??
         CallParticipant(
           identity: _localParticipant!.identity,
           name: _localParticipant!.identity,
           joinedAt: DateTime.now(),
-          accountId: userInfo.value?.id,
-          profile: roomIdentity.value,
         );
   }
 
@@ -205,6 +174,7 @@ class CallNotifier extends _$CallNotifier {
           remoteParticipant: _localParticipant!,
         ),
       );
+      state = state.copyWith();
     }
     // Add remote participants
     _participants.addAll(
@@ -264,7 +234,8 @@ class CallNotifier extends _$CallNotifier {
             duration: Duration(
               milliseconds:
                   (DateTime.now().millisecondsSinceEpoch -
-                      (ongoingCall?.createdAt.millisecondsSinceEpoch ?? 0)),
+                      (ongoingCall?.createdAt.millisecondsSinceEpoch ??
+                          DateTime.now().millisecondsSinceEpoch)),
             ),
           );
         });
@@ -318,6 +289,7 @@ class CallNotifier extends _$CallNotifier {
           stopOnMute: autostop,
         );
       }
+      state = state.copyWith();
     }
   }
 
@@ -326,6 +298,7 @@ class CallNotifier extends _$CallNotifier {
       final target = !_localParticipant!.isCameraEnabled();
       state = state.copyWith(isCameraEnabled: target);
       await _localParticipant!.setCameraEnabled(target);
+      state = state.copyWith();
     }
   }
 
@@ -334,6 +307,7 @@ class CallNotifier extends _$CallNotifier {
       final target = !_localParticipant!.isScreenShareEnabled();
       state = state.copyWith(isScreenSharing: target);
       await _localParticipant!.setScreenShareEnabled(target);
+      state = state.copyWith();
     }
   }
 
@@ -350,7 +324,13 @@ class CallNotifier extends _$CallNotifier {
   }
 
   void dispose() {
-    _wsSubscription?.cancel();
+    state = state.copyWith(
+      error: null,
+      isConnected: false,
+      isMicrophoneEnabled: false,
+      isCameraEnabled: false,
+      isScreenSharing: false,
+    );
     _roomListener?.dispose();
     _room?.removeListener(_onRoomChange);
     _room?.dispose();
