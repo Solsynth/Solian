@@ -7,7 +7,7 @@ part of 'pack_detail.dart';
 // **************************************************************************
 
 String _$stickerPackContentHash() =>
-    r'78de848fba1f341f217f8ae4b9eef2d8afa67964';
+    r'42d74f51022e67e35cb601c2f30f4f02e1f2be9d';
 
 /// Copied from Dart SDK
 class _SystemHash {

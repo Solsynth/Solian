@@ -12,6 +12,7 @@ import 'package:island/models/embed.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/translate.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/services/responsive.dart';
@@ -247,6 +248,46 @@ class PostItem extends HookConsumerWidget {
                 .map((e) => e.key)
                 .first;
 
+    final postLanguage =
+        item.content != null
+            ? ref.watch(detectStringLanguageProvider(item.content!))
+            : null;
+
+    final currentLanguage = context.locale.toString();
+    final translatableLanguage =
+        postLanguage != null
+            ? postLanguage.substring(0, 2) != currentLanguage.substring(0, 2)
+            : false;
+
+    final translating = useState(false);
+    final translatedText = useState<String?>(null);
+
+    Future<void> translate() async {
+      if (translatedText.value != null) {
+        translatedText.value = null;
+        return;
+      }
+
+      if (translating.value) return;
+      if (item.content == null) return;
+      translating.value = true;
+      try {
+        final text = await ref.watch(
+          translateStringProvider(
+            TranslateQuery(
+              text: item.content!,
+              lang: currentLanguage.substring(0, 2),
+            ),
+          ).future,
+        );
+        translatedText.value = text;
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        translating.value = false;
+      }
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -378,9 +419,53 @@ class PostItem extends HookConsumerWidget {
               left: renderingPadding.horizontal,
               right: renderingPadding.horizontal,
             ),
-            child: MarkdownTextContent(
-              content: item.isTruncated ? '${item.content!}...' : item.content!,
-              isSelectable: isTextSelectable,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                MarkdownTextContent(
+                  content:
+                      item.isTruncated ? '${item.content!}...' : item.content!,
+                  isSelectable: isTextSelectable,
+                ),
+                if (translatedText.value?.isNotEmpty ?? false)
+                  ...([
+                    Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        const Gap(8),
+                        Text('translated').tr().fontSize(11).opacity(0.75),
+                      ],
+                    ),
+                    MarkdownTextContent(
+                      content: translatedText.value!,
+                      isSelectable: isTextSelectable,
+                    ),
+                  ]),
+                if (translatableLanguage)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: translating.value ? null : translate,
+                      style: ButtonStyle(
+                        padding: WidgetStatePropertyAll(EdgeInsets.zero),
+                        visualDensity: const VisualDensity(
+                          horizontal: 0,
+                          vertical: -4,
+                        ),
+                        foregroundColor: WidgetStatePropertyAll(
+                          translatedText.value == null ? null : Colors.grey,
+                        ),
+                      ),
+                      icon: const Icon(Symbols.translate),
+                      label:
+                          translatedText.value != null
+                              ? Text('translated').tr()
+                              : translating.value
+                              ? Text('translating').tr()
+                              : Text('translate').tr(),
+                    ),
+                  ),
+              ],
             ),
           ),
         if (item.isTruncated && item.type != 1)

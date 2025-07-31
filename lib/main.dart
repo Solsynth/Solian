@@ -20,7 +20,6 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
-
 import 'package:island/services/notify.dart';
 import 'package:island/services/timezone.dart';
 import 'package:island/widgets/alert.dart';
@@ -30,6 +29,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:flutter_langdetect/flutter_langdetect.dart' as langdetect;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -51,6 +51,7 @@ void main() async {
   }
 
   try {
+    await langdetect.initLangDetect();
     await EasyLocalization.ensureInitialized();
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

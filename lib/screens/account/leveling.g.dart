@@ -7,7 +7,7 @@ part of 'leveling.dart';
 // **************************************************************************
 
 String _$accountStellarSubscriptionHash() =>
-    r'37fb821460e3ac50b5cf777c933b6779f732daee';
+    r'80abcdefb3868775fd8fe3c980215713efff5948';
 
 /// See also [accountStellarSubscription].
 @ProviderFor(accountStellarSubscription)

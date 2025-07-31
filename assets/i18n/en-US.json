@@ -707,5 +707,8 @@
   "donate": "Donate",
   "donateDescription": "Support us to continue developing the Solar Network and keep the server up and running.",
   "fileId": "File ID",
-  "fileIdHint": "The file ID is the ID you get after upload the file via the Solar Network Drive."
+  "fileIdHint": "The file ID is the ID you get after upload the file via the Solar Network Drive.",
+  "translate": "Translate",
+  "translating": "Translating",
+  "translated": "Translated"
 }
