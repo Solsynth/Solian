@@ -710,5 +710,16 @@
   "fileIdHint": "The file ID is the ID you get after upload the file via the Solar Network Drive.",
   "translate": "Translate",
   "translating": "Translating",
-  "translated": "Translated"
+  "translated": "Translated",
+  "reactionThumbUp": "Thumbs Up",
+  "reactionThumbDown": "Thumbs Down", 
+  "reactionJustOkay": "Just Okay",
+  "reactionCry": "Cry",
+  "reactionConfuse": "Confused",
+  "reactionClap": "Clap",
+  "reactionLaugh": "Laugh",
+  "reactionAngry": "Angry",
+  "reactionParty": "Party",
+  "reactionPray": "Pray",
+  "reactionHeart": "Heart"
 }

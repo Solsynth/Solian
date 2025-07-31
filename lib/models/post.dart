@@ -78,6 +78,13 @@ sealed class SnSubscriptionStatus with _$SnSubscriptionStatus {
 sealed class ReactInfo with _$ReactInfo {
   const factory ReactInfo({required String icon, required int attitude}) =
       _ReactInfo;
+
+  static String getTranslationKey(String templateKey) {
+    final parts = templateKey.split('_');
+    final camelCase =
+        parts.map((p) => p[0].toUpperCase() + p.substring(1)).join();
+    return 'reaction$camelCase';
+  }
 }
 
 const Map<String, ReactInfo> kReactionTemplates = {

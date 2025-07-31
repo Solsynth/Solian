@@ -383,6 +383,7 @@ class PostItem extends HookConsumerWidget {
                   builder: (BuildContext context) {
                     return _PostReactionSheet(
                       reactionsCount: item.reactionsCount,
+                      reactionsMade: item.reactionsMade,
                       onReact: (symbol, attitude) {
                         reactPost(symbol, attitude);
                       },
@@ -701,12 +702,14 @@ Widget _buildReferencePost(
 class PostReactionList extends HookConsumerWidget {
   final String parentId;
   final Map<String, int> reactions;
+  final Map<String, bool> reactionsMade;
   final Function(String symbol, int attitude, int delta)? onReact;
   final EdgeInsets? padding;
   const PostReactionList({
     super.key,
     required this.parentId,
     required this.reactions,
+    required this.reactionsMade,
     this.padding,
     this.onReact,
   });
@@ -760,6 +763,7 @@ class PostReactionList extends HookConsumerWidget {
                             builder: (BuildContext context) {
                               return _PostReactionSheet(
                                 reactionsCount: reactions,
+                                reactionsMade: reactionsMade,
                                 onReact: (symbol, attitude) {
                                   reactPost(symbol, attitude);
                                 },
@@ -804,9 +808,11 @@ class PostReactionList extends HookConsumerWidget {
 
 class _PostReactionSheet extends StatelessWidget {
   final Map<String, int> reactionsCount;
+  final Map<String, bool> reactionsMade;
   final Function(String symbol, int attitude) onReact;
   const _PostReactionSheet({
     required this.reactionsCount,
+    required this.reactionsMade,
     required this.onReact,
   });
 
@@ -843,9 +849,24 @@ class _PostReactionSheet extends StatelessWidget {
         Expanded(
           child: ListView(
             children: [
-              _buildReactionSection(context, 'Positive Reactions', 0),
-              _buildReactionSection(context, 'Neutral Reactions', 1),
-              _buildReactionSection(context, 'Negative Reactions', 2),
+              _buildReactionSection(
+                context,
+                Symbols.mood,
+                'reactionPositive'.tr(),
+                0,
+              ),
+              _buildReactionSection(
+                context,
+                Symbols.sentiment_neutral,
+                'reactionNeutral'.tr(),
+                1,
+              ),
+              _buildReactionSection(
+                context,
+                Symbols.mood_bad,
+                'reactionNegative'.tr(),
+                2,
+              ),
             ],
           ),
         ),
@@ -855,6 +876,7 @@ class _PostReactionSheet extends StatelessWidget {
 
   Widget _buildReactionSection(
     BuildContext context,
+    IconData icon,
     String title,
     int attitude,
   ) {
@@ -867,38 +889,58 @@ class _PostReactionSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title).fontSize(20).bold().padding(horizontal: 20, vertical: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: 8,
+          children: [Icon(icon), Text(title).fontSize(17).bold()],
+        ).padding(horizontal: 24, top: 16, bottom: 6),
         SizedBox(
-          height: 84,
+          height: 120,
           child: GridView.builder(
             scrollDirection: Axis.horizontal,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 1,
-              mainAxisExtent: 100,
+              mainAxisExtent: 120,
               mainAxisSpacing: 8.0,
               crossAxisSpacing: 8.0,
-              childAspectRatio: 2.0,
+              childAspectRatio: 1.0,
             ),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             itemCount: allReactions.length,
             itemBuilder: (context, index) {
               final symbol = allReactions[index];
               final count = reactionsCount[symbol] ?? 0;
-              return InkWell(
-                onTap: () {
-                  onReact(symbol, attitude);
-                  Navigator.pop(context);
-                },
-                child: GridTile(
-                  header: Text(
-                    kReactionTemplates[symbol]?.icon ?? '',
-                    textAlign: TextAlign.center,
-                  ).fontSize(24),
-                  footer: Text(
-                    count > 0 ? 'x$count' : '',
-                    textAlign: TextAlign.center,
-                  ).bold().padding(bottom: 12),
-                  child: Center(
-                    child: Text(symbol, textAlign: TextAlign.center),
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 4),
+                color:
+                    (reactionsMade[symbol] ?? false)
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : Theme.of(context).colorScheme.surfaceContainerLowest,
+                child: InkWell(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                  onTap: () {
+                    onReact(symbol, attitude);
+                    Navigator.pop(context);
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        kReactionTemplates[symbol]?.icon ?? '',
+                        textAlign: TextAlign.center,
+                      ).fontSize(24),
+                      Text(
+                        ReactInfo.getTranslationKey(symbol),
+                        textAlign: TextAlign.center,
+                      ).tr(),
+                      if (count > 0)
+                        Text(
+                          'x$count',
+                          textAlign: TextAlign.center,
+                        ).bold().padding(bottom: 4)
+                      else
+                        const Gap(20),
+                    ],
                   ),
                 ),
               );
