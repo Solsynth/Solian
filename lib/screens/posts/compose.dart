@@ -93,7 +93,6 @@ class PostComposeScreen extends HookConsumerWidget {
 
     // Otherwise, continue with regular post compose
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     // When editing, preserve the original replied/forwarded post references
     final effectiveRepliedPost = repliedPost ?? originalPost?.repliedPost;
@@ -423,18 +422,7 @@ class PostComposeScreen extends HookConsumerWidget {
             ),
 
             // Bottom toolbar
-            ComposeToolbar(
-              ref: ref,
-              context: context,
-              colorScheme: colorScheme,
-              isEmpty: state.isEmpty,
-              titleController: state.titleController,
-              descriptionController: state.descriptionController,
-              contentController: state.contentController,
-              visibility: state.visibility,
-              attachments: state.attachments,
-              originalPost: originalPost,
-            ),
+            ComposeToolbar(state: state, originalPost: originalPost),
           ],
         ),
       ),

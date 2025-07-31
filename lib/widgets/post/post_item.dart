@@ -26,8 +26,22 @@ import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
+
+part 'post_item.g.dart';
+
+@riverpod
+Future<SnPost?> postFeaturedReply(Ref ref, String id) async {
+  final client = ref.watch(apiClientProvider);
+  try {
+    final resp = await client.get('/sphere/posts/$id/replies/featured');
+    return SnPost.fromJson(resp.data);
+  } catch (_) {
+    return null;
+  }
+}
 
 class PostActionableItem extends HookConsumerWidget {
   final Color? backgroundColor;
@@ -338,9 +352,12 @@ class PostItem extends HookConsumerWidget {
                   mostReaction == null
                       ? const Icon(Symbols.add_reaction)
                       : Badge(
-                        label: Text(
-                          'x${item.reactionsCount[mostReaction]}',
-                          style: TextStyle(fontSize: 11),
+                        label: Center(
+                          child: Text(
+                            'x${item.reactionsCount[mostReaction]}',
+                            style: TextStyle(fontSize: 11),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                         offset: Offset(4, 20),
                         backgroundColor: Theme.of(
@@ -352,6 +369,13 @@ class PostItem extends HookConsumerWidget {
                           style: TextStyle(fontSize: 20),
                         ),
                       ),
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                  (item.reactionsMade[mostReaction] ?? false)
+                      ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
+                      : null,
+                ),
+              ),
               onPressed: () {
                 showModalBottomSheet(
                   context: context,

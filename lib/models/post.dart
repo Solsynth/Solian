@@ -34,6 +34,7 @@ sealed class SnPost with _$SnPost {
     @Default([]) List<SnCloudFile> attachments,
     required SnPublisher publisher,
     @Default({}) Map<String, int> reactionsCount,
+    @Default({}) Map<String, bool> reactionsMade,
     @Default([]) List<dynamic> reactions,
     @Default([]) List<PostTag> tags,
     @Default([]) List<PostCategory> categories,

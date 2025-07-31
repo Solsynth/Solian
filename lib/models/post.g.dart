@@ -54,6 +54,11 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
         (k, e) => MapEntry(k, (e as num).toInt()),
       ) ??
       const {},
+  reactionsMade:
+      (json['reactions_made'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as bool),
+      ) ??
+      const {},
   reactions: json['reactions'] as List<dynamic>? ?? const [],
   tags:
       (json['tags'] as List<dynamic>?)
@@ -106,6 +111,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
   'publisher': instance.publisher.toJson(),
   'reactions_count': instance.reactionsCount,
+  'reactions_made': instance.reactionsMade,
   'reactions': instance.reactions,
   'tags': instance.tags.map((e) => e.toJson()).toList(),
   'categories': instance.categories.map((e) => e.toJson()).toList(),

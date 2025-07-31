@@ -1,58 +1,39 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/post.dart';
+import 'package:island/services/compose_storage_db.dart';
+import 'package:island/widgets/post/compose_shared.dart';
+import 'package:island/widgets/post/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-import '../../models/post.dart';
-import '../../models/file.dart';
-import '../../services/compose_storage_db.dart';
-import '../../widgets/post/draft_manager.dart';
-
-class ComposeToolbar extends StatelessWidget {
-  final WidgetRef ref;
-  final BuildContext context;
-  final ColorScheme colorScheme;
+class ComposeToolbar extends HookConsumerWidget {
+  final ComposeState state;
   final SnPost? originalPost;
-  final bool isEmpty;
-  final TextEditingController titleController;
-  final TextEditingController descriptionController;
-  final TextEditingController contentController;
-  final ValueNotifier<int> visibility;
-  final ValueNotifier<List<UniversalFile>> attachments;
 
-  const ComposeToolbar({
-    super.key,
-    required this.ref,
-    required this.context,
-    required this.colorScheme,
-    required this.isEmpty,
-    required this.titleController,
-    required this.descriptionController,
-    required this.contentController,
-    required this.visibility,
-    required this.attachments,
-    this.originalPost,
-  });
-
-  void _pickPhotoMedia() {
-    // TODO: Implement photo picking logic
-  }
-
-  void _pickVideoMedia() {
-    // TODO: Implement video picking logic
-  }
-
-  void _linkAttachment() {
-    // TODO: Implement link attachment logic
-  }
-
-  void _saveDraft() {
-    // TODO: Implement draft saving logic
-  }
+  const ComposeToolbar({super.key, required this.state, this.originalPost});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    void pickPhotoMedia() {
+      ComposeLogic.pickPhotoMedia(ref, state);
+    }
+
+    void pickVideoMedia() {
+      ComposeLogic.pickVideoMedia(ref, state);
+    }
+
+    void linkAttachment() {
+      ComposeLogic.linkAttachment(ref, state, context);
+    }
+
+    void saveDraft() {
+      ComposeLogic.saveDraft(ref, state);
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Material(
       elevation: 4,
       child: Center(
@@ -61,25 +42,25 @@ class ComposeToolbar extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                onPressed: _pickPhotoMedia,
+                onPressed: pickPhotoMedia,
                 tooltip: 'addPhoto'.tr(),
                 icon: const Icon(Symbols.add_a_photo),
                 color: colorScheme.primary,
               ),
               IconButton(
-                onPressed: _pickVideoMedia,
+                onPressed: pickVideoMedia,
                 tooltip: 'addVideo'.tr(),
                 icon: const Icon(Symbols.videocam),
                 color: colorScheme.primary,
               ),
               IconButton(
-                onPressed: _linkAttachment,
+                onPressed: linkAttachment,
                 icon: const Icon(Symbols.attach_file),
                 tooltip: 'linkAttachment'.tr(),
                 color: colorScheme.primary,
               ),
               const Spacer(),
-              if (originalPost == null && isEmpty)
+              if (originalPost == null && state.isEmpty)
                 IconButton(
                   icon: const Icon(Symbols.draft),
                   color: colorScheme.primary,
@@ -95,11 +76,12 @@ class ComposeToolbar extends StatelessWidget {
                                     composeStorageNotifierProvider,
                                   )[draftId];
                               if (draft != null) {
-                                titleController.text = draft.title ?? '';
-                                descriptionController.text =
+                                state.titleController.text = draft.title ?? '';
+                                state.descriptionController.text =
                                     draft.description ?? '';
-                                contentController.text = draft.content ?? '';
-                                visibility.value = draft.visibility;
+                                state.contentController.text =
+                                    draft.content ?? '';
+                                state.visibility.value = draft.visibility;
                               }
                             },
                           ),
@@ -111,7 +93,7 @@ class ComposeToolbar extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Symbols.save),
                   color: colorScheme.primary,
-                  onPressed: _saveDraft,
+                  onPressed: saveDraft,
                   tooltip: 'saveDraft'.tr(),
                 ),
             ],

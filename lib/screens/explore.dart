@@ -196,14 +196,10 @@ class ExploreScreen extends HookConsumerWidget {
         builder: (context) {
           final isWider = isWiderScreen(context);
 
-          final bodyView = TabBarView(
-            controller: tabController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              _buildActivityList(context, ref, null),
-              _buildActivityList(context, ref, 'subscriptions'),
-              _buildActivityList(context, ref, 'friends'),
-            ],
+          final bodyView = _buildActivityList(
+            context,
+            ref,
+            currentFilter.value,
           );
 
           if (isWider) {

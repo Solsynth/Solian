@@ -6,7 +6,7 @@ part of 'translate.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$translateStringHash() => r'bcbfb648347a52ddf0572794db4533e896d4149d';
+String _$translateStringHash() => r'51d638cf07cbf3ffa9469298f5bd9c667bc0ccb7';
 
 /// Copied from Dart SDK
 class _SystemHash {

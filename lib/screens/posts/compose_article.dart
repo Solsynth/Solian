@@ -460,18 +460,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
             ),
 
             // Bottom toolbar
-            ComposeToolbar(
-              ref: ref,
-              context: context,
-              colorScheme: colorScheme,
-              isEmpty: state.isEmpty,
-              titleController: state.titleController,
-              descriptionController: state.descriptionController,
-              contentController: state.contentController,
-              visibility: state.visibility,
-              attachments: state.attachments,
-              originalPost: originalPost,
-            ),
+            ComposeToolbar(state: state, originalPost: originalPost),
           ],
         ),
       ),
