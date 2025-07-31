@@ -395,7 +395,11 @@ class _ActivityListView extends HookConsumerWidget {
       slivers: [
         SliverGap(12),
         if (user.value != null && !contentOnly)
-          SliverToBoxAdapter(child: CheckInWidget()),
+          SliverToBoxAdapter(
+            child: CheckInWidget(
+              margin: EdgeInsets.only(left: 8, right: 8, bottom: 4),
+            ),
+          ),
         SliverList.builder(
           itemCount: widgetCount,
           itemBuilder: (context, index) {

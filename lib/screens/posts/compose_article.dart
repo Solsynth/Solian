@@ -21,7 +21,6 @@ import 'package:island/widgets/post/compose_settings_sheet.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/post/compose_toolbar.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
-import 'package:island/widgets/post/draft_manager.dart';
 
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
