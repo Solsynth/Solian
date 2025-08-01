@@ -87,7 +87,7 @@ class ExploreScreen extends HookConsumerWidget {
     final user = ref.watch(userInfoProvider);
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         toolbarHeight: 0,
         bottom: PreferredSize(

@@ -352,7 +352,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
         }
       },
       child: AppScaffold(
-        noBackground: false,
+        isNoBackground: false,
         appBar: AppBar(
           leading: const PageBackButton(),
           title: ValueListenableBuilder<TextEditingValue>(

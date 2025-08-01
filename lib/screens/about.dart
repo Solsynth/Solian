@@ -93,7 +93,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     final theme = Theme.of(context);
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(title: Text('about'.tr()), elevation: 0),
       body:
           _isLoading

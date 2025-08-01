@@ -12,6 +12,7 @@ import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/color.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/services/timezone/native.dart';
 import 'package:island/widgets/account/account_name.dart';
@@ -248,294 +249,367 @@ class AccountProfileScreen extends HookConsumerWidget {
 
     final user = ref.watch(userInfoProvider);
 
+    Widget accountBasicInfo(SnAccount data) => Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfilePictureWidget(file: data.profile.picture, radius: 32),
+          const Gap(20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    AccountName(account: data, style: TextStyle(fontSize: 20)),
+                    const Gap(6),
+                    Text('@${data.name}').fontSize(14).opacity(0.85),
+                  ],
+                ),
+                AccountStatusWidget(uname: name, padding: EdgeInsets.zero),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    Widget accountProfileDetail(SnAccount data) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 24,
+      children: [
+        if (buildSubcolumn(data).isNotEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 2,
+            children: buildSubcolumn(data),
+          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('bio').tr().bold(),
+            Text(
+              data.profile.bio.isEmpty
+                  ? 'descriptionNone'.tr()
+                  : data.profile.bio,
+            ),
+          ],
+        ),
+        if (data.profile.timeZone.isNotEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('timeZone').tr().bold(),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                spacing: 6,
+                children: [
+                  Text(data.profile.timeZone),
+                  Text(
+                    getTzInfo(
+                      data.profile.timeZone,
+                    ).$2.formatCustomGlobal('HH:mm'),
+                  ),
+                  Text(
+                    getTzInfo(data.profile.timeZone).$1.formatOffsetLocal(),
+                  ).fontSize(11),
+                  Text(
+                    'UTC${getTzInfo(data.profile.timeZone).$1.formatOffset()}',
+                  ).fontSize(11).opacity(0.75),
+                ],
+              ),
+            ],
+          ),
+      ],
+    ).padding(horizontal: 24);
+
+    Widget accountAction(SnAccount data) => Card(
+      child: Column(
+        children: [
+          Row(
+            spacing: 8,
+            children: [
+              if (accountRelationship.value == null ||
+                  accountRelationship.value!.status > -100)
+                Expanded(
+                  child: FilledButton.icon(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        accountRelationship.value == null
+                            ? null
+                            : Theme.of(context).colorScheme.secondary,
+                      ),
+                      foregroundColor: WidgetStatePropertyAll(
+                        accountRelationship.value == null
+                            ? null
+                            : Theme.of(context).colorScheme.onSecondary,
+                      ),
+                    ),
+                    onPressed: relationshipAction,
+                    label:
+                        Text(
+                          accountRelationship.value == null
+                              ? 'addFriendShort'
+                              : 'added',
+                        ).tr(),
+                    icon:
+                        accountRelationship.value == null
+                            ? const Icon(Symbols.person_add)
+                            : const Icon(Symbols.person_check),
+                  ),
+                ),
+              if (accountRelationship.value == null ||
+                  accountRelationship.value!.status <= -100)
+                Expanded(
+                  child: FilledButton.icon(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        accountRelationship.value == null
+                            ? null
+                            : Theme.of(context).colorScheme.secondary,
+                      ),
+                      foregroundColor: WidgetStatePropertyAll(
+                        accountRelationship.value == null
+                            ? null
+                            : Theme.of(context).colorScheme.onSecondary,
+                      ),
+                    ),
+                    onPressed: blockAction,
+                    label:
+                        Text(
+                          accountRelationship.value == null
+                              ? 'blockUser'
+                              : 'unblockUser',
+                        ).tr(),
+                    icon:
+                        accountRelationship.value == null
+                            ? const Icon(Symbols.block)
+                            : const Icon(Symbols.person_cancel),
+                  ),
+                ),
+            ],
+          ).padding(horizontal: 16),
+          Row(
+            spacing: 8,
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: directMessageAction,
+                  icon: const Icon(Symbols.message),
+                  label:
+                      Text(
+                        accountChat.value == null
+                            ? 'createDirectMessage'
+                            : 'gotoDirectMessage',
+                        maxLines: 1,
+                      ).tr(),
+                ),
+              ),
+              IconButton.filled(
+                onPressed: () {
+                  showAbuseReportSheet(
+                    context,
+                    resourceIdentifier: 'account/${data.id}',
+                  );
+                },
+                icon: Icon(
+                  Symbols.flag,
+                  color: Theme.of(context).colorScheme.onError,
+                ),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ).padding(horizontal: 16, vertical: 8),
+    );
+
     return account.when(
       data:
           (data) => AppScaffold(
-            body: CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  foregroundColor: appbarColor.value,
-                  expandedHeight: 180,
-                  pinned: true,
-                  leading: PageBackButton(
-                    color: appbarColor.value,
-                    shadows: [appbarShadow],
-                  ),
-                  flexibleSpace: Stack(
-                    children: [
-                      Positioned.fill(
-                        child:
-                            data.profile.background?.id != null
-                                ? CloudImageWidget(
-                                  file: data.profile.background,
-                                )
-                                : Container(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).appBarTheme.backgroundColor,
-                                ),
+            isNoBackground: false,
+            appBar:
+                isWideScreen(context)
+                    ? AppBar(
+                      foregroundColor: appbarColor.value,
+                      leading: PageBackButton(
+                        color: appbarColor.value,
+                        shadows: [appbarShadow],
                       ),
-                      FlexibleSpaceBar(
-                        title: Text(
-                          data.nick,
-                          style: TextStyle(
-                            color:
-                                appbarColor.value ??
-                                Theme.of(context).appBarTheme.foregroundColor,
-                            shadows: [appbarShadow],
+                      flexibleSpace: Stack(
+                        children: [
+                          Positioned.fill(
+                            child:
+                                data.profile.background?.id != null
+                                    ? CloudImageWidget(
+                                      file: data.profile.background,
+                                    )
+                                    : Container(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).appBarTheme.backgroundColor,
+                                    ),
+                          ),
+                          FlexibleSpaceBar(
+                            title: Text(
+                              data.nick,
+                              style: TextStyle(
+                                color:
+                                    appbarColor.value ??
+                                    Theme.of(
+                                      context,
+                                    ).appBarTheme.foregroundColor,
+                                shadows: [appbarShadow],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    : null,
+            body:
+                isWideScreen(context)
+                    ? Row(
+                      children: [
+                        Flexible(
+                          child: CustomScrollView(
+                            slivers: [
+                              SliverToBoxAdapter(child: accountBasicInfo(data)),
+                              if (data.badges.isNotEmpty)
+                                SliverToBoxAdapter(
+                                  child: BadgeList(
+                                    badges: data.badges,
+                                  ).padding(horizontal: 24, bottom: 24),
+                                ),
+                              SliverToBoxAdapter(
+                                child: Column(
+                                  spacing: 12,
+                                  children: [
+                                    LevelingProgressCard(
+                                      level: data.profile.level,
+                                      experience: data.profile.experience,
+                                      progress: data.profile.levelingProgress,
+                                    ),
+                                    if (data.profile.verification != null)
+                                      VerificationStatusCard(
+                                        mark: data.profile.verification!,
+                                      ),
+                                  ],
+                                ).padding(horizontal: 20),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ProfilePictureWidget(
-                          file: data.profile.picture,
-                          radius: 32,
-                        ),
-                        const Gap(20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                children: [
-                                  AccountName(
-                                    account: data,
-                                    style: TextStyle(fontSize: 20),
-                                  ),
-                                  const Gap(6),
-                                  Text(
-                                    '@${data.name}',
-                                  ).fontSize(14).opacity(0.85),
-                                ],
+                        Flexible(
+                          child: CustomScrollView(
+                            slivers: [
+                              SliverToBoxAdapter(
+                                child: accountProfileDetail(data),
                               ),
-                              AccountStatusWidget(
-                                uname: name,
-                                padding: EdgeInsets.zero,
+
+                              if (user.value != null)
+                                SliverToBoxAdapter(child: accountAction(data)),
+                              SliverToBoxAdapter(
+                                child: Card(
+                                  child: FortuneGraphWidget(
+                                    events: accountEvents,
+                                    eventCalanderUser: data.name,
+                                  ),
+                                ).padding(all: 8),
                               ),
                             ],
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ),
-                if (data.badges.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: BadgeList(
-                      badges: data.badges,
-                    ).padding(horizontal: 24, bottom: 24),
-                  ),
-                SliverToBoxAdapter(
-                  child: Column(
-                    spacing: 12,
-                    children: [
-                      LevelingProgressCard(
-                        level: data.profile.level,
-                        experience: data.profile.experience,
-                        progress: data.profile.levelingProgress,
-                      ),
-                      if (data.profile.verification != null)
-                        VerificationStatusCard(
-                          mark: data.profile.verification!,
-                        ),
-                    ],
-                  ).padding(horizontal: 20),
-                ),
-
-                SliverToBoxAdapter(
-                  child: const Divider(height: 1).padding(vertical: 24),
-                ),
-                SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 24,
-                    children: [
-                      if (buildSubcolumn(data).isNotEmpty)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 2,
-                          children: buildSubcolumn(data),
-                        ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('bio').tr().bold(),
-                          Text(
-                            data.profile.bio.isEmpty
-                                ? 'descriptionNone'.tr()
-                                : data.profile.bio,
+                    )
+                    : CustomScrollView(
+                      slivers: [
+                        SliverAppBar(
+                          foregroundColor: appbarColor.value,
+                          expandedHeight: 180,
+                          pinned: true,
+                          leading: PageBackButton(
+                            color: appbarColor.value,
+                            shadows: [appbarShadow],
                           ),
-                        ],
-                      ),
-                      if (data.profile.timeZone.isNotEmpty)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('timeZone').tr().bold(),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              spacing: 6,
-                              children: [
-                                Text(data.profile.timeZone),
-                                Text(
-                                  getTzInfo(
-                                    data.profile.timeZone,
-                                  ).$2.formatCustomGlobal('HH:mm'),
-                                ),
-                                Text(
-                                  getTzInfo(
-                                    data.profile.timeZone,
-                                  ).$1.formatOffsetLocal(),
-                                ).fontSize(11),
-                                Text(
-                                  'UTC${getTzInfo(data.profile.timeZone).$1.formatOffset()}',
-                                ).fontSize(11).opacity(0.75),
-                              ],
-                            ),
-                          ],
-                        ),
-                    ],
-                  ).padding(horizontal: 24),
-                ),
-
-                if (user.value != null)
-                  SliverToBoxAdapter(
-                    child: const Divider(
-                      height: 1,
-                    ).padding(top: 24, bottom: 12),
-                  ),
-                if (user.value != null)
-                  SliverToBoxAdapter(
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        if (accountRelationship.value == null ||
-                            accountRelationship.value!.status > -100)
-                          Expanded(
-                            child: FilledButton.icon(
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(
-                                  accountRelationship.value == null
-                                      ? null
-                                      : Theme.of(context).colorScheme.secondary,
-                                ),
-                                foregroundColor: WidgetStatePropertyAll(
-                                  accountRelationship.value == null
-                                      ? null
-                                      : Theme.of(
-                                        context,
-                                      ).colorScheme.onSecondary,
+                          flexibleSpace: Stack(
+                            children: [
+                              Positioned.fill(
+                                child:
+                                    data.profile.background?.id != null
+                                        ? CloudImageWidget(
+                                          file: data.profile.background,
+                                        )
+                                        : Container(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).appBarTheme.backgroundColor,
+                                        ),
+                              ),
+                              FlexibleSpaceBar(
+                                title: Text(
+                                  data.nick,
+                                  style: TextStyle(
+                                    color:
+                                        appbarColor.value ??
+                                        Theme.of(
+                                          context,
+                                        ).appBarTheme.foregroundColor,
+                                    shadows: [appbarShadow],
+                                  ),
                                 ),
                               ),
-                              onPressed: relationshipAction,
-                              label:
-                                  Text(
-                                    accountRelationship.value == null
-                                        ? 'addFriendShort'
-                                        : 'added',
-                                  ).tr(),
-                              icon:
-                                  accountRelationship.value == null
-                                      ? const Icon(Symbols.person_add)
-                                      : const Icon(Symbols.person_check),
-                            ),
+                            ],
                           ),
-                        if (accountRelationship.value == null ||
-                            accountRelationship.value!.status <= -100)
-                          Expanded(
-                            child: FilledButton.icon(
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStatePropertyAll(
-                                  accountRelationship.value == null
-                                      ? null
-                                      : Theme.of(context).colorScheme.secondary,
-                                ),
-                                foregroundColor: WidgetStatePropertyAll(
-                                  accountRelationship.value == null
-                                      ? null
-                                      : Theme.of(
-                                        context,
-                                      ).colorScheme.onSecondary,
-                                ),
+                        ),
+                        SliverToBoxAdapter(child: accountBasicInfo(data)),
+                        if (data.badges.isNotEmpty)
+                          SliverToBoxAdapter(
+                            child: BadgeList(
+                              badges: data.badges,
+                            ).padding(horizontal: 24, bottom: 24),
+                          ),
+                        SliverToBoxAdapter(
+                          child: Column(
+                            spacing: 12,
+                            children: [
+                              LevelingProgressCard(
+                                level: data.profile.level,
+                                experience: data.profile.experience,
+                                progress: data.profile.levelingProgress,
                               ),
-                              onPressed: blockAction,
-                              label:
-                                  Text(
-                                    accountRelationship.value == null
-                                        ? 'blockUser'
-                                        : 'unblockUser',
-                                  ).tr(),
-                              icon:
-                                  accountRelationship.value == null
-                                      ? const Icon(Symbols.block)
-                                      : const Icon(Symbols.person_cancel),
-                            ),
-                          ),
+                              if (data.profile.verification != null)
+                                VerificationStatusCard(
+                                  mark: data.profile.verification!,
+                                ),
+                            ],
+                          ).padding(horizontal: 20),
+                        ),
+
+                        SliverToBoxAdapter(child: accountProfileDetail(data)),
+
+                        if (user.value != null)
+                          SliverToBoxAdapter(child: accountAction(data)),
+                        SliverToBoxAdapter(
+                          child: Column(
+                            children: [
+                              FortuneGraphWidget(
+                                events: accountEvents,
+                                eventCalanderUser: data.name,
+                              ),
+                            ],
+                          ).padding(all: 8),
+                        ),
                       ],
-                    ).padding(horizontal: 16),
-                  ),
-                SliverToBoxAdapter(
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: directMessageAction,
-                          icon: const Icon(Symbols.message),
-                          label:
-                              Text(
-                                accountChat.value == null
-                                    ? 'createDirectMessage'
-                                    : 'gotoDirectMessage',
-                                maxLines: 1,
-                              ).tr(),
-                        ),
-                      ),
-                      IconButton.filled(
-                        onPressed: () {
-                          showAbuseReportSheet(
-                            context,
-                            resourceIdentifier: 'account/${data.id}',
-                          );
-                        },
-                        icon: Icon(
-                          Symbols.flag,
-                          color: Theme.of(context).colorScheme.onError,
-                        ),
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(
-                            Theme.of(context).colorScheme.error,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ).padding(horizontal: 16, top: 4),
-                ),
-                SliverToBoxAdapter(
-                  child: const Divider(height: 1).padding(top: 12),
-                ),
-                SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      FortuneGraphWidget(
-                        events: accountEvents,
-                        eventCalanderUser: data.name,
-                      ),
-                    ],
-                  ).padding(all: 8),
-                ),
-              ],
-            ),
+                    ),
           ),
       error:
           (error, stackTrace) => AppScaffold(

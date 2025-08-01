@@ -259,7 +259,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
     return publisher.when(
       data:
           (data) => AppScaffold(
-            noBackground: false,
+            isNoBackground: false,
             appBar:
                 isWideScreen(context)
                     ? AppBar(
@@ -389,13 +389,13 @@ class PublisherProfileScreen extends HookConsumerWidget {
           ),
       error:
           (error, stackTrace) => AppScaffold(
-            noBackground: false,
+            isNoBackground: false,
             appBar: AppBar(leading: const PageBackButton()),
             body: Center(child: Text(error.toString())),
           ),
       loading:
           () => AppScaffold(
-            noBackground: false,
+            isNoBackground: false,
             appBar: AppBar(leading: const PageBackButton()),
             body: Center(child: CircularProgressIndicator()),
           ),

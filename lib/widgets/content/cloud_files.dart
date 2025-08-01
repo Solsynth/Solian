@@ -1,8 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/services/time.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -45,7 +48,7 @@ class CloudFileWidget extends ConsumerWidget {
       ),
       "video" => AspectRatio(
         aspectRatio: ratio,
-        child: UniversalVideo(uri: uri, aspectRatio: ratio),
+        child: CloudVideoWidget(item: item),
       ),
       _ => Text('Unable render for ${item.mimeType}'),
     };
@@ -55,6 +58,119 @@ class CloudFileWidget extends ConsumerWidget {
     }
 
     return content;
+  }
+}
+
+class CloudVideoWidget extends HookConsumerWidget {
+  final SnCloudFile item;
+  const CloudVideoWidget({super.key, required this.item});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final open = useState(false);
+
+    final serverUrl = ref.watch(serverUrlProvider);
+    final uri = '$serverUrl/drive/files/${item.id}';
+
+    var ratio =
+        item.fileMeta?['ratio'] is num
+            ? item.fileMeta!['ratio'].toDouble()
+            : 1.0;
+    if (ratio == 0) ratio = 1.0;
+
+    if (open.value) {
+      return UniversalVideo(uri: uri, aspectRatio: ratio, autoplay: true);
+    }
+
+    return GestureDetector(
+      child: Stack(
+        children: [
+          UniversalImage(uri: '$uri?thumbnail=true'),
+          Positioned.fill(
+            child: Center(
+              child: const Icon(
+                Symbols.play_arrow,
+                fill: 1,
+                size: 32,
+                shadows: [
+                  BoxShadow(
+                    color: Colors.black54,
+                    offset: Offset(1, 1),
+                    spreadRadius: 8,
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  spacing: 8,
+                  children: [
+                    if (item.fileMeta?['duration'] != null)
+                      Text(
+                        Duration(
+                          milliseconds:
+                              ((item.fileMeta?['duration'] as num) * 1000)
+                                  .toInt(),
+                        ).formatDuration(),
+                        style: TextStyle(
+                          shadows: [
+                            BoxShadow(
+                              color: Colors.black54,
+                              offset: Offset(1, 1),
+                              spreadRadius: 8,
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (item.fileMeta?['bit_rate'] != null)
+                      Text(
+                        '${int.parse(item.fileMeta?['bit_rate'] as String) ~/ 1000} Kbps',
+                        style: TextStyle(
+                          shadows: [
+                            BoxShadow(
+                              color: Colors.black54,
+                              offset: Offset(1, 1),
+                              spreadRadius: 8,
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                Text(
+                  item.name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      BoxShadow(
+                        color: Colors.black54,
+                        offset: Offset(1, 1),
+                        spreadRadius: 8,
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ).padding(horizontal: 16, bottom: 12),
+        ],
+      ),
+      onTap: () {
+        open.value = true;
+      },
+    );
   }
 }
 

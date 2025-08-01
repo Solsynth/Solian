@@ -165,7 +165,7 @@ class AppScaffold extends StatelessWidget {
   final AppBar? appBar;
   final DrawerCallback? onDrawerChanged;
   final DrawerCallback? onEndDrawerChanged;
-  final bool? noBackground;
+  final bool? isNoBackground;
   final bool? extendBody;
 
   const AppScaffold({
@@ -181,7 +181,7 @@ class AppScaffold extends StatelessWidget {
     this.endDrawer,
     this.onDrawerChanged,
     this.onEndDrawerChanged,
-    this.noBackground,
+    this.isNoBackground,
     this.extendBody,
   });
 
@@ -190,7 +190,7 @@ class AppScaffold extends StatelessWidget {
     final appBarHeight = appBar?.preferredSize.height ?? 0;
     final safeTop = MediaQuery.of(context).padding.top;
 
-    final noBackground = this.noBackground ?? isWideScreen(context);
+    final noBackground = isNoBackground ?? isWideScreen(context);
 
     final content = Column(
       children: [

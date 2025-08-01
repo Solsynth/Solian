@@ -41,7 +41,7 @@ class RealmListScreen extends HookConsumerWidget {
     final realmInvites = ref.watch(realmInvitesProvider);
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         title: const Text('realms').tr(),
         actions: [
@@ -279,7 +279,7 @@ class EditRealmScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         title: Text(slug == null ? 'createRealm'.tr() : 'editRealm'.tr()),
         leading: const PageBackButton(),

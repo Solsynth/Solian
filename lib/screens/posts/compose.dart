@@ -53,13 +53,13 @@ class PostEditScreen extends HookConsumerWidget {
       data: (post) => PostComposeScreen(originalPost: post),
       loading:
           () => AppScaffold(
-            noBackground: false,
+            isNoBackground: false,
             appBar: AppBar(leading: const PageBackButton()),
             body: const Center(child: CircularProgressIndicator()),
           ),
       error:
           (e, _) => AppScaffold(
-            noBackground: false,
+            isNoBackground: false,
             appBar: AppBar(leading: const PageBackButton()),
             body: Text('Error: $e', textAlign: TextAlign.center),
           ),
@@ -287,7 +287,7 @@ class PostComposeScreen extends HookConsumerWidget {
         }
       },
       child: AppScaffold(
-        noBackground: false,
+        isNoBackground: false,
         appBar: AppBar(
           leading: const PageBackButton(),
           actions: [

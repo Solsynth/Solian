@@ -40,7 +40,7 @@ class CallScreen extends HookConsumerWidget {
     );
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         leading: PageBackButton(),
         title: Column(

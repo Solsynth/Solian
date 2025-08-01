@@ -11,10 +11,12 @@ import 'package:media_kit_video/media_kit_video.dart';
 class UniversalVideo extends ConsumerStatefulWidget {
   final String uri;
   final double aspectRatio;
+  final bool autoplay;
   const UniversalVideo({
     super.key,
     required this.uri,
     this.aspectRatio = 16 / 9,
+    this.autoplay = false,
   });
 
   @override
@@ -47,7 +49,7 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
       log('[MediaPlayer] Hit cache: $url');
     }
 
-    _player!.open(Media(uri), play: false);
+    _player!.open(Media(uri), play: widget.autoplay);
   }
 
   @override

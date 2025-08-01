@@ -46,7 +46,7 @@ class EventCalanderScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('eventCalander').tr(),

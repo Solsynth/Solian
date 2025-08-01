@@ -110,7 +110,7 @@ class _PostSearchScreenState extends ConsumerState<PostSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         title: TextField(
           controller: _searchController,

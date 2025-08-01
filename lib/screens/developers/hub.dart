@@ -111,7 +111,7 @@ class DeveloperHubScreen extends HookConsumerWidget {
     );
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         leading: !isWide ? const PageBackButton() : null,
         title: Text('developerHub').tr(),

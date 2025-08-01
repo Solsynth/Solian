@@ -552,7 +552,7 @@ class SettingsScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         title: Text('settings').tr(),
         actions:

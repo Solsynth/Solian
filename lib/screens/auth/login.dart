@@ -55,7 +55,7 @@ class LoginScreen extends HookConsumerWidget {
     final factorPicked = useState<SnAuthFactor?>(null);
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('login').tr(),

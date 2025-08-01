@@ -27,9 +27,13 @@ class PublisherCard extends ConsumerWidget {
 
     Widget card = Card(
       clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
       child: InkWell(
         onTap: () {
-          context.pushNamed('publisherProfile', pathParameters: {'name': publisher.name});
+          context.pushNamed(
+            'publisherProfile',
+            pathParameters: {'name': publisher.name},
+          );
         },
         child: AspectRatio(
           aspectRatio: 16 / 7,

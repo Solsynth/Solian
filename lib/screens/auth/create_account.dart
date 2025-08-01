@@ -73,7 +73,7 @@ class CreateAccountScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(
         leading: const PageBackButton(),
         title: Text('createAccount').tr(),

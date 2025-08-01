@@ -79,7 +79,7 @@ class RealmDetailScreen extends HookConsumerWidget {
     );
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       body: realmState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),

@@ -54,7 +54,7 @@ class PostDetailScreen extends HookConsumerWidget {
     final user = ref.watch(userInfoProvider);
 
     return AppScaffold(
-      noBackground: false,
+      isNoBackground: false,
       appBar: AppBar(title: const Text('Post')),
       body: postState.when(
         data: (post) {
