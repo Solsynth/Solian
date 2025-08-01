@@ -63,41 +63,44 @@ class CallControlsBar extends HookConsumerWidget {
                   isScrollControlled: true,
                   useRootNavigator: true,
                   builder:
-                      (context) => ClipRRect(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(8),
-                          topRight: Radius.circular(8),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(Symbols.logout, fill: 1),
-                              title: Text('callLeave').tr(),
-                              onTap: () {
-                                callNotifier.disconnect();
-                                GoRouter.of(context).pop();
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Symbols.call_end, fill: 1),
-                              iconColor: Colors.red,
-                              title: Text('callEnd').tr(),
-                              onTap: () async {
-                                callNotifier.disconnect();
-                                final apiClient = ref.watch(apiClientProvider);
+                      (innerContext) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            leading: const Icon(Symbols.logout, fill: 1),
+                            title: Text('callLeave').tr(),
+                            onTap: () {
+                              callNotifier.disconnect();
+                              Navigator.of(context).pop();
+                              Navigator.of(innerContext).pop();
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Symbols.call_end, fill: 1),
+                            iconColor: Colors.red,
+                            title: Text('callEnd').tr(),
+                            onTap: () async {
+                              callNotifier.disconnect();
+                              final apiClient = ref.watch(apiClientProvider);
+                              try {
+                                showLoadingModal(context);
                                 await apiClient.delete(
                                   '/sphere/chat/realtime/${callNotifier.roomId}',
                                 );
                                 callNotifier.dispose();
                                 if (context.mounted) {
-                                  GoRouter.of(context).pop();
+                                  Navigator.of(context).pop();
+                                  Navigator.of(innerContext).pop();
                                 }
-                              },
-                            ),
-                            Gap(MediaQuery.of(context).padding.bottom),
-                          ],
-                        ),
+                              } catch (err) {
+                                showErrorAlert(err);
+                              } finally {
+                                if (context.mounted) hideLoadingModal(context);
+                              }
+                            },
+                          ),
+                          Gap(MediaQuery.of(context).padding.bottom),
+                        ],
                       ),
                 ),
             backgroundColor: const Color(0xFFE53E3E),

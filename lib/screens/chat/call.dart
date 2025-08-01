@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -8,6 +10,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/call_button.dart';
 import 'package:island/widgets/chat/call_overlay.dart';
 import 'package:island/widgets/chat/call_participant_tile.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -23,7 +26,19 @@ class CallScreen extends HookConsumerWidget {
     final callNotifier = ref.watch(callNotifierProvider.notifier);
 
     useEffect(() {
-      callNotifier.joinRoom(roomId);
+      log('[Call] Joining the call...');
+      callNotifier.joinRoom(roomId).catchError((_) {
+        showConfirmAlert(
+          'Seems there already has a call connected, do you want override it?',
+          'Call already connected',
+        ).then((value) {
+          if (value != true) return;
+          log('[Call] Joining the call... with overrides');
+          callNotifier.disconnect();
+          callNotifier.dispose();
+          callNotifier.joinRoom(roomId);
+        });
+      });
       return null;
     }, []);
 

@@ -89,6 +89,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Livekit Screenshare -->
+        <service
+            android:name="de.julianassmann.flutter_background.IsolateHolderService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+
         <!-- Sign in with Apple -->
         <activity
             android:name="com.aboutyou.dart_packages.sign_in_with_apple.SignInWithAppleCallback"

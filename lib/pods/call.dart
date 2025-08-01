@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:island/widgets/chat/call_button.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -203,7 +204,13 @@ class CallNotifier extends _$CallNotifier {
 
   Future<void> joinRoom(String roomId) async {
     if (_roomId == roomId && _room != null) {
+      log('[Call] Call skipped. Already has data');
       return;
+    } else if (_room != null) {
+      if (!_room!.isDisposed &&
+          _room!.connectionState != ConnectionState.disconnected) {
+        throw Exception('Call already connected');
+      }
     }
     _roomId = roomId;
     if (_room != null) {
@@ -335,5 +342,6 @@ class CallNotifier extends _$CallNotifier {
     _room?.removeListener(_onRoomChange);
     _room?.dispose();
     _durationTimer?.cancel();
+    _roomId = null;
   }
 }

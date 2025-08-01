@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 class UniversalVideo extends StatelessWidget {
   final String uri;
   final double aspectRatio;
+  final bool autoplay;
   const UniversalVideo({
     super.key,
     required this.uri,
     required this.aspectRatio,
+    this.autoplay = false,
   });
 
   @override

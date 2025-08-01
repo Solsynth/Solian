@@ -3,13 +3,15 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		73ACDFAD2E3D0E6100B63535 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */; };
+		73ACDFC32E3D0E6100B63535 /* SolianBroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73C305D82E0BE878009035B9 /* SolianShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73CDD6812DEC00480059D95D /* SolianNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73D4264B2DEB815D006C0AAE /* NotifyDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D4264A2DEB815D006C0AAE /* NotifyDelegate.swift */; };
@@ -31,6 +33,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
+		};
+		73ACDFC12E3D0E6100B63535 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 73ACDFAA2E3D0E6100B63535;
+			remoteInfo = SolianBroadcastExtension;
 		};
 		73C305D62E0BE878009035B9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -55,6 +64,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				73ACDFC32E3D0E6100B63535 /* SolianBroadcastExtension.appex in Embed Foundation Extensions */,
 				73C305D82E0BE878009035B9 /* SolianShareExtension.appex in Embed Foundation Extensions */,
 				73CDD6812DEC00480059D95D /* SolianNotificationService.appex in Embed Foundation Extensions */,
 			);
@@ -91,6 +101,9 @@
 		3A1C47BD29CC6AC2587D4DBE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		737E920B2DB6A9FF00BE9CDB /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianBroadcastExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
+		73ACDFB82E3D0E6100B63535 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73D4264A2DEB815D006C0AAE /* NotifyDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotifyDelegate.swift; sourceTree = "<group>"; };
@@ -117,6 +130,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		73ACDFCA2E3D0E6100B63535 /* Exceptions for "SolianBroadcastExtension" folder in "SolianBroadcastExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 73ACDFAA2E3D0E6100B63535 /* SolianBroadcastExtension */;
+		};
 		73C305DC2E0BE878009035B9 /* Exceptions for "SolianShareExtension" folder in "SolianShareExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -150,6 +170,14 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
+		73ACDFAE2E3D0E6100B63535 /* SolianBroadcastExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				73ACDFCA2E3D0E6100B63535 /* Exceptions for "SolianBroadcastExtension" folder in "SolianBroadcastExtension" target */,
+			);
+			path = SolianBroadcastExtension;
+			sourceTree = "<group>";
+		};
 		73C305CF2E0BE878009035B9 /* SolianShareExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -174,6 +202,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				755557017FD1B99AFC4F9127 /* Pods_RunnerTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		73ACDFA82E3D0E6100B63535 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				73ACDFAD2E3D0E6100B63535 /* ReplayKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -220,6 +256,8 @@
 				AA0CA8A3E15DEE023BB27438 /* Pods_NotificationService.framework */,
 				39FE4CC6223F0D3C0E1FFD04 /* Pods_SolianNotificationService.framework */,
 				7B40764A2C4CC0E7DC70A0D3 /* Pods_SolianShareExtension.framework */,
+				73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */,
+				73ACDFB82E3D0E6100B63535 /* UIKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -264,6 +302,7 @@
 				97C146F01CF9000F007C117D /* Runner */,
 				73CDD67B2DEC00480059D95D /* SolianNotificationService */,
 				73C305CF2E0BE878009035B9 /* SolianShareExtension */,
+				73ACDFAE2E3D0E6100B63535 /* SolianBroadcastExtension */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				91E124CE95BCB4DCD890160D /* Pods */,
@@ -279,6 +318,7 @@
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
 				73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */,
 				73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */,
+				73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -322,6 +362,28 @@
 			productName = RunnerTests;
 			productReference = 331C8081294A63A400263BE5 /* RunnerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		73ACDFAA2E3D0E6100B63535 /* SolianBroadcastExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 73ACDFCB2E3D0E6100B63535 /* Build configuration list for PBXNativeTarget "SolianBroadcastExtension" */;
+			buildPhases = (
+				73ACDFA72E3D0E6100B63535 /* Sources */,
+				73ACDFA82E3D0E6100B63535 /* Frameworks */,
+				73ACDFA92E3D0E6100B63535 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				73ACDFAE2E3D0E6100B63535 /* SolianBroadcastExtension */,
+			);
+			name = SolianBroadcastExtension;
+			packageProductDependencies = (
+			);
+			productName = SolianBroadcastExtension;
+			productReference = 73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		73C305CD2E0BE878009035B9 /* SolianShareExtension */ = {
 			isa = PBXNativeTarget;
@@ -385,6 +447,7 @@
 			dependencies = (
 				73CDD6802DEC00480059D95D /* PBXTargetDependency */,
 				73C305D72E0BE878009035B9 /* PBXTargetDependency */,
+				73ACDFC22E3D0E6100B63535 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				73268D272DEB012A0076E970 /* Services */,
@@ -408,6 +471,9 @@
 					331C8080294A63A400263BE5 = {
 						CreatedOnToolsVersion = 14.0;
 						TestTargetID = 97C146ED1CF9000F007C117D;
+					};
+					73ACDFAA2E3D0E6100B63535 = {
+						CreatedOnToolsVersion = 16.4;
 					};
 					73C305CD2E0BE878009035B9 = {
 						CreatedOnToolsVersion = 16.4;
@@ -438,12 +504,20 @@
 				331C8080294A63A400263BE5 /* RunnerTests */,
 				73CDD6792DEC00480059D95D /* SolianNotificationService */,
 				73C305CD2E0BE878009035B9 /* SolianShareExtension */,
+				73ACDFAA2E3D0E6100B63535 /* SolianBroadcastExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		331C807F294A63A400263BE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		73ACDFA92E3D0E6100B63535 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -525,9 +599,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -586,9 +664,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -643,6 +725,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		73ACDFA72E3D0E6100B63535 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		73C305CA2E0BE878009035B9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -674,6 +763,11 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		73ACDFC22E3D0E6100B63535 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 73ACDFAA2E3D0E6100B63535 /* SolianBroadcastExtension */;
+			targetProxy = 73ACDFC12E3D0E6100B63535 /* PBXContainerItemProxy */;
 		};
 		73C305D72E0BE878009035B9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -773,7 +867,7 @@
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Solian;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -833,6 +927,123 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = Profile;
+		};
+		73ACDFC42E3D0E6100B63535 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = SolianBroadcastExtension/SolianBroadcastExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W7HPZ53V6B;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SolianBroadcastExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SolianBroadcastExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianBroadcastExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		73ACDFC52E3D0E6100B63535 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = SolianBroadcastExtension/SolianBroadcastExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W7HPZ53V6B;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SolianBroadcastExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SolianBroadcastExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianBroadcastExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		73ACDFC62E3D0E6100B63535 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = SolianBroadcastExtension/SolianBroadcastExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W7HPZ53V6B;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SolianBroadcastExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SolianBroadcastExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianBroadcastExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Profile;
 		};
@@ -1204,7 +1415,7 @@
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Solian;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1232,7 +1443,7 @@
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Solian;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1254,6 +1465,16 @@
 				331C8088294A63A400263BE5 /* Debug */,
 				331C8089294A63A400263BE5 /* Release */,
 				331C808A294A63A400263BE5 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		73ACDFCB2E3D0E6100B63535 /* Build configuration list for PBXNativeTarget "SolianBroadcastExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				73ACDFC42E3D0E6100B63535 /* Debug */,
+				73ACDFC52E3D0E6100B63535 /* Release */,
+				73ACDFC62E3D0E6100B63535 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
