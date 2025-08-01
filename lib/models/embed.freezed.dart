@@ -212,7 +212,7 @@ return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUr
 @JsonSerializable()
 
 class _SnEmbedLink implements SnEmbedLink {
-  const _SnEmbedLink({@JsonKey(name: 'Type') required this.type, @JsonKey(name: 'Url') required this.url, @JsonKey(name: 'Title') required this.title, @JsonKey(name: 'Description') required this.description, @JsonKey(name: 'ImageUrl') required this.imageUrl, @JsonKey(name: 'FaviconUrl') required this.faviconUrl, @JsonKey(name: 'SiteName') required this.siteName, @JsonKey(name: 'ContentType') required this.contentType, @JsonKey(name: 'Author') required this.author, @JsonKey(name: 'PublishedDate') required this.publishedDate});
+  const _SnEmbedLink({@JsonKey(name: 'Type') required this.type, @JsonKey(name: 'Url') required this.url, @JsonKey(name: 'Title') required this.title, @JsonKey(name: 'Description') required this.description, @JsonKey(name: 'ImageUrl') required this.imageUrl, @JsonKey(name: 'FaviconUrl') this.faviconUrl = "", @JsonKey(name: 'SiteName') this.siteName = "", @JsonKey(name: 'ContentType') required this.contentType, @JsonKey(name: 'Author') required this.author, @JsonKey(name: 'PublishedDate') required this.publishedDate});
   factory _SnEmbedLink.fromJson(Map<String, dynamic> json) => _$SnEmbedLinkFromJson(json);
 
 @override@JsonKey(name: 'Type') final  String type;

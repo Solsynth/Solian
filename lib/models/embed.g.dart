@@ -12,8 +12,8 @@ _SnEmbedLink _$SnEmbedLinkFromJson(Map<String, dynamic> json) => _SnEmbedLink(
   title: json['Title'] as String,
   description: json['Description'] as String?,
   imageUrl: json['ImageUrl'] as String?,
-  faviconUrl: json['FaviconUrl'] as String,
-  siteName: json['SiteName'] as String,
+  faviconUrl: json['FaviconUrl'] as String? ?? "",
+  siteName: json['SiteName'] as String? ?? "",
   contentType: json['ContentType'] as String?,
   author: json['Author'] as String?,
   publishedDate:
