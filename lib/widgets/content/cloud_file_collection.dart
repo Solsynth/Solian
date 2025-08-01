@@ -14,6 +14,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:path/path.dart' show extension;
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
@@ -168,6 +169,8 @@ class CloudFileZoomIn extends HookConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final photoViewController = useMemoized(() => PhotoViewController(), []);
     final rotation = useState(0);
+
+    final showOriginal = useState(false);
 
     Future<void> saveToGallery() async {
       try {
@@ -332,6 +335,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
               imageProvider: CloudImageWidget.provider(
                 fileId: item.id,
                 serverUrl: serverUrl,
+                original: showOriginal.value,
               ),
               // Apply rotation transformation
               customSize: MediaQuery.of(context).size,
@@ -364,6 +368,23 @@ class CloudFileZoomIn extends HookConsumerWidget {
                       onPressed: () async {
                         saveToGallery();
                       },
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        showOriginal.value = !showOriginal.value;
+                      },
+                      icon: Icon(
+                        showOriginal.value ? Symbols.raw_on : Symbols.raw_off,
+                        color: Colors.white,
+                        size: 24,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black54,
+                            blurRadius: 5.0,
+                            offset: Offset(1.0, 1.0),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

@@ -32,6 +32,25 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.saveDraft(ref, state);
     }
 
+    void showDraftManager() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder:
+            (context) => DraftManagerSheet(
+              onDraftSelected: (draftId) {
+                final draft = ref.read(composeStorageNotifierProvider)[draftId];
+                if (draft != null) {
+                  state.titleController.text = draft.title ?? '';
+                  state.descriptionController.text = draft.description ?? '';
+                  state.contentController.text = draft.content ?? '';
+                  state.visibility.value = draft.visibility;
+                }
+              },
+            ),
+      );
+    }
+
     final colorScheme = Theme.of(context).colorScheme;
 
     return Material(
@@ -64,29 +83,7 @@ class ComposeToolbar extends HookConsumerWidget {
                 IconButton(
                   icon: const Icon(Symbols.draft),
                   color: colorScheme.primary,
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder:
-                          (context) => DraftManagerSheet(
-                            onDraftSelected: (draftId) {
-                              final draft =
-                                  ref.read(
-                                    composeStorageNotifierProvider,
-                                  )[draftId];
-                              if (draft != null) {
-                                state.titleController.text = draft.title ?? '';
-                                state.descriptionController.text =
-                                    draft.description ?? '';
-                                state.contentController.text =
-                                    draft.content ?? '';
-                                state.visibility.value = draft.visibility;
-                              }
-                            },
-                          ),
-                    );
-                  },
+                  onPressed: showDraftManager,
                   tooltip: 'drafts'.tr(),
                 )
               else if (originalPost == null)
@@ -94,6 +91,7 @@ class ComposeToolbar extends HookConsumerWidget {
                   icon: const Icon(Symbols.save),
                   color: colorScheme.primary,
                   onPressed: saveDraft,
+                  onLongPress: showDraftManager,
                   tooltip: 'saveDraft'.tr(),
                 ),
             ],
