@@ -421,10 +421,10 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                   showConfirmAlert(
                     'deleteChatRoomHint'.tr(),
                     'deleteChatRoom'.tr(),
-                  ).then((confirm) {
+                  ).then((confirm) async {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
-                      client.delete('/sphere/chat/$id');
+                      await client.delete('/sphere/chat/$id');
                       ref.invalidate(chatroomsJoinedProvider);
                       if (context.mounted) {
                         context.pop();
@@ -454,10 +454,10 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                   showConfirmAlert(
                     'leaveChatRoomHint'.tr(),
                     'leaveChatRoom'.tr(),
-                  ).then((confirm) {
+                  ).then((confirm) async {
                     if (confirm) {
                       final client = ref.watch(apiClientProvider);
-                      client.delete('/sphere/chat/$id/members/me');
+                      await client.delete('/sphere/chat/$id/members/me');
                       ref.invalidate(chatroomsJoinedProvider);
                       if (context.mounted) {
                         context.pop();

@@ -321,10 +321,10 @@ class _RealmActionMenu extends HookConsumerWidget {
                               showConfirmAlert(
                                 'leaveRealmHint'.tr(),
                                 'leaveRealm'.tr(),
-                              ).then((confirm) {
+                              ).then((confirm) async {
                                 if (confirm) {
                                   final client = ref.watch(apiClientProvider);
-                                  client.delete(
+                                  await client.delete(
                                     '/sphere/realms/$realmSlug/members/me',
                                   );
                                   ref.invalidate(realmsJoinedProvider);
@@ -361,10 +361,12 @@ class _RealmActionMenu extends HookConsumerWidget {
                       showConfirmAlert(
                         'leaveRealmHint'.tr(),
                         'leaveRealm'.tr(),
-                      ).then((confirm) {
+                      ).then((confirm) async {
                         if (confirm) {
                           final client = ref.watch(apiClientProvider);
-                          client.delete('/sphere/realms/$realmSlug/members/me');
+                          await client.delete(
+                            '/sphere/realms/$realmSlug/members/me',
+                          );
                           ref.invalidate(realmsJoinedProvider);
                           if (context.mounted) {
                             context.pop(true);
