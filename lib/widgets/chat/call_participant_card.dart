@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -18,6 +19,10 @@ class CallParticipantCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final width =
         math.min(MediaQuery.of(context).size.width - 80, 360).toDouble();
+    final callNotifier = ref.watch(callNotifierProvider.notifier);
+
+    final volumeSliderValue = useState(callNotifier.getParticipantVolume(live));
+
     return PopupCard(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
@@ -28,7 +33,31 @@ class CallParticipantCard extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Column(
+              spacing: 4,
               children: [
+                Row(
+                  children: [
+                    const Icon(Symbols.sound_detection_loud_sound, size: 16),
+                    const Gap(8),
+                    Expanded(
+                      child: Slider(
+                        value: volumeSliderValue.value,
+                        onChanged: (value) {
+                          volumeSliderValue.value = value;
+                        },
+                        onChangeEnd: (value) {
+                          callNotifier.setParticipantVolume(live, value);
+                        },
+                        year2023: true,
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const Gap(8),
+                    Text(
+                      '${(volumeSliderValue.value * 100).toStringAsFixed(0)}%',
+                    ),
+                  ],
+                ),
                 Row(
                   children: [
                     const Icon(Symbols.wifi, size: 16),

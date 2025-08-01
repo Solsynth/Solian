@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -68,7 +68,12 @@ class CallScreen extends HookConsumerWidget {
             Text(
               callState.isConnected
                   ? formatDuration(callState.duration)
-                  : 'connecting',
+                  : (switch (callNotifier.room?.connectionState) {
+                    ConnectionState.connected => 'connected',
+                    ConnectionState.connecting => 'connecting',
+                    ConnectionState.reconnecting => 'reconnecting',
+                    _ => 'disconnected',
+                  }).tr(),
               style: const TextStyle(fontSize: 14),
             ),
           ],

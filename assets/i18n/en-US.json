@@ -728,5 +728,8 @@
   "selectCamera": "Select Camera",
   "switchedTo": "Switched to {}",
   "connecting": "Connecting",
+  "reconnecting": "Reconnecting",
+  "disconnected": "Disconnected",
+  "connected": "Connected",
   "repliesLoadMore": "Load more replies"
 }
