@@ -738,9 +738,9 @@ class PostReplyPreview extends HookConsumerWidget {
 
     Future<void> fetchMoreReplies({int pageSize = 1}) async {
       final client = ref.read(apiClientProvider);
+      loading.value = true;
 
       try {
-        loading.value = true;
         final response = await client.get(
           '/sphere/posts/${parent.id}/replies',
           queryParameters: {'offset': posts.value.length, 'take': pageSize},
@@ -752,7 +752,11 @@ class PostReplyPreview extends HookConsumerWidget {
       } catch (err) {
         showErrorAlert(err);
       } finally {
-        loading.value = false;
+        try {
+          loading.value = false;
+        } catch (_) {
+          // ignore disposed
+        }
       }
     }
 
