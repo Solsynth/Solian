@@ -727,5 +727,6 @@
   "selectMicrophone": "Select Microphone",
   "selectCamera": "Select Camera",
   "switchedTo": "Switched to {}",
-  "connecting": "Connecting"
+  "connecting": "Connecting",
+  "repliesLoadMore": "Load more replies"
 }

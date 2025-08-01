@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -49,18 +48,24 @@ class PostActionableItem extends HookConsumerWidget {
   final EdgeInsets? padding;
   final bool isFullPost;
   final bool isShowReference;
+  final bool isEmbedReply;
+  final bool isEmbedOpenable;
   final double? borderRadius;
-  final Function? onRefresh;
+  final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
+  final VoidCallback? onOpen;
   const PostActionableItem({
     super.key,
     required this.item,
     this.padding,
     this.isFullPost = false,
     this.isShowReference = true,
+    this.isEmbedReply = true,
+    this.isEmbedOpenable = false,
     this.borderRadius,
     this.onRefresh,
     this.onUpdate,
+    this.onOpen,
   });
 
   @override
@@ -82,11 +87,15 @@ class PostActionableItem extends HookConsumerWidget {
         padding: padding,
         isFullPost: isFullPost,
         isShowReference: isShowReference,
+        isEmbedReply: isEmbedReply,
+        isEmbedOpenable: isEmbedOpenable,
         isTextSelectable: false,
         onRefresh: onRefresh,
         onUpdate: onUpdate,
+        onOpen: onOpen,
       ),
       onTap: () {
+        onOpen?.call();
         context.pushNamed('postDetail', pathParameters: {'id': item.id});
       },
     );
@@ -207,9 +216,11 @@ class PostItem extends HookConsumerWidget {
   final bool isFullPost;
   final bool isShowReference;
   final bool isEmbedReply;
+  final bool isEmbedOpenable;
   final bool isTextSelectable;
-  final Function? onRefresh;
+  final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
+  final VoidCallback? onOpen;
   const PostItem({
     super.key,
     required this.item,
@@ -217,9 +228,11 @@ class PostItem extends HookConsumerWidget {
     this.isFullPost = false,
     this.isShowReference = true,
     this.isEmbedReply = true,
+    this.isEmbedOpenable = false,
     this.isTextSelectable = true,
     this.onRefresh,
     this.onUpdate,
+    this.onOpen,
   });
 
   @override
@@ -531,7 +544,9 @@ class PostItem extends HookConsumerWidget {
           _buildReferencePost(context, item, renderingPadding),
         if (item.repliesCount > 0 && isEmbedReply)
           PostReplyPreview(
-            item,
+            parent: item,
+            isOpenable: isEmbedOpenable,
+            onOpen: onOpen,
           ).padding(horizontal: renderingPadding.horizontal, top: 8),
         Gap(renderingPadding.vertical),
       ],
@@ -703,56 +718,195 @@ Widget _buildReferencePost(
 
 class PostReplyPreview extends HookConsumerWidget {
   final SnPost parent;
-  const PostReplyPreview(this.parent, {super.key});
+  final bool isOpenable;
+  final bool isCompact;
+  final bool isAutoload;
+  final VoidCallback? onOpen;
+  const PostReplyPreview({
+    super.key,
+    required this.parent,
+    this.isOpenable = false,
+    this.isCompact = false,
+    this.isAutoload = true,
+    this.onOpen,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final featuredReply = ref.watch(PostFeaturedReplyProvider(parent.id));
-    final contentWidget = Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
-        border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 4,
-        children: [
-          Text('repliesCount')
-              .plural(parent.repliesCount)
-              .tr()
-              .fontSize(15)
-              .bold()
-              .padding(horizontal: 5),
-          featuredReply.when(
-            data:
-                (value) => Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8,
-                  children: [
-                    ProfilePictureWidget(
-                      file: value!.publisher.picture,
-                      radius: 12,
-                    ).padding(top: 4),
-                    if (value.content?.isNotEmpty ?? false)
-                      Expanded(
-                        child: MarkdownTextContent(content: value.content!),
-                      )
-                    else
-                      Expanded(
-                        child: Text(
-                          'postHasAttachments',
-                        ).plural(value.attachments.length),
+    final posts = useState<List<SnPost>>([]);
+    final loading = useState(false);
+
+    Future<void> fetchMoreReplies({int pageSize = 1}) async {
+      final client = ref.read(apiClientProvider);
+
+      try {
+        loading.value = true;
+        final response = await client.get(
+          '/sphere/posts/${parent.id}/replies',
+          queryParameters: {'offset': posts.value.length, 'take': pageSize},
+        );
+        posts.value = [
+          ...posts.value,
+          ...response.data.map((e) => SnPost.fromJson(e)),
+        ];
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    useEffect(() {
+      if (isAutoload) fetchMoreReplies();
+      return null;
+    }, [parent]);
+
+    final featuredReply =
+        isOpenable ? null : ref.watch(PostFeaturedReplyProvider(parent.id));
+
+    final itemWidget =
+        isOpenable
+            ? Column(
+              children: [
+                for (final post in posts.value)
+                  Column(
+                    children: [
+                      InkWell(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 8,
+                          children: [
+                            ProfilePictureWidget(
+                              file: post.publisher.picture,
+                              radius: 12,
+                            ).padding(top: 4),
+                            if (post.content?.isNotEmpty ?? false)
+                              Expanded(
+                                child: MarkdownTextContent(
+                                  content: post.content!,
+                                ).padding(top: 2),
+                              )
+                            else
+                              Expanded(
+                                child: Text(
+                                  'postHasAttachments',
+                                ).plural(post.attachments.length),
+                              ),
+                          ],
+                        ),
+                        onTap: () {
+                          onOpen?.call();
+                          context.pushNamed(
+                            'postDetail',
+                            pathParameters: {'id': post.id},
+                          );
+                        },
                       ),
-                  ],
-                ),
-            error: (error, _) => Row(children: [const Icon(Symbols.close)]),
-            loading: () => Row(children: [CircularProgressIndicator()]),
-          ),
-        ],
-      ),
-    );
+                      if (post.repliesCount > 0)
+                        PostReplyPreview(
+                          parent: post,
+                          isOpenable: true,
+                          isCompact: true,
+                          isAutoload: false,
+                          onOpen: onOpen,
+                        ).padding(left: 24),
+                    ],
+                  ),
+                if (loading.value)
+                  Row(
+                    spacing: 8,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(),
+                      ),
+                      Text('loading').tr(),
+                    ],
+                  )
+                else if (posts.value.length < parent.repliesCount)
+                  InkWell(
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        const Icon(Symbols.keyboard_arrow_down, size: 20),
+                        Text('repliesLoadMore').tr(),
+                      ],
+                    ),
+                    onTap: () {
+                      fetchMoreReplies();
+                    },
+                  ),
+              ],
+            )
+            : featuredReply!.when(
+              data:
+                  (value) => Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      ProfilePictureWidget(
+                        file: value!.publisher.picture,
+                        radius: 12,
+                      ).padding(top: 4),
+                      if (value.content?.isNotEmpty ?? false)
+                        Expanded(
+                          child: MarkdownTextContent(content: value.content!),
+                        )
+                      else
+                        Expanded(
+                          child: Text(
+                            'postHasAttachments',
+                          ).plural(value.attachments.length),
+                        ),
+                    ],
+                  ),
+              error:
+                  (error, _) => Row(
+                    spacing: 8,
+                    children: [
+                      const Icon(Symbols.close, size: 18),
+                      Text(error.toString()),
+                    ],
+                  ),
+              loading:
+                  () => Row(
+                    spacing: 8,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(),
+                      ),
+                      Text('loading').tr(),
+                    ],
+                  ),
+            );
+
+    final contentWidget =
+        isCompact
+            ? itemWidget
+            : Container(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
+                border: Border.all(color: Theme.of(context).dividerColor),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 4,
+                children: [
+                  Text('repliesCount')
+                      .plural(parent.repliesCount)
+                      .tr()
+                      .fontSize(15)
+                      .bold()
+                      .padding(horizontal: 5),
+                  itemWidget,
+                ],
+              ),
+            );
 
     return InkWell(
       borderRadius: const BorderRadius.all(Radius.circular(8)),

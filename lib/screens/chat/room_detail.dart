@@ -41,7 +41,7 @@ class ChatDetailScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.patch(
-          '/chat/$id/members/me/notify',
+          '/sphere/chat/$id/members/me/notify',
           data: {'notify_level': level},
         );
         ref.invalidate(chatroomIdentityProvider(id));
@@ -59,7 +59,7 @@ class ChatDetailScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.patch(
-          '/chat/$id/members/me/notify',
+          '/sphere/chat/$id/members/me/notify',
           data: {'break_until': until.toUtc().toIso8601String()},
         );
         ref.invalidate(chatroomProvider(id));

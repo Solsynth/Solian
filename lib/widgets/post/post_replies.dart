@@ -56,7 +56,13 @@ class PostRepliesNotifier extends _$PostRepliesNotifier
 class PostRepliesList extends HookConsumerWidget {
   final String postId;
   final double? maxWidth;
-  const PostRepliesList({super.key, required this.postId, this.maxWidth});
+  final VoidCallback? onOpen;
+  const PostRepliesList({
+    super.key,
+    required this.postId,
+    this.maxWidth,
+    this.onOpen,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -92,6 +98,8 @@ class PostRepliesList extends HookConsumerWidget {
                 borderRadius: 8,
                 item: data.items[index],
                 isShowReference: false,
+                isEmbedOpenable: true,
+                onOpen: onOpen,
               ),
             );
 

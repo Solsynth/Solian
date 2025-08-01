@@ -24,7 +24,14 @@ class PostRepliesSheet extends HookConsumerWidget {
           // Replies list
           Expanded(
             child: CustomScrollView(
-              slivers: [PostRepliesList(postId: post.id.toString())],
+              slivers: [
+                PostRepliesList(
+                  postId: post.id.toString(),
+                  onOpen: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
           ),
           // Quick reply section
