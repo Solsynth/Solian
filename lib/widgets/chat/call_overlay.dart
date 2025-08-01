@@ -22,8 +22,10 @@ class CallControlsBar extends HookConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        runSpacing: 16,
+        spacing: 16,
         children: [
           _buildCircularButtonWithDropdown(
             context: context,
@@ -35,7 +37,6 @@ class CallControlsBar extends HookConsumerWidget {
             hasDropdown: true,
             deviceType: 'videoinput',
           ),
-          const Gap(16),
           _buildCircularButton(
             icon:
                 callState.isScreenSharing
@@ -44,7 +45,6 @@ class CallControlsBar extends HookConsumerWidget {
             onPressed: () => callNotifier.toggleScreenShare(),
             backgroundColor: const Color(0xFF424242),
           ),
-          const Gap(16),
           _buildCircularButtonWithDropdown(
             context: context,
             ref: ref,
@@ -54,7 +54,14 @@ class CallControlsBar extends HookConsumerWidget {
             hasDropdown: true,
             deviceType: 'audioinput',
           ),
-          const Gap(16),
+          _buildCircularButton(
+            icon:
+                callState.isSpeakerphone
+                    ? Symbols.mobile_speaker
+                    : Symbols.ear_sound,
+            onPressed: () => callNotifier.toggleSpeakerphone(),
+            backgroundColor: const Color(0xFF424242),
+          ),
           _buildCircularButton(
             icon: Icons.call_end,
             onPressed:
@@ -259,24 +266,14 @@ class CallControlsBar extends HookConsumerWidget {
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${'switchedTo'.tr()} ${device.label.isNotEmpty ? device.label : 'selectedDevice'.tr()}',
-            ),
-            backgroundColor: Colors.green,
+        showSnackBar(
+          'switchedTo'.tr(
+            args: [device.label.isNotEmpty ? device.label : 'device'],
           ),
         );
       }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${'failedToSwitchDevice'.tr()}: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    } catch (err) {
+      showErrorAlert(err);
     }
   }
 }

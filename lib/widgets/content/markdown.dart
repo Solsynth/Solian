@@ -81,7 +81,10 @@ class MarkdownTextContent extends HookConsumerWidget {
               if (url != null) {
                 if (url.scheme == 'solian') {
                   if (url.host == 'account') {
-                    context.pushNamed('accountProfile', pathParameters: {'name': url.pathSegments[0]});
+                    context.pushNamed(
+                      'accountProfile',
+                      pathParameters: {'name': url.pathSegments[0]},
+                    );
                   }
                   return;
                 }
@@ -153,7 +156,7 @@ class MarkdownTextContent extends HookConsumerWidget {
                         ),
                         child: UniversalImage(
                           uri:
-                              '$baseUrl/stickers/lookup/${uri.pathSegments[0]}/open',
+                              '$baseUrl/sphere/stickers/lookup/${uri.pathSegments[0]}/open',
                           width: size,
                           height: size,
                           fit: BoxFit.cover,

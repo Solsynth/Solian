@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:island/widgets/chat/call_button.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -25,6 +28,7 @@ sealed class CallState with _$CallState {
     required bool isMicrophoneEnabled,
     required bool isCameraEnabled,
     required bool isScreenSharing,
+    required bool isSpeakerphone,
     @Default(Duration(seconds: 0)) Duration duration,
     String? error,
   }) = _CallState;
@@ -62,6 +66,8 @@ class CallNotifier extends _$CallNotifier {
       List.unmodifiable(_participants);
   LocalParticipant? get localParticipant => _localParticipant;
 
+  Map<String, double> participantsVolumes = {};
+
   Timer? _durationTimer;
 
   Room? get room => _room;
@@ -74,6 +80,7 @@ class CallNotifier extends _$CallNotifier {
       isMicrophoneEnabled: true,
       isCameraEnabled: false,
       isScreenSharing: false,
+      isSpeakerphone: true,
     );
   }
 
@@ -264,6 +271,10 @@ class CallNotifier extends _$CallNotifier {
         _initRoomListeners();
         _updateLiveParticipants(participants);
 
+        if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+          Hardware.instance.setSpeakerphoneOn(true);
+        }
+
         // Listen for connection updates
         _room!.addListener(() {
           state = state.copyWith(
@@ -318,6 +329,12 @@ class CallNotifier extends _$CallNotifier {
     }
   }
 
+  Future<void> toggleSpeakerphone() async {
+    state = state.copyWith(isSpeakerphone: !state.isSpeakerphone);
+    await Hardware.instance.setSpeakerphoneOn(state.isSpeakerphone);
+    state = state.copyWith();
+  }
+
   Future<void> disconnect() async {
     if (_room != null) {
       await _room!.disconnect();
@@ -328,6 +345,26 @@ class CallNotifier extends _$CallNotifier {
         isScreenSharing: false,
       );
     }
+  }
+
+  void setParticipantVolume(CallParticipantLive live, double volume) {
+    if (participantsVolumes[live.remoteParticipant.sid] == null) {
+      participantsVolumes[live.remoteParticipant.sid] = 1;
+    }
+    Helper.setVolume(
+      volume,
+      live
+          .remoteParticipant
+          .audioTrackPublications
+          .first
+          .track!
+          .mediaStreamTrack,
+    );
+    participantsVolumes[live.remoteParticipant.sid] = volume;
+  }
+
+  double getParticipantVolume(CallParticipantLive live) {
+    return participantsVolumes[live.remoteParticipant.sid] ?? 1;
   }
 
   void dispose() {
@@ -343,5 +380,6 @@ class CallNotifier extends _$CallNotifier {
     _room?.dispose();
     _durationTimer?.cancel();
     _roomId = null;
+    participantsVolumes = {};
   }
 }
