@@ -434,14 +434,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const RelationshipScreen(),
                   ),
                   GoRoute(
-                    name: 'accountProfile',
-                    path: '/account/:name',
-                    builder: (context, state) {
-                      final name = state.pathParameters['name']!;
-                      return AccountProfileScreen(name: name);
-                    },
-                  ),
-                  GoRoute(
                     name: 'profileUpdate',
                     path: '/account/me/update',
                     builder: (context, state) => const UpdateProfileScreen(),
@@ -462,6 +454,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const AbuseReportListScreen(),
                   ),
                 ],
+              ),
+
+              GoRoute(
+                name: 'accountProfile',
+                path: '/account/:name',
+                builder: (context, state) {
+                  final name = state.pathParameters['name']!;
+                  return AccountProfileScreen(name: name);
+                },
               ),
             ],
           ),

@@ -76,7 +76,7 @@ class CallControlsBar extends HookConsumerWidget {
                               title: Text('callLeave').tr(),
                               onTap: () {
                                 callNotifier.disconnect();
-                                Navigator.of(context).pop();
+                                GoRouter.of(context).pop();
                               },
                             ),
                             ListTile(
@@ -91,7 +91,7 @@ class CallControlsBar extends HookConsumerWidget {
                                 );
                                 callNotifier.dispose();
                                 if (context.mounted) {
-                                  Navigator.of(context).pop();
+                                  GoRouter.of(context).pop();
                                 }
                               },
                             ),

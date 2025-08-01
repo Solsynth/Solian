@@ -31,7 +31,11 @@ class CallScreen extends HookConsumerWidget {
       (p) =>
           !(p.hasVideo &&
               p.remoteParticipant.trackPublications.values.any(
-                (pub) => pub.track != null && pub.kind == TrackType.VIDEO,
+                (pub) =>
+                    pub.track != null &&
+                    pub.kind == TrackType.VIDEO &&
+                    !pub.muted &&
+                    !pub.isDisposed,
               )),
     );
 

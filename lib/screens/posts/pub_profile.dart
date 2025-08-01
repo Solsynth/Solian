@@ -389,11 +389,13 @@ class PublisherProfileScreen extends HookConsumerWidget {
           ),
       error:
           (error, stackTrace) => AppScaffold(
+            noBackground: false,
             appBar: AppBar(leading: const PageBackButton()),
             body: Center(child: Text(error.toString())),
           ),
       loading:
           () => AppScaffold(
+            noBackground: false,
             appBar: AppBar(leading: const PageBackButton()),
             body: Center(child: CircularProgressIndicator()),
           ),

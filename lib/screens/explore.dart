@@ -344,6 +344,10 @@ class _DiscoveryActivityItem extends StatelessWidget {
                 flexWeights:
                     isWideScreen(context) ? <int>[3, 2, 1] : <int>[4, 1],
                 consumeMaxWeight: false,
+                enableSplash: false,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
                 children: [
                   for (final item in items)
                     switch (type) {
@@ -364,7 +368,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
                 ],
               ),
             ),
-          ).padding(bottom: 8),
+          ).padding(bottom: 8, horizontal: 8),
         ],
       ),
     );
