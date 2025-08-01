@@ -11,6 +11,7 @@ import 'package:island/models/user.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/color.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/status.dart';
@@ -121,200 +122,270 @@ class PublisherProfileScreen extends HookConsumerWidget {
       offset: Offset(1.0, 1.0),
     );
 
+    Widget publisherBasisWidget(SnPublisher data) => Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 20,
+      children: [
+        GestureDetector(
+          child: Badge(
+            isLabelVisible: data.type == 0,
+            padding: EdgeInsets.all(4),
+            label: Icon(
+              Symbols.launch,
+              size: 16,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            offset: Offset(0, 48),
+            child: ProfilePictureWidget(file: data.picture, radius: 32),
+          ),
+          onTap: () {
+            Navigator.pop(context, true);
+            if (data.account?.name != null) {
+              context.pushNamed(
+                'accountProfile',
+                pathParameters: {'name': data.account!.name},
+              );
+            }
+          },
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                spacing: 6,
+                children: [
+                  Text(data.nick).fontSize(20),
+                  if (data.verification != null)
+                    VerificationMark(mark: data.verification!),
+                  Expanded(
+                    child: Text(
+                      '@${data.name}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ).fontSize(14).opacity(0.85),
+                  ),
+                ],
+              ),
+              if (data.type == 0 && data.account != null)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 6,
+                  children: [
+                    Icon(
+                      data.type == 0 ? Symbols.person : Symbols.workspaces,
+                      fill: 1,
+                      size: 17,
+                    ),
+                    Text(
+                      'publisherBelongsTo'.tr(args: ['@${data.account!.name}']),
+                    ).fontSize(14),
+                  ],
+                ).opacity(0.85).padding(bottom: 6),
+              if (data.type == 0 && data.account != null)
+                AccountStatusWidget(
+                  uname: data.account!.name,
+                  padding: EdgeInsets.zero,
+                ),
+              subStatus
+                  .when(
+                    data:
+                        (status) => FilledButton.icon(
+                          onPressed:
+                              subscribing.value
+                                  ? null
+                                  : (status.isSubscribed
+                                      ? unsubscribe
+                                      : subscribe),
+                          icon: Icon(
+                            status.isSubscribed
+                                ? Symbols.remove_circle
+                                : Symbols.add_circle,
+                          ),
+                          label:
+                              Text(
+                                status.isSubscribed
+                                    ? 'unsubscribe'
+                                    : 'subscribe',
+                              ).tr(),
+                          style: ButtonStyle(
+                            visualDensity: VisualDensity(vertical: -2),
+                          ),
+                        ),
+                    error: (_, _) => const SizedBox(),
+                    loading:
+                        () => const SizedBox(
+                          height: 36,
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                        ),
+                  )
+                  .padding(top: 8),
+            ],
+          ),
+        ),
+      ],
+    ).padding(horizontal: 24, top: 24);
+
+    Widget publisherVerificationWidget(SnPublisher data) => Card(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Column(
+        children: [
+          if (badges.value?.isNotEmpty ?? false)
+            BadgeList(badges: badges.value!).padding(top: 16),
+          if (data.verification != null)
+            VerificationStatusCard(mark: data.verification!),
+        ],
+      ),
+    ).padding(top: 16);
+
+    Widget publisherDetailWidget(SnPublisher data) => Card(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('bio').tr().bold().padding(bottom: 2),
+          Text(data.bio.isEmpty ? 'descriptionNone'.tr() : data.bio),
+        ],
+      ).padding(horizontal: 20, vertical: 16),
+    );
+
     return publisher.when(
       data:
           (data) => AppScaffold(
             noBackground: false,
-            body: CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  foregroundColor: appbarColor.value,
-                  expandedHeight: 180,
-                  pinned: true,
-                  leading: PageBackButton(
-                    color: appbarColor.value,
-                    shadows: [appbarShadow],
-                  ),
-                  flexibleSpace: Stack(
-                    children: [
-                      Positioned.fill(
-                        child:
-                            data.background?.id != null
-                                ? CloudImageWidget(file: data.background)
-                                : Container(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).appBarTheme.backgroundColor,
-                                ),
+            appBar:
+                isWideScreen(context)
+                    ? AppBar(
+                      foregroundColor: appbarColor.value,
+                      leading: PageBackButton(
+                        color: appbarColor.value,
+                        shadows: [appbarShadow],
                       ),
-                      FlexibleSpaceBar(
-                        title: Text(
-                          data.nick,
-                          style: TextStyle(
-                            color:
-                                appbarColor.value ??
-                                Theme.of(context).appBarTheme.foregroundColor,
+                      flexibleSpace: Stack(
+                        children: [
+                          Positioned.fill(
+                            child:
+                                data.background?.id != null
+                                    ? CloudImageWidget(file: data.background)
+                                    : Container(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).appBarTheme.backgroundColor,
+                                    ),
+                          ),
+                          FlexibleSpaceBar(
+                            title: Text(
+                              data.nick,
+                              style: TextStyle(
+                                color:
+                                    appbarColor.value ??
+                                    Theme.of(
+                                      context,
+                                    ).appBarTheme.foregroundColor,
+                                shadows: [appbarShadow],
+                              ),
+                            ),
+                            background:
+                                Container(), // Empty container since background is handled by Stack
+                          ),
+                        ],
+                      ),
+                    )
+                    : null,
+            body:
+                isWideScreen(context)
+                    ? Row(
+                      children: [
+                        Flexible(
+                          flex: 4,
+                          child: CustomScrollView(
+                            slivers: [
+                              SliverGap(16),
+                              SliverPostList(pubName: name),
+                              SliverGap(
+                                MediaQuery.of(context).padding.bottom + 16,
+                              ),
+                            ],
+                          ).padding(left: 8),
+                        ),
+                        Flexible(
+                          flex: 3,
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  publisherBasisWidget(data),
+                                  publisherVerificationWidget(data),
+                                  publisherDetailWidget(data),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                    : CustomScrollView(
+                      slivers: [
+                        SliverAppBar(
+                          foregroundColor: appbarColor.value,
+                          expandedHeight: 180,
+                          pinned: true,
+                          leading: PageBackButton(
+                            color: appbarColor.value,
                             shadows: [appbarShadow],
                           ),
-                        ),
-                        background:
-                            Container(), // Empty container since background is handled by Stack
-                      ),
-                    ],
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 20,
-                    children: [
-                      GestureDetector(
-                        child: Badge(
-                          isLabelVisible: data.type == 0,
-                          padding: EdgeInsets.all(4),
-                          label: Icon(
-                            Symbols.launch,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                          ),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          offset: Offset(0, 48),
-                          child: ProfilePictureWidget(
-                            file: data.picture,
-                            radius: 32,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context, true);
-                          if (data.account?.name != null) {
-                            context.pushNamed(
-                              'accountProfile',
-                              pathParameters: {'name': data.account!.name},
-                            );
-                          }
-                        },
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              spacing: 6,
-                              children: [
-                                Text(data.nick).fontSize(20),
-                                if (data.verification != null)
-                                  VerificationMark(mark: data.verification!),
-                                Text(
-                                  '@${data.name}',
-                                ).fontSize(14).opacity(0.85),
-                              ],
-                            ),
-                            if (data.type == 0 && data.account != null)
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                spacing: 6,
-                                children: [
-                                  Icon(
-                                    data.type == 0
-                                        ? Symbols.person
-                                        : Symbols.workspaces,
-                                    fill: 1,
-                                    size: 17,
-                                  ),
-                                  Text(
-                                    'publisherBelongsTo'.tr(
-                                      args: ['@${data.account!.name}'],
-                                    ),
-                                  ).fontSize(14),
-                                ],
-                              ).opacity(0.85).padding(bottom: 6),
-                            if (data.type == 0 && data.account != null)
-                              AccountStatusWidget(
-                                uname: data.account!.name,
-                                padding: EdgeInsets.zero,
+                          flexibleSpace: Stack(
+                            children: [
+                              Positioned.fill(
+                                child:
+                                    data.background?.id != null
+                                        ? CloudImageWidget(
+                                          file: data.background,
+                                        )
+                                        : Container(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).appBarTheme.backgroundColor,
+                                        ),
                               ),
-                            subStatus
-                                .when(
-                                  data:
-                                      (status) => FilledButton.icon(
-                                        onPressed:
-                                            subscribing.value
-                                                ? null
-                                                : (status.isSubscribed
-                                                    ? unsubscribe
-                                                    : subscribe),
-                                        icon: Icon(
-                                          status.isSubscribed
-                                              ? Symbols.remove_circle
-                                              : Symbols.add_circle,
-                                        ),
-                                        label:
-                                            Text(
-                                              status.isSubscribed
-                                                  ? 'unsubscribe'
-                                                  : 'subscribe',
-                                            ).tr(),
-                                        style: ButtonStyle(
-                                          visualDensity: VisualDensity(
-                                            vertical: -2,
-                                          ),
-                                        ),
-                                      ),
-                                  error: (_, _) => const SizedBox(),
-                                  loading:
-                                      () => const SizedBox(
-                                        height: 36,
-                                        child: Center(
-                                          child: SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                )
-                                .padding(top: 8),
-                          ],
+                              FlexibleSpaceBar(
+                                title: Text(
+                                  data.nick,
+                                  style: TextStyle(
+                                    color:
+                                        appbarColor.value ??
+                                        Theme.of(
+                                          context,
+                                        ).appBarTheme.foregroundColor,
+                                    shadows: [appbarShadow],
+                                  ),
+                                ),
+                                background:
+                                    Container(), // Empty container since background is handled by Stack
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ).padding(horizontal: 24, top: 24),
-                ),
-                SliverToBoxAdapter(
-                  child: Card(
-                    margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Column(
-                      children: [
-                        if (badges.value?.isNotEmpty ?? false)
-                          BadgeList(badges: badges.value!).padding(top: 16),
-                        if (data.verification != null)
-                          VerificationStatusCard(mark: data.verification!),
+                        SliverToBoxAdapter(child: publisherBasisWidget(data)),
+                        SliverToBoxAdapter(
+                          child: publisherVerificationWidget(data),
+                        ),
+                        SliverToBoxAdapter(child: publisherDetailWidget(data)),
+                        SliverPostList(pubName: name),
+                        SliverGap(MediaQuery.of(context).padding.bottom + 16),
                       ],
                     ),
-                  ).padding(top: 16),
-                ),
-                SliverToBoxAdapter(
-                  child: Card(
-                    margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text('bio').tr().bold().padding(bottom: 2),
-                        Text(
-                          data.bio.isEmpty ? 'descriptionNone'.tr() : data.bio,
-                        ),
-                      ],
-                    ).padding(horizontal: 20, vertical: 16),
-                  ),
-                ),
-                SliverPostList(pubName: name),
-                SliverGap(MediaQuery.of(context).padding.bottom + 16),
-              ],
-            ),
           ),
       error:
           (error, stackTrace) => AppScaffold(
