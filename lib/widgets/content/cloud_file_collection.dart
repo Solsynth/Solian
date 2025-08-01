@@ -96,6 +96,66 @@ class CloudFileList extends HookConsumerWidget {
       );
     }
 
+    final allImages =
+        !files.any(
+          (e) => e.mimeType == null || !e.mimeType!.startsWith('image'),
+        );
+
+    if (allImages) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
+        child: AspectRatio(
+          aspectRatio: calculateAspectRatio(),
+          child: CarouselView(
+            padding: padding,
+            itemSnapping: true,
+            itemExtent: math.min(
+              MediaQuery.of(context).size.width * 0.85,
+              maxWidth * 0.85,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(16)),
+            ),
+            children: [
+              for (var i = 0; i < files.length; i++)
+                Stack(
+                  children: [
+                    _CloudFileListEntry(
+                      file: files[i],
+                      heroTag: heroTags[i],
+                      isImage: files[i].mimeType?.startsWith('image') ?? false,
+                      disableZoomIn: disableZoomIn,
+                    ),
+                    Positioned(
+                      bottom: 12,
+                      left: 16,
+                      child: Text('${i + 1}/${files.length}')
+                          .textColor(Colors.white)
+                          .textShadow(
+                            color: Colors.black54,
+                            offset: Offset(1, 1),
+                            blurRadius: 3,
+                          ),
+                    ),
+                  ],
+                ),
+            ],
+            onTap: (i) {
+              if (!(files[i].mimeType?.startsWith('image') ?? false)) {
+                return;
+              }
+              if (!disableZoomIn) {
+                context.pushTransparentRoute(
+                  CloudFileZoomIn(item: files[i], heroTag: heroTags[i]),
+                  rootNavigator: true,
+                );
+              }
+            },
+          ),
+        ),
+      );
+    }
+
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
       child: AspectRatio(

@@ -338,28 +338,31 @@ class _DiscoveryActivityItem extends StatelessWidget {
           ).padding(horizontal: 20, top: 8, bottom: 4),
           SizedBox(
             height: 180,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: items.length,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return switch (type) {
-                  'realm' => RealmCard(
-                    realm: SnRealm.fromJson(item['data']),
-                    maxWidth: 280,
-                  ),
-                  'publisher' => PublisherCard(
-                    publisher: SnPublisher.fromJson(item['data']),
-                    maxWidth: 280,
-                  ),
-                  'article' => WebArticleCard(
-                    article: SnWebArticle.fromJson(item['data']),
-                    maxWidth: 280,
-                  ),
-                  _ => Placeholder(),
-                };
-              },
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: CarouselView.weighted(
+                flexWeights:
+                    isWideScreen(context) ? <int>[3, 2, 1] : <int>[4, 1],
+                consumeMaxWeight: false,
+                children: [
+                  for (final item in items)
+                    switch (type) {
+                      'realm' => RealmCard(
+                        realm: SnRealm.fromJson(item['data']),
+                        maxWidth: 280,
+                      ),
+                      'publisher' => PublisherCard(
+                        publisher: SnPublisher.fromJson(item['data']),
+                        maxWidth: 280,
+                      ),
+                      'article' => WebArticleCard(
+                        article: SnWebArticle.fromJson(item['data']),
+                        maxWidth: 280,
+                      ),
+                      _ => Placeholder(),
+                    },
+                ],
+              ),
             ),
           ).padding(bottom: 8),
         ],
