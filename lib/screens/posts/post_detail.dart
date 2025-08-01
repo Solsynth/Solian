@@ -4,7 +4,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_quick_reply.dart';
@@ -54,8 +53,6 @@ class PostDetailScreen extends HookConsumerWidget {
     final postState = ref.watch(postStateProvider(id));
     final user = ref.watch(userInfoProvider);
 
-    final isWide = isWideScreen(context);
-
     return AppScaffold(
       noBackground: false,
       appBar: AppBar(title: const Text('Post')),
@@ -67,19 +64,24 @@ class PostDetailScreen extends HookConsumerWidget {
               CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
-                    child: PostItem(
-                      item: post!,
-                      isFullPost: true,
-                      backgroundColor: isWide ? Colors.transparent : null,
-                      onUpdate: (newItem) {
-                        // Update the local state with the new post data
-                        ref
-                            .read(postStateProvider(id).notifier)
-                            .updatePost(newItem);
-                      },
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 600),
+                        child: PostItem(
+                          item: post!,
+                          isFullPost: true,
+                          isEmbedReply: false,
+                          onUpdate: (newItem) {
+                            // Update the local state with the new post data
+                            ref
+                                .read(postStateProvider(id).notifier)
+                                .updatePost(newItem);
+                          },
+                        ),
+                      ),
                     ),
                   ),
-                  PostRepliesList(postId: id),
+                  PostRepliesList(postId: id, maxWidth: 600),
                   SliverGap(MediaQuery.of(context).padding.bottom + 80),
                 ],
               ),

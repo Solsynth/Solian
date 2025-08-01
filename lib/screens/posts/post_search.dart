@@ -153,9 +153,17 @@ class _PostSearchScreenState extends ConsumerState<PostSearchScreen> {
                   }
 
                   final post = data.items[index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: PostActionableItem(item: post, borderRadius: 8),
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: 600),
+                      child: Card(
+                        margin: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        child: PostActionableItem(item: post, borderRadius: 8),
+                      ),
+                    ),
                   );
                 },
               );

@@ -24,12 +24,7 @@ class PostRepliesSheet extends HookConsumerWidget {
           // Replies list
           Expanded(
             child: CustomScrollView(
-              slivers: [
-                PostRepliesList(
-                  postId: post.id.toString(),
-                  backgroundColor: Colors.transparent,
-                ),
-              ],
+              slivers: [PostRepliesList(postId: post.id.toString())],
             ),
           ),
           // Quick reply section

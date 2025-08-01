@@ -67,13 +67,7 @@ class CloudFileList extends HookConsumerWidget {
         constraints: BoxConstraints(
           maxHeight: disableConstraint ? double.infinity : maxHeight,
           minWidth: minWidth ?? 0,
-          maxWidth:
-              files.length == 1
-                  ? math.max(
-                    math.min(520, MediaQuery.of(context).size.width * 0.85),
-                    minWidth ?? 0,
-                  )
-                  : double.infinity,
+          maxWidth: files.length == 1 ? maxWidth : double.infinity,
         ),
         child: AspectRatio(
           aspectRatio: calculateAspectRatio(),

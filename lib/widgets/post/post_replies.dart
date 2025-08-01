@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -56,17 +55,11 @@ class PostRepliesNotifier extends _$PostRepliesNotifier
 
 class PostRepliesList extends HookConsumerWidget {
   final String postId;
-  final Color? backgroundColor;
-  const PostRepliesList({
-    super.key,
-    required this.postId,
-    this.backgroundColor,
-  });
+  final double? maxWidth;
+  const PostRepliesList({super.key, required this.postId, this.maxWidth});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = isWideScreen(context);
-
     return PagingHelperSliverView(
       provider: postRepliesNotifierProvider(postId),
       futureRefreshable: postRepliesNotifierProvider(postId).future,
@@ -93,13 +86,21 @@ class PostRepliesList extends HookConsumerWidget {
               return endItemView;
             }
 
-            return Card(
+            final contentWidget = Card(
               margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: PostActionableItem(
+                borderRadius: 8,
                 item: data.items[index],
-                backgroundColor:
-                    backgroundColor ?? (isWide ? Colors.transparent : null),
                 isShowReference: false,
+              ),
+            );
+
+            if (maxWidth == null) return contentWidget;
+
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth!),
+                child: contentWidget,
               ),
             );
           },

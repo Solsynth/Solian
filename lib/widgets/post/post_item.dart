@@ -23,6 +23,7 @@ import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/post/post_replies_sheet.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -44,7 +45,6 @@ Future<SnPost?> postFeaturedReply(Ref ref, String id) async {
 }
 
 class PostActionableItem extends HookConsumerWidget {
-  final Color? backgroundColor;
   final SnPost item;
   final EdgeInsets? padding;
   final bool isFullPost;
@@ -55,7 +55,6 @@ class PostActionableItem extends HookConsumerWidget {
   const PostActionableItem({
     super.key,
     required this.item,
-    this.backgroundColor,
     this.padding,
     this.isFullPost = false,
     this.isShowReference = true,
@@ -80,7 +79,6 @@ class PostActionableItem extends HookConsumerWidget {
       child: PostItem(
         key: key,
         item: item,
-        backgroundColor: backgroundColor,
         padding: padding,
         isFullPost: isFullPost,
         isShowReference: isShowReference,
@@ -205,20 +203,20 @@ class PostActionableItem extends HookConsumerWidget {
 
 class PostItem extends HookConsumerWidget {
   final SnPost item;
-  final Color? backgroundColor;
   final EdgeInsets? padding;
   final bool isFullPost;
   final bool isShowReference;
+  final bool isEmbedReply;
   final bool isTextSelectable;
   final Function? onRefresh;
   final Function(SnPost)? onUpdate;
   const PostItem({
     super.key,
     required this.item,
-    this.backgroundColor,
     this.padding,
     this.isFullPost = false,
     this.isShowReference = true,
+    this.isEmbedReply = true,
     this.isTextSelectable = true,
     this.onRefresh,
     this.onUpdate,
@@ -531,6 +529,10 @@ class PostItem extends HookConsumerWidget {
               )),
         if (isShowReference)
           _buildReferencePost(context, item, renderingPadding),
+        if (item.repliesCount > 0 && isEmbedReply)
+          PostReplyPreview(
+            item,
+          ).padding(horizontal: renderingPadding.horizontal, top: 8),
         Gap(renderingPadding.vertical),
       ],
     );
@@ -697,6 +699,74 @@ Widget _buildReferencePost(
           pathParameters: {'id': referencePost.id},
         ),
   );
+}
+
+class PostReplyPreview extends HookConsumerWidget {
+  final SnPost parent;
+  const PostReplyPreview(this.parent, {super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final featuredReply = ref.watch(PostFeaturedReplyProvider(parent.id));
+    final contentWidget = Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        border: Border.all(color: Theme.of(context).dividerColor),
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 4,
+        children: [
+          Text('repliesCount')
+              .plural(parent.repliesCount)
+              .tr()
+              .fontSize(15)
+              .bold()
+              .padding(horizontal: 5),
+          featuredReply.when(
+            data:
+                (value) => Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    ProfilePictureWidget(
+                      file: value!.publisher.picture,
+                      radius: 12,
+                    ).padding(top: 4),
+                    if (value.content?.isNotEmpty ?? false)
+                      Expanded(
+                        child: MarkdownTextContent(content: value.content!),
+                      )
+                    else
+                      Expanded(
+                        child: Text(
+                          'postHasAttachments',
+                        ).plural(value.attachments.length),
+                      ),
+                  ],
+                ),
+            error: (error, _) => Row(children: [const Icon(Symbols.close)]),
+            loading: () => Row(children: [CircularProgressIndicator()]),
+          ),
+        ],
+      ),
+    );
+
+    return InkWell(
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          useRootNavigator: true,
+          builder: (context) => PostRepliesSheet(post: parent),
+        );
+      },
+      child: contentWidget,
+    );
+  }
 }
 
 class PostReactionList extends HookConsumerWidget {
