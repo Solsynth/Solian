@@ -24,6 +24,10 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.pickVideoMedia(ref, state);
     }
 
+    void addYourVoice() {
+      ComposeLogic.recordAudioMedia(ref, state, context);
+    }
+
     void linkAttachment() {
       ComposeLogic.linkAttachment(ref, state, context);
     }
@@ -70,6 +74,12 @@ class ComposeToolbar extends HookConsumerWidget {
                 onPressed: pickVideoMedia,
                 tooltip: 'addVideo'.tr(),
                 icon: const Icon(Symbols.videocam),
+                color: colorScheme.primary,
+              ),
+              IconButton(
+                onPressed: addYourVoice,
+                tooltip: 'addYourVoice'.tr(),
+                icon: const Icon(Symbols.mic),
                 color: colorScheme.primary,
               ),
               IconButton(

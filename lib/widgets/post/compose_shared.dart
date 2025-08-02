@@ -15,13 +15,13 @@ import 'package:island/services/file.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/post/compose_recorder.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:textfield_tags/textfield_tags.dart';
 import 'dart:async';
 import 'dart:developer';
-
-import 'package:textfield_tags/textfield_tags.dart';
 
 class ComposeState {
   final TextEditingController titleController;
@@ -396,6 +396,26 @@ class ComposeLogic {
     state.attachments.value = [
       ...state.attachments.value,
       UniversalFile(data: result, type: UniversalFileType.video),
+    ];
+  }
+
+  static Future<void> recordAudioMedia(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    final audioPath = await showModalBottomSheet<String?>(
+      context: context,
+      builder: (context) => ComposeRecorder(),
+    );
+    if (audioPath == null) return;
+
+    state.attachments.value = [
+      ...state.attachments.value,
+      UniversalFile(
+        data: XFile(audioPath, mimeType: 'audio/m4a'),
+        type: UniversalFileType.audio,
+      ),
     ];
   }
 
