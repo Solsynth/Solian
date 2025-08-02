@@ -88,7 +88,7 @@ class ComposeRecorder extends HookConsumerWidget {
         children: [
           const Gap(32),
           Text(
-            recordingDuration.value.formatDuration(),
+            recordingDuration.value.formatShortDuration(),
           ).fontSize(20).bold().padding(bottom: 8),
           SizedBox(
             height: 120,

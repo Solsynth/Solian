@@ -20,6 +20,33 @@ extension DurationFormatter on Duration {
     return '${isNegative ? '-' : ''}$hours:$minutes:$seconds';
   }
 
+  String formatShortDuration() {
+    final isNegative = inMicroseconds < 0;
+    final positiveDuration = isNegative ? -this : this;
+
+    final hours = positiveDuration.inHours;
+    final minutes = (positiveDuration.inMinutes % 60).toString().padLeft(
+      2,
+      '0',
+    );
+    final seconds = (positiveDuration.inSeconds % 60).toString().padLeft(
+      2,
+      '0',
+    );
+    final milliseconds = (positiveDuration.inMilliseconds % 1000)
+        .toString()
+        .padLeft(3, '0');
+
+    String result;
+    if (hours > 0) {
+      result =
+          '${isNegative ? '-' : ''}${hours.toString().padLeft(2, '0')}:$minutes:$seconds.$milliseconds';
+    } else {
+      result = '${isNegative ? '-' : ''}$minutes:$seconds.$milliseconds';
+    }
+    return result;
+  }
+
   String formatOffset() {
     final isNegative = inMicroseconds < 0;
     final positiveDuration = isNegative ? -this : this;
