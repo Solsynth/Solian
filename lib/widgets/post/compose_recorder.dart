@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/services/time.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
@@ -81,8 +83,31 @@ class ComposeRecorder extends HookConsumerWidget {
       if (context.mounted) Navigator.of(context).pop(resultPath.value);
     }
 
+    Future<void> addExistingAudio() async {
+      var result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['mp3', 'm4a', 'wav', 'aac', 'flac', 'ogg', 'opus'],
+        onFileLoading: (status) {
+          if (!context.mounted) return;
+          if (status == FilePickerStatus.picking) {
+            showLoadingModal(context);
+          } else {
+            hideLoadingModal(context);
+          }
+        },
+      );
+      if (result == null || result.count == 0) return;
+      if (context.mounted) Navigator.of(context).pop(result.files.first.path);
+    }
+
     return SheetScaffold(
       titleText: "recordAudio".tr(),
+      actions: [
+        IconButton(
+          onPressed: addExistingAudio,
+          icon: const Icon(Symbols.upload),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
