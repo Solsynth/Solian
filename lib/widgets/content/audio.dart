@@ -12,8 +12,14 @@ import 'package:styled_widget/styled_widget.dart';
 
 class UniversalAudio extends ConsumerStatefulWidget {
   final String uri;
+  final String filename;
   final bool autoplay;
-  const UniversalAudio({super.key, required this.uri, this.autoplay = false});
+  const UniversalAudio({
+    super.key,
+    required this.uri,
+    required this.filename,
+    this.autoplay = false,
+  });
 
   @override
   ConsumerState<UniversalAudio> createState() => _UniversalAudioState();
@@ -107,14 +113,30 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      '${_position.formatShortDuration()} / ${_duration.formatShortDuration()}',
-                    ),
-                  ],
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child:
+                      (_player!.state.playing || _sliderWorking)
+                          ? SizedBox(
+                            width: double.infinity,
+                            key: const ValueKey('playing'),
+                            child: Text(
+                              '${_position.formatShortDuration()} / ${_duration.formatShortDuration()}',
+                            ),
+                          )
+                          : SizedBox(
+                            width: double.infinity,
+                            key: const ValueKey('filename'),
+                            child: Text(
+                              widget.filename.isEmpty
+                                  ? 'Audio'
+                                  : widget.filename,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                 ),
                 Slider(
                   value: _sliderPosition.inMilliseconds.toDouble(),

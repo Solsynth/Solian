@@ -57,7 +57,7 @@ class CloudFileWidget extends ConsumerWidget {
           constraints: BoxConstraints(
             maxWidth: math.min(360, MediaQuery.of(context).size.width * 0.8),
           ),
-          child: UniversalAudio(uri: uri),
+          child: UniversalAudio(uri: uri, filename: item.name),
         ),
       ),
       _ => Text('Unable render for ${item.mimeType}'),

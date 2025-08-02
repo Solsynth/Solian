@@ -91,7 +91,7 @@ class CloudFileList extends HookConsumerWidget {
           minWidth: minWidth ?? 0,
           maxWidth: files.length == 1 ? maxWidth : double.infinity,
         ),
-        height: isAudio ? 180 : null,
+        height: isAudio ? 120 : null,
         child:
             isAudio
                 ? widgetItem
