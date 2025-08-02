@@ -63,6 +63,27 @@ class CloudFileList extends HookConsumerWidget {
     if (files.isEmpty) return const SizedBox.shrink();
     if (files.length == 1) {
       final isImage = files.first.mimeType?.startsWith('image') ?? false;
+      final isAudio = files.first.mimeType?.startsWith('audio') ?? false;
+      final widgetItem = ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: _CloudFileListEntry(
+          file: files.first,
+          heroTag: heroTags.first,
+          isImage: isImage,
+          disableZoomIn: disableZoomIn,
+          onTap: () {
+            if (!isImage) {
+              return;
+            }
+            if (!disableZoomIn) {
+              context.pushTransparentRoute(
+                CloudFileZoomIn(item: files.first, heroTag: heroTags.first),
+                rootNavigator: true,
+              );
+            }
+          },
+        ),
+      );
       return Container(
         padding: padding,
         constraints: BoxConstraints(
@@ -70,29 +91,14 @@ class CloudFileList extends HookConsumerWidget {
           minWidth: minWidth ?? 0,
           maxWidth: files.length == 1 ? maxWidth : double.infinity,
         ),
-        child: AspectRatio(
-          aspectRatio: calculateAspectRatio(),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            child: _CloudFileListEntry(
-              file: files.first,
-              heroTag: heroTags.first,
-              isImage: isImage,
-              disableZoomIn: disableZoomIn,
-              onTap: () {
-                if (!isImage) {
-                  return;
-                }
-                if (!disableZoomIn) {
-                  context.pushTransparentRoute(
-                    CloudFileZoomIn(item: files.first, heroTag: heroTags.first),
-                    rootNavigator: true,
-                  );
-                }
-              },
-            ),
-          ),
-        ),
+        height: isAudio ? 180 : null,
+        child:
+            isAudio
+                ? widgetItem
+                : AspectRatio(
+                  aspectRatio: calculateAspectRatio(),
+                  child: widgetItem,
+                ),
       );
     }
 

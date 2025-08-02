@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -5,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/services/time.dart';
+import 'package:island/widgets/content/audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -48,6 +51,14 @@ class CloudFileWidget extends ConsumerWidget {
       "video" => AspectRatio(
         aspectRatio: ratio,
         child: CloudVideoWidget(item: item),
+      ),
+      "audio" => Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: math.min(360, MediaQuery.of(context).size.width * 0.8),
+          ),
+          child: UniversalAudio(uri: uri),
+        ),
       ),
       _ => Text('Unable render for ${item.mimeType}'),
     };
