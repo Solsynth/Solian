@@ -80,7 +80,7 @@ class _OidcScreenState extends ConsumerState<OidcScreen> {
                             : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
                   ),
                   initialUrlRequest: URLRequest(
-                    url: WebUri('$serverUrl/auth/login/${widget.provider}'),
+                    url: WebUri('$serverUrl/id/auth/login/${widget.provider}'),
                     headers: {
                       if (token?.token.isNotEmpty ?? false)
                         'Authorization': 'AtField ${token!.token}',
@@ -120,7 +120,7 @@ class _OidcScreenState extends ConsumerState<OidcScreen> {
                       final queryParams = url.queryParameters;
 
                       // Check if we're on the token page
-                      if (path.endsWith('/id/auth/callback')) {
+                      if (path.endsWith('/auth/callback')) {
                         // Extract token from URL
                         final challenge = queryParams['challenge'];
                         // Return the token and close the webview
