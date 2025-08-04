@@ -32,12 +32,12 @@ class BadgeItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: (template?.color ?? Colors.blue).withOpacity(0.1),
+          color: (template?.color ?? Colors.blue).withOpacity(0.2),
           shape: BoxShape.circle,
         ),
         child: Icon(
           template?.icon ?? Icons.stars,
-          color: template?.color ?? Colors.orange,
+          color: template?.color ?? Colors.blue,
           size: 20,
         ),
       ),
