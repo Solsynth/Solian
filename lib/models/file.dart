@@ -42,6 +42,7 @@ sealed class SnCloudFile with _$SnCloudFile {
     required String? description,
     required Map<String, dynamic>? fileMeta,
     required Map<String, dynamic>? userMeta,
+    @Default([]) List<int> sensitiveMarks,
     required String? mimeType,
     required String? hash,
     required int size,

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cross_file/cross_file.dart';
@@ -5,14 +6,81 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
+import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
-class AttachmentPreview extends StatelessWidget {
+import 'sensitive.dart';
+
+class SensitiveMarksSelector extends StatefulWidget {
+  final List<int> initial;
+  final ValueChanged<List<int>>? onChanged;
+
+  const SensitiveMarksSelector({
+    super.key,
+    required this.initial,
+    this.onChanged,
+  });
+
+  @override
+  State<SensitiveMarksSelector> createState() => SensitiveMarksSelectorState();
+}
+
+class SensitiveMarksSelectorState extends State<SensitiveMarksSelector> {
+  late List<int> _selected;
+
+  List<int> get current => _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = [...widget.initial];
+  }
+
+  void _toggle(int value) {
+    setState(() {
+      if (_selected.contains(value)) {
+        _selected.remove(value);
+      } else {
+        _selected.add(value);
+      }
+    });
+    widget.onChanged?.call([..._selected]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Build a list of all categories in fixed order as int list indices
+    final categories = kSensitiveCategoriesOrdered;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Wrap(
+          spacing: 8,
+          children: [
+            for (var i = 0; i < categories.length; i++)
+              FilterChip(
+                label: Text(categories[i].i18nKey.tr()),
+                avatar: Text(categories[i].symbol),
+                selected: _selected.contains(i),
+                onSelected: (_) => _toggle(i),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class AttachmentPreview extends HookConsumerWidget {
   final UniversalFile item;
   final double? progress;
   final Function(int)? onMove;
@@ -20,6 +88,7 @@ class AttachmentPreview extends StatelessWidget {
   final Function? onInsert;
   final Function(UniversalFile)? onUpdate;
   final Function? onRequestUpload;
+
   const AttachmentPreview({
     super.key,
     required this.item,
@@ -31,8 +100,166 @@ class AttachmentPreview extends StatelessWidget {
     this.onInsert,
   });
 
+  // GlobalKey for selector
+  static final GlobalKey<SensitiveMarksSelectorState> _sensitiveSelectorKey =
+      GlobalKey<SensitiveMarksSelectorState>();
+
+  Future<void> _showRenameDialog(BuildContext context, WidgetRef ref) async {
+    final nameController = TextEditingController(text: item.data.name);
+    String? errorMessage;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder:
+          (context) => SheetScaffold(
+            heightFactor: 0.6,
+            titleText: 'rename'.tr(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 24,
+                  ),
+                  child: TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'fileName'.tr(),
+                      border: const OutlineInputBorder(),
+                      errorText: errorMessage,
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('cancel'.tr()),
+                    ),
+                    const Gap(8),
+                    TextButton(
+                      onPressed: () async {
+                        final newName = nameController.text.trim();
+                        if (newName.isEmpty) {
+                          errorMessage = 'fieldCannotBeEmpty'.tr();
+                          return;
+                        }
+
+                        try {
+                          showLoadingModal(context);
+                          final apiClient = ref.watch(apiClientProvider);
+                          await apiClient.patch(
+                            '/drive/files/${item.data.id}/name',
+                            data: jsonEncode(newName),
+                          );
+                          final newData = item.data;
+                          newData.name = newName;
+                          final updatedFile = item.copyWith(data: newData);
+                          onUpdate?.call(item.copyWith(data: updatedFile));
+                          if (context.mounted) Navigator.pop(context);
+                        } catch (err) {
+                          showErrorAlert(err);
+                        } finally {
+                          if (context.mounted) hideLoadingModal(context);
+                        }
+                      },
+                      child: Text('rename'.tr()),
+                    ),
+                  ],
+                ).padding(horizontal: 16, vertical: 8),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Future<void> _showSensitiveDialog(BuildContext context, WidgetRef ref) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder:
+          (context) => SheetScaffold(
+            heightFactor: 0.6,
+            titleText: 'markAsSensitive'.tr(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 24,
+                  ),
+                  child: Column(
+                    children: [
+                      // Sensitive categories checklist
+                      SensitiveMarksSelector(
+                        key: _sensitiveSelectorKey,
+                        initial:
+                            (item.data.sensitiveMarks ?? [])
+                                .map((e) => e as int)
+                                .cast<int>()
+                                .toList(),
+                        onChanged: (marks) {
+                          // Update local data immediately (optimistic)
+                          final newData = item.data;
+                          newData.sensitiveMarks = marks;
+                          final updatedFile = item.copyWith(data: newData);
+                          onUpdate?.call(item.copyWith(data: updatedFile));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('cancel'.tr()),
+                    ),
+                    const Gap(8),
+                    TextButton(
+                      onPressed: () async {
+                        try {
+                          showLoadingModal(context);
+                          final apiClient = ref.watch(apiClientProvider);
+                          // Use the current selections from stateful selector via GlobalKey
+                          final selectorState =
+                              _sensitiveSelectorKey.currentState;
+                          final marks = selectorState?.current ?? <int>[];
+                          await apiClient.put(
+                            '/drive/files/${item.data.id}/marks',
+                            data: jsonEncode({'sensitive_marks': marks}),
+                          );
+                          final newData = item.data as SnCloudFile;
+                          final updatedFile = item.copyWith(
+                            data: newData.copyWith(sensitiveMarks: marks),
+                          );
+                          onUpdate?.call(updatedFile);
+                          if (context.mounted) Navigator.pop(context);
+                        } catch (err) {
+                          showErrorAlert(err);
+                        } finally {
+                          if (context.mounted) hideLoadingModal(context);
+                        }
+                      },
+                      child: Text('confirm'.tr()),
+                    ),
+                  ],
+                ).padding(horizontal: 16, vertical: 8),
+              ],
+            ),
+          ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     var ratio =
         item.isOnCloud
             ? (item.data.fileMeta?['ratio'] is num
@@ -279,6 +506,22 @@ class AttachmentPreview extends StatelessWidget {
                     );
                     if (result == null) return;
                     onUpdate?.call(item.copyWith(data: result));
+                  },
+                ),
+              if (item.isOnCloud)
+                MenuAction(
+                  title: 'rename'.tr(),
+                  image: MenuImage.icon(Symbols.edit),
+                  callback: () async {
+                    await _showRenameDialog(context, ref);
+                  },
+                ),
+              if (item.isOnCloud)
+                MenuAction(
+                  title: 'markAsSensitive'.tr(),
+                  image: MenuImage.icon(Symbols.no_adult_content),
+                  callback: () async {
+                    await _showSensitiveDialog(context, ref);
                   },
                 ),
             ],
