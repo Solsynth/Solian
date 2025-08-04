@@ -446,9 +446,8 @@ class CloudFileZoomIn extends HookConsumerWidget {
                         showOriginal.value = !showOriginal.value;
                       },
                       icon: Icon(
-                        showOriginal.value ? Symbols.raw_on : Symbols.raw_off,
+                        showOriginal.value ? Symbols.hd : Symbols.sd,
                         color: Colors.white,
-                        size: 24,
                         shadows: [
                           Shadow(
                             color: Colors.black54,
