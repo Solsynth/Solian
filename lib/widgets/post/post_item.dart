@@ -458,6 +458,24 @@ class PostItem extends HookConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if ((item.title?.isNotEmpty ?? false) ||
+                    (item.description?.isNotEmpty ?? false))
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (item.title?.isNotEmpty ?? false)
+                        Text(
+                          item.title!,
+                          style: Theme.of(context).textTheme.titleMedium!
+                              .copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      if (item.description?.isNotEmpty ?? false)
+                        Text(
+                          item.description!,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                    ],
+                  ).padding(bottom: 4),
                 MarkdownTextContent(
                   content:
                       item.isTruncated ? '${item.content!}...' : item.content!,

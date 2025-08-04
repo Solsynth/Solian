@@ -205,7 +205,7 @@ class _OidcScreenState extends ConsumerState<OidcScreen> {
                       onPressed: () {
                         if (currentUrl != null) {
                           Clipboard.setData(ClipboardData(text: currentUrl!));
-                          showSnackBar('copyToClipboard');
+                          showSnackBar('copyToClipboard'.tr());
                         }
                       },
                     ),

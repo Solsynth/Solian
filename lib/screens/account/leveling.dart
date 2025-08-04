@@ -280,7 +280,7 @@ class LevelingScreen extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.watch(apiClientProvider);
-        await client.post('/subscriptions/${membership.identifier}/cancel');
+        await client.post('/id/subscriptions/${membership.identifier}/cancel');
         ref.invalidate(accountStellarSubscriptionProvider);
         ref.read(userInfoProvider.notifier).fetchUser();
         if (context.mounted) {
@@ -603,7 +603,7 @@ class LevelingScreen extends HookConsumerWidget {
     try {
       showLoadingModal(context);
       final resp = await client.post(
-        '/subscriptions',
+        '/id/subscriptions',
         data: {
           'identifier': tierId,
           'payment_method': 'solian.wallet',
@@ -615,7 +615,7 @@ class LevelingScreen extends HookConsumerWidget {
       final subscription = SnWalletSubscription.fromJson(resp.data);
       if (subscription.status == 1) return;
       final orderResp = await client.post(
-        '/subscriptions/${subscription.identifier}/order',
+        '/id/subscriptions/${subscription.identifier}/order',
       );
       final order = SnWalletOrder.fromJson(orderResp.data);
 
@@ -633,7 +633,7 @@ class LevelingScreen extends HookConsumerWidget {
 
       if (paidOrder != null) {
         await client.post(
-          '/subscriptions/order/handle',
+          '/id/subscriptions/order/handle',
           data: {'order_id': paidOrder.id},
         );
 
