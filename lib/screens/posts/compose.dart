@@ -238,6 +238,8 @@ class PostComposeScreen extends HookConsumerWidget {
             onRequestUpload:
                 () => ComposeLogic.uploadAttachment(ref, state, idx),
             onDelete: () => ComposeLogic.deleteAttachment(ref, state, idx),
+            onUpdate:
+                (value) => ComposeLogic.updateAttachment(state, value, idx),
             onMove: (delta) {
               state.attachments.value = ComposeLogic.moveAttachment(
                 state.attachments.value,
@@ -265,6 +267,9 @@ class PostComposeScreen extends HookConsumerWidget {
                       () => ComposeLogic.uploadAttachment(ref, state, idx),
                   onDelete:
                       () => ComposeLogic.deleteAttachment(ref, state, idx),
+                  onUpdate:
+                      (value) =>
+                          ComposeLogic.updateAttachment(state, value, idx),
                   onMove: (delta) {
                     state.attachments.value = ComposeLogic.moveAttachment(
                       state.attachments.value,

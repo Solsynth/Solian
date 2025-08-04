@@ -9,7 +9,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/embed.dart';
 import 'package:island/models/post.dart';
-import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/pods/userinfo.dart';
@@ -179,7 +178,7 @@ class PostActionableItem extends HookConsumerWidget {
               callback: () {
                 showShareSheetLink(
                   context: context,
-                  link: '${ref.read(serverUrlProvider)}/posts/${item.id}',
+                  link: 'https://solian.app/posts/${item.id}',
                   title: 'sharePost'.tr(),
                   toSystem: true,
                 );
@@ -410,7 +409,9 @@ class PostItem extends HookConsumerWidget {
         if (!isFullPost && item.type == 1)
           Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).dividerColor),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.5),
+              ),
               borderRadius: const BorderRadius.all(Radius.circular(16)),
             ),
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -596,7 +597,7 @@ Widget _buildReferencePost(
       color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-        color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+        color: Theme.of(context).dividerColor.withOpacity(0.5),
       ),
     ),
     child: Column(
@@ -912,7 +913,9 @@ class PostReplyPreview extends HookConsumerWidget {
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerLow,
-                border: Border.all(color: Theme.of(context).dividerColor),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor.withOpacity(0.5),
+                ),
                 borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
               child: Column(

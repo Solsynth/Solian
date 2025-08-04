@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
@@ -14,11 +13,9 @@ import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/post/compose_link_attachments.dart';
 import 'package:island/widgets/post/compose_recorder.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:pasteboard/pasteboard.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 import 'dart:async';
 import 'dart:developer';
@@ -424,88 +421,39 @@ class ComposeLogic {
     ComposeState state,
     BuildContext context,
   ) async {
-    final TextEditingController idController = TextEditingController();
-    String? errorMessage;
-
-    await showModalBottomSheet(
+    final cloudFile = await showModalBottomSheet<SnCloudFile?>(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return SheetScaffold(
-              titleText: 'linkAttachment'.tr(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextField(
-                    controller: idController,
-                    decoration: InputDecoration(
-                      labelText: 'fileId'.tr(),
-                      helperText: 'fileIdHint'.tr(),
-                      helperMaxLines: 3,
-                      errorText: errorMessage,
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const Gap(16),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      icon: const Icon(Symbols.add),
-                      label: Text('add'.tr()),
-                      onPressed: () async {
-                        final fileId = idController.text.trim();
-                        if (fileId.isEmpty) {
-                          setState(() {
-                            errorMessage = 'fileIdCannotBeEmpty'.tr();
-                          });
-                          return;
-                        }
-
-                        try {
-                          final client = ref.read(apiClientProvider);
-                          final response = await client.get(
-                            '/drive/files/$fileId/info',
-                          );
-                          final SnCloudFile cloudFile = SnCloudFile.fromJson(
-                            response.data,
-                          );
-
-                          state.attachments.value = [
-                            ...state.attachments.value,
-                            UniversalFile(
-                              data: cloudFile,
-                              type: switch (cloudFile.mimeType
-                                  ?.split('/')
-                                  .firstOrNull) {
-                                'image' => UniversalFileType.image,
-                                'video' => UniversalFileType.video,
-                                'audio' => UniversalFileType.audio,
-                                _ => UniversalFileType.file,
-                              },
-                            ),
-                          ];
-                          if (context.mounted) {
-                            Navigator.of(dialogContext).pop();
-                          }
-                        } catch (e) {
-                          setState(() {
-                            errorMessage = 'failedToFetchFile'.tr(
-                              args: [e.toString()],
-                            );
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ).padding(horizontal: 24, vertical: 24),
-            );
-          },
-        );
-      },
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => ComposeLinkAttachment(),
     );
+    if (cloudFile == null) return;
+
+    state.attachments.value = [
+      ...state.attachments.value,
+      UniversalFile(
+        data: cloudFile,
+        type: switch (cloudFile.mimeType?.split('/').firstOrNull) {
+          'image' => UniversalFileType.image,
+          'video' => UniversalFileType.video,
+          'audio' => UniversalFileType.audio,
+          _ => UniversalFileType.file,
+        },
+        isLink: true,
+      ),
+    ];
+  }
+
+  static void updateAttachment(
+    ComposeState state,
+    UniversalFile value,
+    int index,
+  ) {
+    state.attachments.value =
+        state.attachments.value.mapIndexed((idx, ele) {
+          if (idx == index) return value;
+          return ele;
+        }).toList();
   }
 
   static Future<void> uploadAttachment(
@@ -581,7 +529,7 @@ class ComposeLogic {
     int index,
   ) async {
     final attachment = state.attachments.value[index];
-    if (attachment.isOnCloud) {
+    if (attachment.isOnCloud && !attachment.isLink) {
       final client = ref.watch(apiClientProvider);
       await client.delete('/drive/files/${attachment.data.id}');
     }

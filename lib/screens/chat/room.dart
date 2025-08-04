@@ -1070,6 +1070,10 @@ class _ChatInput extends HookConsumerWidget {
                     item: attachments[idx],
                     onRequestUpload: () => onUploadAttachment(idx),
                     onDelete: () => onDeleteAttachment(idx),
+                    onUpdate: (value) {
+                      attachments[idx] = value;
+                      onAttachmentsChanged(attachments);
+                    },
                     onMove: (delta) => onMoveAttachment(idx, delta),
                   );
                 },

@@ -126,7 +126,7 @@ class ComposeRecorder extends HookConsumerWidget {
                 ),
               ),
             ),
-          ),
+          ).padding(horizontal: 24),
           const Gap(12),
           IconButton.filled(
             onPressed: recording.value ? stopRecord : startRecord,

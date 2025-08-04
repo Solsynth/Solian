@@ -83,7 +83,7 @@ class PublisherCard extends ConsumerWidget {
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],

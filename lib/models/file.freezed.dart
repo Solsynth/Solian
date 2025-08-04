@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UniversalFile {
 
- dynamic get data; UniversalFileType get type;
+ dynamic get data; UniversalFileType get type; bool get isLink;
 /// Create a copy of UniversalFile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $UniversalFileCopyWith<UniversalFile> get copyWith => _$UniversalFileCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UniversalFile&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.type, type) || other.type == type));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UniversalFile&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.type, type) || other.type == type)&&(identical(other.isLink, isLink) || other.isLink == isLink));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data),type);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data),type,isLink);
 
 @override
 String toString() {
-  return 'UniversalFile(data: $data, type: $type)';
+  return 'UniversalFile(data: $data, type: $type, isLink: $isLink)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $UniversalFileCopyWith<$Res>  {
   factory $UniversalFileCopyWith(UniversalFile value, $Res Function(UniversalFile) _then) = _$UniversalFileCopyWithImpl;
 @useResult
 $Res call({
- dynamic data, UniversalFileType type
+ dynamic data, UniversalFileType type, bool isLink
 });
 
 
@@ -65,11 +65,12 @@ class _$UniversalFileCopyWithImpl<$Res>
 
 /// Create a copy of UniversalFile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? data = freezed,Object? type = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? data = freezed,Object? type = null,Object? isLink = null,}) {
   return _then(_self.copyWith(
 data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as dynamic,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as UniversalFileType,
+as UniversalFileType,isLink: null == isLink ? _self.isLink : isLink // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -151,10 +152,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( dynamic data,  UniversalFileType type)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( dynamic data,  UniversalFileType type,  bool isLink)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UniversalFile() when $default != null:
-return $default(_that.data,_that.type);case _:
+return $default(_that.data,_that.type,_that.isLink);case _:
   return orElse();
 
 }
@@ -172,10 +173,10 @@ return $default(_that.data,_that.type);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( dynamic data,  UniversalFileType type)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( dynamic data,  UniversalFileType type,  bool isLink)  $default,) {final _that = this;
 switch (_that) {
 case _UniversalFile():
-return $default(_that.data,_that.type);}
+return $default(_that.data,_that.type,_that.isLink);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -189,10 +190,10 @@ return $default(_that.data,_that.type);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( dynamic data,  UniversalFileType type)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( dynamic data,  UniversalFileType type,  bool isLink)?  $default,) {final _that = this;
 switch (_that) {
 case _UniversalFile() when $default != null:
-return $default(_that.data,_that.type);case _:
+return $default(_that.data,_that.type,_that.isLink);case _:
   return null;
 
 }
@@ -204,11 +205,12 @@ return $default(_that.data,_that.type);case _:
 @JsonSerializable()
 
 class _UniversalFile extends UniversalFile {
-  const _UniversalFile({required this.data, required this.type}): super._();
+  const _UniversalFile({required this.data, required this.type, this.isLink = false}): super._();
   factory _UniversalFile.fromJson(Map<String, dynamic> json) => _$UniversalFileFromJson(json);
 
 @override final  dynamic data;
 @override final  UniversalFileType type;
+@override@JsonKey() final  bool isLink;
 
 /// Create a copy of UniversalFile
 /// with the given fields replaced by the non-null parameter values.
@@ -223,16 +225,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UniversalFile&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.type, type) || other.type == type));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UniversalFile&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.type, type) || other.type == type)&&(identical(other.isLink, isLink) || other.isLink == isLink));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data),type);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data),type,isLink);
 
 @override
 String toString() {
-  return 'UniversalFile(data: $data, type: $type)';
+  return 'UniversalFile(data: $data, type: $type, isLink: $isLink)';
 }
 
 
@@ -243,7 +245,7 @@ abstract mixin class _$UniversalFileCopyWith<$Res> implements $UniversalFileCopy
   factory _$UniversalFileCopyWith(_UniversalFile value, $Res Function(_UniversalFile) _then) = __$UniversalFileCopyWithImpl;
 @override @useResult
 $Res call({
- dynamic data, UniversalFileType type
+ dynamic data, UniversalFileType type, bool isLink
 });
 
 
@@ -260,11 +262,12 @@ class __$UniversalFileCopyWithImpl<$Res>
 
 /// Create a copy of UniversalFile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? data = freezed,Object? type = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? data = freezed,Object? type = null,Object? isLink = null,}) {
   return _then(_UniversalFile(
 data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as dynamic,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as UniversalFileType,
+as UniversalFileType,isLink: null == isLink ? _self.isLink : isLink // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

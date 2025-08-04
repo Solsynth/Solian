@@ -308,6 +308,13 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                           state,
                                           idx,
                                         ),
+                                    onUpdate:
+                                        (value) =>
+                                            ComposeLogic.updateAttachment(
+                                              state,
+                                              value,
+                                              idx,
+                                            ),
                                     onDelete:
                                         () => ComposeLogic.deleteAttachment(
                                           ref,

@@ -12,6 +12,7 @@ sealed class UniversalFile with _$UniversalFile {
   const factory UniversalFile({
     required dynamic data,
     required UniversalFileType type,
+    @Default(false) bool isLink,
   }) = _UniversalFile;
 
   factory UniversalFile.fromJson(Map<String, dynamic> json) =>

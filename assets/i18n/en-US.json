@@ -733,5 +733,8 @@
   "reconnecting": "Reconnecting",
   "disconnected": "Disconnected",
   "connected": "Connected",
-  "repliesLoadMore": "Load more replies"
+  "repliesLoadMore": "Load more replies",
+  "attachmentsRecentUploads": "Recent Uploads",
+  "attachmentsManualInput": "Manual Input",
+  "crop": "Crop"
 }

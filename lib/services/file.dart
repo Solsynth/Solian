@@ -15,6 +15,7 @@ Future<XFile?> cropImage(
   BuildContext context, {
   required XFile image,
   List<CropAspectRatio?>? allowedAspectRatios,
+  bool replacePath = false,
 }) async {
   final result = await showMaterialImageCropper(
     context,
@@ -34,7 +35,7 @@ Future<XFile?> cropImage(
   croppedFile.dispose();
   return XFile.fromData(
     croppedBytes.buffer.asUint8List(),
-    path: image.path,
+    path: !replacePath ? image.path : null,
     mimeType: image.mimeType,
   );
 }

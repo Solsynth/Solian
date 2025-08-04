@@ -93,7 +93,7 @@ class WebArticleCard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             height: 1.3,
                           ),
-                          maxLines: showDetails ? 3 : 2,
+                          maxLines: showDetails ? 3 : 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (showDetails &&
@@ -125,6 +125,8 @@ class WebArticleCard extends StatelessWidget {
                             fontSize: 9,
                             color: Colors.white70,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
