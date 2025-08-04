@@ -33,6 +33,7 @@ class SheetScaffold extends StatelessWidget {
         );
 
     return Container(
+      padding: MediaQuery.of(context).viewInsets,
       constraints: BoxConstraints(
         maxHeight: height ?? MediaQuery.of(context).size.height * heightFactor,
       ),

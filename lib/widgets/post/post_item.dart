@@ -864,22 +864,22 @@ class PostReplyPreview extends HookConsumerWidget {
             : featuredReply!.when(
               data:
                   (value) => Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     spacing: 8,
                     children: [
                       ProfilePictureWidget(
-                        file: value!.publisher.picture,
+                        file: value?.publisher.picture,
                         radius: 12,
                       ).padding(top: 4),
-                      if (value.content?.isNotEmpty ?? false)
+                      if (value?.content?.isNotEmpty ?? false)
                         Expanded(
-                          child: MarkdownTextContent(content: value.content!),
+                          child: MarkdownTextContent(content: value!.content!),
                         )
                       else
                         Expanded(
                           child: Text(
                             'postHasAttachments',
-                          ).plural(value.attachments.length),
+                          ).plural(value?.attachments.length ?? 0),
                         ),
                     ],
                   ),
