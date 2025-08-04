@@ -737,5 +737,21 @@
   "repliesLoadMore": "Load more replies",
   "attachmentsRecentUploads": "Recent Uploads",
   "attachmentsManualInput": "Manual Input",
-  "crop": "Crop"
+  "crop": "Crop",
+  "rename": "Rename",
+  "markAsSensitive": "Mark as Sensitive",
+  "fileName": "File name",
+  "sensitiveCategories.language": "Language",
+  "sensitiveCategories.sexualContent": "Sexual Content",
+  "sensitiveCategories.violence": "Violence",
+  "sensitiveCategories.profanity": "Profanity",
+  "sensitiveCategories.hateSpeech": "Hate Speech",
+  "sensitiveCategories.racism": "Racism",
+  "sensitiveCategories.adultContent": "Adult Content",
+  "sensitiveCategories.drugAbuse": "Drug Abuse",
+  "sensitiveCategories.alcoholAbuse": "Alcohol Abuse",
+  "sensitiveCategories.gambling": "Gambling",
+  "sensitiveCategories.selfHarm": "Self-harm",
+  "sensitiveCategories.childAbuse": "Child Abuse",
+  "sensitiveCategories.other": "Other"
 }
