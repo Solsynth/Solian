@@ -670,11 +670,9 @@ class ComposeLogic {
       // Send request
       await client.request(
         endpoint,
+        queryParameters: {'pub': state.currentPublisher.value?.name},
         data: payload,
-        options: Options(
-          headers: {'X-Pub': state.currentPublisher.value?.name},
-          method: isNewPost ? 'POST' : 'PATCH',
-        ),
+        options: Options(method: isNewPost ? 'POST' : 'PATCH'),
       );
 
       // Delete draft after successful submission

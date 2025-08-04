@@ -18,6 +18,7 @@ import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -233,25 +234,36 @@ class PublisherProfileScreen extends HookConsumerWidget {
       ],
     ).padding(horizontal: 24, top: 24);
 
-    Widget publisherVerificationWidget(SnPublisher data) => Card(
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Column(
-        children: [
-          if (badges.value?.isNotEmpty ?? false)
-            BadgeList(badges: badges.value!).padding(top: 16),
-          if (data.verification != null)
-            VerificationStatusCard(mark: data.verification!),
-        ],
-      ),
-    ).padding(top: 16);
+    Widget publisherBadgesWidget(SnPublisher data) =>
+        (badges.value?.isNotEmpty ?? false)
+            ? Card(
+              child: BadgeList(
+                badges: badges.value!,
+              ).padding(horizontal: 26, vertical: 20),
+            ).padding(horizontal: 4)
+            : const SizedBox.shrink();
 
-    Widget publisherDetailWidget(SnPublisher data) => Card(
+    Widget publisherVerificationWidget(SnPublisher data) =>
+        (data.verification != null)
+            ? Card(
+              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: VerificationStatusCard(mark: data.verification!),
+            )
+            : const SizedBox.shrink();
+
+    Widget publisherBioWidget(SnPublisher data) => Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('bio').tr().bold().padding(bottom: 2),
-          Text(data.bio.isEmpty ? 'descriptionNone'.tr() : data.bio),
+          Text('bio').tr().bold().fontSize(15).padding(bottom: 8),
+          if (data.bio.isEmpty)
+            Text('descriptionNone').tr().italic()
+          else
+            MarkdownTextContent(
+              content: data.bio,
+              linesMargin: EdgeInsets.zero,
+            ),
         ],
       ).padding(horizontal: 20, vertical: 16),
     );
@@ -325,8 +337,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   publisherBasisWidget(data),
+                                  publisherBadgesWidget(data),
                                   publisherVerificationWidget(data),
-                                  publisherDetailWidget(data),
+                                  publisherBioWidget(data),
                                 ],
                               ),
                             ),
@@ -377,11 +390,14 @@ class PublisherProfileScreen extends HookConsumerWidget {
                             ],
                           ),
                         ),
-                        SliverToBoxAdapter(child: publisherBasisWidget(data)),
+                        SliverToBoxAdapter(
+                          child: publisherBasisWidget(data).padding(bottom: 8),
+                        ),
+                        SliverToBoxAdapter(child: publisherBadgesWidget(data)),
                         SliverToBoxAdapter(
                           child: publisherVerificationWidget(data),
                         ),
-                        SliverToBoxAdapter(child: publisherDetailWidget(data)),
+                        SliverToBoxAdapter(child: publisherBioWidget(data)),
                         SliverPostList(pubName: name),
                         SliverGap(MediaQuery.of(context).padding.bottom + 16),
                       ],
