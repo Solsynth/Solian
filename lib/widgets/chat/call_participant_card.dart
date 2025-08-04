@@ -41,6 +41,7 @@ class CallParticipantCard extends HookConsumerWidget {
                     const Gap(8),
                     Expanded(
                       child: Slider(
+                        max: 2,
                         value: volumeSliderValue.value,
                         onChanged: (value) {
                           volumeSliderValue.value = value;
@@ -52,9 +53,12 @@ class CallParticipantCard extends HookConsumerWidget {
                         padding: EdgeInsets.zero,
                       ),
                     ),
-                    const Gap(8),
-                    Text(
-                      '${(volumeSliderValue.value * 100).toStringAsFixed(0)}%',
+                    const Gap(16),
+                    SizedBox(
+                      width: 40,
+                      child: Text(
+                        '${(volumeSliderValue.value * 100).toStringAsFixed(0)}%',
+                      ),
                     ),
                   ],
                 ),
