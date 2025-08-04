@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'image.dart';
 import 'video.dart';
 
-class CloudFileWidget extends ConsumerWidget {
+class CloudFileWidget extends HookConsumerWidget {
   final SnCloudFile item;
   final BoxFit fit;
   final String? heroTag;
@@ -37,7 +38,7 @@ class CloudFileWidget extends ConsumerWidget {
             ? item.fileMeta!['ratio'].toDouble()
             : 1.0;
     if (ratio == 0) ratio = 1.0;
-    final content = switch (item.mimeType?.split('/').firstOrNull) {
+    var content = switch (item.mimeType?.split('/').firstOrNull) {
       "image" => AspectRatio(
         aspectRatio: ratio,
         child: UniversalImage(
@@ -64,7 +65,7 @@ class CloudFileWidget extends ConsumerWidget {
     };
 
     if (heroTag != null) {
-      return Hero(tag: heroTag!, child: content);
+      content = Hero(tag: heroTag!, child: content);
     }
 
     return content;

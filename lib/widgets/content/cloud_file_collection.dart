@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:dismissible_page/dismissible_page.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -13,6 +14,7 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sensitive.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path/path.dart' show extension;
@@ -558,7 +560,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
   }
 }
 
-class _CloudFileListEntry extends StatelessWidget {
+class _CloudFileListEntry extends HookConsumerWidget {
   final SnCloudFile file;
   final String heroTag;
   final bool isImage;
@@ -574,8 +576,10 @@ class _CloudFileListEntry extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final content = Stack(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showMature = useState(false);
+
+    var content = Stack(
       fit: StackFit.expand,
       children: [
         if (isImage)
@@ -600,10 +604,133 @@ class _CloudFileListEntry extends StatelessWidget {
       ],
     );
 
+    if (file.sensitiveMarks.isNotEmpty) {
+      // Show a blurred overlay only when not revealed yet, with a smooth transition
+      content = Stack(
+        children: [
+          content,
+          // Toggle blur overlay with animation
+          Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              layoutBuilder:
+                  (currentChild, previousChildren) => Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ...previousChildren,
+                      if (currentChild != null) currentChild,
+                    ],
+                  ),
+              child:
+                  showMature.value
+                      ? const SizedBox.shrink(key: ValueKey('revealed'))
+                      : ColoredBox(
+                        key: const ValueKey('blurred'),
+                        color: Colors.transparent,
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 64, sigmaY: 64),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              const ColoredBox(color: Colors.transparent),
+                              Center(
+                                child: Container(
+                                  margin: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 280,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.warning,
+                                          color: Colors.white,
+                                          fill: 1,
+                                          size: 24,
+                                        ),
+                                        const Gap(4),
+                                        Text(
+                                          'Sensitive Content',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        // Show categories for sensitive content
+                                        Text(
+                                          file.sensitiveMarks
+                                              .map(
+                                                (e) =>
+                                                    SensitiveCategory
+                                                        .values[e]
+                                                        .i18nKey
+                                                        .tr(),
+                                              )
+                                              .join(' · '),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const Gap(4),
+                                        Text(
+                                          'Tap to Reveal',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+            ),
+          ),
+          // When revealed (no blur), show a small control at top-left to re-enable blur
+          if (showMature.value)
+            Positioned(
+              top: 3,
+              left: 4,
+              child: IconButton(
+                iconSize: 16,
+                constraints: const BoxConstraints(),
+                icon: const Icon(Icons.visibility_off, color: Colors.white),
+                tooltip: 'Blur content',
+                onPressed: () {
+                  showMature.value = false;
+                },
+              ),
+            ),
+        ],
+      );
+    }
+
     if (onTap != null) {
       return InkWell(
         borderRadius: const BorderRadius.all(Radius.circular(16)),
-        onTap: onTap,
+        onTap: () {
+          if (!showMature.value) {
+            showMature.value = true;
+          } else {
+            onTap?.call();
+          }
+        },
         child: content,
       );
     }
