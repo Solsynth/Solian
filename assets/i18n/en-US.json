@@ -151,6 +151,7 @@
   "recordAudio": "Record Audio",
   "linkAttachment": "Link Attachment",
   "fileIdCannotBeEmpty": "File ID cannot be empty",
+  "fileIdLinkHint": "Haven't upload to the Solar Network? Tap here to open Solar Network Drive to customize your uploads.",
   "failedToFetchFile": "Failed to fetch file: {}",
   "createDirectMessage": "Send new DM",
   "gotoDirectMessage": "Go to DM",

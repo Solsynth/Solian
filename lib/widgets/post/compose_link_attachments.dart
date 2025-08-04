@@ -11,6 +11,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 part 'compose_link_attachments.g.dart';
 
@@ -82,7 +83,7 @@ class ComposeLinkAttachment extends HookConsumerWidget {
                     notifierRefreshable: cloudFileListNotifierProvider.notifier,
                     contentBuilder:
                         (data, widgetCount, endItemView) => ListView.builder(
-                          padding: EdgeInsets.zero,
+                          padding: EdgeInsets.only(top: 8),
                           itemCount: widgetCount,
                           itemBuilder: (context, index) {
                             if (index == widgetCount - 1) {
@@ -133,6 +134,7 @@ class ComposeLinkAttachment extends HookConsumerWidget {
                   ),
                   SingleChildScrollView(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextField(
                           controller: idController,
@@ -147,6 +149,15 @@ class ComposeLinkAttachment extends HookConsumerWidget {
                               (_) =>
                                   FocusManager.instance.primaryFocus?.unfocus(),
                         ),
+                        const Gap(16),
+                        InkWell(
+                          child: Text(
+                            'fileIdLinkHint',
+                          ).tr().fontSize(13).opacity(0.85),
+                          onTap: () {
+                            launchUrlString('https://fs.solian.app');
+                          },
+                        ).padding(horizontal: 14),
                         const Gap(16),
                         Align(
                           alignment: Alignment.centerRight,
