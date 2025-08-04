@@ -661,14 +661,6 @@ class _CloudFileListEntry extends HookConsumerWidget {
                                         ),
                                         const Gap(4),
                                         Text(
-                                          'Sensitive Content',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        // Show categories for sensitive content
-                                        Text(
                                           file.sensitiveMarks
                                               .map(
                                                 (e) =>
@@ -680,8 +672,16 @@ class _CloudFileListEntry extends HookConsumerWidget {
                                               .join(' · '),
                                           style: const TextStyle(
                                             color: Colors.white,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                           textAlign: TextAlign.center,
+                                        ),
+                                        Text(
+                                          'Sensitive Content',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                          ),
                                         ),
                                         const Gap(4),
                                         Text(
@@ -693,7 +693,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
                                         ),
                                       ],
                                     ),
-                                  ),
+                                  ).padding(horizontal: 24, vertical: 16),
                                 ),
                               ),
                             ],
