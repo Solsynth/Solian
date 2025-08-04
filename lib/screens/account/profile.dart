@@ -23,10 +23,12 @@ import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'profile.g.dart';
@@ -264,66 +266,89 @@ class AccountProfileScreen extends HookConsumerWidget {
                   children: [
                     AccountName(account: data, style: TextStyle(fontSize: 20)),
                     const Gap(6),
-                    Text('@${data.name}').fontSize(14).opacity(0.85),
+                    Flexible(
+                      child: Text(
+                        '@${data.name}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ).fontSize(14).opacity(0.85),
+                    ),
                   ],
                 ),
                 AccountStatusWidget(uname: name, padding: EdgeInsets.zero),
               ],
             ),
           ),
+          IconButton(
+            onPressed: () {
+              SharePlus.instance.share(
+                ShareParams(
+                  uri: Uri.parse('https://id.solian.app/@${data.name}'),
+                ),
+              );
+            },
+            icon: const Icon(Symbols.share),
+          ),
         ],
       ),
     );
 
-    Widget accountProfileDetail(SnAccount data) => Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 24,
-      children: [
-        if (buildSubcolumn(data).isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 2,
-            children: buildSubcolumn(data),
-          ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('bio').tr().bold(),
-            Text(
-              data.profile.bio.isEmpty
-                  ? 'descriptionNone'.tr()
-                  : data.profile.bio,
+    Widget accountProfileBio(SnAccount data) => Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('bio').tr().bold().fontSize(15).padding(bottom: 8),
+          if (data.profile.bio.isEmpty)
+            Text('descriptionNone').tr().italic()
+          else
+            MarkdownTextContent(
+              content: data.profile.bio,
+              linesMargin: EdgeInsets.zero,
             ),
-          ],
-        ),
-        if (data.profile.timeZone.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('timeZone').tr().bold(),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                spacing: 6,
-                children: [
-                  Text(data.profile.timeZone),
-                  Text(
-                    getTzInfo(
-                      data.profile.timeZone,
-                    ).$2.formatCustomGlobal('HH:mm'),
-                  ),
-                  Text(
-                    getTzInfo(data.profile.timeZone).$1.formatOffsetLocal(),
-                  ).fontSize(11),
-                  Text(
-                    'UTC${getTzInfo(data.profile.timeZone).$1.formatOffset()}',
-                  ).fontSize(11).opacity(0.75),
-                ],
-              ),
-            ],
-          ),
-      ],
-    ).padding(horizontal: 24);
+        ],
+      ).padding(horizontal: 24, vertical: 20),
+    );
+
+    Widget accountProfileDetail(SnAccount data) => Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 24,
+        children: [
+          if (buildSubcolumn(data).isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 2,
+              children: buildSubcolumn(data),
+            ),
+          if (data.profile.timeZone.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('timeZone').tr().bold(),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  spacing: 6,
+                  children: [
+                    Text(data.profile.timeZone),
+                    Text(
+                      getTzInfo(
+                        data.profile.timeZone,
+                      ).$2.formatCustomGlobal('HH:mm'),
+                    ),
+                    Text(
+                      getTzInfo(data.profile.timeZone).$1.formatOffsetLocal(),
+                    ).fontSize(11),
+                    Text(
+                      'UTC${getTzInfo(data.profile.timeZone).$1.formatOffset()}',
+                    ).fontSize(11).opacity(0.75),
+                  ],
+                ),
+              ],
+            ),
+        ],
+      ).padding(horizontal: 24, vertical: 16),
+    );
 
     Widget accountAction(SnAccount data) => Card(
       child: Column(
@@ -390,7 +415,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                   ),
                 ),
             ],
-          ).padding(horizontal: 16),
+          ),
           Row(
             spacing: 8,
             children: [
@@ -498,11 +523,19 @@ class AccountProfileScreen extends HookConsumerWidget {
                                       progress: data.profile.levelingProgress,
                                     ),
                                     if (data.profile.verification != null)
-                                      VerificationStatusCard(
-                                        mark: data.profile.verification!,
+                                      Card(
+                                        child: VerificationStatusCard(
+                                          mark: data.profile.verification!,
+                                        ),
                                       ),
                                   ],
-                                ).padding(horizontal: 20),
+                                ).padding(horizontal: 4, top: 8),
+                              ),
+                              SliverToBoxAdapter(
+                                child: accountProfileBio(data).padding(top: 4),
+                              ),
+                              SliverToBoxAdapter(
+                                child: accountProfileDetail(data),
                               ),
                             ],
                           ),
@@ -510,10 +543,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                         Flexible(
                           child: CustomScrollView(
                             slivers: [
-                              SliverToBoxAdapter(
-                                child: accountProfileDetail(data),
-                              ),
-
+                              SliverGap(24),
                               if (user.value != null)
                                 SliverToBoxAdapter(child: accountAction(data)),
                               SliverToBoxAdapter(
@@ -521,14 +551,15 @@ class AccountProfileScreen extends HookConsumerWidget {
                                   child: FortuneGraphWidget(
                                     events: accountEvents,
                                     eventCalanderUser: data.name,
+                                    margin: EdgeInsets.zero,
                                   ),
-                                ).padding(all: 8),
+                                ),
                               ),
                             ],
                           ),
                         ),
                       ],
-                    )
+                    ).padding(horizontal: 24)
                     : CustomScrollView(
                       slivers: [
                         SliverAppBar(
@@ -579,34 +610,40 @@ class AccountProfileScreen extends HookConsumerWidget {
                           ),
                         SliverToBoxAdapter(
                           child: Column(
-                            spacing: 12,
                             children: [
                               LevelingProgressCard(
                                 level: data.profile.level,
                                 experience: data.profile.experience,
                                 progress: data.profile.levelingProgress,
-                              ),
+                              ).padding(top: 8, horizontal: 8, bottom: 4),
                               if (data.profile.verification != null)
-                                VerificationStatusCard(
-                                  mark: data.profile.verification!,
-                                ),
+                                Card(
+                                  child: VerificationStatusCard(
+                                    mark: data.profile.verification!,
+                                  ),
+                                ).padding(horizontal: 4),
                             ],
-                          ).padding(horizontal: 20),
+                          ),
                         ),
-
-                        SliverToBoxAdapter(child: accountProfileDetail(data)),
-
-                        if (user.value != null)
-                          SliverToBoxAdapter(child: accountAction(data)),
                         SliverToBoxAdapter(
-                          child: Column(
-                            children: [
-                              FortuneGraphWidget(
-                                events: accountEvents,
-                                eventCalanderUser: data.name,
-                              ),
-                            ],
-                          ).padding(all: 8),
+                          child: accountProfileBio(data).padding(horizontal: 4),
+                        ),
+                        SliverToBoxAdapter(
+                          child: accountProfileDetail(
+                            data,
+                          ).padding(horizontal: 4),
+                        ),
+                        if (user.value != null)
+                          SliverToBoxAdapter(
+                            child: accountAction(data).padding(horizontal: 4),
+                          ),
+                        SliverToBoxAdapter(
+                          child: Card(
+                            child: FortuneGraphWidget(
+                              events: accountEvents,
+                              eventCalanderUser: data.name,
+                            ),
+                          ).padding(horizontal: 4),
                         ),
                       ],
                     ),
