@@ -28,9 +28,11 @@ import 'package:island/screens/creators/hub.dart';
 import 'package:island/screens/creators/posts/post_manage_list.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
 import 'package:island/screens/creators/stickers/pack_detail.dart';
+import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
 import 'package:island/screens/creators/webfeed/webfeed_edit.dart';
+import 'package:island/screens/poll/poll_editor.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/screens/posts/pub_profile.dart';
@@ -142,6 +144,37 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return CreatorPostListScreen(pubName: name);
+                },
+              ),
+              // Poll list route
+              GoRoute(
+                name: 'creatorPolls',
+                path: '/creators/:name/polls',
+                builder: (context, state) {
+                  final name = state.pathParameters['name']!;
+                  return CreatorPollListScreen(pubName: name);
+                },
+              ),
+              // Poll routes
+              GoRoute(
+                name: 'creatorPollNew',
+                path: '/creators/:name/polls/new',
+                builder: (context, state) {
+                  final name = state.pathParameters['name']!;
+                  // initialPollId left null for create; initialPublisher prefilled
+                  return PollEditorScreen(initialPublisher: name);
+                },
+              ),
+              GoRoute(
+                name: 'creatorPollEdit',
+                path: '/creators/:name/polls/:id/edit',
+                builder: (context, state) {
+                  final name = state.pathParameters['name']!;
+                  final id = state.pathParameters['id']!;
+                  return PollEditorScreen(
+                    initialPollId: id,
+                    initialPublisher: name,
+                  );
                 },
               ),
               GoRoute(

@@ -382,6 +382,23 @@ class CreatorHubScreen extends HookConsumerWidget {
                           ),
                           ListTile(
                             minTileHeight: 48,
+                            title: const Text('Polls'),
+                            trailing: const Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.poll),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            onTap: () {
+                              context.pushNamed(
+                                'creatorPolls',
+                                pathParameters: {
+                                  'name': currentPublisher.value!.name,
+                                },
+                              );
+                            },
+                          ),
+                          ListTile(
+                            minTileHeight: 48,
                             title: Text('publisherMembers').tr(),
                             trailing: const Icon(Symbols.chevron_right),
                             leading: const Icon(Symbols.group),
