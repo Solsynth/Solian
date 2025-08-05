@@ -753,5 +753,13 @@
   "sensitiveCategories.gambling": "Gambling",
   "sensitiveCategories.selfHarm": "Self-harm",
   "sensitiveCategories.childAbuse": "Child Abuse",
-  "sensitiveCategories.other": "Other"
+  "sensitiveCategories.other": "Other",
+  "poll": "Poll",
+  "pollsRecent": "Recent Polls",
+  "pollCreateNew": "Create New",
+  "pollCreateNewHint": "Create a new poll for your post. Pick a publisher and continue.",
+  "publisher": "Publisher",
+  "publisherHint": "Enter the publisher name",
+  "publisherCannotBeEmpty": "Publisher cannot be empty",
+  "operationFailed": "Operation failed: {}"
 }

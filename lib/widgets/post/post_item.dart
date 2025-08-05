@@ -8,6 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/embed.dart';
+import 'package:island/models/poll.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/translate.dart';
@@ -21,6 +22,7 @@ import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/poll/poll_submit.dart';
 import 'package:island/widgets/post/post_replies_sheet.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
@@ -542,23 +544,35 @@ class PostItem extends HookConsumerWidget {
             ),
           ),
         if (item.meta?['embeds'] != null)
-          ...((item.meta!['embeds'] as List<dynamic>)
-              .where((embed) => embed['Type'] == 'link')
-              .map(
-                (embedData) => EmbedLinkWidget(
-                  link: SnEmbedLink.fromJson(embedData as Map<String, dynamic>),
-                  maxWidth: math.min(
-                    MediaQuery.of(context).size.width,
-                    kWideScreenWidth,
-                  ),
-                  margin: EdgeInsets.only(
-                    top: 4,
-                    bottom: 4,
-                    left: renderingPadding.horizontal,
-                    right: renderingPadding.horizontal,
-                  ),
+          ...((item.meta!['embeds'] as List<dynamic>).map(
+            (embedData) => switch (embedData['type']) {
+              'link' => EmbedLinkWidget(
+                link: SnEmbedLink.fromJson(embedData as Map<String, dynamic>),
+                maxWidth: math.min(
+                  MediaQuery.of(context).size.width,
+                  kWideScreenWidth,
                 ),
-              )),
+                margin: EdgeInsets.only(
+                  top: 4,
+                  bottom: 4,
+                  left: renderingPadding.horizontal,
+                  right: renderingPadding.horizontal,
+                ),
+              ),
+              'poll' => Card(
+                margin: EdgeInsets.symmetric(
+                  horizontal: renderingPadding.horizontal,
+                  vertical: 8,
+                ),
+                child: PollSubmit(
+                  initialAnswers: embedData['poll']?['user_answer']?['answer'],
+                  poll: SnPollWithStats.fromJson(embedData['poll']),
+                  onSubmit: (_) {},
+                ).padding(horizontal: 12, vertical: 8),
+              ),
+              _ => const Placeholder(),
+            },
+          )),
         if (isShowReference)
           _buildReferencePost(context, item, renderingPadding),
         if (item.repliesCount > 0 && isEmbedReply)

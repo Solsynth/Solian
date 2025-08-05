@@ -5,6 +5,26 @@ part 'poll.freezed.dart';
 part 'poll.g.dart';
 
 @freezed
+sealed class SnPollWithStats with _$SnPollWithStats {
+  const factory SnPollWithStats({
+    required Map<String, dynamic>? userAnswer,
+    required Map<String, dynamic> stats,
+    required String id,
+    required List<SnPollQuestion> questions,
+    String? title,
+    String? description,
+    DateTime? endedAt,
+    required String publisherId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    DateTime? deletedAt,
+  }) = _SnPollWithStats;
+
+  factory SnPollWithStats.fromJson(Map<String, dynamic> json) =>
+      _$SnPollWithStatsFromJson(json);
+}
+
+@freezed
 sealed class SnPoll with _$SnPoll {
   const factory SnPoll({
     required String id,
@@ -59,9 +79,14 @@ sealed class SnPollOption with _$SnPollOption {
 }
 
 enum SnPollQuestionType {
+  @JsonValue(0)
   singleChoice,
+  @JsonValue(1)
   multipleChoice,
+  @JsonValue(2)
   yesNo,
+  @JsonValue(3)
   rating,
+  @JsonValue(4)
   freeText,
 }

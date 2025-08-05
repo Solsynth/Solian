@@ -14,6 +14,7 @@ import 'package:island/services/file.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_link_attachments.dart';
+import 'package:island/widgets/post/compose_poll.dart';
 import 'package:island/widgets/post/compose_recorder.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:textfield_tags/textfield_tags.dart';
@@ -33,6 +34,8 @@ class ComposeState {
   StringTagController categoriesController;
   final String draftId;
   int postType;
+  // Linked poll id for this compose session (nullable)
+  final ValueNotifier<String?> pollId;
   Timer? _autoSaveTimer;
 
   ComposeState({
@@ -48,7 +51,8 @@ class ComposeState {
     required this.categoriesController,
     required this.draftId,
     this.postType = 0,
-  });
+    String? pollId,
+  }) : pollId = ValueNotifier<String?>(pollId);
 
   void startAutoSave(WidgetRef ref) {
     _autoSaveTimer?.cancel();
@@ -111,6 +115,8 @@ class ComposeLogic {
       categoriesController: categoriesController,
       draftId: id,
       postType: postType,
+      // initialize without poll by default
+      pollId: null,
     );
   }
 
@@ -138,6 +144,7 @@ class ComposeLogic {
       categoriesController: categoriesController,
       draftId: draft.id,
       postType: postType,
+      pollId: null,
     );
   }
 
@@ -555,6 +562,27 @@ class ComposeLogic {
     );
   }
 
+  static Future<void> pickPoll(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    if (state.pollId.value != null) {
+      state.pollId.value = null;
+      return;
+    }
+
+    final poll = await showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => const ComposePollSheet(),
+    );
+
+    if (poll == null) return;
+    state.pollId.value = poll.id;
+  }
+
   static Future<void> performAction(
     WidgetRef ref,
     ComposeState state,
@@ -613,6 +641,7 @@ class ComposeLogic {
         if (forwardedPost != null) 'forwarded_post_id': forwardedPost.id,
         'tags': state.tagsController.getTags,
         'categories': state.categoriesController.getTags,
+        if (state.pollId.value != null) 'poll_id': state.pollId.value,
       };
 
       // Send request
@@ -703,5 +732,6 @@ class ComposeLogic {
     state.currentPublisher.dispose();
     state.tagsController.dispose();
     state.categoriesController.dispose();
+    state.pollId.dispose();
   }
 }

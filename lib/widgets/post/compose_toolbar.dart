@@ -36,6 +36,10 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.saveDraft(ref, state);
     }
 
+    void pickPoll() {
+      ComposeLogic.pickPoll(ref, state, context);
+    }
+
     void showDraftManager() {
       showModalBottomSheet(
         context: context,
@@ -87,6 +91,25 @@ class ComposeToolbar extends HookConsumerWidget {
                 icon: const Icon(Symbols.attach_file),
                 tooltip: 'linkAttachment'.tr(),
                 color: colorScheme.primary,
+              ),
+              // Poll button with visual state when a poll is linked
+              ListenableBuilder(
+                listenable: state.pollId,
+                builder: (context, _) {
+                  return IconButton(
+                    onPressed: pickPoll,
+                    icon: const Icon(Symbols.how_to_vote),
+                    tooltip: 'poll'.tr(),
+                    color: colorScheme.primary,
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        state.pollId.value != null
+                            ? colorScheme.primary.withOpacity(0.15)
+                            : null,
+                      ),
+                    ),
+                  );
+                },
               ),
               const Spacer(),
               if (originalPost == null && state.isEmpty)

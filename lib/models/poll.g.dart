@@ -6,6 +6,45 @@ part of 'poll.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_SnPollWithStats _$SnPollWithStatsFromJson(Map<String, dynamic> json) =>
+    _SnPollWithStats(
+      userAnswer: json['user_answer'] as Map<String, dynamic>?,
+      stats: json['stats'] as Map<String, dynamic>,
+      id: json['id'] as String,
+      questions:
+          (json['questions'] as List<dynamic>)
+              .map((e) => SnPollQuestion.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      title: json['title'] as String?,
+      description: json['description'] as String?,
+      endedAt:
+          json['ended_at'] == null
+              ? null
+              : DateTime.parse(json['ended_at'] as String),
+      publisherId: json['publisher_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnPollWithStatsToJson(_SnPollWithStats instance) =>
+    <String, dynamic>{
+      'user_answer': instance.userAnswer,
+      'stats': instance.stats,
+      'id': instance.id,
+      'questions': instance.questions.map((e) => e.toJson()).toList(),
+      'title': instance.title,
+      'description': instance.description,
+      'ended_at': instance.endedAt?.toIso8601String(),
+      'publisher_id': instance.publisherId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };
+
 _SnPoll _$SnPollFromJson(Map<String, dynamic> json) => _SnPoll(
   id: json['id'] as String,
   questions:
@@ -70,11 +109,11 @@ Map<String, dynamic> _$SnPollQuestionToJson(_SnPollQuestion instance) =>
     };
 
 const _$SnPollQuestionTypeEnumMap = {
-  SnPollQuestionType.singleChoice: 'singleChoice',
-  SnPollQuestionType.multipleChoice: 'multipleChoice',
-  SnPollQuestionType.yesNo: 'yesNo',
-  SnPollQuestionType.rating: 'rating',
-  SnPollQuestionType.freeText: 'freeText',
+  SnPollQuestionType.singleChoice: 0,
+  SnPollQuestionType.multipleChoice: 1,
+  SnPollQuestionType.yesNo: 2,
+  SnPollQuestionType.rating: 3,
+  SnPollQuestionType.freeText: 4,
 };
 
 _SnPollOption _$SnPollOptionFromJson(Map<String, dynamic> json) =>
