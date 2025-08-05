@@ -566,9 +566,10 @@ class PostItem extends HookConsumerWidget {
                 ),
                 child: PollSubmit(
                   initialAnswers: embedData['poll']?['user_answer']?['answer'],
+                  stats: embedData['poll']?['stats'],
                   poll: SnPollWithStats.fromJson(embedData['poll']),
                   onSubmit: (_) {},
-                ).padding(horizontal: 12, vertical: 8),
+                ).padding(horizontal: 16, vertical: 12),
               ),
               _ => const Placeholder(),
             },
