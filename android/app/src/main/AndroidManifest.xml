@@ -117,14 +117,6 @@
             android:enabled="true"
             android:exported="true" />
 
-        <service
-            android:name=".service.MessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="dev.solsynth.solian.provider"
