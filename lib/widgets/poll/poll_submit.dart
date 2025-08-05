@@ -333,7 +333,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     switch (q.type) {
       case SnPollQuestionType.rating:
         // rating: avg score (double or int)
-        final avg = (raw['rating'] as num).toDouble();
+        final avg = (raw['rating'] as num?)?.toDouble();
+        if (avg == null) break;
         final theme = Theme.of(context);
         body = Row(
           mainAxisAlignment: MainAxisAlignment.start,

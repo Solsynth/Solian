@@ -571,7 +571,7 @@ class PostItem extends HookConsumerWidget {
                   onSubmit: (_) {},
                 ).padding(horizontal: 16, vertical: 12),
               ),
-              _ => const Placeholder(),
+              _ => Text('Unable show embed: ${embedData['type']}'),
             },
           )),
         if (isShowReference)
