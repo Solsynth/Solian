@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,7 +8,6 @@ import 'package:dio/dio.dart';
 import 'package:gap/gap.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:island/models/poll.dart';
 import 'package:uuid/uuid.dart';
 
@@ -63,14 +64,38 @@ class PollEditor extends Notifier<PollEditorState> {
     );
   }
 
-  void setEditingId(String? id) {
-    state = PollEditorState(
-      id: id,
-      title: state.title,
-      description: state.description,
-      endedAt: state.endedAt,
-      questions: [...state.questions],
-    );
+  Future<void> setEditingId(BuildContext context, String? id) async {
+    if (id == null || id.isEmpty) return;
+
+    showLoadingModal(context);
+    final dio = ref.read(apiClientProvider);
+    try {
+      final res = await dio.get('/sphere/polls/$id');
+
+      // Handle both plain object and wrapped response formats.
+      final dynamic payload = res.data;
+      final Map<String, dynamic> json =
+          payload is Map && payload['data'] is Map<String, dynamic>
+              ? Map<String, dynamic>.from(payload['data'] as Map)
+              : Map<String, dynamic>.from(payload as Map);
+
+      final poll = SnPoll.fromJson(json);
+
+      state = PollEditorState(
+        id: poll.id,
+        title: poll.title,
+        description: poll.description,
+        endedAt: poll.endedAt,
+        questions: poll.questions,
+      );
+    } on DioException catch (e) {
+      log('Failed to load poll $id: ${e.message}');
+      // Keep state with id set; UI may handle error display.
+    } catch (e) {
+      log('Unexpected error loading poll $id: $e');
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
   }
 
   void addQuestion(SnPollQuestionType type) {
@@ -313,31 +338,9 @@ class PollEditorScreen extends ConsumerWidget {
 
   // Submit helpers declared before build to avoid forward reference issues
 
-  static Future<void> _submitPoll(BuildContext context, WidgetRef ref) async {
+  Future<void> _submitPoll(BuildContext context, WidgetRef ref) async {
     final model = ref.watch(pollEditorProvider);
     final dio = ref.read(apiClientProvider);
-
-    // Pick publisher (required)
-    final pickedPublisher = await showModalBottomSheet<dynamic>(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      builder: (_) => const PublisherModal(),
-    );
-
-    if (pickedPublisher == null) {
-      showSnackBar('Publisher is required');
-      return;
-    }
-
-    final String publisherName =
-        pickedPublisher.name ?? pickedPublisher['name'] ?? '';
-    if (publisherName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid publisher selected')),
-      );
-      return;
-    }
 
     // Build payload
     final body = {
@@ -376,33 +379,21 @@ class PollEditorScreen extends ConsumerWidget {
           await (isUpdate
               ? dio.patch(
                 path,
-                queryParameters: {'pub': publisherName},
+                queryParameters: {'pub': initialPublisher},
                 data: body,
               )
               : dio.post(
                 path,
-                queryParameters: {'pub': publisherName},
+                queryParameters: {'pub': initialPublisher},
                 data: body,
               ));
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(isUpdate ? 'Poll updated.' : 'Poll created.')),
-      );
+      showSnackBar(isUpdate ? 'Poll updated.' : 'Poll created.');
 
       if (!context.mounted) return;
       Navigator.of(context).maybePop(res.data);
-    } on DioException catch (e) {
-      final msg =
-          e.response?.data is Map && (e.response!.data['message'] != null)
-              ? e.response!.data['message'].toString()
-              : e.message ?? 'Network error';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed: $msg')));
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Unexpected error: $e')));
+      showErrorAlert(e);
     }
   }
 
@@ -417,7 +408,9 @@ class PollEditorScreen extends ConsumerWidget {
 
     // initialize editing state if provided
     if (initialPollId != null && model.id != initialPollId) {
-      notifier.setEditingId(initialPollId);
+      Future(() {
+        if (context.mounted) notifier.setEditingId(context, initialPollId);
+      });
     }
 
     return Scaffold(
@@ -437,6 +430,7 @@ class PollEditorScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         child: Form(
+          key: ValueKey(model.id),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
@@ -57,11 +59,9 @@ class CreatorPollListScreen extends HookConsumerWidget {
   final String pubName;
 
   Future<void> _createPoll(BuildContext context) async {
-    // Use named route defined in router with :name param (creatorPollNew)
     final result = await GoRouter.of(
       context,
     ).pushNamed('creatorPollNew', pathParameters: {'name': pubName});
-    // If PollEditorScreen returns a created SnPoll on success, pop back with it
     if (result is SnPoll && context.mounted) {
       Navigator.of(context).maybePop(result);
     }
@@ -91,7 +91,7 @@ class CreatorPollListScreen extends HookConsumerWidget {
                         return endItemView;
                       }
                       final poll = data.items[index];
-                      return _CreatorPollItem(poll: poll);
+                      return _CreatorPollItem(poll: poll, pubName: pubName);
                     },
                   ),
             ),
@@ -103,7 +103,8 @@ class CreatorPollListScreen extends HookConsumerWidget {
 }
 
 class _CreatorPollItem extends StatelessWidget {
-  const _CreatorPollItem({required this.poll});
+  final String pubName;
+  const _CreatorPollItem({required this.poll, required this.pubName});
 
   final SnPoll poll;
 
@@ -143,24 +144,23 @@ class _CreatorPollItem extends StatelessWidget {
           ],
         ),
         trailing: PopupMenuButton<String>(
-          onSelected: (v) {
-            switch (v) {
-              case 'edit':
-                // Use global router helper if desired
-                // context.push('/creators/${poll.publisher?.name ?? ''}/polls/${poll.id}/edit');
-                Navigator.of(context).pushNamed(
-                  'creatorPollEdit',
-                  arguments: {
-                    'name': poll.publisher?.name ?? '',
-                    'id': poll.id,
-                  },
-                );
-                break;
-            }
-          },
           itemBuilder:
               (context) => [
-                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.edit),
+                      const Gap(16),
+                      Text('Edit'),
+                    ],
+                  ),
+                  onTap: () {
+                    GoRouter.of(context).pushNamed(
+                      'creatorPollEdit',
+                      pathParameters: {'name': pubName, 'id': poll.id},
+                    );
+                  },
+                ),
               ],
         ),
         onTap: () {
