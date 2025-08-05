@@ -8,6 +8,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:island/models/poll.dart';
+import 'package:uuid/uuid.dart';
 
 class PollEditorState {
   String? id; // for editing
@@ -76,11 +77,17 @@ class PollEditor extends Notifier<PollEditorState> {
     final nextOrder = state.questions.length;
     final isOptionsType = _isOptionsType(type);
     final q = SnPollQuestion(
-      id: 'local-$nextOrder',
+      id: const Uuid().v4(),
       type: type,
       options:
           isOptionsType
-              ? [SnPollOption(id: 'opt-0', label: 'Option 1', order: 0)]
+              ? [
+                SnPollOption(
+                  id: const Uuid().v4(),
+                  label: 'Option 1',
+                  order: 0,
+                ),
+              ]
               : null,
       title: '',
       description: null,
@@ -155,7 +162,13 @@ class PollEditor extends Notifier<PollEditorState> {
         isOptionsType
             ? (q.options?.isNotEmpty == true
                 ? q.options
-                : [SnPollOption(id: 'opt-0', label: 'Option 1', order: 0)])
+                : [
+                  SnPollOption(
+                    id: const Uuid().v4(),
+                    label: 'Option 1',
+                    order: 0,
+                  ),
+                ])
             : null;
     _updateQuestion(index, q.copyWith(type: type, options: newOptions));
   }
@@ -186,7 +199,7 @@ class PollEditor extends Notifier<PollEditorState> {
     final nextOrder = opts.length;
     opts.add(
       SnPollOption(
-        id: 'opt-$nextOrder',
+        id: const Uuid().v4(),
         label: 'Option ${nextOrder + 1}',
         order: nextOrder,
       ),
@@ -299,23 +312,9 @@ class PollEditorScreen extends ConsumerWidget {
   });
 
   // Submit helpers declared before build to avoid forward reference issues
-  static String _mapTypeToServer(SnPollQuestionType t) {
-    switch (t) {
-      case SnPollQuestionType.singleChoice:
-        return 'SingleChoice';
-      case SnPollQuestionType.multipleChoice:
-        return 'MultipleChoice';
-      case SnPollQuestionType.freeText:
-        return 'FreeText';
-      case SnPollQuestionType.yesNo:
-        return 'YesNo';
-      case SnPollQuestionType.rating:
-        return 'Rating';
-    }
-  }
 
   static Future<void> _submitPoll(BuildContext context, WidgetRef ref) async {
-    final model = ref.read(pollEditorProvider);
+    final model = ref.watch(pollEditorProvider);
     final dio = ref.read(apiClientProvider);
 
     // Pick publisher (required)
@@ -349,7 +348,7 @@ class PollEditorScreen extends ConsumerWidget {
           model.questions
               .map(
                 (q) => {
-                  'type': _mapTypeToServer(q.type),
+                  'type': q.type.index,
                   'options':
                       q.options
                           ?.map(
@@ -414,7 +413,7 @@ class PollEditorScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final model = ref.watch(pollEditorProvider);
-    final notifier = ref.read(pollEditorProvider.notifier);
+    final notifier = ref.watch(pollEditorProvider.notifier);
 
     // initialize editing state if provided
     if (initialPollId != null && model.id != initialPollId) {
@@ -461,7 +460,7 @@ class PollEditorScreen extends ConsumerWidget {
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const Gap(12),
               TextFormField(
                 initialValue: model.description ?? '',
                 decoration: const InputDecoration(
@@ -477,12 +476,12 @@ class PollEditorScreen extends ConsumerWidget {
                 onTapOutside:
                     (_) => FocusManager.instance.primaryFocus?.unfocus(),
               ),
-              const SizedBox(height: 12),
+              const Gap(12),
               _EndDatePicker(
                 value: model.endedAt,
                 onChanged: notifier.setEndedAt,
               ),
-              const SizedBox(height: 24),
+              const Gap(24),
               Row(
                 children: [
                   Text(
@@ -515,7 +514,7 @@ class PollEditorScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const Gap(8),
               if (model.questions.isEmpty)
                 _EmptyState(
                   title: 'No questions yet',
@@ -573,13 +572,18 @@ class PollEditorScreen extends ConsumerWidget {
                     );
                   },
                 ),
-              const SizedBox(height: 96),
+              const Gap(96),
             ],
           ),
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          8,
+          16,
+          16 + MediaQuery.of(context).padding.bottom,
+        ),
         child: Row(
           children: [
             OutlinedButton.icon(
@@ -726,7 +730,7 @@ class _EndDatePicker extends StatelessWidget {
                     ),
                   ),
                 ],
-                const SizedBox(width: 8),
+                const Gap(8),
                 TextButton(
                   onPressed: () async {
                     final now = DateTime.now();
@@ -839,7 +843,7 @@ class _QuestionEditor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(pollEditorProvider.notifier);
+    final notifier = ref.watch(pollEditorProvider.notifier);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -865,7 +869,7 @@ class _QuestionEditor extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const Gap(12),
         TextFormField(
           initialValue: question.title,
           decoration: const InputDecoration(
@@ -885,7 +889,7 @@ class _QuestionEditor extends ConsumerWidget {
             return null;
           },
         ),
-        const SizedBox(height: 12),
+        const Gap(12),
         TextFormField(
           initialValue: question.description ?? '',
           decoration: const InputDecoration(
@@ -902,11 +906,11 @@ class _QuestionEditor extends ConsumerWidget {
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         ),
         if (question.options != null) ...[
-          const SizedBox(height: 16),
+          const Gap(16),
           Text('Options', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
+          const Gap(8),
           _OptionsEditor(index: index, options: question.options!),
-          const SizedBox(height: 4),
+          const Gap(4),
           Align(
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
@@ -920,7 +924,7 @@ class _QuestionEditor extends ConsumerWidget {
             (question.type == SnPollQuestionType.freeText ||
                 question.type == SnPollQuestionType.rating ||
                 question.type == SnPollQuestionType.yesNo)) ...[
-          const SizedBox(height: 16),
+          const Gap(16),
           _TextAnswerPreview(long: false),
         ],
       ],
@@ -952,7 +956,7 @@ class _QuestionTypePicker extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(_iconForType(t)),
-                      const SizedBox(width: 8),
+                      const Gap(8),
                       Text(_labelForType(t)),
                     ],
                   ),
@@ -986,6 +990,7 @@ class _OptionsEditor extends ConsumerWidget {
               children: [
                 Expanded(
                   child: TextFormField(
+                    key: ValueKey(options[i].id),
                     initialValue: options[i].label,
                     decoration: const InputDecoration(
                       labelText: 'Option label',
@@ -999,7 +1004,7 @@ class _OptionsEditor extends ConsumerWidget {
                     inputFormatters: [LengthLimitingTextInputFormatter(1024)],
                   ),
                 ),
-                const SizedBox(width: 8),
+                const Gap(8),
                 SizedBox(
                   width: 40,
                   child: IconButton(
@@ -1077,13 +1082,13 @@ class _EmptyState extends StatelessWidget {
             Icons.help_outline,
             color: Theme.of(context).colorScheme.primary,
           ),
-          const SizedBox(width: 12),
+          const Gap(12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 4),
+                const Gap(4),
                 Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
