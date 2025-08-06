@@ -35,6 +35,7 @@ sealed class SnStickerPack with _$SnStickerPack {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    @Default([]) List<SnSticker> stickers,
   }) = _SnStickerPack;
 
   factory SnStickerPack.fromJson(Map<String, dynamic> json) =>

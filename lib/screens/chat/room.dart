@@ -35,6 +35,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'chat.dart';
 import 'package:island/widgets/chat/call_button.dart';
+import 'package:island/widgets/stickers/picker.dart';
 
 part 'room.g.dart';
 
@@ -1133,31 +1134,69 @@ class _ChatInput extends HookConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
             child: Row(
               children: [
-                PopupMenuButton(
-                  icon: const Icon(Symbols.photo_library),
-                  itemBuilder:
-                      (context) => [
-                        PopupMenuItem(
-                          onTap: () => onPickFile(true),
-                          child: Row(
-                            spacing: 12,
-                            children: [
-                              const Icon(Symbols.photo),
-                              Text('addPhoto').tr(),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          onTap: () => onPickFile(false),
-                          child: Row(
-                            spacing: 12,
-                            children: [
-                              const Icon(Symbols.video_call),
-                              Text('addVideo').tr(),
-                            ],
-                          ),
-                        ),
-                      ],
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'stickers'.tr(),
+                      icon: const Icon(Symbols.emoji_symbols),
+                      onPressed: () {
+                        showStickerPickerPopover(
+                          context,
+                          onPick: (placeholder) {
+                            // Insert placeholder at current cursor position
+                            final text = messageController.text;
+                            final selection = messageController.selection;
+                            final start =
+                                selection.start >= 0
+                                    ? selection.start
+                                    : text.length;
+                            final end =
+                                selection.end >= 0
+                                    ? selection.end
+                                    : text.length;
+                            final newText = text.replaceRange(
+                              start,
+                              end,
+                              placeholder,
+                            );
+                            messageController.value = TextEditingValue(
+                              text: newText,
+                              selection: TextSelection.collapsed(
+                                offset: start + placeholder.length,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    PopupMenuButton(
+                      icon: const Icon(Symbols.photo_library),
+                      itemBuilder:
+                          (context) => [
+                            PopupMenuItem(
+                              onTap: () => onPickFile(true),
+                              child: Row(
+                                spacing: 12,
+                                children: [
+                                  const Icon(Symbols.photo),
+                                  Text('addPhoto').tr(),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              onTap: () => onPickFile(false),
+                              child: Row(
+                                spacing: 12,
+                                children: [
+                                  const Icon(Symbols.video_call),
+                                  Text('addVideo').tr(),
+                                ],
+                              ),
+                            ),
+                          ],
+                    ),
+                  ],
                 ),
                 Expanded(
                   child: RawKeyboardListener(

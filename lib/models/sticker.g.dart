@@ -54,6 +54,11 @@ _SnStickerPack _$SnStickerPackFromJson(Map<String, dynamic> json) =>
           json['deleted_at'] == null
               ? null
               : DateTime.parse(json['deleted_at'] as String),
+      stickers:
+          (json['stickers'] as List<dynamic>?)
+              ?.map((e) => SnSticker.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$SnStickerPackToJson(_SnStickerPack instance) =>
@@ -67,4 +72,5 @@ Map<String, dynamic> _$SnStickerPackToJson(_SnStickerPack instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
+      'stickers': instance.stickers.map((e) => e.toJson()).toList(),
     };
