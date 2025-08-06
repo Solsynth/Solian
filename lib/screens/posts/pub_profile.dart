@@ -87,6 +87,12 @@ class PublisherProfileScreen extends HookConsumerWidget {
       publisherAppbarForcegroundColorProvider(name),
     );
 
+    final categoryTabController = useTabController(initialLength: 3);
+    final categoryTab = useState(0);
+    categoryTabController.addListener(() {
+      categoryTab.value = categoryTabController.index;
+    });
+
     final subscribing = useState(false);
 
     Future<void> subscribe() async {
@@ -268,6 +274,16 @@ class PublisherProfileScreen extends HookConsumerWidget {
       ).padding(horizontal: 20, vertical: 16),
     );
 
+    Widget publisherCategoryTabWidget() => Card(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: TabBar(
+        controller: categoryTabController,
+        dividerColor: Colors.transparent,
+        splashBorderRadius: const BorderRadius.all(Radius.circular(8)),
+        tabs: [Tab(text: 'All'), Tab(text: 'Posts'), Tab(text: 'Articles')],
+      ),
+    );
+
     return publisher.when(
       data:
           (data) => AppScaffold(
@@ -398,7 +414,16 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           child: publisherVerificationWidget(data),
                         ),
                         SliverToBoxAdapter(child: publisherBioWidget(data)),
-                        SliverPostList(pubName: name),
+                        SliverToBoxAdapter(child: publisherCategoryTabWidget()),
+                        SliverPostList(
+                          key: ValueKey(categoryTab.value),
+                          pubName: name,
+                          type: switch (categoryTab.value) {
+                            1 => 0,
+                            2 => 1,
+                            _ => null,
+                          },
+                        ),
                         SliverGap(MediaQuery.of(context).padding.bottom + 16),
                       ],
                     ),

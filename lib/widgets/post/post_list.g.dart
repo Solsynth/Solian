@@ -6,7 +6,7 @@ part of 'post_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$postListNotifierHash() => r'2e4fb36123d3f97ac1edf9945043251d4eb519a2';
+String _$postListNotifierHash() => r'c7c82c8cedf6649ac0806bbbfea148dfa1422fc0';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -32,8 +32,9 @@ class _SystemHash {
 abstract class _$PostListNotifier
     extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnPost>> {
   late final String? pubName;
+  late final int? type;
 
-  FutureOr<CursorPagingData<SnPost>> build(String? pubName);
+  FutureOr<CursorPagingData<SnPost>> build(String? pubName, int? type);
 }
 
 /// See also [PostListNotifier].
@@ -47,15 +48,15 @@ class PostListNotifierFamily
   const PostListNotifierFamily();
 
   /// See also [PostListNotifier].
-  PostListNotifierProvider call(String? pubName) {
-    return PostListNotifierProvider(pubName);
+  PostListNotifierProvider call(String? pubName, int? type) {
+    return PostListNotifierProvider(pubName, type);
   }
 
   @override
   PostListNotifierProvider getProviderOverride(
     covariant PostListNotifierProvider provider,
   ) {
-    return call(provider.pubName);
+    return call(provider.pubName, provider.type);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -81,9 +82,12 @@ class PostListNotifierProvider
           CursorPagingData<SnPost>
         > {
   /// See also [PostListNotifier].
-  PostListNotifierProvider(String? pubName)
+  PostListNotifierProvider(String? pubName, int? type)
     : this._internal(
-        () => PostListNotifier()..pubName = pubName,
+        () =>
+            PostListNotifier()
+              ..pubName = pubName
+              ..type = type,
         from: postListNotifierProvider,
         name: r'postListNotifierProvider',
         debugGetCreateSourceHash:
@@ -94,6 +98,7 @@ class PostListNotifierProvider
         allTransitiveDependencies:
             PostListNotifierFamily._allTransitiveDependencies,
         pubName: pubName,
+        type: type,
       );
 
   PostListNotifierProvider._internal(
@@ -104,15 +109,17 @@ class PostListNotifierProvider
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.pubName,
+    required this.type,
   }) : super.internal();
 
   final String? pubName;
+  final int? type;
 
   @override
   FutureOr<CursorPagingData<SnPost>> runNotifierBuild(
     covariant PostListNotifier notifier,
   ) {
-    return notifier.build(pubName);
+    return notifier.build(pubName, type);
   }
 
   @override
@@ -120,13 +127,17 @@ class PostListNotifierProvider
     return ProviderOverride(
       origin: this,
       override: PostListNotifierProvider._internal(
-        () => create()..pubName = pubName,
+        () =>
+            create()
+              ..pubName = pubName
+              ..type = type,
         from: from,
         name: null,
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         pubName: pubName,
+        type: type,
       ),
     );
   }
@@ -142,13 +153,16 @@ class PostListNotifierProvider
 
   @override
   bool operator ==(Object other) {
-    return other is PostListNotifierProvider && other.pubName == pubName;
+    return other is PostListNotifierProvider &&
+        other.pubName == pubName &&
+        other.type == type;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, pubName.hashCode);
+    hash = _SystemHash.combine(hash, type.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -160,6 +174,9 @@ mixin PostListNotifierRef
     on AutoDisposeAsyncNotifierProviderRef<CursorPagingData<SnPost>> {
   /// The parameter `pubName` of this provider.
   String? get pubName;
+
+  /// The parameter `type` of this provider.
+  int? get type;
 }
 
 class _PostListNotifierProviderElement
@@ -173,6 +190,8 @@ class _PostListNotifierProviderElement
 
   @override
   String? get pubName => (origin as PostListNotifierProvider).pubName;
+  @override
+  int? get type => (origin as PostListNotifierProvider).type;
 }
 
 // ignore_for_file: type=lint
