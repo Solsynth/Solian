@@ -189,7 +189,6 @@ class AccountScreen extends HookConsumerWidget {
                 ),
               ],
             ).padding(horizontal: 8),
-            const Gap(8),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.notifications),
@@ -226,6 +225,16 @@ class AccountScreen extends HookConsumerWidget {
               title: Text('relationships').tr(),
               onTap: () {
                 context.pushNamed('relationships');
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.emoji_emotions),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('stickers').tr(),
+              onTap: () {
+                context.pushNamed('stickerMarketplace');
               },
             ),
             ListTile(

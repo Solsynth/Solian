@@ -28,6 +28,8 @@ import 'package:island/screens/creators/hub.dart';
 import 'package:island/screens/creators/posts/post_manage_list.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
 import 'package:island/screens/creators/stickers/pack_detail.dart';
+import 'package:island/screens/stickers/marketplace.dart';
+import 'package:island/screens/stickers/pack_detail.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
@@ -450,6 +452,23 @@ final routerProvider = Provider<GoRouter>((ref) {
                     name: 'account',
                     path: '/account',
                     builder: (context, state) => const AccountScreen(),
+                  ),
+                  // Sticker marketplace (user-facing, no publisher)
+                  GoRoute(
+                    name: 'stickerMarketplace',
+                    path: '/stickers',
+                    builder:
+                        (context, state) => const MarketplaceStickersScreen(),
+                    routes: [
+                      GoRoute(
+                        name: 'stickerPackDetail',
+                        path: ':packId',
+                        builder: (context, state) {
+                          final packId = state.pathParameters['packId']!;
+                          return MarketplaceStickerPackDetailScreen(id: packId);
+                        },
+                      ),
+                    ],
                   ),
                   GoRoute(
                     name: 'notifications',
