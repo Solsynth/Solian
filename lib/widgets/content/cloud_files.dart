@@ -102,6 +102,7 @@ class CloudVideoWidget extends HookConsumerWidget {
                 Symbols.play_arrow,
                 fill: 1,
                 size: 32,
+                color: Colors.white,
                 shadows: [
                   BoxShadow(
                     color: Colors.black54,
@@ -110,6 +111,26 @@ class CloudVideoWidget extends HookConsumerWidget {
                     blurRadius: 8,
                   ),
                 ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Theme.of(context).colorScheme.surface.withOpacity(0.85),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -132,6 +153,7 @@ class CloudVideoWidget extends HookConsumerWidget {
                                   .toInt(),
                         ).formatDuration(),
                         style: TextStyle(
+                          color: Colors.white,
                           shadows: [
                             BoxShadow(
                               color: Colors.black54,
@@ -146,6 +168,7 @@ class CloudVideoWidget extends HookConsumerWidget {
                       Text(
                         '${int.parse(item.fileMeta?['bit_rate'] as String) ~/ 1000} Kbps',
                         style: TextStyle(
+                          color: Colors.white,
                           shadows: [
                             BoxShadow(
                               color: Colors.black54,
@@ -160,7 +183,10 @@ class CloudVideoWidget extends HookConsumerWidget {
                 ),
                 Text(
                   item.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     shadows: [
                       BoxShadow(
