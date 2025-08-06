@@ -15,7 +15,7 @@ class PostListNotifier extends _$PostListNotifier
   static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPost>> build(String? pubName) {
+  Future<CursorPagingData<SnPost>> build(String? pubName, int? type) {
     return fetch(cursor: null);
   }
 
@@ -28,6 +28,7 @@ class PostListNotifier extends _$PostListNotifier
       'offset': offset,
       'take': _pageSize,
       if (pubName != null) 'pub': pubName,
+      if (type != null) 'type': type,
     };
 
     final response = await client.get(
@@ -60,6 +61,7 @@ enum PostItemType {
 
 class SliverPostList extends HookConsumerWidget {
   final String? pubName;
+  final int? type;
   final PostItemType itemType;
   final Color? backgroundColor;
   final EdgeInsets? padding;
@@ -70,6 +72,7 @@ class SliverPostList extends HookConsumerWidget {
   const SliverPostList({
     super.key,
     this.pubName,
+    this.type,
     this.itemType = PostItemType.regular,
     this.backgroundColor,
     this.padding,
@@ -81,9 +84,9 @@ class SliverPostList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PagingHelperSliverView(
-      provider: postListNotifierProvider(pubName),
-      futureRefreshable: postListNotifierProvider(pubName).future,
-      notifierRefreshable: postListNotifierProvider(pubName).notifier,
+      provider: postListNotifierProvider(pubName, type),
+      futureRefreshable: postListNotifierProvider(pubName, type).future,
+      notifierRefreshable: postListNotifierProvider(pubName, type).notifier,
       contentBuilder:
           (data, widgetCount, endItemView) => SliverList.builder(
             itemCount: widgetCount,
