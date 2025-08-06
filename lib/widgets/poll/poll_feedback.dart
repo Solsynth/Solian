@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/time.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -186,7 +187,7 @@ class _PollAnswerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Submit date/time (title)
-    final submitText = answer.createdAt.toLocal().toString();
+    final submitText = answer.createdAt.formatSystem();
 
     // Compose content from poll questions if provided, otherwise fallback to joined key-values
     String content;
