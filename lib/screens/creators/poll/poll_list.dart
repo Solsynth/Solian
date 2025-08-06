@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/poll/poll_feedback.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -164,10 +165,13 @@ class _CreatorPollItem extends StatelessWidget {
               ],
         ),
         onTap: () {
-          // Open editor for edit
-          // Navigator push by path to keep consistency with rest of app:
-          // Note: pub name string may be required in route; when absent, route may need query or pick later.
-          // For safety, just do nothing if no publisher in list item.
+          showModalBottomSheet(
+            context: context,
+            useRootNavigator: true,
+            isScrollControlled: true,
+            builder:
+                (context) => PollFeedbackSheet(pollId: poll.id, poll: poll),
+          );
         },
       ),
     );

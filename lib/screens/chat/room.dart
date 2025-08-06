@@ -1066,15 +1066,19 @@ class _ChatInput extends HookConsumerWidget {
                 scrollDirection: Axis.horizontal,
                 itemCount: attachments.length,
                 itemBuilder: (context, idx) {
-                  return AttachmentPreview(
-                    item: attachments[idx],
-                    onRequestUpload: () => onUploadAttachment(idx),
-                    onDelete: () => onDeleteAttachment(idx),
-                    onUpdate: (value) {
-                      attachments[idx] = value;
-                      onAttachmentsChanged(attachments);
-                    },
-                    onMove: (delta) => onMoveAttachment(idx, delta),
+                  return SizedBox(
+                    height: 280,
+                    width: 280,
+                    child: AttachmentPreview(
+                      item: attachments[idx],
+                      onRequestUpload: () => onUploadAttachment(idx),
+                      onDelete: () => onDeleteAttachment(idx),
+                      onUpdate: (value) {
+                        attachments[idx] = value;
+                        onAttachmentsChanged(attachments);
+                      },
+                      onMove: (delta) => onMoveAttachment(idx, delta),
+                    ),
                   );
                 },
                 separatorBuilder: (_, _) => const Gap(8),
