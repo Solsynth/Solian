@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/sticker.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -68,9 +69,7 @@ class MarketplaceStickerPackDetailScreen extends HookConsumerWidget {
       HapticFeedback.selectionClick();
       ref.invalidate(marketplaceStickerPackOwnershipProvider(packId: id));
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('stickerPackAdded').tr()));
+      showSnackBar('stickerPackAdded'.tr());
     }
 
     // Remove ownership of the pack
@@ -80,9 +79,7 @@ class MarketplaceStickerPackDetailScreen extends HookConsumerWidget {
       HapticFeedback.selectionClick();
       ref.invalidate(marketplaceStickerPackOwnershipProvider(packId: id));
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('stickerPackRemoved').tr()));
+      showSnackBar('stickerPackRemoved'.tr());
     }
 
     return AppScaffold(
