@@ -337,7 +337,18 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           child: CustomScrollView(
                             slivers: [
                               SliverGap(16),
-                              SliverPostList(pubName: name),
+                              SliverToBoxAdapter(
+                                child: publisherCategoryTabWidget(),
+                              ),
+                              SliverPostList(
+                                key: ValueKey(categoryTab.value),
+                                pubName: name,
+                                type: switch (categoryTab.value) {
+                                  1 => 0,
+                                  2 => 1,
+                                  _ => null,
+                                },
+                              ),
                               SliverGap(
                                 MediaQuery.of(context).padding.bottom + 16,
                               ),
@@ -350,9 +361,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
                             alignment: Alignment.topLeft,
                             child: SingleChildScrollView(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  publisherBasisWidget(data),
+                                  publisherBasisWidget(data).padding(bottom: 8),
                                   publisherBadgesWidget(data),
                                   publisherVerificationWidget(data),
                                   publisherBioWidget(data),

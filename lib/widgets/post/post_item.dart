@@ -535,7 +535,7 @@ class PostItem extends HookConsumerWidget {
               right: renderingPadding.horizontal,
             ),
           ),
-        if (item.attachments.isNotEmpty)
+        if (item.attachments.isNotEmpty && item.type != 1)
           CloudFileList(
             files: item.attachments,
             padding: EdgeInsets.symmetric(
