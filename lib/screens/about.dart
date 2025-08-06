@@ -205,7 +205,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                           title: 'aboutScreenTermsOfServiceTitle'.tr(),
                           onTap:
                               () => _launchURL(
-                                'https://solsynth.dev/terms/basic-law',
+                                'https://solsynth.dev/terms/user-agreement',
                               ),
                         ),
                         _buildListTile(
