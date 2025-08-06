@@ -689,7 +689,7 @@ class ComposeLogic {
   }
 
   static void handleKeyPress(
-    RawKeyEvent event,
+    KeyEvent event,
     ComposeState state,
     WidgetRef ref,
     BuildContext context, {
@@ -701,7 +701,9 @@ class ComposeLogic {
 
     final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
     final isSave = event.logicalKey == LogicalKeyboardKey.keyS;
-    final isModifierPressed = event.isMetaPressed || event.isControlPressed;
+    final isModifierPressed =
+        HardwareKeyboard.instance.isMetaPressed ||
+        HardwareKeyboard.instance.isControlPressed;
     final isSubmit = event.logicalKey == LogicalKeyboardKey.enter;
 
     if (isPaste && isModifierPressed) {

@@ -140,8 +140,6 @@ class ArticleComposeScreen extends HookConsumerWidget {
         isScrollControlled: true,
         builder:
             (context) => ComposeSettingsSheet(
-              titleController: state.titleController,
-              descriptionController: state.descriptionController,
               visibility: state.visibility,
               tagsController: state.tagsController,
               categoriesController: state.categoriesController,
@@ -242,10 +240,39 @@ class ArticleComposeScreen extends HookConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              TextField(
+                controller: state.titleController,
+                decoration: InputDecoration(
+                  hintText: 'postTitle'.tr(),
+                  border: InputBorder.none,
+                  isCollapsed: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 8,
+                  ),
+                ),
+                style: theme.textTheme.titleMedium,
+                onTapOutside:
+                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              ),
+              TextField(
+                controller: state.descriptionController,
+                decoration: InputDecoration(
+                  hintText: 'postDescription'.tr(),
+                  border: InputBorder.none,
+                  isCollapsed: true,
+                  contentPadding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
+                ),
+                style: theme.textTheme.bodyMedium,
+                minLines: 1,
+                maxLines: 3,
+                onTapOutside:
+                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              ),
               Expanded(
-                child: RawKeyboardListener(
+                child: KeyboardListener(
                   focusNode: FocusNode(),
-                  onKey:
+                  onKeyEvent:
                       (event) => _handleKeyPress(
                         event,
                         state,
@@ -454,7 +481,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                               flex: showPreview.value ? 1 : 2,
                               child: buildEditorPane(),
                             ),
-                            const VerticalDivider(),
+                            if (showPreview.value) const VerticalDivider(),
                             if (showPreview.value)
                               Expanded(child: buildPreviewPane()),
                           ],
@@ -475,7 +502,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
 
   // Helper method to handle keyboard shortcuts
   void _handleKeyPress(
-    RawKeyEvent event,
+    KeyEvent event,
     ComposeState state,
     WidgetRef ref,
     BuildContext context, {
@@ -485,7 +512,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
 
     final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
     final isSave = event.logicalKey == LogicalKeyboardKey.keyS;
-    final isModifierPressed = event.isMetaPressed || event.isControlPressed;
+    final isModifierPressed =
+        HardwareKeyboard.instance.isMetaPressed ||
+        HardwareKeyboard.instance.isControlPressed;
     final isSubmit = event.logicalKey == LogicalKeyboardKey.enter;
 
     if (isPaste && isModifierPressed) {

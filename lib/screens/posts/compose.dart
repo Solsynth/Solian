@@ -207,8 +207,6 @@ class PostComposeScreen extends HookConsumerWidget {
         isScrollControlled: true,
         builder:
             (context) => ComposeSettingsSheet(
-              titleController: state.titleController,
-              descriptionController: state.descriptionController,
               visibility: state.visibility,
               tagsController: state.tagsController,
               categoriesController: state.categoriesController,
@@ -370,14 +368,52 @@ class PostComposeScreen extends HookConsumerWidget {
                     // Post content form
                     Expanded(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            TextField(
+                              controller: state.titleController,
+                              decoration: InputDecoration(
+                                hintText: 'postTitle'.tr(),
+                                border: InputBorder.none,
+                                isCollapsed: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 8,
+                                ),
+                              ),
+                              style: theme.textTheme.titleMedium,
+                              onTapOutside:
+                                  (_) =>
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus(),
+                            ),
+                            TextField(
+                              controller: state.descriptionController,
+                              decoration: InputDecoration(
+                                hintText: 'postDescription'.tr(),
+                                border: InputBorder.none,
+                                isCollapsed: true,
+                                contentPadding: const EdgeInsets.fromLTRB(
+                                  8,
+                                  4,
+                                  8,
+                                  12,
+                                ),
+                              ),
+                              style: theme.textTheme.bodyMedium,
+                              minLines: 1,
+                              maxLines: 3,
+                              onTapOutside:
+                                  (_) =>
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus(),
+                            ),
                             // Content field with borderless design
-                            RawKeyboardListener(
+                            KeyboardListener(
                               focusNode: FocusNode(),
-                              onKey:
+                              onKeyEvent:
                                   (event) => ComposeLogic.handleKeyPress(
                                     event,
                                     state,
@@ -393,7 +429,11 @@ class PostComposeScreen extends HookConsumerWidget {
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   hintText: 'postContent'.tr(),
-                                  contentPadding: const EdgeInsets.all(8),
+                                  isCollapsed: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 8,
+                                  ),
                                 ),
                                 maxLines: null,
                                 onTapOutside:

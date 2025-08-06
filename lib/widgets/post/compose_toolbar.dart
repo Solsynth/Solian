@@ -63,6 +63,7 @@ class ComposeToolbar extends HookConsumerWidget {
 
     return Material(
       elevation: 4,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),

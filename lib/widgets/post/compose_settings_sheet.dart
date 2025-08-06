@@ -99,8 +99,6 @@ class ChipTagInputField extends StatelessWidget {
 }
 
 class ComposeSettingsSheet extends HookWidget {
-  final TextEditingController titleController;
-  final TextEditingController descriptionController;
   final ValueNotifier<int> visibility;
   final VoidCallback? onVisibilityChanged;
   final StringTagController tagsController;
@@ -108,8 +106,6 @@ class ComposeSettingsSheet extends HookWidget {
 
   const ComposeSettingsSheet({
     super.key,
-    required this.titleController,
-    required this.descriptionController,
     required this.visibility,
     this.onVisibilityChanged,
     required this.tagsController,
@@ -216,39 +212,6 @@ class ComposeSettingsSheet extends HookWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 16,
           children: [
-            // Title field
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                labelText: 'postTitle'.tr(),
-                hintText: 'postTitle'.tr(),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.all(16),
-              ),
-              style: theme.textTheme.titleMedium,
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
-            ),
-
-            // Description field
-            TextField(
-              controller: descriptionController,
-              decoration: InputDecoration(
-                labelText: 'postDescription'.tr(),
-                hintText: 'postDescription'.tr(),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.all(16),
-              ),
-              style: theme.textTheme.bodyMedium,
-              maxLines: 3,
-              onTapOutside:
-                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
-            ),
-
             // Tags field
             TextFieldTags(
               textfieldTagsController: tagsController,
