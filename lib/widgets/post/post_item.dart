@@ -772,7 +772,7 @@ class PostReplyPreview extends HookConsumerWidget {
     final posts = useState<List<SnPost>>([]);
     final loading = useState(false);
 
-    Future<void> fetchMoreReplies({int pageSize = 1}) async {
+    Future<void> fetchMoreReplies({int pageSize = 3}) async {
       final client = ref.read(apiClientProvider);
       loading.value = true;
 
@@ -943,7 +943,6 @@ class PostReplyPreview extends HookConsumerWidget {
                 children: [
                   Text('repliesCount')
                       .plural(parent.repliesCount)
-                      .tr()
                       .fontSize(15)
                       .bold()
                       .padding(horizontal: 5),

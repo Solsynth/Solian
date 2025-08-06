@@ -36,7 +36,8 @@ Future<SnCheckInResult?> checkInResultToday(Ref ref) async {
 
 class CheckInWidget extends HookConsumerWidget {
   final EdgeInsets? margin;
-  const CheckInWidget({super.key, this.margin});
+  final VoidCallback? onChecked;
+  const CheckInWidget({super.key, this.margin, this.onChecked});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,6 +53,7 @@ class CheckInWidget extends HookConsumerWidget {
         ref.invalidate(checkInResultTodayProvider);
         final userNotifier = ref.read(userInfoProvider.notifier);
         userNotifier.fetchUser();
+        onChecked?.call();
       } catch (err) {
         if (err is DioException) {
           if (err.response?.statusCode == 423 && context.mounted) {

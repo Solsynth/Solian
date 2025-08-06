@@ -218,6 +218,11 @@ class ExploreScreen extends HookConsumerWidget {
                               right: 12,
                               top: 16,
                             ),
+                            onChecked: () {
+                              ref.invalidate(
+                                eventCalendarProvider(query.value),
+                              );
+                            },
                           ),
                           Card(
                             margin: EdgeInsets.only(left: 8, right: 12, top: 8),
