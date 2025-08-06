@@ -3,21 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
 
-/// A poll answering widget that shows one question at a time and collects answers.
-///
-/// Usage:
-/// PollSubmit(
-///   poll: poll,
-///   onSubmit: (answers) {
-///     // answers is Map<String, dynamic>: questionId -> answer
-///     // answer types by question:
-///     // - singleChoice: String optionId
-///     // - multipleChoice: List<String> optionIds
-///     // - yesNo: bool
-///     // - rating: int (1..5)
-///     // - freeText: String
-///   },
-/// )
 class PollSubmit extends ConsumerStatefulWidget {
   const PollSubmit({
     super.key,

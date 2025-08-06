@@ -6,36 +6,6 @@ part of 'embed.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_SnEmbedLink _$SnEmbedLinkFromJson(Map<String, dynamic> json) => _SnEmbedLink(
-  type: json['Type'] as String,
-  url: json['Url'] as String,
-  title: json['Title'] as String,
-  description: json['Description'] as String?,
-  imageUrl: json['ImageUrl'] as String?,
-  faviconUrl: json['FaviconUrl'] as String? ?? "",
-  siteName: json['SiteName'] as String? ?? "",
-  contentType: json['ContentType'] as String?,
-  author: json['Author'] as String?,
-  publishedDate:
-      json['PublishedDate'] == null
-          ? null
-          : DateTime.parse(json['PublishedDate'] as String),
-);
-
-Map<String, dynamic> _$SnEmbedLinkToJson(_SnEmbedLink instance) =>
-    <String, dynamic>{
-      'Type': instance.type,
-      'Url': instance.url,
-      'Title': instance.title,
-      'Description': instance.description,
-      'ImageUrl': instance.imageUrl,
-      'FaviconUrl': instance.faviconUrl,
-      'SiteName': instance.siteName,
-      'ContentType': instance.contentType,
-      'Author': instance.author,
-      'PublishedDate': instance.publishedDate?.toIso8601String(),
-    };
-
 _SnScrappedLink _$SnScrappedLinkFromJson(Map<String, dynamic> json) =>
     _SnScrappedLink(
       type: json['type'] as String,

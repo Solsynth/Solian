@@ -6,7 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EmbedLinkWidget extends StatelessWidget {
-  final SnEmbedLink link;
+  final SnScrappedLink link;
   final double? maxWidth;
   final EdgeInsetsGeometry? margin;
 
@@ -116,7 +116,8 @@ class EmbedLinkWidget extends StatelessWidget {
                     ],
 
                     // Description
-                    if (link.description != null && link.description!.isNotEmpty) ...[
+                    if (link.description != null &&
+                        link.description!.isNotEmpty) ...[
                       Text(
                         link.description!,
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -191,7 +192,7 @@ class EmbedLinkWidget extends StatelessWidget {
     try {
       final now = DateTime.now();
       final difference = now.difference(date);
-      
+
       if (difference.inDays == 0) {
         return 'Today';
       } else if (difference.inDays == 1) {

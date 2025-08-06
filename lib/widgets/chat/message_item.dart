@@ -14,6 +14,7 @@ import 'package:island/models/embed.dart';
 import 'package:island/pods/call.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/screens/chat/room.dart';
+import 'package:island/utils/mapping.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -292,12 +293,11 @@ class MessageItem extends HookConsumerWidget {
                             ),
                           if (remoteMessage.meta['embeds'] != null)
                             ...((remoteMessage.meta['embeds'] as List<dynamic>)
-                                .where((embed) => embed['Type'] == 'link')
                                 .map(
-                                  (embed) => SnEmbedLink.fromJson(
-                                    embed as Map<String, dynamic>,
-                                  ),
+                                  (embed) => convertMapKeysToSnakeCase(embed),
                                 )
+                                .where((embed) => embed['type'] == 'link')
+                                .map((embed) => SnScrappedLink.fromJson(embed))
                                 .map(
                                   (link) => LayoutBuilder(
                                     builder: (context, constraints) {

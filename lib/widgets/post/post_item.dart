@@ -547,7 +547,9 @@ class PostItem extends HookConsumerWidget {
           ...((item.meta!['embeds'] as List<dynamic>).map(
             (embedData) => switch (embedData['type']) {
               'link' => EmbedLinkWidget(
-                link: SnEmbedLink.fromJson(embedData as Map<String, dynamic>),
+                link: SnScrappedLink.fromJson(
+                  embedData as Map<String, dynamic>,
+                ),
                 maxWidth: math.min(
                   MediaQuery.of(context).size.width,
                   kWideScreenWidth,
@@ -877,38 +879,40 @@ class PostReplyPreview extends HookConsumerWidget {
                   ),
               ],
             )
-            : featuredReply!.when(
+            : (featuredReply!).map(
               data:
-                  (value) => Row(
+                  (data) => Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     spacing: 8,
                     children: [
                       ProfilePictureWidget(
-                        file: value?.publisher.picture,
+                        file: data.value?.publisher.picture,
                         radius: 12,
                       ).padding(top: 4),
-                      if (value?.content?.isNotEmpty ?? false)
+                      if (data.value?.content?.isNotEmpty ?? false)
                         Expanded(
-                          child: MarkdownTextContent(content: value!.content!),
+                          child: MarkdownTextContent(
+                            content: data.value!.content!,
+                          ),
                         )
                       else
                         Expanded(
                           child: Text(
                             'postHasAttachments',
-                          ).plural(value?.attachments.length ?? 0),
+                          ).plural(data.value?.attachments.length ?? 0),
                         ),
                     ],
                   ),
               error:
-                  (error, _) => Row(
+                  (e) => Row(
                     spacing: 8,
                     children: [
                       const Icon(Symbols.close, size: 18),
-                      Text(error.toString()),
+                      Text(e.error.toString()),
                     ],
                   ),
               loading:
-                  () => Row(
+                  (_) => Row(
                     spacing: 8,
                     children: [
                       SizedBox(
