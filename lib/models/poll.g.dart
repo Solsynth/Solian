@@ -131,3 +131,28 @@ Map<String, dynamic> _$SnPollOptionToJson(_SnPollOption instance) =>
       'description': instance.description,
       'order': instance.order,
     };
+
+_SnPollAnswer _$SnPollAnswerFromJson(Map<String, dynamic> json) =>
+    _SnPollAnswer(
+      id: json['id'] as String,
+      answer: json['answer'] as Map<String, dynamic>,
+      accountId: json['account_id'] as String,
+      pollId: json['poll_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnPollAnswerToJson(_SnPollAnswer instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'answer': instance.answer,
+      'account_id': instance.accountId,
+      'poll_id': instance.pollId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };

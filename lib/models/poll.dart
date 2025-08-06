@@ -90,3 +90,19 @@ enum SnPollQuestionType {
   @JsonValue(4)
   freeText,
 }
+
+@freezed
+sealed class SnPollAnswer with _$SnPollAnswer {
+  const factory SnPollAnswer({
+    required String id,
+    required Map<String, dynamic> answer,
+    required String accountId,
+    required String pollId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnPollAnswer;
+
+  factory SnPollAnswer.fromJson(Map<String, dynamic> json) =>
+      _$SnPollAnswerFromJson(json);
+}

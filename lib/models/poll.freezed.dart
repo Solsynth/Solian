@@ -1183,4 +1183,285 @@ as int,
 
 }
 
+
+/// @nodoc
+mixin _$SnPollAnswer {
+
+ String get id; Map<String, dynamic> get answer; String get accountId; String get pollId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnPollAnswer
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPollAnswerCopyWith<SnPollAnswer> get copyWith => _$SnPollAnswerCopyWithImpl<SnPollAnswer>(this as SnPollAnswer, _$identity);
+
+  /// Serializes this SnPollAnswer to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPollAnswer&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.answer, answer)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.pollId, pollId) || other.pollId == pollId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(answer),accountId,pollId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnPollAnswer(id: $id, answer: $answer, accountId: $accountId, pollId: $pollId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPollAnswerCopyWith<$Res>  {
+  factory $SnPollAnswerCopyWith(SnPollAnswer value, $Res Function(SnPollAnswer) _then) = _$SnPollAnswerCopyWithImpl;
+@useResult
+$Res call({
+ String id, Map<String, dynamic> answer, String accountId, String pollId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnPollAnswerCopyWithImpl<$Res>
+    implements $SnPollAnswerCopyWith<$Res> {
+  _$SnPollAnswerCopyWithImpl(this._self, this._then);
+
+  final SnPollAnswer _self;
+  final $Res Function(SnPollAnswer) _then;
+
+/// Create a copy of SnPollAnswer
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? answer = null,Object? accountId = null,Object? pollId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,answer: null == answer ? _self.answer : answer // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,pollId: null == pollId ? _self.pollId : pollId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnPollAnswer].
+extension SnPollAnswerPatterns on SnPollAnswer {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPollAnswer value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPollAnswer() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPollAnswer value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPollAnswer():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPollAnswer value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPollAnswer() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  Map<String, dynamic> answer,  String accountId,  String pollId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPollAnswer() when $default != null:
+return $default(_that.id,_that.answer,_that.accountId,_that.pollId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  Map<String, dynamic> answer,  String accountId,  String pollId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnPollAnswer():
+return $default(_that.id,_that.answer,_that.accountId,_that.pollId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  Map<String, dynamic> answer,  String accountId,  String pollId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPollAnswer() when $default != null:
+return $default(_that.id,_that.answer,_that.accountId,_that.pollId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPollAnswer implements SnPollAnswer {
+  const _SnPollAnswer({required this.id, required final  Map<String, dynamic> answer, required this.accountId, required this.pollId, required this.createdAt, required this.updatedAt, required this.deletedAt}): _answer = answer;
+  factory _SnPollAnswer.fromJson(Map<String, dynamic> json) => _$SnPollAnswerFromJson(json);
+
+@override final  String id;
+ final  Map<String, dynamic> _answer;
+@override Map<String, dynamic> get answer {
+  if (_answer is EqualUnmodifiableMapView) return _answer;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_answer);
+}
+
+@override final  String accountId;
+@override final  String pollId;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnPollAnswer
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPollAnswerCopyWith<_SnPollAnswer> get copyWith => __$SnPollAnswerCopyWithImpl<_SnPollAnswer>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPollAnswerToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPollAnswer&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._answer, _answer)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.pollId, pollId) || other.pollId == pollId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_answer),accountId,pollId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnPollAnswer(id: $id, answer: $answer, accountId: $accountId, pollId: $pollId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPollAnswerCopyWith<$Res> implements $SnPollAnswerCopyWith<$Res> {
+  factory _$SnPollAnswerCopyWith(_SnPollAnswer value, $Res Function(_SnPollAnswer) _then) = __$SnPollAnswerCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, Map<String, dynamic> answer, String accountId, String pollId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnPollAnswerCopyWithImpl<$Res>
+    implements _$SnPollAnswerCopyWith<$Res> {
+  __$SnPollAnswerCopyWithImpl(this._self, this._then);
+
+  final _SnPollAnswer _self;
+  final $Res Function(_SnPollAnswer) _then;
+
+/// Create a copy of SnPollAnswer
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? answer = null,Object? accountId = null,Object? pollId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnPollAnswer(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,answer: null == answer ? _self._answer : answer // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,pollId: null == pollId ? _self.pollId : pollId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
 // dart format on
