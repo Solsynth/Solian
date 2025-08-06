@@ -761,5 +761,12 @@
   "publisher": "Publisher",
   "publisherHint": "Enter the publisher name",
   "publisherCannotBeEmpty": "Publisher cannot be empty",
-  "operationFailed": "Operation failed: {}"
+  "operationFailed": "Operation failed: {}",
+  "stickerMarketplace": "Sticker Marketplace",
+  "stickerPackAdded": "Sticker pack added to your collection",
+  "stickerPackRemoved": "Sticker pack removed from your collection",
+  "addPack": "Add Pack",
+  "removePack": "Remove Pack",
+  "browseAndAddStickers": "Browse and add sticker packs",
+  "stickerPack": "Sticker Pack"
 }
