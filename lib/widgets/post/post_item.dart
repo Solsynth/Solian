@@ -314,6 +314,19 @@ class PostItem extends HookConsumerWidget {
       }
     }
 
+    String _parseVisibility(int visibility) {
+      switch (visibility) {
+        case 1:
+          return 'postVisibilityFriends';
+        case 2:
+          return 'postVisibilityUnlisted';
+        case 3:
+          return 'postVisibilityPrivate';
+        default:
+          return 'postVisibilityPublic';
+      }
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,13 +362,29 @@ class PostItem extends HookConsumerWidget {
                       Text('@${item.publisher.name}').fontSize(11),
                     ],
                   ),
-                  Text(
-                    isFullPost
-                        ? (item.publishedAt ?? item.createdAt)!.formatSystem()
-                        : (item.publishedAt ?? item.createdAt)!.formatRelative(
-                          context,
-                        ),
-                  ).fontSize(10),
+                  Row(
+                    spacing: 6,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        isFullPost
+                            ? (item.publishedAt ?? item.createdAt)!
+                                .formatSystem()
+                            : (item.publishedAt ?? item.createdAt)!
+                                .formatRelative(context),
+                      ).fontSize(10),
+                      if (item.editedAt != null)
+                        Text(
+                          'editedAt'.tr(args: [item.editedAt!.formatSystem()]),
+                          style: TextStyle(height: 1.2),
+                        ).fontSize(10),
+                      if (item.visibility != 0)
+                        Text(
+                          _parseVisibility(item.visibility).tr(),
+                          style: TextStyle(height: 1.45),
+                        ).fontSize(10),
+                    ],
+                  ),
                 ],
               ),
             ),

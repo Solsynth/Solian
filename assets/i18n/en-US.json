@@ -144,6 +144,7 @@
     "other": "{} attachments"
   },
   "edited": "Edited",
+  "editedAt": "Edited at {}",
   "addVideo": "Add video",
   "addPhoto": "Add photo",
   "addAudio": "Add audio",

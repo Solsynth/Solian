@@ -279,18 +279,14 @@ class _DraftItem extends StatelessWidget {
 
   String _parseVisibility(int visibility) {
     switch (visibility) {
-      case 0:
-        return 'public'.tr();
       case 1:
-        return 'unlisted'.tr();
+        return 'postVisibilityFriends';
       case 2:
-        return 'friends'.tr();
+        return 'postVisibilityUnlisted';
       case 3:
-        return 'selected'.tr();
-      case 4:
-        return 'private'.tr();
+        return 'postVisibilityPrivate';
       default:
-        return 'unknown'.tr();
+        return 'postVisibilityPublic';
     }
   }
 }
