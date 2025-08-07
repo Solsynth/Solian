@@ -12,11 +12,11 @@ import 'package:island/models/webfeed.dart';
 import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/widgets/account/event_calendar.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
+import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -70,15 +70,6 @@ class ExploreScreen extends HookConsumerWidget {
     final events = ref.watch(eventCalendarProvider(query.value));
 
     final selectedDay = useState(now);
-
-    void onMonthChanged(int year, int month) {
-      query.value = EventCalendarQuery(
-        uname: query.value.uname,
-        year: year,
-        month: month,
-      );
-    }
-
     // Function to handle day selection for synchronizing between widgets
     void onDaySelected(DateTime day) {
       selectedDay.value = day;
@@ -224,20 +215,10 @@ class ExploreScreen extends HookConsumerWidget {
                               );
                             },
                           ),
-                          Card(
-                            margin: EdgeInsets.only(left: 8, right: 12, top: 8),
-                            child: Column(
-                              children: [
-                                // Use the reusable EventCalendarWidget
-                                EventCalendarWidget(
-                                  events: events,
-                                  initialDate: now,
-                                  showEventDetails: true,
-                                  onMonthChanged: onMonthChanged,
-                                  onDaySelected: onDaySelected,
-                                ),
-                              ],
-                            ),
+                          PostFeaturedList().padding(
+                            left: 8,
+                            right: 12,
+                            top: 8,
                           ),
                           FortuneGraphWidget(
                             margin: EdgeInsets.only(left: 8, right: 12, top: 8),
@@ -407,6 +388,10 @@ class _ActivityListView extends HookConsumerWidget {
             child: CheckInWidget(
               margin: EdgeInsets.only(left: 8, right: 8, bottom: 4),
             ),
+          ),
+        if (!contentOnly)
+          SliverToBoxAdapter(
+            child: PostFeaturedList().padding(horizontal: 8, bottom: 4, top: 4),
           ),
         SliverList.builder(
           itemCount: widgetCount,
