@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -18,6 +17,7 @@ sealed class WebSocketState with _$WebSocketState {
   const factory WebSocketState.connected() = _Connected;
   const factory WebSocketState.connecting() = _Connecting;
   const factory WebSocketState.disconnected() = _Disconnected;
+  const factory WebSocketState.duplicateDevice() = _DuplicateDevice;
   const factory WebSocketState.error(String message) = _Error;
 }
 
@@ -49,7 +49,7 @@ class WebSocketService {
   Timer? _heartbeatTimer;
 
   DateTime? _heartbeatAt;
-  Duration? _heartbeatDelay;
+  Duration? heartbeatDelay;
 
   Stream<WebSocketPacket> get dataStream => _streamController.stream;
   Stream<WebSocketState> get statusStream => _statusStreamController.stream;
@@ -87,16 +87,23 @@ class WebSocketService {
           );
           if (packet.type == 'pong' && _heartbeatAt != null) {
             var now = DateTime.now();
-            _heartbeatDelay = now.difference(_heartbeatAt!);
+            heartbeatDelay = now.difference(_heartbeatAt!);
             log(
-              "[WebSocket] Server respond last heartbeat for ${_heartbeatDelay!.inMilliseconds} ms",
+              "[WebSocket] Server respond last heartbeat for ${heartbeatDelay!.inMilliseconds} ms",
             );
           }
         },
         onDone: () {
-          log('[WebSocket] Connection closed, attempting to reconnect...');
-          _scheduleReconnect();
-          _statusStreamController.sink.add(WebSocketState.disconnected());
+          if (_channel?.closeCode == 1006) {
+            log(
+              '[WebSocket] Connection closed due to duplicate device. Not going to reconnect...',
+            );
+            _statusStreamController.sink.add(WebSocketState.duplicateDevice());
+          } else {
+            log('[WebSocket] Connection closed, attempting to reconnect...');
+            _scheduleReconnect();
+            _statusStreamController.sink.add(WebSocketState.disconnected());
+          }
         },
         onError: (error) {
           log('[WebSocket] Error occurred: $error, attempting to reconnect...');

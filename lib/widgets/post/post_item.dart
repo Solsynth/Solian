@@ -16,6 +16,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
+import 'package:island/utils/mapping.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
@@ -573,38 +574,42 @@ class PostItem extends HookConsumerWidget {
             ),
           ),
         if (item.meta?['embeds'] != null)
-          ...((item.meta!['embeds'] as List<dynamic>).map(
-            (embedData) => switch (embedData['type']) {
-              'link' => EmbedLinkWidget(
-                link: SnScrappedLink.fromJson(
-                  embedData as Map<String, dynamic>,
-                ),
-                maxWidth: math.min(
-                  MediaQuery.of(context).size.width,
-                  kWideScreenWidth,
-                ),
-                margin: EdgeInsets.only(
-                  top: 4,
-                  bottom: 4,
-                  left: renderingPadding.horizontal,
-                  right: renderingPadding.horizontal,
-                ),
-              ),
-              'poll' => Card(
-                margin: EdgeInsets.symmetric(
-                  horizontal: renderingPadding.horizontal,
-                  vertical: 8,
-                ),
-                child: PollSubmit(
-                  initialAnswers: embedData['poll']?['user_answer']?['answer'],
-                  stats: embedData['poll']?['stats'],
-                  poll: SnPollWithStats.fromJson(embedData['poll']),
-                  onSubmit: (_) {},
-                ).padding(horizontal: 16, vertical: 12),
-              ),
-              _ => Text('Unable show embed: ${embedData['type']}'),
-            },
-          )),
+          ...((item.meta!['embeds'] as List<dynamic>)
+              .map((embedData) => convertMapKeysToSnakeCase(embedData))
+              .map(
+                (embedData) => switch (embedData['type']) {
+                  'link' => EmbedLinkWidget(
+                    link: SnScrappedLink.fromJson(embedData),
+                    maxWidth: math.min(
+                      MediaQuery.of(context).size.width,
+                      kWideScreenWidth,
+                    ),
+                    margin: EdgeInsets.only(
+                      top: 4,
+                      bottom: 4,
+                      left: renderingPadding.horizontal,
+                      right: renderingPadding.horizontal,
+                    ),
+                  ),
+                  'poll' => Card(
+                    margin: EdgeInsets.symmetric(
+                      horizontal: renderingPadding.horizontal,
+                      vertical: 8,
+                    ),
+                    child:
+                        embedData['poll'] == null
+                            ? Text('Poll was not loaded...')
+                            : PollSubmit(
+                              initialAnswers:
+                                  embedData['poll']?['user_answer']?['answer'],
+                              stats: embedData['poll']?['stats'],
+                              poll: SnPollWithStats.fromJson(embedData['poll']),
+                              onSubmit: (_) {},
+                            ).padding(horizontal: 16, vertical: 12),
+                  ),
+                  _ => Text('Unable show embed: ${embedData['type']}'),
+                },
+              )),
         if (isShowReference)
           _buildReferencePost(context, item, renderingPadding),
         if (item.repliesCount > 0 && isEmbedReply)
