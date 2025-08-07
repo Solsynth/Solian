@@ -171,21 +171,23 @@ class _PackSwitcherState extends State<_PackSwitcher> {
             ),
             const Spacer(),
             IconButton(
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
               tooltip: 'close'.tr(),
               onPressed: () => Navigator.of(context).maybePop(),
               icon: const Icon(Symbols.close),
             ),
           ],
-        ).padding(horizontal: 12, top: 8, bottom: 4),
+        ).padding(horizontal: 12, top: 8),
 
         // Vertical, scrollable packs rail like common emoji pickers
         SizedBox(
-          height: 52,
+          height: 48,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             scrollDirection: Axis.horizontal,
             itemCount: packs.length,
-            separatorBuilder: (_, __) => const Gap(4),
+            separatorBuilder: (_, _) => const Gap(4),
             itemBuilder: (context, i) {
               final selected = _index == i;
               return Tooltip(
@@ -201,7 +203,7 @@ class _PackSwitcherState extends State<_PackSwitcher> {
               );
             },
           ),
-        ),
+        ).padding(bottom: 8),
         const Divider(height: 1),
 
         // Content
@@ -214,7 +216,6 @@ class _PackSwitcherState extends State<_PackSwitcher> {
             ),
           ),
         ),
-        Gap(MediaQuery.of(context).padding.bottom),
       ],
     );
   }

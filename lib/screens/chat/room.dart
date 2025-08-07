@@ -1061,14 +1061,14 @@ class _ChatInput extends HookConsumerWidget {
         children: [
           if (attachments.isNotEmpty)
             SizedBox(
-              height: 280,
+              height: 324,
               child: ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 scrollDirection: Axis.horizontal,
                 itemCount: attachments.length,
                 itemBuilder: (context, idx) {
                   return SizedBox(
-                    height: 280,
+                    height: 320,
                     width: 280,
                     child: AttachmentPreview(
                       item: attachments[idx],
