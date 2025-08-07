@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +11,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:flutter_popup_card/flutter_popup_card.dart';
 
 part 'picker.g.dart';
 
@@ -40,9 +43,9 @@ class StickerPicker extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final packsAsync = ref.watch(myStickerPacksProvider);
 
-    return Dialog(
-      insetPadding: const EdgeInsets.all(12),
-      clipBehavior: Clip.hardEdge,
+    return PopupCard(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520, maxHeight: 520),
         child: packsAsync.when(
@@ -175,26 +178,28 @@ class _PackSwitcherState extends State<_PackSwitcher> {
           ],
         ).padding(horizontal: 12, top: 8, bottom: 4),
 
-        // Pack chips
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            children: [
-              for (var i = 0; i < packs.length; i++)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: ChoiceChip(
-                    label: Text(packs[i].name),
-                    selected: _index == i,
-                    onSelected: (v) {
-                      if (!v) return;
-                      setState(() => _index = i);
-                      HapticFeedback.selectionClick();
-                    },
-                  ),
+        // Vertical, scrollable packs rail like common emoji pickers
+        SizedBox(
+          height: 52,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            scrollDirection: Axis.horizontal,
+            itemCount: packs.length,
+            separatorBuilder: (_, __) => const Gap(4),
+            itemBuilder: (context, i) {
+              final selected = _index == i;
+              return Tooltip(
+                message: packs[i].name,
+                child: FilterChip(
+                  label: Text(packs[i].name, overflow: TextOverflow.ellipsis),
+                  selected: selected,
+                  onSelected: (_) {
+                    setState(() => _index = i);
+                    HapticFeedback.selectionClick();
+                  },
                 ),
-            ],
+              );
+            },
           ),
         ),
         const Divider(height: 1),
@@ -269,21 +274,33 @@ class _StickersGrid extends StatelessWidget {
   }
 }
 
-/// Helper to show sticker picker as a popover dialog.
-/// Usage:
-/// await showStickerPickerPopover(context, onPick: (placeholder) { ... });
+/// Helper to show sticker picker as an anchored popover near the trigger.
+/// Provide the button's BuildContext (typically from the onPressed closure).
+/// Fallbacks to dialog if overlay cannot be found (e.g., during tests).
 Future<void> showStickerPickerPopover(
-  BuildContext context, {
+  BuildContext context,
+  Offset offset, {
   required void Function(String placeholder) onPick,
 }) async {
-  await showDialog(
+  // Use flutter_popup_card to present the anchored popup near trigger.
+  await showPopupCard<void>(
     context: context,
-    barrierDismissible: true,
-    builder: (ctx) {
-      return ProviderScope(
-        parent: ProviderScope.containerOf(context),
-        child: StickerPicker(onPick: onPick),
-      );
-    },
+    offset: offset,
+    alignment: Alignment.topLeft,
+    dimBackground: true,
+    builder:
+        (ctx) => SizedBox(
+          width: math.min(480, MediaQuery.of(context).size.width * 0.9),
+          height: 480,
+          child: ProviderScope(
+            parent: ProviderScope.containerOf(context),
+            child: StickerPicker(
+              onPick: (ph) {
+                onPick(ph);
+                Navigator.of(ctx).maybePop();
+              },
+            ),
+          ),
+        ),
   );
 }
