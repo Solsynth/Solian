@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/alert.dart';
 
 class PollSubmit extends ConsumerStatefulWidget {
   const PollSubmit({
@@ -193,12 +195,11 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
       // Only call onSubmit after server accepts
       widget.onSubmit(Map<String, dynamic>.unmodifiable(_answers));
+
+      showSnackBar('Poll answer has been submitted.');
+      HapticFeedback.heavyImpact();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to submit poll: $e')));
-      }
+      showErrorAlert(e);
     } finally {
       if (mounted) {
         setState(() {
