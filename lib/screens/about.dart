@@ -11,6 +11,8 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/services/update_service.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -190,6 +192,45 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                       context,
                       title: 'aboutScreenLinksSectionTitle'.tr(),
                       children: [
+                        _buildListTile(
+                          context,
+                          icon: Symbols.system_update,
+                          title: 'Check for updates',
+                          onTap: () async {
+                            // Fetch latest release and show the unified sheet
+                            final svc = UpdateService();
+                            // Reuse service fetch + compare to decide content
+                            final release = await svc.fetchLatestRelease();
+                            if (release != null) {
+                              await svc.showUpdateSheet(context, release);
+                            } else {
+                              // Fallback: show a simple sheet indicating no info
+                              // Use your SheetScaffold for consistent styling
+                              // Show a minimal message
+                              // ignore: use_build_context_synchronously
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                useSafeArea: true,
+                                showDragHandle: true,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.surface,
+                                builder:
+                                    (_) => const SheetScaffold(
+                                      titleText: 'Update',
+                                      child: Center(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(24),
+                                          child: Text(
+                                            'Unable to fetch release info at this time.',
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                              );
+                            }
+                          },
+                        ),
                         _buildListTile(
                           context,
                           icon: Symbols.privacy_tip,

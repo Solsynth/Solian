@@ -30,6 +30,7 @@ import 'package:image_picker_platform_interface/image_picker_platform_interface.
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter_langdetect/flutter_langdetect.dart' as langdetect;
+import 'package:island/services/update_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -137,6 +138,15 @@ void main() async {
       ),
     ),
   );
+
+  // Schedule update check shortly after startup, when a context is available.
+  // Uses the global overlay key to obtain a BuildContext safely.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final ctx = globalOverlay.currentContext;
+    if (ctx != null) {
+      UpdateService().checkForUpdates(ctx);
+    }
+  });
 }
 
 // Router will be provided through Riverpod
