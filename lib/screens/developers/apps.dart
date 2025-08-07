@@ -18,7 +18,7 @@ part 'apps.g.dart';
 @riverpod
 Future<List<CustomApp>> customApps(Ref ref, String publisherName) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/developers/$publisherName/apps');
+  final resp = await client.get('/develop/developers/$publisherName/apps');
   return resp.data.map((e) => CustomApp.fromJson(e)).cast<CustomApp>().toList();
 }
 
@@ -37,7 +37,10 @@ class CustomAppsScreen extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Symbols.add),
             onPressed: () {
-              context.pushNamed('developerAppNew', pathParameters: {'name': publisherName});
+              context.pushNamed(
+                'developerAppNew',
+                pathParameters: {'name': publisherName},
+              );
             },
           ),
         ],
@@ -121,7 +124,13 @@ class CustomAppsScreen extends HookConsumerWidget {
                               ],
                           onSelected: (value) {
                             if (value == 'edit') {
-                              context.pushNamed('developerAppEdit', pathParameters: {'name': publisherName, 'id': app.id});
+                              context.pushNamed(
+                                'developerAppEdit',
+                                pathParameters: {
+                                  'name': publisherName,
+                                  'id': app.id,
+                                },
+                              );
                             } else if (value == 'delete') {
                               showConfirmAlert(
                                 'deleteCustomAppHint'.tr(),
@@ -130,7 +139,7 @@ class CustomAppsScreen extends HookConsumerWidget {
                                 if (confirm) {
                                   final client = ref.read(apiClientProvider);
                                   client.delete(
-                                    '/developers/$publisherName/apps/${app.id}',
+                                    '/develop/developers/$publisherName/apps/${app.id}',
                                   );
                                   ref.invalidate(
                                     customAppsProvider(publisherName),
