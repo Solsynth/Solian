@@ -40,6 +40,11 @@ class NetworkStatusSheet extends HookConsumerWidget {
                     'Disconnected from server',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
+              serverDown:
+                  () => Text(
+                    'The server is not available right now... Please try again later...',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
               duplicateDevice:
                   () => Text(
                     'Another device has connected with the same account.',

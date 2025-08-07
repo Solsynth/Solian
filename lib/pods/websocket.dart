@@ -17,6 +17,7 @@ sealed class WebSocketState with _$WebSocketState {
   const factory WebSocketState.connected() = _Connected;
   const factory WebSocketState.connecting() = _Connecting;
   const factory WebSocketState.disconnected() = _Disconnected;
+  const factory WebSocketState.serverDown() = _ServerDown;
   const factory WebSocketState.duplicateDevice() = _DuplicateDevice;
   const factory WebSocketState.error(String message) = _Error;
 }
@@ -81,6 +82,11 @@ class WebSocketService {
           final dataStr =
               data is Uint8List ? utf8.decode(data) : data.toString();
           final packet = WebSocketPacket.fromJson(jsonDecode(dataStr));
+          if (packet.type == 'error.dupe') {
+            _statusStreamController.sink.add(WebSocketState.duplicateDevice());
+            _channel!.sink.close();
+            return;
+          }
           _streamController.sink.add(packet);
           log(
             "[WebSocket] Received packet: ${packet.type} ${packet.errorMessage}",
@@ -94,16 +100,9 @@ class WebSocketService {
           }
         },
         onDone: () {
-          if (_channel?.closeCode == 1006) {
-            log(
-              '[WebSocket] Connection closed due to duplicate device. Not going to reconnect...',
-            );
-            _statusStreamController.sink.add(WebSocketState.duplicateDevice());
-          } else {
-            log('[WebSocket] Connection closed, attempting to reconnect...');
-            _scheduleReconnect();
-            _statusStreamController.sink.add(WebSocketState.disconnected());
-          }
+          log('[WebSocket] Connection closed, attempting to reconnect...');
+          _scheduleReconnect();
+          _statusStreamController.sink.add(WebSocketState.disconnected());
         },
         onError: (error) {
           log('[WebSocket] Error occurred: $error, attempting to reconnect...');

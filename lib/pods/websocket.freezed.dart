@@ -61,13 +61,14 @@ extension WebSocketStatePatterns on WebSocketState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Connected value)?  connected,TResult Function( _Connecting value)?  connecting,TResult Function( _Disconnected value)?  disconnected,TResult Function( _DuplicateDevice value)?  duplicateDevice,TResult Function( _Error value)?  error,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Connected value)?  connected,TResult Function( _Connecting value)?  connecting,TResult Function( _Disconnected value)?  disconnected,TResult Function( _ServerDown value)?  serverDown,TResult Function( _DuplicateDevice value)?  duplicateDevice,TResult Function( _Error value)?  error,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Connected() when connected != null:
 return connected(_that);case _Connecting() when connecting != null:
 return connecting(_that);case _Disconnected() when disconnected != null:
-return disconnected(_that);case _DuplicateDevice() when duplicateDevice != null:
+return disconnected(_that);case _ServerDown() when serverDown != null:
+return serverDown(_that);case _DuplicateDevice() when duplicateDevice != null:
 return duplicateDevice(_that);case _Error() when error != null:
 return error(_that);case _:
   return orElse();
@@ -87,13 +88,14 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Connected value)  connected,required TResult Function( _Connecting value)  connecting,required TResult Function( _Disconnected value)  disconnected,required TResult Function( _DuplicateDevice value)  duplicateDevice,required TResult Function( _Error value)  error,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Connected value)  connected,required TResult Function( _Connecting value)  connecting,required TResult Function( _Disconnected value)  disconnected,required TResult Function( _ServerDown value)  serverDown,required TResult Function( _DuplicateDevice value)  duplicateDevice,required TResult Function( _Error value)  error,}){
 final _that = this;
 switch (_that) {
 case _Connected():
 return connected(_that);case _Connecting():
 return connecting(_that);case _Disconnected():
-return disconnected(_that);case _DuplicateDevice():
+return disconnected(_that);case _ServerDown():
+return serverDown(_that);case _DuplicateDevice():
 return duplicateDevice(_that);case _Error():
 return error(_that);}
 }
@@ -109,13 +111,14 @@ return error(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Connected value)?  connected,TResult? Function( _Connecting value)?  connecting,TResult? Function( _Disconnected value)?  disconnected,TResult? Function( _DuplicateDevice value)?  duplicateDevice,TResult? Function( _Error value)?  error,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Connected value)?  connected,TResult? Function( _Connecting value)?  connecting,TResult? Function( _Disconnected value)?  disconnected,TResult? Function( _ServerDown value)?  serverDown,TResult? Function( _DuplicateDevice value)?  duplicateDevice,TResult? Function( _Error value)?  error,}){
 final _that = this;
 switch (_that) {
 case _Connected() when connected != null:
 return connected(_that);case _Connecting() when connecting != null:
 return connecting(_that);case _Disconnected() when disconnected != null:
-return disconnected(_that);case _DuplicateDevice() when duplicateDevice != null:
+return disconnected(_that);case _ServerDown() when serverDown != null:
+return serverDown(_that);case _DuplicateDevice() when duplicateDevice != null:
 return duplicateDevice(_that);case _Error() when error != null:
 return error(_that);case _:
   return null;
@@ -134,12 +137,13 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  connected,TResult Function()?  connecting,TResult Function()?  disconnected,TResult Function()?  duplicateDevice,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  connected,TResult Function()?  connecting,TResult Function()?  disconnected,TResult Function()?  serverDown,TResult Function()?  duplicateDevice,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Connected() when connected != null:
 return connected();case _Connecting() when connecting != null:
 return connecting();case _Disconnected() when disconnected != null:
-return disconnected();case _DuplicateDevice() when duplicateDevice != null:
+return disconnected();case _ServerDown() when serverDown != null:
+return serverDown();case _DuplicateDevice() when duplicateDevice != null:
 return duplicateDevice();case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
@@ -159,12 +163,13 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  connected,required TResult Function()  connecting,required TResult Function()  disconnected,required TResult Function()  duplicateDevice,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  connected,required TResult Function()  connecting,required TResult Function()  disconnected,required TResult Function()  serverDown,required TResult Function()  duplicateDevice,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case _Connected():
 return connected();case _Connecting():
 return connecting();case _Disconnected():
-return disconnected();case _DuplicateDevice():
+return disconnected();case _ServerDown():
+return serverDown();case _DuplicateDevice():
 return duplicateDevice();case _Error():
 return error(_that.message);}
 }
@@ -180,12 +185,13 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  connected,TResult? Function()?  connecting,TResult? Function()?  disconnected,TResult? Function()?  duplicateDevice,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  connected,TResult? Function()?  connecting,TResult? Function()?  disconnected,TResult? Function()?  serverDown,TResult? Function()?  duplicateDevice,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case _Connected() when connected != null:
 return connected();case _Connecting() when connecting != null:
 return connecting();case _Disconnected() when disconnected != null:
-return disconnected();case _DuplicateDevice() when duplicateDevice != null:
+return disconnected();case _ServerDown() when serverDown != null:
+return serverDown();case _DuplicateDevice() when duplicateDevice != null:
 return duplicateDevice();case _Error() when error != null:
 return error(_that.message);case _:
   return null;
@@ -301,6 +307,44 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'WebSocketState.disconnected()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class _ServerDown with DiagnosticableTreeMixin implements WebSocketState {
+  const _ServerDown();
+  
+
+
+
+
+
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'WebSocketState.serverDown'))
+    ;
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServerDown);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+  return 'WebSocketState.serverDown()';
 }
 
 
