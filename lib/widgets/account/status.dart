@@ -130,9 +130,22 @@ class AccountStatusWidget extends HookConsumerWidget {
               size: 16,
             ).padding(right: 4),
           if (status.value?.isCustomized ?? false)
-            Text(status.value?.label ?? 'unknown'.tr())
+            Flexible(
+              child: Text(
+                status.value?.label ?? 'unknown'.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            )
           else
-            Text((status.value?.label ?? 'offline').toLowerCase()).tr(),
+            Flexible(
+              child:
+                  Text(
+                    (status.value?.label ?? 'offline').toLowerCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ).tr(),
+            ),
           if (!(status.value?.isOnline ?? false) &&
               account.value?.profile.lastSeenAt != null)
             Flexible(
