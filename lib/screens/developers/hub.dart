@@ -25,14 +25,14 @@ part 'hub.g.dart';
 Future<DeveloperStats?> developerStats(Ref ref, String? uname) async {
   if (uname == null) return null;
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/sphere/developers/$uname/stats');
+  final resp = await apiClient.get('/develop/developers/$uname/stats');
   return DeveloperStats.fromJson(resp.data);
 }
 
 @riverpod
 Future<List<SnPublisher>> developers(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/sphere/developers');
+  final resp = await client.get('/develop/developers');
   return resp.data
       .map((e) => SnPublisher.fromJson(e))
       .cast<SnPublisher>()
@@ -336,7 +336,7 @@ class _DeveloperEnrollmentSheet extends HookConsumerWidget {
     Future<void> enroll(SnPublisher publisher) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.post('/sphere/developers/${publisher.name}/enroll');
+        await client.post('/develop/developers/${publisher.name}/enroll');
         if (context.mounted) {
           Navigator.pop(context, true);
         }
