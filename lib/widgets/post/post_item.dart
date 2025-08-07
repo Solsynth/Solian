@@ -781,10 +781,14 @@ class PostReplyPreview extends HookConsumerWidget {
           '/sphere/posts/${parent.id}/replies',
           queryParameters: {'offset': posts.value.length, 'take': pageSize},
         );
-        posts.value = [
-          ...posts.value,
-          ...response.data.map((e) => SnPost.fromJson(e)),
-        ];
+        try {
+          posts.value = [
+            ...posts.value,
+            ...response.data.map((e) => SnPost.fromJson(e)),
+          ];
+        } catch (_) {
+          // ignore disposed
+        }
       } catch (err) {
         showErrorAlert(err);
       } finally {
