@@ -1141,8 +1141,15 @@ class _ChatInput extends HookConsumerWidget {
                       tooltip: 'stickers'.tr(),
                       icon: const Icon(Symbols.emoji_symbols),
                       onPressed: () {
+                        final size = MediaQuery.of(context).size;
                         showStickerPickerPopover(
                           context,
+                          Offset(
+                            20,
+                            size.height -
+                                480 -
+                                MediaQuery.of(context).padding.bottom,
+                          ),
                           onPick: (placeholder) {
                             // Insert placeholder at current cursor position
                             final text = messageController.text;
