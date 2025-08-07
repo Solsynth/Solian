@@ -145,6 +145,8 @@ class MarkdownTextContent extends HookConsumerWidget {
                     );
                   case 'stickers':
                     final size = doesEnlargeSticker ? 96.0 : 24.0;
+                    final stickerUri =
+                        '$baseUrl/sphere/stickers/lookup/${uri.pathSegments[0]}/open';
                     return ClipRRect(
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
                       child: Container(
@@ -155,8 +157,7 @@ class MarkdownTextContent extends HookConsumerWidget {
                           ),
                         ),
                         child: UniversalImage(
-                          uri:
-                              '$baseUrl/sphere/stickers/lookup/${uri.pathSegments[0]}/open',
+                          uri: stickerUri,
                           width: size,
                           height: size,
                           fit: BoxFit.cover,
