@@ -323,15 +323,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AboutScreen(),
           ),
 
-          GoRoute(
-            name: 'reportDetail',
-            path: '/safety/reports/me/:id',
-            builder: (context, state) {
-              final id = state.pathParameters['id']!;
-              return AbuseReportDetailScreen(reportId: id);
-            },
-          ),
-
           // Main tabs with TabsScreen shell
           ShellRoute(
             navigatorKey: _tabsShellKey,
@@ -524,6 +515,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                     name: 'reportList',
                     path: '/safety/reports/me',
                     builder: (context, state) => const AbuseReportListScreen(),
+                  ),
+                  GoRoute(
+                    name: 'reportDetail',
+                    path: '/safety/reports/me/:id',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return AbuseReportDetailScreen(reportId: id);
+                    },
                   ),
                 ],
               ),
