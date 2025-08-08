@@ -6,7 +6,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post_category.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/services/text.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -16,12 +15,12 @@ import 'package:textfield_tags/textfield_tags.dart';
 part 'compose_settings_sheet.g.dart';
 
 @riverpod
-Future<List<PostCategory>> postCategories(Ref ref) async {
+Future<List<SnPostCategory>> postCategories(Ref ref) async {
   final apiClient = ref.watch(apiClientProvider);
   final resp = await apiClient.get('/sphere/posts/categories');
   return resp.data
-      .map((e) => PostCategory.fromJson(e))
-      .cast<PostCategory>()
+      .map((e) => SnPostCategory.fromJson(e))
+      .cast<SnPostCategory>()
       .toList();
 }
 
@@ -215,14 +214,6 @@ class ComposeSettingsSheet extends HookConsumerWidget {
       );
     }
 
-    String getCategoryDisplayTitle(PostCategory category) {
-      final capitalizedSlug = category.slug.capitalizeEachWord();
-      if ('postCategory$capitalizedSlug'.trExists()) {
-        return 'postCategory$capitalizedSlug'.tr();
-      }
-      return category.name ?? category.slug;
-    }
-
     return SheetScaffold(
       titleText: 'postSettings'.tr(),
       child: SingleChildScrollView(
@@ -253,7 +244,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
 
             // Categories field
             // FIXME: Sometimes the entire dropdown crashes: 'package:flutter/src/rendering/stack.dart': Failed assertion: line 799 pos 12: 'firstChild == null || child != null': is not true.
-            DropdownButtonFormField2<PostCategory>(
+            DropdownButtonFormField2<SnPostCategory>(
               isExpanded: true,
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(vertical: 9),
@@ -263,7 +254,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
               ),
               hint: Text('categories'.tr(), style: TextStyle(fontSize: 15)),
               items:
-                  (postCategories.value ?? <PostCategory>[]).map((item) {
+                  (postCategories.value ?? <SnPostCategory>[]).map((item) {
                     return DropdownMenuItem(
                       value: item,
                       enabled: false,
@@ -299,7 +290,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Text(
-                                      getCategoryDisplayTitle(item),
+                                      item.categoryDisplayTitle,
                                       style: const TextStyle(fontSize: 14),
                                     ),
                                   ),
@@ -331,7 +322,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                             ),
                             margin: const EdgeInsets.only(right: 4),
                             child: Text(
-                              getCategoryDisplayTitle(category),
+                              category.categoryDisplayTitle,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onPrimary,
                                 fontSize: 13,

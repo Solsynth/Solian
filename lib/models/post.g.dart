@@ -62,12 +62,12 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   reactions: json['reactions'] as List<dynamic>? ?? const [],
   tags:
       (json['tags'] as List<dynamic>?)
-          ?.map((e) => PostTag.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => SnPostTag.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
   categories:
       (json['categories'] as List<dynamic>?)
-          ?.map((e) => PostCategory.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => SnPostCategory.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
   collections: json['collections'] as List<dynamic>? ?? const [],

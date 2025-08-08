@@ -315,7 +315,7 @@ class PostItem extends HookConsumerWidget {
       }
     }
 
-    String _parseVisibility(int visibility) {
+    String parseVisibility(int visibility) {
       switch (visibility) {
         case 1:
           return 'postVisibilityFriends';
@@ -377,12 +377,10 @@ class PostItem extends HookConsumerWidget {
                       if (item.editedAt != null)
                         Text(
                           'editedAt'.tr(args: [item.editedAt!.formatSystem()]),
-                          style: TextStyle(height: 1.2),
                         ).fontSize(10),
                       if (item.visibility != 0)
                         Text(
-                          _parseVisibility(item.visibility).tr(),
-                          style: TextStyle(height: 1.45),
+                          parseVisibility(item.visibility).tr(),
                         ).fontSize(10),
                     ],
                   ),
@@ -573,6 +571,35 @@ class PostItem extends HookConsumerWidget {
               vertical: 4,
             ),
           ),
+        if (item.tags.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final tag in item.tags)
+                InkWell(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 4,
+                    children: [
+                      const Icon(Symbols.label, size: 16),
+                      Text(tag.name ?? tag.slug),
+                    ],
+                  ),
+                  onTap: () {},
+                ),
+              for (final category in item.categories)
+                InkWell(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 4,
+                    children: [
+                      const Icon(Symbols.category, size: 16),
+                      Text(category.categoryDisplayTitle),
+                    ],
+                  ),
+                ),
+            ],
+          ).padding(horizontal: renderingPadding.horizontal + 4, top: 4),
         if (item.meta?['embeds'] != null)
           ...((item.meta!['embeds'] as List<dynamic>)
               .map((embedData) => convertMapKeysToSnakeCase(embedData))

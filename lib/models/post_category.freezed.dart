@@ -13,22 +13,22 @@ part of 'post_category.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$PostCategory {
+mixin _$SnPostCategory {
 
  String get id; String get slug; String? get name; List<SnPost> get posts;
-/// Create a copy of PostCategory
+/// Create a copy of SnPostCategory
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$PostCategoryCopyWith<PostCategory> get copyWith => _$PostCategoryCopyWithImpl<PostCategory>(this as PostCategory, _$identity);
+$SnPostCategoryCopyWith<SnPostCategory> get copyWith => _$SnPostCategoryCopyWithImpl<SnPostCategory>(this as SnPostCategory, _$identity);
 
-  /// Serializes this PostCategory to a JSON map.
+  /// Serializes this SnPostCategory to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostCategory&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.posts, posts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostCategory&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.posts, posts));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -37,15 +37,15 @@ int get hashCode => Object.hash(runtimeType,id,slug,name,const DeepCollectionEqu
 
 @override
 String toString() {
-  return 'PostCategory(id: $id, slug: $slug, name: $name, posts: $posts)';
+  return 'SnPostCategory(id: $id, slug: $slug, name: $name, posts: $posts)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $PostCategoryCopyWith<$Res>  {
-  factory $PostCategoryCopyWith(PostCategory value, $Res Function(PostCategory) _then) = _$PostCategoryCopyWithImpl;
+abstract mixin class $SnPostCategoryCopyWith<$Res>  {
+  factory $SnPostCategoryCopyWith(SnPostCategory value, $Res Function(SnPostCategory) _then) = _$SnPostCategoryCopyWithImpl;
 @useResult
 $Res call({
  String id, String slug, String? name, List<SnPost> posts
@@ -56,14 +56,14 @@ $Res call({
 
 }
 /// @nodoc
-class _$PostCategoryCopyWithImpl<$Res>
-    implements $PostCategoryCopyWith<$Res> {
-  _$PostCategoryCopyWithImpl(this._self, this._then);
+class _$SnPostCategoryCopyWithImpl<$Res>
+    implements $SnPostCategoryCopyWith<$Res> {
+  _$SnPostCategoryCopyWithImpl(this._self, this._then);
 
-  final PostCategory _self;
-  final $Res Function(PostCategory) _then;
+  final SnPostCategory _self;
+  final $Res Function(SnPostCategory) _then;
 
-/// Create a copy of PostCategory
+/// Create a copy of SnPostCategory
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? posts = null,}) {
   return _then(_self.copyWith(
@@ -78,8 +78,8 @@ as List<SnPost>,
 }
 
 
-/// Adds pattern-matching-related methods to [PostCategory].
-extension PostCategoryPatterns on PostCategory {
+/// Adds pattern-matching-related methods to [SnPostCategory].
+extension SnPostCategoryPatterns on SnPostCategory {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -92,10 +92,10 @@ extension PostCategoryPatterns on PostCategory {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PostCategory value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPostCategory value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _PostCategory() when $default != null:
+case _SnPostCategory() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -114,10 +114,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PostCategory value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPostCategory value)  $default,){
 final _that = this;
 switch (_that) {
-case _PostCategory():
+case _SnPostCategory():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -132,10 +132,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PostCategory value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPostCategory value)?  $default,){
 final _that = this;
 switch (_that) {
-case _PostCategory() when $default != null:
+case _SnPostCategory() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  List<SnPost> posts)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _PostCategory() when $default != null:
+case _SnPostCategory() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.posts);case _:
   return orElse();
 
@@ -176,7 +176,7 @@ return $default(_that.id,_that.slug,_that.name,_that.posts);case _:
 
 @optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  List<SnPost> posts)  $default,) {final _that = this;
 switch (_that) {
-case _PostCategory():
+case _SnPostCategory():
 return $default(_that.id,_that.slug,_that.name,_that.posts);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -193,7 +193,7 @@ return $default(_that.id,_that.slug,_that.name,_that.posts);}
 
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name,  List<SnPost> posts)?  $default,) {final _that = this;
 switch (_that) {
-case _PostCategory() when $default != null:
+case _SnPostCategory() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.posts);case _:
   return null;
 
@@ -205,9 +205,9 @@ return $default(_that.id,_that.slug,_that.name,_that.posts);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _PostCategory implements PostCategory {
-  const _PostCategory({required this.id, required this.slug, this.name, final  List<SnPost> posts = const []}): _posts = posts;
-  factory _PostCategory.fromJson(Map<String, dynamic> json) => _$PostCategoryFromJson(json);
+class _SnPostCategory extends SnPostCategory {
+  const _SnPostCategory({required this.id, required this.slug, this.name, final  List<SnPost> posts = const []}): _posts = posts,super._();
+  factory _SnPostCategory.fromJson(Map<String, dynamic> json) => _$SnPostCategoryFromJson(json);
 
 @override final  String id;
 @override final  String slug;
@@ -220,20 +220,20 @@ class _PostCategory implements PostCategory {
 }
 
 
-/// Create a copy of PostCategory
+/// Create a copy of SnPostCategory
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$PostCategoryCopyWith<_PostCategory> get copyWith => __$PostCategoryCopyWithImpl<_PostCategory>(this, _$identity);
+_$SnPostCategoryCopyWith<_SnPostCategory> get copyWith => __$SnPostCategoryCopyWithImpl<_SnPostCategory>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$PostCategoryToJson(this, );
+  return _$SnPostCategoryToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostCategory&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._posts, _posts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostCategory&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._posts, _posts));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -242,15 +242,15 @@ int get hashCode => Object.hash(runtimeType,id,slug,name,const DeepCollectionEqu
 
 @override
 String toString() {
-  return 'PostCategory(id: $id, slug: $slug, name: $name, posts: $posts)';
+  return 'SnPostCategory(id: $id, slug: $slug, name: $name, posts: $posts)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$PostCategoryCopyWith<$Res> implements $PostCategoryCopyWith<$Res> {
-  factory _$PostCategoryCopyWith(_PostCategory value, $Res Function(_PostCategory) _then) = __$PostCategoryCopyWithImpl;
+abstract mixin class _$SnPostCategoryCopyWith<$Res> implements $SnPostCategoryCopyWith<$Res> {
+  factory _$SnPostCategoryCopyWith(_SnPostCategory value, $Res Function(_SnPostCategory) _then) = __$SnPostCategoryCopyWithImpl;
 @override @useResult
 $Res call({
  String id, String slug, String? name, List<SnPost> posts
@@ -261,17 +261,17 @@ $Res call({
 
 }
 /// @nodoc
-class __$PostCategoryCopyWithImpl<$Res>
-    implements _$PostCategoryCopyWith<$Res> {
-  __$PostCategoryCopyWithImpl(this._self, this._then);
+class __$SnPostCategoryCopyWithImpl<$Res>
+    implements _$SnPostCategoryCopyWith<$Res> {
+  __$SnPostCategoryCopyWithImpl(this._self, this._then);
 
-  final _PostCategory _self;
-  final $Res Function(_PostCategory) _then;
+  final _SnPostCategory _self;
+  final $Res Function(_SnPostCategory) _then;
 
-/// Create a copy of PostCategory
+/// Create a copy of SnPostCategory
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? posts = null,}) {
-  return _then(_PostCategory(
+  return _then(_SnPostCategory(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
