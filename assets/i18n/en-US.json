@@ -782,5 +782,9 @@
   "postCategoryStudy": "Study",
   "postCategoryGaming": "Gaming",
   "postCategoryProgramming": "Programming",
-  "postCategoryMusic": "Music"
+  "postCategoryMusic": "Music",
+  "links": "Links",
+  "addLink": "Add link",
+  "linkKey": "Link Name",
+  "linkValue": "URL"
 }

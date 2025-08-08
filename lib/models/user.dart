@@ -38,6 +38,7 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     @Default('') String location,
     @Default('') String timeZone,
     DateTime? birthday,
+    @Default({}) Map<String, String> links,
     DateTime? lastSeenAt,
     SnAccountBadge? activeBadge,
     required int experience,
