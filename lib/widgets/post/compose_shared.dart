@@ -31,7 +31,7 @@ class ComposeState {
   final ValueNotifier<Map<int, double>> attachmentProgress;
   final ValueNotifier<SnPublisher?> currentPublisher;
   final ValueNotifier<bool> submitting;
-  final ValueNotifier<List<PostCategory>> categories;
+  final ValueNotifier<List<SnPostCategory>> categories;
   StringTagController tagsController;
   final String draftId;
   int postType;
@@ -109,7 +109,7 @@ class ComposeLogic {
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(originalPost?.publisher),
       tagsController: tagsController,
-      categories: ValueNotifier<List<PostCategory>>(
+      categories: ValueNotifier<List<SnPostCategory>>(
         originalPost?.categories ?? [],
       ),
       draftId: id,
@@ -140,7 +140,7 @@ class ComposeLogic {
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
       tagsController: tagsController,
-      categories: ValueNotifier<List<PostCategory>>([]),
+      categories: ValueNotifier<List<SnPostCategory>>([]),
       draftId: draft.id,
       postType: postType,
       pollId: null,

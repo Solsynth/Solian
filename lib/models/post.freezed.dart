@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPost {
 
- String get id; String? get title; String? get description; String? get language; DateTime? get editedAt; DateTime? get publishedAt; int get visibility; String? get content; int get type; Map<String, dynamic>? get meta; int get viewsUnique; int get viewsTotal; int get upvotes; int get downvotes; int get repliesCount; String? get threadedPostId; SnPost? get threadedPost; String? get repliedPostId; SnPost? get repliedPost; String? get forwardedPostId; SnPost? get forwardedPost; List<SnCloudFile> get attachments; SnPublisher get publisher; Map<String, int> get reactionsCount; Map<String, bool> get reactionsMade; List<dynamic> get reactions; List<PostTag> get tags; List<PostCategory> get categories; List<dynamic> get collections; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; bool get isTruncated;
+ String get id; String? get title; String? get description; String? get language; DateTime? get editedAt; DateTime? get publishedAt; int get visibility; String? get content; int get type; Map<String, dynamic>? get meta; int get viewsUnique; int get viewsTotal; int get upvotes; int get downvotes; int get repliesCount; String? get threadedPostId; SnPost? get threadedPost; String? get repliedPostId; SnPost? get repliedPost; String? get forwardedPostId; SnPost? get forwardedPost; List<SnCloudFile> get attachments; SnPublisher get publisher; Map<String, int> get reactionsCount; Map<String, bool> get reactionsMade; List<dynamic> get reactions; List<SnPostTag> get tags; List<SnPostCategory> get categories; List<dynamic> get collections; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; bool get isTruncated;
 /// Create a copy of SnPost
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $SnPostCopyWith<$Res>  {
   factory $SnPostCopyWith(SnPost value, $Res Function(SnPost) _then) = _$SnPostCopyWithImpl;
 @useResult
 $Res call({
- String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, int type, Map<String, dynamic>? meta, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, Map<String, bool> reactionsMade, List<dynamic> reactions, List<PostTag> tags, List<PostCategory> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
+ String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, int type, Map<String, dynamic>? meta, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, Map<String, bool> reactionsMade, List<dynamic> reactions, List<SnPostTag> tags, List<SnPostCategory> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
 });
 
 
@@ -94,8 +94,8 @@ as SnPublisher,reactionsCount: null == reactionsCount ? _self.reactionsCount : r
 as Map<String, int>,reactionsMade: null == reactionsMade ? _self.reactionsMade : reactionsMade // ignore: cast_nullable_to_non_nullable
 as Map<String, bool>,reactions: null == reactions ? _self.reactions : reactions // ignore: cast_nullable_to_non_nullable
 as List<dynamic>,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
-as List<PostTag>,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
-as List<PostCategory>,collections: null == collections ? _self.collections : collections // ignore: cast_nullable_to_non_nullable
+as List<SnPostTag>,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
+as List<SnPostCategory>,collections: null == collections ? _self.collections : collections // ignore: cast_nullable_to_non_nullable
 as List<dynamic>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -227,7 +227,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  int type,  Map<String, dynamic>? meta,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<PostTag> tags,  List<PostCategory> categories,  List<dynamic> collections,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  int type,  Map<String, dynamic>? meta,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<SnPostTag> tags,  List<SnPostCategory> categories,  List<dynamic> collections,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPost() when $default != null:
 return $default(_that.id,_that.title,_that.description,_that.language,_that.editedAt,_that.publishedAt,_that.visibility,_that.content,_that.type,_that.meta,_that.viewsUnique,_that.viewsTotal,_that.upvotes,_that.downvotes,_that.repliesCount,_that.threadedPostId,_that.threadedPost,_that.repliedPostId,_that.repliedPost,_that.forwardedPostId,_that.forwardedPost,_that.attachments,_that.publisher,_that.reactionsCount,_that.reactionsMade,_that.reactions,_that.tags,_that.categories,_that.collections,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isTruncated);case _:
@@ -248,7 +248,7 @@ return $default(_that.id,_that.title,_that.description,_that.language,_that.edit
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  int type,  Map<String, dynamic>? meta,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<PostTag> tags,  List<PostCategory> categories,  List<dynamic> collections,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  int type,  Map<String, dynamic>? meta,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<SnPostTag> tags,  List<SnPostCategory> categories,  List<dynamic> collections,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)  $default,) {final _that = this;
 switch (_that) {
 case _SnPost():
 return $default(_that.id,_that.title,_that.description,_that.language,_that.editedAt,_that.publishedAt,_that.visibility,_that.content,_that.type,_that.meta,_that.viewsUnique,_that.viewsTotal,_that.upvotes,_that.downvotes,_that.repliesCount,_that.threadedPostId,_that.threadedPost,_that.repliedPostId,_that.repliedPost,_that.forwardedPostId,_that.forwardedPost,_that.attachments,_that.publisher,_that.reactionsCount,_that.reactionsMade,_that.reactions,_that.tags,_that.categories,_that.collections,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isTruncated);}
@@ -265,7 +265,7 @@ return $default(_that.id,_that.title,_that.description,_that.language,_that.edit
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  int type,  Map<String, dynamic>? meta,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<PostTag> tags,  List<PostCategory> categories,  List<dynamic> collections,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  int type,  Map<String, dynamic>? meta,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<SnPostTag> tags,  List<SnPostCategory> categories,  List<dynamic> collections,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPost() when $default != null:
 return $default(_that.id,_that.title,_that.description,_that.language,_that.editedAt,_that.publishedAt,_that.visibility,_that.content,_that.type,_that.meta,_that.viewsUnique,_that.viewsTotal,_that.upvotes,_that.downvotes,_that.repliesCount,_that.threadedPostId,_that.threadedPost,_that.repliedPostId,_that.repliedPost,_that.forwardedPostId,_that.forwardedPost,_that.attachments,_that.publisher,_that.reactionsCount,_that.reactionsMade,_that.reactions,_that.tags,_that.categories,_that.collections,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isTruncated);case _:
@@ -280,7 +280,7 @@ return $default(_that.id,_that.title,_that.description,_that.language,_that.edit
 @JsonSerializable()
 
 class _SnPost implements SnPost {
-  const _SnPost({required this.id, this.title, this.description, this.language, this.editedAt, this.publishedAt = null, this.visibility = 0, this.content, this.type = 0, final  Map<String, dynamic>? meta, this.viewsUnique = 0, this.viewsTotal = 0, this.upvotes = 0, this.downvotes = 0, this.repliesCount = 0, this.threadedPostId, this.threadedPost, this.repliedPostId, this.repliedPost, this.forwardedPostId, this.forwardedPost, final  List<SnCloudFile> attachments = const [], required this.publisher, final  Map<String, int> reactionsCount = const {}, final  Map<String, bool> reactionsMade = const {}, final  List<dynamic> reactions = const [], final  List<PostTag> tags = const [], final  List<PostCategory> categories = const [], final  List<dynamic> collections = const [], this.createdAt = null, this.updatedAt = null, this.deletedAt, this.isTruncated = false}): _meta = meta,_attachments = attachments,_reactionsCount = reactionsCount,_reactionsMade = reactionsMade,_reactions = reactions,_tags = tags,_categories = categories,_collections = collections;
+  const _SnPost({required this.id, this.title, this.description, this.language, this.editedAt, this.publishedAt = null, this.visibility = 0, this.content, this.type = 0, final  Map<String, dynamic>? meta, this.viewsUnique = 0, this.viewsTotal = 0, this.upvotes = 0, this.downvotes = 0, this.repliesCount = 0, this.threadedPostId, this.threadedPost, this.repliedPostId, this.repliedPost, this.forwardedPostId, this.forwardedPost, final  List<SnCloudFile> attachments = const [], required this.publisher, final  Map<String, int> reactionsCount = const {}, final  Map<String, bool> reactionsMade = const {}, final  List<dynamic> reactions = const [], final  List<SnPostTag> tags = const [], final  List<SnPostCategory> categories = const [], final  List<dynamic> collections = const [], this.createdAt = null, this.updatedAt = null, this.deletedAt, this.isTruncated = false}): _meta = meta,_attachments = attachments,_reactionsCount = reactionsCount,_reactionsMade = reactionsMade,_reactions = reactions,_tags = tags,_categories = categories,_collections = collections;
   factory _SnPost.fromJson(Map<String, dynamic> json) => _$SnPostFromJson(json);
 
 @override final  String id;
@@ -341,15 +341,15 @@ class _SnPost implements SnPost {
   return EqualUnmodifiableListView(_reactions);
 }
 
- final  List<PostTag> _tags;
-@override@JsonKey() List<PostTag> get tags {
+ final  List<SnPostTag> _tags;
+@override@JsonKey() List<SnPostTag> get tags {
   if (_tags is EqualUnmodifiableListView) return _tags;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_tags);
 }
 
- final  List<PostCategory> _categories;
-@override@JsonKey() List<PostCategory> get categories {
+ final  List<SnPostCategory> _categories;
+@override@JsonKey() List<SnPostCategory> get categories {
   if (_categories is EqualUnmodifiableListView) return _categories;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_categories);
@@ -400,7 +400,7 @@ abstract mixin class _$SnPostCopyWith<$Res> implements $SnPostCopyWith<$Res> {
   factory _$SnPostCopyWith(_SnPost value, $Res Function(_SnPost) _then) = __$SnPostCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, int type, Map<String, dynamic>? meta, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, Map<String, bool> reactionsMade, List<dynamic> reactions, List<PostTag> tags, List<PostCategory> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
+ String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, int type, Map<String, dynamic>? meta, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, Map<String, bool> reactionsMade, List<dynamic> reactions, List<SnPostTag> tags, List<SnPostCategory> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
 });
 
 
@@ -446,8 +446,8 @@ as SnPublisher,reactionsCount: null == reactionsCount ? _self._reactionsCount : 
 as Map<String, int>,reactionsMade: null == reactionsMade ? _self._reactionsMade : reactionsMade // ignore: cast_nullable_to_non_nullable
 as Map<String, bool>,reactions: null == reactions ? _self._reactions : reactions // ignore: cast_nullable_to_non_nullable
 as List<dynamic>,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
-as List<PostTag>,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
-as List<PostCategory>,collections: null == collections ? _self._collections : collections // ignore: cast_nullable_to_non_nullable
+as List<SnPostTag>,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
+as List<SnPostCategory>,collections: null == collections ? _self._collections : collections // ignore: cast_nullable_to_non_nullable
 as List<dynamic>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable

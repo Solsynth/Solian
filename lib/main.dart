@@ -54,10 +54,16 @@ void main() async {
   try {
     await langdetect.initLangDetect();
     await EasyLocalization.ensureInitialized();
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    if (kIsWeb || !Platform.isLinux) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
+    }
+
     log("[SplashScreen] Firebase is ready!");
   } catch (err) {
     showErrorAlert(err);

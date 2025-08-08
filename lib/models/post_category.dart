@@ -1,19 +1,30 @@
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/post.dart';
+import 'package:island/services/text.dart';
 
 part 'post_category.freezed.dart';
 part 'post_category.g.dart';
 
 @freezed
-sealed class PostCategory with _$PostCategory {
-  const factory PostCategory({
+sealed class SnPostCategory with _$SnPostCategory {
+  const SnPostCategory._();
+
+  const factory SnPostCategory({
     required String id,
     required String slug,
     String? name,
     @Default([]) List<SnPost> posts,
-  }) = _PostCategory;
+  }) = _SnPostCategory;
 
-  factory PostCategory.fromJson(Map<String, dynamic> json) =>
-      _$PostCategoryFromJson(json);
+  factory SnPostCategory.fromJson(Map<String, dynamic> json) =>
+      _$SnPostCategoryFromJson(json);
+
+  String get categoryDisplayTitle {
+    final capitalizedSlug = slug.capitalizeEachWord();
+    if ('postCategory$capitalizedSlug'.trExists()) {
+      return 'postCategory$capitalizedSlug'.tr();
+    }
+    return name ?? slug;
+  }
 }

@@ -13,22 +13,22 @@ part of 'post_tag.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$PostTag {
+mixin _$SnPostTag {
 
  String get id; String get slug; String? get name; List<SnPost> get posts;
-/// Create a copy of PostTag
+/// Create a copy of SnPostTag
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$PostTagCopyWith<PostTag> get copyWith => _$PostTagCopyWithImpl<PostTag>(this as PostTag, _$identity);
+$SnPostTagCopyWith<SnPostTag> get copyWith => _$SnPostTagCopyWithImpl<SnPostTag>(this as SnPostTag, _$identity);
 
-  /// Serializes this PostTag to a JSON map.
+  /// Serializes this SnPostTag to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostTag&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.posts, posts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostTag&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.posts, posts));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -37,15 +37,15 @@ int get hashCode => Object.hash(runtimeType,id,slug,name,const DeepCollectionEqu
 
 @override
 String toString() {
-  return 'PostTag(id: $id, slug: $slug, name: $name, posts: $posts)';
+  return 'SnPostTag(id: $id, slug: $slug, name: $name, posts: $posts)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $PostTagCopyWith<$Res>  {
-  factory $PostTagCopyWith(PostTag value, $Res Function(PostTag) _then) = _$PostTagCopyWithImpl;
+abstract mixin class $SnPostTagCopyWith<$Res>  {
+  factory $SnPostTagCopyWith(SnPostTag value, $Res Function(SnPostTag) _then) = _$SnPostTagCopyWithImpl;
 @useResult
 $Res call({
  String id, String slug, String? name, List<SnPost> posts
@@ -56,14 +56,14 @@ $Res call({
 
 }
 /// @nodoc
-class _$PostTagCopyWithImpl<$Res>
-    implements $PostTagCopyWith<$Res> {
-  _$PostTagCopyWithImpl(this._self, this._then);
+class _$SnPostTagCopyWithImpl<$Res>
+    implements $SnPostTagCopyWith<$Res> {
+  _$SnPostTagCopyWithImpl(this._self, this._then);
 
-  final PostTag _self;
-  final $Res Function(PostTag) _then;
+  final SnPostTag _self;
+  final $Res Function(SnPostTag) _then;
 
-/// Create a copy of PostTag
+/// Create a copy of SnPostTag
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? posts = null,}) {
   return _then(_self.copyWith(
@@ -78,8 +78,8 @@ as List<SnPost>,
 }
 
 
-/// Adds pattern-matching-related methods to [PostTag].
-extension PostTagPatterns on PostTag {
+/// Adds pattern-matching-related methods to [SnPostTag].
+extension SnPostTagPatterns on SnPostTag {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -92,10 +92,10 @@ extension PostTagPatterns on PostTag {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PostTag value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPostTag value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _PostTag() when $default != null:
+case _SnPostTag() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -114,10 +114,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PostTag value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPostTag value)  $default,){
 final _that = this;
 switch (_that) {
-case _PostTag():
+case _SnPostTag():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -132,10 +132,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PostTag value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPostTag value)?  $default,){
 final _that = this;
 switch (_that) {
-case _PostTag() when $default != null:
+case _SnPostTag() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  List<SnPost> posts)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _PostTag() when $default != null:
+case _SnPostTag() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.posts);case _:
   return orElse();
 
@@ -176,7 +176,7 @@ return $default(_that.id,_that.slug,_that.name,_that.posts);case _:
 
 @optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  List<SnPost> posts)  $default,) {final _that = this;
 switch (_that) {
-case _PostTag():
+case _SnPostTag():
 return $default(_that.id,_that.slug,_that.name,_that.posts);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -193,7 +193,7 @@ return $default(_that.id,_that.slug,_that.name,_that.posts);}
 
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name,  List<SnPost> posts)?  $default,) {final _that = this;
 switch (_that) {
-case _PostTag() when $default != null:
+case _SnPostTag() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.posts);case _:
   return null;
 
@@ -205,9 +205,9 @@ return $default(_that.id,_that.slug,_that.name,_that.posts);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _PostTag implements PostTag {
-  const _PostTag({required this.id, required this.slug, this.name, final  List<SnPost> posts = const []}): _posts = posts;
-  factory _PostTag.fromJson(Map<String, dynamic> json) => _$PostTagFromJson(json);
+class _SnPostTag implements SnPostTag {
+  const _SnPostTag({required this.id, required this.slug, this.name, final  List<SnPost> posts = const []}): _posts = posts;
+  factory _SnPostTag.fromJson(Map<String, dynamic> json) => _$SnPostTagFromJson(json);
 
 @override final  String id;
 @override final  String slug;
@@ -220,20 +220,20 @@ class _PostTag implements PostTag {
 }
 
 
-/// Create a copy of PostTag
+/// Create a copy of SnPostTag
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$PostTagCopyWith<_PostTag> get copyWith => __$PostTagCopyWithImpl<_PostTag>(this, _$identity);
+_$SnPostTagCopyWith<_SnPostTag> get copyWith => __$SnPostTagCopyWithImpl<_SnPostTag>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$PostTagToJson(this, );
+  return _$SnPostTagToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostTag&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._posts, _posts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostTag&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._posts, _posts));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -242,15 +242,15 @@ int get hashCode => Object.hash(runtimeType,id,slug,name,const DeepCollectionEqu
 
 @override
 String toString() {
-  return 'PostTag(id: $id, slug: $slug, name: $name, posts: $posts)';
+  return 'SnPostTag(id: $id, slug: $slug, name: $name, posts: $posts)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$PostTagCopyWith<$Res> implements $PostTagCopyWith<$Res> {
-  factory _$PostTagCopyWith(_PostTag value, $Res Function(_PostTag) _then) = __$PostTagCopyWithImpl;
+abstract mixin class _$SnPostTagCopyWith<$Res> implements $SnPostTagCopyWith<$Res> {
+  factory _$SnPostTagCopyWith(_SnPostTag value, $Res Function(_SnPostTag) _then) = __$SnPostTagCopyWithImpl;
 @override @useResult
 $Res call({
  String id, String slug, String? name, List<SnPost> posts
@@ -261,17 +261,17 @@ $Res call({
 
 }
 /// @nodoc
-class __$PostTagCopyWithImpl<$Res>
-    implements _$PostTagCopyWith<$Res> {
-  __$PostTagCopyWithImpl(this._self, this._then);
+class __$SnPostTagCopyWithImpl<$Res>
+    implements _$SnPostTagCopyWith<$Res> {
+  __$SnPostTagCopyWithImpl(this._self, this._then);
 
-  final _PostTag _self;
-  final $Res Function(_PostTag) _then;
+  final _SnPostTag _self;
+  final $Res Function(_SnPostTag) _then;
 
-/// Create a copy of PostTag
+/// Create a copy of SnPostTag
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? posts = null,}) {
-  return _then(_PostTag(
+  return _then(_SnPostTag(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable

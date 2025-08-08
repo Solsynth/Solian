@@ -120,6 +120,7 @@
     "other": "{}个附件"
   },
   "edited": "已编辑",
+  "editedAt": "编辑于 {}",
   "addVideo": "添加视频",
   "addPhoto": "添加照片",
   "addFile": "添加文件",

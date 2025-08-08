@@ -6,8 +6,8 @@ part of 'post_category.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_PostCategory _$PostCategoryFromJson(Map<String, dynamic> json) =>
-    _PostCategory(
+_SnPostCategory _$SnPostCategoryFromJson(Map<String, dynamic> json) =>
+    _SnPostCategory(
       id: json['id'] as String,
       slug: json['slug'] as String,
       name: json['name'] as String?,
@@ -18,7 +18,7 @@ _PostCategory _$PostCategoryFromJson(Map<String, dynamic> json) =>
           const [],
     );
 
-Map<String, dynamic> _$PostCategoryToJson(_PostCategory instance) =>
+Map<String, dynamic> _$SnPostCategoryToJson(_SnPostCategory instance) =>
     <String, dynamic>{
       'id': instance.id,
       'slug': instance.slug,
