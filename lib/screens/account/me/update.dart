@@ -3,6 +3,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
@@ -94,6 +95,11 @@ class UpdateProfileScreen extends HookConsumerWidget {
     final usernameController = useTextEditingController(text: user.value!.name);
     final nicknameController = useTextEditingController(text: user.value!.nick);
     final language = useState(user.value!.language);
+    final links = useState<List<Map<String, String>>>(
+      user.value!.profile.links.entries
+          .map((e) => {'key': e.key, 'value': e.value})
+          .toList(),
+    );
 
     void updateBasicInfo() async {
       if (!formKeyBasicInfo.currentState!.validate()) return;
@@ -165,6 +171,7 @@ class UpdateProfileScreen extends HookConsumerWidget {
             'location': locationController.text,
             'time_zone': timeZoneController.text,
             'birthday': birthday.value?.toUtc().toIso8601String(),
+            'links': {for (var e in links.value) e['key']!: e['value']!},
           },
         );
         final userNotifier = ref.read(userInfoProvider.notifier);
@@ -557,6 +564,69 @@ class UpdateProfileScreen extends HookConsumerWidget {
                         ],
                       ),
                     ),
+                  ),
+                  Text('links').tr().bold().fontSize(18).padding(top: 16),
+                  Column(
+                    spacing: 8,
+                    children: [
+                      for (var i = 0; i < links.value.length; i++)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                initialValue: links.value[i]['key'],
+                                decoration: InputDecoration(
+                                  labelText: 'linkKey'.tr(),
+                                  isDense: true,
+                                ),
+                                onChanged: (value) {
+                                  links.value[i]['key'] = value;
+                                },
+                                onTapOutside:
+                                    (_) =>
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus(),
+                              ),
+                            ),
+                            const Gap(8),
+                            Expanded(
+                              child: TextFormField(
+                                initialValue: links.value[i]['value'],
+                                decoration: InputDecoration(
+                                  labelText: 'linkValue'.tr(),
+                                  isDense: true,
+                                ),
+                                onChanged: (value) {
+                                  links.value[i]['value'] = value;
+                                },
+                                onTapOutside:
+                                    (_) =>
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus(),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Symbols.delete),
+                              onPressed: () {
+                                links.value = List.from(links.value)
+                                  ..removeAt(i);
+                              },
+                            ),
+                          ],
+                        ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            links.value = List.from(links.value)
+                              ..add({'key': '', 'value': ''});
+                          },
+                          label: Text('addLink').tr(),
+                          icon: const Icon(Symbols.add),
+                        ).padding(top: 8),
+                      ),
+                    ],
                   ),
                   Align(
                     alignment: Alignment.centerRight,
