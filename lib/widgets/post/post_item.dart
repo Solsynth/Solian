@@ -587,7 +587,12 @@ class PostItem extends HookConsumerWidget {
                         in isFullPost ? item.tags : item.tags.take(3))
                       InkWell(
                         child: Text('#${tag.name ?? tag.slug}'),
-                        onTap: () {},
+                        onTap: () {
+                          GoRouter.of(context).pushNamed(
+                            'postTagDetail',
+                            pathParameters: {'slug': tag.slug},
+                          );
+                        },
                       ),
                     if (!isFullPost && item.tags.length > 3)
                       Text('+${item.tags.length - 3}').opacity(0.6),
@@ -605,7 +610,12 @@ class PostItem extends HookConsumerWidget {
                             : item.categories.take(2))
                       InkWell(
                         child: Text(category.categoryDisplayTitle),
-                        onTap: () {},
+                        onTap: () {
+                          GoRouter.of(context).pushNamed(
+                            'postCategoryDetail',
+                            pathParameters: {'slug': category.slug},
+                          );
+                        },
                       ),
                     if (!isFullPost && item.categories.length > 2)
                       Text('+${item.categories.length - 2}').opacity(0.6),

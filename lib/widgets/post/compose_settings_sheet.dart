@@ -216,6 +216,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'postSettings'.tr(),
+      heightFactor: 0.6,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

@@ -7,6 +7,7 @@ import 'package:island/screens/developers/edit_app.dart';
 import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
 import 'package:island/screens/discovery/articles.dart';
+import 'package:island/screens/posts/post_category_detail.dart';
 import 'package:island/screens/posts/post_search.dart';
 import 'package:island/widgets/app_wrapper.dart';
 import 'package:island/screens/tabs.dart';
@@ -355,6 +356,25 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return PostDetailScreen(id: id);
+                },
+              ),
+              GoRoute(
+                name: 'postCategoryDetail',
+                path: '/posts/categories/:slug',
+                builder: (context, state) {
+                  final slug = state.pathParameters['slug']!;
+                  return PostCategoryDetailScreen(slug: slug, isCategory: true);
+                },
+              ),
+              GoRoute(
+                name: 'postTagDetail',
+                path: '/posts/tags/:slug',
+                builder: (context, state) {
+                  final slug = state.pathParameters['slug']!;
+                  return PostCategoryDetailScreen(
+                    slug: slug,
+                    isCategory: false,
+                  );
                 },
               ),
               GoRoute(
