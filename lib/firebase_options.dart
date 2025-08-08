@@ -41,13 +41,13 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBKfIQpTouj5rXnlzkEieSlbAzepm4mgJE',
-    appId: '1:961776991058:web:b91d12f2892a5609f4188b',
+    apiKey: 'AIzaSyCfgOdlcr7h8x8j0WKx_S2wXnGkOopq320',
+    appId: '1:961776991058:web:3a912c0eb14028e5f4188b',
     messagingSenderId: '961776991058',
     projectId: 'solian-0x001',
     authDomain: 'solian-0x001.firebaseapp.com',
     storageBucket: 'solian-0x001.firebasestorage.app',
-    measurementId: 'G-XY3HHKG0PE',
+    measurementId: 'G-JD1YEG9D6F',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '961776991058',
     projectId: 'solian-0x001',
     storageBucket: 'solian-0x001.firebasestorage.app',
+    androidClientId: '961776991058-r4iv9qoio57ul7utbfpgfrda2etvtch8.apps.googleusercontent.com',
+    iosClientId: '961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com',
     iosBundleId: 'dev.solsynth.solian',
   );
 
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '961776991058',
     projectId: 'solian-0x001',
     storageBucket: 'solian-0x001.firebasestorage.app',
+    androidClientId: '961776991058-r4iv9qoio57ul7utbfpgfrda2etvtch8.apps.googleusercontent.com',
+    iosClientId: '961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com',
     iosBundleId: 'dev.solsynth.solian',
   );
 

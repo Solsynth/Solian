@@ -12,7 +12,12 @@
           "package_name": "dev.solsynth.solian"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "961776991058-963m1qin2vtp8fv693b5fdrab5hmpl89.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDvFNudXYs29uDtcCv6pFR8h5tXBs90FYk"
@@ -20,7 +25,20 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "961776991058-963m1qin2vtp8fv693b5fdrab5hmpl89.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "dev.solsynth.solian",
+                "app_store_id": "6499032345"
+              }
+            }
+          ]
         }
       }
     }
