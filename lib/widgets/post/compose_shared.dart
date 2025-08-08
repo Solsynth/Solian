@@ -697,7 +697,7 @@ class ComposeLogic {
     SnPost? repliedPost,
     SnPost? forwardedPost,
   }) {
-    if (event is! RawKeyDownEvent) return;
+    if (event is! KeyDownEvent) return;
 
     final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
     final isSave = event.logicalKey == LogicalKeyboardKey.keyS;
