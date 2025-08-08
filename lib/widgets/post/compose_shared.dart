@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
+import 'package:island/models/post_category.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
@@ -30,8 +31,8 @@ class ComposeState {
   final ValueNotifier<Map<int, double>> attachmentProgress;
   final ValueNotifier<SnPublisher?> currentPublisher;
   final ValueNotifier<bool> submitting;
+  final ValueNotifier<List<PostCategory>> categories;
   StringTagController tagsController;
-  StringTagController categoriesController;
   final String draftId;
   int postType;
   // Linked poll id for this compose session (nullable)
@@ -48,7 +49,7 @@ class ComposeState {
     required this.currentPublisher,
     required this.submitting,
     required this.tagsController,
-    required this.categoriesController,
+    required this.categories,
     required this.draftId,
     this.postType = 0,
     String? pollId,
@@ -80,11 +81,7 @@ class ComposeLogic {
   }) {
     final id = draftId ?? DateTime.now().millisecondsSinceEpoch.toString();
     final tagsController = StringTagController();
-    final categoriesController = StringTagController();
     originalPost?.tags.forEach((x) => tagsController.addTag(x.slug));
-    originalPost?.categories.forEach(
-      (x) => categoriesController.addTag(x.slug),
-    );
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
         originalPost?.attachments
@@ -112,7 +109,9 @@ class ComposeLogic {
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(originalPost?.publisher),
       tagsController: tagsController,
-      categoriesController: categoriesController,
+      categories: ValueNotifier<List<PostCategory>>(
+        originalPost?.categories ?? [],
+      ),
       draftId: id,
       postType: postType,
       // initialize without poll by default
@@ -141,7 +140,7 @@ class ComposeLogic {
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
       tagsController: tagsController,
-      categoriesController: categoriesController,
+      categories: ValueNotifier<List<PostCategory>>([]),
       draftId: draft.id,
       postType: postType,
       pollId: null,
@@ -640,7 +639,7 @@ class ComposeLogic {
         if (repliedPost != null) 'replied_post_id': repliedPost.id,
         if (forwardedPost != null) 'forwarded_post_id': forwardedPost.id,
         'tags': state.tagsController.getTags,
-        'categories': state.categoriesController.getTags,
+        'categories': state.categories.value.map((e) => e.slug).toList(),
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
       };
 
@@ -733,7 +732,7 @@ class ComposeLogic {
     state.attachmentProgress.dispose();
     state.currentPublisher.dispose();
     state.tagsController.dispose();
-    state.categoriesController.dispose();
+    state.categories.dispose();
     state.pollId.dispose();
   }
 }

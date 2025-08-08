@@ -138,15 +138,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder:
-            (context) => ComposeSettingsSheet(
-              visibility: state.visibility,
-              tagsController: state.tagsController,
-              categoriesController: state.categoriesController,
-              onVisibilityChanged: () {
-                // Trigger rebuild if needed
-              },
-            ),
+        builder: (context) => ComposeSettingsSheet(state: state),
       );
     }
 

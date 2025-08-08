@@ -769,5 +769,18 @@
   "addPack": "Add Pack",
   "removePack": "Remove Pack",
   "browseAndAddStickers": "Browse and add sticker packs",
-  "stickerPack": "Sticker Pack"
+  "stickerPack": "Sticker Pack",
+  "postCategoryTechnology": "Technology",
+  "postCategoryTravel": "Travel",
+  "postCategoryFood": "Food",
+  "postCategoryHealth": "Health",
+  "postCategoryScience": "Science",
+  "postCategorySports": "Sports",
+  "postCategoryFinance": "Finance",
+  "postCategoryLife": "Life",
+  "postCategoryArt": "Art",
+  "postCategoryStudy": "Study",
+  "postCategoryGaming": "Gaming",
+  "postCategoryProgramming": "Programming",
+  "postCategoryMusic": "Music"
 }

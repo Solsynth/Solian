@@ -1,10 +1,29 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/post_category.dart';
+import 'package:island/pods/network.dart';
+import 'package:island/services/text.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/post/compose_shared.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:textfield_tags/textfield_tags.dart';
+
+part 'compose_settings_sheet.g.dart';
+
+@riverpod
+Future<List<PostCategory>> postCategories(Ref ref) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get('/sphere/posts/categories');
+  return resp.data
+      .map((e) => PostCategory.fromJson(e))
+      .cast<PostCategory>()
+      .toList();
+}
 
 /// A reusable widget for tag input fields with chip display
 class ChipTagInputField extends StatelessWidget {
@@ -98,27 +117,20 @@ class ChipTagInputField extends StatelessWidget {
   }
 }
 
-class ComposeSettingsSheet extends HookWidget {
-  final ValueNotifier<int> visibility;
-  final VoidCallback? onVisibilityChanged;
-  final StringTagController tagsController;
-  final StringTagController categoriesController;
+class ComposeSettingsSheet extends HookConsumerWidget {
+  final ComposeState state;
 
-  const ComposeSettingsSheet({
-    super.key,
-    required this.visibility,
-    this.onVisibilityChanged,
-    required this.tagsController,
-    required this.categoriesController,
-  });
+  const ComposeSettingsSheet({super.key, required this.state});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     // Listen to visibility changes to trigger rebuilds
-    final currentVisibility = useValueListenable(visibility);
+    final currentVisibility = useValueListenable(state.visibility);
+    final currentCategories = useValueListenable(state.categories);
+    final postCategories = ref.watch(postCategoriesProvider);
 
     IconData getVisibilityIcon(int visibilityValue) {
       switch (visibilityValue) {
@@ -156,11 +168,10 @@ class ComposeSettingsSheet extends HookWidget {
         leading: Icon(icon),
         title: Text(textKey.tr()),
         onTap: () {
-          visibility.value = value;
-          onVisibilityChanged?.call();
+          state.visibility.value = value;
           Navigator.pop(context);
         },
-        selected: visibility.value == value,
+        selected: state.visibility.value == value,
         contentPadding: const EdgeInsets.symmetric(horizontal: 20),
       );
     }
@@ -204,6 +215,14 @@ class ComposeSettingsSheet extends HookWidget {
       );
     }
 
+    String getCategoryDisplayTitle(PostCategory category) {
+      final capitalizedSlug = category.slug.capitalizeEachWord();
+      if ('postCategory$capitalizedSlug'.trExists()) {
+        return 'postCategory$capitalizedSlug'.tr();
+      }
+      return category.name ?? category.slug;
+    }
+
     return SheetScaffold(
       titleText: 'postSettings'.tr(),
       child: SingleChildScrollView(
@@ -214,7 +233,7 @@ class ComposeSettingsSheet extends HookWidget {
           children: [
             // Tags field
             TextFieldTags(
-              textfieldTagsController: tagsController,
+              textfieldTagsController: state.tagsController,
               textSeparators: const [' ', ','],
               letterCase: LetterCase.normal,
               validator: (String tag) {
@@ -233,22 +252,105 @@ class ComposeSettingsSheet extends HookWidget {
             ),
 
             // Categories field
-            TextFieldTags(
-              textfieldTagsController: categoriesController,
-              textSeparators: const [' ', ','],
-              letterCase: LetterCase.small,
-              validator: (String tag) {
-                if (tag.isEmpty) return 'No, cannot be empty';
-                if (tag.contains(' ')) return 'Tags should be URL-safe';
-                return null;
+            // FIXME: Sometimes the entire dropdown crashes: 'package:flutter/src/rendering/stack.dart': Failed assertion: line 799 pos 12: 'firstChild == null || child != null': is not true.
+            DropdownButtonFormField2<PostCategory>(
+              isExpanded: true,
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(vertical: 9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              hint: Text('categories'.tr(), style: TextStyle(fontSize: 15)),
+              items:
+                  (postCategories.value ?? <PostCategory>[]).map((item) {
+                    return DropdownMenuItem(
+                      value: item,
+                      enabled: false,
+                      child: StatefulBuilder(
+                        builder: (context, menuSetState) {
+                          final isSelected = state.categories.value.contains(
+                            item,
+                          );
+                          return InkWell(
+                            onTap: () {
+                              isSelected
+                                  ? state.categories.value =
+                                      state.categories.value
+                                          .where((e) => e != item)
+                                          .toList()
+                                  : state.categories.value = [
+                                    ...state.categories.value,
+                                    item,
+                                  ];
+                              menuSetState(() {});
+                            },
+                            child: Container(
+                              height: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  if (isSelected)
+                                    const Icon(Icons.check_box_outlined)
+                                  else
+                                    const Icon(Icons.check_box_outline_blank),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      getCategoryDisplayTitle(item),
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }).toList(),
+              value: currentCategories.isEmpty ? null : currentCategories.last,
+              onChanged: (_) {},
+              selectedItemBuilder: (context) {
+                return currentCategories.map((item) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final category in currentCategories)
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            margin: const EdgeInsets.only(right: 4),
+                            child: Text(
+                              getCategoryDisplayTitle(category),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList();
               },
-              inputFieldBuilder: (context, inputFieldValues) {
-                return ChipTagInputField(
-                  inputFieldValues: inputFieldValues,
-                  labelText: 'categories',
-                  hintText: 'categoriesHint',
-                );
-              },
+              buttonStyleData: const ButtonStyleData(
+                padding: EdgeInsets.only(left: 16, right: 8),
+                height: 40,
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                height: 40,
+                padding: EdgeInsets.zero,
+              ),
             ),
 
             // Visibility setting
