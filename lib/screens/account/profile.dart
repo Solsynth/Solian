@@ -13,6 +13,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/color.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/services/text.dart';
 import 'package:island/services/time.dart';
 import 'package:island/services/timezone/native.dart';
 import 'package:island/widgets/account/account_name.dart';
@@ -30,6 +31,7 @@ import 'package:palette_generator/palette_generator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 part 'profile.g.dart';
 
@@ -350,6 +352,28 @@ class AccountProfileScreen extends HookConsumerWidget {
       ).padding(horizontal: 24, vertical: 16),
     );
 
+    Widget accountProfileLinks(SnAccount data) => Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('links').tr().bold().padding(horizontal: 24, top: 12, bottom: 4),
+          for (final link in data.profile.links.entries)
+            ListTile(
+              title: Text(link.key.capitalizeEachWord()),
+              subtitle: Text(link.value),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              trailing: const Icon(Symbols.chevron_right),
+              shape: RoundedRectangleBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+              ),
+              onTap: () {
+                launchUrlString(link.value);
+              },
+            ),
+        ],
+      ),
+    );
+
     Widget accountAction(SnAccount data) => Card(
       child: Column(
         children: [
@@ -452,7 +476,7 @@ class AccountProfileScreen extends HookConsumerWidget {
             ],
           ),
         ],
-      ).padding(horizontal: 16, vertical: 8),
+      ).padding(horizontal: 16, vertical: 12),
     );
 
     return account.when(
@@ -536,6 +560,9 @@ class AccountProfileScreen extends HookConsumerWidget {
                               ),
                               SliverToBoxAdapter(
                                 child: accountProfileBio(data).padding(top: 4),
+                              ),
+                              SliverToBoxAdapter(
+                                child: accountProfileLinks(data),
                               ),
                               SliverToBoxAdapter(
                                 child: accountProfileDetail(data),
@@ -632,6 +659,11 @@ class AccountProfileScreen extends HookConsumerWidget {
                         ),
                         SliverToBoxAdapter(
                           child: accountProfileBio(data).padding(horizontal: 4),
+                        ),
+                        SliverToBoxAdapter(
+                          child: accountProfileLinks(
+                            data,
+                          ).padding(horizontal: 4),
                         ),
                         SliverToBoxAdapter(
                           child: accountProfileDetail(
