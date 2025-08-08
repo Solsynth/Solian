@@ -572,31 +572,44 @@ class PostItem extends HookConsumerWidget {
             ),
           ),
         if (item.tags.isNotEmpty)
-          Wrap(
-            spacing: 8,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 2,
             children: [
-              for (final tag in item.tags)
-                InkWell(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 4,
-                    children: [
-                      const Icon(Symbols.label, size: 16),
-                      Text(tag.name ?? tag.slug),
-                    ],
-                  ),
-                  onTap: () {},
+              if (item.tags.isNotEmpty)
+                Wrap(
+                  runAlignment: WrapAlignment.center,
+                  spacing: 8,
+                  children: [
+                    const Icon(Symbols.label, size: 16).padding(top: 2),
+                    for (final tag
+                        in isFullPost ? item.tags : item.tags.take(3))
+                      InkWell(
+                        child: Text('#${tag.name ?? tag.slug}'),
+                        onTap: () {},
+                      ),
+                    if (!isFullPost && item.tags.length > 3)
+                      Text('+${item.tags.length - 3}').opacity(0.6),
+                  ],
                 ),
-              for (final category in item.categories)
-                InkWell(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 4,
-                    children: [
-                      const Icon(Symbols.category, size: 16),
-                      Text(category.categoryDisplayTitle),
-                    ],
-                  ),
+              if (item.categories.isNotEmpty)
+                Wrap(
+                  runAlignment: WrapAlignment.center,
+                  spacing: 8,
+                  children: [
+                    const Icon(Symbols.category, size: 16).padding(top: 2),
+                    for (final category
+                        in isFullPost
+                            ? item.categories
+                            : item.categories.take(2))
+                      InkWell(
+                        child: Text(category.categoryDisplayTitle),
+                        onTap: () {},
+                      ),
+                    if (!isFullPost && item.categories.length > 2)
+                      Text('+${item.categories.length - 2}').opacity(0.6),
+                  ],
                 ),
             ],
           ).padding(horizontal: renderingPadding.horizontal + 4, top: 4),
