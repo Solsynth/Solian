@@ -30,12 +30,12 @@ Future<DeveloperStats?> developerStats(Ref ref, String? uname) async {
 }
 
 @riverpod
-Future<List<SnPublisher>> developers(Ref ref) async {
+Future<List<SnDeveloper>> developers(Ref ref) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get('/develop/developers');
   return resp.data
-      .map((e) => SnPublisher.fromJson(e))
-      .cast<SnPublisher>()
+      .map((e) => SnDeveloper.fromJson(e))
+      .cast<SnDeveloper>()
       .toList();
 }
 
@@ -74,25 +74,25 @@ class DeveloperHubScreen extends HookConsumerWidget {
     }
 
     final developers = ref.watch(developersProvider);
-    final currentDeveloper = useState<SnPublisher?>(
+    final currentDeveloper = useState<SnDeveloper?>(
       developers.value?.firstOrNull,
     );
 
-    final List<DropdownMenuItem<SnPublisher>> developersMenu = developers.when(
+    final List<DropdownMenuItem<SnDeveloper>> developersMenu = developers.when(
       data:
           (data) =>
               data
                   .map(
-                    (item) => DropdownMenuItem<SnPublisher>(
+                    (item) => DropdownMenuItem<SnDeveloper>(
                       value: item,
                       child: ListTile(
                         minTileHeight: 48,
                         leading: ProfilePictureWidget(
                           radius: 16,
-                          fileId: item.picture?.id,
+                          fileId: item.publisher?.picture?.id,
                         ),
-                        title: Text(item.nick),
-                        subtitle: Text('@${item.name}'),
+                        title: Text(item.publisher!.nick),
+                        subtitle: Text('@${item.publisher!.name}'),
                         trailing:
                             currentDeveloper.value?.id == item.id
                                 ? const Icon(Icons.check)
@@ -107,7 +107,7 @@ class DeveloperHubScreen extends HookConsumerWidget {
     );
 
     final developerStats = ref.watch(
-      developerStatsProvider(currentDeveloper.value?.name),
+      developerStatsProvider(currentDeveloper.value?.publisher?.name),
     );
 
     return AppScaffold(
@@ -117,7 +117,7 @@ class DeveloperHubScreen extends HookConsumerWidget {
         title: Text('developerHub').tr(),
         actions: [
           DropdownButtonHideUnderline(
-            child: DropdownButton2<SnPublisher>(
+            child: DropdownButton2<SnDeveloper>(
               alignment: Alignment.centerRight,
               value: currentDeveloper.value,
               hint: CircleAvatar(
@@ -139,7 +139,7 @@ class DeveloperHubScreen extends HookConsumerWidget {
                   ...developersMenu.map(
                     (e) => ProfilePictureWidget(
                       radius: 16,
-                      fileId: e.value?.picture?.id,
+                      fileId: e.value?.publisher?.picture?.id,
                     ).center().padding(right: 8),
                   ),
                 ];
@@ -193,10 +193,12 @@ class DeveloperHubScreen extends HookConsumerWidget {
                           ...(developers.value?.map(
                                 (developer) => ListTile(
                                   leading: ProfilePictureWidget(
-                                    file: developer.picture,
+                                    file: developer.publisher?.picture,
                                   ),
-                                  title: Text(developer.nick),
-                                  subtitle: Text('@${developer.name}'),
+                                  title: Text(developer.publisher!.nick),
+                                  subtitle: Text(
+                                    '@${developer.publisher!.name}',
+                                  ),
                                   onTap: () {
                                     currentDeveloper.value = developer;
                                   },
@@ -243,7 +245,8 @@ class DeveloperHubScreen extends HookConsumerWidget {
                               context.pushNamed(
                                 'developerApps',
                                 pathParameters: {
-                                  'name': currentDeveloper.value!.name,
+                                  'name':
+                                      currentDeveloper.value!.publisher!.name,
                                 },
                               );
                             },
@@ -257,7 +260,9 @@ class DeveloperHubScreen extends HookConsumerWidget {
               error: err,
               onRetry: () {
                 ref.invalidate(
-                  developerStatsProvider(currentDeveloper.value?.name),
+                  developerStatsProvider(
+                    currentDeveloper.value?.publisher!.name,
+                  ),
                 );
               },
             ),
@@ -354,7 +359,7 @@ class _DeveloperEnrollmentSheet extends HookConsumerWidget {
                     ? Center(
                       child:
                           Text(
-                            'noPublishersToEnroll',
+                            'noDevelopersToEnroll',
                             textAlign: TextAlign.center,
                           ).tr(),
                     )

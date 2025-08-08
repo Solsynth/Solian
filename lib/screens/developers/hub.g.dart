@@ -149,12 +149,12 @@ class _DeveloperStatsProviderElement
   String? get uname => (origin as DeveloperStatsProvider).uname;
 }
 
-String _$developersHash() => r'04f25db31f511f651a5add128d56631236ed0b39';
+String _$developersHash() => r'252341098617ac398ce133994453f318dd3edbd2';
 
 /// See also [developers].
 @ProviderFor(developers)
 final developersProvider =
-    AutoDisposeFutureProvider<List<SnPublisher>>.internal(
+    AutoDisposeFutureProvider<List<SnDeveloper>>.internal(
       developers,
       name: r'developersProvider',
       debugGetCreateSourceHash:
@@ -167,6 +167,6 @@ final developersProvider =
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef DevelopersRef = AutoDisposeFutureProviderRef<List<SnPublisher>>;
+typedef DevelopersRef = AutoDisposeFutureProviderRef<List<SnDeveloper>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

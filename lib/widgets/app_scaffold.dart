@@ -331,7 +331,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
     final user = ref.watch(userInfoProvider);
     final websocketState = ref.watch(websocketStateProvider);
     final indicatorHeight =
-        MediaQuery.of(context).padding.top + (isDesktop ? 27.5 : 20);
+        MediaQuery.of(context).padding.top + (isDesktop ? 27.5 : 25);
 
     Color indicatorColor;
     String indicatorText;
