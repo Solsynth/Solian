@@ -102,235 +102,243 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
               ? const Center(child: CircularProgressIndicator())
               : _errorMessage != null
               ? Center(child: Text(_errorMessage!))
-              : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 24),
-                    // App Icon and Name
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: theme.colorScheme.primary.withOpacity(
-                        0.1,
-                      ),
-                      child: Image.asset(
-                        'assets/icons/icon.png',
-                        width: 56,
-                        height: 56,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _packageInfo.appName,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'aboutScreenVersionInfo'.tr(
-                        args: [_packageInfo.version, _packageInfo.buildNumber],
-                      ),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.textTheme.bodySmall?.color,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // App Info Card
-                    _buildSection(
-                      context,
-                      title: 'aboutScreenAppInfoSectionTitle'.tr(),
+              : Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 540),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        _buildInfoItem(
-                          context,
-                          icon: Symbols.info,
-                          label: 'aboutScreenPackageNameLabel'.tr(),
-                          value: _packageInfo.packageName,
-                        ),
-                        _buildInfoItem(
-                          context,
-                          icon: Symbols.update,
-                          label: 'aboutScreenVersionLabel'.tr(),
-                          value: _packageInfo.version,
-                        ),
-                        _buildInfoItem(
-                          context,
-                          icon: Symbols.build,
-                          label: 'aboutScreenBuildNumberLabel'.tr(),
-                          value: _packageInfo.buildNumber,
-                        ),
-                      ],
-                    ),
-
-                    if (_deviceInfo != null) const SizedBox(height: 16),
-
-                    if (_deviceInfo != null)
-                      _buildSection(
-                        context,
-                        title: 'Device Information',
-                        children: [
-                          _buildInfoItem(
-                            context,
-                            icon: Symbols.label,
-                            label: 'aboutDeviceName'.tr(),
-                            value: _deviceInfo?.data['name'],
+                        const SizedBox(height: 24),
+                        // App Icon and Name
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: theme.colorScheme.primary
+                              .withOpacity(0.1),
+                          child: Image.asset(
+                            'assets/icons/icon.png',
+                            width: 56,
+                            height: 56,
                           ),
-                          _buildInfoItem(
-                            context,
-                            icon: Symbols.fingerprint,
-                            label: 'aboutDeviceIdentifier'.tr(),
-                            value: _deviceUdid ?? 'N/A',
-                            copyable: true,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _packageInfo.appName,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
-                      ),
+                        ),
+                        Text(
+                          'aboutScreenVersionInfo'.tr(
+                            args: [
+                              _packageInfo.version,
+                              _packageInfo.buildNumber,
+                            ],
+                          ),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.textTheme.bodySmall?.color,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
 
-                    const SizedBox(height: 16),
-
-                    // Links Card
-                    _buildSection(
-                      context,
-                      title: 'aboutScreenLinksSectionTitle'.tr(),
-                      children: [
-                        _buildListTile(
+                        // App Info Card
+                        _buildSection(
                           context,
-                          icon: Symbols.system_update,
-                          title: 'Check for updates',
-                          onTap: () async {
-                            // Fetch latest release and show the unified sheet
-                            final svc = UpdateService();
-                            // Reuse service fetch + compare to decide content
-                            final release = await svc.fetchLatestRelease();
-                            if (release != null) {
-                              await svc.showUpdateSheet(context, release);
-                            } else {
-                              // Fallback: show a simple sheet indicating no info
-                              // Use your SheetScaffold for consistent styling
-                              // Show a minimal message
-                              // ignore: use_build_context_synchronously
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                useSafeArea: true,
-                                showDragHandle: true,
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.surface,
-                                builder:
-                                    (_) => const SheetScaffold(
-                                      titleText: 'Update',
-                                      child: Center(
-                                        child: Padding(
-                                          padding: EdgeInsets.all(24),
-                                          child: Text(
-                                            'Unable to fetch release info at this time.',
+                          title: 'aboutScreenAppInfoSectionTitle'.tr(),
+                          children: [
+                            _buildInfoItem(
+                              context,
+                              icon: Symbols.info,
+                              label: 'aboutScreenPackageNameLabel'.tr(),
+                              value: _packageInfo.packageName,
+                            ),
+                            _buildInfoItem(
+                              context,
+                              icon: Symbols.update,
+                              label: 'aboutScreenVersionLabel'.tr(),
+                              value: _packageInfo.version,
+                            ),
+                            _buildInfoItem(
+                              context,
+                              icon: Symbols.build,
+                              label: 'aboutScreenBuildNumberLabel'.tr(),
+                              value: _packageInfo.buildNumber,
+                            ),
+                          ],
+                        ),
+
+                        if (_deviceInfo != null) const SizedBox(height: 16),
+
+                        if (_deviceInfo != null)
+                          _buildSection(
+                            context,
+                            title: 'Device Information',
+                            children: [
+                              _buildInfoItem(
+                                context,
+                                icon: Symbols.label,
+                                label: 'aboutDeviceName'.tr(),
+                                value: _deviceInfo?.data['name'],
+                              ),
+                              _buildInfoItem(
+                                context,
+                                icon: Symbols.fingerprint,
+                                label: 'aboutDeviceIdentifier'.tr(),
+                                value: _deviceUdid ?? 'N/A',
+                                copyable: true,
+                              ),
+                            ],
+                          ),
+
+                        const SizedBox(height: 16),
+
+                        // Links Card
+                        _buildSection(
+                          context,
+                          title: 'aboutScreenLinksSectionTitle'.tr(),
+                          children: [
+                            _buildListTile(
+                              context,
+                              icon: Symbols.system_update,
+                              title: 'Check for updates',
+                              onTap: () async {
+                                // Fetch latest release and show the unified sheet
+                                final svc = UpdateService();
+                                // Reuse service fetch + compare to decide content
+                                final release = await svc.fetchLatestRelease();
+                                if (release != null) {
+                                  await svc.showUpdateSheet(context, release);
+                                } else {
+                                  // Fallback: show a simple sheet indicating no info
+                                  // Use your SheetScaffold for consistent styling
+                                  // Show a minimal message
+                                  // ignore: use_build_context_synchronously
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    useSafeArea: true,
+                                    showDragHandle: true,
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.surface,
+                                    builder:
+                                        (_) => const SheetScaffold(
+                                          titleText: 'Update',
+                                          child: Center(
+                                            child: Padding(
+                                              padding: EdgeInsets.all(24),
+                                              child: Text(
+                                                'Unable to fetch release info at this time.',
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ),
-                              );
-                            }
-                          },
-                        ),
-                        _buildListTile(
-                          context,
-                          icon: Symbols.privacy_tip,
-                          title: 'aboutScreenPrivacyPolicyTitle'.tr(),
-                          onTap:
-                              () => _launchURL(
-                                'https://solsynth.dev/terms/privacy-policy',
-                              ),
-                        ),
-                        _buildListTile(
-                          context,
-                          icon: Symbols.description,
-                          title: 'aboutScreenTermsOfServiceTitle'.tr(),
-                          onTap:
-                              () => _launchURL(
-                                'https://solsynth.dev/terms/user-agreement',
-                              ),
-                        ),
-                        _buildListTile(
-                          context,
-                          icon: Symbols.code,
-                          title: 'aboutScreenOpenSourceLicensesTitle'.tr(),
-                          onTap: () {
-                            showLicensePage(
-                              context: context,
-                              applicationName: _packageInfo.appName,
-                              applicationVersion:
-                                  'Version ${_packageInfo.version}',
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Developer Info
-                    _buildSection(
-                      context,
-                      title: 'aboutScreenDeveloperSectionTitle'.tr(),
-                      children: [
-                        _buildListTile(
-                          context,
-                          icon: Symbols.email,
-                          title: 'aboutScreenContactUsTitle'.tr(),
-                          subtitle: 'lily@solsynth.dev',
-                          onTap: () => _launchURL('mailto:lily@solsynth.dev'),
-                        ),
-                        _buildListTile(
-                          context,
-                          icon: Symbols.copyright,
-                          title: 'aboutScreenLicenseTitle'.tr(),
-                          subtitle: 'aboutScreenLicenseContent'.tr(
-                            args: [DateTime.now().year.toString()],
-                          ),
-                          onTap:
-                              () => _launchURL(
-                                'https://github.com/Solsynth/Solian/blob/v3/LICENSE.txt',
-                              ),
-                        ),
-                        if (kIsWeb || !(Platform.isMacOS || Platform.isIOS))
-                          _buildListTile(
-                            context,
-                            icon: Symbols.favorite,
-                            title: 'donate'.tr(),
-                            subtitle: 'donateDescription'.tr(),
-                            onTap: () {
-                              launchUrlString(
-                                'https://afdian.com/@littlesheep',
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Copyright
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            'aboutScreenCopyright'.tr(
-                              args: [DateTime.now().year.toString()],
+                                  );
+                                }
+                              },
                             ),
-                            style: theme.textTheme.bodySmall,
-                            textAlign: TextAlign.center,
-                          ),
-                          const Gap(1),
-                          Text(
-                            'aboutScreenMadeWith'.tr(),
-                            textAlign: TextAlign.center,
-                          ).fontSize(10).opacity(0.8),
-                        ],
-                      ),
-                    ),
+                            _buildListTile(
+                              context,
+                              icon: Symbols.privacy_tip,
+                              title: 'aboutScreenPrivacyPolicyTitle'.tr(),
+                              onTap:
+                                  () => _launchURL(
+                                    'https://solsynth.dev/terms/privacy-policy',
+                                  ),
+                            ),
+                            _buildListTile(
+                              context,
+                              icon: Symbols.description,
+                              title: 'aboutScreenTermsOfServiceTitle'.tr(),
+                              onTap:
+                                  () => _launchURL(
+                                    'https://solsynth.dev/terms/user-agreement',
+                                  ),
+                            ),
+                            _buildListTile(
+                              context,
+                              icon: Symbols.code,
+                              title: 'aboutScreenOpenSourceLicensesTitle'.tr(),
+                              onTap: () {
+                                showLicensePage(
+                                  context: context,
+                                  applicationName: _packageInfo.appName,
+                                  applicationVersion:
+                                      'Version ${_packageInfo.version}',
+                                );
+                              },
+                            ),
+                          ],
+                        ),
 
-                    Gap(MediaQuery.of(context).padding.bottom + 16),
-                  ],
+                        const SizedBox(height: 16),
+
+                        // Developer Info
+                        _buildSection(
+                          context,
+                          title: 'aboutScreenDeveloperSectionTitle'.tr(),
+                          children: [
+                            _buildListTile(
+                              context,
+                              icon: Symbols.email,
+                              title: 'aboutScreenContactUsTitle'.tr(),
+                              subtitle: 'lily@solsynth.dev',
+                              onTap:
+                                  () => _launchURL('mailto:lily@solsynth.dev'),
+                            ),
+                            _buildListTile(
+                              context,
+                              icon: Symbols.copyright,
+                              title: 'aboutScreenLicenseTitle'.tr(),
+                              subtitle: 'aboutScreenLicenseContent'.tr(
+                                args: [DateTime.now().year.toString()],
+                              ),
+                              onTap:
+                                  () => _launchURL(
+                                    'https://github.com/Solsynth/Solian/blob/v3/LICENSE.txt',
+                                  ),
+                            ),
+                            if (kIsWeb || !(Platform.isMacOS || Platform.isIOS))
+                              _buildListTile(
+                                context,
+                                icon: Symbols.favorite,
+                                title: 'donate'.tr(),
+                                subtitle: 'donateDescription'.tr(),
+                                onTap: () {
+                                  launchUrlString(
+                                    'https://afdian.com/@littlesheep',
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Copyright
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                'aboutScreenCopyright'.tr(
+                                  args: [DateTime.now().year.toString()],
+                                ),
+                                style: theme.textTheme.bodySmall,
+                                textAlign: TextAlign.center,
+                              ),
+                              const Gap(1),
+                              Text(
+                                'aboutScreenMadeWith'.tr(),
+                                textAlign: TextAlign.center,
+                              ).fontSize(10).opacity(0.8),
+                            ],
+                          ),
+                        ),
+
+                        Gap(MediaQuery.of(context).padding.bottom + 16),
+                      ],
+                    ),
+                  ),
                 ),
               ),
     );

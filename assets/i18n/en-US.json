@@ -786,5 +786,6 @@
   "links": "Links",
   "addLink": "Add link",
   "linkKey": "Link Name",
-  "linkValue": "URL"
+  "linkValue": "URL",
+  "debugOptions": "Debug Options"
 }

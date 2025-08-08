@@ -1,12 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pods/message.dart';
-import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
@@ -15,6 +11,7 @@ import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/debug_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -276,30 +273,6 @@ class AccountScreen extends HookConsumerWidget {
                 context.pushNamed('accountSettings');
               },
             ),
-            if (kDebugMode) const Divider(height: 1).padding(vertical: 8),
-            if (kDebugMode)
-              ListTile(
-                minTileHeight: 48,
-                leading: const Icon(Symbols.copy_all),
-                trailing: const Icon(Symbols.chevron_right),
-                contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                title: Text('Copy access token'),
-                onTap: () async {
-                  final tk = ref.watch(tokenProvider);
-                  Clipboard.setData(ClipboardData(text: tk!.token));
-                },
-              ),
-            if (kDebugMode)
-              ListTile(
-                minTileHeight: 48,
-                leading: const Icon(Symbols.delete),
-                trailing: const Icon(Symbols.chevron_right),
-                contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                title: Text('Reset database'),
-                onTap: () async {
-                  resetDatabase(ref);
-                },
-              ),
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
               minTileHeight: 48,
@@ -309,6 +282,19 @@ class AccountScreen extends HookConsumerWidget {
               title: Text('about').tr(),
               onTap: () {
                 context.pushNamed('about');
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.bug_report),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('debugOptions').tr(),
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) => DebugSheet(),
+                );
               },
             ),
             ListTile(
