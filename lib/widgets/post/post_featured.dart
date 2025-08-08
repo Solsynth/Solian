@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
@@ -23,6 +24,16 @@ class PostFeaturedList extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final featuredPostsAsync = ref.watch(featuredPostsProvider);
 
+    final pageViewController = usePageController();
+    final pageViewCurrent = useState(0);
+
+    useEffect(() {
+      pageViewController.addListener(() {
+        pageViewCurrent.value = pageViewController.page?.round() ?? 0;
+      });
+      return null;
+    }, [pageViewController]);
+
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(8)),
       child: Card(
@@ -35,6 +46,33 @@ class PostFeaturedList extends HookConsumerWidget {
               children: [
                 const Icon(Symbols.highlight),
                 Text('Highlight Posts'),
+                Spacer(),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    pageViewController.animateToPage(
+                      pageViewCurrent.value - 1,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  icon: const Icon(Symbols.arrow_left),
+                ),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    pageViewController.animateToPage(
+                      pageViewCurrent.value + 1,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  icon: const Icon(Symbols.arrow_right),
+                ),
               ],
             ).padding(horizontal: 16, vertical: 8),
             featuredPostsAsync.when(
@@ -44,6 +82,7 @@ class PostFeaturedList extends HookConsumerWidget {
                 return SizedBox(
                   height: 320,
                   child: PageView.builder(
+                    controller: pageViewController,
                     scrollDirection: Axis.horizontal,
                     itemCount: posts.length,
                     itemBuilder: (context, index) {
