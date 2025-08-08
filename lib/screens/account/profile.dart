@@ -509,9 +509,11 @@ class AccountProfileScreen extends HookConsumerWidget {
                               SliverToBoxAdapter(child: accountBasicInfo(data)),
                               if (data.badges.isNotEmpty)
                                 SliverToBoxAdapter(
-                                  child: BadgeList(
-                                    badges: data.badges,
-                                  ).padding(horizontal: 24, bottom: 24),
+                                  child: Card(
+                                    child: BadgeList(
+                                      badges: data.badges,
+                                    ).padding(horizontal: 26, vertical: 20),
+                                  ).padding(left: 2, right: 4),
                                 ),
                               SliverToBoxAdapter(
                                 child: Column(
@@ -521,9 +523,10 @@ class AccountProfileScreen extends HookConsumerWidget {
                                       level: data.profile.level,
                                       experience: data.profile.experience,
                                       progress: data.profile.levelingProgress,
-                                    ),
+                                    ).padding(left: 2, right: 4),
                                     if (data.profile.verification != null)
                                       Card(
+                                        margin: EdgeInsets.zero,
                                         child: VerificationStatusCard(
                                           mark: data.profile.verification!,
                                         ),
@@ -604,9 +607,11 @@ class AccountProfileScreen extends HookConsumerWidget {
                         SliverToBoxAdapter(child: accountBasicInfo(data)),
                         if (data.badges.isNotEmpty)
                           SliverToBoxAdapter(
-                            child: BadgeList(
-                              badges: data.badges,
-                            ).padding(horizontal: 24, bottom: 24),
+                            child: Card(
+                              child: BadgeList(
+                                badges: data.badges,
+                              ).padding(horizontal: 26, vertical: 20),
+                            ).padding(horizontal: 4),
                           ),
                         SliverToBoxAdapter(
                           child: Column(
