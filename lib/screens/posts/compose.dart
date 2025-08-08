@@ -367,63 +367,63 @@ class PostComposeScreen extends HookConsumerWidget {
 
                     // Post content form
                     Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextField(
-                              controller: state.titleController,
-                              decoration: InputDecoration(
-                                hintText: 'postTitle'.tr(),
-                                border: InputBorder.none,
-                                isCollapsed: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                  horizontal: 8,
-                                ),
-                              ),
-                              style: theme.textTheme.titleMedium,
-                              onTapOutside:
-                                  (_) =>
-                                      FocusManager.instance.primaryFocus
-                                          ?.unfocus(),
+                      child: KeyboardListener(
+                        focusNode: FocusNode(),
+                        onKeyEvent:
+                            (event) => ComposeLogic.handleKeyPress(
+                              event,
+                              state,
+                              ref,
+                              context,
+                              originalPost: originalPost,
+                              repliedPost: repliedPost,
+                              forwardedPost: forwardedPost,
                             ),
-                            TextField(
-                              controller: state.descriptionController,
-                              decoration: InputDecoration(
-                                hintText: 'postDescription'.tr(),
-                                border: InputBorder.none,
-                                isCollapsed: true,
-                                contentPadding: const EdgeInsets.fromLTRB(
-                                  8,
-                                  4,
-                                  8,
-                                  12,
-                                ),
-                              ),
-                              style: theme.textTheme.bodyMedium,
-                              minLines: 1,
-                              maxLines: 3,
-                              onTapOutside:
-                                  (_) =>
-                                      FocusManager.instance.primaryFocus
-                                          ?.unfocus(),
-                            ),
-                            // Content field with borderless design
-                            KeyboardListener(
-                              focusNode: FocusNode(),
-                              onKeyEvent:
-                                  (event) => ComposeLogic.handleKeyPress(
-                                    event,
-                                    state,
-                                    ref,
-                                    context,
-                                    originalPost: originalPost,
-                                    repliedPost: repliedPost,
-                                    forwardedPost: forwardedPost,
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextField(
+                                controller: state.titleController,
+                                decoration: InputDecoration(
+                                  hintText: 'postTitle'.tr(),
+                                  border: InputBorder.none,
+                                  isCollapsed: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 8,
                                   ),
-                              child: TextField(
+                                ),
+                                style: theme.textTheme.titleMedium,
+                                onTapOutside:
+                                    (_) =>
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus(),
+                              ),
+                              TextField(
+                                controller: state.descriptionController,
+                                decoration: InputDecoration(
+                                  hintText: 'postDescription'.tr(),
+                                  border: InputBorder.none,
+                                  isCollapsed: true,
+                                  contentPadding: const EdgeInsets.fromLTRB(
+                                    8,
+                                    4,
+                                    8,
+                                    12,
+                                  ),
+                                ),
+                                style: theme.textTheme.bodyMedium,
+                                minLines: 1,
+                                maxLines: 3,
+                                onTapOutside:
+                                    (_) =>
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus(),
+                              ),
+                              // Content field with borderless design
+                              TextField(
                                 controller: state.contentController,
                                 style: theme.textTheme.bodyMedium,
                                 decoration: InputDecoration(
@@ -441,23 +441,23 @@ class PostComposeScreen extends HookConsumerWidget {
                                         FocusManager.instance.primaryFocus
                                             ?.unfocus(),
                               ),
-                            ),
 
-                            const Gap(8),
+                              const Gap(8),
 
-                            // Attachments preview
-                            if (state.attachments.value.isNotEmpty)
-                              LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final isWide = isWideScreen(context);
-                                  return isWide
-                                      ? buildWideAttachmentGrid()
-                                      : buildNarrowAttachmentList();
-                                },
-                              )
-                            else
-                              const SizedBox.shrink(),
-                          ],
+                              // Attachments preview
+                              if (state.attachments.value.isNotEmpty)
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final isWide = isWideScreen(context);
+                                    return isWide
+                                        ? buildWideAttachmentGrid()
+                                        : buildNarrowAttachmentList();
+                                  },
+                                )
+                              else
+                                const SizedBox.shrink(),
+                            ],
+                          ),
                         ),
                       ),
                     ),

@@ -272,8 +272,96 @@ class AttachmentPreview extends HookConsumerWidget {
       borderRadius: BorderRadius.circular(8),
       child: Container(
         color: Theme.of(context).colorScheme.surfaceContainer,
-        child: Column(
+        child: Stack(
           children: [
+            AspectRatio(
+              aspectRatio: ratio,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Builder(
+                    key: ValueKey(item.hashCode),
+                    builder: (context) {
+                      if (item.isOnCloud) {
+                        return CloudFileWidget(item: item.data);
+                      } else if (item.data is XFile) {
+                        final file = item.data as XFile;
+                        if (file.path.isEmpty) {
+                          return FutureBuilder<Uint8List>(
+                            future: file.readAsBytes(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return Image.memory(snapshot.data!);
+                              }
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            },
+                          );
+                        }
+
+                        switch (item.type) {
+                          case UniversalFileType.image:
+                            return kIsWeb
+                                ? Image.network(file.path)
+                                : Image.file(File(file.path));
+                          default:
+                            return Column(
+                              children: [
+                                const Icon(Symbols.document_scanner),
+                                Text(file.name),
+                              ],
+                            );
+                        }
+                      } else if (item is List<int> || item is Uint8List) {
+                        switch (item.type) {
+                          case UniversalFileType.image:
+                            return Image.memory(item.data);
+                          default:
+                            return Column(
+                              children: [const Icon(Symbols.document_scanner)],
+                            );
+                        }
+                      }
+                      return Placeholder();
+                    },
+                  ),
+                  if (progress != null)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withOpacity(0.3),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 16,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            if (progress != null)
+                              Text(
+                                '${progress!.toStringAsFixed(2)}%',
+                                style: TextStyle(color: Colors.white),
+                              )
+                            else
+                              Text(
+                                'uploading'.tr(),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            Gap(6),
+                            Center(
+                              child: LinearProgressIndicator(
+                                value:
+                                    progress != null ? progress! / 100.0 : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -397,94 +485,6 @@ class AttachmentPreview extends HookConsumerWidget {
                   ),
               ],
             ).padding(horizontal: 12, vertical: 8),
-            AspectRatio(
-              aspectRatio: ratio,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Builder(
-                    key: ValueKey(item.hashCode),
-                    builder: (context) {
-                      if (item.isOnCloud) {
-                        return CloudFileWidget(item: item.data);
-                      } else if (item.data is XFile) {
-                        final file = item.data as XFile;
-                        if (file.path.isEmpty) {
-                          return FutureBuilder<Uint8List>(
-                            future: file.readAsBytes(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return Image.memory(snapshot.data!);
-                              }
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            },
-                          );
-                        }
-
-                        switch (item.type) {
-                          case UniversalFileType.image:
-                            return kIsWeb
-                                ? Image.network(file.path)
-                                : Image.file(File(file.path));
-                          default:
-                            return Column(
-                              children: [
-                                const Icon(Symbols.document_scanner),
-                                Text(file.name),
-                              ],
-                            );
-                        }
-                      } else if (item is List<int> || item is Uint8List) {
-                        switch (item.type) {
-                          case UniversalFileType.image:
-                            return Image.memory(item.data);
-                          default:
-                            return Column(
-                              children: [const Icon(Symbols.document_scanner)],
-                            );
-                        }
-                      }
-                      return Placeholder();
-                    },
-                  ),
-                  if (progress != null)
-                    Positioned.fill(
-                      child: Container(
-                        color: Colors.black.withOpacity(0.3),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 16,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            if (progress != null)
-                              Text(
-                                '${progress!.toStringAsFixed(2)}%',
-                                style: TextStyle(color: Colors.white),
-                              )
-                            else
-                              Text(
-                                'uploading'.tr(),
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            Gap(6),
-                            Center(
-                              child: LinearProgressIndicator(
-                                value:
-                                    progress != null ? progress! / 100.0 : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
