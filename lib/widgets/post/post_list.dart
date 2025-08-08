@@ -15,7 +15,12 @@ class PostListNotifier extends _$PostListNotifier
   static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPost>> build(String? pubName, int? type) {
+  Future<CursorPagingData<SnPost>> build(
+    String? pubName, {
+    int? type,
+    List<String>? categories,
+    List<String>? tags,
+  }) {
     return fetch(cursor: null);
   }
 
@@ -29,6 +34,8 @@ class PostListNotifier extends _$PostListNotifier
       'take': _pageSize,
       if (pubName != null) 'pub': pubName,
       if (type != null) 'type': type,
+      if (tags != null) 'tags': tags,
+      if (categories != null) 'categories': categories,
     };
 
     final response = await client.get(
@@ -62,6 +69,8 @@ enum PostItemType {
 class SliverPostList extends HookConsumerWidget {
   final String? pubName;
   final int? type;
+  final List<String>? categories;
+  final List<String>? tags;
   final PostItemType itemType;
   final Color? backgroundColor;
   final EdgeInsets? padding;
@@ -73,6 +82,8 @@ class SliverPostList extends HookConsumerWidget {
     super.key,
     this.pubName,
     this.type,
+    this.categories,
+    this.tags,
     this.itemType = PostItemType.regular,
     this.backgroundColor,
     this.padding,
@@ -84,9 +95,26 @@ class SliverPostList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PagingHelperSliverView(
-      provider: postListNotifierProvider(pubName, type),
-      futureRefreshable: postListNotifierProvider(pubName, type).future,
-      notifierRefreshable: postListNotifierProvider(pubName, type).notifier,
+      provider: postListNotifierProvider(
+        pubName,
+        type: type,
+        categories: categories,
+        tags: tags,
+      ),
+      futureRefreshable:
+          postListNotifierProvider(
+            pubName,
+            type: type,
+            categories: categories,
+            tags: tags,
+          ).future,
+      notifierRefreshable:
+          postListNotifierProvider(
+            pubName,
+            type: type,
+            categories: categories,
+            tags: tags,
+          ).notifier,
       contentBuilder:
           (data, widgetCount, endItemView) => SliverList.builder(
             itemCount: widgetCount,

@@ -6,7 +6,7 @@ part of 'post_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$postListNotifierHash() => r'78222d62957f85713d17aecd95af0305b764e86c';
+String _$postListNotifierHash() => r'dc57fc6aaff6bfb4e9b4d1185984162b099b8773';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -33,8 +33,15 @@ abstract class _$PostListNotifier
     extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnPost>> {
   late final String? pubName;
   late final int? type;
+  late final List<String>? categories;
+  late final List<String>? tags;
 
-  FutureOr<CursorPagingData<SnPost>> build(String? pubName, int? type);
+  FutureOr<CursorPagingData<SnPost>> build(
+    String? pubName, {
+    int? type,
+    List<String>? categories,
+    List<String>? tags,
+  });
 }
 
 /// See also [PostListNotifier].
@@ -48,15 +55,30 @@ class PostListNotifierFamily
   const PostListNotifierFamily();
 
   /// See also [PostListNotifier].
-  PostListNotifierProvider call(String? pubName, int? type) {
-    return PostListNotifierProvider(pubName, type);
+  PostListNotifierProvider call(
+    String? pubName, {
+    int? type,
+    List<String>? categories,
+    List<String>? tags,
+  }) {
+    return PostListNotifierProvider(
+      pubName,
+      type: type,
+      categories: categories,
+      tags: tags,
+    );
   }
 
   @override
   PostListNotifierProvider getProviderOverride(
     covariant PostListNotifierProvider provider,
   ) {
-    return call(provider.pubName, provider.type);
+    return call(
+      provider.pubName,
+      type: provider.type,
+      categories: provider.categories,
+      tags: provider.tags,
+    );
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -82,24 +104,32 @@ class PostListNotifierProvider
           CursorPagingData<SnPost>
         > {
   /// See also [PostListNotifier].
-  PostListNotifierProvider(String? pubName, int? type)
-    : this._internal(
-        () =>
-            PostListNotifier()
-              ..pubName = pubName
-              ..type = type,
-        from: postListNotifierProvider,
-        name: r'postListNotifierProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$postListNotifierHash,
-        dependencies: PostListNotifierFamily._dependencies,
-        allTransitiveDependencies:
-            PostListNotifierFamily._allTransitiveDependencies,
-        pubName: pubName,
-        type: type,
-      );
+  PostListNotifierProvider(
+    String? pubName, {
+    int? type,
+    List<String>? categories,
+    List<String>? tags,
+  }) : this._internal(
+         () =>
+             PostListNotifier()
+               ..pubName = pubName
+               ..type = type
+               ..categories = categories
+               ..tags = tags,
+         from: postListNotifierProvider,
+         name: r'postListNotifierProvider',
+         debugGetCreateSourceHash:
+             const bool.fromEnvironment('dart.vm.product')
+                 ? null
+                 : _$postListNotifierHash,
+         dependencies: PostListNotifierFamily._dependencies,
+         allTransitiveDependencies:
+             PostListNotifierFamily._allTransitiveDependencies,
+         pubName: pubName,
+         type: type,
+         categories: categories,
+         tags: tags,
+       );
 
   PostListNotifierProvider._internal(
     super._createNotifier, {
@@ -110,16 +140,25 @@ class PostListNotifierProvider
     required super.from,
     required this.pubName,
     required this.type,
+    required this.categories,
+    required this.tags,
   }) : super.internal();
 
   final String? pubName;
   final int? type;
+  final List<String>? categories;
+  final List<String>? tags;
 
   @override
   FutureOr<CursorPagingData<SnPost>> runNotifierBuild(
     covariant PostListNotifier notifier,
   ) {
-    return notifier.build(pubName, type);
+    return notifier.build(
+      pubName,
+      type: type,
+      categories: categories,
+      tags: tags,
+    );
   }
 
   @override
@@ -130,7 +169,9 @@ class PostListNotifierProvider
         () =>
             create()
               ..pubName = pubName
-              ..type = type,
+              ..type = type
+              ..categories = categories
+              ..tags = tags,
         from: from,
         name: null,
         dependencies: null,
@@ -138,6 +179,8 @@ class PostListNotifierProvider
         debugGetCreateSourceHash: null,
         pubName: pubName,
         type: type,
+        categories: categories,
+        tags: tags,
       ),
     );
   }
@@ -155,7 +198,9 @@ class PostListNotifierProvider
   bool operator ==(Object other) {
     return other is PostListNotifierProvider &&
         other.pubName == pubName &&
-        other.type == type;
+        other.type == type &&
+        other.categories == categories &&
+        other.tags == tags;
   }
 
   @override
@@ -163,6 +208,8 @@ class PostListNotifierProvider
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, pubName.hashCode);
     hash = _SystemHash.combine(hash, type.hashCode);
+    hash = _SystemHash.combine(hash, categories.hashCode);
+    hash = _SystemHash.combine(hash, tags.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -177,6 +224,12 @@ mixin PostListNotifierRef
 
   /// The parameter `type` of this provider.
   int? get type;
+
+  /// The parameter `categories` of this provider.
+  List<String>? get categories;
+
+  /// The parameter `tags` of this provider.
+  List<String>? get tags;
 }
 
 class _PostListNotifierProviderElement
@@ -192,6 +245,11 @@ class _PostListNotifierProviderElement
   String? get pubName => (origin as PostListNotifierProvider).pubName;
   @override
   int? get type => (origin as PostListNotifierProvider).type;
+  @override
+  List<String>? get categories =>
+      (origin as PostListNotifierProvider).categories;
+  @override
+  List<String>? get tags => (origin as PostListNotifierProvider).tags;
 }
 
 // ignore_for_file: type=lint
