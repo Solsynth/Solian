@@ -99,7 +99,10 @@ class PublisherProfileScreen extends HookConsumerWidget {
       final apiClient = ref.watch(apiClientProvider);
       subscribing.value = true;
       try {
-        await apiClient.post("/publishers/$name/subscribe", data: {'tier': 0});
+        await apiClient.post(
+          "/sphere/publishers/$name/subscribe",
+          data: {'tier': 0},
+        );
         ref.invalidate(publisherSubscriptionStatusProvider(name));
         HapticFeedback.heavyImpact();
       } catch (err) {
@@ -113,7 +116,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
       final apiClient = ref.watch(apiClientProvider);
       subscribing.value = true;
       try {
-        await apiClient.post("/publishers/$name/unsubscribe");
+        await apiClient.post("/sphere/publishers/$name/unsubscribe");
         ref.invalidate(publisherSubscriptionStatusProvider(name));
         HapticFeedback.heavyImpact();
       } catch (err) {
