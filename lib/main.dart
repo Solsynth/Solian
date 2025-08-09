@@ -181,6 +181,9 @@ class IslandApp extends HookConsumerWidget {
     }
 
     useEffect(() {
+      if (!kIsWeb && Platform.isLinux) {
+        return null;
+      }
       const channel = MethodChannel('dev.solsynth.solian/notifications');
 
       Future<void> handleInitialLink() async {
