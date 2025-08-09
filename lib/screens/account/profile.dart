@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
@@ -196,6 +197,15 @@ class AccountProfileScreen extends HookConsumerWidget {
 
     List<Widget> buildSubcolumn(SnAccount data) {
       return [
+        Row(
+          spacing: 6,
+          children: [
+            const Icon(Symbols.join, size: 17, fill: 1),
+            Text(
+              'joinedAt'.tr(args: [data.createdAt.formatCustom('yyyy-MM-dd')]),
+            ),
+          ],
+        ),
         if (data.profile.birthday != null)
           Row(
             spacing: 6,
@@ -322,7 +332,7 @@ class AccountProfileScreen extends HookConsumerWidget {
               spacing: 2,
               children: buildSubcolumn(data),
             ),
-          if (data.profile.timeZone.isNotEmpty)
+          if (data.profile.timeZone.isNotEmpty && !kIsWeb)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -367,7 +377,11 @@ class AccountProfileScreen extends HookConsumerWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               onTap: () {
-                launchUrlString(link.url);
+                if (!link.url.startsWith('http') && !link.url.contains('://')) {
+                  launchUrlString('https://${link.url}');
+                } else {
+                  launchUrlString(link.url);
+                }
               },
             ),
         ],
@@ -561,9 +575,10 @@ class AccountProfileScreen extends HookConsumerWidget {
                               SliverToBoxAdapter(
                                 child: accountProfileBio(data).padding(top: 4),
                               ),
-                              SliverToBoxAdapter(
-                                child: accountProfileLinks(data),
-                              ),
+                              if (data.profile.links.isNotEmpty)
+                                SliverToBoxAdapter(
+                                  child: accountProfileLinks(data),
+                                ),
                               SliverToBoxAdapter(
                                 child: accountProfileDetail(data),
                               ),
@@ -660,11 +675,12 @@ class AccountProfileScreen extends HookConsumerWidget {
                         SliverToBoxAdapter(
                           child: accountProfileBio(data).padding(horizontal: 4),
                         ),
-                        SliverToBoxAdapter(
-                          child: accountProfileLinks(
-                            data,
-                          ).padding(horizontal: 4),
-                        ),
+                        if (data.profile.links.isNotEmpty)
+                          SliverToBoxAdapter(
+                            child: accountProfileLinks(
+                              data,
+                            ).padding(horizontal: 4),
+                          ),
                         SliverToBoxAdapter(
                           child: accountProfileDetail(
                             data,

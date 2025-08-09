@@ -788,5 +788,6 @@
   "addLink": "Add link",
   "linkKey": "Link Name",
   "linkValue": "URL",
-  "debugOptions": "Debug Options"
+  "debugOptions": "Debug Options",
+  "joinedAt": "Joined at {}"
 }
