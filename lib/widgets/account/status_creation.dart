@@ -55,7 +55,7 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
             'attitude': attitude.value,
             'is_invisible': isInvisible.value,
             'is_not_disturb': isNotDisturb.value,
-            'cleared_at': clearedAt.value?.toIso8601String(),
+            'cleared_at': clearedAt.value?.toUtc().toIso8601String(),
             if (labelController.text.isNotEmpty) 'label': labelController.text,
           },
           options: Options(method: initialStatus == null ? 'POST' : 'PATCH'),
