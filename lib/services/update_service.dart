@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_update/azhon_app_update.dart';
 import 'package:flutter_app_update/update_model.dart';
+import 'package:island/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:collection/collection.dart'; // Added for firstWhereOrNull
@@ -89,7 +90,7 @@ class _ParsedVersion implements Comparable<_ParsedVersion> {
 }
 
 class UpdateService {
-  UpdateService({Dio? dio})
+  UpdateService({Dio? dio, this.useProxy = false})
     : _dio =
           dio ??
           Dio(
@@ -105,6 +106,9 @@ class UpdateService {
           );
 
   final Dio _dio;
+  final bool useProxy;
+
+  static const _proxyBaseUrl = 'https://ghfast.top/';
 
   static const _releasesLatestApi =
       'https://api.github.com/repos/solsynth/solian/releases/latest';
@@ -188,6 +192,7 @@ class UpdateService {
             }
           },
           androidUpdateUrl: androidUpdateUrl,
+          useProxy: useProxy, // Pass the useProxy flag
         );
       },
     );
@@ -218,10 +223,15 @@ class UpdateService {
   /// Fetch the latest release info from GitHub.
   /// Public so other screens (e.g., About) can manually trigger update checks.
   Future<GithubReleaseInfo?> fetchLatestRelease() async {
+    final apiEndpoint =
+        useProxy
+            ? '$_proxyBaseUrl${Uri.encodeComponent(_releasesLatestApi)}'
+            : _releasesLatestApi;
+
     log(
-      '[Update] Fetching latest release from GitHub API: $_releasesLatestApi',
+      '[Update] Fetching latest release from GitHub API: $apiEndpoint (Proxy: $useProxy)',
     );
-    final resp = await _dio.get(_releasesLatestApi);
+    final resp = await _dio.get(apiEndpoint);
     if (resp.statusCode != 200) {
       log(
         '[Update] Failed to fetch latest release. Status code: ${resp.statusCode}',
@@ -262,21 +272,39 @@ class UpdateService {
   }
 }
 
-class _UpdateSheet extends StatelessWidget {
+class _UpdateSheet extends StatefulWidget {
   const _UpdateSheet({
     required this.release,
     required this.onOpen,
-    this.androidUpdateUrl, // Made nullable
+    this.androidUpdateUrl,
+    this.useProxy = false,
   });
 
-  final String? androidUpdateUrl; // Changed to nullable
+  final String? androidUpdateUrl;
+  final bool useProxy;
   final GithubReleaseInfo release;
   final VoidCallback onOpen;
 
-  Future<void> installUpdate(String url) async {
+  @override
+  State<_UpdateSheet> createState() => _UpdateSheetState();
+}
+
+class _UpdateSheetState extends State<_UpdateSheet> {
+  late bool _useProxy;
+
+  @override
+  void initState() {
+    super.initState();
+    _useProxy = widget.useProxy;
+  }
+
+  Future<void> _installUpdate(String url) async {
+    final downloadUrl =
+        _useProxy ? 'https://ghfast.top/${Uri.encodeComponent(url)}' : url;
+
     UpdateModel model = UpdateModel(
-      url,
-      "solian-update-${release.tagName}.apk",
+      downloadUrl,
+      "solian-update-${widget.release.tagName}.apk",
       "ic_launcher",
       'https://apps.apple.com/us/app/solian/id6499032345',
     );
@@ -298,8 +326,11 @@ class _UpdateSheet extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(release.name, style: theme.textTheme.titleMedium).bold(),
-                Text(release.tagName).fontSize(12),
+                Text(
+                  widget.release.name,
+                  style: theme.textTheme.titleMedium,
+                ).bold(),
+                Text(widget.release.tagName).fontSize(12),
               ],
             ).padding(vertical: 16, horizontal: 16),
             const Divider(height: 1),
@@ -309,14 +340,24 @@ class _UpdateSheet extends StatelessWidget {
                   horizontal: 16,
                   vertical: 16,
                 ),
-                child: SelectableText(
-                  release.body.isEmpty
-                      ? 'No changelog provided.'
-                      : release.body,
-                  style: theme.textTheme.bodyMedium,
+                child: MarkdownTextContent(
+                  content:
+                      widget.release.body.isEmpty
+                          ? 'No changelog provided.'
+                          : widget.release.body,
                 ),
               ),
             ),
+            if (!kIsWeb && Platform.isAndroid)
+              SwitchListTile(
+                title: const Text('Use GitHub Proxy for Download'),
+                value: _useProxy,
+                onChanged: (value) {
+                  setState(() {
+                    _useProxy = value;
+                  });
+                },
+              ).padding(horizontal: 8),
             Column(
               children: [
                 Row(
@@ -324,12 +365,12 @@ class _UpdateSheet extends StatelessWidget {
                   children: [
                     if (!kIsWeb &&
                         Platform.isAndroid &&
-                        androidUpdateUrl != null)
+                        widget.androidUpdateUrl != null)
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: () {
-                            log(androidUpdateUrl!);
-                            installUpdate(androidUpdateUrl!);
+                            log(widget.androidUpdateUrl!);
+                            _installUpdate(widget.androidUpdateUrl!);
                           },
                           icon: const Icon(Symbols.update),
                           label: const Text('Install update'),
@@ -337,7 +378,7 @@ class _UpdateSheet extends StatelessWidget {
                       ),
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: onOpen,
+                        onPressed: widget.onOpen,
                         icon: const Icon(Icons.open_in_new),
                         label: const Text('Open release page'),
                       ),
