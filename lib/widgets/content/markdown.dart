@@ -176,7 +176,7 @@ class MarkdownTextContent extends HookConsumerWidget {
                           uri: stickerUri,
                           width: size,
                           height: size,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                           noCacheOptimization: true,
                         ),
                       ),
