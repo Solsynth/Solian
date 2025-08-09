@@ -1,10 +1,13 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/publishers.dart';
+import 'package:island/screens/posts/compose.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
@@ -13,8 +16,14 @@ import 'package:styled_widget/styled_widget.dart';
 
 class PostQuickReply extends HookConsumerWidget {
   final SnPost parent;
-  final Function? onPosted;
-  const PostQuickReply({super.key, required this.parent, this.onPosted});
+  final VoidCallback? onPosted;
+  final VoidCallback? onLaunch;
+  const PostQuickReply({
+    super.key,
+    required this.parent,
+    this.onPosted,
+    this.onLaunch,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,9 +91,10 @@ class PostQuickReply extends HookConsumerWidget {
                 child: TextField(
                   controller: contentController,
                   decoration: InputDecoration(
-                    hintText: 'Post your reply',
-                    border: const OutlineInputBorder(),
+                    hintText: 'postReplyPlaceholder'.tr(),
+                    border: InputBorder.none,
                     isDense: true,
+                    isCollapsed: true,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 8,
@@ -95,6 +105,26 @@ class PostQuickReply extends HookConsumerWidget {
                   onTapOutside:
                       (_) => FocusManager.instance.primaryFocus?.unfocus(),
                 ),
+              ),
+              IconButton(
+                onPressed: () {
+                  onLaunch?.call();
+                  GoRouter.of(context)
+                      .pushNamed(
+                        'postCompose',
+                        extra: PostComposeInitialState(
+                          content: contentController.text,
+                          replyingTo: parent,
+                        ),
+                      )
+                      .then((value) {
+                        if (value != null) onPosted?.call();
+                      });
+                },
+                icon: const Icon(Symbols.launch, size: 20),
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints(),
               ),
               IconButton(
                 padding: EdgeInsets.zero,
@@ -109,6 +139,7 @@ class PostQuickReply extends HookConsumerWidget {
                         : Icon(Symbols.send, size: 20),
                 color: Theme.of(context).colorScheme.primary,
                 onPressed: submitting.value ? null : performAction,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),

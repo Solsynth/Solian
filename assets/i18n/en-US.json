@@ -706,6 +706,7 @@
   "copyToClipboardTooltip": "Copy to clipboard",
   "postForwardingTo": "Forwarding to",
   "postReplyingTo": "Replying to",
+  "postReplyPlaceholder": "Post your reply",
   "postEditing": "You are editing an existing post",
   "postArticle": "Article",
   "aboutDeviceName": "Device Name",

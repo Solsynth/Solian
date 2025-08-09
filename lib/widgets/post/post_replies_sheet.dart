@@ -38,14 +38,18 @@ class PostRepliesSheet extends HookConsumerWidget {
           if (user.value != null)
             Material(
               elevation: 2,
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
               child: PostQuickReply(
                 parent: post,
                 onPosted: () {
                   ref.invalidate(postRepliesNotifierProvider(post.id));
                 },
+                onLaunch: () {
+                  Navigator.of(context).pop();
+                },
               ).padding(
-                bottom: MediaQuery.of(context).padding.bottom + 16,
-                top: 16,
+                bottom: MediaQuery.of(context).padding.bottom + 8,
+                top: 8,
                 horizontal: 16,
               ),
             ),

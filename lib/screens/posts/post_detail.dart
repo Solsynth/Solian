@@ -92,6 +92,7 @@ class PostDetailScreen extends HookConsumerWidget {
                   right: 0,
                   child: Material(
                     elevation: 2,
+                    color: Theme.of(context).colorScheme.surfaceContainer,
                     child: postState
                         .when(
                           data:
@@ -107,8 +108,8 @@ class PostDetailScreen extends HookConsumerWidget {
                           error: (_, _) => const SizedBox.shrink(),
                         )
                         .padding(
-                          bottom: MediaQuery.of(context).padding.bottom + 16,
-                          top: 16,
+                          bottom: MediaQuery.of(context).padding.bottom + 8,
+                          top: 8,
                           horizontal: 16,
                         ),
                   ),
