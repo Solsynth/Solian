@@ -8,7 +8,7 @@
 import Foundation
 
 func getAttachmentUrl(for identifier: String) -> String {
-    let serverBaseUrl = "https://nt.solian.app"
+    let serverBaseUrl = "https://api.solian.app"
     
-    return identifier.starts(with: "http") ? identifier : "\(serverBaseUrl)/files/\(identifier)"
+    return identifier.starts(with: "http") ? identifier : "\(serverBaseUrl)/drive/files/\(identifier)"
 }
