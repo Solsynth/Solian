@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/services/notify.dart';
 import 'package:island/services/sharing_intent.dart';
+import 'package:island/services/update_service.dart';
 import 'package:island/widgets/content/network_status_sheet.dart';
 import 'package:island/widgets/tour/tour.dart';
 
@@ -21,6 +22,7 @@ class AppWrapper extends HookConsumerWidget {
       });
       final sharingService = SharingIntentService();
       sharingService.initialize(context);
+      UpdateService().checkForUpdates(context);
       return () {
         sharingService.dispose();
         ntySubs?.cancel();

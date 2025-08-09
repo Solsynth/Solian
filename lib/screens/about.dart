@@ -7,12 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/services/udid.native.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/services/update_service.dart';
-import 'package:island/widgets/content/sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -205,33 +205,16 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                                 // Fetch latest release and show the unified sheet
                                 final svc = UpdateService();
                                 // Reuse service fetch + compare to decide content
+                                showLoadingModal(context);
                                 final release = await svc.fetchLatestRelease();
+                                if (!context.mounted) return;
+                                hideLoadingModal(context);
                                 if (release != null) {
                                   await svc.showUpdateSheet(context, release);
                                 } else {
-                                  // Fallback: show a simple sheet indicating no info
-                                  // Use your SheetScaffold for consistent styling
-                                  // Show a minimal message
-                                  // ignore: use_build_context_synchronously
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    useSafeArea: true,
-                                    showDragHandle: true,
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.surface,
-                                    builder:
-                                        (_) => const SheetScaffold(
-                                          titleText: 'Update',
-                                          child: Center(
-                                            child: Padding(
-                                              padding: EdgeInsets.all(24),
-                                              child: Text(
-                                                'Unable to fetch release info at this time.',
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                  showInfoAlert(
+                                    'Currently cannot get update from the GitHub.',
+                                    'Unable to check for updates',
                                   );
                                 }
                               },

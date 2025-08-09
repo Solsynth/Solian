@@ -1,19 +1,27 @@
 import 'dart:async';
+import 'dart:developer';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_update/azhon_app_update.dart';
+import 'package:flutter_app_update/update_model.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:collection/collection.dart'; // Added for firstWhereOrNull
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:island/widgets/content/sheet.dart';
 
 /// Data model for a GitHub release we care about
 class GithubReleaseInfo {
-  final String tagName; // e.g. 3.1.0+118
-  final String name; // release title
-  final String body; // changelog markdown
-  final String htmlUrl; // release page
+  final String tagName;
+  final String name;
+  final String body;
+  final String htmlUrl;
   final DateTime createdAt;
+  final List<GithubReleaseAsset> assets;
 
   const GithubReleaseInfo({
     required this.tagName,
@@ -21,7 +29,26 @@ class GithubReleaseInfo {
     required this.body,
     required this.htmlUrl,
     required this.createdAt,
+    this.assets = const [],
   });
+}
+
+/// Data model for a GitHub release asset
+class GithubReleaseAsset {
+  final String name;
+  final String browserDownloadUrl;
+
+  const GithubReleaseAsset({
+    required this.name,
+    required this.browserDownloadUrl,
+  });
+
+  factory GithubReleaseAsset.fromJson(Map<String, dynamic> json) {
+    return GithubReleaseAsset(
+      name: json['name'] as String,
+      browserDownloadUrl: json['browser_download_url'] as String,
+    );
+  }
 }
 
 /// Parses version and build number from "x.y.z+build"
@@ -85,31 +112,52 @@ class UpdateService {
   /// Checks GitHub for the latest release and compares against the current app version.
   /// If update is available, shows a bottom sheet with changelog and an action to open release page.
   Future<void> checkForUpdates(BuildContext context) async {
+    log('[Update] Checking for updates...');
     try {
       final release = await fetchLatestRelease();
-      if (release == null) return;
+      if (release == null) {
+        log('[Update] No latest release found or could not fetch.');
+        return;
+      }
+      log('[Update] Fetched latest release: ${release.tagName}');
 
       final info = await PackageInfo.fromPlatform();
       final localVersionStr = '${info.version}+${info.buildNumber}';
+      log('[Update] Local app version: $localVersionStr');
 
       final latest = _ParsedVersion.tryParse(release.tagName);
       final local = _ParsedVersion.tryParse(localVersionStr);
 
       if (latest == null || local == null) {
+        log(
+          '[Update] Failed to parse versions. Latest: ${release.tagName}, Local: $localVersionStr',
+        );
         // If parsing fails, do nothing silently
         return;
       }
+      log('[Update] Parsed versions. Latest: $latest, Local: $local');
 
       final needsUpdate = latest.compareTo(local) > 0;
-      if (!needsUpdate) return;
+      if (!needsUpdate) {
+        log('[Update] App is up to date. No update needed.');
+        return;
+      }
+      log('[Update] Update available! Latest: $latest, Local: $local');
 
-      if (!context.mounted) return;
+      if (!context.mounted) {
+        log('[Update] Context not mounted, cannot show update sheet.');
+        return;
+      }
 
       // Delay to ensure UI is ready (if called at startup)
       await Future.delayed(const Duration(milliseconds: 100));
 
-      await showUpdateSheet(context, release);
-    } catch (_) {
+      if (context.mounted) {
+        await showUpdateSheet(context, release);
+        log('[Update] Update sheet shown.');
+      }
+    } catch (e) {
+      log('[Update] Error checking for updates: $e');
       // Ignore errors (network, api, etc.)
       return;
     }
@@ -126,25 +174,62 @@ class UpdateService {
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
-      builder:
-          (ctx) => _UpdateSheet(
-            release: release,
-            onOpen: () async {
-              final uri = Uri.parse(release.htmlUrl);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              }
-            },
-          ),
+      builder: (ctx) {
+        String? androidUpdateUrl;
+        if (Platform.isAndroid) {
+          androidUpdateUrl = _getAndroidUpdateUrl(release.assets);
+        }
+        return _UpdateSheet(
+          release: release,
+          onOpen: () async {
+            final uri = Uri.parse(release.htmlUrl);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+          androidUpdateUrl: androidUpdateUrl,
+        );
+      },
     );
+  }
+
+  String? _getAndroidUpdateUrl(List<GithubReleaseAsset> assets) {
+    final arm64 = assets.firstWhereOrNull(
+      (asset) => asset.name == 'app-arm64-v8a-release.apk',
+    );
+    final armeabi = assets.firstWhereOrNull(
+      (asset) => asset.name == 'app-armeabi-v7a-release.apk',
+    );
+    final x86_64 = assets.firstWhereOrNull(
+      (asset) => asset.name == 'app-x86_64-release.apk',
+    );
+
+    // Prioritize arm64, then armeabi, then x86_64
+    if (arm64 != null) {
+      return arm64.browserDownloadUrl;
+    } else if (armeabi != null) {
+      return armeabi.browserDownloadUrl;
+    } else if (x86_64 != null) {
+      return x86_64.browserDownloadUrl;
+    }
+    return null;
   }
 
   /// Fetch the latest release info from GitHub.
   /// Public so other screens (e.g., About) can manually trigger update checks.
   Future<GithubReleaseInfo?> fetchLatestRelease() async {
+    log(
+      '[Update] Fetching latest release from GitHub API: $_releasesLatestApi',
+    );
     final resp = await _dio.get(_releasesLatestApi);
-    if (resp.statusCode != 200) return null;
+    if (resp.statusCode != 200) {
+      log(
+        '[Update] Failed to fetch latest release. Status code: ${resp.statusCode}',
+      );
+      return null;
+    }
     final data = resp.data as Map<String, dynamic>;
+    log('[Update] Successfully fetched release data.');
 
     final tagName = (data['tag_name'] ?? '').toString();
     final name = (data['name'] ?? tagName).toString();
@@ -152,24 +237,51 @@ class UpdateService {
     final htmlUrl = (data['html_url'] ?? '').toString();
     final createdAtStr = (data['created_at'] ?? '').toString();
     final createdAt = DateTime.tryParse(createdAtStr) ?? DateTime.now();
+    final assetsData =
+        (data['assets'] as List<dynamic>?)
+            ?.map((e) => GithubReleaseAsset.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
 
-    if (tagName.isEmpty || htmlUrl.isEmpty) return null;
+    if (tagName.isEmpty || htmlUrl.isEmpty) {
+      log(
+        '[Update] Missing tag_name or html_url in release data. TagName: "$tagName", HtmlUrl: "$htmlUrl"',
+      );
+      return null;
+    }
 
+    log('[Update] Returning GithubReleaseInfo for tag: $tagName');
     return GithubReleaseInfo(
       tagName: tagName,
       name: name,
       body: body,
       htmlUrl: htmlUrl,
       createdAt: createdAt,
+      assets: assetsData,
     );
   }
 }
 
 class _UpdateSheet extends StatelessWidget {
-  const _UpdateSheet({required this.release, required this.onOpen});
+  const _UpdateSheet({
+    required this.release,
+    required this.onOpen,
+    this.androidUpdateUrl, // Made nullable
+  });
 
+  final String? androidUpdateUrl; // Changed to nullable
   final GithubReleaseInfo release;
   final VoidCallback onOpen;
+
+  Future<void> installUpdate(String url) async {
+    UpdateModel model = UpdateModel(
+      url,
+      "solian-update-${release.tagName}.apk",
+      "ic_launcher",
+      'https://apps.apple.com/us/app/solian/id6499032345',
+    );
+    AzhonAppUpdate.update(model);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +320,21 @@ class _UpdateSheet extends StatelessWidget {
             Column(
               children: [
                 Row(
+                  spacing: 8,
                   children: [
+                    if (!kIsWeb &&
+                        Platform.isAndroid &&
+                        androidUpdateUrl != null)
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            log(androidUpdateUrl!);
+                            installUpdate(androidUpdateUrl!);
+                          },
+                          icon: const Icon(Symbols.update),
+                          label: const Text('Install update'),
+                        ),
+                      ),
                     Expanded(
                       child: FilledButton.icon(
                         onPressed: onOpen,
