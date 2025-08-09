@@ -273,7 +273,7 @@ class PostItem extends HookConsumerWidget {
             : item.reactionsCount.entries
                 .sortedBy((e) => e.value)
                 .map((e) => e.key)
-                .first;
+                .last;
 
     final postLanguage =
         item.content != null
@@ -480,7 +480,9 @@ class PostItem extends HookConsumerWidget {
               ],
             ),
           )
-        else if (item.content?.isNotEmpty ?? false)
+        else if ((item.content?.isNotEmpty ?? false) ||
+            (item.title?.isNotEmpty ?? false) ||
+            (item.description?.isNotEmpty ?? false))
           Padding(
             padding: EdgeInsets.only(
               left: renderingPadding.horizontal,
