@@ -114,10 +114,11 @@ class WebFeedEditScreen extends HookConsumerWidget {
 
     return feedAsync.when(
       loading:
-          () =>
-              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          () => const AppScaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
       error:
-          (error, stack) => Scaffold(
+          (error, stack) => AppScaffold(
             appBar: AppBar(title: const Text('Error')),
             body: Center(child: Text('Error: $error')),
           ),

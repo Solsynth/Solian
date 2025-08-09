@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/poll/poll_feedback.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -70,7 +71,7 @@ class CreatorPollListScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(title: const Text('Polls')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createPoll(context),
