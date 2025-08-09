@@ -142,7 +142,7 @@ class CloudVideoWidget extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
+                Wrap(
                   spacing: 8,
                   children: [
                     if (item.fileMeta?['duration'] != null)
@@ -199,8 +199,8 @@ class CloudVideoWidget extends HookConsumerWidget {
                   ),
                 ),
               ],
-            ),
-          ).padding(horizontal: 16, bottom: 12),
+            ).padding(horizontal: 16, bottom: 12),
+          ),
         ],
       ),
       onTap: () {
