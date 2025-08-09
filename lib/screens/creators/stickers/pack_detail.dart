@@ -58,7 +58,7 @@ class StickerPackDetailScreen extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final apiClient = ref.watch(apiClientProvider);
-        await apiClient.delete('/stickers/$id/content/${sticker.id}');
+        await apiClient.delete('/sphere/stickers/$id/content/${sticker.id}');
         ref.invalidate(stickerPackContentProvider(id));
       } catch (err) {
         showErrorAlert(err);
@@ -297,7 +297,7 @@ class _StickerPackActionMenu extends HookConsumerWidget {
                 ).then((confirm) {
                   if (confirm) {
                     final client = ref.watch(apiClientProvider);
-                    client.delete('/stickers/$packId');
+                    client.delete('/sphere/stickers/$packId');
                     ref.invalidate(stickerPacksNotifierProvider);
                     if (context.mounted) context.pop(true);
                   }
@@ -325,7 +325,7 @@ Future<SnSticker?> stickerPackSticker(
   if (query == null) return null;
   final apiClient = ref.watch(apiClientProvider);
   final resp = await apiClient.get(
-    '/stickers/${query.packId}/content/${query.id}',
+    '/sphere/stickers/${query.packId}/content/${query.id}',
   );
   if (resp.data == null) return null;
   return SnSticker.fromJson(resp.data);
@@ -379,8 +379,8 @@ class EditStickersScreen extends HookConsumerWidget {
       try {
         final resp = await apiClient.request(
           id == null
-              ? '/stickers/$packId/content'
-              : '/stickers/$packId/content/$id',
+              ? '/sphere/stickers/$packId/content'
+              : '/sphere/stickers/$packId/content/$id',
           data: {'slug': slugController.text, 'image_id': imageController.text},
           options: Options(method: id == null ? 'POST' : 'PATCH'),
         );
