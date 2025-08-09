@@ -339,7 +339,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                             }
 
                             await apiClient.post(
-                              '/chat/${chatRoom.value!.id}/members/me',
+                              '/sphere/chat/${chatRoom.value!.id}/members/me',
                             );
                             ref.invalidate(chatroomIdentityProvider(id));
                           } catch (err) {
@@ -929,7 +929,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                             if (attachment.isOnCloud) {
                               final client = ref.watch(apiClientProvider);
                               await client.delete(
-                                '/files/${attachment.data.id}',
+                                '/drive/files/${attachment.data.id}',
                               );
                             }
                             final clone = List.of(attachments.value);
