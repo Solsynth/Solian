@@ -305,7 +305,7 @@ class _UpdateSheetState extends State<_UpdateSheet> {
     UpdateModel model = UpdateModel(
       downloadUrl,
       "solian-update-${widget.release.tagName}.apk",
-      "ic_launcher",
+      "launcher_icon",
       'https://apps.apple.com/us/app/solian/id6499032345',
     );
     AzhonAppUpdate.update(model);
