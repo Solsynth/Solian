@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
+import 'package:island/models/user.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
@@ -95,11 +96,7 @@ class UpdateProfileScreen extends HookConsumerWidget {
     final usernameController = useTextEditingController(text: user.value!.name);
     final nicknameController = useTextEditingController(text: user.value!.nick);
     final language = useState(user.value!.language);
-    final links = useState<List<Map<String, String>>>(
-      user.value!.profile.links.entries
-          .map((e) => {'key': e.key, 'value': e.value})
-          .toList(),
-    );
+    final links = useState<List<ProfileLink>>(user.value!.profile.links);
 
     void updateBasicInfo() async {
       if (!formKeyBasicInfo.currentState!.validate()) return;
@@ -171,7 +168,7 @@ class UpdateProfileScreen extends HookConsumerWidget {
             'location': locationController.text,
             'time_zone': timeZoneController.text,
             'birthday': birthday.value?.toUtc().toIso8601String(),
-            'links': {for (var e in links.value) e['key']!: e['value']!},
+            'links': links.value,
           },
         );
         final userNotifier = ref.read(userInfoProvider.notifier);
@@ -575,13 +572,15 @@ class UpdateProfileScreen extends HookConsumerWidget {
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: links.value[i]['key'],
+                                initialValue: links.value[i].name,
                                 decoration: InputDecoration(
                                   labelText: 'linkKey'.tr(),
                                   isDense: true,
                                 ),
                                 onChanged: (value) {
-                                  links.value[i]['key'] = value;
+                                  links.value[i] = links.value[i].copyWith(
+                                    name: value,
+                                  );
                                 },
                                 onTapOutside:
                                     (_) =>
@@ -592,13 +591,15 @@ class UpdateProfileScreen extends HookConsumerWidget {
                             const Gap(8),
                             Expanded(
                               child: TextFormField(
-                                initialValue: links.value[i]['value'],
+                                initialValue: links.value[i].url,
                                 decoration: InputDecoration(
                                   labelText: 'linkValue'.tr(),
                                   isDense: true,
                                 ),
                                 onChanged: (value) {
-                                  links.value[i]['value'] = value;
+                                  links.value[i] = links.value[i].copyWith(
+                                    url: value,
+                                  );
                                 },
                                 onTapOutside:
                                     (_) =>
@@ -620,7 +621,7 @@ class UpdateProfileScreen extends HookConsumerWidget {
                         child: FilledButton.icon(
                           onPressed: () {
                             links.value = List.from(links.value)
-                              ..add({'key': '', 'value': ''});
+                              ..add(ProfileLink(name: '', url: ''));
                           },
                           label: Text('addLink').tr(),
                           icon: const Icon(Symbols.add),

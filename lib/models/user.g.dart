@@ -47,6 +47,12 @@ Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
+_ProfileLink _$ProfileLinkFromJson(Map<String, dynamic> json) =>
+    _ProfileLink(name: json['name'] as String, url: json['url'] as String);
+
+Map<String, dynamic> _$ProfileLinkToJson(_ProfileLink instance) =>
+    <String, dynamic>{'name': instance.name, 'url': instance.url};
+
 _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
     _SnAccountProfile(
       id: json['id'] as String,
@@ -63,10 +69,10 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
               ? null
               : DateTime.parse(json['birthday'] as String),
       links:
-          (json['links'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, e as String),
-          ) ??
-          const {},
+          (json['links'] as List<dynamic>?)
+              ?.map((e) => ProfileLink.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       lastSeenAt:
           json['last_seen_at'] == null
               ? null
@@ -116,7 +122,7 @@ Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
       'location': instance.location,
       'time_zone': instance.timeZone,
       'birthday': instance.birthday?.toIso8601String(),
-      'links': instance.links,
+      'links': instance.links.map((e) => e.toJson()).toList(),
       'last_seen_at': instance.lastSeenAt?.toIso8601String(),
       'active_badge': instance.activeBadge?.toJson(),
       'experience': instance.experience,

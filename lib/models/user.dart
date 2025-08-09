@@ -26,6 +26,15 @@ sealed class SnAccount with _$SnAccount {
 }
 
 @freezed
+sealed class ProfileLink with _$ProfileLink {
+  const factory ProfileLink({required String name, required String url}) =
+      _ProfileLink;
+
+  factory ProfileLink.fromJson(Map<String, dynamic> json) =>
+      _$ProfileLinkFromJson(json);
+}
+
+@freezed
 sealed class SnAccountProfile with _$SnAccountProfile {
   const factory SnAccountProfile({
     required String id,
@@ -38,7 +47,7 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     @Default('') String location,
     @Default('') String timeZone,
     DateTime? birthday,
-    @Default({}) Map<String, String> links,
+    @Default([]) List<ProfileLink> links,
     DateTime? lastSeenAt,
     SnAccountBadge? activeBadge,
     required int experience,

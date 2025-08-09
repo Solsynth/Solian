@@ -151,7 +151,7 @@ class _StickerPackContentProviderElement
 }
 
 String _$stickerPackStickerHash() =>
-    r'36f524c047e632236d5597aaaa8678ed86599602';
+    r'5c553666b3a63530bdebae4b7cd52f303c5ab3a0';
 
 /// See also [stickerPackSticker].
 @ProviderFor(stickerPackSticker)

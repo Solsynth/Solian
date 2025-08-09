@@ -348,9 +348,269 @@ $SnWalletSubscriptionRefCopyWith<$Res>? get perkSubscription {
 
 
 /// @nodoc
+mixin _$ProfileLink {
+
+ String get name; String get url;
+/// Create a copy of ProfileLink
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ProfileLinkCopyWith<ProfileLink> get copyWith => _$ProfileLinkCopyWithImpl<ProfileLink>(this as ProfileLink, _$identity);
+
+  /// Serializes this ProfileLink to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileLink&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,name,url);
+
+@override
+String toString() {
+  return 'ProfileLink(name: $name, url: $url)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ProfileLinkCopyWith<$Res>  {
+  factory $ProfileLinkCopyWith(ProfileLink value, $Res Function(ProfileLink) _then) = _$ProfileLinkCopyWithImpl;
+@useResult
+$Res call({
+ String name, String url
+});
+
+
+
+
+}
+/// @nodoc
+class _$ProfileLinkCopyWithImpl<$Res>
+    implements $ProfileLinkCopyWith<$Res> {
+  _$ProfileLinkCopyWithImpl(this._self, this._then);
+
+  final ProfileLink _self;
+  final $Res Function(ProfileLink) _then;
+
+/// Create a copy of ProfileLink
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? url = null,}) {
+  return _then(_self.copyWith(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ProfileLink].
+extension ProfileLinkPatterns on ProfileLink {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ProfileLink value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ProfileLink() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ProfileLink value)  $default,){
+final _that = this;
+switch (_that) {
+case _ProfileLink():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ProfileLink value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ProfileLink() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String url)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ProfileLink() when $default != null:
+return $default(_that.name,_that.url);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String url)  $default,) {final _that = this;
+switch (_that) {
+case _ProfileLink():
+return $default(_that.name,_that.url);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String url)?  $default,) {final _that = this;
+switch (_that) {
+case _ProfileLink() when $default != null:
+return $default(_that.name,_that.url);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _ProfileLink implements ProfileLink {
+  const _ProfileLink({required this.name, required this.url});
+  factory _ProfileLink.fromJson(Map<String, dynamic> json) => _$ProfileLinkFromJson(json);
+
+@override final  String name;
+@override final  String url;
+
+/// Create a copy of ProfileLink
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ProfileLinkCopyWith<_ProfileLink> get copyWith => __$ProfileLinkCopyWithImpl<_ProfileLink>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ProfileLinkToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileLink&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,name,url);
+
+@override
+String toString() {
+  return 'ProfileLink(name: $name, url: $url)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ProfileLinkCopyWith<$Res> implements $ProfileLinkCopyWith<$Res> {
+  factory _$ProfileLinkCopyWith(_ProfileLink value, $Res Function(_ProfileLink) _then) = __$ProfileLinkCopyWithImpl;
+@override @useResult
+$Res call({
+ String name, String url
+});
+
+
+
+
+}
+/// @nodoc
+class __$ProfileLinkCopyWithImpl<$Res>
+    implements _$ProfileLinkCopyWith<$Res> {
+  __$ProfileLinkCopyWithImpl(this._self, this._then);
+
+  final _ProfileLink _self;
+  final $Res Function(_ProfileLink) _then;
+
+/// Create a copy of ProfileLink
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? url = null,}) {
+  return _then(_ProfileLink(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnAccountProfile {
 
- String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday; Map<String, String> get links; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday; List<ProfileLink> get links; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -383,7 +643,7 @@ abstract mixin class $SnAccountProfileCopyWith<$Res>  {
   factory $SnAccountProfileCopyWith(SnAccountProfile value, $Res Function(SnAccountProfile) _then) = _$SnAccountProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, Map<String, String> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -413,7 +673,7 @@ as String,location: null == location ? _self.location : location // ignore: cast
 as String,timeZone: null == timeZone ? _self.timeZone : timeZone // ignore: cast_nullable_to_non_nullable
 as String,birthday: freezed == birthday ? _self.birthday : birthday // ignore: cast_nullable_to_non_nullable
 as DateTime?,links: null == links ? _self.links : links // ignore: cast_nullable_to_non_nullable
-as Map<String, String>,lastSeenAt: freezed == lastSeenAt ? _self.lastSeenAt : lastSeenAt // ignore: cast_nullable_to_non_nullable
+as List<ProfileLink>,lastSeenAt: freezed == lastSeenAt ? _self.lastSeenAt : lastSeenAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,activeBadge: freezed == activeBadge ? _self.activeBadge : activeBadge // ignore: cast_nullable_to_non_nullable
 as SnAccountBadge?,experience: null == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
 as int,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
@@ -554,7 +814,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday,  Map<String, String> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday,  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAccountProfile() when $default != null:
 return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -575,7 +835,7 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday,  Map<String, String> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday,  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountProfile():
 return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -592,7 +852,7 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday,  Map<String, String> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday,  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountProfile() when $default != null:
 return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -607,7 +867,7 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 @JsonSerializable()
 
 class _SnAccountProfile implements SnAccountProfile {
-  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, final  Map<String, String> links = const {}, this.lastSeenAt, this.activeBadge, required this.experience, required this.level, required this.levelingProgress, required this.picture, required this.background, required this.verification, required this.createdAt, required this.updatedAt, required this.deletedAt}): _links = links;
+  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, final  List<ProfileLink> links = const [], this.lastSeenAt, this.activeBadge, required this.experience, required this.level, required this.levelingProgress, required this.picture, required this.background, required this.verification, required this.createdAt, required this.updatedAt, required this.deletedAt}): _links = links;
   factory _SnAccountProfile.fromJson(Map<String, dynamic> json) => _$SnAccountProfileFromJson(json);
 
 @override final  String id;
@@ -620,11 +880,11 @@ class _SnAccountProfile implements SnAccountProfile {
 @override@JsonKey() final  String location;
 @override@JsonKey() final  String timeZone;
 @override final  DateTime? birthday;
- final  Map<String, String> _links;
-@override@JsonKey() Map<String, String> get links {
-  if (_links is EqualUnmodifiableMapView) return _links;
+ final  List<ProfileLink> _links;
+@override@JsonKey() List<ProfileLink> get links {
+  if (_links is EqualUnmodifiableListView) return _links;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_links);
+  return EqualUnmodifiableListView(_links);
 }
 
 @override final  DateTime? lastSeenAt;
@@ -672,7 +932,7 @@ abstract mixin class _$SnAccountProfileCopyWith<$Res> implements $SnAccountProfi
   factory _$SnAccountProfileCopyWith(_SnAccountProfile value, $Res Function(_SnAccountProfile) _then) = __$SnAccountProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, Map<String, String> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -702,7 +962,7 @@ as String,location: null == location ? _self.location : location // ignore: cast
 as String,timeZone: null == timeZone ? _self.timeZone : timeZone // ignore: cast_nullable_to_non_nullable
 as String,birthday: freezed == birthday ? _self.birthday : birthday // ignore: cast_nullable_to_non_nullable
 as DateTime?,links: null == links ? _self._links : links // ignore: cast_nullable_to_non_nullable
-as Map<String, String>,lastSeenAt: freezed == lastSeenAt ? _self.lastSeenAt : lastSeenAt // ignore: cast_nullable_to_non_nullable
+as List<ProfileLink>,lastSeenAt: freezed == lastSeenAt ? _self.lastSeenAt : lastSeenAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,activeBadge: freezed == activeBadge ? _self.activeBadge : activeBadge // ignore: cast_nullable_to_non_nullable
 as SnAccountBadge?,experience: null == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
 as int,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable

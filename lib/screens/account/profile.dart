@@ -357,17 +357,17 @@ class AccountProfileScreen extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('links').tr().bold().padding(horizontal: 24, top: 12, bottom: 4),
-          for (final link in data.profile.links.entries)
+          for (final link in data.profile.links)
             ListTile(
-              title: Text(link.key.capitalizeEachWord()),
-              subtitle: Text(link.value),
+              title: Text(link.name.capitalizeEachWord()),
+              subtitle: Text(link.url),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               trailing: const Icon(Symbols.chevron_right),
               shape: RoundedRectangleBorder(
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               onTap: () {
-                launchUrlString(link.value);
+                launchUrlString(link.url);
               },
             ),
         ],
