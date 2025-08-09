@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_highlight/themes/a11y-dark.dart';
 import 'package:flutter_highlight/themes/a11y-light.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
@@ -71,7 +72,22 @@ class MarkdownTextContent extends HookConsumerWidget {
             textStyle: textStyle ?? Theme.of(context).textTheme.bodyMedium!,
           ),
           HrConfig(height: 1, color: Theme.of(context).dividerColor),
-          PreConfig(theme: isDark ? a11yDarkTheme : a11yLightTheme),
+          PreConfig(
+            theme: isDark ? a11yDarkTheme : a11yLightTheme,
+            textStyle: GoogleFonts.robotoMono(fontSize: 14),
+            styleNotMatched: GoogleFonts.robotoMono(fontSize: 14),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.all(Radius.circular(8.0)),
+            ),
+          ),
+          TableConfig(
+            wrapper:
+                (child) => SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: child,
+                ),
+          ),
           LinkConfig(
             style:
                 linkStyle ??
