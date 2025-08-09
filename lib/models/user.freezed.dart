@@ -610,7 +610,7 @@ as String,
 /// @nodoc
 mixin _$SnAccountProfile {
 
- String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday; List<ProfileLink> get links; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday;@ProfileLinkConverter() List<ProfileLink> get links; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -643,7 +643,7 @@ abstract mixin class $SnAccountProfileCopyWith<$Res>  {
   factory $SnAccountProfileCopyWith(SnAccountProfile value, $Res Function(SnAccountProfile) _then) = _$SnAccountProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday,@ProfileLinkConverter() List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -814,7 +814,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday,  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday, @ProfileLinkConverter()  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAccountProfile() when $default != null:
 return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -835,7 +835,7 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday,  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday, @ProfileLinkConverter()  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountProfile():
 return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -852,7 +852,7 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday,  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday, @ProfileLinkConverter()  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountProfile() when $default != null:
 return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -867,7 +867,7 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 @JsonSerializable()
 
 class _SnAccountProfile implements SnAccountProfile {
-  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, final  List<ProfileLink> links = const [], this.lastSeenAt, this.activeBadge, required this.experience, required this.level, required this.levelingProgress, required this.picture, required this.background, required this.verification, required this.createdAt, required this.updatedAt, required this.deletedAt}): _links = links;
+  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, @ProfileLinkConverter() final  List<ProfileLink> links = const [], this.lastSeenAt, this.activeBadge, required this.experience, required this.level, required this.levelingProgress, required this.picture, required this.background, required this.verification, required this.createdAt, required this.updatedAt, required this.deletedAt}): _links = links;
   factory _SnAccountProfile.fromJson(Map<String, dynamic> json) => _$SnAccountProfileFromJson(json);
 
 @override final  String id;
@@ -881,7 +881,7 @@ class _SnAccountProfile implements SnAccountProfile {
 @override@JsonKey() final  String timeZone;
 @override final  DateTime? birthday;
  final  List<ProfileLink> _links;
-@override@JsonKey() List<ProfileLink> get links {
+@override@JsonKey()@ProfileLinkConverter() List<ProfileLink> get links {
   if (_links is EqualUnmodifiableListView) return _links;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_links);
@@ -932,7 +932,7 @@ abstract mixin class _$SnAccountProfileCopyWith<$Res> implements $SnAccountProfi
   factory _$SnAccountProfileCopyWith(_SnAccountProfile value, $Res Function(_SnAccountProfile) _then) = __$SnAccountProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday, List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday,@ProfileLinkConverter() List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 

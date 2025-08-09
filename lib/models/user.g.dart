@@ -69,10 +69,9 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
               ? null
               : DateTime.parse(json['birthday'] as String),
       links:
-          (json['links'] as List<dynamic>?)
-              ?.map((e) => ProfileLink.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
+          json['links'] == null
+              ? const []
+              : const ProfileLinkConverter().fromJson(json['links']),
       lastSeenAt:
           json['last_seen_at'] == null
               ? null
@@ -122,7 +121,7 @@ Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
       'location': instance.location,
       'time_zone': instance.timeZone,
       'birthday': instance.birthday?.toIso8601String(),
-      'links': instance.links.map((e) => e.toJson()).toList(),
+      'links': const ProfileLinkConverter().toJson(instance.links),
       'last_seen_at': instance.lastSeenAt?.toIso8601String(),
       'active_badge': instance.activeBadge?.toJson(),
       'experience': instance.experience,

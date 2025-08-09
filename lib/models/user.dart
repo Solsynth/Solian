@@ -34,6 +34,23 @@ sealed class ProfileLink with _$ProfileLink {
       _$ProfileLinkFromJson(json);
 }
 
+class ProfileLinkConverter
+    implements JsonConverter<List<ProfileLink>, dynamic> {
+  const ProfileLinkConverter();
+
+  @override
+  List<ProfileLink> fromJson(dynamic json) {
+    return json is List<dynamic>
+        ? json.map((e) => ProfileLink.fromJson(e)).cast<ProfileLink>().toList()
+        : <ProfileLink>[];
+  }
+
+  @override
+  List<dynamic> toJson(List<ProfileLink> object) {
+    return object.map((e) => e.toJson()).toList();
+  }
+}
+
 @freezed
 sealed class SnAccountProfile with _$SnAccountProfile {
   const factory SnAccountProfile({
@@ -47,7 +64,7 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     @Default('') String location,
     @Default('') String timeZone,
     DateTime? birthday,
-    @Default([]) List<ProfileLink> links,
+    @ProfileLinkConverter() @Default([]) List<ProfileLink> links,
     DateTime? lastSeenAt,
     SnAccountBadge? activeBadge,
     required int experience,
