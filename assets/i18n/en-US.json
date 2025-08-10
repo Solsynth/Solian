@@ -789,5 +789,6 @@
   "linkKey": "Link Name",
   "linkValue": "URL",
   "debugOptions": "Debug Options",
-  "joinedAt": "Joined at {}"
+  "joinedAt": "Joined at {}",
+  "searchAccounts": "Search accounts..."
 }
