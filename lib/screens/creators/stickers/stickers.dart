@@ -31,7 +31,7 @@ class StickersScreen extends HookConsumerWidget {
               context
                   .pushNamed(
                     'creatorStickerPackNew',
-                    queryParameters: {'name': pubName},
+                    pathParameters: {'name': pubName},
                   )
                   .then((value) {
                     if (value != null) {
@@ -187,10 +187,8 @@ class EditStickerPacksScreen extends HookConsumerWidget {
             'description': descriptionController.text,
             'prefix': prefixController.text,
           },
-          options: Options(
-            method: packId == null ? 'POST' : 'PATCH',
-            headers: {'X-Pub': pubName},
-          ),
+          queryParameters: {'pub': pubName},
+          options: Options(method: packId == null ? 'POST' : 'PATCH'),
         );
         if (!context.mounted) return;
         context.pop(SnStickerPack.fromJson(resp.data));
