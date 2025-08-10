@@ -51,6 +51,12 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
@@ -58,7 +64,7 @@ android {
 dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
 }
 
 flutter {
