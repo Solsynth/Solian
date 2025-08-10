@@ -790,5 +790,7 @@
   "linkValue": "URL",
   "debugOptions": "Debug Options",
   "joinedAt": "Joined at {}",
-  "searchAccounts": "Search accounts..."
+  "searchAccounts": "Search accounts...",
+  "webFeeds": "Web Feeds",
+  "polls": "Polls"
 }
