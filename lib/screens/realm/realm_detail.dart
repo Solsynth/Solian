@@ -488,6 +488,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
         isScrollControlled: true,
+        useRootNavigator: true,
         context: context,
         builder: (context) => const AccountPickerSheet(),
       );

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -44,9 +45,8 @@ class AccountPickerSheet extends HookConsumerWidget {
     }
 
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.4,
-      ),
+      padding: MediaQuery.of(context).viewInsets,
+      height: MediaQuery.of(context).size.height * 0.6,
       child: Column(
         children: [
           Padding(
@@ -54,8 +54,8 @@ class AccountPickerSheet extends HookConsumerWidget {
             child: TextField(
               controller: searchController,
               onChanged: onSearchChanged,
-              decoration: const InputDecoration(
-                hintText: 'Search accounts...',
+              decoration: InputDecoration(
+                hintText: 'searchAccounts'.tr(),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 18,
                   vertical: 16,

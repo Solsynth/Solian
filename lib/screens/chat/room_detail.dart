@@ -589,6 +589,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
       final result = await showModalBottomSheet(
         context: context,
         useRootNavigator: true,
+        isScrollControlled: true,
         builder: (context) => const AccountPickerSheet(),
       );
       if (result == null) return;
@@ -727,7 +728,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                                       apiClientProvider,
                                     );
                                     await apiClient.delete(
-                                      '/chat/$roomId/members/${member.accountId}',
+                                      '/sphere/chat/$roomId/members/${member.accountId}',
                                     );
                                     // Refresh both providers
                                     memberNotifier.reset();

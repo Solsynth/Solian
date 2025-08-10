@@ -216,6 +216,7 @@ class RelationshipScreen extends HookConsumerWidget {
       final result = await showModalBottomSheet(
         context: context,
         useRootNavigator: true,
+        isScrollControlled: true,
         builder: (context) => AccountPickerSheet(),
       );
       if (result == null) return;

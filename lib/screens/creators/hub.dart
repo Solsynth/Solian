@@ -708,6 +708,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
+        useRootNavigator: true,
         isScrollControlled: true,
         context: context,
         builder: (context) => const AccountPickerSheet(),

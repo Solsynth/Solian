@@ -180,6 +180,7 @@ class StickerPackDetailScreen extends HookConsumerWidget {
                                               .pushNamed(
                                                 'creatorStickerEdit',
                                                 pathParameters: {
+                                                  'name': pubName,
                                                   'packId': id,
                                                   'id': sticker.id,
                                                 },
