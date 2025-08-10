@@ -67,6 +67,9 @@ Future<void> subscribePushNotification(
   Dio apiClient, {
   bool detailedErrors = false,
 }) async {
+  if (Platform.isLinux){
+    return;
+  }
   await FirebaseMessaging.instance.requestPermission(
     alert: true,
     badge: true,
