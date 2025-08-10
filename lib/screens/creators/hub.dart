@@ -382,7 +382,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                           ),
                           ListTile(
                             minTileHeight: 48,
-                            title: const Text('Polls'),
+                            title: Text('polls').tr(),
                             trailing: const Icon(Symbols.chevron_right),
                             leading: const Icon(Symbols.poll),
                             contentPadding: const EdgeInsets.symmetric(
@@ -419,7 +419,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                           ),
                           ListTile(
                             minTileHeight: 48,
-                            title: const Text('Web Feeds').tr(),
+                            title: const Text('webFeeds').tr(),
                             trailing: const Icon(Symbols.chevron_right),
                             leading: const Icon(Symbols.rss_feed),
                             contentPadding: const EdgeInsets.symmetric(
@@ -659,7 +659,7 @@ class PublisherMemberNotifier extends StateNotifier<PublisherMemberState> {
 
     try {
       final response = await _apiClient.get(
-        '/publishers/$publisherUname/members',
+        '/sphere/publishers/$publisherUname/members',
         queryParameters: {'offset': offset, 'take': take},
       );
 
@@ -720,6 +720,9 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
           '/publishers/$publisherUname/invites',
           data: {'related_user_id': result.id, 'role': 0},
         );
+        // Refresh both providers
+        memberNotifier.reset();
+        await memberNotifier.loadMore();
         ref.invalidate(memberListProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -823,6 +826,9 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                                       ),
                                 ).then((value) {
                                   if (value != null) {
+                                    // Refresh both providers
+                                    memberNotifier.reset();
+                                    memberNotifier.loadMore();
                                     ref.invalidate(memberListProvider);
                                   }
                                 });
@@ -844,6 +850,9 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                                     await apiClient.delete(
                                       '/publishers/$publisherUname/members/${member.accountId}',
                                     );
+                                    // Refresh both providers
+                                    memberNotifier.reset();
+                                    memberNotifier.loadMore();
                                     ref.invalidate(memberListProvider);
                                   } catch (err) {
                                     showErrorAlert(err);

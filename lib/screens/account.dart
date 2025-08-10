@@ -236,7 +236,7 @@ class AccountScreen extends HookConsumerWidget {
             ),
             ListTile(
               minTileHeight: 48,
-              title: Text('abuseReports').tr(),
+              title: Text('abuseReport').tr(),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               leading: const Icon(Symbols.gavel),
               trailing: const Icon(Symbols.chevron_right),
