@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/user.dart';
@@ -17,6 +18,7 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
       final response = await client.get('/id/accounts/me');
       final user = SnAccount.fromJson(response.data);
       state = AsyncValue.data(user);
+      FirebaseAnalytics.instance.setUserId(id: user.id);
     } catch (error, stackTrace) {
       log(
         "[UserInfo] Failed to fetch user info...",
@@ -33,6 +35,7 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
     final prefs = _ref.read(sharedPreferencesProvider);
     await prefs.remove(kTokenPairStoreKey);
     _ref.invalidate(tokenProvider);
+    FirebaseAnalytics.instance.setUserId(id: null);
   }
 }
 
