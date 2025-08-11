@@ -793,5 +793,10 @@
   "joinedAt": "Joined at {}",
   "searchAccounts": "Search accounts...",
   "webFeeds": "Web Feeds",
-  "polls": "Polls"
+  "polls": "Polls",
+  "sharePostSlogan": "Explore more on the Solar Network",
+  "filesListAdditional": {
+    "one": "+{} file remaining",
+    "other": "+{} files remaining"
+  }
 }

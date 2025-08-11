@@ -348,11 +348,13 @@ class PostTruncateHint extends StatelessWidget {
 class ReferencedPostWidget extends StatelessWidget {
   final SnPost item;
   final bool isInteractive;
+  final EdgeInsets renderingPadding;
 
   const ReferencedPostWidget({
     super.key,
     required this.item,
     this.isInteractive = true,
+    this.renderingPadding = EdgeInsets.zero,
   });
 
   @override
@@ -363,8 +365,15 @@ class ReferencedPostWidget extends StatelessWidget {
     final isReply = item.repliedPost != null;
 
     final content = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      margin: const EdgeInsets.only(top: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: renderingPadding.horizontal,
+        vertical: 8,
+      ),
+      margin: EdgeInsets.only(
+        top: 8,
+        left: renderingPadding.vertical,
+        right: renderingPadding.vertical,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
@@ -522,6 +531,7 @@ class PostHeader extends StatelessWidget {
   final Widget? trailing;
   final bool isInteractive;
   final EdgeInsets renderingPadding;
+  final bool isRelativeTime;
 
   const PostHeader({
     super.key,
@@ -530,6 +540,7 @@ class PostHeader extends StatelessWidget {
     this.trailing,
     this.isInteractive = true,
     this.renderingPadding = EdgeInsets.zero,
+    this.isRelativeTime = true,
   });
 
   @override
@@ -569,15 +580,21 @@ class PostHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    isFullPost
-                        ? (item.publishedAt ?? item.createdAt)!.formatSystem()
-                        : (item.publishedAt ?? item.createdAt)!.formatRelative(
+                    !isFullPost && isRelativeTime
+                        ? (item.publishedAt ?? item.createdAt)!.formatRelative(
                           context,
-                        ),
+                        )
+                        : (item.publishedAt ?? item.createdAt)!.formatSystem(),
                   ).fontSize(10),
                   if (item.editedAt != null)
                     Text(
-                      'editedAt'.tr(args: [item.editedAt!.formatSystem()]),
+                      'editedAt'.tr(
+                        args: [
+                          !isFullPost && isRelativeTime
+                              ? item.editedAt!.formatRelative(context)
+                              : item.editedAt!.formatSystem(),
+                        ],
+                      ),
                     ).fontSize(10),
                   if (item.visibility != 0)
                     Text(
@@ -711,6 +728,7 @@ class PostBody extends ConsumerWidget {
         if (item.attachments.isNotEmpty && item.type != 1)
           CloudFileList(
             files: item.attachments,
+            isColumn: !isInteractive,
             padding: EdgeInsets.symmetric(
               horizontal: renderingPadding.horizontal,
               vertical: 4,

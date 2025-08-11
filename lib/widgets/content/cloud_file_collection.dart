@@ -31,6 +31,7 @@ class CloudFileList extends HookConsumerWidget {
   final bool disableZoomIn;
   final bool disableConstraint;
   final EdgeInsets? padding;
+  final bool isColumn;
   const CloudFileList({
     super.key,
     required this.files,
@@ -40,6 +41,7 @@ class CloudFileList extends HookConsumerWidget {
     this.disableZoomIn = false,
     this.disableConstraint = false,
     this.padding,
+    this.isColumn = false,
   });
 
   double calculateAspectRatio() {
@@ -63,6 +65,74 @@ class CloudFileList extends HookConsumerWidget {
     );
 
     if (files.isEmpty) return const SizedBox.shrink();
+
+    if (isColumn) {
+      final children = <Widget>[];
+      const maxFiles = 2;
+      final filesToShow = files.take(maxFiles).toList();
+
+      for (var i = 0; i < filesToShow.length; i++) {
+        final file = filesToShow[i];
+        final isImage = file.mimeType?.startsWith('image') ?? false;
+        final isAudio = file.mimeType?.startsWith('audio') ?? false;
+        final widgetItem = ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          child: _CloudFileListEntry(
+            file: file,
+            heroTag: heroTags[i],
+            isImage: isImage,
+            disableZoomIn: disableZoomIn,
+            onTap: () {
+              if (!isImage) {
+                return;
+              }
+              if (!disableZoomIn) {
+                context.pushTransparentRoute(
+                  CloudFileZoomIn(item: file, heroTag: heroTags[i]),
+                  rootNavigator: true,
+                );
+              }
+            },
+          ),
+        );
+
+        Widget item;
+        if (isAudio) {
+          item = SizedBox(height: 120, child: widgetItem);
+        } else {
+          item = AspectRatio(
+            aspectRatio: file.fileMeta?['ratio'] as double? ?? 1.0,
+            child: widgetItem,
+          );
+        }
+        children.add(item);
+        if (i < filesToShow.length - 1) {
+          children.add(const Gap(8));
+        }
+      }
+
+      if (files.length > maxFiles) {
+        children.add(const Gap(8));
+        children.add(
+          Text(
+            'filesListAdditional'.plural(files.length - filesToShow.length),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+        );
+      }
+
+      return Padding(
+        padding: padding ?? EdgeInsets.zero,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
+      );
+    }
     if (files.length == 1) {
       final isImage = files.first.mimeType?.startsWith('image') ?? false;
       final isAudio = files.first.mimeType?.startsWith('audio') ?? false;
