@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -262,6 +263,10 @@ class AccountProfileScreen extends HookConsumerWidget {
     }
 
     final user = ref.watch(userInfoProvider);
+    final isCurrentUser = useMemoized(
+      () => user.value?.id == account.value?.id,
+      [user, account],
+    );
 
     Widget accountBasicInfo(SnAccount data) => Padding(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
@@ -589,7 +594,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                           child: CustomScrollView(
                             slivers: [
                               SliverGap(24),
-                              if (user.value != null)
+                              if (user.value != null && !isCurrentUser)
                                 SliverToBoxAdapter(child: accountAction(data)),
                               SliverToBoxAdapter(
                                 child: Card(
@@ -686,7 +691,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                             data,
                           ).padding(horizontal: 4),
                         ),
-                        if (user.value != null)
+                        if (user.value != null && !isCurrentUser)
                           SliverToBoxAdapter(
                             child: accountAction(data).padding(horizontal: 4),
                           ),
