@@ -61,10 +61,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '961776991058',
     projectId: 'solian-0x001',
     storageBucket: 'solian-0x001.firebasestorage.app',
-    androidClientId:
-        '961776991058-r4iv9qoio57ul7utbfpgfrda2etvtch8.apps.googleusercontent.com',
-    iosClientId:
-        '961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com',
+    androidClientId: '961776991058-r4iv9qoio57ul7utbfpgfrda2etvtch8.apps.googleusercontent.com',
+    iosClientId: '961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com',
     iosBundleId: 'dev.solsynth.solian',
   );
 
@@ -74,10 +72,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '961776991058',
     projectId: 'solian-0x001',
     storageBucket: 'solian-0x001.firebasestorage.app',
-    androidClientId:
-        '961776991058-r4iv9qoio57ul7utbfpgfrda2etvtch8.apps.googleusercontent.com',
-    iosClientId:
-        '961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com',
+    androidClientId: '961776991058-r4iv9qoio57ul7utbfpgfrda2etvtch8.apps.googleusercontent.com',
+    iosClientId: '961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig.apps.googleusercontent.com',
     iosBundleId: 'dev.solsynth.solian',
   );
 
@@ -90,4 +86,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'solian-0x001.firebasestorage.app',
     measurementId: 'G-JD1YEG9D6F',
   );
+
 }
