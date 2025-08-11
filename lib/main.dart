@@ -28,7 +28,6 @@ import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:island/widgets/keyboard_navigation.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter_langdetect/flutter_langdetect.dart' as langdetect;
 
@@ -245,32 +244,30 @@ class IslandApp extends HookConsumerWidget {
 
     final router = ref.watch(routerProvider);
 
-    return KeyboardNavigation(
-      child: MaterialApp.router(
-        theme: theme?.light,
-        darkTheme: theme?.dark,
-        themeMode: ThemeMode.system,
-        routerConfig: router,
-        supportedLocales: context.supportedLocales,
-        localizationsDelegates: [
-          ...context.localizationDelegates,
-          CroppyLocalizations.delegate,
-          RelativeTimeLocalizations.delegate,
-        ],
-        locale: context.locale,
-        builder: (context, child) {
-          return Overlay(
-            key: globalOverlay,
-            initialEntries: [
-              OverlayEntry(
-                builder:
-                    (_) =>
-                        WindowScaffold(child: child ?? const SizedBox.shrink()),
-              ),
-            ],
-          );
-        },
-      ),
+    return MaterialApp.router(
+      theme: theme?.light,
+      darkTheme: theme?.dark,
+      themeMode: ThemeMode.system,
+      routerConfig: router,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: [
+        ...context.localizationDelegates,
+        CroppyLocalizations.delegate,
+        RelativeTimeLocalizations.delegate,
+      ],
+      locale: context.locale,
+      builder: (context, child) {
+        return Overlay(
+          key: globalOverlay,
+          initialEntries: [
+            OverlayEntry(
+              builder:
+                  (_) =>
+                      WindowScaffold(child: child ?? const SizedBox.shrink()),
+            ),
+          ],
+        );
+      },
     );
   }
 }
