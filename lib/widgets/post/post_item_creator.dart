@@ -7,11 +7,9 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/content/cloud_file_collection.dart';
-import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/post/post_shared.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
 class PostItemCreator extends HookConsumerWidget {
@@ -81,7 +79,6 @@ class PostItemCreator extends HookConsumerWidget {
               title: 'copyLink'.tr(),
               image: MenuImage.icon(Symbols.link),
               callback: () {
-                // Copy post link to clipboard
                 context.pushNamed(
                   'postDetail',
                   pathParameters: {'id': item.id},
@@ -105,8 +102,9 @@ class PostItemCreator extends HookConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildPostHeader(context),
-                _buildPostContent(context),
+                PostHeader(item: item),
+                PostBody(item: item),
+                ReferencedPostWidget(item: item),
                 const Gap(16),
                 _buildAnalyticsSection(context),
               ],
@@ -117,128 +115,12 @@ class PostItemCreator extends HookConsumerWidget {
     );
   }
 
-  Widget _buildPostHeader(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Post ID and timestamp row
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'ID: ${item.id.substring(0, 6)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
-            const Spacer(),
-            Icon(
-              _getVisibilityIcon(item.visibility),
-              size: 16,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              _getVisibilityText(item.visibility).tr(),
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-            ),
-            const Gap(8),
-            Text(
-              item.publishedAt?.formatSystem() ?? '',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-            ),
-          ],
-        ),
-        const Gap(8),
-
-        // Title and description
-        if (item.title?.isNotEmpty ?? false)
-          Text(
-            item.title!,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        if (item.description?.isNotEmpty ?? false)
-          Text(
-            item.description!,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ).padding(top: 4),
-      ],
-    );
-  }
-
-  Widget _buildPostContent(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Content preview
-        if (item.content?.isNotEmpty ?? false)
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            child: MarkdownTextContent(content: item.content!),
-          ),
-
-        // Attachments
-        if (item.attachments.isNotEmpty)
-          CloudFileList(
-            files: item.attachments,
-            maxWidth: MediaQuery.of(context).size.width * 0.85,
-            padding: EdgeInsets.only(top: 8),
-          ),
-
-        // Reference post indicator
-        if (item.repliedPost != null || item.forwardedPost != null)
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            child: Row(
-              children: [
-                Icon(
-                  item.repliedPost != null ? Symbols.reply : Symbols.forward,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                const Gap(4),
-                Text(
-                  item.repliedPost != null
-                      ? 'repliedTo'.tr()
-                      : 'forwarded'.tr(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
   Widget _buildAnalyticsSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Analytics', style: Theme.of(context).textTheme.titleSmall),
         const Gap(8),
-
-        // Engagement metrics in a card
         Card(
           elevation: 1,
           margin: EdgeInsets.zero,
@@ -279,15 +161,9 @@ class PostItemCreator extends HookConsumerWidget {
           ),
         ),
         const Gap(16),
-
-        // Reactions summary
         if (item.reactionsCount.isNotEmpty) _buildReactionsSection(context),
-
-        // Metadata section
         if (item.meta != null && item.meta!.isNotEmpty)
           _buildMetadataSection(context),
-
-        // Creation and modification timestamps
         const Gap(16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -423,33 +299,5 @@ class PostItemCreator extends HookConsumerWidget {
         ),
       ],
     );
-  }
-}
-
-// Helper method to get the appropriate icon for each visibility status
-IconData _getVisibilityIcon(int visibility) {
-  switch (visibility) {
-    case 1: // Friends
-      return Symbols.group;
-    case 2: // Unlisted
-      return Symbols.link_off;
-    case 3: // Private
-      return Symbols.lock;
-    default: // Public (0) or unknown
-      return Symbols.public;
-  }
-}
-
-// Helper method to get the translation key for each visibility status
-String _getVisibilityText(int visibility) {
-  switch (visibility) {
-    case 1: // Friends
-      return 'postVisibilityFriends';
-    case 2: // Unlisted
-      return 'postVisibilityUnlisted';
-    case 3: // Private
-      return 'postVisibilityPrivate';
-    default: // Public (0) or unknown
-      return 'postVisibilityPublic';
   }
 }

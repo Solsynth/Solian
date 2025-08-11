@@ -1,49 +1,33 @@
-import 'dart:math' as math;
+import 'dart:io';
+
 import 'package:collection/collection.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/embed.dart';
-import 'package:island/models/poll.dart';
 import 'package:island/models/post.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/posts/compose.dart';
-import 'package:island/services/responsive.dart';
-import 'package:island/services/time.dart';
-import 'package:island/utils/mapping.dart';
-import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/content/cloud_file_collection.dart';
-import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
-import 'package:island/widgets/poll/poll_submit.dart';
-import 'package:island/widgets/post/post_replies_sheet.dart';
+import 'package:island/widgets/post/post_item_screenshot.dart';
+import 'package:island/widgets/post/post_shared.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
+import 'package:relative_time/relative_time.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
-
-part 'post_item.g.dart';
-
-@riverpod
-Future<SnPost?> postFeaturedReply(Ref ref, String id) async {
-  final client = ref.watch(apiClientProvider);
-  try {
-    final resp = await client.get('/sphere/posts/$id/replies/featured');
-    return SnPost.fromJson(resp.data);
-  } catch (_) {
-    return null;
-  }
-}
 
 class PostActionableItem extends HookConsumerWidget {
   final SnPost item;
@@ -101,6 +85,47 @@ class PostActionableItem extends HookConsumerWidget {
         context.pushNamed('postDetail', pathParameters: {'id': item.id});
       },
     );
+
+    final screenshotController = useMemoized(() => ScreenshotController(), []);
+
+    void shareAsScreenshot() async {
+      if (kIsWeb) return;
+      showLoadingModal(context);
+      await screenshotController
+          .captureFromWidget(
+            ProviderScope(
+              overrides: [
+                sharedPreferencesProvider.overrideWithValue(
+                  ref.watch(sharedPreferencesProvider),
+                ),
+              ],
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: SizedBox(
+                  width: 520,
+                  height: 640,
+                  child: PostItemScreenshot(item: item, isFullPost: isFullPost),
+                ),
+              ),
+            ),
+            context: context,
+            pixelRatio: MediaQuery.of(context).devicePixelRatio,
+          )
+          .then((Uint8List? image) async {
+            if (image == null) return;
+            final directory = await getTemporaryDirectory();
+            final imagePath =
+                await File('${directory.path}/image.png').create();
+            await imagePath.writeAsBytes(image);
+
+            if (context.mounted) hideLoadingModal(context);
+            await Share.shareXFiles([XFile(imagePath.path)]);
+          })
+          .catchError((err) {
+            if (context.mounted) hideLoadingModal(context);
+            showErrorAlert(err);
+          });
+    }
 
     return ContextMenuWidget(
       menuProvider: (_) {
@@ -188,6 +213,14 @@ class PostActionableItem extends HookConsumerWidget {
               },
             ),
             MenuAction(
+              title: 'sharePostPhoto'.tr(),
+              image: MenuImage.icon(Symbols.share_reviews),
+              callback: () {
+                shareAsScreenshot();
+              },
+            ),
+            MenuSeparator(),
+            MenuAction(
               title: 'abuseReport'.tr(),
               image: MenuImage.icon(Symbols.flag),
               callback: () {
@@ -220,6 +253,7 @@ class PostItem extends HookConsumerWidget {
   final bool isEmbedReply;
   final bool isEmbedOpenable;
   final bool isTextSelectable;
+  final bool isTranslatable;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
   final VoidCallback? onOpen;
@@ -232,6 +266,7 @@ class PostItem extends HookConsumerWidget {
     this.isEmbedReply = true,
     this.isEmbedOpenable = false,
     this.isTextSelectable = true,
+    this.isTranslatable = true,
     this.onRefresh,
     this.onUpdate,
     this.onOpen,
@@ -240,7 +275,7 @@ class PostItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final renderingPadding =
-        padding ?? EdgeInsets.symmetric(horizontal: 8, vertical: 8);
+        padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
     final reacting = useState(false);
 
@@ -276,20 +311,21 @@ class PostItem extends HookConsumerWidget {
                 .last;
 
     final postLanguage =
-        item.content != null
+        item.content != null && isTranslatable
             ? ref.watch(detectStringLanguageProvider(item.content!))
             : null;
 
-    final currentLanguage = context.locale.toString();
+    final currentLanguage = isTranslatable ? context.locale.toString() : null;
     final translatableLanguage =
-        postLanguage != null
-            ? postLanguage.substring(0, 2) != currentLanguage.substring(0, 2)
+        postLanguage != null && isTranslatable
+            ? postLanguage.substring(0, 2) != currentLanguage!.substring(0, 2)
             : false;
 
     final translating = useState(false);
     final translatedText = useState<String?>(null);
 
     Future<void> translate() async {
+      if (!isTranslatable) return;
       if (translatedText.value != null) {
         translatedText.value = null;
         return;
@@ -303,7 +339,7 @@ class PostItem extends HookConsumerWidget {
           translateStringProvider(
             TranslateQuery(
               text: item.content!,
-              lang: currentLanguage.substring(0, 2),
+              lang: currentLanguage!.substring(0, 2),
             ),
           ).future,
         );
@@ -315,355 +351,124 @@ class PostItem extends HookConsumerWidget {
       }
     }
 
-    String parseVisibility(int visibility) {
-      switch (visibility) {
-        case 1:
-          return 'postVisibilityFriends';
-        case 2:
-          return 'postVisibilityUnlisted';
-        case 3:
-          return 'postVisibilityPrivate';
-        default:
-          return 'postVisibilityPublic';
-      }
-    }
+    final translatedWidget =
+        (translatedText.value?.isNotEmpty ?? false)
+            ? Column(
+              children: [
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    const Gap(8),
+                    const Text('translated').tr().fontSize(11).opacity(0.75),
+                  ],
+                ),
+                MarkdownTextContent(
+                  content: translatedText.value!,
+                  isSelectable: isTextSelectable,
+                ),
+              ],
+            )
+            : null;
+
+    final translatableWidget =
+        (isTranslatable && translatableLanguage)
+            ? Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: translating.value ? null : translate,
+                style: ButtonStyle(
+                  padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+                  visualDensity: const VisualDensity(
+                    horizontal: 0,
+                    vertical: -4,
+                  ),
+                  foregroundColor: WidgetStatePropertyAll(
+                    translatedText.value == null ? null : Colors.grey,
+                  ),
+                ),
+                icon: const Icon(Symbols.translate),
+                label:
+                    translatedText.value != null
+                        ? const Text('translated').tr()
+                        : translating.value
+                        ? const Text('translating').tr()
+                        : const Text('translate').tr(),
+              ),
+            )
+            : null;
+
+    final translationSection = Column(
+      children: [
+        if (translatedWidget != null) translatedWidget,
+        if (translatableWidget != null) translatableWidget,
+      ],
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Gap(renderingPadding.horizontal),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          spacing: 12,
-          children: [
-            GestureDetector(
-              child: ProfilePictureWidget(
-                file: item.publisher.picture,
-                radius: 16,
-              ),
-              onTap: () {
-                context.pushNamed(
-                  'publisherProfile',
-                  pathParameters: {'name': item.publisher.name},
-                );
-              },
-            ),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    spacing: 4,
-                    children: [
-                      Text(item.publisher.nick).bold(),
-                      if (item.publisher.verification != null)
-                        VerificationMark(mark: item.publisher.verification!),
-                      Text('@${item.publisher.name}').fontSize(11),
-                    ],
-                  ),
-                  Row(
-                    spacing: 6,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        isFullPost
-                            ? (item.publishedAt ?? item.createdAt)!
-                                .formatSystem()
-                            : (item.publishedAt ?? item.createdAt)!
-                                .formatRelative(context),
-                      ).fontSize(10),
-                      if (item.editedAt != null)
-                        Text(
-                          'editedAt'.tr(args: [item.editedAt!.formatSystem()]),
-                        ).fontSize(10),
-                      if (item.visibility != 0)
-                        Text(
-                          parseVisibility(item.visibility).tr(),
-                        ).fontSize(10),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon:
-                  mostReaction == null
-                      ? const Icon(Symbols.add_reaction)
-                      : Badge(
-                        label: Center(
-                          child: Text(
-                            'x${item.reactionsCount[mostReaction]}',
-                            style: TextStyle(fontSize: 11),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        offset: Offset(4, 20),
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primary.withOpacity(0.75),
-                        textColor: Theme.of(context).colorScheme.onPrimary,
+        Gap(renderingPadding.vertical),
+        PostHeader(
+          item: item,
+          isFullPost: isFullPost,
+          renderingPadding: renderingPadding,
+          trailing: IconButton(
+            icon:
+                mostReaction == null
+                    ? const Icon(Symbols.add_reaction)
+                    : Badge(
+                      label: Center(
                         child: Text(
-                          kReactionTemplates[mostReaction]!.icon,
-                          style: TextStyle(fontSize: 20),
+                          'x${item.reactionsCount[mostReaction]}',
+                          style: const TextStyle(fontSize: 11),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-              style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(
-                  (item.reactionsMade[mostReaction] ?? false)
-                      ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
-                      : null,
-                ),
+                      offset: const Offset(4, 20),
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.75),
+                      textColor: Theme.of(context).colorScheme.onPrimary,
+                      child: Text(
+                        kReactionTemplates[mostReaction]?.icon ?? '',
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ),
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(
+                (item.reactionsMade[mostReaction] ?? false)
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
+                    : null,
               ),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  useRootNavigator: true,
-                  builder: (BuildContext context) {
-                    return _PostReactionSheet(
-                      reactionsCount: item.reactionsCount,
-                      reactionsMade: item.reactionsMade,
-                      onReact: (symbol, attitude) {
-                        reactPost(symbol, attitude);
-                      },
-                    );
-                  },
-                );
-              },
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity(horizontal: -3, vertical: -3),
             ),
-          ],
-        ).padding(horizontal: renderingPadding.horizontal, bottom: 4),
-        if (!isFullPost && item.type == 1)
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.5),
-              ),
-              borderRadius: const BorderRadius.all(Radius.circular(16)),
-            ),
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            margin: EdgeInsets.only(
-              left: renderingPadding.horizontal,
-              right: renderingPadding.horizontal,
-              top: 4,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Badge(
-                    label: Text('postArticle').tr(),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    textColor: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-                const Gap(4),
-                if (item.title != null)
-                  Text(
-                    item.title!,
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                if (item.description != null)
-                  Text(
-                    item.description!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  )
-                else
-                  MarkdownTextContent(content: '${item.content!}...'),
-              ],
-            ),
-          )
-        else if ((item.content?.isNotEmpty ?? false) ||
-            (item.title?.isNotEmpty ?? false) ||
-            (item.description?.isNotEmpty ?? false))
-          Padding(
-            padding: EdgeInsets.only(
-              left: renderingPadding.horizontal,
-              right: renderingPadding.horizontal,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if ((item.title?.isNotEmpty ?? false) ||
-                    (item.description?.isNotEmpty ?? false))
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (item.title?.isNotEmpty ?? false)
-                        Text(
-                          item.title!,
-                          style: Theme.of(context).textTheme.titleMedium!
-                              .copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      if (item.description?.isNotEmpty ?? false)
-                        Text(
-                          item.description!,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                    ],
-                  ).padding(bottom: 4),
-                MarkdownTextContent(
-                  content:
-                      item.isTruncated ? '${item.content!}...' : item.content!,
-                  isSelectable: isTextSelectable,
-                ),
-                if (translatedText.value?.isNotEmpty ?? false)
-                  ...([
-                    Row(
-                      children: [
-                        Expanded(child: Divider()),
-                        const Gap(8),
-                        Text('translated').tr().fontSize(11).opacity(0.75),
-                      ],
-                    ),
-                    MarkdownTextContent(
-                      content: translatedText.value!,
-                      isSelectable: isTextSelectable,
-                    ),
-                  ]),
-                if (translatableLanguage)
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: translating.value ? null : translate,
-                      style: ButtonStyle(
-                        padding: WidgetStatePropertyAll(EdgeInsets.zero),
-                        visualDensity: const VisualDensity(
-                          horizontal: 0,
-                          vertical: -4,
-                        ),
-                        foregroundColor: WidgetStatePropertyAll(
-                          translatedText.value == null ? null : Colors.grey,
-                        ),
-                      ),
-                      icon: const Icon(Symbols.translate),
-                      label:
-                          translatedText.value != null
-                              ? Text('translated').tr()
-                              : translating.value
-                              ? Text('translating').tr()
-                              : Text('translate').tr(),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        if (item.isTruncated && item.type != 1)
-          _PostTruncateHint(
-            isCompact: true,
-            margin: EdgeInsets.only(
-              top: 4,
-              bottom: 4,
-              left: renderingPadding.horizontal,
-              right: renderingPadding.horizontal,
-            ),
-          ),
-        if (item.attachments.isNotEmpty && item.type != 1)
-          CloudFileList(
-            files: item.attachments,
-            padding: EdgeInsets.symmetric(
-              horizontal: renderingPadding.horizontal,
-              vertical: 4,
-            ),
-          ),
-        if (item.tags.isNotEmpty)
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 2,
-            children: [
-              if (item.tags.isNotEmpty)
-                Wrap(
-                  runAlignment: WrapAlignment.center,
-                  spacing: 8,
-                  children: [
-                    const Icon(Symbols.label, size: 16).padding(top: 2),
-                    for (final tag
-                        in isFullPost ? item.tags : item.tags.take(3))
-                      InkWell(
-                        child: Text('#${tag.name ?? tag.slug}'),
-                        onTap: () {
-                          GoRouter.of(context).pushNamed(
-                            'postTagDetail',
-                            pathParameters: {'slug': tag.slug},
-                          );
-                        },
-                      ),
-                    if (!isFullPost && item.tags.length > 3)
-                      Text('+${item.tags.length - 3}').opacity(0.6),
-                  ],
-                ),
-              if (item.categories.isNotEmpty)
-                Wrap(
-                  runAlignment: WrapAlignment.center,
-                  spacing: 8,
-                  children: [
-                    const Icon(Symbols.category, size: 16).padding(top: 2),
-                    for (final category
-                        in isFullPost
-                            ? item.categories
-                            : item.categories.take(2))
-                      InkWell(
-                        child: Text(category.categoryDisplayTitle),
-                        onTap: () {
-                          GoRouter.of(context).pushNamed(
-                            'postCategoryDetail',
-                            pathParameters: {'slug': category.slug},
-                          );
-                        },
-                      ),
-                    if (!isFullPost && item.categories.length > 2)
-                      Text('+${item.categories.length - 2}').opacity(0.6),
-                  ],
-                ),
-            ],
-          ).padding(horizontal: renderingPadding.horizontal + 4, top: 4),
-        if (item.meta?['embeds'] != null)
-          ...((item.meta!['embeds'] as List<dynamic>)
-              .map((embedData) => convertMapKeysToSnakeCase(embedData))
-              .map(
-                (embedData) => switch (embedData['type']) {
-                  'link' => EmbedLinkWidget(
-                    link: SnScrappedLink.fromJson(embedData),
-                    maxWidth: math.min(
-                      MediaQuery.of(context).size.width,
-                      kWideScreenWidth,
-                    ),
-                    margin: EdgeInsets.only(
-                      top: 4,
-                      bottom: 4,
-                      left: renderingPadding.horizontal,
-                      right: renderingPadding.horizontal,
-                    ),
-                  ),
-                  'poll' => Card(
-                    margin: EdgeInsets.symmetric(
-                      horizontal: renderingPadding.horizontal,
-                      vertical: 8,
-                    ),
-                    child:
-                        embedData['poll'] == null
-                            ? Text('Poll was not loaded...')
-                            : PollSubmit(
-                              initialAnswers:
-                                  embedData['poll']?['user_answer']?['answer'],
-                              stats: embedData['poll']?['stats'],
-                              poll: SnPollWithStats.fromJson(embedData['poll']),
-                              onSubmit: (_) {},
-                            ).padding(horizontal: 16, vertical: 12),
-                  ),
-                  _ => Text('Unable show embed: ${embedData['type']}'),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                useRootNavigator: true,
+                builder: (BuildContext context) {
+                  return _PostReactionSheet(
+                    reactionsCount: item.reactionsCount,
+                    reactionsMade: item.reactionsMade,
+                    onReact: (symbol, attitude) {
+                      reactPost(symbol, attitude);
+                    },
+                  );
                 },
-              )),
-        if (isShowReference)
-          _buildReferencePost(context, item, renderingPadding),
+              );
+            },
+            padding: EdgeInsets.zero,
+            visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
+          ),
+        ),
+        PostBody(
+          item: item,
+          isFullPost: isFullPost,
+          isTextSelectable: isTextSelectable,
+          translationSection: translationSection,
+          renderingPadding: renderingPadding,
+        ),
+        if (isShowReference) ReferencedPostWidget(item: item),
         if (item.repliesCount > 0 && isEmbedReply)
           PostReplyPreview(
             parent: item,
@@ -672,386 +477,6 @@ class PostItem extends HookConsumerWidget {
           ).padding(horizontal: renderingPadding.horizontal, top: 8),
         Gap(renderingPadding.vertical),
       ],
-    );
-  }
-}
-
-Widget _buildReferencePost(
-  BuildContext context,
-  SnPost item,
-  EdgeInsets renderingPadding,
-) {
-  final referencePost = item.repliedPost ?? item.forwardedPost;
-  if (referencePost == null) return const SizedBox.shrink();
-
-  final isReply = item.repliedPost != null;
-
-  return Container(
-    padding: EdgeInsets.symmetric(
-      horizontal: renderingPadding.horizontal,
-      vertical: 8,
-    ),
-    margin: EdgeInsets.only(
-      top: 8,
-      left: renderingPadding.vertical,
-      right: renderingPadding.vertical,
-    ),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(
-        color: Theme.of(context).dividerColor.withOpacity(0.5),
-      ),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              isReply ? Symbols.reply : Symbols.forward,
-              size: 16,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              isReply ? 'repliedTo'.tr() : 'forwarded'.tr(),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ProfilePictureWidget(
-              fileId: referencePost.publisher.picture?.id,
-              radius: 16,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    referencePost.publisher.nick,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  // Add visibility indicator for referenced post if not public
-                  if (referencePost.visibility != 0)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _getVisibilityIcon(referencePost.visibility),
-                          size: 12,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _getVisibilityText(referencePost.visibility).tr(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                        ),
-                      ],
-                    ).padding(top: 2, bottom: 2),
-                  if (referencePost.title?.isNotEmpty ?? false)
-                    Text(
-                      referencePost.title!,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ).padding(top: 2, bottom: 2),
-                  if (referencePost.description?.isNotEmpty ?? false)
-                    Text(
-                      referencePost.description!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ).padding(bottom: 2),
-                  if (referencePost.content?.isNotEmpty ?? false)
-                    MarkdownTextContent(
-                      content: referencePost.content!,
-                      textStyle: const TextStyle(fontSize: 14),
-                      isSelectable: false,
-                      linesMargin:
-                          referencePost.type == 0
-                              ? EdgeInsets.only(bottom: 4)
-                              : null,
-                      attachments: item.attachments,
-                    ).padding(bottom: 4),
-                  // Truncation hint for referenced post
-                  if (referencePost.isTruncated)
-                    _PostTruncateHint(
-                      isCompact: true,
-                      margin: const EdgeInsets.only(top: 4, bottom: 8),
-                    ),
-                  if (referencePost.attachments.isNotEmpty &&
-                      referencePost.type != 1)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Symbols.attach_file,
-                          size: 12,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'postHasAttachments'.plural(
-                            referencePost.attachments.length,
-                          ),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ).padding(vertical: 2),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  ).gestures(
-    onTap:
-        () => context.pushNamed(
-          'postDetail',
-          pathParameters: {'id': referencePost.id},
-        ),
-  );
-}
-
-class PostReplyPreview extends HookConsumerWidget {
-  final SnPost parent;
-  final bool isOpenable;
-  final bool isCompact;
-  final bool isAutoload;
-  final VoidCallback? onOpen;
-  const PostReplyPreview({
-    super.key,
-    required this.parent,
-    this.isOpenable = false,
-    this.isCompact = false,
-    this.isAutoload = true,
-    this.onOpen,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final posts = useState<List<SnPost>>([]);
-    final loading = useState(false);
-
-    Future<void> fetchMoreReplies({int pageSize = 3}) async {
-      final client = ref.read(apiClientProvider);
-      loading.value = true;
-
-      try {
-        final response = await client.get(
-          '/sphere/posts/${parent.id}/replies',
-          queryParameters: {'offset': posts.value.length, 'take': pageSize},
-        );
-        try {
-          posts.value = [
-            ...posts.value,
-            ...response.data.map((e) => SnPost.fromJson(e)),
-          ];
-        } catch (_) {
-          // ignore disposed
-        }
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        try {
-          loading.value = false;
-        } catch (_) {
-          // ignore disposed
-        }
-      }
-    }
-
-    useEffect(() {
-      if (isAutoload) fetchMoreReplies();
-      return null;
-    }, [parent]);
-
-    final featuredReply =
-        isOpenable ? null : ref.watch(PostFeaturedReplyProvider(parent.id));
-
-    final itemWidget =
-        isOpenable
-            ? Column(
-              children: [
-                for (final post in posts.value)
-                  Column(
-                    children: [
-                      InkWell(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            ProfilePictureWidget(
-                              file: post.publisher.picture,
-                              radius: 12,
-                            ).padding(top: 4),
-                            if (post.content?.isNotEmpty ?? false)
-                              Expanded(
-                                child: MarkdownTextContent(
-                                  content: post.content!,
-                                ).padding(top: 2),
-                              )
-                            else
-                              Expanded(
-                                child: Text(
-                                  'postHasAttachments',
-                                ).plural(post.attachments.length),
-                              ),
-                          ],
-                        ),
-                        onTap: () {
-                          onOpen?.call();
-                          context.pushNamed(
-                            'postDetail',
-                            pathParameters: {'id': post.id},
-                          );
-                        },
-                      ),
-                      if (post.repliesCount > 0)
-                        PostReplyPreview(
-                          parent: post,
-                          isOpenable: true,
-                          isCompact: true,
-                          isAutoload: false,
-                          onOpen: onOpen,
-                        ).padding(left: 24),
-                    ],
-                  ),
-                if (loading.value)
-                  Row(
-                    spacing: 8,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(),
-                      ),
-                      Text('loading').tr(),
-                    ],
-                  )
-                else if (posts.value.length < parent.repliesCount)
-                  InkWell(
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        const Icon(Symbols.keyboard_arrow_down, size: 20),
-                        Text('repliesLoadMore').tr(),
-                      ],
-                    ),
-                    onTap: () {
-                      fetchMoreReplies();
-                    },
-                  ),
-              ],
-            )
-            : (featuredReply!).map(
-              data:
-                  (data) => Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 8,
-                    children: [
-                      ProfilePictureWidget(
-                        file: data.value?.publisher.picture,
-                        radius: 12,
-                      ).padding(top: 4),
-                      if (data.value?.content?.isNotEmpty ?? false)
-                        Expanded(
-                          child: MarkdownTextContent(
-                            content: data.value!.content!,
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: Text(
-                            'postHasAttachments',
-                          ).plural(data.value?.attachments.length ?? 0),
-                        ),
-                    ],
-                  ),
-              error:
-                  (e) => Row(
-                    spacing: 8,
-                    children: [
-                      const Icon(Symbols.close, size: 18),
-                      Text(e.error.toString()),
-                    ],
-                  ),
-              loading:
-                  (_) => Row(
-                    spacing: 8,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(),
-                      ),
-                      Text('loading').tr(),
-                    ],
-                  ),
-            );
-
-    final contentWidget =
-        isCompact
-            ? itemWidget
-            : Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
-                border: Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.5),
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(8)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 4,
-                children: [
-                  Text('repliesCount')
-                      .plural(parent.repliesCount)
-                      .fontSize(15)
-                      .bold()
-                      .padding(horizontal: 5),
-                  itemWidget,
-                ],
-              ),
-            );
-
-    return InkWell(
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      onTap: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          useRootNavigator: true,
-          builder: (context) => PostRepliesSheet(post: parent),
-        );
-      },
-      child: contentWidget,
     );
   }
 }
@@ -1105,8 +530,8 @@ class PostReactionList extends HookConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ActionChip(
-                avatar: Icon(Symbols.add_reaction),
-                label: Text('react').tr(),
+                avatar: const Icon(Symbols.add_reaction),
+                label: const Text('react').tr(),
                 visualDensity: const VisualDensity(
                   horizontal: VisualDensity.minimumDensity,
                   vertical: VisualDensity.minimumDensity,
@@ -1178,7 +603,12 @@ class _PostReactionSheet extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
+          padding: const EdgeInsets.only(
+            top: 16,
+            left: 20,
+            right: 16,
+            bottom: 12,
+          ),
           child: Row(
             children: [
               Text(
@@ -1193,7 +623,6 @@ class _PostReactionSheet extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-
               IconButton(
                 icon: const Icon(Symbols.close),
                 onPressed: () => Navigator.pop(context),
@@ -1255,26 +684,26 @@ class _PostReactionSheet extends StatelessWidget {
           height: 120,
           child: GridView.builder(
             scrollDirection: Axis.horizontal,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 1,
               mainAxisExtent: 120,
               mainAxisSpacing: 8.0,
               crossAxisSpacing: 8.0,
               childAspectRatio: 1.0,
             ),
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: allReactions.length,
             itemBuilder: (context, index) {
               final symbol = allReactions[index];
               final count = reactionsCount[symbol] ?? 0;
               return Card(
-                margin: EdgeInsets.symmetric(vertical: 4),
+                margin: const EdgeInsets.symmetric(vertical: 4),
                 color:
                     (reactionsMade[symbol] ?? false)
                         ? Theme.of(context).colorScheme.primaryContainer
                         : Theme.of(context).colorScheme.surfaceContainerLowest,
                 child: InkWell(
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
                   onTap: () {
                     onReact(symbol, attitude);
                     Navigator.pop(context);
@@ -1306,86 +735,5 @@ class _PostReactionSheet extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class _PostTruncateHint extends StatelessWidget {
-  final bool isCompact;
-  final EdgeInsets? margin;
-
-  const _PostTruncateHint({this.isCompact = false, this.margin});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: margin ?? EdgeInsets.only(top: isCompact ? 4 : 8),
-      padding: EdgeInsets.symmetric(
-        horizontal: isCompact ? 8 : 12,
-        vertical: isCompact ? 4 : 8,
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Symbols.more_horiz,
-            size: isCompact ? 14 : 16,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-          SizedBox(width: isCompact ? 4 : 6),
-          Flexible(
-            child: Text(
-              'postTruncated'.tr(),
-              style: TextStyle(
-                fontSize: isCompact ? 10 : 12,
-                color: Theme.of(context).colorScheme.secondary,
-                fontStyle: FontStyle.italic,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          SizedBox(width: isCompact ? 3 : 4),
-          Icon(
-            Symbols.arrow_forward,
-            size: isCompact ? 12 : 14,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-IconData _getVisibilityIcon(int visibility) {
-  switch (visibility) {
-    case 1: // Friends
-      return Symbols.group;
-    case 2: // Unlisted
-      return Symbols.link_off;
-    case 3: // Private
-      return Symbols.lock;
-    default: // Public (0) or unknown
-      return Symbols.public;
-  }
-}
-
-// Helper method to get the translation key for each visibility status
-String _getVisibilityText(int visibility) {
-  switch (visibility) {
-    case 1: // Friends
-      return 'postVisibilityFriends';
-    case 2: // Unlisted
-      return 'postVisibilityUnlisted';
-    case 3: // Private
-      return 'postVisibilityPrivate';
-    default: // Public (0) or unknown
-      return 'postVisibilityPublic';
   }
 }

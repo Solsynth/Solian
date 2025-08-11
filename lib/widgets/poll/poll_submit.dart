@@ -14,6 +14,7 @@ class PollSubmit extends ConsumerStatefulWidget {
     this.initialAnswers,
     this.onCancel,
     this.showProgress = true,
+    this.isReadonly = false,
   });
 
   final SnPollWithStats poll;
@@ -30,6 +31,8 @@ class PollSubmit extends ConsumerStatefulWidget {
 
   /// Whether to show a progress indicator (e.g., "2 / N").
   final bool showProgress;
+
+  final bool isReadonly;
 
   @override
   ConsumerState<PollSubmit> createState() => _PollSubmitState();
@@ -59,7 +62,9 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     _questions = [...widget.poll.questions]
       ..sort((a, b) => a.order.compareTo(b.order));
     _answers = Map<String, dynamic>.from(widget.initialAnswers ?? {});
-    _loadCurrentIntoLocalState();
+    if (!widget.isReadonly) {
+      _loadCurrentIntoLocalState();
+    }
   }
 
   @override
@@ -74,7 +79,9 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
           [...widget.poll.questions]
             ..sort((a, b) => a.order.compareTo(b.order)),
         );
-      _loadCurrentIntoLocalState();
+      if (!widget.isReadonly) {
+        _loadCurrentIntoLocalState();
+      }
     }
   }
 
@@ -259,10 +266,10 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                     child: Text(
                       widget.poll.description!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                      ),
+                            color: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                          ),
                     ),
                   ),
               ],
@@ -287,8 +294,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                 child: Text(
                   '*',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                 ),
               ),
           ],
@@ -299,10 +306,10 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
             child: Text(
               q.description!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.color?.withOpacity(0.7),
-              ),
+                    color: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                  ),
             ),
           ),
       ],
@@ -340,14 +347,12 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       case SnPollQuestionType.yesNo:
         // yes/no: map {true: count, false: count}
         if (raw is Map) {
-          final int yes =
-              (raw[true] is int)
-                  ? raw[true] as int
-                  : int.tryParse('${raw[true]}') ?? 0;
-          final int no =
-              (raw[false] is int)
-                  ? raw[false] as int
-                  : int.tryParse('${raw[false]}') ?? 0;
+          final int yes = (raw[true] is int)
+              ? raw[true] as int
+              : int.tryParse('${raw[true]}') ?? 0;
+          final int no = (raw[false] is int)
+              ? raw[false] as int
+              : int.tryParse('${raw[false]}') ?? 0;
           final total = (yes + no).clamp(0, 1 << 31);
           final yesPct = total == 0 ? 0.0 : yes / total;
           final noPct = total == 0 ? 0.0 : no / total;
@@ -415,8 +420,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                 Text(
                   'Total: $total',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                 ),
             ],
           );
@@ -445,8 +450,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
               Text(
                 'Stats',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
               const SizedBox(height: 8),
               body,
@@ -577,17 +582,92 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
         ),
         const Spacer(),
         FilledButton.icon(
-          icon:
-              _submitting
-                  ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                  : Icon(isLast ? Icons.check : Icons.arrow_forward),
+          icon: _submitting
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(isLast ? Icons.check : Icons.arrow_forward),
           label: Text(isLast ? 'Submit' : 'Next'),
           onPressed: canProceed ? _next : null,
         ),
+      ],
+    );
+  }
+
+  Widget _buildReadonlyView(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.poll.title != null || widget.poll.description != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.poll.title != null)
+                  Text(
+                    widget.poll.title!,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                if (widget.poll.description != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      widget.poll.description!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                          ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        for (final q in _questions)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        q.title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    if (q.isRequired)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Text(
+                          '*',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (q.description != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      q.description!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                          ),
+                    ),
+                  ),
+                _buildStats(context, q),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -596,6 +676,10 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   Widget build(BuildContext context) {
     if (_questions.isEmpty) {
       return const SizedBox.shrink();
+    }
+
+    if (widget.isReadonly) {
+      return _buildReadonlyView(context);
     }
 
     return Column(
@@ -647,10 +731,9 @@ class _BarStatRow extends StatelessWidget {
     final bgColor = Theme.of(
       context,
     ).colorScheme.surfaceVariant.withOpacity(0.6);
-    final fg =
-        (fraction.isNaN || fraction.isInfinite)
-            ? 0.0
-            : fraction.clamp(0.0, 1.0);
+    final fg = (fraction.isNaN || fraction.isInfinite)
+        ? 0.0
+        : fraction.clamp(0.0, 1.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
