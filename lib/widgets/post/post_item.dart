@@ -211,13 +211,14 @@ class PostActionableItem extends HookConsumerWidget {
                 );
               },
             ),
-            MenuAction(
-              title: 'sharePostPhoto'.tr(),
-              image: MenuImage.icon(Symbols.share_reviews),
-              callback: () {
-                shareAsScreenshot();
-              },
-            ),
+            if (!kIsWeb)
+              MenuAction(
+                title: 'sharePostPhoto'.tr(),
+                image: MenuImage.icon(Symbols.share_reviews),
+                callback: () {
+                  shareAsScreenshot();
+                },
+              ),
             MenuSeparator(),
             MenuAction(
               title: 'abuseReport'.tr(),
