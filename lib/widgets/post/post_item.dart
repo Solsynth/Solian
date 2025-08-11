@@ -23,7 +23,6 @@ import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
-import 'package:relative_time/relative_time.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -103,13 +102,13 @@ class PostActionableItem extends HookConsumerWidget {
                 textDirection: TextDirection.ltr,
                 child: SizedBox(
                   width: 520,
-                  height: 640,
                   child: PostItemScreenshot(item: item, isFullPost: isFullPost),
                 ),
               ),
             ),
             context: context,
             pixelRatio: MediaQuery.of(context).devicePixelRatio,
+            delay: const Duration(seconds: 1),
           )
           .then((Uint8List? image) async {
             if (image == null) return;
@@ -468,7 +467,8 @@ class PostItem extends HookConsumerWidget {
           translationSection: translationSection,
           renderingPadding: renderingPadding,
         ),
-        if (isShowReference) ReferencedPostWidget(item: item),
+        if (isShowReference)
+          ReferencedPostWidget(item: item, renderingPadding: renderingPadding),
         if (item.repliesCount > 0 && isEmbedReply)
           PostReplyPreview(
             parent: item,

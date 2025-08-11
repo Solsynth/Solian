@@ -791,5 +791,10 @@
   "joinedAt": "加入于 {}",
   "searchAccounts": "搜索帐号……",
   "webFeeds": "订阅源",
-  "polls": "投票"
+  "polls": "投票",
+  "sharePostSlogan": "加入 Solar Network 以便探索更多",
+  "filesListAdditional": {
+    "one": "+{} 个文件被折叠",
+    "other": "+{} 个文件被折叠"
+  }
 }
