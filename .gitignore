@@ -12,6 +12,9 @@
 .swiftpm/
 migrate_working_dir/
 
+# Inno Setup
+Installer/
+
 # IntelliJ related
 *.iml
 *.ipr
