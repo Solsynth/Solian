@@ -446,21 +446,16 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
     if (widget.initialAnswers != null && !_isModifying && !widget.isReadonly) {
       // If poll is submitted and not in modification mode, show "Modify" button
-      return Row(
-        children: [
-          const Spacer(),
-          FilledButton.icon(
-            icon: const Icon(Icons.edit),
-            label: const Text('Modify Answers'),
-            onPressed: () {
-              setState(() {
-                _isModifying = true;
-                _index = 0; // Reset to first question for modification
-                _loadCurrentIntoLocalState();
-              });
-            },
-          ),
-        ],
+      return FilledButton.icon(
+        icon: const Icon(Icons.edit),
+        label: const Text('Modify Answers'),
+        onPressed: () {
+          setState(() {
+            _isModifying = true;
+            _index = 0; // Reset to first question for modification
+            _loadCurrentIntoLocalState();
+          });
+        },
       );
     }
 
@@ -666,11 +661,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     if (widget.initialAnswers != null && !widget.isReadonly && !_isModifying) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildSubmittedView(context),
-          const SizedBox(height: 16),
-          _buildNavBar(context),
-        ],
+        children: [_buildSubmittedView(context), _buildNavBar(context)],
       );
     }
 
