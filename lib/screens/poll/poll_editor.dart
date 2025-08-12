@@ -11,6 +11,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:uuid/uuid.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class PollEditorState {
   String? id; // for editing
@@ -110,7 +111,7 @@ class PollEditor extends Notifier<PollEditorState> {
               ? [
                 SnPollOption(
                   id: const Uuid().v4(),
-                  label: 'Option 1',
+                  label: 'pollOptionDefaultLabel'.tr(),
                   order: 0,
                 ),
               ]
@@ -191,7 +192,7 @@ class PollEditor extends Notifier<PollEditorState> {
                 : [
                   SnPollOption(
                     id: const Uuid().v4(),
-                    label: 'Option 1',
+                    label: 'pollOptionDefaultLabel'.tr(),
                     order: 0,
                   ),
                 ])
@@ -389,7 +390,7 @@ class PollEditorScreen extends ConsumerWidget {
                 data: body,
               ));
 
-      showSnackBar(isUpdate ? 'Poll updated.' : 'Poll created.');
+      showSnackBar(isUpdate ? 'pollUpdated'.tr() : 'pollCreated'.tr());
 
       if (!context.mounted) return;
       Navigator.of(context).maybePop(res.data);
@@ -416,11 +417,11 @@ class PollEditorScreen extends ConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
-        title: Text(model.id == null ? 'Create Poll' : 'Edit Poll'),
+        title: Text(model.id == null ? 'pollCreate'.tr() : 'pollEdit'.tr()),
         actions: [
           if (kDebugMode)
             IconButton(
-              tooltip: 'Preview JSON (debug)',
+              tooltip: 'pollPreviewJsonDebug'.tr(),
               onPressed: () {
                 _showDebugPreview(context, model);
               },
@@ -439,8 +440,8 @@ class PollEditorScreen extends ConsumerWidget {
                 children: [
                   TextFormField(
                     initialValue: model.title ?? '',
-                    decoration: const InputDecoration(
-                      labelText: 'Title',
+                    decoration: InputDecoration(
+                      labelText: 'title'.tr(),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(16)),
                       ),
@@ -452,7 +453,7 @@ class PollEditorScreen extends ConsumerWidget {
                         (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
-                        return 'Title is required';
+                        return 'pollTitleRequired'.tr();
                       }
                       return null;
                     },
@@ -460,8 +461,8 @@ class PollEditorScreen extends ConsumerWidget {
                   const Gap(12),
                   TextFormField(
                     initialValue: model.description ?? '',
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
+                    decoration: InputDecoration(
+                      labelText: 'description'.tr(),
                       alignLabelWithHint: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(16)),
@@ -482,7 +483,7 @@ class PollEditorScreen extends ConsumerWidget {
                   Row(
                     children: [
                       Text(
-                        'Questions',
+                        'questions'.tr(),
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const Spacer(),
@@ -495,7 +496,7 @@ class PollEditorScreen extends ConsumerWidget {
                                   : controller.open();
                             },
                             icon: const Icon(Icons.add),
-                            label: const Text('Add question'),
+                            label: Text('pollAddQuestion'.tr()),
                           );
                         },
                         menuChildren:
@@ -514,9 +515,9 @@ class PollEditorScreen extends ConsumerWidget {
                   const Gap(8),
                   if (model.questions.isEmpty)
                     _EmptyState(
-                      title: 'No questions yet',
+                      title: 'pollNoQuestionsYet'.tr(),
                       subtitle:
-                          'Use "Add question" to start building your poll.',
+                          'pollNoQuestionsHint'.tr(),
                     )
                   else
                     ReorderableListView.builder(
@@ -585,7 +586,7 @@ class PollEditorScreen extends ConsumerWidget {
                   Navigator.of(context).maybePop();
                 },
                 icon: const Icon(Icons.close),
-                label: const Text('Cancel'),
+                label: Text('cancel'.tr()),
               ),
               const Spacer(),
               FilledButton.icon(
@@ -593,7 +594,7 @@ class PollEditorScreen extends ConsumerWidget {
                   _submitPoll(context, ref);
                 },
                 icon: const Icon(Icons.cloud_upload_outlined),
-                label: Text(model.id == null ? 'Create' : 'Update'),
+                label: Text(model.id == null ? 'create'.tr() : 'update'.tr()),
               ),
             ],
           ),
@@ -637,14 +638,14 @@ class PollEditorScreen extends ConsumerWidget {
       context: context,
       builder:
           (_) => AlertDialog(
-            title: const Text('Debug Preview'),
+            title: Text('pollDebugPreview'.tr()),
             content: SingleChildScrollView(
               child: SelectableText(buf.toString()),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                child: Text('close'.tr()),
               ),
             ],
           ),
@@ -673,15 +674,15 @@ IconData _iconForType(SnPollQuestionType t) {
 String _labelForType(SnPollQuestionType t) {
   switch (t) {
     case SnPollQuestionType.singleChoice:
-      return 'Single choice';
+      return 'pollQuestionTypeSingleChoice'.tr();
     case SnPollQuestionType.multipleChoice:
-      return 'Multiple choice';
+      return 'pollQuestionTypeMultipleChoice'.tr();
     case SnPollQuestionType.freeText:
-      return 'Free text';
+      return 'pollQuestionTypeFreeText'.tr();
     case SnPollQuestionType.yesNo:
-      return 'Yes / No';
+      return 'pollQuestionTypeYesNo'.tr();
     case SnPollQuestionType.rating:
-      return 'Rating';
+      return 'pollQuestionTypeRating'.tr();
   }
 }
 
@@ -698,8 +699,8 @@ class _EndDatePicker extends StatelessWidget {
       children: [
         Expanded(
           child: InputDecorator(
-            decoration: const InputDecoration(
-              labelText: 'End date & time (optional)',
+            decoration: InputDecoration(
+              labelText: 'pollEndDateOptional'.tr(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(16)),
               ),
@@ -711,7 +712,7 @@ class _EndDatePicker extends StatelessWidget {
                 Icon(Icons.event, color: Theme.of(context).colorScheme.primary),
                 Text(
                   value == null
-                      ? 'Not set'
+                      ? 'notSet'.tr()
                       : MaterialLocalizations.of(
                         context,
                       ).formatFullDate(value!),
@@ -759,12 +760,12 @@ class _EndDatePicker extends StatelessWidget {
                     );
                     onChanged(dt);
                   },
-                  child: const Text('Pick'),
+                  child: Text('pick'.tr()),
                 ),
                 if (value != null)
                   TextButton(
                     onPressed: () => onChanged(null),
-                    child: const Text('Clear'),
+                    child: Text('clear'.tr()),
                   ),
               ],
             ),
@@ -799,7 +800,7 @@ class _QuestionHeader extends StatelessWidget {
         child: const Icon(Icons.drag_handle),
       ),
       title: Text(
-        question.title.isEmpty ? 'Untitled question' : question.title,
+        question.title.isEmpty ? 'pollUntitledQuestion'.tr() : question.title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -808,17 +809,17 @@ class _QuestionHeader extends StatelessWidget {
         spacing: 4,
         children: [
           IconButton(
-            tooltip: 'Move up',
+            tooltip: 'moveUp'.tr(),
             onPressed: onMoveUp,
             icon: const Icon(Icons.arrow_upward),
           ),
           IconButton(
-            tooltip: 'Move down',
+            tooltip: 'moveDown'.tr(),
             onPressed: onMoveDown,
             icon: const Icon(Icons.arrow_downward),
           ),
           IconButton(
-            tooltip: 'Delete',
+            tooltip: 'delete'.tr(),
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline),
             color: Theme.of(context).colorScheme.error,
@@ -853,7 +854,7 @@ class _QuestionEditor extends ConsumerWidget {
               onChanged: (t) => notifier.setQuestionType(index, t),
             ),
             FilterChip(
-              label: const Text('Required'),
+              label: Text('required'.tr()),
               selected: question.isRequired,
               onSelected: (v) => notifier.setQuestionRequired(index, v),
               avatar: Icon(
@@ -867,8 +868,8 @@ class _QuestionEditor extends ConsumerWidget {
         const Gap(12),
         TextFormField(
           initialValue: question.title,
-          decoration: const InputDecoration(
-            labelText: 'Question title',
+          decoration: InputDecoration(
+            labelText: 'pollQuestionTitle'.tr(),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(16)),
             ),
@@ -879,7 +880,7 @@ class _QuestionEditor extends ConsumerWidget {
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           validator: (v) {
             if (v == null || v.trim().isEmpty) {
-              return 'Question title is required';
+              return 'pollQuestionTitleRequired'.tr();
             }
             return null;
           },
@@ -887,8 +888,8 @@ class _QuestionEditor extends ConsumerWidget {
         const Gap(12),
         TextFormField(
           initialValue: question.description ?? '',
-          decoration: const InputDecoration(
-            labelText: 'Question description (optional)',
+          decoration: InputDecoration(
+            labelText: 'pollQuestionDescriptionOptional'.tr(),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(16)),
             ),
@@ -902,7 +903,7 @@ class _QuestionEditor extends ConsumerWidget {
         ),
         if (question.options != null) ...[
           const Gap(16),
-          Text('Options', style: Theme.of(context).textTheme.titleMedium),
+          Text('options'.tr(), style: Theme.of(context).textTheme.titleMedium),
           const Gap(8),
           _OptionsEditor(index: index, options: question.options!),
           const Gap(4),
@@ -911,7 +912,7 @@ class _QuestionEditor extends ConsumerWidget {
             child: OutlinedButton.icon(
               onPressed: () => notifier.addOption(index),
               icon: const Icon(Icons.add),
-              label: const Text('Add option'),
+              label: Text('pollAddOption'.tr()),
             ),
           ),
         ],
@@ -937,8 +938,8 @@ class _QuestionTypePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropdownButtonFormField<SnPollQuestionType>(
       value: value,
-      decoration: const InputDecoration(
-        labelText: 'Type',
+      decoration: InputDecoration(
+        labelText: 'Type'.tr(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
@@ -987,8 +988,8 @@ class _OptionsEditor extends ConsumerWidget {
                   child: TextFormField(
                     key: ValueKey(options[i].id),
                     initialValue: options[i].label,
-                    decoration: const InputDecoration(
-                      labelText: 'Option label',
+                    decoration: InputDecoration(
+                      labelText: 'pollOptionLabel'.tr(),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(16)),
                       ),
@@ -1003,7 +1004,7 @@ class _OptionsEditor extends ConsumerWidget {
                 SizedBox(
                   width: 40,
                   child: IconButton(
-                    tooltip: 'Move up',
+                    tooltip: 'moveUp'.tr(),
                     onPressed:
                         i > 0 ? () => notifier.moveOptionUp(index, i) : null,
                     icon: const Icon(Icons.arrow_upward),
@@ -1012,7 +1013,7 @@ class _OptionsEditor extends ConsumerWidget {
                 SizedBox(
                   width: 40,
                   child: IconButton(
-                    tooltip: 'Move down',
+                    tooltip: 'moveDown'.tr(),
                     onPressed:
                         i < options.length - 1
                             ? () => notifier.moveOptionDown(index, i)
@@ -1023,7 +1024,7 @@ class _OptionsEditor extends ConsumerWidget {
                 SizedBox(
                   width: 40,
                   child: IconButton(
-                    tooltip: 'Delete',
+                    tooltip: 'delete'.tr(),
                     onPressed: () => notifier.removeOption(index, i),
                     icon: const Icon(Icons.close),
                   ),
@@ -1048,7 +1049,7 @@ class _TextAnswerPreview extends StatelessWidget {
       maxLines: long ? 4 : 1,
       decoration: InputDecoration(
         labelText:
-            long ? 'Long text answer (preview)' : 'Short text answer (preview)',
+            long ? 'pollLongTextAnswerPreview'.tr() : 'pollShortTextAnswerPreview'.tr(),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
@@ -1082,9 +1083,9 @@ class _EmptyState extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                Text('pollNoQuestionsYet'.tr(), style: Theme.of(context).textTheme.titleMedium),
                 const Gap(4),
-                Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                Text('pollNoQuestionsHint'.tr(), style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
           ),

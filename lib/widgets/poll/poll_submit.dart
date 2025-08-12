@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
@@ -212,7 +213,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       // Only call onSubmit after server accepts
       widget.onSubmit(Map<String, dynamic>.unmodifiable(_answers));
 
-      showSnackBar('Poll answer has been submitted.');
+      showSnackBar('pollAnswerSubmitted'.tr());
       HapticFeedback.heavyImpact();
     } catch (e) {
       showErrorAlert(e);
@@ -393,9 +394,9 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       children: [
         Expanded(
           child: SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: true, label: Text('Yes')),
-              ButtonSegment(value: false, label: Text('No')),
+            segments: [
+              ButtonSegment(value: true, label: Text('yes'.tr())),
+              ButtonSegment(value: false, label: Text('no'.tr())),
             ],
             selected: _yesNoSelected == null ? {} : {_yesNoSelected!},
             onSelectionChanged: (sel) {
@@ -448,7 +449,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       // If poll is submitted and not in modification mode, show "Modify" button
       return FilledButton.icon(
         icon: const Icon(Icons.edit),
-        label: const Text('Modify Answers'),
+        label: Text('modifyAnswers'.tr()),
         onPressed: () {
           setState(() {
             _isModifying = true;
@@ -463,7 +464,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       children: [
         OutlinedButton.icon(
           icon: const Icon(Icons.arrow_back),
-          label: Text(_index == 0 ? 'Cancel' : 'Back'),
+          label: Text(_index == 0 ? 'cancel'.tr() : 'back'.tr()),
           onPressed:
               _submitting
                   ? null
@@ -488,7 +489,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                   : Icon(isLast ? Icons.check : Icons.arrow_forward),
-          label: Text(isLast ? 'Submit' : 'Next'),
+          label: Text(isLast ? 'submit'.tr() : 'next'.tr()),
           onPressed: canProceed ? _next : null,
         ),
       ],
