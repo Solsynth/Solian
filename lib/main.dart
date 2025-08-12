@@ -62,12 +62,14 @@ void main() async {
       FirebaseMessaging.onBackgroundMessage(
         _firebaseMessagingBackgroundHandler,
       );
-      FlutterError.onError =
+      if (kIsWeb || !Platform.isWindows) {
+        FlutterError.onError =
           FirebaseCrashlytics.instance.recordFlutterFatalError;
-      PlatformDispatcher.instance.onError = (error, stack) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-        return true;
-      };
+        PlatformDispatcher.instance.onError = (error, stack) {
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+          return true;
+        };
+      }
     }
 
     log("[SplashScreen] Firebase is ready!");
