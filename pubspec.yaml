@@ -227,3 +227,11 @@ flutter_native_splash:
   image_dark: "assets/icons/icon-dark.png"
   color: "#ffffff"
   color_dark: "#121212"
+
+msix_config:
+  display_name: Solian
+  publisher_display_name: Solsynth LLC
+  identity_name: dev.solian.app
+  msix_version: 3.2.0.0
+  logo_path: .\assets\icons\icon.png
+  capabilities: internetClientServer, location, microphone, webcam

@@ -62,6 +62,8 @@ void main() async {
       FirebaseMessaging.onBackgroundMessage(
         _firebaseMessagingBackgroundHandler,
       );
+      // Although previous if case checked this. Still check is web or not
+      // Otherwise the web platform will broke due to there is no Platform api on the web
       if (kIsWeb || !Platform.isWindows) {
         FlutterError.onError =
           FirebaseCrashlytics.instance.recordFlutterFatalError;
