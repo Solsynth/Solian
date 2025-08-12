@@ -186,10 +186,9 @@ class ComposePollSheet extends HookConsumerWidget {
     );
   }
 
-  Widget? _buildPollSubtitle(SnPoll poll) {
+  Widget? _buildPollSubtitle(SnPollWithStats poll) {
     try {
-      final SnPoll dyn = poll;
-      final List<SnPollQuestion> options = dyn.questions;
+      final List<SnPollQuestion> options = poll.questions;
       if (options.isEmpty) return null;
       final preview = options.take(3).map((e) => e.title).join(' · ');
       if (preview.trim().isEmpty) return null;

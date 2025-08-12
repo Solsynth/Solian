@@ -761,6 +761,7 @@
   "pollsRecent": "Recent Polls",
   "pollCreateNew": "Create New",
   "pollCreateNewHint": "Create a new poll for your post. Pick a publisher and continue.",
+  "pollQuestions": "Questions",
   "publisher": "Publisher",
   "publisherHint": "Enter the publisher name",
   "publisherCannotBeEmpty": "Publisher cannot be empty",

@@ -6,7 +6,7 @@ part of 'poll_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$pollListNotifierHash() => r'd3da24ff6bbb8f35b06d57fc41625dc0312508e4';
+String _$pollWithStatsHash() => r'6bb910046ce1e09368f9922dbec52fdc2cc86740';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,11 +29,133 @@ class _SystemHash {
   }
 }
 
+/// See also [pollWithStats].
+@ProviderFor(pollWithStats)
+const pollWithStatsProvider = PollWithStatsFamily();
+
+/// See also [pollWithStats].
+class PollWithStatsFamily extends Family<AsyncValue<SnPollWithStats>> {
+  /// See also [pollWithStats].
+  const PollWithStatsFamily();
+
+  /// See also [pollWithStats].
+  PollWithStatsProvider call(String id) {
+    return PollWithStatsProvider(id);
+  }
+
+  @override
+  PollWithStatsProvider getProviderOverride(
+    covariant PollWithStatsProvider provider,
+  ) {
+    return call(provider.id);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'pollWithStatsProvider';
+}
+
+/// See also [pollWithStats].
+class PollWithStatsProvider extends AutoDisposeFutureProvider<SnPollWithStats> {
+  /// See also [pollWithStats].
+  PollWithStatsProvider(String id)
+    : this._internal(
+        (ref) => pollWithStats(ref as PollWithStatsRef, id),
+        from: pollWithStatsProvider,
+        name: r'pollWithStatsProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$pollWithStatsHash,
+        dependencies: PollWithStatsFamily._dependencies,
+        allTransitiveDependencies:
+            PollWithStatsFamily._allTransitiveDependencies,
+        id: id,
+      );
+
+  PollWithStatsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.id,
+  }) : super.internal();
+
+  final String id;
+
+  @override
+  Override overrideWith(
+    FutureOr<SnPollWithStats> Function(PollWithStatsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PollWithStatsProvider._internal(
+        (ref) => create(ref as PollWithStatsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        id: id,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<SnPollWithStats> createElement() {
+    return _PollWithStatsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PollWithStatsProvider && other.id == id;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, id.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PollWithStatsRef on AutoDisposeFutureProviderRef<SnPollWithStats> {
+  /// The parameter `id` of this provider.
+  String get id;
+}
+
+class _PollWithStatsProviderElement
+    extends AutoDisposeFutureProviderElement<SnPollWithStats>
+    with PollWithStatsRef {
+  _PollWithStatsProviderElement(super.provider);
+
+  @override
+  String get id => (origin as PollWithStatsProvider).id;
+}
+
+String _$pollListNotifierHash() => r'd5b822e737788be8982f5cb3b501d460441930c1';
+
 abstract class _$PollListNotifier
-    extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnPoll>> {
+    extends
+        BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnPollWithStats>> {
   late final String? pubName;
 
-  FutureOr<CursorPagingData<SnPoll>> build(String? pubName);
+  FutureOr<CursorPagingData<SnPollWithStats>> build(String? pubName);
 }
 
 /// See also [PollListNotifier].
@@ -42,7 +164,7 @@ const pollListNotifierProvider = PollListNotifierFamily();
 
 /// See also [PollListNotifier].
 class PollListNotifierFamily
-    extends Family<AsyncValue<CursorPagingData<SnPoll>>> {
+    extends Family<AsyncValue<CursorPagingData<SnPollWithStats>>> {
   /// See also [PollListNotifier].
   const PollListNotifierFamily();
 
@@ -78,7 +200,7 @@ class PollListNotifierProvider
     extends
         AutoDisposeAsyncNotifierProviderImpl<
           PollListNotifier,
-          CursorPagingData<SnPoll>
+          CursorPagingData<SnPollWithStats>
         > {
   /// See also [PollListNotifier].
   PollListNotifierProvider(String? pubName)
@@ -109,7 +231,7 @@ class PollListNotifierProvider
   final String? pubName;
 
   @override
-  FutureOr<CursorPagingData<SnPoll>> runNotifierBuild(
+  FutureOr<CursorPagingData<SnPollWithStats>> runNotifierBuild(
     covariant PollListNotifier notifier,
   ) {
     return notifier.build(pubName);
@@ -134,7 +256,7 @@ class PollListNotifierProvider
   @override
   AutoDisposeAsyncNotifierProviderElement<
     PollListNotifier,
-    CursorPagingData<SnPoll>
+    CursorPagingData<SnPollWithStats>
   >
   createElement() {
     return _PollListNotifierProviderElement(this);
@@ -157,7 +279,7 @@ class PollListNotifierProvider
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin PollListNotifierRef
-    on AutoDisposeAsyncNotifierProviderRef<CursorPagingData<SnPoll>> {
+    on AutoDisposeAsyncNotifierProviderRef<CursorPagingData<SnPollWithStats>> {
   /// The parameter `pubName` of this provider.
   String? get pubName;
 }
@@ -166,7 +288,7 @@ class _PollListNotifierProviderElement
     extends
         AutoDisposeAsyncNotifierProviderElement<
           PollListNotifier,
-          CursorPagingData<SnPoll>
+          CursorPagingData<SnPollWithStats>
         >
     with PollListNotifierRef {
   _PollListNotifierProviderElement(super.provider);

@@ -639,13 +639,18 @@ class PostBody extends ConsumerWidget {
         if (!isFullPost && item.type == 1)
           Container(
             decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
               border: Border.all(
                 color: Theme.of(context).dividerColor.withOpacity(0.5),
               ),
-              borderRadius: const BorderRadius.all(Radius.circular(16)),
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            margin: const EdgeInsets.only(top: 4),
+            margin: EdgeInsets.only(
+              top: 4,
+              left: renderingPadding.horizontal,
+              right: renderingPadding.vertical,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
