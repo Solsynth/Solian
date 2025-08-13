@@ -69,7 +69,7 @@ void showLoadingModal(BuildContext context) {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(year2023: true),
+                    CircularProgressIndicator(year2023: false),
                     const Gap(24),
                     Text('loading'.tr()),
                   ],
