@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/debug_sheet.dart';
@@ -303,7 +305,12 @@ class AccountScreen extends HookConsumerWidget {
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
               title: Text('logout').tr(),
-              onTap: () {
+              onTap: () async {
+                final apiClient = ref.watch(apiClientProvider);
+                showLoadingModal(context);
+                await apiClient.delete('/id/accounts/me/sessions/current');
+                if (!context.mounted) return;
+                hideLoadingModal(context);
                 final userNotifier = ref.read(userInfoProvider.notifier);
                 userNotifier.logOut();
               },

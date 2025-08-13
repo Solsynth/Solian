@@ -42,6 +42,22 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
   4: ('authFactorPin', 'authFactorPinDescription', Symbols.nest_secure_alarm),
 };
 
+Future<String?> getDeviceName() async {
+  if (kIsWeb) return null;
+  String? name;
+  if (Platform.isIOS) {
+    final deviceInfo = await DeviceInfoPlugin().iosInfo;
+    name = deviceInfo.name;
+  } else if (Platform.isAndroid) {
+    final deviceInfo = await DeviceInfoPlugin().androidInfo;
+    name = deviceInfo.name;
+  } else if (Platform.isWindows) {
+    final deviceInfo = await DeviceInfoPlugin().windowsInfo;
+    name = deviceInfo.computerName;
+  }
+  return name;
+}
+
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
 
@@ -198,28 +214,6 @@ class _LoginCheckScreen extends HookConsumerWidget {
         wsNotifier.connect();
         if (context.mounted) Navigator.pop(context, true);
       });
-
-      // Update the sessions' device name is available
-      if (!kIsWeb) {
-        String? name;
-        if (Platform.isIOS) {
-          final deviceInfo = await DeviceInfoPlugin().iosInfo;
-          name = deviceInfo.name;
-        } else if (Platform.isAndroid) {
-          final deviceInfo = await DeviceInfoPlugin().androidInfo;
-          name = deviceInfo.name;
-        } else if (Platform.isWindows) {
-          final deviceInfo = await DeviceInfoPlugin().windowsInfo;
-          name = deviceInfo.computerName;
-        }
-        if (name != null) {
-          final client = ref.watch(apiClientProvider);
-          await client.patch(
-            '/id/accounts/me/sessions/current/label',
-            data: jsonEncode(name),
-          );
-        }
-      }
     }
 
     useEffect(() {
@@ -578,6 +572,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
           data: {
             'account': uname,
             'device_id': await getUdid(),
+            'device_name': await getDeviceName(),
             'platform':
                 kIsWeb
                     ? 1
@@ -628,6 +623,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
             'identity_token': credential.identityToken!,
             'authorization_code': credential.authorizationCode,
             'device_id': await getUdid(),
+            'device_name': await getDeviceName(),
           },
         );
 
