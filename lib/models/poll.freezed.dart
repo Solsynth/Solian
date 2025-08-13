@@ -213,7 +213,7 @@ return $default(_that.userAnswer,_that.stats,_that.id,_that.questions,_that.titl
 @JsonSerializable()
 
 class _SnPollWithStats implements SnPollWithStats {
-  const _SnPollWithStats({required final  Map<String, dynamic>? userAnswer, required final  Map<String, dynamic> stats, required this.id, required final  List<SnPollQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, required this.createdAt, required this.updatedAt, this.deletedAt}): _userAnswer = userAnswer,_stats = stats,_questions = questions;
+  const _SnPollWithStats({required final  Map<String, dynamic>? userAnswer, final  Map<String, dynamic> stats = const {}, required this.id, required final  List<SnPollQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, required this.createdAt, required this.updatedAt, this.deletedAt}): _userAnswer = userAnswer,_stats = stats,_questions = questions;
   factory _SnPollWithStats.fromJson(Map<String, dynamic> json) => _$SnPollWithStatsFromJson(json);
 
  final  Map<String, dynamic>? _userAnswer;
@@ -226,7 +226,7 @@ class _SnPollWithStats implements SnPollWithStats {
 }
 
  final  Map<String, dynamic> _stats;
-@override Map<String, dynamic> get stats {
+@override@JsonKey() Map<String, dynamic> get stats {
   if (_stats is EqualUnmodifiableMapView) return _stats;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_stats);

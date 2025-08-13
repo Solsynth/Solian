@@ -8,7 +8,7 @@ part 'poll.g.dart';
 sealed class SnPollWithStats with _$SnPollWithStats {
   const factory SnPollWithStats({
     required Map<String, dynamic>? userAnswer,
-    required Map<String, dynamic> stats,
+    @Default({}) Map<String, dynamic> stats,
     required String id,
     required List<SnPollQuestion> questions,
     String? title,

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/poll/poll_stats_widget.dart';
 
 class PollSubmit extends ConsumerStatefulWidget {
   const PollSubmit({
@@ -42,6 +44,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   late final List<SnPollQuestion> _questions;
   int _index = 0;
   bool _submitting = false;
+  bool _isModifying = false; // New state to track if user is modifying answers
 
   /// Collected answers, keyed by questionId
   late Map<String, dynamic> _answers;
@@ -64,6 +67,11 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     _answers = Map<String, dynamic>.from(widget.initialAnswers ?? {});
     if (!widget.isReadonly) {
       _loadCurrentIntoLocalState();
+      // If initial answers are provided, set _isModifying to false initially
+      // so the "Modify" button is shown.
+      if (widget.initialAnswers != null && widget.initialAnswers!.isNotEmpty) {
+        _isModifying = false;
+      }
     }
   }
 
@@ -81,6 +89,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
         );
       if (!widget.isReadonly) {
         _loadCurrentIntoLocalState();
+        // If poll ID changes, reset modification state
+        _isModifying = false;
       }
     }
   }
@@ -203,7 +213,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       // Only call onSubmit after server accepts
       widget.onSubmit(Map<String, dynamic>.unmodifiable(_answers));
 
-      showSnackBar('Poll answer has been submitted.');
+      showSnackBar('pollAnswerSubmitted'.tr());
       HapticFeedback.heavyImpact();
     } catch (e) {
       showErrorAlert(e);
@@ -266,16 +276,17 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                     child: Text(
                       widget.poll.description!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                          ),
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      ),
                     ),
                   ),
               ],
             ),
           ),
-        if (widget.showProgress)
+        if (widget.showProgress &&
+            _isModifying) // Only show progress when modifying
           Text(
             '${_index + 1} / ${_questions.length}',
             style: Theme.of(context).textTheme.labelMedium,
@@ -294,8 +305,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                 child: Text(
                   '*',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                 ),
               ),
           ],
@@ -306,10 +317,10 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
             child: Text(
               q.description!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.color?.withOpacity(0.7),
-                  ),
+                color: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.color?.withOpacity(0.7),
+              ),
             ),
           ),
       ],
@@ -317,152 +328,13 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   }
 
   Widget _buildStats(BuildContext context, SnPollQuestion q) {
-    if (widget.stats == null) return const SizedBox.shrink();
-    final raw = widget.stats![q.id];
-    if (raw == null) return const SizedBox.shrink();
-
-    Widget? body;
-
-    switch (q.type) {
-      case SnPollQuestionType.rating:
-        // rating: avg score (double or int)
-        final avg = (raw['rating'] as num?)?.toDouble();
-        if (avg == null) break;
-        final theme = Theme.of(context);
-        body = Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Icon(Icons.star, color: Colors.amber.shade600, size: 18),
-            const SizedBox(width: 6),
-            Text(
-              avg.toStringAsFixed(1),
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        );
-        break;
-
-      case SnPollQuestionType.yesNo:
-        // yes/no: map {true: count, false: count}
-        if (raw is Map) {
-          final int yes = (raw[true] is int)
-              ? raw[true] as int
-              : int.tryParse('${raw[true]}') ?? 0;
-          final int no = (raw[false] is int)
-              ? raw[false] as int
-              : int.tryParse('${raw[false]}') ?? 0;
-          final total = (yes + no).clamp(0, 1 << 31);
-          final yesPct = total == 0 ? 0.0 : yes / total;
-          final noPct = total == 0 ? 0.0 : no / total;
-          final theme = Theme.of(context);
-          body = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _BarStatRow(
-                label: 'Yes',
-                count: yes,
-                fraction: yesPct,
-                color: Colors.green.shade600,
-              ),
-              const SizedBox(height: 6),
-              _BarStatRow(
-                label: 'No',
-                count: no,
-                fraction: noPct,
-                color: Colors.red.shade600,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Total: $total',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          );
-        }
-        break;
-
-      case SnPollQuestionType.singleChoice:
-      case SnPollQuestionType.multipleChoice:
-        // map optionId -> count
-        if (raw is Map) {
-          final options = [...?q.options]
-            ..sort((a, b) => a.order.compareTo(b.order));
-          final List<_OptionCount> items = [];
-          int total = 0;
-          for (final opt in options) {
-            final dynamic v = raw[opt.id];
-            final int count = v is int ? v : int.tryParse('$v') ?? 0;
-            total += count;
-            items.add(_OptionCount(id: opt.id, label: opt.label, count: count));
-          }
-          if (items.isNotEmpty) {
-            items.sort(
-              (a, b) => b.count.compareTo(a.count),
-            ); // show highest first
-          }
-          body = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final it in items)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: _BarStatRow(
-                    label: it.label,
-                    count: it.count,
-                    fraction: total == 0 ? 0 : it.count / total,
-                  ),
-                ),
-              if (items.isNotEmpty)
-                Text(
-                  'Total: $total',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-            ],
-          );
-        }
-        break;
-
-      case SnPollQuestionType.freeText:
-        // No stats
-        break;
-    }
-
-    if (body == null) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.35),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Stats',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              body,
-            ],
-          ),
-        ),
-      ),
-    );
+    return PollStatsWidget(question: q, stats: widget.stats);
   }
 
   Widget _buildBody(BuildContext context) {
+    if (widget.initialAnswers != null && !widget.isReadonly && !_isModifying) {
+      return const SizedBox.shrink(); // Collapse input fields if already submitted and not modifying
+    }
     final q = _current;
     switch (q.type) {
       case SnPollQuestionType.singleChoice:
@@ -522,9 +394,9 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       children: [
         Expanded(
           child: SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: true, label: Text('Yes')),
-              ButtonSegment(value: false, label: Text('No')),
+            segments: [
+              ButtonSegment(value: true, label: Text('yes'.tr())),
+              ButtonSegment(value: false, label: Text('no'.tr())),
             ],
             selected: _yesNoSelected == null ? {} : {_yesNoSelected!},
             onSelectionChanged: (sel) {
@@ -573,25 +445,131 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     final isLast = _index == _questions.length - 1;
     final canProceed = _isCurrentAnswered() && !_submitting;
 
+    if (widget.initialAnswers != null && !_isModifying && !widget.isReadonly) {
+      // If poll is submitted and not in modification mode, show "Modify" button
+      return FilledButton.icon(
+        icon: const Icon(Icons.edit),
+        label: Text('modifyAnswers'.tr()),
+        onPressed: () {
+          setState(() {
+            _isModifying = true;
+            _index = 0; // Reset to first question for modification
+            _loadCurrentIntoLocalState();
+          });
+        },
+      );
+    }
+
     return Row(
       children: [
         OutlinedButton.icon(
           icon: const Icon(Icons.arrow_back),
-          label: Text(_index == 0 ? 'Cancel' : 'Back'),
-          onPressed: _submitting ? null : _back,
+          label: Text(_index == 0 ? 'cancel'.tr() : 'back'.tr()),
+          onPressed:
+              _submitting
+                  ? null
+                  : () {
+                    if (_index == 0 && _isModifying) {
+                      // If at first question and in modification mode, go back to submitted view
+                      setState(() {
+                        _isModifying = false;
+                      });
+                    } else {
+                      _back();
+                    }
+                  },
         ),
         const Spacer(),
         FilledButton.icon(
-          icon: _submitting
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Icon(isLast ? Icons.check : Icons.arrow_forward),
-          label: Text(isLast ? 'Submit' : 'Next'),
+          icon:
+              _submitting
+                  ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                  : Icon(isLast ? Icons.check : Icons.arrow_forward),
+          label: Text(isLast ? 'submit'.tr() : 'next'.tr()),
           onPressed: canProceed ? _next : null,
         ),
+      ],
+    );
+  }
+
+  Widget _buildSubmittedView(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.poll.title != null || widget.poll.description != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.poll.title?.isNotEmpty ?? false)
+                  Text(
+                    widget.poll.title!,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                if (widget.poll.description?.isNotEmpty ?? false)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      widget.poll.description!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        for (final q in _questions)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        q.title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    if (q.isRequired)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Text(
+                          '*',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (q.description != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      q.description!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                _buildStats(context, q),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -617,10 +595,10 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                     child: Text(
                       widget.poll.description!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                          ),
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      ),
                     ),
                   ),
               ],
@@ -645,9 +623,11 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                         padding: const EdgeInsets.only(left: 8),
                         child: Text(
                           '*',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
                       ),
                   ],
@@ -658,10 +638,10 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                     child: Text(
                       q.description!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.color?.withOpacity(0.7),
-                          ),
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                      ),
                     ),
                   ),
                 _buildStats(context, q),
@@ -678,6 +658,15 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       return const SizedBox.shrink();
     }
 
+    // If poll is already submitted and not in readonly mode, and not in modification mode, show submitted view
+    if (widget.initialAnswers != null && !widget.isReadonly && !_isModifying) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [_buildSubmittedView(context), _buildNavBar(context)],
+      );
+    }
+
+    // If poll is in readonly mode, show readonly view
     if (widget.isReadonly) {
       return _buildReadonlyView(context);
     }
@@ -696,76 +685,6 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
         ),
         const SizedBox(height: 16),
         _buildNavBar(context),
-      ],
-    );
-  }
-}
-
-class _OptionCount {
-  final String id;
-  final String label;
-  final int count;
-  const _OptionCount({
-    required this.id,
-    required this.label,
-    required this.count,
-  });
-}
-
-class _BarStatRow extends StatelessWidget {
-  const _BarStatRow({
-    required this.label,
-    required this.count,
-    required this.fraction,
-    this.color,
-  });
-
-  final String label;
-  final int count;
-  final double fraction;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final barColor = color ?? Theme.of(context).colorScheme.primary;
-    final bgColor = Theme.of(
-      context,
-    ).colorScheme.surfaceVariant.withOpacity(0.6);
-    final fg = (fraction.isNaN || fraction.isInfinite)
-        ? 0.0
-        : fraction.clamp(0.0, 1.0);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('$label · $count', style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(height: 4),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final filled = width * fg;
-            return Stack(
-              children: [
-                Container(
-                  height: 8,
-                  width: width,
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-                Container(
-                  height: 8,
-                  width: filled,
-                  decoration: BoxDecoration(
-                    color: barColor,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
       ],
     );
   }

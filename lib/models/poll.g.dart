@@ -9,7 +9,7 @@ part of 'poll.dart';
 _SnPollWithStats _$SnPollWithStatsFromJson(Map<String, dynamic> json) =>
     _SnPollWithStats(
       userAnswer: json['user_answer'] as Map<String, dynamic>?,
-      stats: json['stats'] as Map<String, dynamic>,
+      stats: json['stats'] as Map<String, dynamic>? ?? const {},
       id: json['id'] as String,
       questions:
           (json['questions'] as List<dynamic>)

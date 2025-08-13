@@ -14,17 +14,19 @@ part 'poll_list.g.dart';
 
 @riverpod
 class PollListNotifier extends _$PollListNotifier
-    with CursorPagingNotifierMixin<SnPoll> {
+    with CursorPagingNotifierMixin<SnPollWithStats> {
   static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPoll>> build(String? pubName) {
+  Future<CursorPagingData<SnPollWithStats>> build(String? pubName) {
     // immediately load first page
     return fetch(cursor: null);
   }
 
   @override
-  Future<CursorPagingData<SnPoll>> fetch({required String? cursor}) async {
+  Future<CursorPagingData<SnPollWithStats>> fetch({
+    required String? cursor,
+  }) async {
     final client = ref.read(apiClientProvider);
     final offset = cursor == null ? 0 : int.parse(cursor);
 
@@ -42,7 +44,7 @@ class PollListNotifier extends _$PollListNotifier
     );
     final total = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    final items = data.map((json) => SnPoll.fromJson(json)).toList();
+    final items = data.map((json) => SnPollWithStats.fromJson(json)).toList();
 
     final hasMore = offset + items.length < total;
     final nextCursor = hasMore ? (offset + items.length).toString() : null;
@@ -55,6 +57,13 @@ class PollListNotifier extends _$PollListNotifier
   }
 }
 
+@riverpod
+Future<SnPollWithStats> pollWithStats(Ref ref, String id) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get('/sphere/polls/$id');
+  return SnPollWithStats.fromJson(resp.data);
+}
+
 class CreatorPollListScreen extends HookConsumerWidget {
   const CreatorPollListScreen({super.key, required this.pubName});
 
@@ -64,7 +73,7 @@ class CreatorPollListScreen extends HookConsumerWidget {
     final result = await GoRouter.of(
       context,
     ).pushNamed('creatorPollNew', pathParameters: {'name': pubName});
-    if (result is SnPoll && context.mounted) {
+    if (result is SnPollWithStats && context.mounted) {
       Navigator.of(context).maybePop(result);
     }
   }
@@ -92,8 +101,11 @@ class CreatorPollListScreen extends HookConsumerWidget {
                       if (index == widgetCount - 1) {
                         return endItemView;
                       }
-                      final poll = data.items[index];
-                      return _CreatorPollItem(poll: poll, pubName: pubName);
+                      final pollWithStats = data.items[index];
+                      return _CreatorPollItem(
+                        pollWithStats: pollWithStats,
+                        pubName: pubName,
+                      );
                     },
                   ),
             ),
@@ -106,14 +118,14 @@ class CreatorPollListScreen extends HookConsumerWidget {
 
 class _CreatorPollItem extends StatelessWidget {
   final String pubName;
-  const _CreatorPollItem({required this.poll, required this.pubName});
+  const _CreatorPollItem({required this.pollWithStats, required this.pubName});
 
-  final SnPoll poll;
+  final SnPollWithStats pollWithStats;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final ended = poll.endedAt;
+    final ended = pollWithStats.endedAt;
     final endedText =
         ended == null
             ? 'No end'
@@ -123,15 +135,16 @@ class _CreatorPollItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        title: Text(poll.title ?? 'Untitled poll'),
+        title: Text(pollWithStats.title ?? 'Untitled poll'),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (poll.description != null && poll.description!.isNotEmpty)
+            if (pollWithStats.description != null &&
+                pollWithStats.description!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                  poll.description!,
+                  pollWithStats.description!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -139,7 +152,7 @@ class _CreatorPollItem extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                'Questions: ${poll.questions.length} · Ends: $endedText',
+                'Questions: ${pollWithStats.questions.length} · Ends: $endedText',
                 style: theme.textTheme.bodySmall,
               ),
             ),
@@ -159,7 +172,7 @@ class _CreatorPollItem extends StatelessWidget {
                   onTap: () {
                     GoRouter.of(context).pushNamed(
                       'creatorPollEdit',
-                      pathParameters: {'name': pubName, 'id': poll.id},
+                      pathParameters: {'name': pubName, 'id': pollWithStats.id},
                     );
                   },
                 ),
@@ -170,8 +183,7 @@ class _CreatorPollItem extends StatelessWidget {
             context: context,
             useRootNavigator: true,
             isScrollControlled: true,
-            builder:
-                (context) => PollFeedbackSheet(pollId: poll.id, poll: poll),
+            builder: (context) => PollFeedbackSheet(pollId: pollWithStats.id),
           );
         },
       ),

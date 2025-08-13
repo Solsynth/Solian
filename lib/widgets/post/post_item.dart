@@ -354,6 +354,7 @@ class PostItem extends HookConsumerWidget {
     final translatedWidget =
         (translatedText.value?.isNotEmpty ?? false)
             ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   children: [
@@ -398,6 +399,7 @@ class PostItem extends HookConsumerWidget {
             : null;
 
     final translationSection = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (translatedWidget != null) translatedWidget,
         if (translatableWidget != null) translatableWidget,

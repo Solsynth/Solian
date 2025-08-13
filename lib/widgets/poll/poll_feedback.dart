@@ -1,9 +1,14 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/poll/poll_stats_widget.dart';
+import 'package:island/widgets/response.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -52,59 +57,60 @@ class PollFeedbackNotifier extends _$PollFeedbackNotifier
 class PollFeedbackSheet extends HookConsumerWidget {
   final String pollId;
   final String? title;
-  final SnPoll poll;
-  final Map<String, dynamic>? stats; // stats object similar to PollSubmit
-  const PollFeedbackSheet({
-    super.key,
-    required this.pollId,
-    required this.poll,
-    this.title,
-    this.stats,
-  });
+  const PollFeedbackSheet({super.key, required this.pollId, this.title});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final poll = ref.watch(pollWithStatsProvider(pollId));
+
     return SheetScaffold(
       titleText: title ?? 'Poll feedback',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _PollHeader(poll: poll, stats: stats),
-          const Divider(height: 1),
-          Expanded(
-            child: PagingHelperView(
-              provider: pollFeedbackNotifierProvider(pollId),
-              futureRefreshable: pollFeedbackNotifierProvider(pollId).future,
-              notifierRefreshable:
-                  pollFeedbackNotifierProvider(pollId).notifier,
-              contentBuilder:
-                  (data, widgetCount, endItemView) => ListView.separated(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    itemCount: widgetCount,
-                    itemBuilder: (context, index) {
-                      if (index == widgetCount - 1) {
-                        // Provided by PagingHelperView to indicate end/loading
-                        return endItemView;
-                      }
-                      final answer = data.items[index];
-                      return _PollAnswerTile(answer: answer, poll: poll);
-                    },
-                    separatorBuilder:
-                        (context, index) =>
-                            const Divider(height: 1).padding(vertical: 4),
-                  ),
+      child: poll.when(
+        data:
+            (data) => CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: _PollHeader(poll: data)),
+                SliverToBoxAdapter(child: const Divider(height: 1)),
+                SliverGap(4),
+                PagingHelperSliverView(
+                  provider: pollFeedbackNotifierProvider(pollId),
+                  futureRefreshable:
+                      pollFeedbackNotifierProvider(pollId).future,
+                  notifierRefreshable:
+                      pollFeedbackNotifierProvider(pollId).notifier,
+                  contentBuilder:
+                      (val, widgetCount, endItemView) => SliverList.separated(
+                        itemCount: widgetCount,
+                        itemBuilder: (context, index) {
+                          if (index == widgetCount - 1) {
+                            // Provided by PagingHelperView to indicate end/loading
+                            return endItemView;
+                          }
+                          final answer = val.items[index];
+                          return _PollAnswerTile(answer: answer, poll: data);
+                        },
+                        separatorBuilder:
+                            (context, index) =>
+                                const Divider(height: 1).padding(vertical: 4),
+                      ),
+                ),
+                SliverGap(4 + MediaQuery.of(context).padding.bottom),
+              ],
             ),
-          ),
-        ],
+        error:
+            (err, _) => ResponseErrorWidget(
+              error: err,
+              onRetry: () => ref.invalidate(pollWithStatsProvider(pollId)),
+            ),
+        loading: () => ResponseLoadingWidget(),
       ),
     );
   }
 }
 
 class _PollHeader extends StatelessWidget {
-  const _PollHeader({required this.poll, this.stats});
-  final SnPoll poll;
-  final Map<String, dynamic>? stats;
+  const _PollHeader({required this.poll});
+  final SnPollWithStats poll;
 
   @override
   Widget build(BuildContext context) {
@@ -112,18 +118,32 @@ class _PollHeader extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 12,
       children: [
-        if (poll.title != null)
-          Text(poll.title!, style: theme.textTheme.titleLarge),
-        if (poll.description != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              poll.description!,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-              ),
-            ),
+        if (poll.title != null || (poll.description?.isNotEmpty ?? false))
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (poll.title != null)
+                Text(poll.title!, style: theme.textTheme.titleLarge),
+              if (poll.description?.isNotEmpty ?? false)
+                Text(
+                  poll.description!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                  ),
+                ),
+            ],
+          ),
+        Text('pollQuestions').tr().fontSize(17).bold(),
+        for (final q in poll.questions)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (q.title.isNotEmpty) Text(q.title).bold(),
+              if (q.description?.isNotEmpty ?? false) Text(q.description!),
+              PollStatsWidget(question: q, stats: poll.stats),
+            ],
           ),
       ],
     ).padding(horizontal: 20, vertical: 16);
@@ -132,7 +152,7 @@ class _PollHeader extends StatelessWidget {
 
 class _PollAnswerTile extends StatelessWidget {
   final SnPollAnswer answer;
-  final SnPoll poll;
+  final SnPollWithStats poll;
   const _PollAnswerTile({required this.answer, required this.poll});
 
   String _formatPerQuestionAnswer(
