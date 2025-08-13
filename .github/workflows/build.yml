@@ -41,6 +41,15 @@ jobs:
         with:
           name: build-output-windows
           path: build/windows/x64/runner/Release
+      - name: Compile Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: setup.iss
+      - name: Archive installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output-windows
+          path: Installer/windows-x86_64-setup.exe
   build-linux:
     runs-on: ubuntu-latest
     steps:

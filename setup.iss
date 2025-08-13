@@ -20,9 +20,9 @@ UninstallDisplayIcon={app}\Solian.exe
 DefaultDirName={commonpf}\Solian
 UsePreviousAppDir=no
 
-OutputDir=C:\Development\Solian\Installer
-OutputBaseFilename=Solian_Setup_{#AppVersion}
-SetupIconFile=C:\Development\Solian\assets\icons\icon.ico  
+OutputDir=.\Installer
+OutputBaseFilename=windows-x86_64-setup
+SetupIconFile=.\assets\icons\icon.ico  
 
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -33,7 +33,7 @@ ArchitecturesAllowed=x64compatible
 PrivilegesRequired=admin
 
 [Files]
-Source: "C:\Development\Solian\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: ".\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Solian"; Filename: "{app}\Solian.exe";IconFilename: "{app}\Solian.exe"
