@@ -166,7 +166,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
               webAuthenticationOptions: WebAuthenticationOptions(
                 clientId: 'dev.solsynth.solarpass',
                 redirectUri: Uri.parse(
-                  'https://nt.solian.app/auth/callback/apple',
+                  'https://id.solian.app/auth/callback/apple',
                 ),
               ),
             );
