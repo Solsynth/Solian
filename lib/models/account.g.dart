@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'user.dart';
+part of 'account.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -297,3 +297,54 @@ Map<String, dynamic> _$SnVerificationMarkToJson(_SnVerificationMark instance) =>
       'description': instance.description,
       'verified_by': instance.verifiedBy,
     };
+
+_SnAuthDevice _$SnAuthDeviceFromJson(Map<String, dynamic> json) =>
+    _SnAuthDevice(
+      id: json['id'] as String,
+      deviceId: json['device_id'] as String,
+      deviceName: json['device_name'] as String,
+      deviceLabel: json['device_label'] as String?,
+      accountId: json['account_id'] as String,
+      platform: (json['platform'] as num).toInt(),
+      isCurrent: json['is_current'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$SnAuthDeviceToJson(_SnAuthDevice instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'device_id': instance.deviceId,
+      'device_name': instance.deviceName,
+      'device_label': instance.deviceLabel,
+      'account_id': instance.accountId,
+      'platform': instance.platform,
+      'is_current': instance.isCurrent,
+    };
+
+_SnAuthDeviceWithChallengee _$SnAuthDeviceWithChallengeeFromJson(
+  Map<String, dynamic> json,
+) => _SnAuthDeviceWithChallengee(
+  id: json['id'] as String,
+  deviceId: json['device_id'] as String,
+  deviceName: json['device_name'] as String,
+  deviceLabel: json['device_label'] as String?,
+  accountId: json['account_id'] as String,
+  platform: (json['platform'] as num).toInt(),
+  challenges:
+      (json['challenges'] as List<dynamic>)
+          .map((e) => SnAuthChallenge.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  isCurrent: json['is_current'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$SnAuthDeviceWithChallengeeToJson(
+  _SnAuthDeviceWithChallengee instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'device_id': instance.deviceId,
+  'device_name': instance.deviceName,
+  'device_label': instance.deviceLabel,
+  'account_id': instance.accountId,
+  'platform': instance.platform,
+  'challenges': instance.challenges.map((e) => e.toJson()).toList(),
+  'is_current': instance.isCurrent,
+};

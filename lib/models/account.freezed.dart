@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'user.dart';
+part of 'account.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -2448,6 +2448,572 @@ as int,title: freezed == title ? _self.title : title // ignore: cast_nullable_to
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,verifiedBy: freezed == verifiedBy ? _self.verifiedBy : verifiedBy // ignore: cast_nullable_to_non_nullable
 as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnAuthDevice {
+
+ String get id; String get deviceId; String get deviceName; String? get deviceLabel; String get accountId; int get platform; bool get isCurrent;
+/// Create a copy of SnAuthDevice
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnAuthDeviceCopyWith<SnAuthDevice> get copyWith => _$SnAuthDeviceCopyWithImpl<SnAuthDevice>(this as SnAuthDevice, _$identity);
+
+  /// Serializes this SnAuthDevice to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthDevice&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,isCurrent);
+
+@override
+String toString() {
+  return 'SnAuthDevice(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, isCurrent: $isCurrent)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnAuthDeviceCopyWith<$Res>  {
+  factory $SnAuthDeviceCopyWith(SnAuthDevice value, $Res Function(SnAuthDevice) _then) = _$SnAuthDeviceCopyWithImpl;
+@useResult
+$Res call({
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, bool isCurrent
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnAuthDeviceCopyWithImpl<$Res>
+    implements $SnAuthDeviceCopyWith<$Res> {
+  _$SnAuthDeviceCopyWithImpl(this._self, this._then);
+
+  final SnAuthDevice _self;
+  final $Res Function(SnAuthDevice) _then;
+
+/// Create a copy of SnAuthDevice
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? isCurrent = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
+as String,deviceName: null == deviceName ? _self.deviceName : deviceName // ignore: cast_nullable_to_non_nullable
+as String,deviceLabel: freezed == deviceLabel ? _self.deviceLabel : deviceLabel // ignore: cast_nullable_to_non_nullable
+as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,platform: null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as int,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnAuthDevice].
+extension SnAuthDevicePatterns on SnAuthDevice {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnAuthDevice value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnAuthDevice() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnAuthDevice value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnAuthDevice():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnAuthDevice value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnAuthDevice() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  bool isCurrent)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnAuthDevice() when $default != null:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.isCurrent);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  bool isCurrent)  $default,) {final _that = this;
+switch (_that) {
+case _SnAuthDevice():
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.isCurrent);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  bool isCurrent)?  $default,) {final _that = this;
+switch (_that) {
+case _SnAuthDevice() when $default != null:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.isCurrent);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnAuthDevice implements SnAuthDevice {
+  const _SnAuthDevice({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, this.isCurrent = false});
+  factory _SnAuthDevice.fromJson(Map<String, dynamic> json) => _$SnAuthDeviceFromJson(json);
+
+@override final  String id;
+@override final  String deviceId;
+@override final  String deviceName;
+@override final  String? deviceLabel;
+@override final  String accountId;
+@override final  int platform;
+@override@JsonKey() final  bool isCurrent;
+
+/// Create a copy of SnAuthDevice
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnAuthDeviceCopyWith<_SnAuthDevice> get copyWith => __$SnAuthDeviceCopyWithImpl<_SnAuthDevice>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnAuthDeviceToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthDevice&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,isCurrent);
+
+@override
+String toString() {
+  return 'SnAuthDevice(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, isCurrent: $isCurrent)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnAuthDeviceCopyWith<$Res> implements $SnAuthDeviceCopyWith<$Res> {
+  factory _$SnAuthDeviceCopyWith(_SnAuthDevice value, $Res Function(_SnAuthDevice) _then) = __$SnAuthDeviceCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, bool isCurrent
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnAuthDeviceCopyWithImpl<$Res>
+    implements _$SnAuthDeviceCopyWith<$Res> {
+  __$SnAuthDeviceCopyWithImpl(this._self, this._then);
+
+  final _SnAuthDevice _self;
+  final $Res Function(_SnAuthDevice) _then;
+
+/// Create a copy of SnAuthDevice
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? isCurrent = null,}) {
+  return _then(_SnAuthDevice(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
+as String,deviceName: null == deviceName ? _self.deviceName : deviceName // ignore: cast_nullable_to_non_nullable
+as String,deviceLabel: freezed == deviceLabel ? _self.deviceLabel : deviceLabel // ignore: cast_nullable_to_non_nullable
+as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,platform: null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as int,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+SnAuthDeviceWithChallenge _$SnAuthDeviceWithChallengeFromJson(
+  Map<String, dynamic> json
+) {
+    return _SnAuthDeviceWithChallengee.fromJson(
+      json
+    );
+}
+
+/// @nodoc
+mixin _$SnAuthDeviceWithChallenge {
+
+ String get id; String get deviceId; String get deviceName; String? get deviceLabel; String get accountId; int get platform; List<SnAuthChallenge> get challenges; bool get isCurrent;
+/// Create a copy of SnAuthDeviceWithChallenge
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnAuthDeviceWithChallengeCopyWith<SnAuthDeviceWithChallenge> get copyWith => _$SnAuthDeviceWithChallengeCopyWithImpl<SnAuthDeviceWithChallenge>(this as SnAuthDeviceWithChallenge, _$identity);
+
+  /// Serializes this SnAuthDeviceWithChallenge to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthDeviceWithChallenge&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other.challenges, challenges)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,const DeepCollectionEquality().hash(challenges),isCurrent);
+
+@override
+String toString() {
+  return 'SnAuthDeviceWithChallenge(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, challenges: $challenges, isCurrent: $isCurrent)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnAuthDeviceWithChallengeCopyWith<$Res>  {
+  factory $SnAuthDeviceWithChallengeCopyWith(SnAuthDeviceWithChallenge value, $Res Function(SnAuthDeviceWithChallenge) _then) = _$SnAuthDeviceWithChallengeCopyWithImpl;
+@useResult
+$Res call({
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthChallenge> challenges, bool isCurrent
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnAuthDeviceWithChallengeCopyWithImpl<$Res>
+    implements $SnAuthDeviceWithChallengeCopyWith<$Res> {
+  _$SnAuthDeviceWithChallengeCopyWithImpl(this._self, this._then);
+
+  final SnAuthDeviceWithChallenge _self;
+  final $Res Function(SnAuthDeviceWithChallenge) _then;
+
+/// Create a copy of SnAuthDeviceWithChallenge
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? challenges = null,Object? isCurrent = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
+as String,deviceName: null == deviceName ? _self.deviceName : deviceName // ignore: cast_nullable_to_non_nullable
+as String,deviceLabel: freezed == deviceLabel ? _self.deviceLabel : deviceLabel // ignore: cast_nullable_to_non_nullable
+as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,platform: null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as int,challenges: null == challenges ? _self.challenges : challenges // ignore: cast_nullable_to_non_nullable
+as List<SnAuthChallenge>,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnAuthDeviceWithChallenge].
+extension SnAuthDeviceWithChallengePatterns on SnAuthDeviceWithChallenge {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnAuthDeviceWithChallengee value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnAuthDeviceWithChallengee() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnAuthDeviceWithChallengee value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnAuthDeviceWithChallengee():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnAuthDeviceWithChallengee value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnAuthDeviceWithChallengee() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthChallenge> challenges,  bool isCurrent)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnAuthDeviceWithChallengee() when $default != null:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.challenges,_that.isCurrent);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthChallenge> challenges,  bool isCurrent)  $default,) {final _that = this;
+switch (_that) {
+case _SnAuthDeviceWithChallengee():
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.challenges,_that.isCurrent);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthChallenge> challenges,  bool isCurrent)?  $default,) {final _that = this;
+switch (_that) {
+case _SnAuthDeviceWithChallengee() when $default != null:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.challenges,_that.isCurrent);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnAuthDeviceWithChallengee implements SnAuthDeviceWithChallenge {
+  const _SnAuthDeviceWithChallengee({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, required final  List<SnAuthChallenge> challenges, this.isCurrent = false}): _challenges = challenges;
+  factory _SnAuthDeviceWithChallengee.fromJson(Map<String, dynamic> json) => _$SnAuthDeviceWithChallengeeFromJson(json);
+
+@override final  String id;
+@override final  String deviceId;
+@override final  String deviceName;
+@override final  String? deviceLabel;
+@override final  String accountId;
+@override final  int platform;
+ final  List<SnAuthChallenge> _challenges;
+@override List<SnAuthChallenge> get challenges {
+  if (_challenges is EqualUnmodifiableListView) return _challenges;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_challenges);
+}
+
+@override@JsonKey() final  bool isCurrent;
+
+/// Create a copy of SnAuthDeviceWithChallenge
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnAuthDeviceWithChallengeeCopyWith<_SnAuthDeviceWithChallengee> get copyWith => __$SnAuthDeviceWithChallengeeCopyWithImpl<_SnAuthDeviceWithChallengee>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnAuthDeviceWithChallengeeToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthDeviceWithChallengee&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other._challenges, _challenges)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,const DeepCollectionEquality().hash(_challenges),isCurrent);
+
+@override
+String toString() {
+  return 'SnAuthDeviceWithChallenge(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, challenges: $challenges, isCurrent: $isCurrent)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnAuthDeviceWithChallengeeCopyWith<$Res> implements $SnAuthDeviceWithChallengeCopyWith<$Res> {
+  factory _$SnAuthDeviceWithChallengeeCopyWith(_SnAuthDeviceWithChallengee value, $Res Function(_SnAuthDeviceWithChallengee) _then) = __$SnAuthDeviceWithChallengeeCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthChallenge> challenges, bool isCurrent
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnAuthDeviceWithChallengeeCopyWithImpl<$Res>
+    implements _$SnAuthDeviceWithChallengeeCopyWith<$Res> {
+  __$SnAuthDeviceWithChallengeeCopyWithImpl(this._self, this._then);
+
+  final _SnAuthDeviceWithChallengee _self;
+  final $Res Function(_SnAuthDeviceWithChallengee) _then;
+
+/// Create a copy of SnAuthDeviceWithChallenge
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? challenges = null,Object? isCurrent = null,}) {
+  return _then(_SnAuthDeviceWithChallengee(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
+as String,deviceName: null == deviceName ? _self.deviceName : deviceName // ignore: cast_nullable_to_non_nullable
+as String,deviceLabel: freezed == deviceLabel ? _self.deviceLabel : deviceLabel // ignore: cast_nullable_to_non_nullable
+as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,platform: null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as int,challenges: null == challenges ? _self._challenges : challenges // ignore: cast_nullable_to_non_nullable
+as List<SnAuthChallenge>,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

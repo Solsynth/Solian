@@ -1,9 +1,10 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:island/models/auth.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/wallet.dart';
 
-part 'user.freezed.dart';
-part 'user.g.dart';
+part 'account.freezed.dart';
+part 'account.g.dart';
 
 @freezed
 sealed class SnAccount with _$SnAccount {
@@ -173,4 +174,37 @@ sealed class SnVerificationMark with _$SnVerificationMark {
 
   factory SnVerificationMark.fromJson(Map<String, dynamic> json) =>
       _$SnVerificationMarkFromJson(json);
+}
+
+@freezed
+sealed class SnAuthDevice with _$SnAuthDevice {
+  const factory SnAuthDevice({
+    required String id,
+    required String deviceId,
+    required String deviceName,
+    required String? deviceLabel,
+    required String accountId,
+    required int platform,
+    @Default(false) bool isCurrent,
+  }) = _SnAuthDevice;
+
+  factory SnAuthDevice.fromJson(Map<String, dynamic> json) =>
+      _$SnAuthDeviceFromJson(json);
+}
+
+@freezed
+sealed class SnAuthDeviceWithChallenge with _$SnAuthDeviceWithChallenge {
+  const factory SnAuthDeviceWithChallenge({
+    required String id,
+    required String deviceId,
+    required String deviceName,
+    required String? deviceLabel,
+    required String accountId,
+    required int platform,
+    required List<SnAuthChallenge> challenges,
+    @Default(false) bool isCurrent,
+  }) = _SnAuthDeviceWithChallengee;
+
+  factory SnAuthDeviceWithChallenge.fromJson(Map<String, dynamic> json) =>
+      _$SnAuthDeviceWithChallengeFromJson(json);
 }

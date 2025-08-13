@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';

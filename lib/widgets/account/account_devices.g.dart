@@ -1,17 +1,17 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'account_session_sheet.dart';
+part of 'account_devices.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authDevicesHash() => r'8bc41a1ffc37df8e757c977b4ddae11db8faaeb5';
+String _$authDevicesHash() => r'feb19238f759921e51c888f8b443a3d7761e68da';
 
 /// See also [authDevices].
 @ProviderFor(authDevices)
 final authDevicesProvider =
-    AutoDisposeFutureProvider<List<SnAuthDevice>>.internal(
+    AutoDisposeFutureProvider<List<SnAuthDeviceWithChallenge>>.internal(
       authDevices,
       name: r'authDevicesProvider',
       debugGetCreateSourceHash:
@@ -24,6 +24,7 @@ final authDevicesProvider =
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef AuthDevicesRef = AutoDisposeFutureProviderRef<List<SnAuthDevice>>;
+typedef AuthDevicesRef =
+    AutoDisposeFutureProviderRef<List<SnAuthDeviceWithChallenge>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

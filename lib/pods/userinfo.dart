@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/account.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 

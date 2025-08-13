@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/realm.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/account.dart';
 
 part 'chat.freezed.dart';
 part 'chat.g.dart';

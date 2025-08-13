@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/account.dart';
 
 part 'activity.freezed.dart';
 part 'activity.g.dart';
