@@ -64,9 +64,10 @@ void main() async {
       );
       // Although previous if case checked this. Still check is web or not
       // Otherwise the web platform will broke due to there is no Platform api on the web
-      if (kIsWeb || !Platform.isWindows) {
+      // Skip crashlytics setup on debug mode to prevent unexpected report to firebase
+      if ((kIsWeb || !Platform.isWindows) && !kDebugMode) {
         FlutterError.onError =
-          FirebaseCrashlytics.instance.recordFlutterFatalError;
+            FirebaseCrashlytics.instance.recordFlutterFatalError;
         PlatformDispatcher.instance.onError = (error, stack) {
           FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
           return true;
