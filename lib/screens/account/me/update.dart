@@ -7,7 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/account.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';

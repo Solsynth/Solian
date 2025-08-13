@@ -20,7 +20,6 @@ _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
       stepRemain: (json['step_remain'] as num).toInt(),
       stepTotal: (json['step_total'] as num).toInt(),
       failedAttempts: (json['failed_attempts'] as num).toInt(),
-      platform: (json['platform'] as num).toInt(),
       type: (json['type'] as num).toInt(),
       blacklistFactors:
           (json['blacklist_factors'] as List<dynamic>)
@@ -30,7 +29,6 @@ _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
       scopes: json['scopes'] as List<dynamic>,
       ipAddress: json['ip_address'] as String,
       userAgent: json['user_agent'] as String,
-      deviceId: json['device_id'] as String,
       nonce: json['nonce'] as String?,
       location: json['location'] as String?,
       accountId: json['account_id'] as String,
@@ -49,14 +47,12 @@ Map<String, dynamic> _$SnAuthChallengeToJson(_SnAuthChallenge instance) =>
       'step_remain': instance.stepRemain,
       'step_total': instance.stepTotal,
       'failed_attempts': instance.failedAttempts,
-      'platform': instance.platform,
       'type': instance.type,
       'blacklist_factors': instance.blacklistFactors,
       'audiences': instance.audiences,
       'scopes': instance.scopes,
       'ip_address': instance.ipAddress,
       'user_agent': instance.userAgent,
-      'device_id': instance.deviceId,
       'nonce': instance.nonce,
       'location': instance.location,
       'account_id': instance.accountId,
@@ -131,29 +127,6 @@ Map<String, dynamic> _$SnAuthFactorToJson(_SnAuthFactor instance) =>
       'enabled_at': instance.enabledAt?.toIso8601String(),
       'trustworthy': instance.trustworthy,
       'created_response': instance.createdResponse,
-    };
-
-_SnAuthDevice _$SnAuthDeviceFromJson(Map<String, dynamic> json) =>
-    _SnAuthDevice(
-      label: json['label'],
-      userAgent: json['user_agent'] as String,
-      deviceId: json['device_id'] as String,
-      platform: (json['platform'] as num).toInt(),
-      sessions:
-          (json['sessions'] as List<dynamic>)
-              .map((e) => SnAuthSession.fromJson(e as Map<String, dynamic>))
-              .toList(),
-      isCurrent: json['is_current'] as bool? ?? false,
-    );
-
-Map<String, dynamic> _$SnAuthDeviceToJson(_SnAuthDevice instance) =>
-    <String, dynamic>{
-      'label': instance.label,
-      'user_agent': instance.userAgent,
-      'device_id': instance.deviceId,
-      'platform': instance.platform,
-      'sessions': instance.sessions.map((e) => e.toJson()).toList(),
-      'is_current': instance.isCurrent,
     };
 
 _SnAccountConnection _$SnAccountConnectionFromJson(Map<String, dynamic> json) =>

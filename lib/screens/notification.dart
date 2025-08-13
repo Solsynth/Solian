@@ -5,7 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';

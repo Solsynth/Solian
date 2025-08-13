@@ -19,14 +19,12 @@ sealed class SnAuthChallenge with _$SnAuthChallenge {
     required int stepRemain,
     required int stepTotal,
     required int failedAttempts,
-    required int platform,
     required int type,
     required List<String> blacklistFactors,
     required List<dynamic> audiences,
     required List<dynamic> scopes,
     required String ipAddress,
     required String userAgent,
-    required String deviceId,
     required String? nonce,
     required String? location,
     required String accountId,
@@ -74,22 +72,6 @@ sealed class SnAuthFactor with _$SnAuthFactor {
 
   factory SnAuthFactor.fromJson(Map<String, dynamic> json) =>
       _$SnAuthFactorFromJson(json);
-}
-
-@freezed
-sealed class SnAuthDevice with _$SnAuthDevice {
-  const factory SnAuthDevice({
-    required dynamic label,
-    required String userAgent,
-    required String deviceId,
-    required int platform,
-    required List<SnAuthSession> sessions,
-    // Not from backend, used for UI
-    @Default(false) bool isCurrent,
-  }) = _SnAuthDevice;
-
-  factory SnAuthDevice.fromJson(Map<String, dynamic> json) =>
-      _$SnAuthDeviceFromJson(json);
 }
 
 @freezed

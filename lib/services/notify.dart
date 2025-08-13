@@ -10,7 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/main.dart';
 import 'package:island/route.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/account.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/widgets/app_notification.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -67,7 +67,7 @@ Future<void> subscribePushNotification(
   Dio apiClient, {
   bool detailedErrors = false,
 }) async {
-  if (Platform.isLinux){
+  if (Platform.isLinux) {
     return;
   }
   await FirebaseMessaging.instance.requestPermission(

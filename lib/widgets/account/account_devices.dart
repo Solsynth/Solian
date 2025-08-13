@@ -3,33 +3,34 @@ import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/auth.dart';
+import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/services/udid.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'account_session_sheet.g.dart';
+part 'account_devices.g.dart';
 
 @riverpod
-Future<List<SnAuthDevice>> authDevices(Ref ref) async {
+Future<List<SnAuthDeviceWithChallenge>> authDevices(Ref ref) async {
   final resp = await ref
       .watch(apiClientProvider)
       .get('/id/accounts/me/devices');
-  final sessionId = resp.headers.value('x-auth-session');
+  final currentId = await getUdid();
   final data =
-      resp.data.map<SnAuthDevice>((e) {
-        final ele = SnAuthDevice.fromJson(e);
-        return ele.copyWith(isCurrent: ele.sessions.first.id == sessionId);
+      resp.data.map<SnAuthDeviceWithChallenge>((e) {
+        final ele = SnAuthDeviceWithChallenge.fromJson(e);
+        return ele.copyWith(isCurrent: ele.deviceId == currentId);
       }).toList();
   return data;
 }
 
 class _DeviceListTile extends StatelessWidget {
-  final SnAuthDevice device;
+  final SnAuthDeviceWithChallenge device;
   final Function(String) updateDeviceLabel;
   final Function(String) logoutDevice;
 
@@ -57,17 +58,16 @@ class _DeviceListTile extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('authSessionsCount'.plural(device.sessions.length)),
           Text(
             'lastActiveAt'.tr(
               args: [
                 DateFormat().format(
-                  device.sessions.first.lastGrantedAt.toLocal(),
+                  device.challenges.first.createdAt.toLocal(),
                 ),
               ],
             ),
           ),
-          Text(device.sessions.first.challenge.ipAddress),
+          Text(device.challenges.first.ipAddress),
           if (device.isCurrent)
             Row(
               children: [
@@ -84,7 +84,7 @@ class _DeviceListTile extends StatelessWidget {
             ).padding(top: 4),
         ],
       ),
-      title: Text(device.label ?? device.sessions.first.challenge.userAgent),
+      title: Text(device.deviceLabel ?? device.deviceName),
       trailing:
           isWideScreen(context)
               ? Row(
@@ -93,14 +93,13 @@ class _DeviceListTile extends StatelessWidget {
                   IconButton(
                     icon: Icon(Icons.edit),
                     tooltip: 'authDeviceEditLabel'.tr(),
-                    onPressed:
-                        () => updateDeviceLabel(device.sessions.first.id),
+                    onPressed: () => updateDeviceLabel(device.deviceId),
                   ),
                   if (!device.isCurrent)
                     IconButton(
                       icon: Icon(Icons.logout),
                       tooltip: 'authDeviceLogout'.tr(),
-                      onPressed: () => logoutDevice(device.sessions.first.id),
+                      onPressed: () => logoutDevice(device.deviceId),
                     ),
                 ],
               )
@@ -124,7 +123,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final apiClient = ref.watch(apiClientProvider);
-        await apiClient.delete('/id/accounts/me/sessions/$sessionId');
+        await apiClient.delete('/id/accounts/me/devices/$sessionId');
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -163,7 +162,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.patch(
-          '/accounts/me/sessions/$sessionId/label',
+          '/accounts/me/devices/$sessionId/label',
           data: jsonEncode(label),
         );
         ref.invalidate(authDevicesProvider);
@@ -194,7 +193,7 @@ class AccountSessionSheet extends HookConsumerWidget {
                     );
                   } else {
                     return Dismissible(
-                      key: Key('device-${device.sessions.first.id}'),
+                      key: Key('device-${device.id}'),
                       direction:
                           device.isCurrent
                               ? DismissDirection.startToEnd
@@ -213,7 +212,7 @@ class AccountSessionSheet extends HookConsumerWidget {
                       ),
                       confirmDismiss: (direction) async {
                         if (direction == DismissDirection.startToEnd) {
-                          updateDeviceLabel(device.sessions.first.id);
+                          updateDeviceLabel(device.deviceId);
                           return false;
                         } else {
                           final confirm = await showConfirmAlert(
@@ -221,7 +220,7 @@ class AccountSessionSheet extends HookConsumerWidget {
                             'authDeviceLogout'.tr(),
                           );
                           if (confirm && context.mounted) {
-                            logoutDevice(device.sessions.first.id);
+                            logoutDevice(device.deviceId);
                           }
                           return false; // Don't dismiss
                         }

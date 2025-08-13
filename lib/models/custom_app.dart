@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/file.dart';
-import 'package:island/models/user.dart';
+import 'package:island/models/account.dart';
 
 part 'custom_app.freezed.dart';
 part 'custom_app.g.dart';
