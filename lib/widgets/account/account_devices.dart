@@ -162,7 +162,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.patch(
-          '/accounts/me/devices/$sessionId/label',
+          '/id/accounts/me/devices/$sessionId/label',
           data: jsonEncode(label),
         );
         ref.invalidate(authDevicesProvider);
