@@ -1,5 +1,5 @@
+import 'package:animations/animations.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -55,6 +55,20 @@ import 'package:island/screens/reports/report_list.dart';
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 final _tabsShellKey = GlobalKey<NavigatorState>();
+
+Widget _tabPagesTransitionBuilder(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+) {
+  return FadeThroughTransition(
+    animation: animation,
+    secondaryAnimation: secondaryAnimation,
+    fillColor: Theme.of(context).colorScheme.surface,
+    child: child,
+  );
+}
 
 // Provider for the router
 final routerProvider = Provider<GoRouter>((ref) {
@@ -339,7 +353,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 name: 'explore',
                 path: '/',
-                builder: (context, state) => const ExploreScreen(),
+                pageBuilder:
+                    (context, state) => CustomTransitionPage(
+                      key: const ValueKey('explore'),
+                      child: const ExploreScreen(),
+                      transitionsBuilder: _tabPagesTransitionBuilder,
+                    ),
               ),
               GoRoute(
                 name: 'postSearch',
@@ -389,8 +408,12 @@ final routerProvider = Provider<GoRouter>((ref) {
 
               // Chat tab
               ShellRoute(
-                builder:
-                    (context, state, child) => ChatShellScreen(child: child),
+                pageBuilder:
+                    (context, state, child) => CustomTransitionPage(
+                      key: const ValueKey('chat'),
+                      child: child,
+                      transitionsBuilder: _tabPagesTransitionBuilder,
+                    ),
                 routes: [
                   GoRoute(
                     name: 'chatList',
@@ -433,7 +456,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 name: 'realmList',
                 path: '/realms',
-                builder: (context, state) => const RealmListScreen(),
+                pageBuilder:
+                    (context, state) => CustomTransitionPage(
+                      key: const ValueKey('realms'),
+                      child: const RealmListScreen(),
+                      transitionsBuilder: _tabPagesTransitionBuilder,
+                    ),
                 routes: [
                   GoRoute(
                     name: 'realmNew',
@@ -461,8 +489,12 @@ final routerProvider = Provider<GoRouter>((ref) {
 
               // Account tab
               ShellRoute(
-                builder:
-                    (context, state, child) => AccountShellScreen(child: child),
+                pageBuilder:
+                    (context, state, child) => CustomTransitionPage(
+                      key: const ValueKey('account'),
+                      child: child,
+                      transitionsBuilder: _tabPagesTransitionBuilder,
+                    ),
                 routes: [
                   GoRoute(
                     name: 'account',

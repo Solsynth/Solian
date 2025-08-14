@@ -334,6 +334,7 @@
   "walletCreate": "Create a Wallet",
   "settingsServerUrl": "Server URL",
   "settingsApplied": "The settings has been applied.",
+  "settingsCustomFontsHelper": "Use comma to seprate.",
   "notifications": "Notifications",
   "posts": "Posts",
   "settingsBackgroundImage": "Background Image",
