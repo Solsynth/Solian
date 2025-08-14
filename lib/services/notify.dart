@@ -26,7 +26,12 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
       final notification = SnNotification.fromJson(pkt.data!);
       showTopSnackBar(
         globalOverlay.currentState!,
-        NotificationCard(notification: notification),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: NotificationCard(notification: notification),
+          ),
+        ),
         onTap: () {
           if (notification.meta['action_uri'] != null) {
             var uri = notification.meta['action_uri'] as String;
@@ -53,9 +58,9 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
                       (Platform.isMacOS ||
                           Platform.isWindows ||
                           Platform.isLinux))
-                  ? 24
+                  ? 28
                   // ignore: use_build_context_synchronously
-                  : MediaQuery.of(context).padding.top + 8,
+                  : MediaQuery.of(context).padding.top + 16,
           bottom: 16,
         ),
       );

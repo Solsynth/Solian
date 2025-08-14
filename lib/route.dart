@@ -411,7 +411,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 pageBuilder:
                     (context, state, child) => CustomTransitionPage(
                       key: const ValueKey('chat'),
-                      child: child,
+                      child: ChatShellScreen(child: child),
                       transitionsBuilder: _tabPagesTransitionBuilder,
                     ),
                 routes: [
@@ -492,7 +492,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 pageBuilder:
                     (context, state, child) => CustomTransitionPage(
                       key: const ValueKey('account'),
-                      child: child,
+                      child: AccountShellScreen(child: child),
                       transitionsBuilder: _tabPagesTransitionBuilder,
                     ),
                 routes: [
