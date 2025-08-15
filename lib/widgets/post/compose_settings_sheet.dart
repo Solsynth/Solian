@@ -244,7 +244,6 @@ class ComposeSettingsSheet extends HookConsumerWidget {
             ),
 
             // Categories field
-            // FIXME: Sometimes the entire dropdown crashes: 'package:flutter/src/rendering/stack.dart': Failed assertion: line 799 pos 12: 'firstChild == null || child != null': is not true.
             DropdownButtonFormField2<SnPostCategory>(
               isExpanded: true,
               decoration: InputDecoration(
@@ -306,7 +305,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
               value: currentCategories.isEmpty ? null : currentCategories.last,
               onChanged: (_) {},
               selectedItemBuilder: (context) {
-                return currentCategories.map((item) {
+                return (postCategories.value ?? []).map((item) {
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
