@@ -23,6 +23,8 @@ const kAppSoundEffects = 'app_sound_effects';
 const kAppAprilFoolFeatures = 'app_april_fool_features';
 const kAppWindowSize = 'app_window_size';
 const kAppEnterToSend = 'app_enter_to_send';
+const kFeaturedPostsCollapsedId =
+    'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
 
 const Map<String, FilterQuality> kImageQualityLevel = {
   'settingsImageQualityLowest': FilterQuality.none,
