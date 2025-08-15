@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnScrappedLink {
 
- String get type; String get url; String get title; String? get description; String? get imageUrl; String get faviconUrl; String get siteName; String? get contentType; String? get author; DateTime? get publishedDate;
+ String get type; String get url; String get title; String? get description; String? get imageUrl; String? get faviconUrl; String? get siteName; String? get contentType; String? get author; DateTime? get publishedDate;
 /// Create a copy of SnScrappedLink
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $SnScrappedLinkCopyWith<$Res>  {
   factory $SnScrappedLinkCopyWith(SnScrappedLink value, $Res Function(SnScrappedLink) _then) = _$SnScrappedLinkCopyWithImpl;
 @useResult
 $Res call({
- String type, String url, String title, String? description, String? imageUrl, String faviconUrl, String siteName, String? contentType, String? author, DateTime? publishedDate
+ String type, String url, String title, String? description, String? imageUrl, String? faviconUrl, String? siteName, String? contentType, String? author, DateTime? publishedDate
 });
 
 
@@ -65,16 +65,16 @@ class _$SnScrappedLinkCopyWithImpl<$Res>
 
 /// Create a copy of SnScrappedLink
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = freezed,Object? imageUrl = freezed,Object? faviconUrl = null,Object? siteName = null,Object? contentType = freezed,Object? author = freezed,Object? publishedDate = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = freezed,Object? imageUrl = freezed,Object? faviconUrl = freezed,Object? siteName = freezed,Object? contentType = freezed,Object? author = freezed,Object? publishedDate = freezed,}) {
   return _then(_self.copyWith(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
-as String?,faviconUrl: null == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
-as String,siteName: null == siteName ? _self.siteName : siteName // ignore: cast_nullable_to_non_nullable
-as String,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
+as String?,faviconUrl: freezed == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
+as String?,siteName: freezed == siteName ? _self.siteName : siteName // ignore: cast_nullable_to_non_nullable
+as String?,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
 as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String?,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -159,7 +159,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String url,  String title,  String? description,  String? imageUrl,  String faviconUrl,  String siteName,  String? contentType,  String? author,  DateTime? publishedDate)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String url,  String title,  String? description,  String? imageUrl,  String? faviconUrl,  String? siteName,  String? contentType,  String? author,  DateTime? publishedDate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnScrappedLink() when $default != null:
 return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUrl,_that.faviconUrl,_that.siteName,_that.contentType,_that.author,_that.publishedDate);case _:
@@ -180,7 +180,7 @@ return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUr
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String url,  String title,  String? description,  String? imageUrl,  String faviconUrl,  String siteName,  String? contentType,  String? author,  DateTime? publishedDate)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String url,  String title,  String? description,  String? imageUrl,  String? faviconUrl,  String? siteName,  String? contentType,  String? author,  DateTime? publishedDate)  $default,) {final _that = this;
 switch (_that) {
 case _SnScrappedLink():
 return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUrl,_that.faviconUrl,_that.siteName,_that.contentType,_that.author,_that.publishedDate);}
@@ -197,7 +197,7 @@ return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUr
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String url,  String title,  String? description,  String? imageUrl,  String faviconUrl,  String siteName,  String? contentType,  String? author,  DateTime? publishedDate)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String url,  String title,  String? description,  String? imageUrl,  String? faviconUrl,  String? siteName,  String? contentType,  String? author,  DateTime? publishedDate)?  $default,) {final _that = this;
 switch (_that) {
 case _SnScrappedLink() when $default != null:
 return $default(_that.type,_that.url,_that.title,_that.description,_that.imageUrl,_that.faviconUrl,_that.siteName,_that.contentType,_that.author,_that.publishedDate);case _:
@@ -220,8 +220,8 @@ class _SnScrappedLink implements SnScrappedLink {
 @override final  String title;
 @override final  String? description;
 @override final  String? imageUrl;
-@override final  String faviconUrl;
-@override final  String siteName;
+@override final  String? faviconUrl;
+@override final  String? siteName;
 @override final  String? contentType;
 @override final  String? author;
 @override final  DateTime? publishedDate;
@@ -259,7 +259,7 @@ abstract mixin class _$SnScrappedLinkCopyWith<$Res> implements $SnScrappedLinkCo
   factory _$SnScrappedLinkCopyWith(_SnScrappedLink value, $Res Function(_SnScrappedLink) _then) = __$SnScrappedLinkCopyWithImpl;
 @override @useResult
 $Res call({
- String type, String url, String title, String? description, String? imageUrl, String faviconUrl, String siteName, String? contentType, String? author, DateTime? publishedDate
+ String type, String url, String title, String? description, String? imageUrl, String? faviconUrl, String? siteName, String? contentType, String? author, DateTime? publishedDate
 });
 
 
@@ -276,16 +276,16 @@ class __$SnScrappedLinkCopyWithImpl<$Res>
 
 /// Create a copy of SnScrappedLink
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = freezed,Object? imageUrl = freezed,Object? faviconUrl = null,Object? siteName = null,Object? contentType = freezed,Object? author = freezed,Object? publishedDate = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? url = null,Object? title = null,Object? description = freezed,Object? imageUrl = freezed,Object? faviconUrl = freezed,Object? siteName = freezed,Object? contentType = freezed,Object? author = freezed,Object? publishedDate = freezed,}) {
   return _then(_SnScrappedLink(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
-as String?,faviconUrl: null == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
-as String,siteName: null == siteName ? _self.siteName : siteName // ignore: cast_nullable_to_non_nullable
-as String,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
+as String?,faviconUrl: freezed == faviconUrl ? _self.faviconUrl : faviconUrl // ignore: cast_nullable_to_non_nullable
+as String?,siteName: freezed == siteName ? _self.siteName : siteName // ignore: cast_nullable_to_non_nullable
+as String?,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
 as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String?,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,

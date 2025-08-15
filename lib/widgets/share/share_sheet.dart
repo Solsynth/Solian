@@ -879,7 +879,8 @@ class _LinkPreview extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Favicon and image
-              if (embed.imageUrl != null || embed.faviconUrl.isNotEmpty)
+              if (embed.imageUrl != null ||
+                  (embed.faviconUrl?.isNotEmpty ?? false))
                 Container(
                   width: 60,
                   height: 60,
@@ -899,11 +900,14 @@ class _LinkPreview extends ConsumerWidget {
                               errorBuilder: (context, error, stackTrace) {
                                 return _buildFaviconFallback(
                                   context,
-                                  embed.faviconUrl,
+                                  embed.faviconUrl ?? '',
                                 );
                               },
                             )
-                            : _buildFaviconFallback(context, embed.faviconUrl),
+                            : _buildFaviconFallback(
+                              context,
+                              embed.faviconUrl ?? '',
+                            ),
                   ),
                 ),
               // Content
@@ -912,9 +916,9 @@ class _LinkPreview extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Site name
-                    if (embed.siteName.isNotEmpty)
+                    if (embed.siteName?.isNotEmpty ?? false)
                       Text(
-                        embed.siteName,
+                        embed.siteName!,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                         ),

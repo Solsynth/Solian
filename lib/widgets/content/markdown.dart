@@ -183,9 +183,15 @@ class MarkdownTextContent extends HookConsumerWidget {
                     );
                 }
               }
-              final content = ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: 360),
-                child: UniversalImage(uri: uri.toString(), fit: BoxFit.contain),
+              final content = ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: 360),
+                  child: UniversalImage(
+                    uri: uri.toString(),
+                    fit: BoxFit.contain,
+                  ),
+                ),
               );
               return content;
             },

@@ -13,8 +13,8 @@ _SnScrappedLink _$SnScrappedLinkFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String,
       description: json['description'] as String?,
       imageUrl: json['image_url'] as String?,
-      faviconUrl: json['favicon_url'] as String,
-      siteName: json['site_name'] as String,
+      faviconUrl: json['favicon_url'] as String?,
+      siteName: json['site_name'] as String?,
       contentType: json['content_type'] as String?,
       author: json['author'] as String?,
       publishedDate:

@@ -57,11 +57,11 @@ class EmbedLinkWidget extends StatelessWidget {
                     Row(
                       children: [
                         // Favicon
-                        if (link.faviconUrl.isNotEmpty) ...[
+                        if (link.faviconUrl?.isNotEmpty ?? false) ...[
                           ClipRRect(
                             borderRadius: BorderRadius.circular(4),
                             child: UniversalImage(
-                              uri: link.faviconUrl,
+                              uri: link.faviconUrl!,
                               width: 16,
                               height: 16,
                               fit: BoxFit.cover,
@@ -80,8 +80,8 @@ class EmbedLinkWidget extends StatelessWidget {
                         // Site name
                         Expanded(
                           child: Text(
-                            link.siteName.isNotEmpty
-                                ? link.siteName
+                            (link.siteName?.isNotEmpty ?? false)
+                                ? link.siteName!
                                 : Uri.parse(link.url).host,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
