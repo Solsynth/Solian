@@ -1,44 +1,45 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:developer' as developer;
-import 'dart:io';
-import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gap/gap.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:island/database/drift_db.dart';
-import 'package:island/database/message.dart';
-import 'package:island/models/chat.dart';
-import 'package:island/models/file.dart';
-import 'package:island/pods/config.dart';
-import 'package:island/pods/database.dart';
-import 'package:island/pods/network.dart';
-import 'package:island/pods/websocket.dart';
-import 'package:island/services/file.dart';
-import 'package:island/services/responsive.dart';
-import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/app_scaffold.dart';
-import 'package:island/widgets/chat/call_overlay.dart';
-import 'package:island/widgets/chat/message_item.dart';
-import 'package:island/widgets/content/attachment_preview.dart';
-import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/response.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:pasteboard/pasteboard.dart';
-import 'package:styled_widget/styled_widget.dart';
-import 'package:super_sliver_list/super_sliver_list.dart';
-import 'package:uuid/uuid.dart';
-import 'package:material_symbols_icons/symbols.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'chat.dart';
-import 'package:island/widgets/chat/call_button.dart';
-import 'package:island/widgets/stickers/picker.dart';
+import "dart:async";
+import "dart:convert";
+import "dart:developer" as developer;
+import "dart:io";
+import "package:dio/dio.dart";
+import "package:easy_localization/easy_localization.dart";
+import "package:flutter/foundation.dart";
+import "package:flutter/material.dart";
+import "package:go_router/go_router.dart";
+import "package:flutter/services.dart";
+import "package:flutter_hooks/flutter_hooks.dart";
+import "package:gap/gap.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:image_picker/image_picker.dart";
+import "package:island/database/drift_db.dart";
+import "package:island/database/message.dart";
+import "package:island/models/chat.dart";
+import "package:island/models/file.dart";
+import "package:island/pods/config.dart";
+import "package:island/pods/database.dart";
+import "package:island/pods/network.dart";
+import "package:island/pods/websocket.dart";
+import "package:island/services/file.dart";
+import "package:island/services/responsive.dart";
+import "package:island/widgets/alert.dart";
+import "package:island/widgets/app_scaffold.dart";
+import "package:island/widgets/chat/call_overlay.dart";
+import "package:island/widgets/chat/message_item.dart";
+import "package:island/widgets/content/attachment_preview.dart";
+import "package:island/widgets/content/cloud_files.dart";
+import "package:island/widgets/response.dart";
+import "package:material_symbols_icons/material_symbols_icons.dart";
+import "package:pasteboard/pasteboard.dart";
+import "package:styled_widget/styled_widget.dart";
+import "package:super_sliver_list/super_sliver_list.dart";
+
+import "package:uuid/uuid.dart";
+import "package:material_symbols_icons/symbols.dart";
+import "package:riverpod_annotation/riverpod_annotation.dart";
+import "chat.dart";
+import "package:island/widgets/chat/call_button.dart";
+import "package:island/widgets/stickers/picker.dart";
 
 part 'room.g.dart';
 
@@ -86,6 +87,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   int _currentPage = 0;
   static const int _pageSize = 20;
   bool _hasMore = true;
+  bool _isSyncing = false;
 
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
@@ -100,11 +102,17 @@ class MessagesNotifier extends _$MessagesNotifier {
     _room = room;
     _identity = identity;
 
-    developer.log('MessagesNotifier built for room $roomId', name: 'MessagesNotifier');
+    developer.log(
+      'MessagesNotifier built for room $roomId',
+      name: 'MessagesNotifier',
+    );
 
     ref.listen(appLifecycleStateProvider, (_, next) {
       if (next.hasValue && next.value == AppLifecycleState.resumed) {
-        developer.log('App resumed, syncing messages', name: 'MessagesNotifier');
+        developer.log(
+          'App resumed, syncing messages',
+          name: 'MessagesNotifier',
+        );
         syncMessages();
       }
     });
@@ -116,7 +124,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     int offset = 0,
     int take = 20,
   }) async {
-    developer.log('Getting cached messages from offset $offset, take $take', name: 'MessagesNotifier');
+    developer.log(
+      'Getting cached messages from offset $offset, take $take',
+      name: 'MessagesNotifier',
+    );
     final dbMessages = await _database.getMessagesForRoom(
       _roomId,
       offset: offset,
@@ -127,7 +138,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     if (offset == 0) {
       final pendingForRoom =
-          _pendingMessages.values.where((msg) => msg.roomId == _roomId).toList();
+          _pendingMessages.values
+              .where((msg) => msg.roomId == _roomId)
+              .toList();
 
       final allMessages = [...pendingForRoom, ...dbLocalMessages];
       allMessages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -149,7 +162,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     int offset = 0,
     int take = 20,
   }) async {
-    developer.log('Fetching messages from API, offset $offset, take $take', name: 'MessagesNotifier');
+    developer.log(
+      'Fetching messages from API, offset $offset, take $take',
+      name: 'MessagesNotifier',
+    );
     if (_totalCount == null) {
       final response = await _apiClient.get(
         '/sphere/chat/$_roomId/messages',
@@ -170,13 +186,14 @@ class MessagesNotifier extends _$MessagesNotifier {
     final List<dynamic> data = response.data;
     _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
 
-    final messages = data.map((json) {
-      final remoteMessage = SnChatMessage.fromJson(json);
-      return LocalChatMessage.fromRemoteMessage(
-        remoteMessage,
-        MessageStatus.sent,
-      );
-    }).toList();
+    final messages =
+        data.map((json) {
+          final remoteMessage = SnChatMessage.fromJson(json);
+          return LocalChatMessage.fromRemoteMessage(
+            remoteMessage,
+            MessageStatus.sent,
+          );
+        }).toList();
 
     for (final message in messages) {
       await _database.saveMessage(_database.messageToCompanion(message));
@@ -191,6 +208,15 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> syncMessages() async {
+    if (_isSyncing) {
+      developer.log(
+        'Sync already in progress, skipping.',
+        name: 'MessagesNotifier',
+      );
+      return;
+    }
+    _isSyncing = true;
+
     developer.log('Starting message sync', name: 'MessagesNotifier');
     ref.read(isSyncingProvider.notifier).state = true;
     try {
@@ -200,11 +226,19 @@ class MessagesNotifier extends _$MessagesNotifier {
         limit: 1,
       );
       final lastMessage =
-          dbMessages.isEmpty ? null : _database.companionToMessage(dbMessages.first);
+          dbMessages.isEmpty
+              ? null
+              : _database.companionToMessage(dbMessages.first);
 
       if (lastMessage == null) {
-        developer.log('No local messages, fetching from network', name: 'MessagesNotifier');
-        final newMessages = await _fetchAndCacheMessages(offset: 0, take: _pageSize);
+        developer.log(
+          'No local messages, fetching from network',
+          name: 'MessagesNotifier',
+        );
+        final newMessages = await _fetchAndCacheMessages(
+          offset: 0,
+          take: _pageSize,
+        );
         state = AsyncValue.data(newMessages);
         return;
       }
@@ -218,7 +252,10 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       final response = MessageSyncResponse.fromJson(resp.data);
-      developer.log('Sync response: ${response.changes.length} changes', name: 'MessagesNotifier');
+      developer.log(
+        'Sync response: ${response.changes.length} changes',
+        name: 'MessagesNotifier',
+      );
       for (final change in response.changes) {
         switch (change.action) {
           case MessageChangeAction.create:
@@ -233,11 +270,17 @@ class MessagesNotifier extends _$MessagesNotifier {
         }
       }
     } catch (err, stackTrace) {
-      developer.log('Error syncing messages', name: 'MessagesNotifier', error: err, stackTrace: stackTrace);
+      developer.log(
+        'Error syncing messages',
+        name: 'MessagesNotifier',
+        error: err,
+        stackTrace: stackTrace,
+      );
       showErrorAlert(err);
     } finally {
       developer.log('Finished message sync', name: 'MessagesNotifier');
       ref.read(isSyncingProvider.notifier).state = false;
+      _isSyncing = false;
     }
   }
 
@@ -279,7 +322,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<List<LocalChatMessage>> loadInitial() async {
     developer.log('Loading initial messages', name: 'MessagesNotifier');
     syncMessages();
-    final messages = await _getCachedMessages(offset: 0, take: _pageSize);
+    final messages = await _getCachedMessages(offset: 0, take: 100);
     _currentPage = 0;
     _hasMore = messages.length == _pageSize;
     return messages;
@@ -303,7 +346,12 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       state = AsyncValue.data([...currentMessages, ...newMessages]);
     } catch (err, stackTrace) {
-      developer.log('Error loading more messages', name: 'MessagesNotifier', error: err, stackTrace: stackTrace);
+      developer.log(
+        'Error loading more messages',
+        name: 'MessagesNotifier',
+        error: err,
+        stackTrace: stackTrace,
+      );
       showErrorAlert(err);
       _currentPage--;
     }
@@ -318,7 +366,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     Function(String, Map<int, double>)? onProgress,
   }) async {
     final nonce = const Uuid().v4();
-    developer.log('Sending message with nonce $nonce', name: 'MessagesNotifier');
+    developer.log(
+      'Sending message with nonce $nonce',
+      name: 'MessagesNotifier',
+    );
     final baseUrl = ref.read(serverUrlProvider);
     final token = await getToken(ref.watch(tokenProvider));
     if (token == null) throw ArgumentError('Access token is null');
@@ -349,26 +400,28 @@ class MessagesNotifier extends _$MessagesNotifier {
     try {
       var cloudAttachments = List.empty(growable: true);
       for (var idx = 0; idx < attachments.length; idx++) {
-        final cloudFile = await putMediaToCloud(
-          fileData: attachments[idx],
-          atk: token,
-          baseUrl: baseUrl,
-          filename: attachments[idx].data.name ?? 'Post media',
-          mimetype: attachments[idx].data.mimeType ??
-              switch (attachments[idx].type) {
-                UniversalFileType.image => 'image/unknown',
-                UniversalFileType.video => 'video/unknown',
-                UniversalFileType.audio => 'audio/unknown',
-                UniversalFileType.file => 'application/octet-stream',
+        final cloudFile =
+            await putMediaToCloud(
+              fileData: attachments[idx],
+              atk: token,
+              baseUrl: baseUrl,
+              filename: attachments[idx].data.name ?? 'Post media',
+              mimetype:
+                  attachments[idx].data.mimeType ??
+                  switch (attachments[idx].type) {
+                    UniversalFileType.image => 'image/unknown',
+                    UniversalFileType.video => 'video/unknown',
+                    UniversalFileType.audio => 'audio/unknown',
+                    UniversalFileType.file => 'application/octet-stream',
+                  },
+              onProgress: (progress, _) {
+                _fileUploadProgress[localMessage.id]?[idx] = progress;
+                onProgress?.call(
+                  localMessage.id,
+                  _fileUploadProgress[localMessage.id] ?? {},
+                );
               },
-          onProgress: (progress, _) {
-            _fileUploadProgress[localMessage.id]?[idx] = progress;
-            onProgress?.call(
-              localMessage.id,
-              _fileUploadProgress[localMessage.id] ?? {},
-            );
-          },
-        ).future;
+            ).future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }
@@ -400,35 +453,48 @@ class MessagesNotifier extends _$MessagesNotifier {
       await _database.deleteMessage(localMessage.id);
       await _database.saveMessage(_database.messageToCompanion(updatedMessage));
 
-      final newMessages = (state.value ?? []).map((m) {
-        if (m.id == localMessage.id) {
-          return updatedMessage;
-        }
-        return m;
-      }).toList();
+      final newMessages =
+          (state.value ?? []).map((m) {
+            if (m.id == localMessage.id) {
+              return updatedMessage;
+            }
+            return m;
+          }).toList();
       state = AsyncValue.data(newMessages);
-      developer.log('Message with nonce $nonce sent successfully', name: 'MessagesNotifier');
+      developer.log(
+        'Message with nonce $nonce sent successfully',
+        name: 'MessagesNotifier',
+      );
     } catch (e, stackTrace) {
-      developer.log('Failed to send message with nonce $nonce', name: 'MessagesNotifier', error: e, stackTrace: stackTrace);
+      developer.log(
+        'Failed to send message with nonce $nonce',
+        name: 'MessagesNotifier',
+        error: e,
+        stackTrace: stackTrace,
+      );
       localMessage.status = MessageStatus.failed;
       _pendingMessages[localMessage.id] = localMessage;
       await _database.updateMessageStatus(
         localMessage.id,
         MessageStatus.failed,
       );
-      final newMessages = (state.value ?? []).map((m) {
-        if (m.id == localMessage.id) {
-          return m..status = MessageStatus.failed;
-        }
-        return m;
-      }).toList();
+      final newMessages =
+          (state.value ?? []).map((m) {
+            if (m.id == localMessage.id) {
+              return m..status = MessageStatus.failed;
+            }
+            return m;
+          }).toList();
       state = AsyncValue.data(newMessages);
       showErrorAlert(e);
     }
   }
 
   Future<void> retryMessage(String pendingMessageId) async {
-    developer.log('Retrying message $pendingMessageId', name: 'MessagesNotifier');
+    developer.log(
+      'Retrying message $pendingMessageId',
+      name: 'MessagesNotifier',
+    );
     final message = await fetchMessageById(pendingMessageId);
     if (message == null) {
       throw Exception('Message not found');
@@ -463,27 +529,34 @@ class MessagesNotifier extends _$MessagesNotifier {
       await _database.deleteMessage(pendingMessageId);
       await _database.saveMessage(_database.messageToCompanion(updatedMessage));
 
-      final newMessages = (state.value ?? []).map((m) {
-        if (m.id == pendingMessageId) {
-          return updatedMessage;
-        }
-        return m;
-      }).toList();
+      final newMessages =
+          (state.value ?? []).map((m) {
+            if (m.id == pendingMessageId) {
+              return updatedMessage;
+            }
+            return m;
+          }).toList();
       state = AsyncValue.data(newMessages);
     } catch (e, stackTrace) {
-      developer.log('Failed to retry message $pendingMessageId', name: 'MessagesNotifier', error: e, stackTrace: stackTrace);
+      developer.log(
+        'Failed to retry message $pendingMessageId',
+        name: 'MessagesNotifier',
+        error: e,
+        stackTrace: stackTrace,
+      );
       message.status = MessageStatus.failed;
       _pendingMessages[pendingMessageId] = message;
       await _database.updateMessageStatus(
         pendingMessageId,
         MessageStatus.failed,
       );
-      final newMessages = (state.value ?? []).map((m) {
-        if (m.id == pendingMessageId) {
-          return m..status = MessageStatus.failed;
-        }
-        return m;
-      }).toList();
+      final newMessages =
+          (state.value ?? []).map((m) {
+            if (m.id == pendingMessageId) {
+              return m..status = MessageStatus.failed;
+            }
+            return m;
+          }).toList();
       state = AsyncValue.data(newMessages);
       showErrorAlert(e);
     }
@@ -491,7 +564,10 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> receiveMessage(SnChatMessage remoteMessage) async {
     if (remoteMessage.chatRoomId != _roomId) return;
-    developer.log('Received new message ${remoteMessage.id}', name: 'MessagesNotifier');
+    developer.log(
+      'Received new message ${remoteMessage.id}',
+      name: 'MessagesNotifier',
+    );
 
     final localMessage = LocalChatMessage.fromRemoteMessage(
       remoteMessage,
@@ -524,7 +600,10 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {
     if (remoteMessage.chatRoomId != _roomId) return;
-    developer.log('Received message update ${remoteMessage.id}', name: 'MessagesNotifier');
+    developer.log(
+      'Received message update ${remoteMessage.id}',
+      name: 'MessagesNotifier',
+    );
 
     final updatedMessage = LocalChatMessage.fromRemoteMessage(
       remoteMessage,
@@ -533,9 +612,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     await _database.updateMessage(_database.messageToCompanion(updatedMessage));
 
     final currentMessages = state.value ?? [];
-    final index = currentMessages.indexWhere(
-      (m) => m.id == updatedMessage.id,
-    );
+    final index = currentMessages.indexWhere((m) => m.id == updatedMessage.id);
 
     if (index >= 0) {
       final newList = [...currentMessages];
@@ -545,7 +622,10 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> receiveMessageDeletion(String messageId) async {
-    developer.log('Received message deletion $messageId', name: 'MessagesNotifier');
+    developer.log(
+      'Received message deletion $messageId',
+      name: 'MessagesNotifier',
+    );
     _pendingMessages.remove(messageId);
     await _database.deleteMessage(messageId);
 
@@ -564,17 +644,25 @@ class MessagesNotifier extends _$MessagesNotifier {
       await _apiClient.delete('/sphere/chat/$_roomId/messages/$messageId');
       await receiveMessageDeletion(messageId);
     } catch (err, stackTrace) {
-      developer.log('Error deleting message $messageId', name: 'MessagesNotifier', error: err, stackTrace: stackTrace);
+      developer.log(
+        'Error deleting message $messageId',
+        name: 'MessagesNotifier',
+        error: err,
+        stackTrace: stackTrace,
+      );
       showErrorAlert(err);
     }
   }
 
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
-    developer.log('Fetching message by id $messageId', name: 'MessagesNotifier');
+    developer.log(
+      'Fetching message by id $messageId',
+      name: 'MessagesNotifier',
+    );
     try {
-      final localMessage = await (_database.select(_database.chatMessages)
-            ..where((tbl) => tbl.id.equals(messageId)))
-          .getSingleOrNull();
+      final localMessage =
+          await (_database.select(_database.chatMessages)
+            ..where((tbl) => tbl.id.equals(messageId))).getSingleOrNull();
       if (localMessage != null) {
         return _database.companionToMessage(localMessage);
       }
@@ -617,52 +705,53 @@ class ChatRoomScreen extends HookConsumerWidget {
       return AppScaffold(
         appBar: AppBar(leading: const PageBackButton()),
         body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 280),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  chatRoom.value?.isCommunity == true
-                      ? Symbols.person_add
-                      : Symbols.person_remove,
-                  size: 36,
-                  fill: 1,
-                ).padding(bottom: 4),
-                Text('chatNotJoined').tr(),
-                if (chatRoom.value?.isCommunity != true)
-                  Text(
-                    'chatUnableJoin',
-                    textAlign: TextAlign.center,
-                  ).tr().bold()
-                else
-                  FilledButton.tonalIcon(
-                    onPressed: () async {
-                      try {
-                        showLoadingModal(context);
-                        final apiClient = ref.read(apiClientProvider);
-                        if (chatRoom.value == null) {
-                          hideLoadingModal(context);
-                          return;
-                        }
+          child:
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 280),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      chatRoom.value?.isCommunity == true
+                          ? Symbols.person_add
+                          : Symbols.person_remove,
+                      size: 36,
+                      fill: 1,
+                    ).padding(bottom: 4),
+                    Text('chatNotJoined').tr(),
+                    if (chatRoom.value?.isCommunity != true)
+                      Text(
+                        'chatUnableJoin',
+                        textAlign: TextAlign.center,
+                      ).tr().bold()
+                    else
+                      FilledButton.tonalIcon(
+                        onPressed: () async {
+                          try {
+                            showLoadingModal(context);
+                            final apiClient = ref.read(apiClientProvider);
+                            if (chatRoom.value == null) {
+                              hideLoadingModal(context);
+                              return;
+                            }
 
-                        await apiClient.post(
-                          '/sphere/chat/${chatRoom.value!.id}/members/me',
-                        );
-                        ref.invalidate(chatroomIdentityProvider(id));
-                      } catch (err) {
-                        showErrorAlert(err);
-                      } finally {
-                        if (context.mounted) hideLoadingModal(context);
-                      }
-                    },
-                    label: Text('chatJoin').tr(),
-                    icon: const Icon(Icons.add),
-                  ).padding(top: 8),
-              ],
-            ),
-          ).center(),
+                            await apiClient.post(
+                              '/sphere/chat/${chatRoom.value!.id}/members/me',
+                            );
+                            ref.invalidate(chatroomIdentityProvider(id));
+                          } catch (err) {
+                            showErrorAlert(err);
+                          } finally {
+                            if (context.mounted) hideLoadingModal(context);
+                          }
+                        },
+                        label: Text('chatJoin').tr(),
+                        icon: const Icon(Icons.add),
+                      ).padding(top: 8),
+                  ],
+                ),
+              ).center(),
         ),
       );
     }
@@ -726,11 +815,13 @@ class ChatRoomScreen extends HookConsumerWidget {
         if (typingStatuses.value.isNotEmpty) {
           // Remove typing statuses older than 5 seconds
           final now = DateTime.now();
-          typingStatuses.value = typingStatuses.value.where((member) {
-            final lastTyped = member.lastTyped ??
-                DateTime.now().subtract(const Duration(milliseconds: 1350));
-            return now.difference(lastTyped).inSeconds < 5;
-          }).toList();
+          typingStatuses.value =
+              typingStatuses.value.where((member) {
+                final lastTyped =
+                    member.lastTyped ??
+                    DateTime.now().subtract(const Duration(milliseconds: 1350));
+                return now.difference(lastTyped).inSeconds < 5;
+              }).toList();
         }
       });
 
@@ -742,7 +833,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     // Add scroll listener for pagination
     useEffect(() {
       void onScroll() {
-        if (scrollController.position.pixels >= 
+        if (scrollController.position.pixels >=
             scrollController.position.maxScrollExtent - 200) {
           if (isLoading) return;
           isLoading = true;
@@ -895,87 +986,179 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final listController = useMemoized(() => ListController(), []);
 
+    Widget comfortHeaderWidget(SnChatRoom? room) => Column(
+      spacing: 4,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          height: 26,
+          width: 26,
+          child:
+              (room!.type == 1 && room.picture?.id == null)
+                  ? SplitAvatarWidget(
+                    filesId:
+                        room.members!
+                            .map((e) => e.account.profile.picture?.id)
+                            .toList(),
+                  )
+                  : room.picture?.id != null
+                  ? ProfilePictureWidget(
+                    fileId: room.picture?.id,
+                    fallbackIcon: Symbols.chat,
+                  )
+                  : CircleAvatar(
+                    child: Text(
+                      room.name![0].toUpperCase(),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+        ),
+        Text(
+          (room.type == 1 && room.name == null)
+              ? room.members!.map((e) => e.account.nick).join(', ')
+              : room.name!,
+        ).fontSize(15),
+      ],
+    );
+
+    Widget compactHeaderWidget(SnChatRoom? room) => Row(
+      spacing: 8,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          height: 26,
+          width: 26,
+          child:
+              (room!.type == 1 && room.picture?.id == null)
+                  ? SplitAvatarWidget(
+                    filesId:
+                        room.members!
+                            .map((e) => e.account.profile.picture?.id)
+                            .toList(),
+                  )
+                  : room.picture?.id != null
+                  ? ProfilePictureWidget(
+                    fileId: room.picture?.id,
+                    fallbackIcon: Symbols.chat,
+                  )
+                  : CircleAvatar(
+                    child: Text(
+                      room.name![0].toUpperCase(),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+        ),
+        Text(
+          (room.type == 1 && room.name == null)
+              ? room.members!.map((e) => e.account.nick).join(', ')
+              : room.name!,
+        ).fontSize(19),
+      ],
+    );
+
+    Widget chatMessageListWidget(List<LocalChatMessage> messageList) =>
+        SuperListView.builder(
+          listController: listController,
+          padding: EdgeInsets.symmetric(vertical: 16),
+          controller: scrollController,
+          reverse: true, // Show newest messages at the bottom
+          itemCount: messageList.length,
+          findChildIndexCallback: (key) {
+            final valueKey = key as ValueKey;
+            final messageId = valueKey.value as String;
+            return messageList.indexWhere((m) => m.id == messageId);
+          },
+          extentEstimation: (_, _) => 40,
+          itemBuilder: (context, index) {
+            final message = messageList[index];
+            final nextMessage =
+                index < messageList.length - 1 ? messageList[index + 1] : null;
+            final isLastInGroup =
+                nextMessage == null ||
+                nextMessage.senderId != message.senderId ||
+                nextMessage.createdAt
+                        .difference(message.createdAt)
+                        .inMinutes
+                        .abs() >
+                    3;
+
+            return chatIdentity.when(
+              skipError: true,
+              data:
+                  (identity) => MessageItem(
+                    key: ValueKey(message.id),
+                    message: message,
+                    isCurrentUser: identity?.id == message.senderId,
+                    onAction: (action) {
+                      switch (action) {
+                        case MessageItemAction.delete:
+                          messagesNotifier.deleteMessage(message.id);
+                        case MessageItemAction.edit:
+                          messageEditingTo.value = message.toRemoteMessage();
+                          messageController.text =
+                              messageEditingTo.value?.content ?? '';
+                          attachments.value =
+                              messageEditingTo.value!.attachments
+                                  .map((e) => UniversalFile.fromAttachment(e))
+                                  .toList();
+                        case MessageItemAction.forward:
+                          messageForwardingTo.value = message.toRemoteMessage();
+                        case MessageItemAction.reply:
+                          messageReplyingTo.value = message.toRemoteMessage();
+                      }
+                    },
+                    onJump: (messageId) {
+                      final messageIndex = messageList.indexWhere(
+                        (m) => m.id == messageId,
+                      );
+                      if (messageIndex == -1) {
+                        showSnackBar('messageJumpNotLoaded'.tr());
+                        return;
+                      }
+                      listController.animateToItem(
+                        index: messageIndex,
+                        scrollController: scrollController,
+                        alignment: 0.5,
+                        duration:
+                            (estimatedDistance) => Duration(milliseconds: 250),
+                        curve: (estimatedDistance) => Curves.easeInOut,
+                      );
+                    },
+                    progress: attachmentProgress.value[message.id],
+                    showAvatar: isLastInGroup,
+                  ),
+              loading:
+                  () => MessageItem(
+                    message: message,
+                    isCurrentUser: false,
+                    onAction: null,
+                    progress: null,
+                    showAvatar: false,
+                    onJump: (_) {},
+                  ),
+              error: (_, _) => const SizedBox.shrink(),
+            );
+          },
+        );
+
     return AppScaffold(
       appBar: AppBar(
         leading: !compactHeader ? const Center(child: PageBackButton()) : null,
         automaticallyImplyLeading: false,
         toolbarHeight: compactHeader ? null : 64,
         title: chatRoom.when(
-          data: (room) => compactHeader
-              ? Row(
-                  spacing: 8,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 26,
-                      width: 26,
-                      child: (room!.type == 1 && room.picture?.id == null)
-                          ? SplitAvatarWidget(
-                              filesId: room.members!
-                                  .map(
-                                    (e) => e.account.profile.picture?.id,
-                                  )
-                                  .toList(),
-                            )
-                          : room.picture?.id != null
-                              ? ProfilePictureWidget(
-                                  fileId: room.picture?.id,
-                                  fallbackIcon: Symbols.chat,
-                                )
-                              : CircleAvatar(
-                                  child: Text(
-                                    room.name![0].toUpperCase(),
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                    ),
-                    Text(
-                      (room.type == 1 && room.name == null)
-                          ? room.members!.map((e) => e.account.nick).join(', ')
-                          : room.name!,
-                    ).fontSize(19),
-                  ],
-                )
-              : Column(
-                  spacing: 4,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 26,
-                      width: 26,
-                      child: (room!.type == 1 && room.picture?.id == null)
-                          ? SplitAvatarWidget(
-                              filesId: room.members!
-                                  .map(
-                                    (e) => e.account.profile.picture?.id,
-                                  )
-                                  .toList(),
-                            )
-                          : room.picture?.id != null
-                              ? ProfilePictureWidget(
-                                  fileId: room.picture?.id,
-                                  fallbackIcon: Symbols.chat,
-                                )
-                              : CircleAvatar(
-                                  child: Text(
-                                    room.name![0].toUpperCase(),
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                    ),
-                    Text(
-                      (room.type == 1 && room.name == null)
-                          ? room.members!.map((e) => e.account.nick).join(', ')
-                          : room.name!,
-                    ).fontSize(15),
-                  ],
-                ),
+          data:
+              (room) =>
+                  compactHeader
+                      ? compactHeaderWidget(room)
+                      : comfortHeaderWidget(room),
           loading: () => const Text('Loading...'),
-          error: (err, _) => ResponseErrorWidget(
-            error: err,
-            onRetry: () => messagesNotifier.loadInitial(),
-          ),
+          error:
+              (err, _) => ResponseErrorWidget(
+                error: err,
+                onRetry: () => messagesNotifier.loadInitial(),
+              ),
         ),
         actions: [
           AudioCallButton(roomId: id),
@@ -987,12 +1170,15 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           const Gap(8),
         ],
-        bottom: isSyncing
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(4.0),
-                child: LinearProgressIndicator(),
-              )
-            : null,
+        bottom:
+            isSyncing
+                ? const PreferredSize(
+                  preferredSize: Size.fromHeight(2),
+                  child: LinearProgressIndicator(
+                    borderRadius: BorderRadius.zero,
+                  ),
+                )
+                : null,
       ),
       body: Stack(
         children: [
@@ -1000,226 +1186,150 @@ class ChatRoomScreen extends HookConsumerWidget {
             children: [
               Expanded(
                 child: messages.when(
-                  data: (messageList) => messageList.isEmpty
-                      ? Center(child: Text('No messages yet'.tr()))
-                      : SuperListView.builder(
-                          listController: listController,
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          controller: scrollController,
-                          reverse: true, // Show newest messages at the bottom
-                          itemCount: messageList.length,
-                          findChildIndexCallback: (key) {
-                            final valueKey = key as ValueKey;
-                            final messageId = valueKey.value as String;
-                            return messageList.indexWhere(
-                              (m) => m.id == messageId,
-                            );
-                          },
-                          itemBuilder: (context, index) {
-                            final message = messageList[index];
-                            final nextMessage = index < messageList.length - 1
-                                ? messageList[index + 1]
-                                : null;
-                            final isLastInGroup = nextMessage == null ||
-                                nextMessage.senderId != message.senderId ||
-                                nextMessage.createdAt
-                                        .difference(message.createdAt)
-                                        .inMinutes
-                                        .abs() >
-                                    3;
-
-                            return chatIdentity.when(
-                              skipError: true,
-                              data: (identity) => MessageItem(
-                                key: ValueKey(message.id),
-                                message: message,
-                                isCurrentUser: identity?.id == message.senderId,
-                                onAction: (action) {
-                                  switch (action) {
-                                    case MessageItemAction.delete:
-                                      messagesNotifier.deleteMessage(
-                                        message.id,
-                                      );
-                                    case MessageItemAction.edit:
-                                      messageEditingTo.value =
-                                          message.toRemoteMessage();
-                                      messageController.text =
-                                          messageEditingTo.value?.content ?? '';
-                                      attachments.value = messageEditingTo
-                                          .value!.attachments
-                                          .map(
-                                            (e) => UniversalFile.fromAttachment(
-                                              e,
-                                            ),
-                                          )
-                                          .toList();
-                                    case MessageItemAction.forward:
-                                      messageForwardingTo.value =
-                                          message.toRemoteMessage();
-                                    case MessageItemAction.reply:
-                                      messageReplyingTo.value =
-                                          message.toRemoteMessage();
-                                  }
-                                },
-                                onJump: (messageId) {
-                                  final messageIndex = messageList.indexWhere(
-                                    (m) => m.id == messageId,
-                                  );
-                                  listController.jumpToItem(
-                                    index: messageIndex,
-                                    scrollController:
-                                        scrollController,
-                                    alignment: 0.5,
-                                  );
-                                },
-                                progress: attachmentProgress.value[message.id],
-                                showAvatar: isLastInGroup,
-                              ),
-                              loading: () => MessageItem(
-                                message: message,
-                                isCurrentUser: false,
-                                onAction: null,
-                                progress: null,
-                                showAvatar: false,
-                                onJump: (_) {},
-                              ),
-                              error: (_, _) => const SizedBox.shrink(),
-                            );
-                          },
-                        ),
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => ResponseErrorWidget(
-                    error: error,
-                    onRetry: () => messagesNotifier.loadInitial(),
-                  ),
+                  data:
+                      (messageList) =>
+                          messageList.isEmpty
+                              ? Center(child: Text('No messages yet'.tr()))
+                              : chatMessageListWidget(messageList),
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error:
+                      (error, _) => ResponseErrorWidget(
+                        error: error,
+                        onRetry: () => messagesNotifier.loadInitial(),
+                      ),
                 ),
               ),
               chatRoom.when(
-                data: (room) => Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 150),
-                      switchInCurve: Curves.fastEaseInToSlowEaseOut,
-                      switchOutCurve: Curves.fastEaseInToSlowEaseOut,
-                      transitionBuilder: (
-                        Widget child,
-                        Animation<double> animation,
-                      ) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, -0.3),
-                            end: Offset.zero,
-                          ).animate(
-                            CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeOutCubic,
-                            ),
-                          ),
-                          child: SizeTransition(
-                            sizeFactor: animation,
-                            axisAlignment: -1.0,
-                            child: FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
-                          ),
-                        );
-                      },
-                      child: typingStatuses.value.isNotEmpty
-                          ? Container(
-                              key: const ValueKey('typing-indicator'),
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 4,
+                data:
+                    (room) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 150),
+                          switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                          switchOutCurve: Curves.fastEaseInToSlowEaseOut,
+                          transitionBuilder: (
+                            Widget child,
+                            Animation<double> animation,
+                          ) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, -0.3),
+                                end: Offset.zero,
+                              ).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOutCubic,
+                                ),
                               ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Symbols.more_horiz,
-                                    size: 16,
-                                  ).padding(horizontal: 8),
-                                  const Gap(8),
-                                  Expanded(
-                                    child: Text(
-                                      'typingHint'.plural(
-                                        typingStatuses.value.length,
-                                        args: [
-                                          typingStatuses.value
-                                              .map(
-                                                (x) =>
-                                                    x.nick ?? x.account.nick,
-                                              )
-                                              .join(', '),
-                                        ],
-                                      ),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
+                              child: SizeTransition(
+                                sizeFactor: animation,
+                                axisAlignment: -1.0,
+                                child: FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                ),
+                              ),
+                            );
+                          },
+                          child:
+                              typingStatuses.value.isNotEmpty
+                                  ? Container(
+                                    key: const ValueKey('typing-indicator'),
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 4,
                                     ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Symbols.more_horiz,
+                                          size: 16,
+                                        ).padding(horizontal: 8),
+                                        const Gap(8),
+                                        Expanded(
+                                          child: Text(
+                                            'typingHint'.plural(
+                                              typingStatuses.value.length,
+                                              args: [
+                                                typingStatuses.value
+                                                    .map(
+                                                      (x) =>
+                                                          x.nick ??
+                                                          x.account.nick,
+                                                    )
+                                                    .join(', '),
+                                              ],
+                                            ),
+                                            style:
+                                                Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                  : const SizedBox.shrink(
+                                    key: ValueKey('typing-indicator-none'),
                                   ),
-                                ],
-                              ),
-                            )
-                          : const SizedBox.shrink(
-                              key: ValueKey('typing-indicator-none'),
-                            ),
+                        ),
+                        _ChatInput(
+                          messageController: messageController,
+                          chatRoom: room!,
+                          onSend: sendMessage,
+                          onClear: () {
+                            if (messageEditingTo.value != null) {
+                              attachments.value.clear();
+                              messageController.clear();
+                            }
+                            messageEditingTo.value = null;
+                            messageReplyingTo.value = null;
+                            messageForwardingTo.value = null;
+                          },
+                          messageEditingTo: messageEditingTo.value,
+                          messageReplyingTo: messageReplyingTo.value,
+                          messageForwardingTo: messageForwardingTo.value,
+                          onPickFile: (bool isPhoto) {
+                            if (isPhoto) {
+                              pickPhotoMedia();
+                            } else {
+                              pickVideoMedia();
+                            }
+                          },
+                          attachments: attachments.value,
+                          onUploadAttachment: (_) {
+                            // not going to do anything, only upload when send the message
+                          },
+                          onDeleteAttachment: (index) async {
+                            final attachment = attachments.value[index];
+                            if (attachment.isOnCloud) {
+                              final client = ref.watch(apiClientProvider);
+                              await client.delete(
+                                '/drive/files/${attachment.data.id}',
+                              );
+                            }
+                            final clone = List.of(attachments.value);
+                            clone.removeAt(index);
+                            attachments.value = clone;
+                          },
+                          onMoveAttachment: (idx, delta) {
+                            if (idx + delta < 0 ||
+                                idx + delta >= attachments.value.length) {
+                              return;
+                            }
+                            final clone = List.of(attachments.value);
+                            clone.insert(idx + delta, clone.removeAt(idx));
+                            attachments.value = clone;
+                          },
+                          onAttachmentsChanged: (newAttachments) {
+                            attachments.value = newAttachments;
+                          },
+                        ),
+                      ],
                     ),
-                    _ChatInput(
-                      messageController: messageController,
-                      chatRoom: room!,
-                      onSend: sendMessage,
-                      onClear: () {
-                        if (messageEditingTo.value != null) {
-                          attachments.value.clear();
-                          messageController.clear();
-                        }
-                        messageEditingTo.value = null;
-                        messageReplyingTo.value = null;
-                        messageForwardingTo.value = null;
-                      },
-                      messageEditingTo: messageEditingTo.value,
-                      messageReplyingTo: messageReplyingTo.value,
-                      messageForwardingTo: messageForwardingTo.value,
-                      onPickFile: (bool isPhoto) {
-                        if (isPhoto) {
-                          pickPhotoMedia();
-                        } else {
-                          pickVideoMedia();
-                        }
-                      },
-                      attachments: attachments.value,
-                      onUploadAttachment: (_) {
-                        // not going to do anything, only upload when send the message
-                      },
-                      onDeleteAttachment: (index) async {
-                        final attachment = attachments.value[index];
-                        if (attachment.isOnCloud) {
-                          final client = ref.watch(apiClientProvider);
-                          await client.delete(
-                            '/drive/files/${attachment.data.id}',
-                          );
-                        }
-                        final clone = List.of(attachments.value);
-                        clone.removeAt(index);
-                        attachments.value = clone;
-                      },
-                      onMoveAttachment: (idx, delta) {
-                        if (idx + delta < 0 ||
-                            idx + delta >= attachments.value.length) {
-                          return;
-                        }
-                        final clone = List.of(attachments.value);
-                        clone.insert(idx + delta, clone.removeAt(idx));
-                        attachments.value = clone;
-                      },
-                      onAttachmentsChanged: (newAttachments) {
-                        attachments.value = newAttachments;
-                      },
-                    ),
-                  ],
-                ),
                 error: (_, _) => const SizedBox.shrink(),
                 loading: () => const SizedBox.shrink(),
               ),
@@ -1370,8 +1480,8 @@ class _ChatInput extends HookConsumerWidget {
                     messageReplyingTo != null
                         ? Symbols.reply
                         : messageForwardingTo != null
-                            ? Symbols.forward
-                            : Symbols.edit,
+                        ? Symbols.forward
+                        : Symbols.edit,
                     size: 20,
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -1381,8 +1491,8 @@ class _ChatInput extends HookConsumerWidget {
                       messageReplyingTo != null
                           ? 'Replying to ${messageReplyingTo?.sender.account.nick}'
                           : messageForwardingTo != null
-                              ? 'Forwarding message'
-                              : 'Editing message',
+                          ? 'Forwarding message'
+                          : 'Editing message',
                       style: Theme.of(context).textTheme.bodySmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1423,11 +1533,14 @@ class _ChatInput extends HookConsumerWidget {
                             // Insert placeholder at current cursor position
                             final text = messageController.text;
                             final selection = messageController.selection;
-                            final start = selection.start >= 0
-                                ? selection.start
-                                : text.length;
+                            final start =
+                                selection.start >= 0
+                                    ? selection.start
+                                    : text.length;
                             final end =
-                                selection.end >= 0 ? selection.end : text.length;
+                                selection.end >= 0
+                                    ? selection.end
+                                    : text.length;
                             final newText = text.replaceRange(
                               start,
                               end,
@@ -1445,28 +1558,29 @@ class _ChatInput extends HookConsumerWidget {
                     ),
                     PopupMenuButton(
                       icon: const Icon(Symbols.photo_library),
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          onTap: () => onPickFile(true),
-                          child: Row(
-                            spacing: 12,
-                            children: [
-                              const Icon(Symbols.photo),
-                              Text('addPhoto').tr(),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          onTap: () => onPickFile(false),
-                          child: Row(
-                            spacing: 12,
-                            children: [
-                              const Icon(Symbols.video_call),
-                              Text('addVideo').tr(),
-                            ],
-                          ),
-                        ),
-                      ],
+                      itemBuilder:
+                          (context) => [
+                            PopupMenuItem(
+                              onTap: () => onPickFile(true),
+                              child: Row(
+                                spacing: 12,
+                                children: [
+                                  const Icon(Symbols.photo),
+                                  Text('addPhoto').tr(),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              onTap: () => onPickFile(false),
+                              child: Row(
+                                spacing: 12,
+                                children: [
+                                  const Icon(Symbols.video_call),
+                                  Text('addVideo').tr(),
+                                ],
+                              ),
+                            ),
+                          ],
                     ),
                   ],
                 ),
@@ -1480,8 +1594,8 @@ class _ChatInput extends HookConsumerWidget {
                       onSubmitted:
                           (enterToSend && isMobile)
                               ? (_) {
-                                  send();
-                                }
+                                send();
+                              }
                               : null,
                       keyboardType:
                           (enterToSend && isMobile)
@@ -1501,12 +1615,12 @@ class _ChatInput extends HookConsumerWidget {
                         hintText:
                             (chatRoom.type == 1 && chatRoom.name == null)
                                 ? 'chatDirectMessageHint'.tr(
-                                    args: [
-                                      chatRoom.members!
-                                          .map((e) => e.account.nick)
-                                          .join(', '),
-                                    ],
-                                  )
+                                  args: [
+                                    chatRoom.members!
+                                        .map((e) => e.account.nick)
+                                        .join(', '),
+                                  ],
+                                )
                                 : 'chatMessageHint'.tr(args: [chatRoom.name!]),
                         border: InputBorder.none,
                         isDense: true,
@@ -1516,8 +1630,8 @@ class _ChatInput extends HookConsumerWidget {
                         ),
                       ),
                       maxLines: null,
-                      onTapOutside: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside:
+                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                   ),
                 ),
