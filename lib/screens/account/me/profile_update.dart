@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -568,6 +569,7 @@ class UpdateProfileScreen extends HookConsumerWidget {
                     children: [
                       for (var i = 0; i < links.value.length; i++)
                         Row(
+                          key: ValueKey(links.value[i].hashCode),
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Expanded(
@@ -610,8 +612,10 @@ class UpdateProfileScreen extends HookConsumerWidget {
                             IconButton(
                               icon: const Icon(Symbols.delete),
                               onPressed: () {
-                                links.value = List.from(links.value)
-                                  ..removeAt(i);
+                                links.value =
+                                    links.value
+                                        .whereIndexed((idx, _) => idx != i)
+                                        .toList();
                               },
                             ),
                           ],

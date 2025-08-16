@@ -23,7 +23,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'settings.g.dart';
+part 'account_settings.g.dart';
 
 @riverpod
 Future<List<SnAuthFactor>> authFactors(Ref ref) async {
