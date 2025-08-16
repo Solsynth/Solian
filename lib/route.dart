@@ -71,22 +71,23 @@ Widget _tabPagesTransitionBuilder(
     child: child,
   );
 }
+
 bool get _supportsAnalytics =>
-    kIsWeb || Platform.isAndroid || Platform.isIOS;
+    kIsWeb ||
+    Platform.isAndroid ||
+    Platform.isIOS ||
+    Platform.isMacOS ||
+    Platform.isWindows;
 
 // Provider for the router
 final routerProvider = Provider<GoRouter>((ref) {
-  final observers = <NavigatorObserver>[];
-
-  if (_supportsAnalytics) {
-    final analytics = FirebaseAnalytics.instance;
-    observers.add(FirebaseAnalyticsObserver(analytics: analytics));
-  }
-
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/',
-    observers: observers,
+    observers: [
+      if (_supportsAnalytics)
+        FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+    ],
     routes: [
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
