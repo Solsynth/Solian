@@ -245,7 +245,7 @@ PODS:
     - PromisesObjC (= 2.4.0)
   - receive_sharing_intent (1.8.1):
     - Flutter
-  - record_ios (1.0.0):
+  - record_ios (1.1.0):
     - Flutter
   - SAMKeychain (1.5.3)
   - SDWebImage (5.21.1):
@@ -510,7 +510,7 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   receive_sharing_intent: 222384f00ffe7e952bbfabaa9e3967cb87e5fe00
-  record_ios: fee1c924aa4879b882ebca2b4bce6011bcfc3d8b
+  record_ios: f75fa1d57f840012775c0e93a38a7f3ceea1a374
   SAMKeychain: 483e1c9f32984d50ca961e26818a534283b4cd5c
   SDWebImage: f29024626962457f3470184232766516dee8dfea
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
