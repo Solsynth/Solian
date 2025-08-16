@@ -1,6 +1,8 @@
+import 'dart:io' show Platform;
 import 'package:animations/animations.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
@@ -69,15 +71,22 @@ Widget _tabPagesTransitionBuilder(
     child: child,
   );
 }
+bool get _supportsAnalytics =>
+    kIsWeb || Platform.isAndroid || Platform.isIOS;
 
 // Provider for the router
 final routerProvider = Provider<GoRouter>((ref) {
+  final observers = <NavigatorObserver>[];
+
+  if (_supportsAnalytics) {
+    final analytics = FirebaseAnalytics.instance;
+    observers.add(FirebaseAnalyticsObserver(analytics: analytics));
+  }
+
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/',
-    observers: [
-      FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
-    ],
+    observers: observers,
     routes: [
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
