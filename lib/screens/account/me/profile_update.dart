@@ -169,11 +169,18 @@ class UpdateProfileScreen extends HookConsumerWidget {
             'location': locationController.text,
             'time_zone': timeZoneController.text,
             'birthday': birthday.value?.toUtc().toIso8601String(),
-            'links': links.value,
+            'links':
+                links.value
+                    .where((e) => e.name.isNotEmpty && e.url.isNotEmpty)
+                    .toList(),
           },
         );
         final userNotifier = ref.read(userInfoProvider.notifier);
         userNotifier.fetchUser();
+        links.value =
+            links.value
+                .where((e) => e.name.isNotEmpty && e.url.isNotEmpty)
+                .toList();
       } catch (err) {
         showErrorAlert(err);
       } finally {
