@@ -6,7 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/auth.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/screens/account/me/settings.dart';
+import 'package:island/screens/account/me/account_settings.dart';
 import 'package:island/screens/auth/oidc.native.dart';
 import 'package:island/services/text.dart';
 import 'package:island/services/time.dart';
