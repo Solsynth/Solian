@@ -3,14 +3,17 @@ import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -62,6 +65,10 @@ class NotificationUnreadCountNotifier
     final current = await future;
     state = AsyncData(math.max(current - count, 0));
   }
+
+  void clear() async {
+    state = AsyncData(0);
+  }
 }
 
 @riverpod
@@ -111,8 +118,27 @@ class NotificationScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> markAllRead() async {
+      showLoadingModal(context);
+      final apiClient = ref.watch(apiClientProvider);
+      await apiClient.post('/pusher/notifications/all/read');
+      if (!context.mounted) return;
+      hideLoadingModal(context);
+      ref.invalidate(notificationListNotifierProvider);
+      ref.watch(notificationUnreadCountNotifierProvider.notifier).clear();
+    }
+
     return AppScaffold(
-      appBar: AppBar(title: const Text('notifications').tr()),
+      appBar: AppBar(
+        title: const Text('notifications').tr(),
+        actions: [
+          IconButton(
+            onPressed: markAllRead,
+            icon: const Icon(Symbols.mark_as_unread),
+          ),
+          const Gap(8),
+        ],
+      ),
       body: PagingHelperView(
         provider: notificationListNotifierProvider,
         futureRefreshable: notificationListNotifierProvider.future,
