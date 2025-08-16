@@ -11,6 +11,7 @@ import 'package:island/models/realm.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -29,6 +30,33 @@ import 'package:island/widgets/web_article_card.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'explore.g.dart';
+
+Widget notificationIndicatorWidget(
+  BuildContext context, {
+  required int count,
+  EdgeInsets? margin,
+}) => Card(
+  margin: margin,
+  child: ListTile(
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+    ),
+    leading: const Icon(Symbols.notifications),
+    title: Row(
+      children: [
+        Text('notifications').tr().fontSize(14),
+        const Gap(8),
+        Badge(label: Text(count.toString())),
+      ],
+    ),
+    trailing: const Icon(Symbols.chevron_right),
+    minTileHeight: 40,
+    contentPadding: EdgeInsets.only(left: 16, right: 15),
+    onTap: () {
+      GoRouter.of(context).pushNamed('notifications');
+    },
+  ),
+);
 
 class ExploreScreen extends HookConsumerWidget {
   const ExploreScreen({super.key});
@@ -76,6 +104,10 @@ class ExploreScreen extends HookConsumerWidget {
     }
 
     final user = ref.watch(userInfoProvider);
+
+    final notificationCount = ref.watch(
+      notificationUnreadCountNotifierProvider,
+    );
 
     return AppScaffold(
       isNoBackground: false,
@@ -200,33 +232,51 @@ class ExploreScreen extends HookConsumerWidget {
                 if (user.value != null)
                   Flexible(
                     flex: 2,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          CheckInWidget(
-                            margin: EdgeInsets.only(
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            CheckInWidget(
+                              margin: EdgeInsets.only(
+                                left: 8,
+                                right: 12,
+                                top: 16,
+                              ),
+                              onChecked: () {
+                                ref.invalidate(
+                                  eventCalendarProvider(query.value),
+                                );
+                              },
+                            ),
+                            if (notificationCount.value != null &&
+                                notificationCount.value! > 0)
+                              notificationIndicatorWidget(
+                                context,
+                                count: notificationCount.value ?? 0,
+                                margin: EdgeInsets.only(
+                                  left: 8,
+                                  right: 12,
+                                  top: 8,
+                                ),
+                              ),
+                            PostFeaturedList().padding(
                               left: 8,
                               right: 12,
-                              top: 16,
+                              top: 8,
                             ),
-                            onChecked: () {
-                              ref.invalidate(
-                                eventCalendarProvider(query.value),
-                              );
-                            },
-                          ),
-                          PostFeaturedList().padding(
-                            left: 8,
-                            right: 12,
-                            top: 8,
-                          ),
-                          FortuneGraphWidget(
-                            margin: EdgeInsets.only(left: 8, right: 12, top: 8),
-                            events: events,
-                            constrainWidth: true,
-                            onPointSelected: onDaySelected,
-                          ),
-                        ],
+                            FortuneGraphWidget(
+                              margin: EdgeInsets.only(
+                                left: 8,
+                                right: 12,
+                                top: 8,
+                              ),
+                              events: events,
+                              constrainWidth: true,
+                              onPointSelected: onDaySelected,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   )
@@ -380,6 +430,10 @@ class _ActivityListView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
 
+    final notificationCount = ref.watch(
+      notificationUnreadCountNotifierProvider,
+    );
+
     return CustomScrollView(
       slivers: [
         SliverGap(12),
@@ -392,6 +446,14 @@ class _ActivityListView extends HookConsumerWidget {
         if (!contentOnly)
           SliverToBoxAdapter(
             child: PostFeaturedList().padding(horizontal: 8, bottom: 4, top: 4),
+          ),
+        if (!contentOnly)
+          SliverToBoxAdapter(
+            child: notificationIndicatorWidget(
+              context,
+              count: notificationCount.value ?? 0,
+              margin: EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+            ),
           ),
         SliverList.builder(
           itemCount: widgetCount,

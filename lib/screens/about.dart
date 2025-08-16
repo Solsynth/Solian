@@ -178,7 +178,8 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                                 context,
                                 icon: Symbols.label,
                                 label: 'aboutDeviceName'.tr(),
-                                value: _deviceInfo?.data['name'],
+                                value:
+                                    _deviceInfo?.data['name'] ?? 'unknown'.tr(),
                               ),
                               _buildInfoItem(
                                 context,
