@@ -217,7 +217,7 @@ class ExploreScreen extends HookConsumerWidget {
       floatingActionButtonLocation: TabbedFabLocation(context),
       body: Builder(
         builder: (context) {
-          final isWider = isWiderScreen(context);
+          final isWide = isWideScreen(context);
 
           final bodyView = _buildActivityList(
             context,
@@ -225,7 +225,7 @@ class ExploreScreen extends HookConsumerWidget {
             currentFilter.value,
           );
 
-          if (isWider) {
+          if (isWide) {
             return Row(
               children: [
                 Flexible(flex: 3, child: bodyView.padding(left: 8)),
@@ -318,7 +318,7 @@ class ExploreScreen extends HookConsumerWidget {
       activityListNotifierProvider(filter).notifier,
     );
 
-    final isWider = isWiderScreen(context);
+    final isWide = isWideScreen(context);
 
     return RefreshIndicator(
       onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
@@ -333,7 +333,7 @@ class ExploreScreen extends HookConsumerWidget {
                 widgetCount: widgetCount,
                 endItemView: endItemView,
                 activitiesNotifier: activitiesNotifier,
-                contentOnly: isWider || filter != null,
+                contentOnly: isWide || filter != null,
               ),
             ),
       ),
