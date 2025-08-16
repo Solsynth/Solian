@@ -571,12 +571,38 @@ class PostHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 spacing: 4,
                 children: [
                   Text(item.publisher.nick).bold(),
                   if (item.publisher.verification != null)
                     VerificationMark(mark: item.publisher.verification!),
-                  Text('@${item.publisher.name}').fontSize(11),
+                  if (item.realm == null)
+                    Text('@${item.publisher.name}').fontSize(11)
+                  else
+                    ...([
+                      const Icon(Symbols.arrow_right, size: 14),
+                      InkWell(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 5,
+                          children: [
+                            Text(item.realm!.name),
+                            ProfilePictureWidget(
+                              file: item.realm!.picture,
+                              fallbackIcon: Symbols.group,
+                              radius: 9,
+                            ),
+                          ],
+                        ),
+                        onTap: () {
+                          GoRouter.of(context).pushNamed(
+                            'realmDetail',
+                            pathParameters: {'slug': item.realm!.slug},
+                          );
+                        },
+                      ),
+                    ]),
                 ],
               ),
               Row(
