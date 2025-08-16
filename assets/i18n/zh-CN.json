@@ -813,5 +813,6 @@
     "one": "+{} 个文件被折叠",
     "other": "+{} 个文件被折叠"
   },
-  "messageJumpNotLoaded": "引用的消息没有被加载，无法跳转。"
+  "messageJumpNotLoaded": "引用的消息没有被加载，无法跳转。",
+  "postUnlinkRealm": "不关联领域"
 }

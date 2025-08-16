@@ -256,6 +256,7 @@ class ProfilePictureWidget extends ConsumerWidget {
   final String? fileId;
   final SnCloudFile? file;
   final double radius;
+  final double? borderRadius;
   final IconData? fallbackIcon;
   final Color? fallbackColor;
   const ProfilePictureWidget({
@@ -263,6 +264,7 @@ class ProfilePictureWidget extends ConsumerWidget {
     this.fileId,
     this.file,
     this.radius = 20,
+    this.borderRadius,
     this.fallbackIcon,
     this.fallbackColor,
   });
@@ -273,7 +275,10 @@ class ProfilePictureWidget extends ConsumerWidget {
     final uri = '$serverUrl/drive/files/${file?.id ?? fileId}';
 
     return ClipRRect(
-      borderRadius: BorderRadius.all(Radius.circular(radius)),
+      borderRadius:
+          borderRadius == null
+              ? BorderRadius.all(Radius.circular(radius))
+              : BorderRadius.all(Radius.circular(borderRadius!)),
       child: Container(
         width: radius * 2,
         height: radius * 2,

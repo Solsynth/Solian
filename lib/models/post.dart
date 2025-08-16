@@ -3,6 +3,7 @@ import 'package:island/models/file.dart';
 import 'package:island/models/post_category.dart';
 import 'package:island/models/post_tag.dart';
 import 'package:island/models/publisher.dart';
+import 'package:island/models/realm.dart';
 
 part 'post.freezed.dart';
 part 'post.g.dart';
@@ -31,6 +32,8 @@ sealed class SnPost with _$SnPost {
     SnPost? repliedPost,
     String? forwardedPostId,
     SnPost? forwardedPost,
+    String? realmId,
+    SnRealm? realm,
     @Default([]) List<SnCloudFile> attachments,
     required SnPublisher publisher,
     @Default({}) Map<String, int> reactionsCount,

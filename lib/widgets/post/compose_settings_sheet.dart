@@ -5,11 +5,15 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post_category.dart';
+import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/screens/realm/realms.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 
 part 'compose_settings_sheet.g.dart';
@@ -129,7 +133,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
     // Listen to visibility changes to trigger rebuilds
     final currentVisibility = useValueListenable(state.visibility);
     final currentCategories = useValueListenable(state.categories);
+    final currentRealm = useValueListenable(state.realm);
     final postCategories = ref.watch(postCategoriesProvider);
+    final userRealms = ref.watch(realmsJoinedProvider);
 
     IconData getVisibilityIcon(int visibilityValue) {
       switch (visibilityValue) {
@@ -336,13 +342,91 @@ class ComposeSettingsSheet extends HookConsumerWidget {
               },
               buttonStyleData: const ButtonStyleData(
                 padding: EdgeInsets.only(left: 16, right: 8),
-                height: 40,
+                height: 38,
               ),
               menuItemStyleData: const MenuItemStyleData(
-                height: 40,
+                height: 38,
                 padding: EdgeInsets.zero,
               ),
             ),
+
+            // Realm selection
+            DropdownButtonFormField2<SnRealm?>(
+              isExpanded: true,
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(vertical: 9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              hint: Text('realm'.tr(), style: const TextStyle(fontSize: 15)),
+              items: [
+                DropdownMenuItem<SnRealm?>(
+                  value: null,
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 16,
+                        child: Icon(Symbols.link_off, fill: 1),
+                      ),
+                      const SizedBox(width: 12),
+                      Text('postUnlinkRealm').tr(),
+                    ],
+                  ).padding(left: 16, right: 8),
+                ),
+                if (userRealms.hasValue)
+                  ...(userRealms.value ?? []).map(
+                    (realm) => DropdownMenuItem<SnRealm?>(
+                      value: realm,
+                      child: Row(
+                        children: [
+                          ProfilePictureWidget(
+                            fileId: realm.picture?.id,
+                            fallbackIcon: Symbols.workspaces,
+                            radius: 16,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(realm.name),
+                        ],
+                      ).padding(left: 16, right: 8),
+                    ),
+                  ),
+              ],
+              value: currentRealm,
+              onChanged: (value) {
+                state.realm.value = value;
+              },
+              selectedItemBuilder: (context) {
+                return (userRealms.value ?? []).map((_) {
+                  return Row(
+                    children: [
+                      if (currentRealm == null)
+                        const CircleAvatar(
+                          radius: 16,
+                          child: Icon(Symbols.link_off, fill: 1),
+                        )
+                      else
+                        ProfilePictureWidget(
+                          fileId: currentRealm.picture?.id,
+                          fallbackIcon: Symbols.workspaces,
+                          radius: 16,
+                        ),
+                      const SizedBox(width: 12),
+                      Text(currentRealm?.name ?? 'postUnlinkRealm'.tr()),
+                    ],
+                  );
+                }).toList();
+              },
+              buttonStyleData: const ButtonStyleData(
+                padding: EdgeInsets.only(left: 16, right: 8),
+                height: 40,
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                height: 56,
+                padding: EdgeInsets.zero,
+              ),
+            ),
+            const Gap(16),
 
             // Visibility setting
             Container(

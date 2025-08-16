@@ -43,6 +43,11 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
       json['forwarded_post'] == null
           ? null
           : SnPost.fromJson(json['forwarded_post'] as Map<String, dynamic>),
+  realmId: json['realm_id'] as String?,
+  realm:
+      json['realm'] == null
+          ? null
+          : SnRealm.fromJson(json['realm'] as Map<String, dynamic>),
   attachments:
       (json['attachments'] as List<dynamic>?)
           ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
@@ -108,6 +113,8 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'replied_post': instance.repliedPost?.toJson(),
   'forwarded_post_id': instance.forwardedPostId,
   'forwarded_post': instance.forwardedPost?.toJson(),
+  'realm_id': instance.realmId,
+  'realm': instance.realm?.toJson(),
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
   'publisher': instance.publisher.toJson(),
   'reactions_count': instance.reactionsCount,

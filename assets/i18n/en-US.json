@@ -838,5 +838,6 @@
   "pollOptionLabel": "Option label",
   "pollLongTextAnswerPreview": "Long text answer (preview)",
   "pollShortTextAnswerPreview": "Short text answer (preview)",
-  "messageJumpNotLoaded": "The referenced message was not loaded, unable to jump to it."
+  "messageJumpNotLoaded": "The referenced message was not loaded, unable to jump to it.",
+  "postUnlinkRealm": "No linked realm"
 }

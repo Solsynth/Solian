@@ -9,6 +9,7 @@ import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/models/post_category.dart';
 import 'package:island/models/publisher.dart';
+import 'package:island/models/realm.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
@@ -33,6 +34,7 @@ class ComposeState {
   final ValueNotifier<bool> submitting;
   final ValueNotifier<List<SnPostCategory>> categories;
   StringTagController tagsController;
+  final ValueNotifier<SnRealm?> realm;
   final String draftId;
   int postType;
   // Linked poll id for this compose session (nullable)
@@ -50,6 +52,7 @@ class ComposeState {
     required this.submitting,
     required this.tagsController,
     required this.categories,
+    required this.realm,
     required this.draftId,
     this.postType = 0,
     String? pollId,
@@ -112,6 +115,7 @@ class ComposeLogic {
       categories: ValueNotifier<List<SnPostCategory>>(
         originalPost?.categories ?? [],
       ),
+      realm: ValueNotifier(originalPost?.realm),
       draftId: id,
       postType: postType,
       // initialize without poll by default
@@ -141,6 +145,7 @@ class ComposeLogic {
       currentPublisher: ValueNotifier<SnPublisher?>(null),
       tagsController: tagsController,
       categories: ValueNotifier<List<SnPostCategory>>([]),
+      realm: ValueNotifier(null),
       draftId: draft.id,
       postType: postType,
       pollId: null,
@@ -640,6 +645,7 @@ class ComposeLogic {
         if (forwardedPost != null) 'forwarded_post_id': forwardedPost.id,
         'tags': state.tagsController.getTags,
         'categories': state.categories.value.map((e) => e.slug).toList(),
+        if (state.realm.value != null) 'realm_id': state.realm.value?.id,
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
       };
 
@@ -733,6 +739,7 @@ class ComposeLogic {
     state.currentPublisher.dispose();
     state.tagsController.dispose();
     state.categories.dispose();
+    state.realm.dispose();
     state.pollId.dispose();
   }
 }

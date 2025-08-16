@@ -147,7 +147,11 @@ class PublisherProfileScreen extends HookConsumerWidget {
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
             offset: Offset(0, 48),
-            child: ProfilePictureWidget(file: data.picture, radius: 32),
+            child: ProfilePictureWidget(
+              file: data.picture,
+              radius: 32,
+              borderRadius: data.type == 0 ? null : 12,
+            ),
           ),
           onTap: () {
             Navigator.pop(context, true);

@@ -559,7 +559,11 @@ class PostHeader extends StatelessWidget {
                     );
                   }
                   : null,
-          child: ProfilePictureWidget(file: item.publisher.picture, radius: 16),
+          child: ProfilePictureWidget(
+            file: item.publisher.picture,
+            radius: 16,
+            borderRadius: item.publisher.type == 0 ? null : 6,
+          ),
         ),
         Expanded(
           child: Column(
