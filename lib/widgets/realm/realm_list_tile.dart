@@ -57,6 +57,8 @@ class RealmListTile extends StatelessWidget {
                 ).textStyle(Theme.of(context).textTheme.titleMedium!),
                 Text(
                   realm.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ).textStyle(Theme.of(context).textTheme.bodySmall!),
               ],
             ).padding(horizontal: 24, bottom: 14),
