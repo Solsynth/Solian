@@ -1037,7 +1037,7 @@ $SnChatMemberCopyWith<$Res> get sender {
 /// @nodoc
 mixin _$SnChatMember {
 
- DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get chatRoomId; SnChatRoom? get chatRoom; String get accountId; SnAccount get account; String? get nick; int get role; int get notify; DateTime? get joinedAt; DateTime? get breakUntil; DateTime? get timeoutUntil; bool get isBot;// Frontend data
+ DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get chatRoomId; SnChatRoom? get chatRoom; String get accountId; SnAccount get account; String? get nick; int get role; int get notify; DateTime? get joinedAt; DateTime? get breakUntil; DateTime? get timeoutUntil; bool get isBot; SnAccountStatus? get status;// Frontend data
  DateTime? get lastTyped;
 /// Create a copy of SnChatMember
 /// with the given fields replaced by the non-null parameter values.
@@ -1051,16 +1051,16 @@ $SnChatMemberCopyWith<SnChatMember> get copyWith => _$SnChatMemberCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatMember&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId)&&(identical(other.chatRoom, chatRoom) || other.chatRoom == chatRoom)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.role, role) || other.role == role)&&(identical(other.notify, notify) || other.notify == notify)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.breakUntil, breakUntil) || other.breakUntil == breakUntil)&&(identical(other.timeoutUntil, timeoutUntil) || other.timeoutUntil == timeoutUntil)&&(identical(other.isBot, isBot) || other.isBot == isBot)&&(identical(other.lastTyped, lastTyped) || other.lastTyped == lastTyped));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatMember&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId)&&(identical(other.chatRoom, chatRoom) || other.chatRoom == chatRoom)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.role, role) || other.role == role)&&(identical(other.notify, notify) || other.notify == notify)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.breakUntil, breakUntil) || other.breakUntil == breakUntil)&&(identical(other.timeoutUntil, timeoutUntil) || other.timeoutUntil == timeoutUntil)&&(identical(other.isBot, isBot) || other.isBot == isBot)&&(identical(other.status, status) || other.status == status)&&(identical(other.lastTyped, lastTyped) || other.lastTyped == lastTyped));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,id,chatRoomId,chatRoom,accountId,account,nick,role,notify,joinedAt,breakUntil,timeoutUntil,isBot,lastTyped);
+int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,id,chatRoomId,chatRoom,accountId,account,nick,role,notify,joinedAt,breakUntil,timeoutUntil,isBot,status,lastTyped);
 
 @override
 String toString() {
-  return 'SnChatMember(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, chatRoomId: $chatRoomId, chatRoom: $chatRoom, accountId: $accountId, account: $account, nick: $nick, role: $role, notify: $notify, joinedAt: $joinedAt, breakUntil: $breakUntil, timeoutUntil: $timeoutUntil, isBot: $isBot, lastTyped: $lastTyped)';
+  return 'SnChatMember(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, chatRoomId: $chatRoomId, chatRoom: $chatRoom, accountId: $accountId, account: $account, nick: $nick, role: $role, notify: $notify, joinedAt: $joinedAt, breakUntil: $breakUntil, timeoutUntil: $timeoutUntil, isBot: $isBot, status: $status, lastTyped: $lastTyped)';
 }
 
 
@@ -1071,11 +1071,11 @@ abstract mixin class $SnChatMemberCopyWith<$Res>  {
   factory $SnChatMemberCopyWith(SnChatMember value, $Res Function(SnChatMember) _then) = _$SnChatMemberCopyWithImpl;
 @useResult
 $Res call({
- DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String chatRoomId, SnChatRoom? chatRoom, String accountId, SnAccount account, String? nick, int role, int notify, DateTime? joinedAt, DateTime? breakUntil, DateTime? timeoutUntil, bool isBot, DateTime? lastTyped
+ DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String chatRoomId, SnChatRoom? chatRoom, String accountId, SnAccount account, String? nick, int role, int notify, DateTime? joinedAt, DateTime? breakUntil, DateTime? timeoutUntil, bool isBot, SnAccountStatus? status, DateTime? lastTyped
 });
 
 
-$SnChatRoomCopyWith<$Res>? get chatRoom;$SnAccountCopyWith<$Res> get account;
+$SnChatRoomCopyWith<$Res>? get chatRoom;$SnAccountCopyWith<$Res> get account;$SnAccountStatusCopyWith<$Res>? get status;
 
 }
 /// @nodoc
@@ -1088,7 +1088,7 @@ class _$SnChatMemberCopyWithImpl<$Res>
 
 /// Create a copy of SnChatMember
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? chatRoomId = null,Object? chatRoom = freezed,Object? accountId = null,Object? account = null,Object? nick = freezed,Object? role = null,Object? notify = null,Object? joinedAt = freezed,Object? breakUntil = freezed,Object? timeoutUntil = freezed,Object? isBot = null,Object? lastTyped = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? chatRoomId = null,Object? chatRoom = freezed,Object? accountId = null,Object? account = null,Object? nick = freezed,Object? role = null,Object? notify = null,Object? joinedAt = freezed,Object? breakUntil = freezed,Object? timeoutUntil = freezed,Object? isBot = null,Object? status = freezed,Object? lastTyped = freezed,}) {
   return _then(_self.copyWith(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -1105,7 +1105,8 @@ as int,joinedAt: freezed == joinedAt ? _self.joinedAt : joinedAt // ignore: cast
 as DateTime?,breakUntil: freezed == breakUntil ? _self.breakUntil : breakUntil // ignore: cast_nullable_to_non_nullable
 as DateTime?,timeoutUntil: freezed == timeoutUntil ? _self.timeoutUntil : timeoutUntil // ignore: cast_nullable_to_non_nullable
 as DateTime?,isBot: null == isBot ? _self.isBot : isBot // ignore: cast_nullable_to_non_nullable
-as bool,lastTyped: freezed == lastTyped ? _self.lastTyped : lastTyped // ignore: cast_nullable_to_non_nullable
+as bool,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus?,lastTyped: freezed == lastTyped ? _self.lastTyped : lastTyped // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -1129,6 +1130,18 @@ $SnAccountCopyWith<$Res> get account {
   
   return $SnAccountCopyWith<$Res>(_self.account, (value) {
     return _then(_self.copyWith(account: value));
+  });
+}/// Create a copy of SnChatMember
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res>? get status {
+    if (_self.status == null) {
+    return null;
+  }
+
+  return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
+    return _then(_self.copyWith(status: value));
   });
 }
 }
@@ -1209,10 +1222,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String chatRoomId,  SnChatRoom? chatRoom,  String accountId,  SnAccount account,  String? nick,  int role,  int notify,  DateTime? joinedAt,  DateTime? breakUntil,  DateTime? timeoutUntil,  bool isBot,  DateTime? lastTyped)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String chatRoomId,  SnChatRoom? chatRoom,  String accountId,  SnAccount account,  String? nick,  int role,  int notify,  DateTime? joinedAt,  DateTime? breakUntil,  DateTime? timeoutUntil,  bool isBot,  SnAccountStatus? status,  DateTime? lastTyped)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnChatMember() when $default != null:
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.chatRoomId,_that.chatRoom,_that.accountId,_that.account,_that.nick,_that.role,_that.notify,_that.joinedAt,_that.breakUntil,_that.timeoutUntil,_that.isBot,_that.lastTyped);case _:
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.chatRoomId,_that.chatRoom,_that.accountId,_that.account,_that.nick,_that.role,_that.notify,_that.joinedAt,_that.breakUntil,_that.timeoutUntil,_that.isBot,_that.status,_that.lastTyped);case _:
   return orElse();
 
 }
@@ -1230,10 +1243,10 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String chatRoomId,  SnChatRoom? chatRoom,  String accountId,  SnAccount account,  String? nick,  int role,  int notify,  DateTime? joinedAt,  DateTime? breakUntil,  DateTime? timeoutUntil,  bool isBot,  DateTime? lastTyped)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String chatRoomId,  SnChatRoom? chatRoom,  String accountId,  SnAccount account,  String? nick,  int role,  int notify,  DateTime? joinedAt,  DateTime? breakUntil,  DateTime? timeoutUntil,  bool isBot,  SnAccountStatus? status,  DateTime? lastTyped)  $default,) {final _that = this;
 switch (_that) {
 case _SnChatMember():
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.chatRoomId,_that.chatRoom,_that.accountId,_that.account,_that.nick,_that.role,_that.notify,_that.joinedAt,_that.breakUntil,_that.timeoutUntil,_that.isBot,_that.lastTyped);}
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.chatRoomId,_that.chatRoom,_that.accountId,_that.account,_that.nick,_that.role,_that.notify,_that.joinedAt,_that.breakUntil,_that.timeoutUntil,_that.isBot,_that.status,_that.lastTyped);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1247,10 +1260,10 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String chatRoomId,  SnChatRoom? chatRoom,  String accountId,  SnAccount account,  String? nick,  int role,  int notify,  DateTime? joinedAt,  DateTime? breakUntil,  DateTime? timeoutUntil,  bool isBot,  DateTime? lastTyped)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String chatRoomId,  SnChatRoom? chatRoom,  String accountId,  SnAccount account,  String? nick,  int role,  int notify,  DateTime? joinedAt,  DateTime? breakUntil,  DateTime? timeoutUntil,  bool isBot,  SnAccountStatus? status,  DateTime? lastTyped)?  $default,) {final _that = this;
 switch (_that) {
 case _SnChatMember() when $default != null:
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.chatRoomId,_that.chatRoom,_that.accountId,_that.account,_that.nick,_that.role,_that.notify,_that.joinedAt,_that.breakUntil,_that.timeoutUntil,_that.isBot,_that.lastTyped);case _:
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.chatRoomId,_that.chatRoom,_that.accountId,_that.account,_that.nick,_that.role,_that.notify,_that.joinedAt,_that.breakUntil,_that.timeoutUntil,_that.isBot,_that.status,_that.lastTyped);case _:
   return null;
 
 }
@@ -1262,7 +1275,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.c
 @JsonSerializable()
 
 class _SnChatMember implements SnChatMember {
-  const _SnChatMember({required this.createdAt, required this.updatedAt, required this.deletedAt, required this.id, required this.chatRoomId, required this.chatRoom, required this.accountId, required this.account, required this.nick, required this.role, required this.notify, required this.joinedAt, required this.breakUntil, required this.timeoutUntil, required this.isBot, this.lastTyped});
+  const _SnChatMember({required this.createdAt, required this.updatedAt, required this.deletedAt, required this.id, required this.chatRoomId, required this.chatRoom, required this.accountId, required this.account, required this.nick, required this.role, required this.notify, required this.joinedAt, required this.breakUntil, required this.timeoutUntil, required this.isBot, required this.status, this.lastTyped});
   factory _SnChatMember.fromJson(Map<String, dynamic> json) => _$SnChatMemberFromJson(json);
 
 @override final  DateTime createdAt;
@@ -1280,6 +1293,7 @@ class _SnChatMember implements SnChatMember {
 @override final  DateTime? breakUntil;
 @override final  DateTime? timeoutUntil;
 @override final  bool isBot;
+@override final  SnAccountStatus? status;
 // Frontend data
 @override final  DateTime? lastTyped;
 
@@ -1296,16 +1310,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatMember&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId)&&(identical(other.chatRoom, chatRoom) || other.chatRoom == chatRoom)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.role, role) || other.role == role)&&(identical(other.notify, notify) || other.notify == notify)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.breakUntil, breakUntil) || other.breakUntil == breakUntil)&&(identical(other.timeoutUntil, timeoutUntil) || other.timeoutUntil == timeoutUntil)&&(identical(other.isBot, isBot) || other.isBot == isBot)&&(identical(other.lastTyped, lastTyped) || other.lastTyped == lastTyped));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatMember&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId)&&(identical(other.chatRoom, chatRoom) || other.chatRoom == chatRoom)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.role, role) || other.role == role)&&(identical(other.notify, notify) || other.notify == notify)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.breakUntil, breakUntil) || other.breakUntil == breakUntil)&&(identical(other.timeoutUntil, timeoutUntil) || other.timeoutUntil == timeoutUntil)&&(identical(other.isBot, isBot) || other.isBot == isBot)&&(identical(other.status, status) || other.status == status)&&(identical(other.lastTyped, lastTyped) || other.lastTyped == lastTyped));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,id,chatRoomId,chatRoom,accountId,account,nick,role,notify,joinedAt,breakUntil,timeoutUntil,isBot,lastTyped);
+int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,id,chatRoomId,chatRoom,accountId,account,nick,role,notify,joinedAt,breakUntil,timeoutUntil,isBot,status,lastTyped);
 
 @override
 String toString() {
-  return 'SnChatMember(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, chatRoomId: $chatRoomId, chatRoom: $chatRoom, accountId: $accountId, account: $account, nick: $nick, role: $role, notify: $notify, joinedAt: $joinedAt, breakUntil: $breakUntil, timeoutUntil: $timeoutUntil, isBot: $isBot, lastTyped: $lastTyped)';
+  return 'SnChatMember(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, chatRoomId: $chatRoomId, chatRoom: $chatRoom, accountId: $accountId, account: $account, nick: $nick, role: $role, notify: $notify, joinedAt: $joinedAt, breakUntil: $breakUntil, timeoutUntil: $timeoutUntil, isBot: $isBot, status: $status, lastTyped: $lastTyped)';
 }
 
 
@@ -1316,11 +1330,11 @@ abstract mixin class _$SnChatMemberCopyWith<$Res> implements $SnChatMemberCopyWi
   factory _$SnChatMemberCopyWith(_SnChatMember value, $Res Function(_SnChatMember) _then) = __$SnChatMemberCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String chatRoomId, SnChatRoom? chatRoom, String accountId, SnAccount account, String? nick, int role, int notify, DateTime? joinedAt, DateTime? breakUntil, DateTime? timeoutUntil, bool isBot, DateTime? lastTyped
+ DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String chatRoomId, SnChatRoom? chatRoom, String accountId, SnAccount account, String? nick, int role, int notify, DateTime? joinedAt, DateTime? breakUntil, DateTime? timeoutUntil, bool isBot, SnAccountStatus? status, DateTime? lastTyped
 });
 
 
-@override $SnChatRoomCopyWith<$Res>? get chatRoom;@override $SnAccountCopyWith<$Res> get account;
+@override $SnChatRoomCopyWith<$Res>? get chatRoom;@override $SnAccountCopyWith<$Res> get account;@override $SnAccountStatusCopyWith<$Res>? get status;
 
 }
 /// @nodoc
@@ -1333,7 +1347,7 @@ class __$SnChatMemberCopyWithImpl<$Res>
 
 /// Create a copy of SnChatMember
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? chatRoomId = null,Object? chatRoom = freezed,Object? accountId = null,Object? account = null,Object? nick = freezed,Object? role = null,Object? notify = null,Object? joinedAt = freezed,Object? breakUntil = freezed,Object? timeoutUntil = freezed,Object? isBot = null,Object? lastTyped = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? chatRoomId = null,Object? chatRoom = freezed,Object? accountId = null,Object? account = null,Object? nick = freezed,Object? role = null,Object? notify = null,Object? joinedAt = freezed,Object? breakUntil = freezed,Object? timeoutUntil = freezed,Object? isBot = null,Object? status = freezed,Object? lastTyped = freezed,}) {
   return _then(_SnChatMember(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -1350,7 +1364,8 @@ as int,joinedAt: freezed == joinedAt ? _self.joinedAt : joinedAt // ignore: cast
 as DateTime?,breakUntil: freezed == breakUntil ? _self.breakUntil : breakUntil // ignore: cast_nullable_to_non_nullable
 as DateTime?,timeoutUntil: freezed == timeoutUntil ? _self.timeoutUntil : timeoutUntil // ignore: cast_nullable_to_non_nullable
 as DateTime?,isBot: null == isBot ? _self.isBot : isBot // ignore: cast_nullable_to_non_nullable
-as bool,lastTyped: freezed == lastTyped ? _self.lastTyped : lastTyped // ignore: cast_nullable_to_non_nullable
+as bool,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus?,lastTyped: freezed == lastTyped ? _self.lastTyped : lastTyped // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -1375,6 +1390,18 @@ $SnAccountCopyWith<$Res> get account {
   
   return $SnAccountCopyWith<$Res>(_self.account, (value) {
     return _then(_self.copyWith(account: value));
+  });
+}/// Create a copy of SnChatMember
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res>? get status {
+    if (_self.status == null) {
+    return null;
+  }
+
+  return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
+    return _then(_self.copyWith(status: value));
   });
 }
 }

@@ -40,6 +40,7 @@ sealed class SnRealmMember with _$SnRealmMember {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    required SnAccountStatus? status,
   }) = _SnRealmMember;
 
   factory SnRealmMember.fromJson(Map<String, dynamic> json) =>

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/services/color.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/post/post_list.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -530,7 +531,11 @@ class RealmMemberListNotifier extends _$RealmMemberListNotifier
 
     final response = await apiClient.get(
       '/sphere/realms/$realmSlug/members',
-      queryParameters: {'offset': offset, 'take': _pageSize},
+      queryParameters: {
+        'offset': offset,
+        'take': _pageSize,
+        'withStatus': true,
+      },
     );
 
     final total = int.parse(response.headers.value('X-Total') ?? '0');
@@ -573,7 +578,7 @@ class RealmMemberNotifier extends StateNotifier<RealmMemberState> {
     try {
       final response = await _apiClient.get(
         '/sphere/realms/$realmSlug/members',
-        queryParameters: {'offset': offset, 'take': take},
+        queryParameters: {'offset': offset, 'take': take, 'withStatus': true},
       );
 
       final total = int.parse(response.headers.value('X-Total') ?? '0');
@@ -640,7 +645,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
       }
     }
 
-    Widget _buildMemberListHeader() {
+    Widget buildMemberListHeader() {
       return Padding(
         padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
         child: Row(
@@ -677,7 +682,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
       );
     }
 
-    Widget _buildMemberListContent() {
+    Widget buildMemberListContent() {
       return Expanded(
         child: PagingHelperView(
           provider: memberListProvider,
@@ -701,6 +706,8 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                     spacing: 6,
                     children: [
                       Flexible(child: Text(member.account!.nick)),
+                      if (member.status != null)
+                        AccountStatusLabel(status: member.status!),
                       if (member.joinedAt == null)
                         const Icon(Symbols.pending_actions, size: 20),
                     ],
@@ -783,9 +790,9 @@ class _RealmMemberListSheet extends HookConsumerWidget {
       ),
       child: Column(
         children: [
-          _buildMemberListHeader(),
+          buildMemberListHeader(),
           const Divider(height: 1),
-          _buildMemberListContent(),
+          buildMemberListContent(),
         ],
       ),
     );

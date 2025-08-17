@@ -91,6 +91,7 @@ sealed class SnChatMember with _$SnChatMember {
     required DateTime? breakUntil,
     required DateTime? timeoutUntil,
     required bool isBot,
+    required SnAccountStatus? status,
     // Frontend data
     DateTime? lastTyped,
   }) = _SnChatMember;
