@@ -22,6 +22,7 @@ import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/widgets/realm/realm_list_tile.dart';
 
 part 'realms.g.dart';
 
@@ -95,32 +96,19 @@ class RealmListScreen extends HookConsumerWidget {
               (value) => Column(
                 children: [
                   Expanded(
-                    child: ListView.builder(
-                      padding: getTabbedPadding(context),
+                    child: ListView.separated(
+                      padding: EdgeInsets.only(
+                        top: 8,
+                        bottom: getTabbedPadding(context).bottom + 8,
+                      ),
                       itemCount: value.length,
                       itemBuilder: (context, item) {
-                        return ListTile(
-                          isThreeLine: true,
-                          leading: ProfilePictureWidget(
-                            fileId: value[item].picture?.id,
-                            fallbackIcon: Symbols.group,
-                          ),
-                          title: Text(value[item].name),
-                          subtitle: Text(value[item].description),
-                          onTap: () {
-                            context.pushNamed(
-                              'realmDetail',
-                              pathParameters: {'slug': value[item].slug},
-                            );
-                          },
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 14,
-                            top: 8,
-                            bottom: 8,
-                          ),
-                        );
+                        return ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 540),
+                          child: RealmListTile(realm: value[item]),
+                        ).center();
                       },
+                      separatorBuilder: (_, _) => const Gap(8),
                     ),
                   ),
                 ],
