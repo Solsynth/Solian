@@ -88,6 +88,7 @@ class AttachmentPreview extends HookConsumerWidget {
   final Function? onInsert;
   final Function(UniversalFile)? onUpdate;
   final Function? onRequestUpload;
+  final bool isCompact;
 
   const AttachmentPreview({
     super.key,
@@ -98,6 +99,7 @@ class AttachmentPreview extends HookConsumerWidget {
     this.onDelete,
     this.onUpdate,
     this.onInsert,
+    this.isCompact = false,
   });
 
   // GlobalKey for selector
@@ -458,11 +460,12 @@ class AttachmentPreview extends HookConsumerWidget {
                                       size: 16,
                                       color: Colors.white,
                                     ),
-                                    const Gap(8),
-                                    Text(
-                                      'On-cloud',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
+                                    if (!isCompact) const Gap(8),
+                                    if (!isCompact)
+                                      Text(
+                                        'attachmentOnCloud'.tr(),
+                                        style: TextStyle(color: Colors.white),
+                                      ),
                                   ],
                                 )
                                 : Row(
@@ -473,11 +476,12 @@ class AttachmentPreview extends HookConsumerWidget {
                                       size: 16,
                                       color: Colors.white,
                                     ),
-                                    const Gap(8),
-                                    Text(
-                                      'On-device',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
+                                    if (!isCompact) const Gap(8),
+                                    if (!isCompact)
+                                      Text(
+                                        'attachmentOnDevice'.tr(),
+                                        style: TextStyle(color: Colors.white),
+                                      ),
                                   ],
                                 ),
                       ),

@@ -841,5 +841,8 @@
   "messageJumpNotLoaded": "The referenced message was not loaded, unable to jump to it.",
   "postUnlinkRealm": "No linked realm",
   "postSlug": "Slug",
-  "postSlugHint": "The slug can be used to access your post via URL in the webpage, it should be publisher-wide unique."
+  "postSlugHint": "The slug can be used to access your post via URL in the webpage, it should be publisher-wide unique.",
+  "attachmentOnDevice": "On-device",
+  "attachmentOnCloud": "On-cloud",
+  "attachments": "Attachments"
 }
