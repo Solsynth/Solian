@@ -117,8 +117,12 @@ class PostActionableItem extends HookConsumerWidget {
                 await File('${directory.path}/image.png').create();
             await imagePath.writeAsBytes(image);
 
-            if (context.mounted) hideLoadingModal(context);
-            await Share.shareXFiles([XFile(imagePath.path)]);
+            if (!context.mounted) return;
+            hideLoadingModal(context);
+            final box = context.findRenderObject() as RenderBox?;
+            await Share.shareXFiles([
+              XFile(imagePath.path),
+            ], sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
           })
           .catchError((err) {
             if (context.mounted) hideLoadingModal(context);
@@ -174,7 +178,7 @@ class PostActionableItem extends HookConsumerWidget {
               image: MenuImage.icon(Symbols.link),
               callback: () {
                 Clipboard.setData(
-                  ClipboardData(text: 'https://solsynth.dev/posts/${item.id}'),
+                  ClipboardData(text: 'https://solian.app/posts/${item.id}'),
                 );
               },
             ),

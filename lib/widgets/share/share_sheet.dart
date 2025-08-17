@@ -340,22 +340,33 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   Future<void> _shareToSystem() async {
     if (!widget.toSystem) return;
 
+    final box = context.findRenderObject() as RenderBox?;
+
     setState(() => _isLoading = true);
     try {
       switch (widget.content.type) {
         case ShareContentType.text:
           if (widget.content.text?.isNotEmpty == true) {
-            await Share.share(widget.content.text!);
+            await Share.share(
+              widget.content.text!,
+              sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+            );
           }
           break;
         case ShareContentType.link:
           if (widget.content.link?.isNotEmpty == true) {
-            await Share.share(widget.content.link!);
+            await Share.share(
+              widget.content.link!,
+              sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+            );
           }
           break;
         case ShareContentType.file:
           if (widget.content.files?.isNotEmpty == true) {
-            await Share.shareXFiles(widget.content.files!);
+            await Share.shareXFiles(
+              widget.content.files!,
+              sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+            );
           }
           break;
       }
