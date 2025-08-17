@@ -363,7 +363,7 @@ class AttachmentPreview extends HookConsumerWidget {
                     ),
                 ],
               ),
-            ),
+            ).center(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

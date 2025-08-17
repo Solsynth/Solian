@@ -309,6 +309,8 @@ class ArticleComposeScreen extends HookConsumerWidget {
                       onExpansionChanged: (expanded) {
                         isAttachmentsExpanded.value = expanded;
                       },
+                      collapsedBackgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainer,
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
