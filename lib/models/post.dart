@@ -19,6 +19,7 @@ sealed class SnPost with _$SnPost {
     @Default(null) DateTime? publishedAt,
     @Default(0) int visibility,
     String? content,
+    String? slug,
     @Default(0) int type,
     Map<String, dynamic>? meta,
     @Default(0) int viewsUnique,

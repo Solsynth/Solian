@@ -229,6 +229,24 @@ class ComposeSettingsSheet extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 16,
           children: [
+            // Slug field
+            TextField(
+              controller: state.contentController,
+              decoration: InputDecoration(
+                labelText: 'postSlug'.tr(),
+                hintText: 'postSlugHint'.tr(),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 9,
+                  horizontal: 16,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onTapOutside:
+                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            ),
+
             // Tags field
             TextFieldTags(
               textfieldTagsController: state.tagsController,
@@ -426,7 +444,6 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                 padding: EdgeInsets.zero,
               ),
             ),
-            const Gap(16),
 
             // Visibility setting
             Container(
