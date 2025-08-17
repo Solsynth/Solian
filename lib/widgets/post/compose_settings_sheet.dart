@@ -231,7 +231,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
           children: [
             // Slug field
             TextField(
-              controller: state.contentController,
+              controller: state.slugController,
               decoration: InputDecoration(
                 labelText: 'postSlug'.tr(),
                 hintText: 'postSlugHint'.tr(),
