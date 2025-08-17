@@ -453,14 +453,23 @@ class MessagesNotifier extends _$MessagesNotifier {
       await _database.deleteMessage(localMessage.id);
       await _database.saveMessage(_database.messageToCompanion(updatedMessage));
 
-      final newMessages =
-          (state.value ?? []).map((m) {
-            if (m.id == localMessage.id) {
-              return updatedMessage;
-            }
-            return m;
-          }).toList();
-      state = AsyncValue.data(newMessages);
+      final currentMessages = state.value ?? [];
+      if (editingTo != null) {
+        final newMessages = currentMessages
+            .where((m) => m.id != localMessage.id) // remove pending message
+            .map((m) => m.id == editingTo.id ? updatedMessage : m) // update original message
+            .toList();
+        state = AsyncValue.data(newMessages);
+      } else {
+        final newMessages =
+            currentMessages.map((m) {
+              if (m.id == localMessage.id) {
+                return updatedMessage;
+              }
+              return m;
+            }).toList();
+        state = AsyncValue.data(newMessages);
+      }
       developer.log(
         'Message with nonce $nonce sent successfully',
         name: 'MessagesNotifier',
@@ -627,14 +636,37 @@ class MessagesNotifier extends _$MessagesNotifier {
       name: 'MessagesNotifier',
     );
     _pendingMessages.remove(messageId);
-    await _database.deleteMessage(messageId);
 
     final currentMessages = state.value ?? [];
-    final filteredMessages =
-        currentMessages.where((m) => m.id != messageId).toList();
+    final messageIndex = currentMessages.indexWhere((m) => m.id == messageId);
 
-    if (filteredMessages.length != currentMessages.length) {
-      state = AsyncValue.data(filteredMessages);
+    LocalChatMessage? messageToUpdate;
+    if (messageIndex != -1) {
+      messageToUpdate = currentMessages[messageIndex];
+    } else {
+      messageToUpdate = await fetchMessageById(messageId);
+    }
+
+    if (messageToUpdate == null) return;
+
+    final remote = messageToUpdate.toRemoteMessage();
+    final updatedRemote = remote.copyWith(
+      content: 'This message was deleted',
+      type: 'deleted',
+      attachments: [],
+    );
+
+    final deletedMessage = LocalChatMessage.fromRemoteMessage(
+      updatedRemote,
+      messageToUpdate.status,
+    );
+
+    await _database.saveMessage(_database.messageToCompanion(deletedMessage));
+
+    if (messageIndex != -1) {
+      final newList = [...currentMessages];
+      newList[messageIndex] = deletedMessage;
+      state = AsyncValue.data(newList);
     }
   }
 
@@ -1087,7 +1119,6 @@ class ChatRoomScreen extends HookConsumerWidget {
               skipError: true,
               data:
                   (identity) => MessageItem(
-                    key: ValueKey(message.id),
                     message: message,
                     isCurrentUser: identity?.id == message.senderId,
                     onAction: (action) {

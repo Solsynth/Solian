@@ -546,6 +546,26 @@ class _MessageItemContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (item.type) {
+      case 'deleted':
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Symbols.delete,
+              size: 14,
+              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
+            ),
+            const Gap(4),
+            Text(
+              item.content!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
+                    fontStyle: FontStyle.italic,
+                  ),
+            ),
+          ],
+        );
       case 'call.start':
       case 'call.ended':
         return _MessageContentCall(
