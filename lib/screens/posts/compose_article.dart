@@ -311,8 +311,8 @@ class ArticleComposeScreen extends HookConsumerWidget {
                         valueListenable: state.attachmentProgress,
                         builder: (context, progressMap, _) {
                           return Wrap(
-                            spacing: 8,
                             runSpacing: 8,
+                            spacing: 8,
                             children: [
                               for (var idx = 0; idx < attachments.length; idx++)
                                 SizedBox(

@@ -27,6 +27,7 @@ class ComposeState {
   final TextEditingController titleController;
   final TextEditingController descriptionController;
   final TextEditingController contentController;
+  final TextEditingController slugController;
   final ValueNotifier<int> visibility;
   final ValueNotifier<List<UniversalFile>> attachments;
   final ValueNotifier<Map<int, double>> attachmentProgress;
@@ -45,6 +46,7 @@ class ComposeState {
     required this.titleController,
     required this.descriptionController,
     required this.contentController,
+    required this.slugController,
     required this.visibility,
     required this.attachments,
     required this.attachmentProgress,
@@ -107,6 +109,7 @@ class ComposeLogic {
         text: originalPost?.description,
       ),
       contentController: TextEditingController(text: originalPost?.content),
+      slugController: TextEditingController(text: originalPost?.slug),
       visibility: ValueNotifier<int>(originalPost?.visibility ?? 0),
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
@@ -139,6 +142,7 @@ class ComposeLogic {
       titleController: TextEditingController(text: draft.title),
       descriptionController: TextEditingController(text: draft.description),
       contentController: TextEditingController(text: draft.content),
+      slugController: TextEditingController(text: draft.slug),
       visibility: ValueNotifier<int>(draft.visibility),
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
@@ -634,6 +638,8 @@ class ComposeLogic {
         'title': state.titleController.text,
         'description': state.descriptionController.text,
         'content': state.contentController.text,
+        if (state.slugController.text.isNotEmpty)
+          'slug': state.slugController.text,
         'visibility': state.visibility.value,
         'attachments':
             state.attachments.value
