@@ -80,10 +80,12 @@ class ChatRoomListTile extends HookConsumerWidget {
                   ),
                 ),
               Row(
+                spacing: 4,
                 children: [
-                  Text(
-                    '${data.lastMessage.sender.account.name}: ',
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Badge(
+                    label: Text(data.lastMessage.sender.account.nick),
+                    textColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
                   Expanded(
                     child: Text(
