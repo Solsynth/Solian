@@ -51,9 +51,13 @@ class UniversalImage extends StatelessWidget {
               );
             },
             errorWidget: (context, url, error) {
-              return const Center(
-                child: Icon(Icons.broken_image, color: Colors.white, size: 16),
+              return Image.asset(
+                'assets/images/media-offline.png',
+                fit: BoxFit.cover,
               );
+              // return const Center(
+              //   child: Icon(Icons.broken_image, color: Colors.white, size: 16),
+              // );
             },
           ),
         ],
