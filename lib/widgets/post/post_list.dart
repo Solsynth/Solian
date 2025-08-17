@@ -15,8 +15,9 @@ class PostListNotifier extends _$PostListNotifier
   static const int _pageSize = 20;
 
   @override
-  Future<CursorPagingData<SnPost>> build(
-    String? pubName, {
+  Future<CursorPagingData<SnPost>> build({
+    String? pubName,
+    String? realm,
     int? type,
     List<String>? categories,
     List<String>? tags,
@@ -33,6 +34,7 @@ class PostListNotifier extends _$PostListNotifier
       'offset': offset,
       'take': _pageSize,
       if (pubName != null) 'pub': pubName,
+      if (realm != null) 'realm': realm,
       if (type != null) 'type': type,
       if (tags != null) 'tags': tags,
       if (categories != null) 'categories': categories,
@@ -68,6 +70,7 @@ enum PostItemType {
 
 class SliverPostList extends HookConsumerWidget {
   final String? pubName;
+  final String? realm;
   final int? type;
   final List<String>? categories;
   final List<String>? tags;
@@ -81,6 +84,7 @@ class SliverPostList extends HookConsumerWidget {
   const SliverPostList({
     super.key,
     this.pubName,
+    this.realm,
     this.type,
     this.categories,
     this.tags,
@@ -96,21 +100,24 @@ class SliverPostList extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return PagingHelperSliverView(
       provider: postListNotifierProvider(
-        pubName,
+        pubName: pubName,
+        realm: realm,
         type: type,
         categories: categories,
         tags: tags,
       ),
       futureRefreshable:
           postListNotifierProvider(
-            pubName,
+            pubName: pubName,
+            realm: realm,
             type: type,
             categories: categories,
             tags: tags,
           ).future,
       notifierRefreshable:
           postListNotifierProvider(
-            pubName,
+            pubName: pubName,
+            realm: realm,
             type: type,
             categories: categories,
             tags: tags,

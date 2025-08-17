@@ -582,25 +582,33 @@ class PostHeader extends StatelessWidget {
                   else
                     ...([
                       const Icon(Symbols.arrow_right, size: 14),
-                      InkWell(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          spacing: 5,
-                          children: [
-                            Text(item.realm!.name),
-                            ProfilePictureWidget(
-                              file: item.realm!.picture,
-                              fallbackIcon: Symbols.group,
-                              radius: 9,
-                            ),
-                          ],
+                      Flexible(
+                        child: InkWell(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 5,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  item.realm!.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              ProfilePictureWidget(
+                                file: item.realm!.picture,
+                                fallbackIcon: Symbols.group,
+                                radius: 9,
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            GoRouter.of(context).pushNamed(
+                              'realmDetail',
+                              pathParameters: {'slug': item.realm!.slug},
+                            );
+                          },
                         ),
-                        onTap: () {
-                          GoRouter.of(context).pushNamed(
-                            'realmDetail',
-                            pathParameters: {'slug': item.realm!.slug},
-                          );
-                        },
                       ),
                     ]),
                 ],

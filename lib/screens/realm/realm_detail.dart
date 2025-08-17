@@ -4,6 +4,8 @@ import 'package:island/screens/chat/chat.dart';
 import 'package:flutter/material.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/services/color.dart';
+import 'package:island/services/responsive.dart';
+import 'package:island/widgets/post/post_list.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -78,155 +80,285 @@ class RealmDetailScreen extends HookConsumerWidget {
       offset: Offset(1.0, 1.0),
     );
 
+    final realmIdentity = ref.watch(realmIdentityProvider(slug));
+    final realmChatRooms = ref.watch(realmChatRoomsProvider(slug));
+
+    Widget realmDescriptionWidget(SnRealm realm) => Card(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+          collapsedShape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+          title: const Text('description').tr(),
+          initiallyExpanded:
+              realmIdentity.hasValue && realmIdentity.value == null,
+          tilePadding: EdgeInsets.only(left: 24, right: 20),
+          expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              realm.description,
+              style: const TextStyle(fontSize: 16),
+            ).padding(horizontal: 20, bottom: 16, top: 8),
+          ],
+        ),
+      ),
+    );
+
+    Widget realmActionWidget(SnRealm realm) => Card(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: FilledButton.tonalIcon(
+        onPressed: () async {
+          try {
+            final apiClient = ref.read(apiClientProvider);
+            await apiClient.post('/sphere/realms/$slug/members/me');
+            ref.invalidate(realmIdentityProvider(slug));
+            ref.invalidate(realmsJoinedProvider);
+            showSnackBar('realmJoinSuccess'.tr());
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        },
+        icon: const Icon(Symbols.add),
+        label: const Text('realmJoin').tr(),
+      ).padding(all: 16),
+    );
+
+    Widget realmChatRoomListWidget(SnRealm realm) => Card(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'chatTabGroup',
+          ).tr().bold().padding(horizontal: 24, top: 12, bottom: 4),
+          realmChatRooms.when(
+            loading: () => Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(child: Text('Error: $error')),
+            data: (rooms) {
+              if (rooms.isEmpty) {
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              }
+              return Column(
+                children: [
+                  for (final room in rooms)
+                    ChatRoomListTile(
+                      room: room,
+                      onTap: () {
+                        context.pushNamed(
+                          'chatRoom',
+                          pathParameters: {'id': room.id},
+                        );
+                      },
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+
     return AppScaffold(
       isNoBackground: false,
+      appBar:
+          isWideScreen(context)
+              ? realmState.when(
+                data:
+                    (realm) => AppBar(
+                      foregroundColor: appbarColor.value,
+                      leading: PageBackButton(
+                        color: appbarColor.value,
+                        shadows: [iconShadow],
+                      ),
+                      flexibleSpace: Stack(
+                        children: [
+                          Positioned.fill(
+                            child:
+                                realm!.background?.id != null
+                                    ? CloudImageWidget(
+                                      fileId: realm.background!.id,
+                                    )
+                                    : Container(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).appBarTheme.backgroundColor,
+                                    ),
+                          ),
+                          FlexibleSpaceBar(
+                            title: Text(
+                              realm.name,
+                              style: TextStyle(
+                                color:
+                                    appbarColor.value ??
+                                    Theme.of(
+                                      context,
+                                    ).appBarTheme.foregroundColor,
+                                shadows: [iconShadow],
+                              ),
+                            ),
+                            background: Container(),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        IconButton(
+                          icon: Icon(Icons.people, shadows: [iconShadow]),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              isScrollControlled: true,
+                              context: context,
+                              builder:
+                                  (context) =>
+                                      _RealmMemberListSheet(realmSlug: slug),
+                            );
+                          },
+                        ),
+                        _RealmActionMenu(
+                          realmSlug: slug,
+                          iconShadow: iconShadow,
+                        ),
+                        const Gap(8),
+                      ],
+                    ),
+                error: (_, _) => AppBar(leading: PageBackButton()),
+                loading: () => AppBar(leading: PageBackButton()),
+              )
+              : null,
       body: realmState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
         data:
-            (realm) => CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: 180,
-                  pinned: true,
-                  foregroundColor: appbarColor.value,
-                  leading: PageBackButton(
-                    color: appbarColor.value,
-                    shadows: [iconShadow],
-                  ),
-                  flexibleSpace: FlexibleSpaceBar(
-                    background:
-                        realm!.background?.id != null
-                            ? CloudImageWidget(fileId: realm.background!.id)
-                            : Container(
-                              color:
-                                  Theme.of(context).appBarTheme.backgroundColor,
-                            ),
-                    title: Text(
-                      realm.name,
-                      style: TextStyle(
-                        color:
-                            appbarColor.value ??
-                            Theme.of(context).appBarTheme.foregroundColor,
-                        shadows: [iconShadow],
-                      ),
-                    ),
-                  ),
-                  actions: [
-                    IconButton(
-                      icon: Icon(Icons.people, shadows: [iconShadow]),
-                      onPressed: () {
-                        showModalBottomSheet(
-                          isScrollControlled: true,
-                          context: context,
-                          builder:
-                              (context) =>
-                                  _RealmMemberListSheet(realmSlug: slug),
-                        );
-                      },
-                    ),
-                    _RealmActionMenu(realmSlug: slug, iconShadow: iconShadow),
-                    const Gap(8),
-                  ],
-                ),
-                SliverToBoxAdapter(
-                  child: ref
-                      .watch(realmIdentityProvider(slug))
-                      .when(
-                        loading: () => const SizedBox.shrink(),
-                        error: (_, _) => const SizedBox.shrink(),
-                        data:
-                            (identity) => Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                ExpansionTile(
-                                  title: const Text('description').tr(),
-                                  initiallyExpanded: identity == null,
-                                  tilePadding: EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                  ),
-                                  expandedCrossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Text(
-                                      realm.description,
-                                      style: const TextStyle(fontSize: 16),
-                                    ).padding(
-                                      horizontal: 20,
-                                      bottom: 16,
-                                      top: 8,
+            (realm) =>
+                isWideScreen(context)
+                    ? Row(
+                      children: [
+                        Flexible(
+                          flex: 3,
+                          child: CustomScrollView(
+                            slivers: [SliverPostList(realm: slug)],
+                          ),
+                        ),
+                        Flexible(
+                          flex: 2,
+                          child: Column(
+                            children: [
+                              realmIdentity.when(
+                                loading: () => const SizedBox.shrink(),
+                                error: (_, _) => const SizedBox.shrink(),
+                                data:
+                                    (identity) => Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        realmDescriptionWidget(realm!),
+                                        if (identity == null &&
+                                            realm.isCommunity)
+                                          realmActionWidget(realm)
+                                        else
+                                          const SizedBox.shrink(),
+                                      ],
                                     ),
-                                  ],
+                              ),
+                              realmChatRoomListWidget(realm!),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ).padding(horizontal: 8, top: 8)
+                    : CustomScrollView(
+                      slivers: [
+                        SliverAppBar(
+                          expandedHeight: 180,
+                          pinned: true,
+                          foregroundColor: appbarColor.value,
+                          leading: PageBackButton(
+                            color: appbarColor.value,
+                            shadows: [iconShadow],
+                          ),
+                          flexibleSpace: Stack(
+                            children: [
+                              Positioned.fill(
+                                child:
+                                    realm!.background?.id != null
+                                        ? CloudImageWidget(
+                                          fileId: realm.background!.id,
+                                        )
+                                        : Container(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).appBarTheme.backgroundColor,
+                                        ),
+                              ),
+                              FlexibleSpaceBar(
+                                title: Text(
+                                  realm.name,
+                                  style: TextStyle(
+                                    color:
+                                        appbarColor.value ??
+                                        Theme.of(
+                                          context,
+                                        ).appBarTheme.foregroundColor,
+                                    shadows: [iconShadow],
+                                  ),
                                 ),
-                                if (identity == null && realm.isCommunity)
-                                  FilledButton.tonalIcon(
-                                    onPressed: () async {
-                                      try {
-                                        final apiClient = ref.read(
-                                          apiClientProvider,
-                                        );
-                                        await apiClient.post(
-                                          '/sphere/realms/$slug/members/me',
-                                        );
-                                        ref.invalidate(
-                                          realmIdentityProvider(slug),
-                                        );
-                                        ref.invalidate(realmsJoinedProvider);
-                                        showSnackBar('realmJoinSuccess'.tr());
-                                      } catch (err) {
-                                        showErrorAlert(err);
-                                      }
-                                    },
-                                    icon: const Icon(Symbols.add),
-                                    label: const Text('realmJoin').tr(),
-                                  ).padding(horizontal: 16, vertical: 16)
-                                else
-                                  const SizedBox.shrink(),
-                              ],
-                            ),
-                      ),
-                ),
-                const SliverToBoxAdapter(child: Divider(height: 1)),
-                Consumer(
-                  builder: (context, ref, _) {
-                    final chatRooms = ref.watch(realmChatRoomsProvider(slug));
-                    return chatRooms.when(
-                      loading:
-                          () => const SliverToBoxAdapter(
-                            child: Center(child: CircularProgressIndicator()),
+                                background:
+                                    Container(), // Empty container since background is handled by Stack
+                              ),
+                            ],
                           ),
-                      error:
-                          (error, _) => SliverToBoxAdapter(
-                            child: Center(child: Text('Error: $error')),
-                          ),
-                      data: (rooms) {
-                        if (rooms.isEmpty) {
-                          return const SliverToBoxAdapter(
-                            child: SizedBox.shrink(),
-                          );
-                        }
-                        return SliverList(
-                          delegate: SliverChildBuilderDelegate((
-                            context,
-                            index,
-                          ) {
-                            return ChatRoomListTile(
-                              room: rooms[index],
-                              onTap: () {
-                                context.pushNamed(
-                                  'chatRoom',
-                                  pathParameters: {'id': rooms[index].id},
+                          actions: [
+                            IconButton(
+                              icon: Icon(Icons.people, shadows: [iconShadow]),
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  isScrollControlled: true,
+                                  context: context,
+                                  builder:
+                                      (context) => _RealmMemberListSheet(
+                                        realmSlug: slug,
+                                      ),
                                 );
                               },
-                            );
-                          }, childCount: rooms.length),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
+                            ),
+                            _RealmActionMenu(
+                              realmSlug: slug,
+                              iconShadow: iconShadow,
+                            ),
+                            const Gap(8),
+                          ],
+                        ),
+                        SliverGap(4),
+                        SliverToBoxAdapter(
+                          child: realmIdentity.when(
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, _) => const SizedBox.shrink(),
+                            data:
+                                (identity) => Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    realmDescriptionWidget(realm),
+                                    if (identity == null && realm.isCommunity)
+                                      realmActionWidget(realm)
+                                    else
+                                      const SizedBox.shrink(),
+                                  ],
+                                ),
+                          ),
+                        ),
+                        SliverToBoxAdapter(
+                          child: realmChatRoomListWidget(realm),
+                        ),
+                        SliverPostList(realm: slug),
+                      ],
+                    ),
       ),
     );
   }
@@ -508,146 +640,152 @@ class _RealmMemberListSheet extends HookConsumerWidget {
       }
     }
 
+    Widget _buildMemberListHeader() {
+      return Padding(
+        padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
+        child: Row(
+          children: [
+            Text(
+              'members'.plural(memberState.total),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Symbols.person_add),
+              onPressed: invitePerson,
+              style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+            ),
+            IconButton(
+              icon: const Icon(Symbols.refresh),
+              onPressed: () {
+                // Refresh both providers
+                memberNotifier.reset();
+                memberNotifier.loadMore();
+                ref.invalidate(memberListProvider);
+              },
+            ),
+            IconButton(
+              icon: const Icon(Symbols.close),
+              onPressed: () => Navigator.pop(context),
+              style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget _buildMemberListContent() {
+      return Expanded(
+        child: PagingHelperView(
+          provider: memberListProvider,
+          futureRefreshable: memberListProvider.future,
+          notifierRefreshable: memberListProvider.notifier,
+          contentBuilder: (data, widgetCount, endItemView) {
+            return ListView.builder(
+              itemCount: widgetCount,
+              itemBuilder: (context, index) {
+                if (index == data.items.length) {
+                  return endItemView;
+                }
+
+                final member = data.items[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.only(left: 16, right: 12),
+                  leading: ProfilePictureWidget(
+                    fileId: member.account!.profile.picture?.id,
+                  ),
+                  title: Row(
+                    spacing: 6,
+                    children: [
+                      Flexible(child: Text(member.account!.nick)),
+                      if (member.joinedAt == null)
+                        const Icon(Symbols.pending_actions, size: 20),
+                    ],
+                  ),
+                  subtitle: Row(
+                    children: [
+                      Text(
+                        member.role >= 100
+                            ? 'permissionOwner'
+                            : member.role >= 50
+                            ? 'permissionModerator'
+                            : 'permissionMember',
+                      ).tr(),
+                      Text('·').bold().padding(horizontal: 6),
+                      Expanded(child: Text("@${member.account!.name}")),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if ((realmIdentity.value?.role ?? 0) >= 50)
+                        IconButton(
+                          icon: const Icon(Symbols.edit),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              isScrollControlled: true,
+                              context: context,
+                              builder:
+                                  (context) => _RealmMemberRoleSheet(
+                                    realmSlug: realmSlug,
+                                    member: member,
+                                  ),
+                            ).then((value) {
+                              if (value != null) {
+                                // Refresh both providers
+                                memberNotifier.reset();
+                                memberNotifier.loadMore();
+                                ref.invalidate(memberListProvider);
+                              }
+                            });
+                          },
+                        ),
+                      if ((realmIdentity.value?.role ?? 0) >= 50)
+                        IconButton(
+                          icon: const Icon(Symbols.delete),
+                          onPressed: () {
+                            showConfirmAlert(
+                              'removeRealmMemberHint'.tr(),
+                              'removeRealmMember'.tr(),
+                            ).then((confirm) async {
+                              if (confirm != true) return;
+                              try {
+                                final apiClient = ref.watch(apiClientProvider);
+                                await apiClient.delete(
+                                  '/sphere/realms/$realmSlug/members/${member.accountId}',
+                                );
+                                // Refresh both providers
+                                memberNotifier.reset();
+                                memberNotifier.loadMore();
+                                ref.invalidate(memberListProvider);
+                              } catch (err) {
+                                showErrorAlert(err);
+                              }
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      );
+    }
+
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
       child: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
-            child: Row(
-              children: [
-                Text(
-                  'members'.plural(memberState.total),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Symbols.person_add),
-                  onPressed: invitePerson,
-                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-                ),
-                IconButton(
-                  icon: const Icon(Symbols.refresh),
-                  onPressed: () {
-                    // Refresh both providers
-                    memberNotifier.reset();
-                    memberNotifier.loadMore();
-                    ref.invalidate(memberListProvider);
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Symbols.close),
-                  onPressed: () => Navigator.pop(context),
-                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-                ),
-              ],
-            ),
-          ),
+          _buildMemberListHeader(),
           const Divider(height: 1),
-          Expanded(
-            child: PagingHelperView(
-              provider: memberListProvider,
-              futureRefreshable: memberListProvider.future,
-              notifierRefreshable: memberListProvider.notifier,
-              contentBuilder: (data, widgetCount, endItemView) {
-                return ListView.builder(
-                  itemCount: widgetCount,
-                  itemBuilder: (context, index) {
-                    if (index == data.items.length) {
-                      return endItemView;
-                    }
-
-                    final member = data.items[index];
-                    return ListTile(
-                      contentPadding: EdgeInsets.only(left: 16, right: 12),
-                      leading: ProfilePictureWidget(
-                        fileId: member.account!.profile.picture?.id,
-                      ),
-                      title: Row(
-                        spacing: 6,
-                        children: [
-                          Flexible(child: Text(member.account!.nick)),
-                          if (member.joinedAt == null)
-                            const Icon(Symbols.pending_actions, size: 20),
-                        ],
-                      ),
-                      subtitle: Row(
-                        children: [
-                          Text(
-                            member.role >= 100
-                                ? 'permissionOwner'
-                                : member.role >= 50
-                                ? 'permissionModerator'
-                                : 'permissionMember',
-                          ).tr(),
-                          Text('·').bold().padding(horizontal: 6),
-                          Expanded(child: Text("@${member.account!.name}")),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if ((realmIdentity.value?.role ?? 0) >= 50)
-                            IconButton(
-                              icon: const Icon(Symbols.edit),
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  isScrollControlled: true,
-                                  context: context,
-                                  builder:
-                                      (context) => _RealmMemberRoleSheet(
-                                        realmSlug: realmSlug,
-                                        member: member,
-                                      ),
-                                ).then((value) {
-                                  if (value != null) {
-                                    // Refresh both providers
-                                    memberNotifier.reset();
-                                    memberNotifier.loadMore();
-                                    ref.invalidate(memberListProvider);
-                                  }
-                                });
-                              },
-                            ),
-                          if ((realmIdentity.value?.role ?? 0) >= 50)
-                            IconButton(
-                              icon: const Icon(Symbols.delete),
-                              onPressed: () {
-                                showConfirmAlert(
-                                  'removeRealmMemberHint'.tr(),
-                                  'removeRealmMember'.tr(),
-                                ).then((confirm) async {
-                                  if (confirm != true) return;
-                                  try {
-                                    final apiClient = ref.watch(
-                                      apiClientProvider,
-                                    );
-                                    await apiClient.delete(
-                                      '/sphere/realms/$realmSlug/members/${member.accountId}',
-                                    );
-                                    // Refresh both providers
-                                    memberNotifier.reset();
-                                    memberNotifier.loadMore();
-                                    ref.invalidate(memberListProvider);
-                                  } catch (err) {
-                                    showErrorAlert(err);
-                                  }
-                                });
-                              },
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
+          _buildMemberListContent(),
         ],
       ),
     );

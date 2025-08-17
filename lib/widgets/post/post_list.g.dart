@@ -6,7 +6,7 @@ part of 'post_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$postListNotifierHash() => r'2ca4f3cfbbcd04f3cc32e7f7bd511a5811042829';
+String _$postListNotifierHash() => r'9784b282b3ee14b7109e263c5841a082cf0be78e';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -32,12 +32,14 @@ class _SystemHash {
 abstract class _$PostListNotifier
     extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnPost>> {
   late final String? pubName;
+  late final String? realm;
   late final int? type;
   late final List<String>? categories;
   late final List<String>? tags;
 
-  FutureOr<CursorPagingData<SnPost>> build(
-    String? pubName, {
+  FutureOr<CursorPagingData<SnPost>> build({
+    String? pubName,
+    String? realm,
     int? type,
     List<String>? categories,
     List<String>? tags,
@@ -55,14 +57,16 @@ class PostListNotifierFamily
   const PostListNotifierFamily();
 
   /// See also [PostListNotifier].
-  PostListNotifierProvider call(
-    String? pubName, {
+  PostListNotifierProvider call({
+    String? pubName,
+    String? realm,
     int? type,
     List<String>? categories,
     List<String>? tags,
   }) {
     return PostListNotifierProvider(
-      pubName,
+      pubName: pubName,
+      realm: realm,
       type: type,
       categories: categories,
       tags: tags,
@@ -74,7 +78,8 @@ class PostListNotifierFamily
     covariant PostListNotifierProvider provider,
   ) {
     return call(
-      provider.pubName,
+      pubName: provider.pubName,
+      realm: provider.realm,
       type: provider.type,
       categories: provider.categories,
       tags: provider.tags,
@@ -104,8 +109,9 @@ class PostListNotifierProvider
           CursorPagingData<SnPost>
         > {
   /// See also [PostListNotifier].
-  PostListNotifierProvider(
-    String? pubName, {
+  PostListNotifierProvider({
+    String? pubName,
+    String? realm,
     int? type,
     List<String>? categories,
     List<String>? tags,
@@ -113,6 +119,7 @@ class PostListNotifierProvider
          () =>
              PostListNotifier()
                ..pubName = pubName
+               ..realm = realm
                ..type = type
                ..categories = categories
                ..tags = tags,
@@ -126,6 +133,7 @@ class PostListNotifierProvider
          allTransitiveDependencies:
              PostListNotifierFamily._allTransitiveDependencies,
          pubName: pubName,
+         realm: realm,
          type: type,
          categories: categories,
          tags: tags,
@@ -139,12 +147,14 @@ class PostListNotifierProvider
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.pubName,
+    required this.realm,
     required this.type,
     required this.categories,
     required this.tags,
   }) : super.internal();
 
   final String? pubName;
+  final String? realm;
   final int? type;
   final List<String>? categories;
   final List<String>? tags;
@@ -154,7 +164,8 @@ class PostListNotifierProvider
     covariant PostListNotifier notifier,
   ) {
     return notifier.build(
-      pubName,
+      pubName: pubName,
+      realm: realm,
       type: type,
       categories: categories,
       tags: tags,
@@ -169,6 +180,7 @@ class PostListNotifierProvider
         () =>
             create()
               ..pubName = pubName
+              ..realm = realm
               ..type = type
               ..categories = categories
               ..tags = tags,
@@ -178,6 +190,7 @@ class PostListNotifierProvider
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         pubName: pubName,
+        realm: realm,
         type: type,
         categories: categories,
         tags: tags,
@@ -198,6 +211,7 @@ class PostListNotifierProvider
   bool operator ==(Object other) {
     return other is PostListNotifierProvider &&
         other.pubName == pubName &&
+        other.realm == realm &&
         other.type == type &&
         other.categories == categories &&
         other.tags == tags;
@@ -207,6 +221,7 @@ class PostListNotifierProvider
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, pubName.hashCode);
+    hash = _SystemHash.combine(hash, realm.hashCode);
     hash = _SystemHash.combine(hash, type.hashCode);
     hash = _SystemHash.combine(hash, categories.hashCode);
     hash = _SystemHash.combine(hash, tags.hashCode);
@@ -221,6 +236,9 @@ mixin PostListNotifierRef
     on AutoDisposeAsyncNotifierProviderRef<CursorPagingData<SnPost>> {
   /// The parameter `pubName` of this provider.
   String? get pubName;
+
+  /// The parameter `realm` of this provider.
+  String? get realm;
 
   /// The parameter `type` of this provider.
   int? get type;
@@ -243,6 +261,8 @@ class _PostListNotifierProviderElement
 
   @override
   String? get pubName => (origin as PostListNotifierProvider).pubName;
+  @override
+  String? get realm => (origin as PostListNotifierProvider).realm;
   @override
   int? get type => (origin as PostListNotifierProvider).type;
   @override
