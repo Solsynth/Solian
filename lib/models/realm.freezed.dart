@@ -359,7 +359,7 @@ $SnCloudFileCopyWith<$Res>? get background {
 /// @nodoc
 mixin _$SnRealmMember {
 
- String get realmId; SnRealm? get realm; String get accountId; SnAccount? get account; int get role; DateTime? get joinedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get realmId; SnRealm? get realm; String get accountId; SnAccount? get account; int get role; DateTime? get joinedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; SnAccountStatus? get status;
 /// Create a copy of SnRealmMember
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -372,16 +372,16 @@ $SnRealmMemberCopyWith<SnRealmMember> get copyWith => _$SnRealmMemberCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealmMember&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealmMember&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,realmId,realm,accountId,account,role,joinedAt,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,realmId,realm,accountId,account,role,joinedAt,createdAt,updatedAt,deletedAt,status);
 
 @override
 String toString() {
-  return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, status: $status)';
 }
 
 
@@ -392,11 +392,11 @@ abstract mixin class $SnRealmMemberCopyWith<$Res>  {
   factory $SnRealmMemberCopyWith(SnRealmMember value, $Res Function(SnRealmMember) _then) = _$SnRealmMemberCopyWithImpl;
 @useResult
 $Res call({
- String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccountStatus? status
 });
 
 
-$SnRealmCopyWith<$Res>? get realm;$SnAccountCopyWith<$Res>? get account;
+$SnRealmCopyWith<$Res>? get realm;$SnAccountCopyWith<$Res>? get account;$SnAccountStatusCopyWith<$Res>? get status;
 
 }
 /// @nodoc
@@ -409,7 +409,7 @@ class _$SnRealmMemberCopyWithImpl<$Res>
 
 /// Create a copy of SnRealmMember
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? realmId = null,Object? realm = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? realmId = null,Object? realm = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? status = freezed,}) {
   return _then(_self.copyWith(
 realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String,realm: freezed == realm ? _self.realm : realm // ignore: cast_nullable_to_non_nullable
@@ -420,7 +420,8 @@ as int,joinedAt: freezed == joinedAt ? _self.joinedAt : joinedAt // ignore: cast
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus?,
   ));
 }
 /// Create a copy of SnRealmMember
@@ -446,6 +447,18 @@ $SnAccountCopyWith<$Res>? get account {
 
   return $SnAccountCopyWith<$Res>(_self.account!, (value) {
     return _then(_self.copyWith(account: value));
+  });
+}/// Create a copy of SnRealmMember
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res>? get status {
+    if (_self.status == null) {
+    return null;
+  }
+
+  return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
+    return _then(_self.copyWith(status: value));
   });
 }
 }
@@ -526,10 +539,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccountStatus? status)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnRealmMember() when $default != null:
-return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.status);case _:
   return orElse();
 
 }
@@ -547,10 +560,10 @@ return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.ro
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccountStatus? status)  $default,) {final _that = this;
 switch (_that) {
 case _SnRealmMember():
-return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.status);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -564,10 +577,10 @@ return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.ro
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String realmId,  SnRealm? realm,  String accountId,  SnAccount? account,  int role,  DateTime? joinedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccountStatus? status)?  $default,) {final _that = this;
 switch (_that) {
 case _SnRealmMember() when $default != null:
-return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.role,_that.joinedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.status);case _:
   return null;
 
 }
@@ -579,7 +592,7 @@ return $default(_that.realmId,_that.realm,_that.accountId,_that.account,_that.ro
 @JsonSerializable()
 
 class _SnRealmMember implements SnRealmMember {
-  const _SnRealmMember({required this.realmId, required this.realm, required this.accountId, required this.account, required this.role, required this.joinedAt, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnRealmMember({required this.realmId, required this.realm, required this.accountId, required this.account, required this.role, required this.joinedAt, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.status});
   factory _SnRealmMember.fromJson(Map<String, dynamic> json) => _$SnRealmMemberFromJson(json);
 
 @override final  String realmId;
@@ -591,6 +604,7 @@ class _SnRealmMember implements SnRealmMember {
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
+@override final  SnAccountStatus? status;
 
 /// Create a copy of SnRealmMember
 /// with the given fields replaced by the non-null parameter values.
@@ -605,16 +619,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRealmMember&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRealmMember&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.role, role) || other.role == role)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,realmId,realm,accountId,account,role,joinedAt,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,realmId,realm,accountId,account,role,joinedAt,createdAt,updatedAt,deletedAt,status);
 
 @override
 String toString() {
-  return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnRealmMember(realmId: $realmId, realm: $realm, accountId: $accountId, account: $account, role: $role, joinedAt: $joinedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, status: $status)';
 }
 
 
@@ -625,11 +639,11 @@ abstract mixin class _$SnRealmMemberCopyWith<$Res> implements $SnRealmMemberCopy
   factory _$SnRealmMemberCopyWith(_SnRealmMember value, $Res Function(_SnRealmMember) _then) = __$SnRealmMemberCopyWithImpl;
 @override @useResult
 $Res call({
- String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String realmId, SnRealm? realm, String accountId, SnAccount? account, int role, DateTime? joinedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccountStatus? status
 });
 
 
-@override $SnRealmCopyWith<$Res>? get realm;@override $SnAccountCopyWith<$Res>? get account;
+@override $SnRealmCopyWith<$Res>? get realm;@override $SnAccountCopyWith<$Res>? get account;@override $SnAccountStatusCopyWith<$Res>? get status;
 
 }
 /// @nodoc
@@ -642,7 +656,7 @@ class __$SnRealmMemberCopyWithImpl<$Res>
 
 /// Create a copy of SnRealmMember
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? realmId = null,Object? realm = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? realmId = null,Object? realm = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? status = freezed,}) {
   return _then(_SnRealmMember(
 realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String,realm: freezed == realm ? _self.realm : realm // ignore: cast_nullable_to_non_nullable
@@ -653,7 +667,8 @@ as int,joinedAt: freezed == joinedAt ? _self.joinedAt : joinedAt // ignore: cast
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus?,
   ));
 }
 
@@ -680,6 +695,18 @@ $SnAccountCopyWith<$Res>? get account {
 
   return $SnAccountCopyWith<$Res>(_self.account!, (value) {
     return _then(_self.copyWith(account: value));
+  });
+}/// Create a copy of SnRealmMember
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res>? get status {
+    if (_self.status == null) {
+    return null;
+  }
+
+  return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
+    return _then(_self.copyWith(status: value));
   });
 }
 }

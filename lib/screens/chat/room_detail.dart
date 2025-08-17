@@ -10,6 +10,7 @@ import 'package:island/models/chat.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/chat/chat.dart';
 import 'package:island/widgets/account/account_picker.dart';
+import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -544,7 +545,7 @@ class ChatMemberListNotifier extends _$ChatMemberListNotifier
     final apiClient = ref.watch(apiClientProvider);
     final response = await apiClient.get(
       '/sphere/chat/$roomId/members',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: {'offset': offset, 'take': take, 'withStatus': true},
     );
 
     final total = int.parse(response.headers.value('X-Total') ?? '0');
@@ -672,6 +673,8 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                         spacing: 6,
                         children: [
                           Flexible(child: Text(member.account.nick)),
+                          if (member.status != null)
+                            AccountStatusLabel(status: member.status!),
                           if (member.joinedAt == null)
                             const Icon(Symbols.pending_actions, size: 20),
                         ],

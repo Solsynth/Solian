@@ -158,3 +158,42 @@ class AccountStatusWidget extends HookConsumerWidget {
     ).opacity((status.value?.isCustomized ?? false) ? 1 : 0.85);
   }
 }
+
+class AccountStatusLabel extends StatelessWidget {
+  final SnAccountStatus status;
+  final TextStyle? style;
+  final int maxLines;
+  final TextOverflow overflow;
+
+  const AccountStatusLabel({
+    super.key,
+    required this.status,
+    this.style,
+    this.maxLines = 1,
+    this.overflow = TextOverflow.ellipsis,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          Symbols.circle,
+          fill: 1,
+          color: status.isOnline ? Colors.green : Colors.grey,
+          size: 14,
+        ).padding(right: 4),
+        Flexible(
+          child: Text(
+            status.label,
+            style: style,
+            maxLines: maxLines,
+            overflow: overflow,
+          ).fontSize(13),
+        ),
+      ],
+    );
+  }
+}

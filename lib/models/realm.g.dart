@@ -75,6 +75,12 @@ _SnRealmMember _$SnRealmMemberFromJson(Map<String, dynamic> json) =>
           json['deleted_at'] == null
               ? null
               : DateTime.parse(json['deleted_at'] as String),
+      status:
+          json['status'] == null
+              ? null
+              : SnAccountStatus.fromJson(
+                json['status'] as Map<String, dynamic>,
+              ),
     );
 
 Map<String, dynamic> _$SnRealmMemberToJson(_SnRealmMember instance) =>
@@ -88,4 +94,5 @@ Map<String, dynamic> _$SnRealmMemberToJson(_SnRealmMember instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
+      'status': instance.status?.toJson(),
     };
