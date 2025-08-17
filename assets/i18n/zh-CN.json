@@ -816,5 +816,7 @@
   "messageJumpNotLoaded": "引用的消息没有被加载，无法跳转。",
   "postUnlinkRealm": "不关联领域",
   "postSlug": "别名",
-  "postSlugHint": "这个别名可以用于在网页通过 URL 浏览到你的帖子，它应该在同一发布者中是唯一。"
+  "postSlugHint": "这个别名可以用于在网页通过 URL 浏览到你的帖子，它应该在同一发布者中是唯一。",
+  "attachmentOnDevice": "离线",
+  "attachmentOnCloud": "在线"
 }

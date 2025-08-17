@@ -89,6 +89,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
     }, [state]);
 
     final showPreview = useState(false);
+    final isAttachmentsExpanded = useState(
+      true,
+    ); // New state for attachments section
 
     // Initialize publisher once when data is available
     useEffect(() {
@@ -297,71 +300,86 @@ class ArticleComposeScreen extends HookConsumerWidget {
                 valueListenable: state.attachments,
                 builder: (context, attachments, _) {
                   if (attachments.isEmpty) return const SizedBox.shrink();
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Gap(16),
-                      Text(
-                        'articleAttachmentHint'.tr(),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ).padding(bottom: 8),
-                      ValueListenableBuilder<Map<int, double>>(
-                        valueListenable: state.attachmentProgress,
-                        builder: (context, progressMap, _) {
-                          return Wrap(
-                            runSpacing: 8,
-                            spacing: 8,
-                            children: [
-                              for (var idx = 0; idx < attachments.length; idx++)
-                                SizedBox(
-                                  width: 280,
-                                  height: 280,
-                                  child: AttachmentPreview(
-                                    item: attachments[idx],
-                                    progress: progressMap[idx],
-                                    onRequestUpload:
-                                        () => ComposeLogic.uploadAttachment(
-                                          ref,
-                                          state,
-                                          idx,
-                                        ),
-                                    onUpdate:
-                                        (value) =>
-                                            ComposeLogic.updateAttachment(
-                                              state,
-                                              value,
-                                              idx,
-                                            ),
-                                    onDelete:
-                                        () => ComposeLogic.deleteAttachment(
-                                          ref,
-                                          state,
-                                          idx,
-                                        ),
-                                    onMove: (delta) {
-                                      state
-                                          .attachments
-                                          .value = ComposeLogic.moveAttachment(
-                                        state.attachments.value,
-                                        idx,
-                                        delta,
-                                      );
-                                    },
-                                    onInsert:
-                                        () => ComposeLogic.insertAttachment(
-                                          ref,
-                                          state,
-                                          idx,
-                                        ),
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
+                  return Theme(
+                    data: Theme.of(
+                      context,
+                    ).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      initiallyExpanded: isAttachmentsExpanded.value,
+                      onExpansionChanged: (expanded) {
+                        isAttachmentsExpanded.value = expanded;
+                      },
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('attachments').tr(),
+                          Text(
+                            'articleAttachmentHint'.tr(),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                      children: [
+                        ValueListenableBuilder<Map<int, double>>(
+                          valueListenable: state.attachmentProgress,
+                          builder: (context, progressMap, _) {
+                            return Wrap(
+                              runSpacing: 8,
+                              spacing: 8,
+                              children: [
+                                for (
+                                  var idx = 0;
+                                  idx < attachments.length;
+                                  idx++
+                                )
+                                  SizedBox(
+                                    width: 180,
+                                    height: 180,
+                                    child: AttachmentPreview(
+                                      isCompact: true,
+                                      item: attachments[idx],
+                                      progress: progressMap[idx],
+                                      onRequestUpload:
+                                          () => ComposeLogic.uploadAttachment(
+                                            ref,
+                                            state,
+                                            idx,
+                                          ),
+                                      onUpdate:
+                                          (value) =>
+                                              ComposeLogic.updateAttachment(
+                                                state,
+                                                value,
+                                                idx,
+                                              ),
+                                      onDelete:
+                                          () => ComposeLogic.deleteAttachment(
+                                            ref,
+                                            state,
+                                            idx,
+                                          ),
+                                      onInsert:
+                                          () => ComposeLogic.insertAttachment(
+                                            ref,
+                                            state,
+                                            idx,
+                                          ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                        Gap(16),
+                      ],
+                    ),
                   );
                 },
               ),
