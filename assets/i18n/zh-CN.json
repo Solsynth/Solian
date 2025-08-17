@@ -818,5 +818,11 @@
   "postSlug": "别名",
   "postSlugHint": "这个别名可以用于在网页通过 URL 浏览到你的帖子，它应该在同一发布者中是唯一。",
   "attachmentOnDevice": "离线",
-  "attachmentOnCloud": "在线"
+  "attachmentOnCloud": "在线",
+  "publisherCollabInvitation": "协作邀请",
+  "publisherCollabInvitationCount": {
+    "zero": "无邀请",
+    "one": "{} 个可用邀请",
+    "other": "{} 个可用邀请"
+  }
 }

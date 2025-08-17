@@ -212,30 +212,6 @@ class CreatorHubScreen extends HookConsumerWidget {
         leading: !isWide ? const PageBackButton() : null,
         title: Text('creatorHub').tr(),
         actions: [
-          IconButton(
-            icon: Badge(
-              label: Text(
-                publisherInvites.when(
-                  data: (invites) => invites.length.toString(),
-                  error: (_, _) => '0',
-                  loading: () => '0',
-                ),
-              ),
-              isLabelVisible: publisherInvites.when(
-                data: (invites) => invites.isNotEmpty,
-                error: (_, _) => false,
-                loading: () => false,
-              ),
-              child: const Icon(Symbols.email),
-            ),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => const _PublisherInviteSheet(),
-              );
-            },
-          ),
           DropdownButtonHideUnderline(
             child: DropdownButton2<SnPublisher>(
               alignment: Alignment.centerRight,
@@ -323,6 +299,23 @@ class CreatorHubScreen extends HookConsumerWidget {
                                 ),
                               ) ??
                               []),
+                          ListTile(
+                            leading: const CircleAvatar(
+                              child: Icon(Symbols.mail),
+                            ),
+                            title: Text('publisherCollabInvitation').tr(),
+                            subtitle: Text(
+                              'publisherCollabInvitationCount',
+                            ).plural(publisherInvites.value?.length ?? 0),
+                            trailing: const Icon(Symbols.chevron_right),
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (_) => const _PublisherInviteSheet(),
+                              );
+                            },
+                          ),
                           ListTile(
                             leading: const CircleAvatar(
                               child: Icon(Symbols.add),

@@ -844,5 +844,11 @@
   "postSlugHint": "The slug can be used to access your post via URL in the webpage, it should be publisher-wide unique.",
   "attachmentOnDevice": "On-device",
   "attachmentOnCloud": "On-cloud",
-  "attachments": "Attachments"
+  "attachments": "Attachments",
+  "publisherCollabInvitation": "Collabration invitations",
+  "publisherCollabInvitationCount": {
+    "zero": "No invitation",
+    "one": "{} available invitation",
+    "other": "{} available invitations"
+  }
 }
