@@ -6,6 +6,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/widgets/realm/realm_card.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 part 'realm_list.g.dart';
 
@@ -78,7 +79,11 @@ class SliverRealmList extends HookConsumerWidget {
                   horizontal: 16,
                   vertical: 8,
                 ),
-                child: RealmCard(realm: realm),
+                child:
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 540),
+                      child: RealmCard(realm: realm),
+                    ).center(),
               );
             },
             separatorBuilder: (_, _) => const Gap(8),
