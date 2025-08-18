@@ -40,7 +40,7 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
                       : 'failedToLoadUserInfoNetwork')
                   .tr()
                   .trim(),
-              error.response?.headers.toString(),
+              '${error.response!.statusCode}\n${error.response?.headers}',
               jsonEncode(error.response?.data),
             ].join('\n\n'),
             iconStyle: IconStyle.error,
