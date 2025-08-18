@@ -142,7 +142,9 @@ class RealmDetailScreen extends HookConsumerWidget {
             error: (error, _) => Center(child: Text('Error: $error')),
             data: (rooms) {
               if (rooms.isEmpty) {
-                return const SliverToBoxAdapter(child: SizedBox.shrink());
+                return Text(
+                  'dataEmpty',
+                ).tr().padding(horizontal: 24, bottom: 12);
               }
               return Column(
                 children: [
