@@ -130,6 +130,7 @@ class NotificationScreen extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
+        leading: const PageBackButton(),
         title: const Text('notifications').tr(),
         actions: [
           IconButton(
