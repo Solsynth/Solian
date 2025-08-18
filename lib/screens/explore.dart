@@ -447,7 +447,7 @@ class _ActivityListView extends HookConsumerWidget {
           SliverToBoxAdapter(
             child: PostFeaturedList().padding(horizontal: 8, bottom: 4, top: 4),
           ),
-        if (!contentOnly)
+        if (!contentOnly && (notificationCount.value ?? 0) > 0)
           SliverToBoxAdapter(
             child: notificationIndicatorWidget(
               context,
