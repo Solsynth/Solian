@@ -8,6 +8,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_quick_reply.dart';
 import 'package:island/widgets/post/post_replies.dart';
+import 'package:island/widgets/response.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -117,8 +118,12 @@ class PostDetailScreen extends HookConsumerWidget {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Text('Error: $e'),
+        loading: () => ResponseLoadingWidget(),
+        error:
+            (e, _) => ResponseErrorWidget(
+              error: e,
+              onRetry: () => ref.invalidate(postStateProvider(id)),
+            ),
       ),
     );
   }
