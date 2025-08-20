@@ -106,11 +106,7 @@ class StickerPacksNotifier extends _$StickerPacksNotifier
     try {
       final response = await client.get(
         '/sphere/stickers',
-        queryParameters: {
-          'offset': offset,
-          'take': _pageSize,
-          'pubName': pubName,
-        },
+        queryParameters: {'offset': offset, 'take': _pageSize, 'pub': pubName},
       );
 
       final total = int.parse(response.headers.value('X-Total') ?? '0');
