@@ -326,7 +326,11 @@ class CloudFileZoomIn extends HookConsumerWidget {
 
         // Create a temporary file to save the image
         final tempDir = await getTemporaryDirectory();
-        final filePath = '${tempDir.path}/${item.id}.${extension(item.name)}';
+        var extName = extension(item.name).trim();
+        if (extName.isEmpty) {
+          extName = item.mimeType?.split('/').lastOrNull ?? 'jpeg';
+        }
+        final filePath = '${tempDir.path}/${item.id}.$extName';
 
         await client.download(
           '/drive/files/${item.id}',
