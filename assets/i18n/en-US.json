@@ -854,5 +854,11 @@
   "failedToLoadUserInfo": "Failed to load user info",
   "failedToLoadUserInfoNetwork": "It seems be network issue, you can tap the button below to try again.",
   "failedToLoadUserInfoUnauthorized": "It seems your session has been logged out or not available anymore, you can still try agian to fetch the user info if you want.",
-  "okay": "Okay"
+  "okay": "Okay",
+  "postDetails": "Post Details",
+  "postCount": {
+    "zero": "No posts",
+    "one": "{} post",
+    "other": "{} posts"
+  }
 }

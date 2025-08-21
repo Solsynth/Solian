@@ -828,5 +828,6 @@
   "failedToLoadUserInfo": "加载用户信息失败",
   "failedToLoadUserInfoNetwork": "这看起来是个网络问题，你可以按下面的按钮来重试",
   "failedToLoadUserInfoUnauthorized": "看来您的会话已被注销或不再可用，如果您愿意，您仍然可以再次尝试获取用户信息。",
-  "okay": "了解"
+  "okay": "了解",
+  "postDetails": "帖子详情"
 }

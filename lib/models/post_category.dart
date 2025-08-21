@@ -15,6 +15,7 @@ sealed class SnPostCategory with _$SnPostCategory {
     required String slug,
     String? name,
     @Default([]) List<SnPost> posts,
+    @Default(0) int usage,
   }) = _SnPostCategory;
 
   factory SnPostCategory.fromJson(Map<String, dynamic> json) =>

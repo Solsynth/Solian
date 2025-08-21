@@ -50,6 +50,6 @@ class AppWrapper extends HookConsumerWidget {
       }
     }
 
-    return TourTriggerWidget(child: child);
+    return TourTriggerWidget(key: UniqueKey(), child: child);
   }
 }

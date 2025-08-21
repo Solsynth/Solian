@@ -173,12 +173,48 @@ class ExploreScreen extends HookConsumerWidget {
                     ),
                     tooltip: 'webArticlesStand'.tr(),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      context.pushNamed('postSearch');
-                    },
+                  PopupMenuButton(
+                    itemBuilder:
+                        (context) => [
+                          PopupMenuItem(
+                            child: Row(
+                              children: [
+                                const Icon(Symbols.category),
+                                const Gap(12),
+                                Text('categories').tr(),
+                              ],
+                            ),
+                            onTap: () {
+                              context.pushNamed('postCategories');
+                            },
+                          ),
+                          PopupMenuItem(
+                            child: Row(
+                              children: [
+                                const Icon(Symbols.label),
+                                const Gap(12),
+                                Text('tags').tr(),
+                              ],
+                            ),
+                            onTap: () {
+                              context.pushNamed('postTags');
+                            },
+                          ),
+                          PopupMenuItem(
+                            child: Row(
+                              children: [
+                                const Icon(Symbols.search),
+                                const Gap(12),
+                                Text('search').tr(),
+                              ],
+                            ),
+                            onTap: () {
+                              context.pushNamed('postSearch');
+                            },
+                          ),
+                        ],
                     icon: Icon(
-                      Symbols.search,
+                      Symbols.action_key,
                       color: Theme.of(context).appBarTheme.foregroundColor!,
                     ),
                     tooltip: 'search'.tr(),

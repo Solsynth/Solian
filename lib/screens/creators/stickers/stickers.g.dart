@@ -148,7 +148,7 @@ class _StickerPackProviderElement
 }
 
 String _$stickerPacksNotifierHash() =>
-    r'0a8edcf9c35396c411f1214f5e77b1e8fac6a3e6';
+    r'30024b35235f3085a5b1ec2204d0a974ee907e22';
 
 abstract class _$StickerPacksNotifier
     extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnStickerPack>> {

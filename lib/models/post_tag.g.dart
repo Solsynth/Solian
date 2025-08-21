@@ -15,6 +15,7 @@ _SnPostTag _$SnPostTagFromJson(Map<String, dynamic> json) => _SnPostTag(
           ?.map((e) => SnPost.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  usage: (json['usage'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$SnPostTagToJson(_SnPostTag instance) =>
@@ -23,4 +24,5 @@ Map<String, dynamic> _$SnPostTagToJson(_SnPostTag instance) =>
       'slug': instance.slug,
       'name': instance.name,
       'posts': instance.posts.map((e) => e.toJson()).toList(),
+      'usage': instance.usage,
     };

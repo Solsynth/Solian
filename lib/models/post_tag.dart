@@ -11,6 +11,7 @@ sealed class SnPostTag with _$SnPostTag {
     required String slug,
     String? name,
     @Default([]) List<SnPost> posts,
+    @Default(0) int usage,
   }) = _SnPostTag;
 
   factory SnPostTag.fromJson(Map<String, dynamic> json) =>

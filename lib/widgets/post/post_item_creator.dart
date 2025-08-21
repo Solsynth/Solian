@@ -94,7 +94,7 @@ class PostItemCreator extends HookConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: () {
             if (isOpenable) {
-              context.pushNamed('postDetail', pathParameters: {'id': item.id});
+              context.goNamed('postDetail', pathParameters: {'id': item.id});
             }
           },
           child: Padding(

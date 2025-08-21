@@ -11,6 +11,7 @@ import 'package:island/screens/developers/edit_app.dart';
 import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
 import 'package:island/screens/discovery/articles.dart';
+import 'package:island/screens/posts/post_categories_list.dart';
 import 'package:island/screens/posts/post_category_detail.dart';
 import 'package:island/screens/posts/post_search.dart';
 import 'package:island/widgets/app_wrapper.dart';
@@ -376,12 +377,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const PostSearchScreen(),
               ),
               GoRoute(
-                name: 'postDetail',
-                path: '/posts/:id',
-                builder: (context, state) {
-                  final id = state.pathParameters['id']!;
-                  return PostDetailScreen(id: id);
-                },
+                name: 'postCategories',
+                path: '/posts/categories',
+                builder: (context, state) => const PostCategoriesListScreen(),
               ),
               GoRoute(
                 name: 'postCategoryDetail',
@@ -392,6 +390,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                name: 'postTags',
+                path: '/posts/tags',
+                builder: (context, state) => const PostTagsListScreen(),
+              ),
+              GoRoute(
                 name: 'postTagDetail',
                 path: '/posts/tags/:slug',
                 builder: (context, state) {
@@ -400,6 +403,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                     slug: slug,
                     isCategory: false,
                   );
+                },
+              ),
+              GoRoute(
+                name: 'postDetail',
+                path: '/posts/:id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return PostDetailScreen(id: id);
                 },
               ),
               GoRoute(
