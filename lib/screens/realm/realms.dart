@@ -106,7 +106,7 @@ class RealmListScreen extends HookConsumerWidget {
                         return ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 540),
                           child: RealmListTile(realm: value[item]),
-                        ).center();
+                        ).padding(horizontal: 8).center();
                       },
                       separatorBuilder: (_, _) => const Gap(8),
                     ),
