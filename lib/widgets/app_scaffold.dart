@@ -235,7 +235,11 @@ class PageBackButton extends StatelessWidget {
     return IconButton(
       onPressed: () {
         onWillPop?.call();
-        context.pop();
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/');
+        }
       },
       icon: Icon(
         color: color,

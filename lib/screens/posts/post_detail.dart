@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -56,7 +57,10 @@ class PostDetailScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: const Text('Post')),
+      appBar: AppBar(
+        leading: const PageBackButton(),
+        title: Text('postDetail').tr(),
+      ),
       body: postState.when(
         data: (post) {
           return Stack(
