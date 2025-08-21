@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -346,39 +348,6 @@ class CloudFileZoomIn extends HookConsumerWidget {
       }
     }
 
-    Widget buildInfoRow(IconData icon, String label, String value) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
-            const Spacer(),
-            Flexible(
-              child: Text(
-                value,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-                textAlign: TextAlign.end,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     String formatFileSize(int bytes) {
       if (bytes <= 0) return '0 B';
       if (bytes < 1024) return '$bytes B';
@@ -404,57 +373,247 @@ class CloudFileZoomIn extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    buildInfoRow(Icons.description, 'Name', item.name),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('mimeType').tr(),
+                              Text(
+                                item.mimeType ?? 'unknown'.tr(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 28, child: const VerticalDivider()),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('fileSize').tr(),
+                              Text(
+                                formatFileSize(item.size),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (item.hash != null)
+                          SizedBox(height: 28, child: const VerticalDivider()),
+                        if (item.hash != null)
+                          Expanded(
+                            child: GestureDetector(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('fileHash').tr(),
+                                  Text(
+                                    '${item.hash!.substring(0, 6)}...',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              onLongPress: () {
+                                Clipboard.setData(
+                                  ClipboardData(text: item.hash!),
+                                );
+                                showSnackBar('File hash copied to clipboard');
+                              },
+                            ),
+                          ),
+                      ],
+                    ).padding(horizontal: 24, vertical: 16),
                     const Divider(height: 1),
-                    buildInfoRow(
-                      Icons.storage,
-                      'Size',
-                      formatFileSize(item.size),
-                    ),
-                    const Divider(height: 1),
-                    buildInfoRow(
-                      Icons.category,
-                      'Type',
-                      item.mimeType?.toUpperCase() ?? 'UNKNOWN',
+                    ListTile(
+                      leading: const Icon(Icons.file_present),
+                      title: Text('Name').tr(),
+                      subtitle: Text(
+                        item.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.copy),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: item.name));
+                          showSnackBar('File name copied to clipboard');
+                        },
+                      ),
                     ),
                     if (exifData.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        'EXIF Data',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ).padding(horizontal: 24),
-                      const SizedBox(height: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...exifData.entries.map(
-                            (entry) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '• ${entry.key.contains('-') ? entry.key.split('-').last : entry.key}: ',
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w500,
+                      const Divider(height: 1),
+                      Theme(
+                        data: theme.copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                          ),
+                          title: Text(
+                            'exifData'.tr(),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ...exifData.entries.map(
+                                  (entry) => ListTile(
+                                    dense: true,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 24,
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
+                                    title:
+                                        Text(
+                                          entry.key.contains('-')
+                                              ? entry.key.split('-').last
+                                              : entry.key,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                        ).bold(),
+                                    subtitle: Text(
                                       '${entry.value}'.isNotEmpty
                                           ? '${entry.value}'
                                           : 'N/A',
                                       style: theme.textTheme.bodyMedium,
                                     ),
+                                    onTap: () {
+                                      Clipboard.setData(
+                                        ClipboardData(text: '${entry.value}'),
+                                      );
+                                      showSnackBar('Value copied to clipboard');
+                                    },
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (item.fileMeta != null && item.fileMeta!.isNotEmpty) ...[
+                      const Divider(height: 1),
+                      Theme(
+                        data: theme.copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                          ),
+                          title: Text(
+                            'File Metadata',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ],
-                      ).padding(horizontal: 24),
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ...item.fileMeta!.entries.map(
+                                  (entry) => ListTile(
+                                    dense: true,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                    ),
+                                    title:
+                                        Text(
+                                          entry.key,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                        ).bold(),
+                                    subtitle: Text(
+                                      jsonEncode(entry.value),
+                                      style: theme.textTheme.bodyMedium,
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    onTap: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                          text: jsonEncode(entry.value),
+                                        ),
+                                      );
+                                      showSnackBar('Value copied to clipboard');
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (item.userMeta != null && item.userMeta!.isNotEmpty) ...[
+                      const Divider(height: 1),
+                      Theme(
+                        data: theme.copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                          ),
+                          title: Text(
+                            'User Metadata',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ...item.userMeta!.entries.map(
+                                  (entry) => ListTile(
+                                    dense: true,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                    ),
+                                    title:
+                                        Text(
+                                          entry.key,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                        ).bold(),
+                                    subtitle: Text(
+                                      jsonEncode(entry.value),
+                                      style: theme.textTheme.bodyMedium,
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    onTap: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                          text: jsonEncode(entry.value),
+                                        ),
+                                      );
+                                      showSnackBar('Value copied to clipboard');
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 16),
                   ],

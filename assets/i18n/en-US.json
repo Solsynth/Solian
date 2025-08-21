@@ -860,5 +860,9 @@
     "zero": "No posts",
     "one": "{} post",
     "other": "{} posts"
-  }
+  },
+  "mimeType": "MIME Type",
+  "fileSize": "File Size",
+  "fileHash": "File Hash",
+  "exifData": "EXIF Data"
 }
