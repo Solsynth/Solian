@@ -21,6 +21,7 @@ class PostListNotifier extends _$PostListNotifier
     int? type,
     List<String>? categories,
     List<String>? tags,
+    bool shuffle = false,
   }) {
     return fetch(cursor: null);
   }
@@ -38,6 +39,7 @@ class PostListNotifier extends _$PostListNotifier
       if (type != null) 'type': type,
       if (tags != null) 'tags': tags,
       if (categories != null) 'categories': categories,
+      if (shuffle) 'shuffle': true,
     };
 
     final response = await client.get(
@@ -74,6 +76,7 @@ class SliverPostList extends HookConsumerWidget {
   final int? type;
   final List<String>? categories;
   final List<String>? tags;
+  final bool shuffle;
   final PostItemType itemType;
   final Color? backgroundColor;
   final EdgeInsets? padding;
@@ -88,6 +91,7 @@ class SliverPostList extends HookConsumerWidget {
     this.type,
     this.categories,
     this.tags,
+    this.shuffle = false,
     this.itemType = PostItemType.regular,
     this.backgroundColor,
     this.padding,
@@ -105,6 +109,7 @@ class SliverPostList extends HookConsumerWidget {
         type: type,
         categories: categories,
         tags: tags,
+        shuffle: shuffle,
       ),
       futureRefreshable:
           postListNotifierProvider(
@@ -113,6 +118,7 @@ class SliverPostList extends HookConsumerWidget {
             type: type,
             categories: categories,
             tags: tags,
+            shuffle: shuffle,
           ).future,
       notifierRefreshable:
           postListNotifierProvider(
@@ -121,6 +127,7 @@ class SliverPostList extends HookConsumerWidget {
             type: type,
             categories: categories,
             tags: tags,
+            shuffle: shuffle,
           ).notifier,
       contentBuilder:
           (data, widgetCount, endItemView) => SliverList.builder(

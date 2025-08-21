@@ -6,7 +6,7 @@ part of 'post_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$postListNotifierHash() => r'9784b282b3ee14b7109e263c5841a082cf0be78e';
+String _$postListNotifierHash() => r'27dc73b92a057b396e8ac026d4392508aedea4f5';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -36,6 +36,7 @@ abstract class _$PostListNotifier
   late final int? type;
   late final List<String>? categories;
   late final List<String>? tags;
+  late final bool shuffle;
 
   FutureOr<CursorPagingData<SnPost>> build({
     String? pubName,
@@ -43,6 +44,7 @@ abstract class _$PostListNotifier
     int? type,
     List<String>? categories,
     List<String>? tags,
+    bool shuffle = false,
   });
 }
 
@@ -63,6 +65,7 @@ class PostListNotifierFamily
     int? type,
     List<String>? categories,
     List<String>? tags,
+    bool shuffle = false,
   }) {
     return PostListNotifierProvider(
       pubName: pubName,
@@ -70,6 +73,7 @@ class PostListNotifierFamily
       type: type,
       categories: categories,
       tags: tags,
+      shuffle: shuffle,
     );
   }
 
@@ -83,6 +87,7 @@ class PostListNotifierFamily
       type: provider.type,
       categories: provider.categories,
       tags: provider.tags,
+      shuffle: provider.shuffle,
     );
   }
 
@@ -115,6 +120,7 @@ class PostListNotifierProvider
     int? type,
     List<String>? categories,
     List<String>? tags,
+    bool shuffle = false,
   }) : this._internal(
          () =>
              PostListNotifier()
@@ -122,7 +128,8 @@ class PostListNotifierProvider
                ..realm = realm
                ..type = type
                ..categories = categories
-               ..tags = tags,
+               ..tags = tags
+               ..shuffle = shuffle,
          from: postListNotifierProvider,
          name: r'postListNotifierProvider',
          debugGetCreateSourceHash:
@@ -137,6 +144,7 @@ class PostListNotifierProvider
          type: type,
          categories: categories,
          tags: tags,
+         shuffle: shuffle,
        );
 
   PostListNotifierProvider._internal(
@@ -151,6 +159,7 @@ class PostListNotifierProvider
     required this.type,
     required this.categories,
     required this.tags,
+    required this.shuffle,
   }) : super.internal();
 
   final String? pubName;
@@ -158,6 +167,7 @@ class PostListNotifierProvider
   final int? type;
   final List<String>? categories;
   final List<String>? tags;
+  final bool shuffle;
 
   @override
   FutureOr<CursorPagingData<SnPost>> runNotifierBuild(
@@ -169,6 +179,7 @@ class PostListNotifierProvider
       type: type,
       categories: categories,
       tags: tags,
+      shuffle: shuffle,
     );
   }
 
@@ -183,7 +194,8 @@ class PostListNotifierProvider
               ..realm = realm
               ..type = type
               ..categories = categories
-              ..tags = tags,
+              ..tags = tags
+              ..shuffle = shuffle,
         from: from,
         name: null,
         dependencies: null,
@@ -194,6 +206,7 @@ class PostListNotifierProvider
         type: type,
         categories: categories,
         tags: tags,
+        shuffle: shuffle,
       ),
     );
   }
@@ -214,7 +227,8 @@ class PostListNotifierProvider
         other.realm == realm &&
         other.type == type &&
         other.categories == categories &&
-        other.tags == tags;
+        other.tags == tags &&
+        other.shuffle == shuffle;
   }
 
   @override
@@ -225,6 +239,7 @@ class PostListNotifierProvider
     hash = _SystemHash.combine(hash, type.hashCode);
     hash = _SystemHash.combine(hash, categories.hashCode);
     hash = _SystemHash.combine(hash, tags.hashCode);
+    hash = _SystemHash.combine(hash, shuffle.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -248,6 +263,9 @@ mixin PostListNotifierRef
 
   /// The parameter `tags` of this provider.
   List<String>? get tags;
+
+  /// The parameter `shuffle` of this provider.
+  bool get shuffle;
 }
 
 class _PostListNotifierProviderElement
@@ -270,6 +288,8 @@ class _PostListNotifierProviderElement
       (origin as PostListNotifierProvider).categories;
   @override
   List<String>? get tags => (origin as PostListNotifierProvider).tags;
+  @override
+  bool get shuffle => (origin as PostListNotifierProvider).shuffle;
 }
 
 // ignore_for_file: type=lint

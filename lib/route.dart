@@ -53,6 +53,7 @@ import 'package:island/screens/account/event_calendar.dart';
 import 'package:island/screens/discovery/realms.dart';
 import 'package:island/screens/reports/report_detail.dart';
 import 'package:island/screens/reports/report_list.dart';
+import 'package:island/widgets/post/post_shuffle.dart';
 
 // Shell route keys for nested navigation
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -375,6 +376,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 name: 'postSearch',
                 path: '/posts/search',
                 builder: (context, state) => const PostSearchScreen(),
+              ),
+              GoRoute(
+                name: 'postShuffle',
+                path: '/posts/shuffle',
+                builder: (context, state) => const PostShuffleScreen(),
               ),
               GoRoute(
                 name: 'postCategories',

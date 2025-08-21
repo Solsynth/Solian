@@ -203,6 +203,18 @@ class ExploreScreen extends HookConsumerWidget {
                           PopupMenuItem(
                             child: Row(
                               children: [
+                                const Icon(Symbols.shuffle),
+                                const Gap(12),
+                                Text('postShuffle').tr(),
+                              ],
+                            ),
+                            onTap: () {
+                              context.pushNamed('postShuffle');
+                            },
+                          ),
+                          PopupMenuItem(
+                            child: Row(
+                              children: [
                                 const Icon(Symbols.search),
                                 const Gap(12),
                                 Text('search').tr(),

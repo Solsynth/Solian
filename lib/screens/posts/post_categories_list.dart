@@ -145,7 +145,7 @@ class PostCategoriesListScreen extends ConsumerWidget {
     final categoriesState = ref.watch(postCategoriesNotifierProvider);
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Categories')),
+      appBar: AppBar(title: const Text('categories').tr()),
       body: categoriesState.when(
         data: (data) {
           if (data.items.isEmpty) {
@@ -197,7 +197,7 @@ class PostTagsListScreen extends ConsumerWidget {
     final tagsState = ref.watch(postTagsNotifierProvider);
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Tags')),
+      appBar: AppBar(title: const Text('tags').tr()),
       body: tagsState.when(
         data: (data) {
           if (data.items.isEmpty) {

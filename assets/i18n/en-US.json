@@ -864,5 +864,6 @@
   "mimeType": "MIME Type",
   "fileSize": "File Size",
   "fileHash": "File Hash",
-  "exifData": "EXIF Data"
+  "exifData": "EXIF Data",
+  "postShuffle": "Shuffle Posts"
 }
