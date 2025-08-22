@@ -216,6 +216,7 @@ sealed class SnExperienceRecord with _$SnExperienceRecord {
     required int delta,
     required String reasonType,
     required String reason,
+    @Default(1.0) double? bonusMultiplier,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
