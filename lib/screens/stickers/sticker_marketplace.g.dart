@@ -7,7 +7,7 @@ part of 'sticker_marketplace.dart';
 // **************************************************************************
 
 String _$marketplaceStickerPacksNotifierHash() =>
-    r'7e985cdee651a2ae868c0acb15da2b7a10525ae3';
+    r'711eafeadf488485521563d0831676c51772d13c';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -32,9 +32,13 @@ class _SystemHash {
 
 abstract class _$MarketplaceStickerPacksNotifier
     extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnStickerPack>> {
+  late final String? query;
   late final bool byUsage;
 
-  FutureOr<CursorPagingData<SnStickerPack>> build({required bool byUsage});
+  FutureOr<CursorPagingData<SnStickerPack>> build({
+    required String? query,
+    required bool byUsage,
+  });
 }
 
 /// See also [MarketplaceStickerPacksNotifier].
@@ -49,15 +53,21 @@ class MarketplaceStickerPacksNotifierFamily
   const MarketplaceStickerPacksNotifierFamily();
 
   /// See also [MarketplaceStickerPacksNotifier].
-  MarketplaceStickerPacksNotifierProvider call({required bool byUsage}) {
-    return MarketplaceStickerPacksNotifierProvider(byUsage: byUsage);
+  MarketplaceStickerPacksNotifierProvider call({
+    required String? query,
+    required bool byUsage,
+  }) {
+    return MarketplaceStickerPacksNotifierProvider(
+      query: query,
+      byUsage: byUsage,
+    );
   }
 
   @override
   MarketplaceStickerPacksNotifierProvider getProviderOverride(
     covariant MarketplaceStickerPacksNotifierProvider provider,
   ) {
-    return call(byUsage: provider.byUsage);
+    return call(query: provider.query, byUsage: provider.byUsage);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -83,20 +93,26 @@ class MarketplaceStickerPacksNotifierProvider
           CursorPagingData<SnStickerPack>
         > {
   /// See also [MarketplaceStickerPacksNotifier].
-  MarketplaceStickerPacksNotifierProvider({required bool byUsage})
-    : this._internal(
-        () => MarketplaceStickerPacksNotifier()..byUsage = byUsage,
-        from: marketplaceStickerPacksNotifierProvider,
-        name: r'marketplaceStickerPacksNotifierProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$marketplaceStickerPacksNotifierHash,
-        dependencies: MarketplaceStickerPacksNotifierFamily._dependencies,
-        allTransitiveDependencies:
-            MarketplaceStickerPacksNotifierFamily._allTransitiveDependencies,
-        byUsage: byUsage,
-      );
+  MarketplaceStickerPacksNotifierProvider({
+    required String? query,
+    required bool byUsage,
+  }) : this._internal(
+         () =>
+             MarketplaceStickerPacksNotifier()
+               ..query = query
+               ..byUsage = byUsage,
+         from: marketplaceStickerPacksNotifierProvider,
+         name: r'marketplaceStickerPacksNotifierProvider',
+         debugGetCreateSourceHash:
+             const bool.fromEnvironment('dart.vm.product')
+                 ? null
+                 : _$marketplaceStickerPacksNotifierHash,
+         dependencies: MarketplaceStickerPacksNotifierFamily._dependencies,
+         allTransitiveDependencies:
+             MarketplaceStickerPacksNotifierFamily._allTransitiveDependencies,
+         query: query,
+         byUsage: byUsage,
+       );
 
   MarketplaceStickerPacksNotifierProvider._internal(
     super._createNotifier, {
@@ -105,16 +121,18 @@ class MarketplaceStickerPacksNotifierProvider
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
+    required this.query,
     required this.byUsage,
   }) : super.internal();
 
+  final String? query;
   final bool byUsage;
 
   @override
   FutureOr<CursorPagingData<SnStickerPack>> runNotifierBuild(
     covariant MarketplaceStickerPacksNotifier notifier,
   ) {
-    return notifier.build(byUsage: byUsage);
+    return notifier.build(query: query, byUsage: byUsage);
   }
 
   @override
@@ -122,12 +140,16 @@ class MarketplaceStickerPacksNotifierProvider
     return ProviderOverride(
       origin: this,
       override: MarketplaceStickerPacksNotifierProvider._internal(
-        () => create()..byUsage = byUsage,
+        () =>
+            create()
+              ..query = query
+              ..byUsage = byUsage,
         from: from,
         name: null,
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
+        query: query,
         byUsage: byUsage,
       ),
     );
@@ -145,12 +167,14 @@ class MarketplaceStickerPacksNotifierProvider
   @override
   bool operator ==(Object other) {
     return other is MarketplaceStickerPacksNotifierProvider &&
+        other.query == query &&
         other.byUsage == byUsage;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, query.hashCode);
     hash = _SystemHash.combine(hash, byUsage.hashCode);
 
     return _SystemHash.finish(hash);
@@ -161,6 +185,9 @@ class MarketplaceStickerPacksNotifierProvider
 // ignore: unused_element
 mixin MarketplaceStickerPacksNotifierRef
     on AutoDisposeAsyncNotifierProviderRef<CursorPagingData<SnStickerPack>> {
+  /// The parameter `query` of this provider.
+  String? get query;
+
   /// The parameter `byUsage` of this provider.
   bool get byUsage;
 }
@@ -174,6 +201,9 @@ class _MarketplaceStickerPacksNotifierProviderElement
     with MarketplaceStickerPacksNotifierRef {
   _MarketplaceStickerPacksNotifierProviderElement(super.provider);
 
+  @override
+  String? get query =>
+      (origin as MarketplaceStickerPacksNotifierProvider).query;
   @override
   bool get byUsage =>
       (origin as MarketplaceStickerPacksNotifierProvider).byUsage;

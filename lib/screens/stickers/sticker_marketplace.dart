@@ -8,6 +8,8 @@ import 'package:island/models/sticker.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 
@@ -17,7 +19,10 @@ part 'sticker_marketplace.g.dart';
 class MarketplaceStickerPacksNotifier extends _$MarketplaceStickerPacksNotifier
     with CursorPagingNotifierMixin<SnStickerPack> {
   @override
-  Future<CursorPagingData<SnStickerPack>> build({required bool byUsage}) {
+  Future<CursorPagingData<SnStickerPack>> build({
+    required String? query,
+    required bool byUsage,
+  }) {
     return fetch(cursor: null);
   }
 
@@ -34,6 +39,7 @@ class MarketplaceStickerPacksNotifier extends _$MarketplaceStickerPacksNotifier
         'offset': offset,
         'take': 20,
         'order': byUsage ? 'usage' : 'date',
+        if (query != null && query!.isNotEmpty) 'query': query,
       },
     );
 
@@ -60,6 +66,25 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final byUsage = useState(true);
+    final query = useState<String?>(null);
+    final searchController = useTextEditingController();
+    final focusNode = useFocusNode();
+    final debounceTimer = useState<Timer?>(null);
+
+    // Clear search when query is cleared
+    useEffect(() {
+      if (query.value == null || query.value!.isEmpty) {
+        searchController.clear();
+      }
+      return null;
+    }, [query.value]);
+
+    // Clean up timer on dispose
+    useEffect(() {
+      return () {
+        debounceTimer.value?.cancel();
+      };
+    }, []);
 
     return AppScaffold(
       appBar: AppBar(
@@ -84,39 +109,89 @@ class MarketplaceStickersScreen extends HookConsumerWidget {
       body: PagingHelperView(
         provider: marketplaceStickerPacksNotifierProvider(
           byUsage: byUsage.value,
+          query: query.value,
         ),
         futureRefreshable:
             marketplaceStickerPacksNotifierProvider(
               byUsage: byUsage.value,
+              query: query.value,
             ).future,
         notifierRefreshable:
             marketplaceStickerPacksNotifierProvider(
               byUsage: byUsage.value,
+              query: query.value,
             ).notifier,
         contentBuilder:
-            (data, widgetCount, endItemView) => ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: widgetCount,
-              itemBuilder: (context, index) {
-                if (index == widgetCount - 1) {
-                  return endItemView;
-                }
+            (data, widgetCount, endItemView) => Column(
+              children: [
+                // Search bar above the list
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SearchBar(
+                    elevation: WidgetStateProperty.all(4),
+                    controller: searchController,
+                    focusNode: focusNode,
+                    hintText: 'search'.tr(),
+                    leading: const Icon(Symbols.search),
+                    padding: WidgetStateProperty.all(
+                      const EdgeInsets.symmetric(horizontal: 24),
+                    ),
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    trailing: [
+                      if (query.value != null && query.value!.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Symbols.close),
+                          onPressed: () {
+                            query.value = null;
+                            searchController.clear();
+                            focusNode.unfocus();
+                          },
+                        ),
+                    ],
+                    onChanged: (value) {
+                      // Debounce search to avoid excessive API calls
+                      debounceTimer.value?.cancel();
+                      debounceTimer.value = Timer(
+                        const Duration(milliseconds: 500),
+                        () {
+                          query.value = value.isEmpty ? null : value;
+                        },
+                      );
+                    },
+                    onSubmitted: (value) {
+                      query.value = value.isEmpty ? null : value;
+                      focusNode.unfocus();
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: widgetCount,
+                    itemBuilder: (context, index) {
+                      if (index == widgetCount - 1) {
+                        return endItemView;
+                      }
 
-                final pack = data.items[index];
-                return ListTile(
-                  title: Text(pack.name),
-                  subtitle: Text(pack.description),
-                  trailing: const Icon(Symbols.chevron_right),
-                  onTap: () {
-                    // Navigate to user-facing sticker pack detail page.
-                    // Adjust the route name/parameters if your app uses different ones.
-                    context.pushNamed(
-                      'stickerPackDetail',
-                      pathParameters: {'packId': pack.id},
-                    );
-                  },
-                );
-              },
+                      final pack = data.items[index];
+                      return ListTile(
+                        title: Text(pack.name),
+                        subtitle: Text(pack.description),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          // Navigate to user-facing sticker pack detail page.
+                          // Adjust the route name/parameters if your app uses different ones.
+                          context.pushNamed(
+                            'stickerPackDetail',
+                            pathParameters: {'packId': pack.id},
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
       ),
     );
