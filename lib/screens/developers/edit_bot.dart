@@ -2,6 +2,7 @@ import 'package:croppy/croppy.dart' hide cropImage;
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/bot.dart';
@@ -20,27 +21,35 @@ import 'package:styled_widget/styled_widget.dart';
 part 'edit_bot.g.dart';
 
 @riverpod
-Future<Bot?> bot(Ref ref, String id) async {
+Future<Bot?> bot(
+  Ref ref,
+  String publisherName,
+  String projectId,
+  String id,
+) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/develop/bots/$id');
+  final resp = await client.get(
+    '/develop/developers/$publisherName/projects/$projectId/bots/$id',
+  );
   return Bot.fromJson(resp.data);
 }
 
 class EditBotScreen extends HookConsumerWidget {
   final String publisherName;
+  final String projectId;
   final String? id;
-  final String? appId;
   const EditBotScreen({
     super.key,
     required this.publisherName,
+    required this.projectId,
     this.id,
-    this.appId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isNew = id == null;
-    final botData = isNew ? null : ref.watch(botProvider(id!));
+    final botData =
+        isNew ? null : ref.watch(botProvider(publisherName, projectId, id!));
 
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final submitting = useState(false);
@@ -141,18 +150,22 @@ class EditBotScreen extends HookConsumerWidget {
                   ? documentationController.text
                   : null,
         },
-        'publisher_id': publisherName,
-        if (appId != null) 'app_id': appId,
       };
 
       if (isNew) {
-        await client.post('/develop/bots', data: data);
+        await client.post(
+          '/develop/developers/$publisherName/projects/$projectId/bots',
+          data: data,
+        );
       } else {
-        await client.patch('/develop/bots/$id', data: data);
+        await client.patch(
+          '/develop/developers/$publisherName/projects/$projectId/bots/$id',
+          data: data,
+        );
       }
 
       if (context.mounted) {
-        Navigator.pop(context);
+        context.pop();
       }
     }
 
@@ -164,7 +177,10 @@ class EditBotScreen extends HookConsumerWidget {
               : botData?.hasError == true && !isNew
               ? ResponseErrorWidget(
                 error: botData!.error,
-                onRetry: () => ref.invalidate(botProvider(id!)),
+                onRetry:
+                    () => ref.invalidate(
+                      botProvider(publisherName, projectId, id!),
+                    ),
               )
               : SingleChildScrollView(
                 child: Column(

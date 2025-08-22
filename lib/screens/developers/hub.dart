@@ -235,33 +235,15 @@ class DeveloperHubScreen extends HookConsumerWidget {
                             ).padding(vertical: 12, horizontal: 12),
                           ListTile(
                             minTileHeight: 48,
-                            title: Text('customApps').tr(),
-                            trailing: Icon(Symbols.chevron_right),
-                            leading: const Icon(Symbols.apps),
-                            contentPadding: EdgeInsets.symmetric(
+                            title: Text('projects').tr(),
+                            trailing: const Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.folder_managed),
+                            contentPadding: const EdgeInsets.symmetric(
                               horizontal: 24,
                             ),
                             onTap: () {
                               context.pushNamed(
-                                'developerApps',
-                                pathParameters: {
-                                  'name':
-                                      currentDeveloper.value!.publisher!.name,
-                                },
-                              );
-                            },
-                          ),
-                          ListTile(
-                            minTileHeight: 48,
-                            title: Text('bots').tr(),
-                            trailing: Icon(Symbols.chevron_right),
-                            leading: const Icon(Symbols.smart_toy),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            onTap: () {
-                              context.pushNamed(
-                                'developerBots',
+                                'developerProjects',
                                 pathParameters: {
                                   'name':
                                       currentDeveloper.value!.publisher!.name,

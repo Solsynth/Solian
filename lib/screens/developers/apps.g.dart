@@ -6,7 +6,7 @@ part of 'apps.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$customAppsHash() => r'bcceb50ddbc9ca01f6555faf9b4f9ed21a7b5057';
+String _$customAppsHash() => r'c36e5ee59f16a29220dc0e9fba65e579d341a28f';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -39,15 +39,15 @@ class CustomAppsFamily extends Family<AsyncValue<List<CustomApp>>> {
   const CustomAppsFamily();
 
   /// See also [customApps].
-  CustomAppsProvider call(String publisherName) {
-    return CustomAppsProvider(publisherName);
+  CustomAppsProvider call(String publisherName, String projectId) {
+    return CustomAppsProvider(publisherName, projectId);
   }
 
   @override
   CustomAppsProvider getProviderOverride(
     covariant CustomAppsProvider provider,
   ) {
-    return call(provider.publisherName);
+    return call(provider.publisherName, provider.projectId);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -68,9 +68,9 @@ class CustomAppsFamily extends Family<AsyncValue<List<CustomApp>>> {
 /// See also [customApps].
 class CustomAppsProvider extends AutoDisposeFutureProvider<List<CustomApp>> {
   /// See also [customApps].
-  CustomAppsProvider(String publisherName)
+  CustomAppsProvider(String publisherName, String projectId)
     : this._internal(
-        (ref) => customApps(ref as CustomAppsRef, publisherName),
+        (ref) => customApps(ref as CustomAppsRef, publisherName, projectId),
         from: customAppsProvider,
         name: r'customAppsProvider',
         debugGetCreateSourceHash:
@@ -80,6 +80,7 @@ class CustomAppsProvider extends AutoDisposeFutureProvider<List<CustomApp>> {
         dependencies: CustomAppsFamily._dependencies,
         allTransitiveDependencies: CustomAppsFamily._allTransitiveDependencies,
         publisherName: publisherName,
+        projectId: projectId,
       );
 
   CustomAppsProvider._internal(
@@ -90,9 +91,11 @@ class CustomAppsProvider extends AutoDisposeFutureProvider<List<CustomApp>> {
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.publisherName,
+    required this.projectId,
   }) : super.internal();
 
   final String publisherName;
+  final String projectId;
 
   @override
   Override overrideWith(
@@ -108,6 +111,7 @@ class CustomAppsProvider extends AutoDisposeFutureProvider<List<CustomApp>> {
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         publisherName: publisherName,
+        projectId: projectId,
       ),
     );
   }
@@ -119,13 +123,16 @@ class CustomAppsProvider extends AutoDisposeFutureProvider<List<CustomApp>> {
 
   @override
   bool operator ==(Object other) {
-    return other is CustomAppsProvider && other.publisherName == publisherName;
+    return other is CustomAppsProvider &&
+        other.publisherName == publisherName &&
+        other.projectId == projectId;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, publisherName.hashCode);
+    hash = _SystemHash.combine(hash, projectId.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -136,6 +143,9 @@ class CustomAppsProvider extends AutoDisposeFutureProvider<List<CustomApp>> {
 mixin CustomAppsRef on AutoDisposeFutureProviderRef<List<CustomApp>> {
   /// The parameter `publisherName` of this provider.
   String get publisherName;
+
+  /// The parameter `projectId` of this provider.
+  String get projectId;
 }
 
 class _CustomAppsProviderElement
@@ -145,6 +155,8 @@ class _CustomAppsProviderElement
 
   @override
   String get publisherName => (origin as CustomAppsProvider).publisherName;
+  @override
+  String get projectId => (origin as CustomAppsProvider).projectId;
 }
 
 // ignore_for_file: type=lint
