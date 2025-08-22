@@ -208,3 +208,19 @@ sealed class SnAuthDeviceWithChallenge with _$SnAuthDeviceWithChallenge {
   factory SnAuthDeviceWithChallenge.fromJson(Map<String, dynamic> json) =>
       _$SnAuthDeviceWithChallengeFromJson(json);
 }
+
+@freezed
+sealed class SnExperienceRecord with _$SnExperienceRecord {
+  const factory SnExperienceRecord({
+    required String id,
+    required int delta,
+    required String reasonType,
+    required String reason,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnExperienceRecord;
+
+  factory SnExperienceRecord.fromJson(Map<String, dynamic> json) =>
+      _$SnExperienceRecordFromJson(json);
+}

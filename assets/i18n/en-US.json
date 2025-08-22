@@ -865,5 +865,8 @@
   "fileSize": "File Size",
   "fileHash": "File Hash",
   "exifData": "EXIF Data",
-  "postShuffle": "Shuffle Posts"
+  "postShuffle": "Shuffle Posts",
+  "leveling": "Leveling",
+  "levelingHistory": "Leveling History",
+  "stellarProgram": "Stellar Program"
 }
