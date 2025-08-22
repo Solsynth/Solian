@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'edit_app.dart';
+part of 'edit_bot.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$customAppHash() => r'e2b022c9103cf459f7d81018e34d8f7a31b5c864';
+String _$botHash() => r'267c75029a194fe180aeaebf12cbb0c1da9b8529';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,23 +29,23 @@ class _SystemHash {
   }
 }
 
-/// See also [customApp].
-@ProviderFor(customApp)
-const customAppProvider = CustomAppFamily();
+/// See also [bot].
+@ProviderFor(bot)
+const botProvider = BotFamily();
 
-/// See also [customApp].
-class CustomAppFamily extends Family<AsyncValue<CustomApp?>> {
-  /// See also [customApp].
-  const CustomAppFamily();
+/// See also [bot].
+class BotFamily extends Family<AsyncValue<Bot?>> {
+  /// See also [bot].
+  const BotFamily();
 
-  /// See also [customApp].
-  CustomAppProvider call(String publisherName, String id) {
-    return CustomAppProvider(publisherName, id);
+  /// See also [bot].
+  BotProvider call(String id) {
+    return BotProvider(id);
   }
 
   @override
-  CustomAppProvider getProviderOverride(covariant CustomAppProvider provider) {
-    return call(provider.publisherName, provider.id);
+  BotProvider getProviderOverride(covariant BotProvider provider) {
+    return call(provider.id);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -60,76 +60,65 @@ class CustomAppFamily extends Family<AsyncValue<CustomApp?>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'customAppProvider';
+  String? get name => r'botProvider';
 }
 
-/// See also [customApp].
-class CustomAppProvider extends AutoDisposeFutureProvider<CustomApp?> {
-  /// See also [customApp].
-  CustomAppProvider(String publisherName, String id)
+/// See also [bot].
+class BotProvider extends AutoDisposeFutureProvider<Bot?> {
+  /// See also [bot].
+  BotProvider(String id)
     : this._internal(
-        (ref) => customApp(ref as CustomAppRef, publisherName, id),
-        from: customAppProvider,
-        name: r'customAppProvider',
+        (ref) => bot(ref as BotRef, id),
+        from: botProvider,
+        name: r'botProvider',
         debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$customAppHash,
-        dependencies: CustomAppFamily._dependencies,
-        allTransitiveDependencies: CustomAppFamily._allTransitiveDependencies,
-        publisherName: publisherName,
+            const bool.fromEnvironment('dart.vm.product') ? null : _$botHash,
+        dependencies: BotFamily._dependencies,
+        allTransitiveDependencies: BotFamily._allTransitiveDependencies,
         id: id,
       );
 
-  CustomAppProvider._internal(
+  BotProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
-    required this.publisherName,
     required this.id,
   }) : super.internal();
 
-  final String publisherName;
   final String id;
 
   @override
-  Override overrideWith(
-    FutureOr<CustomApp?> Function(CustomAppRef provider) create,
-  ) {
+  Override overrideWith(FutureOr<Bot?> Function(BotRef provider) create) {
     return ProviderOverride(
       origin: this,
-      override: CustomAppProvider._internal(
-        (ref) => create(ref as CustomAppRef),
+      override: BotProvider._internal(
+        (ref) => create(ref as BotRef),
         from: from,
         name: null,
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
-        publisherName: publisherName,
         id: id,
       ),
     );
   }
 
   @override
-  AutoDisposeFutureProviderElement<CustomApp?> createElement() {
-    return _CustomAppProviderElement(this);
+  AutoDisposeFutureProviderElement<Bot?> createElement() {
+    return _BotProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is CustomAppProvider &&
-        other.publisherName == publisherName &&
-        other.id == id;
+    return other is BotProvider && other.id == id;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, publisherName.hashCode);
     hash = _SystemHash.combine(hash, id.hashCode);
 
     return _SystemHash.finish(hash);
@@ -138,23 +127,17 @@ class CustomAppProvider extends AutoDisposeFutureProvider<CustomApp?> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin CustomAppRef on AutoDisposeFutureProviderRef<CustomApp?> {
-  /// The parameter `publisherName` of this provider.
-  String get publisherName;
-
+mixin BotRef on AutoDisposeFutureProviderRef<Bot?> {
   /// The parameter `id` of this provider.
   String get id;
 }
 
-class _CustomAppProviderElement
-    extends AutoDisposeFutureProviderElement<CustomApp?>
-    with CustomAppRef {
-  _CustomAppProviderElement(super.provider);
+class _BotProviderElement extends AutoDisposeFutureProviderElement<Bot?>
+    with BotRef {
+  _BotProviderElement(super.provider);
 
   @override
-  String get publisherName => (origin as CustomAppProvider).publisherName;
-  @override
-  String get id => (origin as CustomAppProvider).id;
+  String get id => (origin as BotProvider).id;
 }
 
 // ignore_for_file: type=lint

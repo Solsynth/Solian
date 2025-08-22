@@ -8,7 +8,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
 import 'package:island/screens/account/credits.dart';
 import 'package:island/screens/developers/apps.dart';
+import 'package:island/screens/developers/bots.dart';
 import 'package:island/screens/developers/edit_app.dart';
+import 'package:island/screens/developers/edit_bot.dart';
 import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
 import 'package:island/screens/discovery/articles.dart';
@@ -313,6 +315,79 @@ final routerProvider = Provider<GoRouter>((ref) {
                     (context, state) => EditAppScreen(
                       publisherName: state.pathParameters['name']!,
                       id: state.pathParameters['id']!,
+                    ),
+              ),
+              // Bot routes
+              GoRoute(
+                name: 'developerBots',
+                path: '/developers/:name/bots',
+                builder:
+                    (context, state) => BotsScreen(
+                      publisherName: state.pathParameters['name']!,
+                    ),
+              ),
+              GoRoute(
+                name: 'developerBotsApp',
+                path: '/developers/:name/apps/:appId/bots',
+                builder:
+                    (context, state) => BotsScreen(
+                      publisherName: state.pathParameters['name']!,
+                      appId: state.pathParameters['appId']!,
+                    ),
+              ),
+              GoRoute(
+                name: 'developerBotNew',
+                path: '/developers/:name/bots/new',
+                builder:
+                    (context, state) => EditBotScreen(
+                      publisherName: state.pathParameters['name']!,
+                    ),
+              ),
+              GoRoute(
+                name: 'developerBotNewApp',
+                path: '/developers/:name/apps/:appId/bots/new',
+                builder:
+                    (context, state) => EditBotScreen(
+                      publisherName: state.pathParameters['name']!,
+                      appId: state.pathParameters['appId']!,
+                    ),
+              ),
+              GoRoute(
+                name: 'developerBotEdit',
+                path: '/developers/:name/bots/:id',
+                builder:
+                    (context, state) => EditBotScreen(
+                      publisherName: state.pathParameters['name']!,
+                      id: state.pathParameters['id']!,
+                    ),
+              ),
+              GoRoute(
+                name: 'developerBotEditApp',
+                path: '/developers/:name/apps/:appId/bots/:id',
+                builder:
+                    (context, state) => EditBotScreen(
+                      publisherName: state.pathParameters['name']!,
+                      id: state.pathParameters['id']!,
+                      appId: state.pathParameters['appId']!,
+                    ),
+              ),
+              GoRoute(
+                name: 'developerBotDetail',
+                path: '/developers/:name/bots/:id/detail',
+                builder:
+                    (context, state) => EditBotScreen(
+                      publisherName: state.pathParameters['name']!,
+                      id: state.pathParameters['id']!,
+                    ),
+              ),
+              GoRoute(
+                name: 'developerBotDetailApp',
+                path: '/developers/:name/apps/:appId/bots/:id/detail',
+                builder:
+                    (context, state) => EditBotScreen(
+                      publisherName: state.pathParameters['name']!,
+                      id: state.pathParameters['id']!,
+                      appId: state.pathParameters['appId']!,
                     ),
               ),
             ],

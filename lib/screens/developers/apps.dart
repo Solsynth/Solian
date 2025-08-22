@@ -18,7 +18,7 @@ part 'apps.g.dart';
 @riverpod
 Future<List<CustomApp>> customApps(Ref ref, String publisherName) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/develop/developers/$publisherName/apps');
+  final resp = await client.get('/develop/$publisherName');
   return resp.data.map((e) => CustomApp.fromJson(e)).cast<CustomApp>().toList();
 }
 
@@ -138,9 +138,7 @@ class CustomAppsScreen extends HookConsumerWidget {
                               ).then((confirm) {
                                 if (confirm) {
                                   final client = ref.read(apiClientProvider);
-                                  client.delete(
-                                    '/develop/developers/$publisherName/apps/${app.id}',
-                                  );
+                                  client.delete('/develop/apps/${app.id}');
                                   ref.invalidate(
                                     customAppsProvider(publisherName),
                                   );

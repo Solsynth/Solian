@@ -251,6 +251,24 @@ class DeveloperHubScreen extends HookConsumerWidget {
                               );
                             },
                           ),
+                          ListTile(
+                            minTileHeight: 48,
+                            title: Text('bots').tr(),
+                            trailing: Icon(Symbols.chevron_right),
+                            leading: const Icon(Symbols.smart_toy),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            onTap: () {
+                              context.pushNamed(
+                                'developerBots',
+                                pathParameters: {
+                                  'name':
+                                      currentDeveloper.value!.publisher!.name,
+                                },
+                              );
+                            },
+                          ),
                         ],
                       ),
             ),

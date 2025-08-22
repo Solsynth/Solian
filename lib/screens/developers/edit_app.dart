@@ -24,7 +24,7 @@ part 'edit_app.g.dart';
 @riverpod
 Future<CustomApp?> customApp(Ref ref, String publisherName, String id) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/develop/developers/$publisherName/apps/$id');
+  final resp = await client.get('/develop/apps/$id');
   return CustomApp.fromJson(resp.data);
 }
 
@@ -283,14 +283,11 @@ class EditAppScreen extends HookConsumerWidget {
       };
       if (isNew) {
         await client.post(
-          '/develop/developers/$publisherName/apps',
-          data: data,
+          '/develop/apps',
+          data: {...data, 'publisher_id': publisherName},
         );
       } else {
-        await client.patch(
-          '/develop/developers/$publisherName/apps/$id',
-          data: data,
-        );
+        await client.patch('/develop/apps/$id', data: data);
       }
       ref.invalidate(customAppsProvider(publisherName));
       if (context.mounted) {
