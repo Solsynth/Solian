@@ -238,6 +238,16 @@ class AccountScreen extends HookConsumerWidget {
             ),
             ListTile(
               minTileHeight: 48,
+              leading: const Icon(Symbols.rss_feed),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('webFeeds').tr(),
+              onTap: () {
+                context.pushNamed('webFeedMarketplace');
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
               leading: const Icon(Symbols.star),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),

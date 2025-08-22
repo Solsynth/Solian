@@ -7,7 +7,7 @@ part of 'sticker_marketplace.dart';
 // **************************************************************************
 
 String _$marketplaceStickerPacksNotifierHash() =>
-    r'711eafeadf488485521563d0831676c51772d13c';
+    r'3bde76e18bb024f45ff6261fe735cdba97b02808';
 
 /// Copied from Dart SDK
 class _SystemHash {
