@@ -37,6 +37,8 @@ import 'package:island/screens/creators/stickers/stickers.dart';
 import 'package:island/screens/creators/stickers/pack_detail.dart';
 import 'package:island/screens/stickers/sticker_marketplace.dart';
 import 'package:island/screens/stickers/pack_detail.dart';
+import 'package:island/screens/discovery/feeds/feed_marketplace.dart';
+import 'package:island/screens/discovery/feeds/feed_detail.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
@@ -542,6 +544,22 @@ final routerProvider = Provider<GoRouter>((ref) {
                         builder: (context, state) {
                           final packId = state.pathParameters['packId']!;
                           return MarketplaceStickerPackDetailScreen(id: packId);
+                        },
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    name: 'webFeedMarketplace',
+                    path: '/feeds',
+                    builder:
+                        (context, state) => const MarketplaceWebFeedsScreen(),
+                    routes: [
+                      GoRoute(
+                        name: 'webFeedDetail',
+                        path: ':feedId',
+                        builder: (context, state) {
+                          final feedId = state.pathParameters['feedId']!;
+                          return MarketplaceWebFeedDetailScreen(id: feedId);
                         },
                       ),
                     ],
