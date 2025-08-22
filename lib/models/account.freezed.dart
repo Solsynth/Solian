@@ -3020,4 +3020,279 @@ as bool,
 
 }
 
+
+/// @nodoc
+mixin _$SnExperienceRecord {
+
+ String get id; int get delta; String get reasonType; String get reason; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnExperienceRecord
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnExperienceRecordCopyWith<SnExperienceRecord> get copyWith => _$SnExperienceRecordCopyWithImpl<SnExperienceRecord>(this as SnExperienceRecord, _$identity);
+
+  /// Serializes this SnExperienceRecord to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnExperienceRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,delta,reasonType,reason,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnExperienceRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnExperienceRecordCopyWith<$Res>  {
+  factory $SnExperienceRecordCopyWith(SnExperienceRecord value, $Res Function(SnExperienceRecord) _then) = _$SnExperienceRecordCopyWithImpl;
+@useResult
+$Res call({
+ String id, int delta, String reasonType, String reason, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnExperienceRecordCopyWithImpl<$Res>
+    implements $SnExperienceRecordCopyWith<$Res> {
+  _$SnExperienceRecordCopyWithImpl(this._self, this._then);
+
+  final SnExperienceRecord _self;
+  final $Res Function(SnExperienceRecord) _then;
+
+/// Create a copy of SnExperienceRecord
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? delta = null,Object? reasonType = null,Object? reason = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,delta: null == delta ? _self.delta : delta // ignore: cast_nullable_to_non_nullable
+as int,reasonType: null == reasonType ? _self.reasonType : reasonType // ignore: cast_nullable_to_non_nullable
+as String,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnExperienceRecord].
+extension SnExperienceRecordPatterns on SnExperienceRecord {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnExperienceRecord value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnExperienceRecord() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnExperienceRecord value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnExperienceRecord():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnExperienceRecord value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnExperienceRecord() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int delta,  String reasonType,  String reason,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnExperienceRecord() when $default != null:
+return $default(_that.id,_that.delta,_that.reasonType,_that.reason,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int delta,  String reasonType,  String reason,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnExperienceRecord():
+return $default(_that.id,_that.delta,_that.reasonType,_that.reason,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int delta,  String reasonType,  String reason,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnExperienceRecord() when $default != null:
+return $default(_that.id,_that.delta,_that.reasonType,_that.reason,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnExperienceRecord implements SnExperienceRecord {
+  const _SnExperienceRecord({required this.id, required this.delta, required this.reasonType, required this.reason, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  factory _SnExperienceRecord.fromJson(Map<String, dynamic> json) => _$SnExperienceRecordFromJson(json);
+
+@override final  String id;
+@override final  int delta;
+@override final  String reasonType;
+@override final  String reason;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnExperienceRecord
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnExperienceRecordCopyWith<_SnExperienceRecord> get copyWith => __$SnExperienceRecordCopyWithImpl<_SnExperienceRecord>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnExperienceRecordToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnExperienceRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,delta,reasonType,reason,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnExperienceRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnExperienceRecordCopyWith<$Res> implements $SnExperienceRecordCopyWith<$Res> {
+  factory _$SnExperienceRecordCopyWith(_SnExperienceRecord value, $Res Function(_SnExperienceRecord) _then) = __$SnExperienceRecordCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, int delta, String reasonType, String reason, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnExperienceRecordCopyWithImpl<$Res>
+    implements _$SnExperienceRecordCopyWith<$Res> {
+  __$SnExperienceRecordCopyWithImpl(this._self, this._then);
+
+  final _SnExperienceRecord _self;
+  final $Res Function(_SnExperienceRecord) _then;
+
+/// Create a copy of SnExperienceRecord
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? delta = null,Object? reasonType = null,Object? reason = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnExperienceRecord(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,delta: null == delta ? _self.delta : delta // ignore: cast_nullable_to_non_nullable
+as int,reasonType: null == reasonType ? _self.reasonType : reasonType // ignore: cast_nullable_to_non_nullable
+as String,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
 // dart format on

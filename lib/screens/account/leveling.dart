@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/account.dart';
 import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
@@ -19,6 +20,7 @@ import 'package:island/widgets/payment/payment_overlay.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'leveling.g.dart';
@@ -35,13 +37,49 @@ Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
   }
 }
 
+@riverpod
+class LevelingHistoryNotifier extends _$LevelingHistoryNotifier
+    with CursorPagingNotifierMixin<SnExperienceRecord> {
+  static const int _pageSize = 20;
+
+  @override
+  Future<CursorPagingData<SnExperienceRecord>> build() => fetch(cursor: null);
+
+  @override
+  Future<CursorPagingData<SnExperienceRecord>> fetch({
+    required String? cursor,
+  }) async {
+    final client = ref.read(apiClientProvider);
+    final offset = cursor == null ? 0 : int.parse(cursor);
+
+    final queryParams = {'offset': offset, 'take': _pageSize};
+
+    final response = await client.get(
+      '/id/accounts/me/leveling',
+      queryParameters: queryParams,
+    );
+    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    final List<dynamic> data = response.data;
+    final records =
+        data.map((json) => SnExperienceRecord.fromJson(json)).toList();
+
+    final hasMore = offset + records.length < total;
+    final nextCursor = hasMore ? (offset + records.length).toString() : null;
+
+    return CursorPagingData(
+      items: records,
+      hasMore: hasMore,
+      nextCursor: nextCursor,
+    );
+  }
+}
+
 class LevelingScreen extends HookConsumerWidget {
   const LevelingScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
-    final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
 
     if (user.value == null) {
       return AppScaffold(
@@ -50,47 +88,143 @@ class LevelingScreen extends HookConsumerWidget {
       );
     }
 
-    final currentLevel = user.value!.profile.level;
-    final currentExp = user.value!.profile.experience;
-    final progress = user.value!.profile.levelingProgress;
+    return DefaultTabController(
+      length: 2,
+      child: AppScaffold(
+        appBar: AppBar(
+          title: Text('levelingProgress'.tr()),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: 'leveling'.tr()),
+              Tab(text: 'stellarProgram'.tr()),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildLevelingTab(context, ref, user.value!),
+            _buildStellarProgramTab(context, ref),
+          ],
+        ),
+      ),
+    );
+  }
 
-    return AppScaffold(
-      appBar: AppBar(title: Text('levelingProgress'.tr())),
-      body: SingleChildScrollView(
-        padding: getTabbedPadding(context, horizontal: 20, vertical: 20),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Current Progress Card
-                LevelingProgressCard(
-                  level: currentLevel,
-                  experience: currentExp,
-                  progress: progress,
-                ),
-                const Gap(24),
+  Widget _buildLevelingTab(
+    BuildContext context,
+    WidgetRef ref,
+    SnAccount user,
+  ) {
+    final currentLevel = user.profile.level;
+    final currentExp = user.profile.experience;
+    final progress = user.profile.levelingProgress;
 
-                // Level Stairs Graph
-                Text(
-                  'levelProgress'.tr(),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Gap(16),
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: CustomScrollView(
+          slivers: [
+            const SliverGap(20),
 
-                // Stairs visualization with fixed height and horizontal scroll
-                _buildLevelStairs(context, currentLevel),
-
-                const Gap(24),
-
-                // Membership section
-                _buildMembershipSection(context, ref, stellarSubscription),
-                const Gap(16),
-              ],
+            // Current Progress Card
+            SliverToBoxAdapter(
+              child: LevelingProgressCard(
+                level: currentLevel,
+                experience: currentExp,
+                progress: progress,
+              ),
             ),
+            const SliverGap(24),
+
+            // Level Stairs Graph
+            SliverToBoxAdapter(
+              child: Text(
+                'levelProgress'.tr(),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SliverGap(16),
+
+            // Stairs visualization with fixed height and horizontal scroll
+            SliverToBoxAdapter(child: _buildLevelStairs(context, currentLevel)),
+            const SliverGap(24),
+
+            // Leveling History
+            SliverToBoxAdapter(
+              child: Text(
+                'levelingHistory'.tr(),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SliverGap(8),
+            PagingHelperSliverView(
+              provider: levelingHistoryNotifierProvider,
+              futureRefreshable: levelingHistoryNotifierProvider.future,
+              notifierRefreshable: levelingHistoryNotifierProvider.notifier,
+              contentBuilder:
+                  (data, widgetCount, endItemView) => SliverList.builder(
+                    itemCount: widgetCount,
+                    itemBuilder: (context, index) {
+                      if (index == widgetCount - 1) {
+                        return endItemView;
+                      }
+                      final record = data.items[index];
+                      return ListTile(
+                        title: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(record.reason),
+                            Row(
+                              spacing: 4,
+                              children: [
+                                Text(
+                                  record.createdAt.formatRelative(context),
+                                ).fontSize(13),
+                                Text('·').fontSize(13).bold(),
+                                Text(
+                                  record.createdAt.formatSystem(),
+                                ).fontSize(13),
+                              ],
+                            ).opacity(0.8),
+                          ],
+                        ),
+                        subtitle: Text(
+                          '${record.delta > 0 ? '+' : ''}${record.delta} EXP',
+                        ),
+                        minTileHeight: 56,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 4),
+                      );
+                    },
+                  ),
+            ),
+
+            SliverGap(getTabbedPadding(context, vertical: 20).vertical),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStellarProgramTab(BuildContext context, WidgetRef ref) {
+    final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
+
+    return SingleChildScrollView(
+      padding: getTabbedPadding(context, horizontal: 20, vertical: 20),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildMembershipSection(context, ref, stellarSubscription),
+              const Gap(16),
+            ],
           ),
         ),
       ),

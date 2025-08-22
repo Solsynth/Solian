@@ -833,5 +833,8 @@
   "mimeType": "类型",
   "fileSize": "大小",
   "fileHash": "哈希",
-  "exifData": "EXIF 数据"
+  "exifData": "EXIF 数据",
+  "leveling": "等级",
+  "levelingHistory": "经验记录",
+  "stellarProgram": "恒星计划"
 }

@@ -348,3 +348,28 @@ Map<String, dynamic> _$SnAuthDeviceWithChallengeeToJson(
   'challenges': instance.challenges.map((e) => e.toJson()).toList(),
   'is_current': instance.isCurrent,
 };
+
+_SnExperienceRecord _$SnExperienceRecordFromJson(Map<String, dynamic> json) =>
+    _SnExperienceRecord(
+      id: json['id'] as String,
+      delta: (json['delta'] as num).toInt(),
+      reasonType: json['reason_type'] as String,
+      reason: json['reason'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnExperienceRecordToJson(_SnExperienceRecord instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'delta': instance.delta,
+      'reason_type': instance.reasonType,
+      'reason': instance.reason,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };
