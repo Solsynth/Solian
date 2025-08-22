@@ -8,6 +8,52 @@ import 'package:island/pods/websocket.dart';
 import 'package:island/widgets/content/network_status_sheet.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:island/pods/config.dart';
+
+Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
+  final TextEditingController controller = TextEditingController();
+  final prefs = ref.read(sharedPreferencesProvider);
+
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Set Access Token'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Enter access token',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('Set'),
+            onPressed: () async {
+              final token = controller.text.trim();
+              if (token.isNotEmpty) {
+                await setToken(prefs, token);
+                ref.invalidate(tokenProvider);
+                // Store context in local variable to avoid async gap issue
+                final navigatorContext = context;
+                if (navigatorContext.mounted) {
+                  Navigator.of(navigatorContext).pop();
+                }
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
 class DebugSheet extends HookConsumerWidget {
   const DebugSheet({super.key});
@@ -49,6 +95,17 @@ class DebugSheet extends HookConsumerWidget {
               Clipboard.setData(ClipboardData(text: tk!.token));
             },
           ),
+          ListTile(
+            minTileHeight: 48,
+            leading: const Icon(Symbols.edit),
+            trailing: const Icon(Symbols.chevron_right),
+            contentPadding: EdgeInsets.symmetric(horizontal: 24),
+            title: Text('Set access token'),
+            onTap: () async {
+              await _showSetTokenDialog(context, ref);
+            },
+          ),
+          const Divider(height: 1),
           ListTile(
             minTileHeight: 48,
             leading: const Icon(Symbols.delete),
