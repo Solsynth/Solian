@@ -836,5 +836,12 @@
   "exifData": "EXIF 数据",
   "leveling": "等级",
   "levelingHistory": "经验记录",
-  "stellarProgram": "恒星计划"
+  "stellarProgram": "恒星计划",
+  "socialCredits": "社会信用点",
+  "credits": "信用",
+  "socialCreditsDescription": "社会信用是 Solar Network 评价用户的一种方式。它基于用户的行为和互动来计算。以 100 分为基准，分数越高表示用户在社区中的信誉越好。分数会随着时间的推移而变化，反映用户的最新行为。信用等级高的用户可以享受到更多的福利，反之的用户部份功能可能受到限制。",
+  "socialCreditsLevelPoor": "糟糕",
+  "socialCreditsLevelNormal": "正常",
+  "socialCreditsLevelGood": "良好",
+  "socialCreditsLevelExcellent": "优秀"
 }

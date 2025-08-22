@@ -1410,7 +1410,7 @@ $SnAccountStatusCopyWith<$Res>? get status {
 /// @nodoc
 mixin _$SnChatSummary {
 
- int get unreadCount; SnChatMessage get lastMessage;
+ int get unreadCount; SnChatMessage? get lastMessage;
 /// Create a copy of SnChatSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1443,11 +1443,11 @@ abstract mixin class $SnChatSummaryCopyWith<$Res>  {
   factory $SnChatSummaryCopyWith(SnChatSummary value, $Res Function(SnChatSummary) _then) = _$SnChatSummaryCopyWithImpl;
 @useResult
 $Res call({
- int unreadCount, SnChatMessage lastMessage
+ int unreadCount, SnChatMessage? lastMessage
 });
 
 
-$SnChatMessageCopyWith<$Res> get lastMessage;
+$SnChatMessageCopyWith<$Res>? get lastMessage;
 
 }
 /// @nodoc
@@ -1460,20 +1460,23 @@ class _$SnChatSummaryCopyWithImpl<$Res>
 
 /// Create a copy of SnChatSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? unreadCount = null,Object? lastMessage = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? unreadCount = null,Object? lastMessage = freezed,}) {
   return _then(_self.copyWith(
 unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
-as int,lastMessage: null == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
-as SnChatMessage,
+as int,lastMessage: freezed == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
+as SnChatMessage?,
   ));
 }
 /// Create a copy of SnChatSummary
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnChatMessageCopyWith<$Res> get lastMessage {
-  
-  return $SnChatMessageCopyWith<$Res>(_self.lastMessage, (value) {
+$SnChatMessageCopyWith<$Res>? get lastMessage {
+    if (_self.lastMessage == null) {
+    return null;
+  }
+
+  return $SnChatMessageCopyWith<$Res>(_self.lastMessage!, (value) {
     return _then(_self.copyWith(lastMessage: value));
   });
 }
@@ -1555,7 +1558,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int unreadCount,  SnChatMessage lastMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int unreadCount,  SnChatMessage? lastMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnChatSummary() when $default != null:
 return $default(_that.unreadCount,_that.lastMessage);case _:
@@ -1576,7 +1579,7 @@ return $default(_that.unreadCount,_that.lastMessage);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int unreadCount,  SnChatMessage lastMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int unreadCount,  SnChatMessage? lastMessage)  $default,) {final _that = this;
 switch (_that) {
 case _SnChatSummary():
 return $default(_that.unreadCount,_that.lastMessage);}
@@ -1593,7 +1596,7 @@ return $default(_that.unreadCount,_that.lastMessage);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int unreadCount,  SnChatMessage lastMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int unreadCount,  SnChatMessage? lastMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _SnChatSummary() when $default != null:
 return $default(_that.unreadCount,_that.lastMessage);case _:
@@ -1612,7 +1615,7 @@ class _SnChatSummary implements SnChatSummary {
   factory _SnChatSummary.fromJson(Map<String, dynamic> json) => _$SnChatSummaryFromJson(json);
 
 @override final  int unreadCount;
-@override final  SnChatMessage lastMessage;
+@override final  SnChatMessage? lastMessage;
 
 /// Create a copy of SnChatSummary
 /// with the given fields replaced by the non-null parameter values.
@@ -1647,11 +1650,11 @@ abstract mixin class _$SnChatSummaryCopyWith<$Res> implements $SnChatSummaryCopy
   factory _$SnChatSummaryCopyWith(_SnChatSummary value, $Res Function(_SnChatSummary) _then) = __$SnChatSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- int unreadCount, SnChatMessage lastMessage
+ int unreadCount, SnChatMessage? lastMessage
 });
 
 
-@override $SnChatMessageCopyWith<$Res> get lastMessage;
+@override $SnChatMessageCopyWith<$Res>? get lastMessage;
 
 }
 /// @nodoc
@@ -1664,11 +1667,11 @@ class __$SnChatSummaryCopyWithImpl<$Res>
 
 /// Create a copy of SnChatSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? unreadCount = null,Object? lastMessage = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? unreadCount = null,Object? lastMessage = freezed,}) {
   return _then(_SnChatSummary(
 unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
-as int,lastMessage: null == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
-as SnChatMessage,
+as int,lastMessage: freezed == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
+as SnChatMessage?,
   ));
 }
 
@@ -1676,9 +1679,12 @@ as SnChatMessage,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnChatMessageCopyWith<$Res> get lastMessage {
-  
-  return $SnChatMessageCopyWith<$Res>(_self.lastMessage, (value) {
+$SnChatMessageCopyWith<$Res>? get lastMessage {
+    if (_self.lastMessage == null) {
+    return null;
+  }
+
+  return $SnChatMessageCopyWith<$Res>(_self.lastMessage!, (value) {
     return _then(_self.copyWith(lastMessage: value));
   });
 }

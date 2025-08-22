@@ -225,3 +225,20 @@ sealed class SnExperienceRecord with _$SnExperienceRecord {
   factory SnExperienceRecord.fromJson(Map<String, dynamic> json) =>
       _$SnExperienceRecordFromJson(json);
 }
+
+@freezed
+sealed class SnSocialCreditRecord with _$SnSocialCreditRecord {
+  const factory SnSocialCreditRecord({
+    required String id,
+    required double delta,
+    required String reasonType,
+    required String reason,
+    required DateTime? expiredAt,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnSocialCreditRecord;
+
+  factory SnSocialCreditRecord.fromJson(Map<String, dynamic> json) =>
+      _$SnSocialCreditRecordFromJson(json);
+}

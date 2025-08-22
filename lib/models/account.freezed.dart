@@ -3298,4 +3298,282 @@ as DateTime?,
 
 }
 
+
+/// @nodoc
+mixin _$SnSocialCreditRecord {
+
+ String get id; double get delta; String get reasonType; String get reason; DateTime? get expiredAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnSocialCreditRecord
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnSocialCreditRecordCopyWith<SnSocialCreditRecord> get copyWith => _$SnSocialCreditRecordCopyWithImpl<SnSocialCreditRecord>(this as SnSocialCreditRecord, _$identity);
+
+  /// Serializes this SnSocialCreditRecord to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSocialCreditRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,delta,reasonType,reason,expiredAt,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnSocialCreditRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, expiredAt: $expiredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnSocialCreditRecordCopyWith<$Res>  {
+  factory $SnSocialCreditRecordCopyWith(SnSocialCreditRecord value, $Res Function(SnSocialCreditRecord) _then) = _$SnSocialCreditRecordCopyWithImpl;
+@useResult
+$Res call({
+ String id, double delta, String reasonType, String reason, DateTime? expiredAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnSocialCreditRecordCopyWithImpl<$Res>
+    implements $SnSocialCreditRecordCopyWith<$Res> {
+  _$SnSocialCreditRecordCopyWithImpl(this._self, this._then);
+
+  final SnSocialCreditRecord _self;
+  final $Res Function(SnSocialCreditRecord) _then;
+
+/// Create a copy of SnSocialCreditRecord
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? delta = null,Object? reasonType = null,Object? reason = null,Object? expiredAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,delta: null == delta ? _self.delta : delta // ignore: cast_nullable_to_non_nullable
+as double,reasonType: null == reasonType ? _self.reasonType : reasonType // ignore: cast_nullable_to_non_nullable
+as String,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as String,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnSocialCreditRecord].
+extension SnSocialCreditRecordPatterns on SnSocialCreditRecord {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSocialCreditRecord value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnSocialCreditRecord() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSocialCreditRecord value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnSocialCreditRecord():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSocialCreditRecord value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnSocialCreditRecord() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  double delta,  String reasonType,  String reason,  DateTime? expiredAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnSocialCreditRecord() when $default != null:
+return $default(_that.id,_that.delta,_that.reasonType,_that.reason,_that.expiredAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  double delta,  String reasonType,  String reason,  DateTime? expiredAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnSocialCreditRecord():
+return $default(_that.id,_that.delta,_that.reasonType,_that.reason,_that.expiredAt,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  double delta,  String reasonType,  String reason,  DateTime? expiredAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnSocialCreditRecord() when $default != null:
+return $default(_that.id,_that.delta,_that.reasonType,_that.reason,_that.expiredAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnSocialCreditRecord implements SnSocialCreditRecord {
+  const _SnSocialCreditRecord({required this.id, required this.delta, required this.reasonType, required this.reason, required this.expiredAt, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  factory _SnSocialCreditRecord.fromJson(Map<String, dynamic> json) => _$SnSocialCreditRecordFromJson(json);
+
+@override final  String id;
+@override final  double delta;
+@override final  String reasonType;
+@override final  String reason;
+@override final  DateTime? expiredAt;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnSocialCreditRecord
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnSocialCreditRecordCopyWith<_SnSocialCreditRecord> get copyWith => __$SnSocialCreditRecordCopyWithImpl<_SnSocialCreditRecord>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnSocialCreditRecordToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSocialCreditRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,delta,reasonType,reason,expiredAt,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnSocialCreditRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, expiredAt: $expiredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnSocialCreditRecordCopyWith<$Res> implements $SnSocialCreditRecordCopyWith<$Res> {
+  factory _$SnSocialCreditRecordCopyWith(_SnSocialCreditRecord value, $Res Function(_SnSocialCreditRecord) _then) = __$SnSocialCreditRecordCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, double delta, String reasonType, String reason, DateTime? expiredAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnSocialCreditRecordCopyWithImpl<$Res>
+    implements _$SnSocialCreditRecordCopyWith<$Res> {
+  __$SnSocialCreditRecordCopyWithImpl(this._self, this._then);
+
+  final _SnSocialCreditRecord _self;
+  final $Res Function(_SnSocialCreditRecord) _then;
+
+/// Create a copy of SnSocialCreditRecord
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? delta = null,Object? reasonType = null,Object? reason = null,Object? expiredAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnSocialCreditRecord(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,delta: null == delta ? _self.delta : delta // ignore: cast_nullable_to_non_nullable
+as double,reasonType: null == reasonType ? _self.reasonType : reasonType // ignore: cast_nullable_to_non_nullable
+as String,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as String,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
 // dart format on

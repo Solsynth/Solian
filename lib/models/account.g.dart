@@ -375,3 +375,35 @@ Map<String, dynamic> _$SnExperienceRecordToJson(_SnExperienceRecord instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_SnSocialCreditRecord _$SnSocialCreditRecordFromJson(
+  Map<String, dynamic> json,
+) => _SnSocialCreditRecord(
+  id: json['id'] as String,
+  delta: (json['delta'] as num).toDouble(),
+  reasonType: json['reason_type'] as String,
+  reason: json['reason'] as String,
+  expiredAt:
+      json['expired_at'] == null
+          ? null
+          : DateTime.parse(json['expired_at'] as String),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt:
+      json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+);
+
+Map<String, dynamic> _$SnSocialCreditRecordToJson(
+  _SnSocialCreditRecord instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'delta': instance.delta,
+  'reason_type': instance.reasonType,
+  'reason': instance.reason,
+  'expired_at': instance.expiredAt?.toIso8601String(),
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
+};
