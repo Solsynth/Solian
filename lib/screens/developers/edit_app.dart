@@ -22,21 +22,37 @@ import 'package:island/widgets/content/sheet.dart';
 part 'edit_app.g.dart';
 
 @riverpod
-Future<CustomApp?> customApp(Ref ref, String publisherName, String id) async {
+Future<CustomApp?> customApp(
+  Ref ref,
+  String publisherName,
+  String projectId,
+  String id,
+) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/develop/apps/$id');
+  final resp = await client.get(
+    '/develop/developers/$publisherName/projects/$projectId/apps/$id',
+  );
   return CustomApp.fromJson(resp.data);
 }
 
 class EditAppScreen extends HookConsumerWidget {
   final String publisherName;
+  final String projectId;
   final String? id;
-  const EditAppScreen({super.key, required this.publisherName, this.id});
+  const EditAppScreen({
+    super.key,
+    required this.publisherName,
+    required this.projectId,
+    this.id,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isNew = id == null;
-    final app = isNew ? null : ref.watch(customAppProvider(publisherName, id!));
+    final app =
+        isNew
+            ? null
+            : ref.watch(customAppProvider(publisherName, projectId, id!));
 
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
@@ -283,13 +299,16 @@ class EditAppScreen extends HookConsumerWidget {
       };
       if (isNew) {
         await client.post(
-          '/develop/apps',
-          data: {...data, 'publisher_id': publisherName},
+          '/develop/developers/$publisherName/projects/$projectId/apps',
+          data: data,
         );
       } else {
-        await client.patch('/develop/apps/$id', data: data);
+        await client.patch(
+          '/develop/developers/$publisherName/projects/$projectId/apps/$id',
+          data: data,
+        );
       }
-      ref.invalidate(customAppsProvider(publisherName));
+      ref.invalidate(customAppsProvider(publisherName, projectId));
       if (context.mounted) {
         Navigator.pop(context);
       }
@@ -306,7 +325,9 @@ class EditAppScreen extends HookConsumerWidget {
               ? ResponseErrorWidget(
                 error: app!.error,
                 onRetry:
-                    () => ref.invalidate(customAppProvider(publisherName, id!)),
+                    () => ref.invalidate(
+                      customAppProvider(publisherName, projectId, id!),
+                    ),
               )
               : SingleChildScrollView(
                 child: Column(

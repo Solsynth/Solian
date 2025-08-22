@@ -3,10 +3,11 @@ import 'package:island/screens/developers/edit_app.dart';
 
 class NewCustomAppScreen extends StatelessWidget {
   final String publisherName;
-  const NewCustomAppScreen({super.key, required this.publisherName});
+  final String projectId;
+  const NewCustomAppScreen({super.key, required this.publisherName, required this.projectId});
 
   @override
   Widget build(BuildContext context) {
-    return EditAppScreen(publisherName: publisherName);
+    return EditAppScreen(publisherName: publisherName, projectId: projectId);
   }
 }

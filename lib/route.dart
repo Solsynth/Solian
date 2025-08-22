@@ -7,12 +7,14 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
 import 'package:island/screens/account/credits.dart';
-import 'package:island/screens/developers/apps.dart';
-import 'package:island/screens/developers/bots.dart';
 import 'package:island/screens/developers/edit_app.dart';
 import 'package:island/screens/developers/edit_bot.dart';
 import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
+import 'package:island/screens/developers/projects.dart';
+import 'package:island/screens/developers/edit_project.dart';
+import 'package:island/screens/developers/new_project.dart';
+import 'package:island/screens/developers/project_detail.dart';
 import 'package:island/screens/discovery/articles.dart';
 import 'package:island/screens/posts/post_categories_list.dart';
 import 'package:island/screens/posts/post_category_detail.dart';
@@ -293,102 +295,89 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const DeveloperHubScreen(),
               ),
               GoRoute(
-                name: 'developerApps',
-                path: '/developers/:name/apps',
+                name: 'developerProjects',
+                path: '/developers/:name/projects',
                 builder:
-                    (context, state) => CustomAppsScreen(
+                    (context, state) => DevProjectsScreen(
                       publisherName: state.pathParameters['name']!,
                     ),
               ),
               GoRoute(
-                name: 'developerAppNew',
-                path: '/developers/:name/apps/new',
+                name: 'developerProjectNew',
+                path: '/developers/:name/projects/new',
                 builder:
-                    (context, state) => NewCustomAppScreen(
+                    (context, state) => NewProjectScreen(
                       publisherName: state.pathParameters['name']!,
                     ),
               ),
               GoRoute(
-                name: 'developerAppEdit',
-                path: '/developers/:name/apps/:id',
+                name: 'developerProjectEdit',
+                path: '/developers/:name/projects/:id/edit',
                 builder:
-                    (context, state) => EditAppScreen(
-                      publisherName: state.pathParameters['name']!,
-                      id: state.pathParameters['id']!,
-                    ),
-              ),
-              // Bot routes
-              GoRoute(
-                name: 'developerBots',
-                path: '/developers/:name/bots',
-                builder:
-                    (context, state) => BotsScreen(
-                      publisherName: state.pathParameters['name']!,
-                    ),
-              ),
-              GoRoute(
-                name: 'developerBotsApp',
-                path: '/developers/:name/apps/:appId/bots',
-                builder:
-                    (context, state) => BotsScreen(
-                      publisherName: state.pathParameters['name']!,
-                      appId: state.pathParameters['appId']!,
-                    ),
-              ),
-              GoRoute(
-                name: 'developerBotNew',
-                path: '/developers/:name/bots/new',
-                builder:
-                    (context, state) => EditBotScreen(
-                      publisherName: state.pathParameters['name']!,
-                    ),
-              ),
-              GoRoute(
-                name: 'developerBotNewApp',
-                path: '/developers/:name/apps/:appId/bots/new',
-                builder:
-                    (context, state) => EditBotScreen(
-                      publisherName: state.pathParameters['name']!,
-                      appId: state.pathParameters['appId']!,
-                    ),
-              ),
-              GoRoute(
-                name: 'developerBotEdit',
-                path: '/developers/:name/bots/:id',
-                builder:
-                    (context, state) => EditBotScreen(
+                    (context, state) => EditProjectScreen(
                       publisherName: state.pathParameters['name']!,
                       id: state.pathParameters['id']!,
                     ),
               ),
               GoRoute(
-                name: 'developerBotEditApp',
-                path: '/developers/:name/apps/:appId/bots/:id',
+                name: 'developerProjectDetail',
+                path: '/developers/:name/projects/:projectId',
                 builder:
-                    (context, state) => EditBotScreen(
+                    (context, state) => ProjectDetailScreen(
                       publisherName: state.pathParameters['name']!,
-                      id: state.pathParameters['id']!,
-                      appId: state.pathParameters['appId']!,
+                      projectId: state.pathParameters['projectId']!,
                     ),
-              ),
-              GoRoute(
-                name: 'developerBotDetail',
-                path: '/developers/:name/bots/:id/detail',
-                builder:
-                    (context, state) => EditBotScreen(
-                      publisherName: state.pathParameters['name']!,
-                      id: state.pathParameters['id']!,
-                    ),
-              ),
-              GoRoute(
-                name: 'developerBotDetailApp',
-                path: '/developers/:name/apps/:appId/bots/:id/detail',
-                builder:
-                    (context, state) => EditBotScreen(
-                      publisherName: state.pathParameters['name']!,
-                      id: state.pathParameters['id']!,
-                      appId: state.pathParameters['appId']!,
-                    ),
+                routes: [
+                  GoRoute(
+                    name: 'developerAppNew',
+                    path: 'apps/new',
+                    builder:
+                        (context, state) => NewCustomAppScreen(
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                        ),
+                  ),
+                  GoRoute(
+                    name: 'developerAppEdit',
+                    path: 'apps/:id/edit',
+                    builder:
+                        (context, state) => EditAppScreen(
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                          id: state.pathParameters['id']!,
+                        ),
+                  ),
+                  GoRoute(
+                    name: 'developerBotNew',
+                    path: 'bots/new',
+                    builder:
+                        (context, state) => EditBotScreen(
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                        ),
+                  ),
+                  GoRoute(
+                    name: 'developerBotEdit',
+                    path: 'bots/:id/edit',
+                    builder:
+                        (context, state) => EditBotScreen(
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                          id: state.pathParameters['id']!,
+                        ),
+                  ),
+                  GoRoute(
+                    name: 'developerBotDetail',
+                    path: 'bots/:id/detail',
+                    builder:
+                        (context, state) => EditBotScreen(
+                          // Assuming EditBotScreen can also serve as a detail view
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                          id: state.pathParameters['id']!,
+                        ),
+                  ),
+                ],
               ),
             ],
           ),

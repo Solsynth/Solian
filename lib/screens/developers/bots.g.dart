@@ -6,7 +6,7 @@ part of 'bots.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$botsHash() => r'04bff237afa91032310eaa8acd792c5a98da0d75';
+String _$botsHash() => r'a54c8b4df23f94754398706779044903fcca6eea';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -39,13 +39,13 @@ class BotsFamily extends Family<AsyncValue<List<Bot>>> {
   const BotsFamily();
 
   /// See also [bots].
-  BotsProvider call(String publisherName, {String? appId}) {
-    return BotsProvider(publisherName, appId: appId);
+  BotsProvider call(String publisherName, String projectId) {
+    return BotsProvider(publisherName, projectId);
   }
 
   @override
   BotsProvider getProviderOverride(covariant BotsProvider provider) {
-    return call(provider.publisherName, appId: provider.appId);
+    return call(provider.publisherName, provider.projectId);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -66,9 +66,9 @@ class BotsFamily extends Family<AsyncValue<List<Bot>>> {
 /// See also [bots].
 class BotsProvider extends AutoDisposeFutureProvider<List<Bot>> {
   /// See also [bots].
-  BotsProvider(String publisherName, {String? appId})
+  BotsProvider(String publisherName, String projectId)
     : this._internal(
-        (ref) => bots(ref as BotsRef, publisherName, appId: appId),
+        (ref) => bots(ref as BotsRef, publisherName, projectId),
         from: botsProvider,
         name: r'botsProvider',
         debugGetCreateSourceHash:
@@ -76,7 +76,7 @@ class BotsProvider extends AutoDisposeFutureProvider<List<Bot>> {
         dependencies: BotsFamily._dependencies,
         allTransitiveDependencies: BotsFamily._allTransitiveDependencies,
         publisherName: publisherName,
-        appId: appId,
+        projectId: projectId,
       );
 
   BotsProvider._internal(
@@ -87,11 +87,11 @@ class BotsProvider extends AutoDisposeFutureProvider<List<Bot>> {
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.publisherName,
-    required this.appId,
+    required this.projectId,
   }) : super.internal();
 
   final String publisherName;
-  final String? appId;
+  final String projectId;
 
   @override
   Override overrideWith(FutureOr<List<Bot>> Function(BotsRef provider) create) {
@@ -105,7 +105,7 @@ class BotsProvider extends AutoDisposeFutureProvider<List<Bot>> {
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         publisherName: publisherName,
-        appId: appId,
+        projectId: projectId,
       ),
     );
   }
@@ -119,14 +119,14 @@ class BotsProvider extends AutoDisposeFutureProvider<List<Bot>> {
   bool operator ==(Object other) {
     return other is BotsProvider &&
         other.publisherName == publisherName &&
-        other.appId == appId;
+        other.projectId == projectId;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, publisherName.hashCode);
-    hash = _SystemHash.combine(hash, appId.hashCode);
+    hash = _SystemHash.combine(hash, projectId.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -138,8 +138,8 @@ mixin BotsRef on AutoDisposeFutureProviderRef<List<Bot>> {
   /// The parameter `publisherName` of this provider.
   String get publisherName;
 
-  /// The parameter `appId` of this provider.
-  String? get appId;
+  /// The parameter `projectId` of this provider.
+  String get projectId;
 }
 
 class _BotsProviderElement extends AutoDisposeFutureProviderElement<List<Bot>>
@@ -149,7 +149,7 @@ class _BotsProviderElement extends AutoDisposeFutureProviderElement<List<Bot>>
   @override
   String get publisherName => (origin as BotsProvider).publisherName;
   @override
-  String? get appId => (origin as BotsProvider).appId;
+  String get projectId => (origin as BotsProvider).projectId;
 }
 
 // ignore_for_file: type=lint

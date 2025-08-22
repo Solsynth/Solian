@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'edit_bot.dart';
+part of 'edit_project.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$botHash() => r'a3e412ed575c513434bc718b7920db1d017111f4';
+String _$devProjectHash() => r'fc68254c6e598e3fa05c86c36f1469c0b689bc43';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,23 +29,25 @@ class _SystemHash {
   }
 }
 
-/// See also [bot].
-@ProviderFor(bot)
-const botProvider = BotFamily();
+/// See also [devProject].
+@ProviderFor(devProject)
+const devProjectProvider = DevProjectFamily();
 
-/// See also [bot].
-class BotFamily extends Family<AsyncValue<Bot?>> {
-  /// See also [bot].
-  const BotFamily();
+/// See also [devProject].
+class DevProjectFamily extends Family<AsyncValue<DevProject?>> {
+  /// See also [devProject].
+  const DevProjectFamily();
 
-  /// See also [bot].
-  BotProvider call(String publisherName, String projectId, String id) {
-    return BotProvider(publisherName, projectId, id);
+  /// See also [devProject].
+  DevProjectProvider call(String pubName, String id) {
+    return DevProjectProvider(pubName, id);
   }
 
   @override
-  BotProvider getProviderOverride(covariant BotProvider provider) {
-    return call(provider.publisherName, provider.projectId, provider.id);
+  DevProjectProvider getProviderOverride(
+    covariant DevProjectProvider provider,
+  ) {
+    return call(provider.pubName, provider.id);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -60,78 +62,76 @@ class BotFamily extends Family<AsyncValue<Bot?>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'botProvider';
+  String? get name => r'devProjectProvider';
 }
 
-/// See also [bot].
-class BotProvider extends AutoDisposeFutureProvider<Bot?> {
-  /// See also [bot].
-  BotProvider(String publisherName, String projectId, String id)
+/// See also [devProject].
+class DevProjectProvider extends AutoDisposeFutureProvider<DevProject?> {
+  /// See also [devProject].
+  DevProjectProvider(String pubName, String id)
     : this._internal(
-        (ref) => bot(ref as BotRef, publisherName, projectId, id),
-        from: botProvider,
-        name: r'botProvider',
+        (ref) => devProject(ref as DevProjectRef, pubName, id),
+        from: devProjectProvider,
+        name: r'devProjectProvider',
         debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product') ? null : _$botHash,
-        dependencies: BotFamily._dependencies,
-        allTransitiveDependencies: BotFamily._allTransitiveDependencies,
-        publisherName: publisherName,
-        projectId: projectId,
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$devProjectHash,
+        dependencies: DevProjectFamily._dependencies,
+        allTransitiveDependencies: DevProjectFamily._allTransitiveDependencies,
+        pubName: pubName,
         id: id,
       );
 
-  BotProvider._internal(
+  DevProjectProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
-    required this.publisherName,
-    required this.projectId,
+    required this.pubName,
     required this.id,
   }) : super.internal();
 
-  final String publisherName;
-  final String projectId;
+  final String pubName;
   final String id;
 
   @override
-  Override overrideWith(FutureOr<Bot?> Function(BotRef provider) create) {
+  Override overrideWith(
+    FutureOr<DevProject?> Function(DevProjectRef provider) create,
+  ) {
     return ProviderOverride(
       origin: this,
-      override: BotProvider._internal(
-        (ref) => create(ref as BotRef),
+      override: DevProjectProvider._internal(
+        (ref) => create(ref as DevProjectRef),
         from: from,
         name: null,
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
-        publisherName: publisherName,
-        projectId: projectId,
+        pubName: pubName,
         id: id,
       ),
     );
   }
 
   @override
-  AutoDisposeFutureProviderElement<Bot?> createElement() {
-    return _BotProviderElement(this);
+  AutoDisposeFutureProviderElement<DevProject?> createElement() {
+    return _DevProjectProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is BotProvider &&
-        other.publisherName == publisherName &&
-        other.projectId == projectId &&
+    return other is DevProjectProvider &&
+        other.pubName == pubName &&
         other.id == id;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, publisherName.hashCode);
-    hash = _SystemHash.combine(hash, projectId.hashCode);
+    hash = _SystemHash.combine(hash, pubName.hashCode);
     hash = _SystemHash.combine(hash, id.hashCode);
 
     return _SystemHash.finish(hash);
@@ -140,27 +140,23 @@ class BotProvider extends AutoDisposeFutureProvider<Bot?> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin BotRef on AutoDisposeFutureProviderRef<Bot?> {
-  /// The parameter `publisherName` of this provider.
-  String get publisherName;
-
-  /// The parameter `projectId` of this provider.
-  String get projectId;
+mixin DevProjectRef on AutoDisposeFutureProviderRef<DevProject?> {
+  /// The parameter `pubName` of this provider.
+  String get pubName;
 
   /// The parameter `id` of this provider.
   String get id;
 }
 
-class _BotProviderElement extends AutoDisposeFutureProviderElement<Bot?>
-    with BotRef {
-  _BotProviderElement(super.provider);
+class _DevProjectProviderElement
+    extends AutoDisposeFutureProviderElement<DevProject?>
+    with DevProjectRef {
+  _DevProjectProviderElement(super.provider);
 
   @override
-  String get publisherName => (origin as BotProvider).publisherName;
+  String get pubName => (origin as DevProjectProvider).pubName;
   @override
-  String get projectId => (origin as BotProvider).projectId;
-  @override
-  String get id => (origin as BotProvider).id;
+  String get id => (origin as DevProjectProvider).id;
 }
 
 // ignore_for_file: type=lint
