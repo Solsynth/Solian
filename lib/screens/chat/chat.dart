@@ -79,33 +79,38 @@ class ChatRoomListTile extends HookConsumerWidget {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-              Row(
-                spacing: 4,
-                children: [
-                  Badge(
-                    label: Text(data.lastMessage.sender.account.nick),
-                    textColor: Theme.of(context).colorScheme.onPrimary,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                  ),
-                  Expanded(
-                    child: Text(
-                      (data.lastMessage.content?.isNotEmpty ?? false)
-                          ? data.lastMessage.content!
-                          : 'messageNone'.tr(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall,
+              if (data.lastMessage == null)
+                Text(room.description ?? 'descriptionNone'.tr(), maxLines: 1)
+              else
+                Row(
+                  spacing: 4,
+                  children: [
+                    Badge(
+                      label: Text(data.lastMessage!.sender.account.nick),
+                      textColor: Theme.of(context).colorScheme.onPrimary,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                     ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      RelativeTime(context).format(data.lastMessage.createdAt),
-                      style: Theme.of(context).textTheme.bodySmall,
+                    Expanded(
+                      child: Text(
+                        (data.lastMessage!.content?.isNotEmpty ?? false)
+                            ? data.lastMessage!.content!
+                            : 'messageNone'.tr(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        RelativeTime(
+                          context,
+                        ).format(data.lastMessage!.createdAt),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           );
         },

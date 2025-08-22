@@ -104,7 +104,7 @@ sealed class SnChatMember with _$SnChatMember {
 sealed class SnChatSummary with _$SnChatSummary {
   const factory SnChatSummary({
     required int unreadCount,
-    required SnChatMessage lastMessage,
+    required SnChatMessage? lastMessage,
   }) = _SnChatSummary;
 
   factory SnChatSummary.fromJson(Map<String, dynamic> json) =>
