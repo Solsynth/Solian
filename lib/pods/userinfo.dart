@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io' show Platform;
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -28,7 +29,10 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
       final response = await client.get('/id/accounts/me');
       final user = SnAccount.fromJson(response.data);
       state = AsyncValue.data(user);
-      FirebaseAnalytics.instance.setUserId(id: user.id);
+
+      if (kIsWeb || !Platform.isLinux) {
+        FirebaseAnalytics.instance.setUserId(id: user.id);
+      }
     } catch (error, stackTrace) {
       if (!kIsWeb) {
         if (error is DioException) {
@@ -83,7 +87,9 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
     final prefs = _ref.read(sharedPreferencesProvider);
     await prefs.remove(kTokenPairStoreKey);
     _ref.invalidate(tokenProvider);
-    FirebaseAnalytics.instance.setUserId(id: null);
+    if (kIsWeb || !Platform.isLinux) {
+      FirebaseAnalytics.instance.setUserId(id: null);
+    }
   }
 }
 
