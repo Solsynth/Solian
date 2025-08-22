@@ -194,8 +194,15 @@ class LevelingScreen extends HookConsumerWidget {
                             ).opacity(0.8),
                           ],
                         ),
-                        subtitle: Text(
-                          '${record.delta > 0 ? '+' : ''}${record.delta} EXP',
+                        subtitle: Row(
+                          spacing: 8,
+                          children: [
+                            Text(
+                              '${record.delta > 0 ? '+' : ''}${record.delta} EXP',
+                            ),
+                            if (record.bonusMultiplier != 1.0)
+                              Text('x${record.bonusMultiplier}'),
+                          ],
                         ),
                         minTileHeight: 56,
                         contentPadding: EdgeInsets.symmetric(horizontal: 4),

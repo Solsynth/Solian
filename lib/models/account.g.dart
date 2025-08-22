@@ -355,6 +355,7 @@ _SnExperienceRecord _$SnExperienceRecordFromJson(Map<String, dynamic> json) =>
       delta: (json['delta'] as num).toInt(),
       reasonType: json['reason_type'] as String,
       reason: json['reason'] as String,
+      bonusMultiplier: (json['bonus_multiplier'] as num?)?.toDouble() ?? 1.0,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt:
@@ -369,6 +370,7 @@ Map<String, dynamic> _$SnExperienceRecordToJson(_SnExperienceRecord instance) =>
       'delta': instance.delta,
       'reason_type': instance.reasonType,
       'reason': instance.reason,
+      'bonus_multiplier': instance.bonusMultiplier,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
