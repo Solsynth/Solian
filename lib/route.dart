@@ -35,7 +35,7 @@ import 'package:island/screens/creators/hub.dart';
 import 'package:island/screens/creators/posts/post_manage_list.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
 import 'package:island/screens/creators/stickers/pack_detail.dart';
-import 'package:island/screens/stickers/marketplace.dart';
+import 'package:island/screens/stickers/sticker_marketplace.dart';
 import 'package:island/screens/stickers/pack_detail.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/screens/creators/publishers.dart';
