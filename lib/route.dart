@@ -7,10 +7,12 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
 import 'package:island/screens/account/credits.dart';
+import 'package:island/screens/developers/bot_detail.dart';
 import 'package:island/screens/developers/edit_app.dart';
 import 'package:island/screens/developers/edit_bot.dart';
 import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
+import 'package:island/screens/developers/new_bot.dart';
 import 'package:island/screens/developers/projects.dart';
 import 'package:island/screens/developers/edit_project.dart';
 import 'package:island/screens/developers/new_project.dart';
@@ -348,10 +350,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                         ),
                   ),
                   GoRoute(
+                    name: 'developerBotDetail',
+                    path: 'bots/:botId',
+                    builder:
+                        (context, state) => BotDetailScreen(
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                          botId: state.pathParameters['botId']!,
+                        ),
+                  ),
+                  GoRoute(
                     name: 'developerBotNew',
                     path: 'bots/new',
                     builder:
-                        (context, state) => EditBotScreen(
+                        (context, state) => NewBotScreen(
                           publisherName: state.pathParameters['name']!,
                           projectId: state.pathParameters['projectId']!,
                         ),

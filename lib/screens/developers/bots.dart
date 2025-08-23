@@ -140,9 +140,13 @@ class BotsScreen extends HookConsumerWidget {
                     },
                   ),
                   onTap: () {
-                    context.goNamed(
-                      'accountProfile',
-                      pathParameters: {'name': bot.account.name},
+                    context.pushNamed(
+                      'developerBotDetail',
+                      pathParameters: {
+                        'name': publisherName,
+                        'projectId': projectId,
+                        'botId': bot.id,
+                      },
                     );
                   },
                 ),
