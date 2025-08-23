@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Bot {
 
- String get id; String get name; String get slug; String? get description; int get status; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; BotConfig? get config; BotLinks? get links; String get publisherId; String get appId; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get slug; bool get isActive; String get projectId; DateTime get createdAt; DateTime get updatedAt; SnAccount get account;
 /// Create a copy of Bot
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $BotCopyWith<Bot> get copyWith => _$BotCopyWithImpl<Bot>(this as Bot, _$identity
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Bot&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.description, description) || other.description == description)&&(identical(other.status, status) || other.status == status)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.config, config) || other.config == config)&&(identical(other.links, links) || other.links == links)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.appId, appId) || other.appId == appId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Bot&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,description,status,picture,background,verification,config,links,publisherId,appId,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,slug,isActive,projectId,createdAt,updatedAt,account);
 
 @override
 String toString() {
-  return 'Bot(id: $id, name: $name, slug: $slug, description: $description, status: $status, picture: $picture, background: $background, verification: $verification, config: $config, links: $links, publisherId: $publisherId, appId: $appId, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Bot(id: $id, slug: $slug, isActive: $isActive, projectId: $projectId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $BotCopyWith<$Res>  {
   factory $BotCopyWith(Bot value, $Res Function(Bot) _then) = _$BotCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String slug, String? description, int status, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, BotConfig? config, BotLinks? links, String publisherId, String appId, DateTime? createdAt, DateTime? updatedAt
+ String id, String slug, bool isActive, String projectId, DateTime createdAt, DateTime updatedAt, SnAccount account
 });
 
 
-$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;$BotConfigCopyWith<$Res>? get config;$BotLinksCopyWith<$Res>? get links;
+$SnAccountCopyWith<$Res> get account;
 
 }
 /// @nodoc
@@ -65,84 +65,26 @@ class _$BotCopyWithImpl<$Res>
 
 /// Create a copy of Bot
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? description = freezed,Object? status = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? config = freezed,Object? links = freezed,Object? publisherId = null,Object? appId = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? isActive = null,Object? projectId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
-as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as int,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,config: freezed == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
-as BotConfig?,links: freezed == links ? _self.links : links // ignore: cast_nullable_to_non_nullable
-as BotLinks?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,appId: null == appId ? _self.appId : appId // ignore: cast_nullable_to_non_nullable
-as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount,
   ));
 }
 /// Create a copy of Bot
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
-    if (_self.picture == null) {
-    return null;
-  }
-
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
-    return _then(_self.copyWith(picture: value));
-  });
-}/// Create a copy of Bot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get background {
-    if (_self.background == null) {
-    return null;
-  }
-
-  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
-    return _then(_self.copyWith(background: value));
-  });
-}/// Create a copy of Bot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnVerificationMarkCopyWith<$Res>? get verification {
-    if (_self.verification == null) {
-    return null;
-  }
-
-  return $SnVerificationMarkCopyWith<$Res>(_self.verification!, (value) {
-    return _then(_self.copyWith(verification: value));
-  });
-}/// Create a copy of Bot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$BotConfigCopyWith<$Res>? get config {
-    if (_self.config == null) {
-    return null;
-  }
-
-  return $BotConfigCopyWith<$Res>(_self.config!, (value) {
-    return _then(_self.copyWith(config: value));
-  });
-}/// Create a copy of Bot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$BotLinksCopyWith<$Res>? get links {
-    if (_self.links == null) {
-    return null;
-  }
-
-  return $BotLinksCopyWith<$Res>(_self.links!, (value) {
-    return _then(_self.copyWith(links: value));
+$SnAccountCopyWith<$Res> get account {
+  
+  return $SnAccountCopyWith<$Res>(_self.account, (value) {
+    return _then(_self.copyWith(account: value));
   });
 }
 }
@@ -223,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  BotConfig? config,  BotLinks? links,  String publisherId,  String appId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  bool isActive,  String projectId,  DateTime createdAt,  DateTime updatedAt,  SnAccount account)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Bot() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.config,_that.links,_that.publisherId,_that.appId,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.createdAt,_that.updatedAt,_that.account);case _:
   return orElse();
 
 }
@@ -244,10 +186,10 @@ return $default(_that.id,_that.name,_that.slug,_that.description,_that.status,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  BotConfig? config,  BotLinks? links,  String publisherId,  String appId,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  bool isActive,  String projectId,  DateTime createdAt,  DateTime updatedAt,  SnAccount account)  $default,) {final _that = this;
 switch (_that) {
 case _Bot():
-return $default(_that.id,_that.name,_that.slug,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.config,_that.links,_that.publisherId,_that.appId,_that.createdAt,_that.updatedAt);}
+return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.createdAt,_that.updatedAt,_that.account);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -261,10 +203,10 @@ return $default(_that.id,_that.name,_that.slug,_that.description,_that.status,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  BotConfig? config,  BotLinks? links,  String publisherId,  String appId,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  bool isActive,  String projectId,  DateTime createdAt,  DateTime updatedAt,  SnAccount account)?  $default,) {final _that = this;
 switch (_that) {
 case _Bot() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.config,_that.links,_that.publisherId,_that.appId,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.createdAt,_that.updatedAt,_that.account);case _:
   return null;
 
 }
@@ -276,23 +218,16 @@ return $default(_that.id,_that.name,_that.slug,_that.description,_that.status,_t
 @JsonSerializable()
 
 class _Bot implements Bot {
-  const _Bot({this.id = '', this.name = '', this.slug = '', this.description, this.status = 0, this.picture, this.background, this.verification, this.config, this.links, this.publisherId = '', this.appId = '', this.createdAt, this.updatedAt});
+  const _Bot({required this.id, required this.slug, required this.isActive, required this.projectId, required this.createdAt, required this.updatedAt, required this.account});
   factory _Bot.fromJson(Map<String, dynamic> json) => _$BotFromJson(json);
 
-@override@JsonKey() final  String id;
-@override@JsonKey() final  String name;
-@override@JsonKey() final  String slug;
-@override final  String? description;
-@override@JsonKey() final  int status;
-@override final  SnCloudFile? picture;
-@override final  SnCloudFile? background;
-@override final  SnVerificationMark? verification;
-@override final  BotConfig? config;
-@override final  BotLinks? links;
-@override@JsonKey() final  String publisherId;
-@override@JsonKey() final  String appId;
-@override final  DateTime? createdAt;
-@override final  DateTime? updatedAt;
+@override final  String id;
+@override final  String slug;
+@override final  bool isActive;
+@override final  String projectId;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  SnAccount account;
 
 /// Create a copy of Bot
 /// with the given fields replaced by the non-null parameter values.
@@ -307,16 +242,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Bot&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.description, description) || other.description == description)&&(identical(other.status, status) || other.status == status)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.config, config) || other.config == config)&&(identical(other.links, links) || other.links == links)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.appId, appId) || other.appId == appId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Bot&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,description,status,picture,background,verification,config,links,publisherId,appId,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,slug,isActive,projectId,createdAt,updatedAt,account);
 
 @override
 String toString() {
-  return 'Bot(id: $id, name: $name, slug: $slug, description: $description, status: $status, picture: $picture, background: $background, verification: $verification, config: $config, links: $links, publisherId: $publisherId, appId: $appId, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Bot(id: $id, slug: $slug, isActive: $isActive, projectId: $projectId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account)';
 }
 
 
@@ -327,11 +262,11 @@ abstract mixin class _$BotCopyWith<$Res> implements $BotCopyWith<$Res> {
   factory _$BotCopyWith(_Bot value, $Res Function(_Bot) _then) = __$BotCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String slug, String? description, int status, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, BotConfig? config, BotLinks? links, String publisherId, String appId, DateTime? createdAt, DateTime? updatedAt
+ String id, String slug, bool isActive, String projectId, DateTime createdAt, DateTime updatedAt, SnAccount account
 });
 
 
-@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;@override $BotConfigCopyWith<$Res>? get config;@override $BotLinksCopyWith<$Res>? get links;
+@override $SnAccountCopyWith<$Res> get account;
 
 }
 /// @nodoc
@@ -344,23 +279,16 @@ class __$BotCopyWithImpl<$Res>
 
 /// Create a copy of Bot
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? description = freezed,Object? status = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? config = freezed,Object? links = freezed,Object? publisherId = null,Object? appId = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? isActive = null,Object? projectId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = null,}) {
   return _then(_Bot(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
-as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as int,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,config: freezed == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
-as BotConfig?,links: freezed == links ? _self.links : links // ignore: cast_nullable_to_non_nullable
-as BotLinks?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,appId: null == appId ? _self.appId : appId // ignore: cast_nullable_to_non_nullable
-as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount,
   ));
 }
 
@@ -368,61 +296,10 @@ as DateTime?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
-    if (_self.picture == null) {
-    return null;
-  }
-
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
-    return _then(_self.copyWith(picture: value));
-  });
-}/// Create a copy of Bot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get background {
-    if (_self.background == null) {
-    return null;
-  }
-
-  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
-    return _then(_self.copyWith(background: value));
-  });
-}/// Create a copy of Bot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnVerificationMarkCopyWith<$Res>? get verification {
-    if (_self.verification == null) {
-    return null;
-  }
-
-  return $SnVerificationMarkCopyWith<$Res>(_self.verification!, (value) {
-    return _then(_self.copyWith(verification: value));
-  });
-}/// Create a copy of Bot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$BotConfigCopyWith<$Res>? get config {
-    if (_self.config == null) {
-    return null;
-  }
-
-  return $BotConfigCopyWith<$Res>(_self.config!, (value) {
-    return _then(_self.copyWith(config: value));
-  });
-}/// Create a copy of Bot
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$BotLinksCopyWith<$Res>? get links {
-    if (_self.links == null) {
-    return null;
-  }
-
-  return $BotLinksCopyWith<$Res>(_self.links!, (value) {
-    return _then(_self.copyWith(links: value));
+$SnAccountCopyWith<$Res> get account {
+  
+  return $SnAccountCopyWith<$Res>(_self.account, (value) {
+    return _then(_self.copyWith(account: value));
   });
 }
 }

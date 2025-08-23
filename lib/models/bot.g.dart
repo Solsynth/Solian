@@ -7,60 +7,23 @@ part of 'bot.dart';
 // **************************************************************************
 
 _Bot _$BotFromJson(Map<String, dynamic> json) => _Bot(
-  id: json['id'] as String? ?? '',
-  name: json['name'] as String? ?? '',
-  slug: json['slug'] as String? ?? '',
-  description: json['description'] as String?,
-  status: (json['status'] as num?)?.toInt() ?? 0,
-  picture:
-      json['picture'] == null
-          ? null
-          : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
-  background:
-      json['background'] == null
-          ? null
-          : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
-  verification:
-      json['verification'] == null
-          ? null
-          : SnVerificationMark.fromJson(
-            json['verification'] as Map<String, dynamic>,
-          ),
-  config:
-      json['config'] == null
-          ? null
-          : BotConfig.fromJson(json['config'] as Map<String, dynamic>),
-  links:
-      json['links'] == null
-          ? null
-          : BotLinks.fromJson(json['links'] as Map<String, dynamic>),
-  publisherId: json['publisher_id'] as String? ?? '',
-  appId: json['app_id'] as String? ?? '',
-  createdAt:
-      json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-  updatedAt:
-      json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+  id: json['id'] as String,
+  slug: json['slug'] as String,
+  isActive: json['is_active'] as bool,
+  projectId: json['project_id'] as String,
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  account: SnAccount.fromJson(json['account'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$BotToJson(_Bot instance) => <String, dynamic>{
   'id': instance.id,
-  'name': instance.name,
   'slug': instance.slug,
-  'description': instance.description,
-  'status': instance.status,
-  'picture': instance.picture?.toJson(),
-  'background': instance.background?.toJson(),
-  'verification': instance.verification?.toJson(),
-  'config': instance.config?.toJson(),
-  'links': instance.links?.toJson(),
-  'publisher_id': instance.publisherId,
-  'app_id': instance.appId,
-  'created_at': instance.createdAt?.toIso8601String(),
-  'updated_at': instance.updatedAt?.toIso8601String(),
+  'is_active': instance.isActive,
+  'project_id': instance.projectId,
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'account': instance.account.toJson(),
 };
 
 _BotConfig _$BotConfigFromJson(Map<String, dynamic> json) => _BotConfig(

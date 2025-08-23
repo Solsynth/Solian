@@ -55,31 +55,44 @@ class EditBotScreen extends HookConsumerWidget {
     final submitting = useState(false);
 
     final nameController = useTextEditingController();
+    final nickController = useTextEditingController();
     final slugController = useTextEditingController();
-    final descriptionController = useTextEditingController();
     final picture = useState<SnCloudFile?>(null);
-    final websiteController = useTextEditingController();
-    final documentationController = useTextEditingController();
 
-    final isPublic = useState(false);
-    final isInteractive = useState(false);
+    final firstNameController = useTextEditingController();
+    final middleNameController = useTextEditingController();
+    final lastNameController = useTextEditingController();
+    final genderController = useTextEditingController();
+    final pronounsController = useTextEditingController();
+    final locationController = useTextEditingController();
+    final timeZoneController = useTextEditingController();
+    final bioController = useTextEditingController();
+    final birthday = useState<DateTime?>(null);
+    final background = useState<SnCloudFile?>(null);
 
     useEffect(() {
       if (botData?.value != null) {
-        nameController.text = botData!.value!.name;
+        nameController.text = botData!.value!.account.name;
+        nickController.text = botData.value!.account.nick;
         slugController.text = botData.value!.slug;
-        descriptionController.text = botData.value!.description ?? '';
-        picture.value = botData.value!.picture;
-        websiteController.text = botData.value!.links?.website ?? '';
-        documentationController.text =
-            botData.value!.links?.documentation ?? '';
-        isPublic.value = botData.value!.config?.isPublic ?? false;
-        isInteractive.value = botData.value!.config?.isInteractive ?? false;
+        picture.value = botData.value!.account.profile.picture;
+        background.value = botData.value!.account.profile.background;
+
+        // Populate from botData.value.account.profile
+        firstNameController.text = botData.value!.account.profile.firstName;
+        middleNameController.text = botData.value!.account.profile.middleName;
+        lastNameController.text = botData.value!.account.profile.lastName;
+        genderController.text = botData.value!.account.profile.gender;
+        pronounsController.text = botData.value!.account.profile.pronouns;
+        locationController.text = botData.value!.account.profile.location;
+        timeZoneController.text = botData.value!.account.profile.timeZone;
+        bioController.text = botData.value!.account.profile.bio;
+        birthday.value = botData.value!.account.profile.birthday?.toLocal();
       }
       return null;
     }, [botData]);
 
-    void setPicture() async {
+    void setPicture(String position) async {
       showLoadingModal(context);
       var result = await ref
           .read(imagePickerProvider)
@@ -94,7 +107,12 @@ class EditBotScreen extends HookConsumerWidget {
       result = await cropImage(
         context,
         image: result,
-        allowedAspectRatios: [const CropAspectRatio(height: 1, width: 1)],
+        allowedAspectRatios: [
+          if (position == 'background')
+            const CropAspectRatio(height: 7, width: 16)
+          else
+            const CropAspectRatio(height: 1, width: 1),
+        ],
       );
       if (result == null) {
         if (context.mounted) hideLoadingModal(context);
@@ -122,7 +140,12 @@ class EditBotScreen extends HookConsumerWidget {
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');
         }
-        picture.value = cloudFile;
+        switch (position) {
+          case 'picture':
+            picture.value = cloudFile;
+          case 'background':
+            background.value = cloudFile;
+        }
       } catch (err) {
         showErrorAlert(err);
       } finally {
@@ -135,37 +158,42 @@ class EditBotScreen extends HookConsumerWidget {
       final client = ref.read(apiClientProvider);
       final data = {
         'name': nameController.text,
+        'nick': nickController.text,
         'slug': slugController.text,
-        'description': descriptionController.text,
         'picture_id': picture.value?.id,
-        'config': {
-          'is_public': isPublic.value,
-          'is_interactive': isInteractive.value,
-        },
-        'links': {
-          'website':
-              websiteController.text.isNotEmpty ? websiteController.text : null,
-          'documentation':
-              documentationController.text.isNotEmpty
-                  ? documentationController.text
-                  : null,
-        },
+        'background_id': background.value?.id,
+        'first_name': firstNameController.text,
+        'middle_name': middleNameController.text,
+        'last_name': lastNameController.text,
+        'gender': genderController.text,
+        'pronouns': pronounsController.text,
+        'location': locationController.text,
+        'time_zone': timeZoneController.text,
+        'bio': bioController.text,
+        'birthday': birthday.value?.toUtc().toIso8601String(),
       };
 
-      if (isNew) {
-        await client.post(
-          '/develop/developers/$publisherName/projects/$projectId/bots',
-          data: data,
-        );
-      } else {
-        await client.patch(
-          '/develop/developers/$publisherName/projects/$projectId/bots/$id',
-          data: data,
-        );
-      }
+      try {
+        showLoadingModal(context);
+        if (isNew) {
+          await client.post(
+            '/develop/developers/$publisherName/projects/$projectId/bots',
+            data: data,
+          );
+        } else {
+          await client.patch(
+            '/develop/developers/$publisherName/projects/$projectId/bots/$id',
+            data: data,
+          );
+        }
 
-      if (context.mounted) {
-        context.pop();
+        if (context.mounted) {
+          context.pop();
+        }
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
       }
     }
 
@@ -186,22 +214,44 @@ class EditBotScreen extends HookConsumerWidget {
                 child: Column(
                   children: [
                     AspectRatio(
-                      aspectRatio: 1,
-                      child: GestureDetector(
-                        onTap: setPicture,
-                        child: Container(
-                          color:
-                              Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHigh,
-                          child:
-                              picture.value != null
-                                  ? CloudFileWidget(
-                                    item: picture.value!,
-                                    fit: BoxFit.cover,
-                                  )
-                                  : const Icon(Symbols.smart_toy, size: 48),
-                        ),
+                      aspectRatio: 16 / 7,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        fit: StackFit.expand,
+                        children: [
+                          GestureDetector(
+                            child: Container(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHigh,
+                              child:
+                                  background.value != null
+                                      ? CloudFileWidget(
+                                        item: background.value!,
+                                        fit: BoxFit.cover,
+                                      )
+                                      : const SizedBox.shrink(),
+                            ),
+                            onTap: () {
+                              setPicture('background');
+                            },
+                          ),
+                          Positioned(
+                            left: 20,
+                            bottom: -32,
+                            child: GestureDetector(
+                              child: ProfilePictureWidget(
+                                fileId: picture.value?.id,
+                                radius: 40,
+                                fallbackIcon: Symbols.smart_toy,
+                              ),
+                              onTap: () {
+                                setPicture('picture');
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ).padding(bottom: 32),
                     Form(
@@ -214,6 +264,14 @@ class EditBotScreen extends HookConsumerWidget {
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
+                            controller: nickController,
+                            decoration: InputDecoration(
+                              labelText: 'nickname'.tr(),
+                              alignLabelWithHint: true,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
                             controller: slugController,
                             decoration: InputDecoration(
                               labelText: 'slug'.tr(),
@@ -222,41 +280,129 @@ class EditBotScreen extends HookConsumerWidget {
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
-                            controller: descriptionController,
+                            controller: bioController,
                             decoration: InputDecoration(
-                              labelText: 'description'.tr(),
+                              labelText: 'bio'.tr(),
                               alignLabelWithHint: true,
                             ),
                             maxLines: 3,
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            controller: websiteController,
-                            decoration: InputDecoration(
-                              labelText: 'websiteUrl'.tr(),
-                              hintText: 'https://example.com',
-                            ),
-                            keyboardType: TextInputType.url,
+                          Row(
+                            spacing: 16,
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: firstNameController,
+                                  decoration: InputDecoration(
+                                    labelText: 'firstName'.tr(),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: middleNameController,
+                                  decoration: InputDecoration(
+                                    labelText: 'middleName'.tr(),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: lastNameController,
+                                  decoration: InputDecoration(
+                                    labelText: 'lastName'.tr(),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            controller: documentationController,
-                            decoration: InputDecoration(
-                              labelText: 'documentationUrl'.tr(),
-                              hintText: 'https://example.com/docs',
-                            ),
-                            keyboardType: TextInputType.url,
+                          Row(
+                            spacing: 16,
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: genderController,
+                                  decoration: InputDecoration(
+                                    labelText: 'gender'.tr(),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: pronounsController,
+                                  decoration: InputDecoration(
+                                    labelText: 'pronouns'.tr(),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
-                          SwitchListTile(
-                            title: Text('isPublic').tr(),
-                            value: isPublic.value,
-                            onChanged: (value) => isPublic.value = value,
+                          Row(
+                            spacing: 16,
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: locationController,
+                                  decoration: InputDecoration(
+                                    labelText: 'location'.tr(),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: timeZoneController,
+                                  decoration: InputDecoration(
+                                    labelText: 'timeZone'.tr(),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          SwitchListTile(
-                            title: Text('isInteractive').tr(),
-                            value: isInteractive.value,
-                            onChanged: (value) => isInteractive.value = value,
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: birthday.value ?? DateTime.now(),
+                                firstDate: DateTime(1900),
+                                lastDate: DateTime.now(),
+                              );
+                              if (date != null) {
+                                birthday.value = date;
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    'birthday'.tr(),
+                                    style: TextStyle(
+                                      color: Theme.of(context).hintColor,
+                                    ),
+                                  ),
+                                  Text(
+                                    birthday.value != null
+                                        ? DateFormat.yMMMd().format(
+                                          birthday.value!,
+                                        )
+                                        : 'Select a date'.tr(),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Align(
@@ -264,7 +410,7 @@ class EditBotScreen extends HookConsumerWidget {
                             child: TextButton.icon(
                               onPressed:
                                   submitting.value ? null : performAction,
-                              label: Text('saveChanges'.tr()),
+                              label: Text('saveChanges').tr(),
                               icon: const Icon(Symbols.save),
                             ),
                           ),

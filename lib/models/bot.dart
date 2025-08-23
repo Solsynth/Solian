@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:island/models/file.dart';
 import 'package:island/models/account.dart';
 
 part 'bot.freezed.dart';
@@ -8,20 +7,13 @@ part 'bot.g.dart';
 @freezed
 sealed class Bot with _$Bot {
   const factory Bot({
-    @Default('') String id,
-    @Default('') String name,
-    @Default('') String slug,
-    String? description,
-    @Default(0) int status,
-    SnCloudFile? picture,
-    SnCloudFile? background,
-    SnVerificationMark? verification,
-    BotConfig? config,
-    BotLinks? links,
-    @Default('') String publisherId,
-    @Default('') String appId,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    required String id,
+    required String slug,
+    required bool isActive,
+    required String projectId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required SnAccount account,
   }) = _Bot;
 
   factory Bot.fromJson(Map<String, dynamic> json) => _$BotFromJson(json);

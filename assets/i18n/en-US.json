@@ -651,6 +651,10 @@
   "editProject": "Edit Project",
   "projectDetails": "Project Details",
   "createBot": "Create Bot",
+  "bots": "Bots",
+  "noBots": "No bots yet.",
+  "deleteBotHint": "Are you sure you want to delete this bot? This action cannot be undone.",
+  "deleteBot": "Delete Bot",
   "customApps": "Custom Apps",
   "noCustomApps": "No custom apps yet.",
   "createCustomApp": "Create Custom App",
@@ -885,5 +889,6 @@
   "socialCreditsLevelGood": "Good",
   "socialCreditsLevelExcellent": "Excellent",
   "orderByPopularity": "Sort by popularity",
-  "orderByReleaseDate": "Sort by release date"
+  "orderByReleaseDate": "Sort by release date",
+  "editBot": "Edit Bot"
 }

@@ -366,17 +366,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                           id: state.pathParameters['id']!,
                         ),
                   ),
-                  GoRoute(
-                    name: 'developerBotDetail',
-                    path: 'bots/:id/detail',
-                    builder:
-                        (context, state) => EditBotScreen(
-                          // Assuming EditBotScreen can also serve as a detail view
-                          publisherName: state.pathParameters['name']!,
-                          projectId: state.pathParameters['projectId']!,
-                          id: state.pathParameters['id']!,
-                        ),
-                  ),
                 ],
               ),
             ],

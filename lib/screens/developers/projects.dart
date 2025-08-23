@@ -61,6 +61,10 @@ class DevProjectsScreen extends HookConsumerWidget {
                 return Card(
                   margin: const EdgeInsets.all(8.0),
                   child: ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    contentPadding: EdgeInsets.only(left: 20, right: 12),
                     title: Text(project.name),
                     subtitle: Text(project.description ?? ''),
                     trailing: PopupMenuButton(

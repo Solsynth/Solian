@@ -6,7 +6,7 @@ part of 'bots.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$botsHash() => r'a54c8b4df23f94754398706779044903fcca6eea';
+String _$botsHash() => r'15cefd5781350eb68208a342e85fcb0b9e0e3269';
 
 /// Copied from Dart SDK
 class _SystemHash {

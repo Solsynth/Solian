@@ -71,14 +71,19 @@ class BotsScreen extends HookConsumerWidget {
               return Card(
                 margin: const EdgeInsets.all(8.0),
                 child: ListTile(
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                  ),
                   leading: CircleAvatar(
                     child:
-                        bot.picture != null
-                            ? CloudFileWidget(item: bot.picture!)
+                        bot.account.profile.picture != null
+                            ? ProfilePictureWidget(
+                              file: bot.account.profile.picture!,
+                            )
                             : const Icon(Symbols.smart_toy),
                   ),
-                  title: Text(bot.name),
-                  subtitle: Text(bot.description ?? ''),
+                  title: Text(bot.account.nick),
+                  subtitle: Text(bot.account.name),
                   trailing: PopupMenuButton(
                     itemBuilder:
                         (context) => [
@@ -135,13 +140,9 @@ class BotsScreen extends HookConsumerWidget {
                     },
                   ),
                   onTap: () {
-                    context.pushNamed(
-                      'developerBotDetail',
-                      pathParameters: {
-                        'name': publisherName,
-                        'projectId': projectId,
-                        'id': bot.id,
-                      },
+                    context.goNamed(
+                      'accountProfile',
+                      pathParameters: {'name': bot.account.name},
                     );
                   },
                 ),
