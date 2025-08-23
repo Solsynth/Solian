@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/chat.dart';
+import 'package:island/models/developer.dart';
 import 'package:island/models/relationship.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/config.dart';
@@ -112,6 +113,24 @@ Future<SnRelationship?> accountRelationship(Ref ref, String uname) async {
   }
 }
 
+@riverpod
+Future<SnDeveloper?> accountBotDeveloper(Ref ref, String uname) async {
+  final account = await ref.watch(accountProvider(uname).future);
+  if (account.automatedId == null) return null;
+  final apiClient = ref.watch(apiClientProvider);
+  try {
+    final resp = await apiClient.get(
+      "/develop/bots/${account.automatedId}/developer",
+    );
+    return SnDeveloper.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null;
+    }
+    rethrow;
+  }
+}
+
 class AccountProfileScreen extends HookConsumerWidget {
   final String name;
   const AccountProfileScreen({super.key, required this.name});
@@ -128,6 +147,7 @@ class AccountProfileScreen extends HookConsumerWidget {
     );
     final accountChat = ref.watch(accountDirectChatProvider(name));
     final accountRelationship = ref.watch(accountRelationshipProvider(name));
+    final accountDeveloper = ref.watch(accountBotDeveloperProvider(name));
 
     final appbarColor = ref.watch(accountAppbarForcegroundColorProvider(name));
 
@@ -292,6 +312,19 @@ class AccountProfileScreen extends HookConsumerWidget {
                     ),
                   ],
                 ),
+                if (accountDeveloper.value != null)
+                  Row(
+                    spacing: 7,
+                    children: [
+                      const Icon(Symbols.smart_toy, size: 18),
+                      Text(
+                        'botAutomatedBy'.tr(
+                          args: [accountDeveloper.value!.publisher!.nick],
+                        ),
+                      ).fontSize(13),
+                    ],
+                  ).opacity(0.75),
+                const Gap(4),
                 AccountStatusWidget(uname: name, padding: EdgeInsets.zero),
               ],
             ),

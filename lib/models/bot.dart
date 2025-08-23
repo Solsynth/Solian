@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/models/account.dart';
+import 'package:island/models/developer.dart';
 
 part 'bot.freezed.dart';
 part 'bot.g.dart';
@@ -14,6 +15,7 @@ sealed class Bot with _$Bot {
     required DateTime createdAt,
     required DateTime updatedAt,
     required SnAccount account,
+    SnDeveloper? developer,
   }) = _Bot;
 
   factory Bot.fromJson(Map<String, dynamic> json) => _$BotFromJson(json);

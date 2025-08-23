@@ -14,6 +14,10 @@ _Bot _$BotFromJson(Map<String, dynamic> json) => _Bot(
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
   account: SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+  developer:
+      json['developer'] == null
+          ? null
+          : SnDeveloper.fromJson(json['developer'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$BotToJson(_Bot instance) => <String, dynamic>{
@@ -24,6 +28,7 @@ Map<String, dynamic> _$BotToJson(_Bot instance) => <String, dynamic>{
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt.toIso8601String(),
   'account': instance.account.toJson(),
+  'developer': instance.developer?.toJson(),
 };
 
 _BotConfig _$BotConfigFromJson(Map<String, dynamic> json) => _BotConfig(
