@@ -904,5 +904,8 @@
   "revoke": "Revoke",
   "keyName": "Key Name",
   "newKeyGenerated": "New Key Generated",
-  "copyKeyHint": "Please copy this key and store it somewhere safe. You will not be able to see it again."
+  "copyKeyHint": "Please copy this key and store it somewhere safe. You will not be able to see it again.",
+  "rotateKey": "Rotate Key",
+  "rotateBotKey": "Rotate Bot Key",
+  "rotateBotKeyHint": "Are you sure you want to rotate this key? The old key will become invalid immediately. This action cannot be undone."
 }

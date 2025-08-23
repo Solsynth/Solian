@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/bot_key.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/time.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
@@ -95,7 +96,6 @@ class BotKeysScreen extends HookConsumerWidget {
         isScrollControlled: true,
         builder:
             (context) => SheetScaffold(
-              heightFactor: 0.65,
               titleText: 'newBotKey'.tr(),
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -136,6 +136,28 @@ class BotKeysScreen extends HookConsumerWidget {
       );
     }
 
+    void rotateKey(String keyId) {
+      showConfirmAlert('rotateBotKeyHint'.tr(), 'rotateBotKey'.tr()).then((
+        confirm,
+      ) async {
+        if (confirm) {
+          try {
+            if (context.mounted) showLoadingModal(context);
+            final client = ref.read(apiClientProvider);
+            final resp = await client.post(
+              '/develop/developers/$publisherName/projects/$projectId/bots/$botId/keys/$keyId/rotate',
+            );
+            final rotatedApiKey = SnAccountApiKey.fromJson(resp.data);
+            showNewKeySheet(rotatedApiKey);
+          } catch (err) {
+            showErrorAlert(err.toString());
+          } finally {
+            if (context.mounted) hideLoadingModal(context);
+          }
+        }
+      });
+    }
+
     void revokeKey(String keyId) {
       showConfirmAlert('revokeBotKeyHint'.tr(), 'revokeBotKey'.tr()).then((
         confirm,
@@ -158,80 +180,99 @@ class BotKeysScreen extends HookConsumerWidget {
       });
     }
 
-    return Column(
-      children: [
-        ListTile(
-          leading: const Icon(Symbols.add),
-          title: Text('newBotKey'.tr()),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: createKey,
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: keys.when(
-            data: (data) {
-              if (data.isEmpty) {
-                return Center(child: Text('noBotKeys'.tr()));
-              }
-              return RefreshIndicator(
-                onRefresh:
-                    () => ref.refresh(
-                      botKeysProvider(publisherName, projectId, botId).future,
-                    ),
-                child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  itemCount: data.length,
-                  itemBuilder: (context, index) {
-                    final apiKey = data[index];
-                    return ListTile(
-                      title: Text(apiKey.label),
-                      subtitle: Text(
-                        'Created: ${DateFormat.yMMMd().format(apiKey.createdAt)}',
-                      ),
-                      contentPadding: EdgeInsets.only(left: 16, right: 12),
-                      trailing: PopupMenuButton(
-                        itemBuilder:
-                            (context) => [
-                              PopupMenuItem(
-                                value: 'revoke',
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Symbols.delete,
-                                      color: Colors.red,
-                                    ),
-                                    const Gap(12),
-                                    Text(
-                                      'revoke'.tr(),
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ],
-                                ),
+    return keys.when(
+      data: (data) {
+        return Column(
+          children: [
+            ListTile(
+              leading: const Icon(Symbols.add),
+              title: Text('newBotKey'.tr()),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: createKey,
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child:
+                  data.isEmpty
+                      ? Center(child: Text('noBotKeys'.tr()))
+                      : RefreshIndicator(
+                        onRefresh:
+                            () => ref.refresh(
+                              botKeysProvider(
+                                publisherName,
+                                projectId,
+                                botId,
+                              ).future,
+                            ),
+                        child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          itemCount: data.length,
+                          itemBuilder: (context, index) {
+                            final apiKey = data[index];
+                            return ListTile(
+                              title: Text(apiKey.label),
+                              subtitle: Text(apiKey.createdAt.formatSystem()),
+                              contentPadding: EdgeInsets.only(
+                                left: 16,
+                                right: 12,
                               ),
-                            ],
-                        onSelected: (value) {
-                          if (value == 'revoke') {
-                            revokeKey(apiKey.id);
-                          }
-                        },
+                              trailing: PopupMenuButton(
+                                itemBuilder:
+                                    (context) => [
+                                      PopupMenuItem(
+                                        value: 'rotate',
+                                        child: Row(
+                                          children: [
+                                            const Icon(Symbols.refresh),
+                                            const Gap(12),
+                                            Text('rotateKey'.tr()),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'revoke',
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Symbols.delete,
+                                              color: Colors.red,
+                                            ),
+                                            const Gap(12),
+                                            Text(
+                                              'revoke'.tr(),
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                onSelected: (value) {
+                                  if (value == 'rotate') {
+                                    rotateKey(apiKey.id);
+                                  } else if (value == 'revoke') {
+                                    revokeKey(apiKey.id);
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    );
-                  },
-                ),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error:
-                (err, stack) => ResponseErrorWidget(
-                  error: err,
-                  onRetry:
-                      () => ref.invalidate(
-                        botKeysProvider(publisherName, projectId, botId),
-                      ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error:
+          (err, stack) => ResponseErrorWidget(
+            error: err,
+            onRetry:
+                () => ref.invalidate(
+                  botKeysProvider(publisherName, projectId, botId),
                 ),
           ),
-        ),
-      ],
     );
   }
 }
