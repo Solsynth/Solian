@@ -639,5 +639,128 @@ class _AccountRelationshipProviderElement
   String get uname => (origin as AccountRelationshipProvider).uname;
 }
 
+String _$accountBotDeveloperHash() =>
+    r'673534770640a8cf1484ea0af0f4d0ef283ef157';
+
+/// See also [accountBotDeveloper].
+@ProviderFor(accountBotDeveloper)
+const accountBotDeveloperProvider = AccountBotDeveloperFamily();
+
+/// See also [accountBotDeveloper].
+class AccountBotDeveloperFamily extends Family<AsyncValue<SnDeveloper?>> {
+  /// See also [accountBotDeveloper].
+  const AccountBotDeveloperFamily();
+
+  /// See also [accountBotDeveloper].
+  AccountBotDeveloperProvider call(String uname) {
+    return AccountBotDeveloperProvider(uname);
+  }
+
+  @override
+  AccountBotDeveloperProvider getProviderOverride(
+    covariant AccountBotDeveloperProvider provider,
+  ) {
+    return call(provider.uname);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'accountBotDeveloperProvider';
+}
+
+/// See also [accountBotDeveloper].
+class AccountBotDeveloperProvider
+    extends AutoDisposeFutureProvider<SnDeveloper?> {
+  /// See also [accountBotDeveloper].
+  AccountBotDeveloperProvider(String uname)
+    : this._internal(
+        (ref) => accountBotDeveloper(ref as AccountBotDeveloperRef, uname),
+        from: accountBotDeveloperProvider,
+        name: r'accountBotDeveloperProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$accountBotDeveloperHash,
+        dependencies: AccountBotDeveloperFamily._dependencies,
+        allTransitiveDependencies:
+            AccountBotDeveloperFamily._allTransitiveDependencies,
+        uname: uname,
+      );
+
+  AccountBotDeveloperProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.uname,
+  }) : super.internal();
+
+  final String uname;
+
+  @override
+  Override overrideWith(
+    FutureOr<SnDeveloper?> Function(AccountBotDeveloperRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: AccountBotDeveloperProvider._internal(
+        (ref) => create(ref as AccountBotDeveloperRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        uname: uname,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<SnDeveloper?> createElement() {
+    return _AccountBotDeveloperProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountBotDeveloperProvider && other.uname == uname;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, uname.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin AccountBotDeveloperRef on AutoDisposeFutureProviderRef<SnDeveloper?> {
+  /// The parameter `uname` of this provider.
+  String get uname;
+}
+
+class _AccountBotDeveloperProviderElement
+    extends AutoDisposeFutureProviderElement<SnDeveloper?>
+    with AccountBotDeveloperRef {
+  _AccountBotDeveloperProviderElement(super.provider);
+
+  @override
+  String get uname => (origin as AccountBotDeveloperProvider).uname;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -12,6 +12,7 @@ _SnAccount _$SnAccountFromJson(Map<String, dynamic> json) => _SnAccount(
   nick: json['nick'] as String,
   language: json['language'] as String,
   isSuperuser: json['is_superuser'] as bool,
+  automatedId: json['automated_id'] as String?,
   profile: SnAccountProfile.fromJson(json['profile'] as Map<String, dynamic>),
   perkSubscription:
       json['perk_subscription'] == null
@@ -39,6 +40,7 @@ Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
       'nick': instance.nick,
       'language': instance.language,
       'is_superuser': instance.isSuperuser,
+      'automated_id': instance.automatedId,
       'profile': instance.profile.toJson(),
       'perk_subscription': instance.perkSubscription?.toJson(),
       'badges': instance.badges.map((e) => e.toJson()).toList(),

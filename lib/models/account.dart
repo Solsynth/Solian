@@ -14,6 +14,7 @@ sealed class SnAccount with _$SnAccount {
     required String nick,
     required String language,
     required bool isSuperuser,
+    required String? automatedId,
     required SnAccountProfile profile,
     required SnWalletSubscriptionRef? perkSubscription,
     @Default([]) List<SnAccountBadge> badges,

@@ -890,5 +890,6 @@
   "socialCreditsLevelExcellent": "Excellent",
   "orderByPopularity": "Sort by popularity",
   "orderByReleaseDate": "Sort by release date",
-  "editBot": "Edit Bot"
+  "editBot": "Edit Bot",
+  "botAutomatedBy": "Automated by {}"
 }

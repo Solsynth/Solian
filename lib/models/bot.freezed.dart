@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Bot {
 
- String get id; String get slug; bool get isActive; String get projectId; DateTime get createdAt; DateTime get updatedAt; SnAccount get account;
+ String get id; String get slug; bool get isActive; String get projectId; DateTime get createdAt; DateTime get updatedAt; SnAccount get account; SnDeveloper? get developer;
 /// Create a copy of Bot
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $BotCopyWith<Bot> get copyWith => _$BotCopyWithImpl<Bot>(this as Bot, _$identity
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Bot&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Bot&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account)&&(identical(other.developer, developer) || other.developer == developer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,isActive,projectId,createdAt,updatedAt,account);
+int get hashCode => Object.hash(runtimeType,id,slug,isActive,projectId,createdAt,updatedAt,account,developer);
 
 @override
 String toString() {
-  return 'Bot(id: $id, slug: $slug, isActive: $isActive, projectId: $projectId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account)';
+  return 'Bot(id: $id, slug: $slug, isActive: $isActive, projectId: $projectId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account, developer: $developer)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $BotCopyWith<$Res>  {
   factory $BotCopyWith(Bot value, $Res Function(Bot) _then) = _$BotCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, bool isActive, String projectId, DateTime createdAt, DateTime updatedAt, SnAccount account
+ String id, String slug, bool isActive, String projectId, DateTime createdAt, DateTime updatedAt, SnAccount account, SnDeveloper? developer
 });
 
 
-$SnAccountCopyWith<$Res> get account;
+$SnAccountCopyWith<$Res> get account;$SnDeveloperCopyWith<$Res>? get developer;
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$BotCopyWithImpl<$Res>
 
 /// Create a copy of Bot
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? isActive = null,Object? projectId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? isActive = null,Object? projectId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = null,Object? developer = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,8 @@ as bool,projectId: null == projectId ? _self.projectId : projectId // ignore: ca
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount,
+as SnAccount,developer: freezed == developer ? _self.developer : developer // ignore: cast_nullable_to_non_nullable
+as SnDeveloper?,
   ));
 }
 /// Create a copy of Bot
@@ -85,6 +86,18 @@ $SnAccountCopyWith<$Res> get account {
   
   return $SnAccountCopyWith<$Res>(_self.account, (value) {
     return _then(_self.copyWith(account: value));
+  });
+}/// Create a copy of Bot
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnDeveloperCopyWith<$Res>? get developer {
+    if (_self.developer == null) {
+    return null;
+  }
+
+  return $SnDeveloperCopyWith<$Res>(_self.developer!, (value) {
+    return _then(_self.copyWith(developer: value));
   });
 }
 }
@@ -165,10 +178,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  bool isActive,  String projectId,  DateTime createdAt,  DateTime updatedAt,  SnAccount account)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  bool isActive,  String projectId,  DateTime createdAt,  DateTime updatedAt,  SnAccount account,  SnDeveloper? developer)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Bot() when $default != null:
-return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.createdAt,_that.updatedAt,_that.account);case _:
+return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.createdAt,_that.updatedAt,_that.account,_that.developer);case _:
   return orElse();
 
 }
@@ -186,10 +199,10 @@ return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.created
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  bool isActive,  String projectId,  DateTime createdAt,  DateTime updatedAt,  SnAccount account)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  bool isActive,  String projectId,  DateTime createdAt,  DateTime updatedAt,  SnAccount account,  SnDeveloper? developer)  $default,) {final _that = this;
 switch (_that) {
 case _Bot():
-return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.createdAt,_that.updatedAt,_that.account);}
+return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.createdAt,_that.updatedAt,_that.account,_that.developer);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -203,10 +216,10 @@ return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.created
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  bool isActive,  String projectId,  DateTime createdAt,  DateTime updatedAt,  SnAccount account)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  bool isActive,  String projectId,  DateTime createdAt,  DateTime updatedAt,  SnAccount account,  SnDeveloper? developer)?  $default,) {final _that = this;
 switch (_that) {
 case _Bot() when $default != null:
-return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.createdAt,_that.updatedAt,_that.account);case _:
+return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.createdAt,_that.updatedAt,_that.account,_that.developer);case _:
   return null;
 
 }
@@ -218,7 +231,7 @@ return $default(_that.id,_that.slug,_that.isActive,_that.projectId,_that.created
 @JsonSerializable()
 
 class _Bot implements Bot {
-  const _Bot({required this.id, required this.slug, required this.isActive, required this.projectId, required this.createdAt, required this.updatedAt, required this.account});
+  const _Bot({required this.id, required this.slug, required this.isActive, required this.projectId, required this.createdAt, required this.updatedAt, required this.account, this.developer});
   factory _Bot.fromJson(Map<String, dynamic> json) => _$BotFromJson(json);
 
 @override final  String id;
@@ -228,6 +241,7 @@ class _Bot implements Bot {
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  SnAccount account;
+@override final  SnDeveloper? developer;
 
 /// Create a copy of Bot
 /// with the given fields replaced by the non-null parameter values.
@@ -242,16 +256,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Bot&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Bot&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account)&&(identical(other.developer, developer) || other.developer == developer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,isActive,projectId,createdAt,updatedAt,account);
+int get hashCode => Object.hash(runtimeType,id,slug,isActive,projectId,createdAt,updatedAt,account,developer);
 
 @override
 String toString() {
-  return 'Bot(id: $id, slug: $slug, isActive: $isActive, projectId: $projectId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account)';
+  return 'Bot(id: $id, slug: $slug, isActive: $isActive, projectId: $projectId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account, developer: $developer)';
 }
 
 
@@ -262,11 +276,11 @@ abstract mixin class _$BotCopyWith<$Res> implements $BotCopyWith<$Res> {
   factory _$BotCopyWith(_Bot value, $Res Function(_Bot) _then) = __$BotCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, bool isActive, String projectId, DateTime createdAt, DateTime updatedAt, SnAccount account
+ String id, String slug, bool isActive, String projectId, DateTime createdAt, DateTime updatedAt, SnAccount account, SnDeveloper? developer
 });
 
 
-@override $SnAccountCopyWith<$Res> get account;
+@override $SnAccountCopyWith<$Res> get account;@override $SnDeveloperCopyWith<$Res>? get developer;
 
 }
 /// @nodoc
@@ -279,7 +293,7 @@ class __$BotCopyWithImpl<$Res>
 
 /// Create a copy of Bot
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? isActive = null,Object? projectId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? isActive = null,Object? projectId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = null,Object? developer = freezed,}) {
   return _then(_Bot(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -288,7 +302,8 @@ as bool,projectId: null == projectId ? _self.projectId : projectId // ignore: ca
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount,
+as SnAccount,developer: freezed == developer ? _self.developer : developer // ignore: cast_nullable_to_non_nullable
+as SnDeveloper?,
   ));
 }
 
@@ -300,6 +315,18 @@ $SnAccountCopyWith<$Res> get account {
   
   return $SnAccountCopyWith<$Res>(_self.account, (value) {
     return _then(_self.copyWith(account: value));
+  });
+}/// Create a copy of Bot
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnDeveloperCopyWith<$Res>? get developer {
+    if (_self.developer == null) {
+    return null;
+  }
+
+  return $SnDeveloperCopyWith<$Res>(_self.developer!, (value) {
+    return _then(_self.copyWith(developer: value));
   });
 }
 }
