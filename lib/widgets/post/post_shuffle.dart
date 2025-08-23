@@ -25,7 +25,7 @@ class PostShuffleScreen extends HookConsumerWidget {
       return cardSwiperController.dispose;
     }, []);
 
-    const kBottomControlHeight = 96.0;
+    const kBottomControlHeight = 64.0;
 
     return AppScaffold(
       appBar: AppBar(title: const Text('postShuffle').tr()),
@@ -48,14 +48,19 @@ class PostShuffleScreen extends HookConsumerWidget {
                         verticalOffsetPercentage,
                       ) {
                         return Center(
-                          child: Card(
-                            margin: EdgeInsets.zero,
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(8),
-                              ),
-                              child: PostActionableItem(
-                                item: postListState.value!.items[index],
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: 540),
+                            child: SingleChildScrollView(
+                              child: Card(
+                                margin: EdgeInsets.zero,
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                  child: PostActionableItem(
+                                    item: postListState.value!.items[index],
+                                  ),
+                                ),
                               ),
                             ),
                           ),

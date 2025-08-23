@@ -216,7 +216,7 @@ class MarketplaceStickerPackDetailScreen extends HookConsumerWidget {
                       ),
                 ),
               ),
-              Gap(MediaQuery.of(context).padding.bottom),
+              Gap(MediaQuery.of(context).padding.bottom + 16),
             ],
           );
         },
