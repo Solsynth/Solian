@@ -32,7 +32,7 @@ class MarketplaceWebFeedsNotifier extends _$MarketplaceWebFeedsNotifier
     final offset = cursor == null ? 0 : int.parse(cursor);
 
     final response = await client.get(
-      '/sphere/feeds',
+      '/sphere/feeds/explore',
       queryParameters: {
         'offset': offset,
         'take': 20,
