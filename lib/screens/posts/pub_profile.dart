@@ -196,7 +196,8 @@ class PublisherProfileScreen extends HookConsumerWidget {
                       'publisherBelongsTo'.tr(args: ['@${data.account!.name}']),
                     ).fontSize(14),
                   ],
-                ).opacity(0.85).padding(bottom: 6),
+                ).opacity(0.85),
+              const Gap(4),
               if (data.type == 0 && data.account != null)
                 AccountStatusWidget(
                   uname: data.account!.name,
