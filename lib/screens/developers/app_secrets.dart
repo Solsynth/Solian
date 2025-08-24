@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/custom_app_secret.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/time.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
@@ -189,32 +190,21 @@ class AppSecretsScreen extends HookConsumerWidget {
                 title: Text('generateSecret'.tr()),
                 onTap: createSecret,
               ),
+              const Divider(height: 1),
               Expanded(
                 child: ListView.builder(
+                  padding: EdgeInsets.zero,
                   itemCount: data.length,
                   itemBuilder: (context, index) {
                     final secret = data[index];
                     return ListTile(
                       title: Text(secret.description ?? secret.id),
                       subtitle: Text(
-                        'createdAt'.tr(
-                          args: [secret.createdAt.toIso8601String()],
-                        ),
+                        'createdAt'.tr(args: [secret.createdAt.formatSystem()]),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: const Icon(Symbols.copy_all),
-                            onPressed: () {
-                              Clipboard.setData(
-                                ClipboardData(text: secret.secret!),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('secretCopied'.tr())),
-                              );
-                            },
-                          ),
                           IconButton(
                             icon: const Icon(Symbols.delete, color: Colors.red),
                             onPressed: () {
