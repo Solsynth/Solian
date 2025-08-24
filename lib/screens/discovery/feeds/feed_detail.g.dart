@@ -291,7 +291,7 @@ class _MarketplaceWebFeedSubscriptionProviderElement
 }
 
 String _$marketplaceWebFeedContentNotifierHash() =>
-    r'eff0eee14a244a2597756a61ad5957ae397c9bf5';
+    r'25688082884cb824eeff300888ba38c9748295dc';
 
 abstract class _$MarketplaceWebFeedContentNotifier
     extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnWebArticle>> {

@@ -116,33 +116,89 @@ class SliverArticlesList extends ConsumerWidget {
   }
 }
 
-class ArticlesScreen extends ConsumerWidget {
-  final String? feedId;
-  final String? publisherId;
-  final String? title;
+@riverpod
+Future<List<SnWebFeed>> subscribedFeeds(Ref ref) async {
+  final client = ref.watch(apiClientProvider);
+  final response = await client.get('/sphere/feeds/subscribed');
+  final data = response.data as List<dynamic>;
+  return data.map((json) => SnWebFeed.fromJson(json)).toList();
+}
 
-  const ArticlesScreen({super.key, this.feedId, this.publisherId, this.title});
+class ArticlesScreen extends ConsumerWidget {
+  const ArticlesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return AppScaffold(
-      appBar: AppBar(title: Text(title ?? 'Articles')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
-                sliver: SliverArticlesList(
-                  feedId: feedId,
-                  publisherId: publisherId,
-                ),
+    final subscribedFeedsAsync = ref.watch(subscribedFeedsProvider);
+
+    return subscribedFeedsAsync.when(
+      data: (feeds) {
+        return DefaultTabController(
+          length: feeds.length + 1,
+          child: AppScaffold(
+            appBar: AppBar(
+              title: const Text('Articles'),
+              bottom: TabBar(
+                isScrollable: true,
+                tabs: [
+                  const Tab(text: 'All'),
+                  ...feeds.map((feed) => Tab(text: feed.title)),
+                ],
               ),
-            ],
+            ),
+            body: TabBarView(
+              children: [
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: CustomScrollView(
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.only(
+                            top: 8,
+                            left: 8,
+                            right: 8,
+                          ),
+                          sliver: SliverArticlesList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                ...feeds.map((feed) {
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverPadding(
+                            padding: const EdgeInsets.only(
+                              top: 8,
+                              left: 8,
+                              right: 8,
+                            ),
+                            sliver: SliverArticlesList(feedId: feed.id),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
+      loading:
+          () => AppScaffold(
+            appBar: AppBar(title: const Text('Articles')),
+            body: const Center(child: CircularProgressIndicator()),
+          ),
+      error:
+          (err, stack) => AppScaffold(
+            appBar: AppBar(title: const Text('Articles')),
+            body: Center(child: Text('Error: $err')),
+          ),
     );
   }
 }

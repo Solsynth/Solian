@@ -297,16 +297,24 @@ class EditAppScreen extends HookConsumerWidget {
                 }
                 : null,
       };
-      if (isNew) {
-        await client.post(
-          '/develop/developers/$publisherName/projects/$projectId/apps',
-          data: data,
-        );
-      } else {
-        await client.patch(
-          '/develop/developers/$publisherName/projects/$projectId/apps/$id',
-          data: data,
-        );
+      try {
+        showLoadingModal(context);
+        if (isNew) {
+          await client.post(
+            '/develop/developers/$publisherName/projects/$projectId/apps',
+            data: data,
+          );
+        } else {
+          await client.patch(
+            '/develop/developers/$publisherName/projects/$projectId/apps/$id',
+            data: data,
+          );
+        }
+      } catch (err) {
+        showErrorAlert(err);
+        return;
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
       }
       ref.invalidate(customAppsProvider(publisherName, projectId));
       if (context.mounted) {

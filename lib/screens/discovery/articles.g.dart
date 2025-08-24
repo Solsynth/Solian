@@ -6,6 +6,25 @@ part of 'articles.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$subscribedFeedsHash() => r'cd2f5d7d4ea49ad00dc731f8fc2ed65450a3f0e4';
+
+/// See also [subscribedFeeds].
+@ProviderFor(subscribedFeeds)
+final subscribedFeedsProvider =
+    AutoDisposeFutureProvider<List<SnWebFeed>>.internal(
+      subscribedFeeds,
+      name: r'subscribedFeedsProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$subscribedFeedsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SubscribedFeedsRef = AutoDisposeFutureProviderRef<List<SnWebFeed>>;
 String _$articlesListNotifierHash() =>
     r'579741af4d90c7c81f2e2697e57c4895b7a9dabc';
 
