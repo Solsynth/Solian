@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:island/screens/chat/chat.dart';
 import 'package:flutter/material.dart';
 import 'package:island/models/chat.dart';

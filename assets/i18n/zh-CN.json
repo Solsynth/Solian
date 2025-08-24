@@ -843,5 +843,13 @@
   "socialCreditsLevelPoor": "糟糕",
   "socialCreditsLevelNormal": "正常",
   "socialCreditsLevelGood": "良好",
-  "socialCreditsLevelExcellent": "优秀"
+  "socialCreditsLevelExcellent": "优秀",
+  "appDetails": "应用详情",
+  "secrets": "密钥",
+  "appNotFound": "应用未找到。",
+  "secretCopied": "密钥已复制到剪贴板。",
+  "deleteSecret": "删除密钥",
+  "deleteSecretHint": "您确定要删除此密钥吗？此操作无法撤销。",
+  "generateSecret": "生成新密钥",
+  "created_at": "创建于 {}"
 }

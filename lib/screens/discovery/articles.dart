@@ -183,7 +183,7 @@ class ArticlesScreen extends ConsumerWidget {
                       ),
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

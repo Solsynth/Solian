@@ -1,0 +1,131 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/custom_app.dart';
+import 'package:island/screens/developers/app_secrets.dart';
+import 'package:island/screens/developers/apps.dart';
+import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/response.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
+
+class AppDetailScreen extends HookConsumerWidget {
+  final String publisherName;
+  final String projectId;
+  final String appId;
+
+  const AppDetailScreen({
+    super.key,
+    required this.publisherName,
+    required this.projectId,
+    required this.appId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tabController = useTabController(initialLength: 2);
+    final appData = ref.watch(customAppProvider(publisherName, projectId, appId));
+
+    return AppScaffold(
+      appBar: AppBar(
+        title: Text(appData.value?.name ?? 'appDetails'.tr()),
+        actions: [
+          IconButton(
+            icon: const Icon(Symbols.edit),
+            onPressed: appData.value == null
+                ? null
+                : () {
+                    context.pushNamed(
+                      'developerAppEdit',
+                      pathParameters: {
+                        'name': publisherName,
+                        'projectId': projectId,
+                        'id': appId,
+                      },
+                    );
+                  },
+          ),
+        ],
+        bottom: TabBar(
+          controller: tabController,
+          tabs: [Tab(text: 'overview'.tr()), Tab(text: 'secrets'.tr())],
+        ),
+      ),
+      body: appData.when(
+        data: (app) {
+          return TabBarView(
+            controller: tabController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _AppOverview(app: app),
+              AppSecretsScreen(
+                publisherName: publisherName,
+                projectId: projectId,
+                appId: appId,
+              ),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => ResponseErrorWidget(
+          error: err,
+          onRetry: () => ref.invalidate(
+            customAppProvider(publisherName, projectId, appId),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppOverview extends StatelessWidget {
+  final CustomApp app;
+  const _AppOverview({required this.app});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 7,
+            child: Stack(
+              clipBehavior: Clip.none,
+              fit: StackFit.expand,
+              children: [
+                Container(
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  child: app.background != null
+                      ? CloudFileWidget(
+                          item: app.background!,
+                          fit: BoxFit.cover,
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                Positioned(
+                  left: 20,
+                  bottom: -32,
+                  child: ProfilePictureWidget(
+                    fileId: app.picture?.id,
+                    radius: 40,
+                    fallbackIcon: Symbols.apps,
+                  ),
+                ),
+              ],
+            ),
+          ).padding(bottom: 32),
+          ListTile(title: Text('name'.tr()), subtitle: Text(app.name)),
+          ListTile(title: Text('slug'.tr()), subtitle: Text(app.slug)),
+          if (app.description?.isNotEmpty ?? false)
+            ListTile(
+              title: Text('description'.tr()),
+              subtitle: Text(app.description!),
+            ),
+        ],
+      ).padding(bottom: 24),
+    );
+  }
+}
