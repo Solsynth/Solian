@@ -101,7 +101,7 @@ class SliverArticlesList extends ConsumerWidget {
             publisherId: publisherId,
           ).notifier,
       contentBuilder:
-          (data, widgetCount, endItemView) => SliverList.builder(
+          (data, widgetCount, endItemView) => SliverList.separated(
             itemCount: widgetCount,
             itemBuilder: (context, index) {
               if (index == widgetCount - 1) {
@@ -111,6 +111,7 @@ class SliverArticlesList extends ConsumerWidget {
               final article = data.items[index];
               return WebArticleCard(article: article, showDetails: true);
             },
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
           ),
     );
   }
@@ -155,7 +156,7 @@ class ArticlesScreen extends ConsumerWidget {
                       slivers: [
                         SliverPadding(
                           padding: const EdgeInsets.only(
-                            top: 8,
+                            top: 12,
                             left: 8,
                             right: 8,
                           ),
