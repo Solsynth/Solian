@@ -7,7 +7,7 @@ part of 'feed_marketplace.dart';
 // **************************************************************************
 
 String _$marketplaceWebFeedsNotifierHash() =>
-    r'dbf885d95570ca9c2259a58998975db813b18cbb';
+    r'774b2985f2f7d61fe958f534f84e39f814327c4e';
 
 /// Copied from Dart SDK
 class _SystemHash {

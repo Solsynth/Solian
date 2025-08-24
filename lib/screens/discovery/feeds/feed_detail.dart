@@ -1,27 +1,75 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/web_article_card.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'feed_detail.g.dart';
 
+@riverpod
+Future<SnWebFeed> marketplaceWebFeed(Ref ref, String feedId) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get('/sphere/feeds/$feedId');
+  return SnWebFeed.fromJson(resp.data);
+}
+
 /// Provider for web feed articles content
 @riverpod
-Future<List<SnWebArticle>> marketplaceWebFeedContent(
-  Ref ref, {
-  required String feedId,
-}) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/sphere/feeds/$feedId/articles');
-  return (resp.data as List).map((e) => SnWebArticle.fromJson(e)).toList();
+class MarketplaceWebFeedContentNotifier
+    extends _$MarketplaceWebFeedContentNotifier
+    with CursorPagingNotifierMixin<SnWebArticle> {
+  static const int _pageSize = 20;
+
+  @override
+  Future<CursorPagingData<SnWebArticle>> build(String feedId) async {
+    _feedId = feedId;
+    return fetch(cursor: null);
+  }
+
+  late final String _feedId;
+  ValueNotifier<int> totalCount = ValueNotifier(0);
+
+  @override
+  Future<CursorPagingData<SnWebArticle>> fetch({
+    required String? cursor,
+  }) async {
+    final client = ref.read(apiClientProvider);
+    final offset = cursor == null ? 0 : int.parse(cursor);
+
+    final queryParams = {'offset': offset, 'take': _pageSize};
+
+    final response = await client.get(
+      '/sphere/feeds/$_feedId/articles',
+      queryParameters: queryParams,
+    );
+    final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount.value = total;
+    final List<dynamic> data = response.data;
+    final articles = data.map((json) => SnWebArticle.fromJson(json)).toList();
+
+    final hasMore = offset + articles.length < total;
+    final nextCursor = hasMore ? (offset + articles.length).toString() : null;
+
+    return CursorPagingData(
+      items: articles,
+      hasMore: hasMore,
+      nextCursor: nextCursor,
+    );
+  }
+
+  void dispose() {
+    totalCount.dispose();
+  }
 }
 
 /// Provider for web feed subscription status
@@ -49,11 +97,7 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // TODO: Need to create a web feed provider similar to stickerPackProvider
-    // For now, we'll fetch the feed directly
-    final feedContent = ref.watch(
-      marketplaceWebFeedContentProvider(feedId: id),
-    );
+    final feed = ref.watch(marketplaceWebFeedProvider(id));
     final subscribed = ref.watch(
       marketplaceWebFeedSubscriptionProvider(feedId: id),
     );
@@ -65,7 +109,7 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
       HapticFeedback.selectionClick();
       ref.invalidate(marketplaceWebFeedSubscriptionProvider(feedId: id));
       if (!context.mounted) return;
-      showSnackBar('feedSubscribed'.tr());
+      showSnackBar('webFeedSubscribed'.tr());
     }
 
     // Unsubscribe from web feed
@@ -75,86 +119,94 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
       HapticFeedback.selectionClick();
       ref.invalidate(marketplaceWebFeedSubscriptionProvider(feedId: id));
       if (!context.mounted) return;
-      showSnackBar('feedUnsubscribed'.tr());
+      showSnackBar('webFeedUnsubscribed'.tr());
     }
 
-    // TODO: Replace with actual feed data provider once created
-    final dummyFeed = SnWebFeed(
-      id: id,
-      url: 'https://example.com',
-      title: 'Loading...',
-      publisherId: 'publisher-id',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+    final feedNotifier = ref.watch(
+      marketplaceWebFeedContentNotifierProvider(id).notifier,
     );
 
+    useEffect(() {
+      return feedNotifier.dispose;
+    }, []);
+
     return AppScaffold(
-      appBar: AppBar(title: Text(dummyFeed.title)),
+      appBar: AppBar(title: Text(feed.value?.title ?? 'loading'.tr())),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Feed meta
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(dummyFeed.description ?? ''),
-              Row(
-                spacing: 4,
-                children: [
-                  const Icon(Symbols.rss_feed, size: 16),
-                  Text('${feedContent.value?.length ?? 0} articles'),
-                ],
-              ).opacity(0.85),
-              Row(
-                spacing: 4,
-                children: [
-                  const Icon(Symbols.link, size: 16),
-                  SelectableText(dummyFeed.url),
-                ],
-              ).opacity(0.85),
-            ],
-          ).padding(horizontal: 24, vertical: 24),
+          feed
+              .when(
+                data:
+                    (data) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(data.description ?? 'descriptionNone'.tr()),
+                        Row(
+                          spacing: 4,
+                          children: [
+                            const Icon(Symbols.rss_feed, size: 16),
+                            ListenableBuilder(
+                              listenable: feedNotifier.totalCount,
+                              builder:
+                                  (context, _) => Text(
+                                    'webFeedArticleCount'.plural(
+                                      feedNotifier.totalCount.value,
+                                    ),
+                                  ),
+                            ),
+                          ],
+                        ).opacity(0.85),
+                        Row(
+                          spacing: 4,
+                          children: [
+                            const Icon(Symbols.link, size: 16),
+                            SelectableText(data.url),
+                          ],
+                        ).opacity(0.85),
+                      ],
+                    ),
+                error: (err, _) => Text(err.toString()),
+                loading: () => CircularProgressIndicator().center(),
+              )
+              .padding(horizontal: 24, vertical: 24),
           const Divider(height: 1),
           // Articles list
           Expanded(
-            child: feedContent.when(
-              data:
-                  (articles) => RefreshIndicator(
-                    onRefresh:
-                        () => ref.refresh(
-                          marketplaceWebFeedContentProvider(feedId: id).future,
-                        ),
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 20,
-                      ),
-                      itemCount: articles.length,
-                      itemBuilder: (context, index) {
-                        final article = articles[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text(article.title),
-                            subtitle: Text(article.author ?? ''),
-                            trailing: const Icon(Symbols.open_in_new),
-                            onTap: () {
-                              // TODO: Navigate to article detail or open URL
-                            },
-                          ),
-                        );
-                      },
+            child: PagingHelperView(
+              provider: marketplaceWebFeedContentNotifierProvider(id),
+              futureRefreshable:
+                  marketplaceWebFeedContentNotifierProvider(id).future,
+              notifierRefreshable:
+                  marketplaceWebFeedContentNotifierProvider(id).notifier,
+              contentBuilder:
+                  (data, widgetCount, endItemView) => ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 20,
                     ),
+                    itemCount: widgetCount,
+                    itemBuilder: (context, index) {
+                      if (index == widgetCount - 1) {
+                        return endItemView;
+                      }
+
+                      final article = data.items[index];
+                      return WebArticleCard(article: article);
+                    },
+                    separatorBuilder: (context, index) => const Gap(12),
                   ),
-              error:
-                  (err, _) =>
-                      Text(
-                        'Error: $err',
-                      ).textAlignment(TextAlign.center).center(),
-              loading: () => const CircularProgressIndicator().center(),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          Container(
+            padding: EdgeInsets.only(
+              bottom: 16 + MediaQuery.of(context).padding.bottom,
+              left: 24,
+              right: 24,
+              top: 16,
+            ),
+            color: Theme.of(context).colorScheme.surfaceContainer,
             child: subscribed.when(
               data:
                   (isSubscribed) => FilledButton.icon(
@@ -181,7 +233,6 @@ class MarketplaceWebFeedDetailScreen extends HookConsumerWidget {
                   ),
             ),
           ),
-          Gap(MediaQuery.of(context).padding.bottom),
         ],
       ),
     );
