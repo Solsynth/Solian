@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:island/screens/chat/chat.dart';
 import 'package:flutter/material.dart';
 import 'package:island/models/chat.dart';
@@ -520,9 +521,11 @@ class _RealmActionMenu extends HookConsumerWidget {
 class RealmMemberListNotifier extends _$RealmMemberListNotifier
     with CursorPagingNotifierMixin<SnRealmMember> {
   static const int _pageSize = 20;
+  ValueNotifier<int> totalCount = ValueNotifier(0);
 
   @override
   Future<CursorPagingData<SnRealmMember>> build(String realmSlug) async {
+    totalCount.value = 0;
     return fetch();
   }
 
@@ -541,6 +544,7 @@ class RealmMemberListNotifier extends _$RealmMemberListNotifier
     );
 
     final total = int.parse(response.headers.value('X-Total') ?? '0');
+    totalCount.value = total;
     final List<dynamic> data = response.data;
     final members = data.map((e) => SnRealmMember.fromJson(e)).toList();
 
@@ -553,52 +557,9 @@ class RealmMemberListNotifier extends _$RealmMemberListNotifier
       nextCursor: nextCursor,
     );
   }
-}
 
-// Keep the old provider for backward compatibility
-final realmMemberStateProvider =
-    StateNotifierProvider.family<RealmMemberNotifier, RealmMemberState, String>(
-      (ref, realmSlug) {
-        final apiClient = ref.watch(apiClientProvider);
-        return RealmMemberNotifier(apiClient, realmSlug);
-      },
-    );
-
-class RealmMemberNotifier extends StateNotifier<RealmMemberState> {
-  final String realmSlug;
-  final Dio _apiClient;
-
-  RealmMemberNotifier(this._apiClient, this.realmSlug)
-    : super(const RealmMemberState(members: [], isLoading: false, total: 0));
-
-  Future<void> loadMore({int offset = 0, int take = 20}) async {
-    if (state.isLoading) return;
-    if (state.total > 0 && state.members.length >= state.total) return;
-
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      final response = await _apiClient.get(
-        '/sphere/realms/$realmSlug/members',
-        queryParameters: {'offset': offset, 'take': take, 'withStatus': true},
-      );
-
-      final total = int.parse(response.headers.value('X-Total') ?? '0');
-      final List<dynamic> data = response.data;
-      final members = data.map((e) => SnRealmMember.fromJson(e)).toList();
-
-      state = state.copyWith(
-        members: [...state.members, ...members],
-        total: total,
-        isLoading: false,
-      );
-    } catch (e) {
-      state = state.copyWith(error: e.toString(), isLoading: false);
-    }
-  }
-
-  void reset() {
-    state = const RealmMemberState(members: [], isLoading: false, total: 0);
+  void dispose() {
+    totalCount.dispose();
   }
 }
 
@@ -610,18 +571,10 @@ class _RealmMemberListSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final realmIdentity = ref.watch(realmIdentityProvider(realmSlug));
     final memberListProvider = realmMemberListNotifierProvider(realmSlug);
-
-    // For backward compatibility and to show total count in the header
-    final memberState = ref.watch(realmMemberStateProvider(realmSlug));
-    final memberNotifier = ref.read(
-      realmMemberStateProvider(realmSlug).notifier,
-    );
+    final memberListNotifier = ref.watch(memberListProvider.notifier);
 
     useEffect(() {
-      Future(() {
-        memberNotifier.loadMore();
-      });
-      return null;
+      return memberListNotifier.dispose;
     }, []);
 
     Future<void> invitePerson() async {
@@ -638,9 +591,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
           '/sphere/realms/invites/$realmSlug',
           data: {'related_user_id': result.id, 'role': 0},
         );
-        // Refresh both providers
-        memberNotifier.reset();
-        await memberNotifier.loadMore();
+        // Refresh the provider
         ref.invalidate(memberListProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -652,12 +603,17 @@ class _RealmMemberListSheet extends HookConsumerWidget {
         padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
         child: Row(
           children: [
-            Text(
-              'members'.plural(memberState.total),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.5,
-              ),
+            ListenableBuilder(
+              listenable: memberListNotifier.totalCount,
+              builder:
+                  (context, _) => Text(
+                    'members'.plural(memberListNotifier.totalCount.value),
+                    key: ValueKey(memberListNotifier),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
             ),
             const Spacer(),
             IconButton(
@@ -668,9 +624,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
             IconButton(
               icon: const Icon(Symbols.refresh),
               onPressed: () {
-                // Refresh both providers
-                memberNotifier.reset();
-                memberNotifier.loadMore();
+                // Refresh the provider
                 ref.invalidate(memberListProvider);
               },
             ),
@@ -744,9 +698,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                                   ),
                             ).then((value) {
                               if (value != null) {
-                                // Refresh both providers
-                                memberNotifier.reset();
-                                memberNotifier.loadMore();
+                                // Refresh the provider
                                 ref.invalidate(memberListProvider);
                               }
                             });
@@ -766,9 +718,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                                 await apiClient.delete(
                                   '/sphere/realms/$realmSlug/members/${member.accountId}',
                                 );
-                                // Refresh both providers
-                                memberNotifier.reset();
-                                memberNotifier.loadMore();
+                                // Refresh the provider
                                 ref.invalidate(memberListProvider);
                               } catch (err) {
                                 showErrorAlert(err);
@@ -797,34 +747,6 @@ class _RealmMemberListSheet extends HookConsumerWidget {
           buildMemberListContent(),
         ],
       ),
-    );
-  }
-}
-
-class RealmMemberState {
-  final List<SnRealmMember> members;
-  final bool isLoading;
-  final int total;
-  final String? error;
-
-  const RealmMemberState({
-    required this.members,
-    required this.isLoading,
-    required this.total,
-    this.error,
-  });
-
-  RealmMemberState copyWith({
-    List<SnRealmMember>? members,
-    bool? isLoading,
-    int? total,
-    String? error,
-  }) {
-    return RealmMemberState(
-      members: members ?? this.members,
-      isLoading: isLoading ?? this.isLoading,
-      total: total ?? this.total,
-      error: error ?? this.error,
     );
   }
 }

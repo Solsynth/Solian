@@ -6,8 +6,8 @@ part of 'feed_detail.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$marketplaceWebFeedContentHash() =>
-    r'4e65350bff4055302e15ec14266cdebb1cd89bbe';
+String _$marketplaceWebFeedHash() =>
+    r'8383f94f1bc272b903c341b8d95000313b69d14c';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -30,34 +30,25 @@ class _SystemHash {
   }
 }
 
-/// Provider for web feed articles content
-///
-/// Copied from [marketplaceWebFeedContent].
-@ProviderFor(marketplaceWebFeedContent)
-const marketplaceWebFeedContentProvider = MarketplaceWebFeedContentFamily();
+/// See also [marketplaceWebFeed].
+@ProviderFor(marketplaceWebFeed)
+const marketplaceWebFeedProvider = MarketplaceWebFeedFamily();
 
-/// Provider for web feed articles content
-///
-/// Copied from [marketplaceWebFeedContent].
-class MarketplaceWebFeedContentFamily
-    extends Family<AsyncValue<List<SnWebArticle>>> {
-  /// Provider for web feed articles content
-  ///
-  /// Copied from [marketplaceWebFeedContent].
-  const MarketplaceWebFeedContentFamily();
+/// See also [marketplaceWebFeed].
+class MarketplaceWebFeedFamily extends Family<AsyncValue<SnWebFeed>> {
+  /// See also [marketplaceWebFeed].
+  const MarketplaceWebFeedFamily();
 
-  /// Provider for web feed articles content
-  ///
-  /// Copied from [marketplaceWebFeedContent].
-  MarketplaceWebFeedContentProvider call({required String feedId}) {
-    return MarketplaceWebFeedContentProvider(feedId: feedId);
+  /// See also [marketplaceWebFeed].
+  MarketplaceWebFeedProvider call(String feedId) {
+    return MarketplaceWebFeedProvider(feedId);
   }
 
   @override
-  MarketplaceWebFeedContentProvider getProviderOverride(
-    covariant MarketplaceWebFeedContentProvider provider,
+  MarketplaceWebFeedProvider getProviderOverride(
+    covariant MarketplaceWebFeedProvider provider,
   ) {
-    return call(feedId: provider.feedId);
+    return call(provider.feedId);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -72,36 +63,28 @@ class MarketplaceWebFeedContentFamily
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'marketplaceWebFeedContentProvider';
+  String? get name => r'marketplaceWebFeedProvider';
 }
 
-/// Provider for web feed articles content
-///
-/// Copied from [marketplaceWebFeedContent].
-class MarketplaceWebFeedContentProvider
-    extends AutoDisposeFutureProvider<List<SnWebArticle>> {
-  /// Provider for web feed articles content
-  ///
-  /// Copied from [marketplaceWebFeedContent].
-  MarketplaceWebFeedContentProvider({required String feedId})
+/// See also [marketplaceWebFeed].
+class MarketplaceWebFeedProvider extends AutoDisposeFutureProvider<SnWebFeed> {
+  /// See also [marketplaceWebFeed].
+  MarketplaceWebFeedProvider(String feedId)
     : this._internal(
-        (ref) => marketplaceWebFeedContent(
-          ref as MarketplaceWebFeedContentRef,
-          feedId: feedId,
-        ),
-        from: marketplaceWebFeedContentProvider,
-        name: r'marketplaceWebFeedContentProvider',
+        (ref) => marketplaceWebFeed(ref as MarketplaceWebFeedRef, feedId),
+        from: marketplaceWebFeedProvider,
+        name: r'marketplaceWebFeedProvider',
         debugGetCreateSourceHash:
             const bool.fromEnvironment('dart.vm.product')
                 ? null
-                : _$marketplaceWebFeedContentHash,
-        dependencies: MarketplaceWebFeedContentFamily._dependencies,
+                : _$marketplaceWebFeedHash,
+        dependencies: MarketplaceWebFeedFamily._dependencies,
         allTransitiveDependencies:
-            MarketplaceWebFeedContentFamily._allTransitiveDependencies,
+            MarketplaceWebFeedFamily._allTransitiveDependencies,
         feedId: feedId,
       );
 
-  MarketplaceWebFeedContentProvider._internal(
+  MarketplaceWebFeedProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -115,13 +98,12 @@ class MarketplaceWebFeedContentProvider
 
   @override
   Override overrideWith(
-    FutureOr<List<SnWebArticle>> Function(MarketplaceWebFeedContentRef provider)
-    create,
+    FutureOr<SnWebFeed> Function(MarketplaceWebFeedRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
-      override: MarketplaceWebFeedContentProvider._internal(
-        (ref) => create(ref as MarketplaceWebFeedContentRef),
+      override: MarketplaceWebFeedProvider._internal(
+        (ref) => create(ref as MarketplaceWebFeedRef),
         from: from,
         name: null,
         dependencies: null,
@@ -133,13 +115,13 @@ class MarketplaceWebFeedContentProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<SnWebArticle>> createElement() {
-    return _MarketplaceWebFeedContentProviderElement(this);
+  AutoDisposeFutureProviderElement<SnWebFeed> createElement() {
+    return _MarketplaceWebFeedProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is MarketplaceWebFeedContentProvider && other.feedId == feedId;
+    return other is MarketplaceWebFeedProvider && other.feedId == feedId;
   }
 
   @override
@@ -153,19 +135,18 @@ class MarketplaceWebFeedContentProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin MarketplaceWebFeedContentRef
-    on AutoDisposeFutureProviderRef<List<SnWebArticle>> {
+mixin MarketplaceWebFeedRef on AutoDisposeFutureProviderRef<SnWebFeed> {
   /// The parameter `feedId` of this provider.
   String get feedId;
 }
 
-class _MarketplaceWebFeedContentProviderElement
-    extends AutoDisposeFutureProviderElement<List<SnWebArticle>>
-    with MarketplaceWebFeedContentRef {
-  _MarketplaceWebFeedContentProviderElement(super.provider);
+class _MarketplaceWebFeedProviderElement
+    extends AutoDisposeFutureProviderElement<SnWebFeed>
+    with MarketplaceWebFeedRef {
+  _MarketplaceWebFeedProviderElement(super.provider);
 
   @override
-  String get feedId => (origin as MarketplaceWebFeedContentProvider).feedId;
+  String get feedId => (origin as MarketplaceWebFeedProvider).feedId;
 }
 
 String _$marketplaceWebFeedSubscriptionHash() =>
@@ -307,6 +288,170 @@ class _MarketplaceWebFeedSubscriptionProviderElement
   @override
   String get feedId =>
       (origin as MarketplaceWebFeedSubscriptionProvider).feedId;
+}
+
+String _$marketplaceWebFeedContentNotifierHash() =>
+    r'eff0eee14a244a2597756a61ad5957ae397c9bf5';
+
+abstract class _$MarketplaceWebFeedContentNotifier
+    extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnWebArticle>> {
+  late final String feedId;
+
+  FutureOr<CursorPagingData<SnWebArticle>> build(String feedId);
+}
+
+/// Provider for web feed articles content
+///
+/// Copied from [MarketplaceWebFeedContentNotifier].
+@ProviderFor(MarketplaceWebFeedContentNotifier)
+const marketplaceWebFeedContentNotifierProvider =
+    MarketplaceWebFeedContentNotifierFamily();
+
+/// Provider for web feed articles content
+///
+/// Copied from [MarketplaceWebFeedContentNotifier].
+class MarketplaceWebFeedContentNotifierFamily
+    extends Family<AsyncValue<CursorPagingData<SnWebArticle>>> {
+  /// Provider for web feed articles content
+  ///
+  /// Copied from [MarketplaceWebFeedContentNotifier].
+  const MarketplaceWebFeedContentNotifierFamily();
+
+  /// Provider for web feed articles content
+  ///
+  /// Copied from [MarketplaceWebFeedContentNotifier].
+  MarketplaceWebFeedContentNotifierProvider call(String feedId) {
+    return MarketplaceWebFeedContentNotifierProvider(feedId);
+  }
+
+  @override
+  MarketplaceWebFeedContentNotifierProvider getProviderOverride(
+    covariant MarketplaceWebFeedContentNotifierProvider provider,
+  ) {
+    return call(provider.feedId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'marketplaceWebFeedContentNotifierProvider';
+}
+
+/// Provider for web feed articles content
+///
+/// Copied from [MarketplaceWebFeedContentNotifier].
+class MarketplaceWebFeedContentNotifierProvider
+    extends
+        AutoDisposeAsyncNotifierProviderImpl<
+          MarketplaceWebFeedContentNotifier,
+          CursorPagingData<SnWebArticle>
+        > {
+  /// Provider for web feed articles content
+  ///
+  /// Copied from [MarketplaceWebFeedContentNotifier].
+  MarketplaceWebFeedContentNotifierProvider(String feedId)
+    : this._internal(
+        () => MarketplaceWebFeedContentNotifier()..feedId = feedId,
+        from: marketplaceWebFeedContentNotifierProvider,
+        name: r'marketplaceWebFeedContentNotifierProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$marketplaceWebFeedContentNotifierHash,
+        dependencies: MarketplaceWebFeedContentNotifierFamily._dependencies,
+        allTransitiveDependencies:
+            MarketplaceWebFeedContentNotifierFamily._allTransitiveDependencies,
+        feedId: feedId,
+      );
+
+  MarketplaceWebFeedContentNotifierProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.feedId,
+  }) : super.internal();
+
+  final String feedId;
+
+  @override
+  FutureOr<CursorPagingData<SnWebArticle>> runNotifierBuild(
+    covariant MarketplaceWebFeedContentNotifier notifier,
+  ) {
+    return notifier.build(feedId);
+  }
+
+  @override
+  Override overrideWith(MarketplaceWebFeedContentNotifier Function() create) {
+    return ProviderOverride(
+      origin: this,
+      override: MarketplaceWebFeedContentNotifierProvider._internal(
+        () => create()..feedId = feedId,
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        feedId: feedId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeAsyncNotifierProviderElement<
+    MarketplaceWebFeedContentNotifier,
+    CursorPagingData<SnWebArticle>
+  >
+  createElement() {
+    return _MarketplaceWebFeedContentNotifierProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MarketplaceWebFeedContentNotifierProvider &&
+        other.feedId == feedId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, feedId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin MarketplaceWebFeedContentNotifierRef
+    on AutoDisposeAsyncNotifierProviderRef<CursorPagingData<SnWebArticle>> {
+  /// The parameter `feedId` of this provider.
+  String get feedId;
+}
+
+class _MarketplaceWebFeedContentNotifierProviderElement
+    extends
+        AutoDisposeAsyncNotifierProviderElement<
+          MarketplaceWebFeedContentNotifier,
+          CursorPagingData<SnWebArticle>
+        >
+    with MarketplaceWebFeedContentNotifierRef {
+  _MarketplaceWebFeedContentNotifierProviderElement(super.provider);
+
+  @override
+  String get feedId =>
+      (origin as MarketplaceWebFeedContentNotifierProvider).feedId;
 }
 
 // ignore_for_file: type=lint
