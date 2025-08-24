@@ -819,5 +819,9 @@
     "deleteSecret": "刪除密鑰",
     "deleteSecretHint": "您確定要刪除此密鑰嗎？此操作無法復原。",
     "generateSecret": "產生新密鑰",
-    "created_at": "建立於 {}"
+    "createdAt": "建立於 {}",
+    "newSecretGenerated": "已產生新密鑰",
+    "copySecretHint": "請複製此密鑰並將其存放在安全的地方。您將無法再次看到它。",
+    "expiresIn": "過期時間（秒）",
+    "isOidc": "OIDC 相容"
 }
