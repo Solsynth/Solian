@@ -922,5 +922,9 @@
   "deleteSecret": "Delete Secret",
   "deleteSecretHint": "Are you sure you want to delete this secret? This action cannot be undone.",
   "generateSecret": "Generate New Secret",
-  "created_at": "Created at {}"
+  "createdAt": "Created at {}",
+  "newSecretGenerated": "New Secret Generated",
+  "copySecretHint": "Please copy this secret and store it somewhere safe. You will not be able to see it again.",
+  "expiresIn": "Expires In (seconds)",
+  "isOidc": "OIDC Compliant"
 }

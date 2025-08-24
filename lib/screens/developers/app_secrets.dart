@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/custom_app_secret.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -46,24 +48,127 @@ class AppSecretsScreen extends HookConsumerWidget {
       customAppSecretsProvider(publisherName, projectId, appId),
     );
 
-    Future<void> generateSecret() async {
-      final client = ref.read(apiClientProvider);
-      try {
-        showLoadingModal(context);
-        await client
-            .post(
-              '/develop/developers/$publisherName/projects/$projectId/apps/$appId/secrets',
-            )
-            .then((_) {
-              ref.invalidate(
-                customAppSecretsProvider(publisherName, projectId, appId),
+    void showNewSecretSheet(String newSecret) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder:
+            (context) => SheetScaffold(
+              titleText: 'newSecretGenerated'.tr(),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('copySecretHint'.tr()),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SelectableText(newSecret),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: newSecret));
+                      },
+                      icon: const Icon(Symbols.copy_all),
+                      label: Text('copy'.tr()),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+      ).whenComplete(() {
+        ref.invalidate(
+          customAppSecretsProvider(publisherName, projectId, appId),
+        );
+      });
+    }
+
+    void createSecret() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return HookBuilder(
+            builder: (context) {
+              final descriptionController = useTextEditingController();
+              final expiresInController = useTextEditingController();
+              final isOidc = useState(false);
+
+              return SheetScaffold(
+                titleText: 'generateSecret'.tr(),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: descriptionController,
+                        decoration: InputDecoration(
+                          labelText: 'description'.tr(),
+                        ),
+                        autofocus: true,
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: expiresInController,
+                        decoration: InputDecoration(
+                          labelText: 'expiresIn'.tr(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 20),
+                      SwitchListTile(
+                        title: Text('isOidc'.tr()),
+                        value: isOidc.value,
+                        onChanged: (value) => isOidc.value = value,
+                      ),
+                      const SizedBox(height: 20),
+                      FilledButton.icon(
+                        onPressed: () async {
+                          final description = descriptionController.text;
+                          final expiresIn = int.tryParse(
+                            expiresInController.text,
+                          );
+                          Navigator.pop(context); // Close the sheet
+                          try {
+                            final client = ref.read(apiClientProvider);
+                            final resp = await client.post(
+                              '/develop/developers/$publisherName/projects/$projectId/apps/$appId/secrets',
+                              data: {
+                                'description': description,
+                                'expires_in': expiresIn,
+                                'is_oidc': isOidc.value,
+                              },
+                            );
+                            final newSecret = CustomAppSecret.fromJson(
+                              resp.data,
+                            );
+                            if (newSecret.secret != null) {
+                              showNewSecretSheet(newSecret.secret!);
+                            }
+                          } catch (e) {
+                            showErrorAlert(e.toString());
+                          }
+                        },
+                        icon: const Icon(Symbols.add),
+                        label: Text('create'.tr()),
+                      ),
+                    ],
+                  ),
+                ),
               );
-            });
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        if (context.mounted) hideLoadingModal(context);
-      }
+            },
+          );
+        },
+      );
     }
 
     return secrets.when(
@@ -81,9 +186,8 @@ class AppSecretsScreen extends HookConsumerWidget {
             children: [
               ListTile(
                 leading: const Icon(Symbols.add),
-                trailing: const Icon(Symbols.chevron_right),
-                title: Text('appSecretsGenerate').tr(),
-                onTap: generateSecret,
+                title: Text('generateSecret'.tr()),
+                onTap: createSecret,
               ),
               Expanded(
                 child: ListView.builder(
@@ -91,9 +195,9 @@ class AppSecretsScreen extends HookConsumerWidget {
                   itemBuilder: (context, index) {
                     final secret = data[index];
                     return ListTile(
-                      title: Text(secret.id),
+                      title: Text(secret.description ?? secret.id),
                       subtitle: Text(
-                        'created_at'.tr(
+                        'createdAt'.tr(
                           args: [secret.createdAt.toIso8601String()],
                         ),
                       ),
@@ -104,7 +208,7 @@ class AppSecretsScreen extends HookConsumerWidget {
                             icon: const Icon(Symbols.copy_all),
                             onPressed: () {
                               Clipboard.setData(
-                                ClipboardData(text: secret.secret),
+                                ClipboardData(text: secret.secret!),
                               );
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('secretCopied'.tr())),
@@ -120,19 +224,16 @@ class AppSecretsScreen extends HookConsumerWidget {
                               ).then((confirm) {
                                 if (confirm) {
                                   final client = ref.read(apiClientProvider);
-                                  client
-                                      .delete(
-                                        '/develop/developers/$publisherName/projects/$projectId/apps/$appId/secrets/${secret.id}',
-                                      )
-                                      .then((_) {
-                                        ref.invalidate(
-                                          customAppSecretsProvider(
-                                            publisherName,
-                                            projectId,
-                                            appId,
-                                          ),
-                                        );
-                                      });
+                                  client.delete(
+                                    '/develop/developers/$publisherName/projects/$projectId/apps/$appId/secrets/${secret.id}',
+                                  );
+                                  ref.invalidate(
+                                    customAppSecretsProvider(
+                                      publisherName,
+                                      projectId,
+                                      appId,
+                                    ),
+                                  );
                                 }
                               });
                             },

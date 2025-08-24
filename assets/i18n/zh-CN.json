@@ -851,5 +851,9 @@
   "deleteSecret": "删除密钥",
   "deleteSecretHint": "您确定要删除此密钥吗？此操作无法撤销。",
   "generateSecret": "生成新密钥",
-  "created_at": "创建于 {}"
+  "createdAt": "创建于 {}",
+  "newSecretGenerated": "已生成新密钥",
+  "copySecretHint": "请复制此密钥并将其存放在安全的地方。您将无法再次看到它。",
+  "expiresIn": "过期时间（秒）",
+  "isOidc": "OIDC 兼容"
 }
