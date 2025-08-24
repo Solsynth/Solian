@@ -15,6 +15,20 @@ import 'package:styled_widget/styled_widget.dart';
 part 'apps.g.dart';
 
 @riverpod
+Future<CustomApp> customApp(
+  Ref ref,
+  String publisherName,
+  String projectId,
+  String appId,
+) async {
+  final client = ref.watch(apiClientProvider);
+  final resp = await client.get(
+    '/develop/developers/$publisherName/projects/$projectId/apps/$appId',
+  );
+  return CustomApp.fromJson(resp.data);
+}
+
+@riverpod
 Future<List<CustomApp>> customApps(
   Ref ref,
   String publisherName,
@@ -81,98 +95,114 @@ class CustomAppsScreen extends HookConsumerWidget {
               final app = data[index];
               return Card(
                 margin: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 150,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          if (app.background != null)
-                            CloudFileWidget(
-                              item: app.background!,
-                              fit: BoxFit.cover,
-                            ).clipRRect(topLeft: 8, topRight: 8),
-                          if (app.picture != null)
-                            Positioned(
-                              left: 16,
-                              bottom: 16,
-                              child: ProfilePictureWidget(
-                                fileId: app.picture!.id,
-                                radius: 40,
-                                fallbackIcon: Symbols.apps,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    ListTile(
-                      title: Text(app.name),
-                      subtitle: Text(
-                        app.slug,
-                        style: GoogleFonts.robotoMono(fontSize: 12),
-                      ),
-                      contentPadding: EdgeInsets.only(left: 20, right: 12),
-                      trailing: PopupMenuButton(
-                        itemBuilder:
-                            (context) => [
-                              PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    const Icon(Symbols.edit),
-                                    const SizedBox(width: 12),
-                                    Text('edit').tr(),
-                                  ],
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    context.pushNamed(
+                      'developerAppDetail',
+                      pathParameters: {
+                        'name': publisherName,
+                        'projectId': projectId,
+                        'appId': app.id,
+                      },
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 150,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (app.background != null)
+                              CloudFileWidget(
+                                item: app.background!,
+                                fit: BoxFit.cover,
+                              ).clipRRect(topLeft: 8, topRight: 8),
+                            if (app.picture != null)
+                              Positioned(
+                                left: 16,
+                                bottom: 16,
+                                child: ProfilePictureWidget(
+                                  fileId: app.picture!.id,
+                                  radius: 40,
+                                  fallbackIcon: Symbols.apps,
                                 ),
                               ),
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Symbols.delete,
-                                      color: Colors.red,
+                          ],
+                        ),
+                      ),
+                      ListTile(
+                        title: Text(app.name),
+                        subtitle: Text(
+                          app.slug,
+                          style: GoogleFonts.robotoMono(fontSize: 12),
+                        ),
+                        contentPadding: EdgeInsets.only(left: 20, right: 12),
+                        trailing: PopupMenuButton(
+                          itemBuilder:
+                              (context) => [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      const Icon(Symbols.edit),
+                                      const SizedBox(width: 12),
+                                      Text('edit').tr(),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Symbols.delete,
+                                        color: Colors.red,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'delete',
+                                        style: TextStyle(color: Colors.red),
+                                      ).tr(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              context.pushNamed(
+                                'developerAppEdit',
+                                pathParameters: {
+                                  'name': publisherName,
+                                  'projectId': projectId,
+                                  'id': app.id,
+                                },
+                              );
+                            } else if (value == 'delete') {
+                              showConfirmAlert(
+                                'deleteCustomAppHint'.tr(),
+                                'deleteCustomApp'.tr(),
+                              ).then((confirm) {
+                                if (confirm) {
+                                  final client = ref.read(apiClientProvider);
+                                  client.delete(
+                                    '/develop/developers/$publisherName/projects/$projectId/apps/${app.id}',
+                                  );
+                                  ref.invalidate(
+                                    customAppsProvider(
+                                      publisherName,
+                                      projectId,
                                     ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'delete',
-                                      style: TextStyle(color: Colors.red),
-                                    ).tr(),
-                                  ],
-                                ),
-                              ),
-                            ],
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            context.pushNamed(
-                              'developerAppEdit',
-                              pathParameters: {
-                                'name': publisherName,
-                                'projectId': projectId,
-                                'id': app.id,
-                              },
-                            );
-                          } else if (value == 'delete') {
-                            showConfirmAlert(
-                              'deleteCustomAppHint'.tr(),
-                              'deleteCustomApp'.tr(),
-                            ).then((confirm) {
-                              if (confirm) {
-                                final client = ref.read(apiClientProvider);
-                                client.delete(
-                                  '/develop/developers/$publisherName/projects/$projectId/apps/${app.id}',
-                                );
-                                ref.invalidate(
-                                  customAppsProvider(publisherName, projectId),
-                                );
-                              }
-                            });
-                          }
-                        },
+                                  );
+                                }
+                              });
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },

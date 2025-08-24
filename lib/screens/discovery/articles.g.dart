@@ -6,7 +6,7 @@ part of 'articles.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$subscribedFeedsHash() => r'cd2f5d7d4ea49ad00dc731f8fc2ed65450a3f0e4';
+String _$subscribedFeedsHash() => r'5c0c8c30c5f543f6ea1d39786a6778f77ba5b3df';
 
 /// See also [subscribedFeeds].
 @ProviderFor(subscribedFeeds)

@@ -914,5 +914,13 @@
     "other": "{} articles"
   },
   "webFeedSubscribed": "The feed has been subscribed",
-  "webFeedUnsubscribed": "The feed has been unsubscribed"
+  "webFeedUnsubscribed": "The feed has been unsubscribed",
+  "appDetails": "App Details",
+  "secrets": "Secrets",
+  "appNotFound": "App not found.",
+  "secretCopied": "Secret copied to clipboard.",
+  "deleteSecret": "Delete Secret",
+  "deleteSecretHint": "Are you sure you want to delete this secret? This action cannot be undone.",
+  "generateSecret": "Generate New Secret",
+  "created_at": "Created at {}"
 }

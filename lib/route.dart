@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
 import 'package:island/screens/account/credits.dart';
+import 'package:island/screens/developers/app_detail.dart';
 import 'package:island/screens/developers/bot_detail.dart';
 import 'package:island/screens/developers/edit_app.dart';
 import 'package:island/screens/developers/edit_bot.dart';
@@ -347,6 +348,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                           publisherName: state.pathParameters['name']!,
                           projectId: state.pathParameters['projectId']!,
                           id: state.pathParameters['id']!,
+                        ),
+                  ),
+                  GoRoute(
+                    name: 'developerAppDetail',
+                    path: 'apps/:appId',
+                    builder:
+                        (context, state) => AppDetailScreen(
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                          appId: state.pathParameters['appId']!,
                         ),
                   ),
                   GoRoute(
