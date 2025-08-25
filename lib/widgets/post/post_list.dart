@@ -83,6 +83,7 @@ class SliverPostList extends HookConsumerWidget {
   final bool isOpenable;
   final Function? onRefresh;
   final Function(SnPost)? onUpdate;
+  final double? maxWidth;
 
   const SliverPostList({
     super.key,
@@ -98,6 +99,7 @@ class SliverPostList extends HookConsumerWidget {
     this.isOpenable = true,
     this.onRefresh,
     this.onUpdate,
+    this.maxWidth,
   });
 
   @override
@@ -138,6 +140,15 @@ class SliverPostList extends HookConsumerWidget {
               }
 
               final post = data.items[index];
+
+              if (maxWidth != null) {
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: maxWidth!),
+                    child: _buildPostItem(post),
+                  ),
+                );
+              }
 
               return _buildPostItem(post);
             },

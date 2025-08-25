@@ -266,5 +266,146 @@ class _PostTagProviderElement
   String get slug => (origin as PostTagProvider).slug;
 }
 
+String _$postCategorySubscriptionStatusHash() =>
+    r'407dc7fcaeffc461b591b4ee2418811aa4f0a63f';
+
+/// See also [postCategorySubscriptionStatus].
+@ProviderFor(postCategorySubscriptionStatus)
+const postCategorySubscriptionStatusProvider =
+    PostCategorySubscriptionStatusFamily();
+
+/// See also [postCategorySubscriptionStatus].
+class PostCategorySubscriptionStatusFamily extends Family<AsyncValue<bool>> {
+  /// See also [postCategorySubscriptionStatus].
+  const PostCategorySubscriptionStatusFamily();
+
+  /// See also [postCategorySubscriptionStatus].
+  PostCategorySubscriptionStatusProvider call(String slug, bool isCategory) {
+    return PostCategorySubscriptionStatusProvider(slug, isCategory);
+  }
+
+  @override
+  PostCategorySubscriptionStatusProvider getProviderOverride(
+    covariant PostCategorySubscriptionStatusProvider provider,
+  ) {
+    return call(provider.slug, provider.isCategory);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'postCategorySubscriptionStatusProvider';
+}
+
+/// See also [postCategorySubscriptionStatus].
+class PostCategorySubscriptionStatusProvider
+    extends AutoDisposeFutureProvider<bool> {
+  /// See also [postCategorySubscriptionStatus].
+  PostCategorySubscriptionStatusProvider(String slug, bool isCategory)
+    : this._internal(
+        (ref) => postCategorySubscriptionStatus(
+          ref as PostCategorySubscriptionStatusRef,
+          slug,
+          isCategory,
+        ),
+        from: postCategorySubscriptionStatusProvider,
+        name: r'postCategorySubscriptionStatusProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$postCategorySubscriptionStatusHash,
+        dependencies: PostCategorySubscriptionStatusFamily._dependencies,
+        allTransitiveDependencies:
+            PostCategorySubscriptionStatusFamily._allTransitiveDependencies,
+        slug: slug,
+        isCategory: isCategory,
+      );
+
+  PostCategorySubscriptionStatusProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.slug,
+    required this.isCategory,
+  }) : super.internal();
+
+  final String slug;
+  final bool isCategory;
+
+  @override
+  Override overrideWith(
+    FutureOr<bool> Function(PostCategorySubscriptionStatusRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PostCategorySubscriptionStatusProvider._internal(
+        (ref) => create(ref as PostCategorySubscriptionStatusRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        slug: slug,
+        isCategory: isCategory,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<bool> createElement() {
+    return _PostCategorySubscriptionStatusProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PostCategorySubscriptionStatusProvider &&
+        other.slug == slug &&
+        other.isCategory == isCategory;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, slug.hashCode);
+    hash = _SystemHash.combine(hash, isCategory.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PostCategorySubscriptionStatusRef on AutoDisposeFutureProviderRef<bool> {
+  /// The parameter `slug` of this provider.
+  String get slug;
+
+  /// The parameter `isCategory` of this provider.
+  bool get isCategory;
+}
+
+class _PostCategorySubscriptionStatusProviderElement
+    extends AutoDisposeFutureProviderElement<bool>
+    with PostCategorySubscriptionStatusRef {
+  _PostCategorySubscriptionStatusProviderElement(super.provider);
+
+  @override
+  String get slug => (origin as PostCategorySubscriptionStatusProvider).slug;
+  @override
+  bool get isCategory =>
+      (origin as PostCategorySubscriptionStatusProvider).isCategory;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
