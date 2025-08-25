@@ -68,6 +68,30 @@ class AppDatabase extends _$AppDatabase {
     return (delete(chatMessages)..where((m) => m.id.equals(id))).go();
   }
 
+  Future<List<LocalChatMessage>> searchMessages(
+    String roomId,
+    String query,
+  ) async {
+    var selectStatement = select(chatMessages)
+      ..where((m) => m.roomId.equals(roomId));
+
+    if (query.isNotEmpty) {
+      selectStatement =
+          selectStatement
+            ..where((m) => m.content.like('%${query.toLowerCase()}%'));
+    }
+
+    
+
+    
+
+    final messages =
+        await (selectStatement
+              ..orderBy([(m) => OrderingTerm.desc(m.createdAt)]))
+            .get();
+    return messages.map((msg) => companionToMessage(msg)).toList();
+  }
+
   // Convert between Drift and model objects
   ChatMessagesCompanion messageToCompanion(LocalChatMessage message) {
     return ChatMessagesCompanion(

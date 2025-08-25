@@ -283,6 +283,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   final Map<String, LocalChatMessage> _pendingMessages = {};
   final Map<String, Map<int, double>> _fileUploadProgress = {};
   int? _totalCount;
+  String? _searchQuery;
+  bool? _withLinks;
+  bool? _withAttachments;
 
   late final String _roomId;
   int _currentPage = 0;
@@ -326,7 +329,13 @@ class MessagesNotifier extends _$MessagesNotifier {
       });
     }
 
-    return await loadInitial();
+    loadInitial();
+    return [];
+  }
+
+  List<LocalChatMessage> _sortMessages(List<LocalChatMessage> messages) {
+    messages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return messages;
   }
 
   Future<List<LocalChatMessage>> _getCachedMessages({
@@ -337,13 +346,29 @@ class MessagesNotifier extends _$MessagesNotifier {
       'Getting cached messages from offset $offset, take $take',
       name: 'MessagesNotifier',
     );
-    final dbMessages = await _database.getMessagesForRoom(
-      _roomId,
-      offset: offset,
-      limit: take,
-    );
-    final dbLocalMessages =
-        dbMessages.map(_database.companionToMessage).toList();
+    final List<LocalChatMessage> dbMessages;
+    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
+      dbMessages = await _database.searchMessages(_roomId, _searchQuery ?? '');
+    } else {
+      final chatMessagesFromDb = await _database.getMessagesForRoom(
+        _roomId,
+        offset: offset,
+        limit: take,
+      );
+      dbMessages = chatMessagesFromDb.map(_database.companionToMessage).toList();
+    }
+
+    List<LocalChatMessage> filteredMessages = dbMessages;
+
+    if (_withLinks == true) {
+      filteredMessages = filteredMessages.where((msg) => _hasLink(msg)).toList();
+    }
+
+    if (_withAttachments == true) {
+      filteredMessages = filteredMessages.where((msg) => _hasAttachment(msg)).toList();
+    }
+
+    final dbLocalMessages = filteredMessages;
 
     if (offset == 0) {
       final pendingForRoom =
@@ -352,7 +377,7 @@ class MessagesNotifier extends _$MessagesNotifier {
               .toList();
 
       final allMessages = [...pendingForRoom, ...dbLocalMessages];
-      allMessages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _sortMessages(allMessages); // Use the helper function
 
       final uniqueMessages = <LocalChatMessage>[];
       final seenIds = <String>{};
@@ -427,7 +452,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _isSyncing = true;
 
     developer.log('Starting message sync', name: 'MessagesNotifier');
-    ref.read(isSyncingProvider.notifier).state = true;
+    Future.microtask(() => ref.read(isSyncingProvider.notifier).state = true);
     try {
       final dbMessages = await _database.getMessagesForRoom(
         _room.id,
@@ -488,7 +513,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       showErrorAlert(err);
     } finally {
       developer.log('Finished message sync', name: 'MessagesNotifier');
-      ref.read(isSyncingProvider.notifier).state = false;
+      Future.microtask(() => ref.read(isSyncingProvider.notifier).state = false);
       _isSyncing = false;
     }
   }
@@ -499,7 +524,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     bool synced = false,
   }) async {
     try {
-      if (offset == 0 && !synced) {
+      if (offset == 0 && !synced && (_searchQuery == null || _searchQuery!.isEmpty)) {
         _fetchAndCacheMessages(offset: 0, take: take).catchError((_) {
           return <LocalChatMessage>[];
         });
@@ -514,7 +539,11 @@ class MessagesNotifier extends _$MessagesNotifier {
         return localMessages;
       }
 
-      return await _fetchAndCacheMessages(offset: offset, take: take);
+      if (_searchQuery == null || _searchQuery!.isEmpty) {
+        return await _fetchAndCacheMessages(offset: offset, take: take);
+      } else {
+        return []; // If searching, and no local messages, don't fetch from network
+      }
     } catch (e) {
       final localMessages = await _getCachedMessages(
         offset: offset,
@@ -528,13 +557,15 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-  Future<List<LocalChatMessage>> loadInitial() async {
+  Future<void> loadInitial() async {
     developer.log('Loading initial messages', name: 'MessagesNotifier');
-    syncMessages();
+    if (_searchQuery == null || _searchQuery!.isEmpty) {
+      syncMessages();
+    }
     final messages = await _getCachedMessages(offset: 0, take: 100);
     _currentPage = 0;
     _hasMore = messages.length == _pageSize;
-    return messages;
+    state = AsyncValue.data(messages);
   }
 
   Future<void> loadMore() async {
@@ -553,7 +584,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         _hasMore = false;
       }
 
-      state = AsyncValue.data([...currentMessages, ...newMessages]);
+      state = AsyncValue.data(_sortMessages([...currentMessages, ...newMessages]));
     } catch (err, stackTrace) {
       developer.log(
         'Error loading more messages',
@@ -778,7 +809,7 @@ class MessagesNotifier extends _$MessagesNotifier {
             }
             return m;
           }).toList();
-      state = AsyncValue.data(newMessages);
+      state = AsyncValue.data(_sortMessages(newMessages));
       showErrorAlert(e);
     }
   }
@@ -838,7 +869,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (index >= 0) {
       final newList = [...currentMessages];
       newList[index] = updatedMessage;
-      state = AsyncValue.data(newList);
+      state = AsyncValue.data(_sortMessages(newList));
     }
   }
 
@@ -898,6 +929,20 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  void searchMessages(String query, {bool? withLinks, bool? withAttachments}) {
+    _searchQuery = query.trim();
+    _withLinks = withLinks;
+    _withAttachments = withAttachments;
+    loadInitial();
+  }
+
+  void clearSearch() {
+    _searchQuery = null;
+    _withLinks = null;
+    _withAttachments = null;
+    loadInitial();
+  }
+
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
     developer.log(
       'Fetching message by id $messageId',
@@ -926,6 +971,18 @@ class MessagesNotifier extends _$MessagesNotifier {
       if (e is DioException) return null;
       rethrow;
     }
+  }
+
+  bool _hasLink(LocalChatMessage message) {
+    final content = message.toRemoteMessage().content;
+    if (content == null) return false;
+    final urlRegex = RegExp(r'https?://[^\s/$.?#].[^\s]*');
+    return urlRegex.hasMatch(content);
+  }
+
+  bool _hasAttachment(LocalChatMessage message) {
+    final remoteMessage = message.toRemoteMessage();
+    return remoteMessage.attachments.isNotEmpty;
   }
 }
 
@@ -1424,6 +1481,12 @@ class ChatRoomScreen extends HookConsumerWidget {
               ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              context.pushNamed('searchMessages', pathParameters: {'id': id});
+            },
+          ),
           AudioCallButton(roomId: id),
           IconButton(
             icon: const Icon(Icons.more_vert),
@@ -1433,15 +1496,14 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           const Gap(8),
         ],
-        bottom:
-            isSyncing
-                ? const PreferredSize(
-                  preferredSize: Size.fromHeight(2),
-                  child: LinearProgressIndicator(
-                    borderRadius: BorderRadius.zero,
-                  ),
-                )
-                : null,
+        bottom: isSyncing
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(2),
+                child: LinearProgressIndicator(
+                  borderRadius: BorderRadius.zero,
+                ),
+              )
+            : null,
       ),
       body: Stack(
         children: [

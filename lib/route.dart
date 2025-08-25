@@ -38,6 +38,7 @@ import 'package:island/screens/chat/chat.dart';
 import 'package:island/screens/chat/room.dart';
 import 'package:island/screens/chat/room_detail.dart';
 import 'package:island/screens/chat/call.dart';
+import 'package:island/screens/chat/search_messages_screen.dart';
 import 'package:island/screens/creators/hub.dart';
 import 'package:island/screens/creators/posts/post_manage_list.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
@@ -553,6 +554,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return ChatDetailScreen(id: id);
+                    },
+                  ),
+                  GoRoute(
+                    name: 'searchMessages',
+                    path: '/chat/:id/search',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return SearchMessagesScreen(roomId: id);
                     },
                   ),
                 ],

@@ -359,6 +359,17 @@ class ChatDetailScreen extends HookConsumerWidget {
                                           : const Text('chatBreakNone').tr(),
                                   onTap: () => showChatBreakDialog(),
                                 ),
+                                ListTile(
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  leading: const Icon(Icons.search),
+                                  trailing: const Icon(Symbols.chevron_right),
+                                  title: const Text('Search Messages').tr(),
+                                  onTap: () {
+                                    context.pushNamed('searchMessages', pathParameters: {'id': id});
+                                  },
+                                ),
                               ],
                             ),
                         error: (_, _) => const SizedBox.shrink(),
