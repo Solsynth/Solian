@@ -861,7 +861,7 @@ as String,
 /// @nodoc
 mixin _$SnEventCalendarEntry {
 
- DateTime get date; SnCheckInResult? get checkInResult; List<dynamic> get statuses;
+ DateTime get date; SnCheckInResult? get checkInResult; List<SnAccountStatus> get statuses;
 /// Create a copy of SnEventCalendarEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -894,7 +894,7 @@ abstract mixin class $SnEventCalendarEntryCopyWith<$Res>  {
   factory $SnEventCalendarEntryCopyWith(SnEventCalendarEntry value, $Res Function(SnEventCalendarEntry) _then) = _$SnEventCalendarEntryCopyWithImpl;
 @useResult
 $Res call({
- DateTime date, SnCheckInResult? checkInResult, List<dynamic> statuses
+ DateTime date, SnCheckInResult? checkInResult, List<SnAccountStatus> statuses
 });
 
 
@@ -916,7 +916,7 @@ class _$SnEventCalendarEntryCopyWithImpl<$Res>
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,checkInResult: freezed == checkInResult ? _self.checkInResult : checkInResult // ignore: cast_nullable_to_non_nullable
 as SnCheckInResult?,statuses: null == statuses ? _self.statuses : statuses // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,
+as List<SnAccountStatus>,
   ));
 }
 /// Create a copy of SnEventCalendarEntry
@@ -1010,7 +1010,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  SnCheckInResult? checkInResult,  List<dynamic> statuses)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  SnCheckInResult? checkInResult,  List<SnAccountStatus> statuses)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnEventCalendarEntry() when $default != null:
 return $default(_that.date,_that.checkInResult,_that.statuses);case _:
@@ -1031,7 +1031,7 @@ return $default(_that.date,_that.checkInResult,_that.statuses);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  SnCheckInResult? checkInResult,  List<dynamic> statuses)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  SnCheckInResult? checkInResult,  List<SnAccountStatus> statuses)  $default,) {final _that = this;
 switch (_that) {
 case _SnEventCalendarEntry():
 return $default(_that.date,_that.checkInResult,_that.statuses);}
@@ -1048,7 +1048,7 @@ return $default(_that.date,_that.checkInResult,_that.statuses);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  SnCheckInResult? checkInResult,  List<dynamic> statuses)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  SnCheckInResult? checkInResult,  List<SnAccountStatus> statuses)?  $default,) {final _that = this;
 switch (_that) {
 case _SnEventCalendarEntry() when $default != null:
 return $default(_that.date,_that.checkInResult,_that.statuses);case _:
@@ -1063,13 +1063,13 @@ return $default(_that.date,_that.checkInResult,_that.statuses);case _:
 @JsonSerializable()
 
 class _SnEventCalendarEntry implements SnEventCalendarEntry {
-  const _SnEventCalendarEntry({required this.date, required this.checkInResult, required final  List<dynamic> statuses}): _statuses = statuses;
+  const _SnEventCalendarEntry({required this.date, required this.checkInResult, required final  List<SnAccountStatus> statuses}): _statuses = statuses;
   factory _SnEventCalendarEntry.fromJson(Map<String, dynamic> json) => _$SnEventCalendarEntryFromJson(json);
 
 @override final  DateTime date;
 @override final  SnCheckInResult? checkInResult;
- final  List<dynamic> _statuses;
-@override List<dynamic> get statuses {
+ final  List<SnAccountStatus> _statuses;
+@override List<SnAccountStatus> get statuses {
   if (_statuses is EqualUnmodifiableListView) return _statuses;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_statuses);
@@ -1109,7 +1109,7 @@ abstract mixin class _$SnEventCalendarEntryCopyWith<$Res> implements $SnEventCal
   factory _$SnEventCalendarEntryCopyWith(_SnEventCalendarEntry value, $Res Function(_SnEventCalendarEntry) _then) = __$SnEventCalendarEntryCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime date, SnCheckInResult? checkInResult, List<dynamic> statuses
+ DateTime date, SnCheckInResult? checkInResult, List<SnAccountStatus> statuses
 });
 
 
@@ -1131,7 +1131,7 @@ class __$SnEventCalendarEntryCopyWithImpl<$Res>
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,checkInResult: freezed == checkInResult ? _self.checkInResult : checkInResult // ignore: cast_nullable_to_non_nullable
 as SnCheckInResult?,statuses: null == statuses ? _self._statuses : statuses // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,
+as List<SnAccountStatus>,
   ));
 }
 

@@ -54,7 +54,7 @@ sealed class SnEventCalendarEntry with _$SnEventCalendarEntry {
   const factory SnEventCalendarEntry({
     required DateTime date,
     required SnCheckInResult? checkInResult,
-    required List<dynamic> statuses,
+    required List<SnAccountStatus> statuses,
   }) = _SnEventCalendarEntry;
 
   factory SnEventCalendarEntry.fromJson(Map<String, dynamic> json) =>

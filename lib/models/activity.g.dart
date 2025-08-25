@@ -87,7 +87,10 @@ _SnEventCalendarEntry _$SnEventCalendarEntryFromJson(
           : SnCheckInResult.fromJson(
             json['check_in_result'] as Map<String, dynamic>,
           ),
-  statuses: json['statuses'] as List<dynamic>,
+  statuses:
+      (json['statuses'] as List<dynamic>)
+          .map((e) => SnAccountStatus.fromJson(e as Map<String, dynamic>))
+          .toList(),
 );
 
 Map<String, dynamic> _$SnEventCalendarEntryToJson(
@@ -95,5 +98,5 @@ Map<String, dynamic> _$SnEventCalendarEntryToJson(
 ) => <String, dynamic>{
   'date': instance.date.toIso8601String(),
   'check_in_result': instance.checkInResult?.toJson(),
-  'statuses': instance.statuses,
+  'statuses': instance.statuses.map((e) => e.toJson()).toList(),
 };
