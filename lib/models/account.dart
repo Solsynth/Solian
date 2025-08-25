@@ -71,6 +71,8 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     SnAccountBadge? activeBadge,
     required int experience,
     required int level,
+    @Default(100) double socialCredits,
+    @Default(0) int socialCreditsLevel,
     required double levelingProgress,
     required SnCloudFile? picture,
     required SnCloudFile? background,

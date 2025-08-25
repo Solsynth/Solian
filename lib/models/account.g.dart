@@ -86,6 +86,8 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
               ),
       experience: (json['experience'] as num).toInt(),
       level: (json['level'] as num).toInt(),
+      socialCredits: (json['social_credits'] as num?)?.toDouble() ?? 100,
+      socialCreditsLevel: (json['social_credits_level'] as num?)?.toInt() ?? 0,
       levelingProgress: (json['leveling_progress'] as num).toDouble(),
       picture:
           json['picture'] == null
@@ -128,6 +130,8 @@ Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
       'active_badge': instance.activeBadge?.toJson(),
       'experience': instance.experience,
       'level': instance.level,
+      'social_credits': instance.socialCredits,
+      'social_credits_level': instance.socialCreditsLevel,
       'leveling_progress': instance.levelingProgress,
       'picture': instance.picture?.toJson(),
       'background': instance.background?.toJson(),

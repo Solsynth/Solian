@@ -884,6 +884,7 @@
   "stellarProgram": "Stellar Program",
   "socialCredits": "Social Credits",
   "credits": "Credits",
+  "creditsStatus": "Credits Status",
   "socialCreditsDescription": "Social Credit is a way for Solar Network to evaluate users. It is calculated based on their behavior and interactions. With a base score of 100, higher scores indicate a user's credibility within the community. Scores change over time to reflect a user's recent behavior. Users with higher credit ratings enjoy more benefits, while users with lower credit ratings may have some functionality restricted.",
   "socialCreditsLevelPoor": "Poor",
   "socialCreditsLevelNormal": "Normal",

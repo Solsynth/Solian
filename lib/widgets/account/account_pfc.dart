@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
@@ -74,7 +75,30 @@ class AccountProfileCard extends HookConsumerWidget {
                         uname: data.name,
                         padding: EdgeInsets.zero,
                       ),
-                      if (data.profile.timeZone.isNotEmpty)
+                      Tooltip(
+                        message: 'creditsStatus'.tr(),
+                        child: Row(
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              Symbols.star,
+                              size: 17,
+                              fill: 1,
+                            ).padding(right: 2),
+                            Text(
+                              '${data.profile.socialCredits.toStringAsFixed(2)} pts',
+                            ).fontSize(12),
+                            switch (data.profile.socialCreditsLevel) {
+                              -1 => Text('socialCreditsLevelPoor').tr(),
+                              0 => Text('socialCreditsLevelNormal').tr(),
+                              1 => Text('socialCreditsLevelGood').tr(),
+                              2 => Text('socialCreditsLevelExcellent').tr(),
+                              _ => Text('unknown').tr(),
+                            }.fontSize(12),
+                          ],
+                        ),
+                      ),
+                      if (data.profile.timeZone.isNotEmpty && !kIsWeb)
                         Row(
                           spacing: 6,
                           children: [

@@ -279,6 +279,24 @@ class AccountProfileScreen extends HookConsumerWidget {
               if (data.profile.lastName.isNotEmpty) Text(data.profile.lastName),
             ],
           ),
+        Tooltip(
+          message: 'creditsStatus'.tr(),
+          child: Row(
+            spacing: 6,
+            children: [
+              Icon(Symbols.star, size: 17, fill: 1).padding(right: 2),
+              Text('${data.profile.socialCredits.toStringAsFixed(2)} pts'),
+              Text('·').bold(),
+              switch (data.profile.socialCreditsLevel) {
+                -1 => Text('socialCreditsLevelPoor').tr(),
+                0 => Text('socialCreditsLevelNormal').tr(),
+                1 => Text('socialCreditsLevelGood').tr(),
+                2 => Text('socialCreditsLevelExcellent').tr(),
+                _ => Text('unknown').tr(),
+              },
+            ],
+          ),
+        ),
       ];
     }
 
