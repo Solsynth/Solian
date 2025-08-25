@@ -151,7 +151,9 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                                       (error, _) => Text(
                                         'Error loading subscription status',
                                       ),
-                                  loading: () => CircularProgressIndicator(),
+                                  loading:
+                                      () =>
+                                          CircularProgressIndicator().center(),
                                 ),
                               ],
                             ).padding(horizontal: 24, vertical: 16),
@@ -220,7 +222,9 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                                       (error, _) => Text(
                                         'Error loading subscription status',
                                       ),
-                                  loading: () => CircularProgressIndicator(),
+                                  loading:
+                                      () =>
+                                          CircularProgressIndicator().center(),
                                 ),
                               ],
                             ).padding(horizontal: 24, vertical: 16),
