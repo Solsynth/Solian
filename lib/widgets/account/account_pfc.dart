@@ -98,6 +98,18 @@ class AccountProfileCard extends HookConsumerWidget {
                           ],
                         ),
                       ),
+                      if (data.automatedId != null)
+                        Row(
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              Symbols.smart_toy,
+                              size: 17,
+                              fill: 1,
+                            ).padding(right: 2),
+                            Text('accountAutomated').tr(),
+                          ],
+                        ),
                       if (data.profile.timeZone.isNotEmpty && !kIsWeb)
                         Row(
                           spacing: 6,
