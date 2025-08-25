@@ -448,7 +448,24 @@ class CloudFileZoomIn extends HookConsumerWidget {
                     ).padding(horizontal: 24, vertical: 16),
                     const Divider(height: 1),
                     ListTile(
-                      leading: const Icon(Icons.file_present),
+                      leading: const Icon(Symbols.tag),
+                      title: Text('ID').tr(),
+                      subtitle: Text(
+                        item.id,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.copy),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: item.id));
+                          showSnackBar('File ID copied to clipboard');
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Symbols.file_present),
                       title: Text('Name').tr(),
                       subtitle: Text(
                         item.name,
