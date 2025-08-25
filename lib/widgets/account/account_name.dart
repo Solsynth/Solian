@@ -44,7 +44,7 @@ class AccountName extends StatelessWidget {
           VerificationMark(mark: account.profile.verification!),
         if (account.automatedId != null)
           Tooltip(
-            message: 'automatedAccount'.tr(),
+            message: 'accountAutomated'.tr(),
             child: Icon(
               Symbols.smart_toy,
               size: 16,
