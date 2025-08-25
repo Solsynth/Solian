@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/chat/chat.dart';
+import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/alert.dart';
@@ -666,8 +667,11 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                     final member = data.items[index];
                     return ListTile(
                       contentPadding: EdgeInsets.only(left: 16, right: 12),
-                      leading: ProfilePictureWidget(
-                        fileId: member.account.profile.picture?.id,
+                      leading: AccountPfcGestureDetector(
+                        uname: member.account.name,
+                        child: ProfilePictureWidget(
+                          fileId: member.account.profile.picture?.id,
+                        ),
                       ),
                       title: Row(
                         spacing: 6,

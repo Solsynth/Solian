@@ -455,10 +455,13 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       final currentMessages = state.value ?? [];
       if (editingTo != null) {
-        final newMessages = currentMessages
-            .where((m) => m.id != localMessage.id) // remove pending message
-            .map((m) => m.id == editingTo.id ? updatedMessage : m) // update original message
-            .toList();
+        final newMessages =
+            currentMessages
+                .where((m) => m.id != localMessage.id) // remove pending message
+                .map(
+                  (m) => m.id == editingTo.id ? updatedMessage : m,
+                ) // update original message
+                .toList();
         state = AsyncValue.data(newMessages);
       } else {
         final newMessages =
@@ -1549,7 +1552,7 @@ class _ChatInput extends HookConsumerWidget {
                   children: [
                     IconButton(
                       tooltip: 'stickers'.tr(),
-                      icon: const Icon(Symbols.emoji_symbols),
+                      icon: const Icon(Symbols.add_reaction),
                       onPressed: () {
                         final size = MediaQuery.of(context).size;
                         showStickerPickerPopover(
@@ -1659,8 +1662,13 @@ class _ChatInput extends HookConsumerWidget {
                           horizontal: 12,
                           vertical: 4,
                         ),
+                        counterText:
+                            messageController.text.length > 1024
+                                ? '${messageController.text.length}/4096'
+                                : null,
                       ),
-                      maxLines: null,
+                      maxLines: 3,
+                      minLines: 1,
                       onTapOutside:
                           (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     ),

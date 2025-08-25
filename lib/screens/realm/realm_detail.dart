@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/services/color.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/post/post_list.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -658,8 +659,11 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                 final member = data.items[index];
                 return ListTile(
                   contentPadding: EdgeInsets.only(left: 16, right: 12),
-                  leading: ProfilePictureWidget(
-                    fileId: member.account!.profile.picture?.id,
+                  leading: AccountPfcGestureDetector(
+                    uname: member.account!.name,
+                    child: ProfilePictureWidget(
+                      fileId: member.account!.profile.picture?.id,
+                    ),
                   ),
                   title: Row(
                     spacing: 6,
