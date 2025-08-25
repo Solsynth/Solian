@@ -95,9 +95,9 @@ class EventCalendarWidget extends HookConsumerWidget {
 
               final textColor =
                   isSameDay(selectedDay.value, day)
-                      ? Theme.of(context).colorScheme.onPrimary
+                      ? Colors.white
                       : isSameDay(DateTime.now(), day)
-                      ? Theme.of(context).colorScheme.onPrimary
+                      ? Colors.white
                       : Theme.of(context).colorScheme.onSurface;
 
               final shadow =

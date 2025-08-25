@@ -72,6 +72,207 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
   }
 }
 
+class _PublicRoomPreview extends HookConsumerWidget {
+  final String id;
+  final SnChatRoom room;
+
+  const _PublicRoomPreview({required this.id, required this.room});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final messages = ref.watch(messagesNotifierProvider(id));
+    final messagesNotifier = ref.read(messagesNotifierProvider(id).notifier);
+    final scrollController = useScrollController();
+
+    final listController = useMemoized(() => ListController(), []);
+
+    var isLoading = false;
+
+    // Add scroll listener for pagination
+    useEffect(() {
+      void onScroll() {
+        if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 200) {
+          if (isLoading) return;
+          isLoading = true;
+          messagesNotifier.loadMore().then((_) => isLoading = false);
+        }
+      }
+
+      scrollController.addListener(onScroll);
+      return () => scrollController.removeListener(onScroll);
+    }, [scrollController]);
+
+    Widget chatMessageListWidget(List<LocalChatMessage> messageList) =>
+        SuperListView.builder(
+          listController: listController,
+          padding: EdgeInsets.symmetric(vertical: 16),
+          controller: scrollController,
+          reverse: true, // Show newest messages at the bottom
+          itemCount: messageList.length,
+          findChildIndexCallback: (key) {
+            final valueKey = key as ValueKey;
+            final messageId = valueKey.value as String;
+            return messageList.indexWhere((m) => m.id == messageId);
+          },
+          extentEstimation: (_, _) => 40,
+          itemBuilder: (context, index) {
+            final message = messageList[index];
+            final nextMessage =
+                index < messageList.length - 1 ? messageList[index + 1] : null;
+            final isLastInGroup =
+                nextMessage == null ||
+                nextMessage.senderId != message.senderId ||
+                nextMessage.createdAt
+                        .difference(message.createdAt)
+                        .inMinutes
+                        .abs() >
+                    3;
+
+            return MessageItem(
+              message: message,
+              isCurrentUser: false, // User is not a member, so not current user
+              onAction: null, // No actions allowed in preview mode
+              onJump: (_) {}, // No jump functionality in preview
+              progress: null,
+              showAvatar: isLastInGroup,
+            );
+          },
+        );
+
+    final compactHeader = isWideScreen(context);
+
+    Widget comfortHeaderWidget() => Column(
+      spacing: 4,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          height: 26,
+          width: 26,
+          child:
+              (room.type == 1 && room.picture?.id == null)
+                  ? SplitAvatarWidget(
+                    filesId:
+                        room.members!
+                            .map((e) => e.account.profile.picture?.id)
+                            .toList(),
+                  )
+                  : room.picture?.id != null
+                  ? ProfilePictureWidget(
+                    fileId: room.picture?.id,
+                    fallbackIcon: Symbols.chat,
+                  )
+                  : CircleAvatar(
+                    child: Text(
+                      room.name![0].toUpperCase(),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+        ),
+        Text(
+          (room.type == 1 && room.name == null)
+              ? room.members!.map((e) => e.account.nick).join(', ')
+              : room.name!,
+        ).fontSize(15),
+      ],
+    );
+
+    Widget compactHeaderWidget() => Row(
+      spacing: 8,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          height: 26,
+          width: 26,
+          child:
+              (room.type == 1 && room.picture?.id == null)
+                  ? SplitAvatarWidget(
+                    filesId:
+                        room.members!
+                            .map((e) => e.account.profile.picture?.id)
+                            .toList(),
+                  )
+                  : room.picture?.id != null
+                  ? ProfilePictureWidget(
+                    fileId: room.picture?.id,
+                    fallbackIcon: Symbols.chat,
+                  )
+                  : CircleAvatar(
+                    child: Text(
+                      room.name![0].toUpperCase(),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+        ),
+        Text(
+          (room.type == 1 && room.name == null)
+              ? room.members!.map((e) => e.account.nick).join(', ')
+              : room.name!,
+        ).fontSize(19),
+      ],
+    );
+
+    return AppScaffold(
+      appBar: AppBar(
+        leading: !compactHeader ? const Center(child: PageBackButton()) : null,
+        automaticallyImplyLeading: false,
+        toolbarHeight: compactHeader ? null : 64,
+        title: compactHeader ? compactHeaderWidget() : comfortHeaderWidget(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () {
+              context.pushNamed('chatDetail', pathParameters: {'id': id});
+            },
+          ),
+          const Gap(8),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: messages.when(
+              data:
+                  (messageList) =>
+                      messageList.isEmpty
+                          ? Center(child: Text('No messages yet'.tr()))
+                          : chatMessageListWidget(messageList),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error:
+                  (error, _) => ResponseErrorWidget(
+                    error: error,
+                    onRetry: () => messagesNotifier.loadInitial(),
+                  ),
+            ),
+          ),
+          // Join button at the bottom for public rooms
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: FilledButton.tonalIcon(
+              onPressed: () async {
+                try {
+                  showLoadingModal(context);
+                  final apiClient = ref.read(apiClientProvider);
+                  await apiClient.post('/sphere/chat/${room.id}/members/me');
+                  ref.invalidate(chatroomIdentityProvider(id));
+                } catch (err) {
+                  showErrorAlert(err);
+                } finally {
+                  if (context.mounted) hideLoadingModal(context);
+                }
+              },
+              label: Text('chatJoin').tr(),
+              icon: const Icon(Icons.add),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 @riverpod
 class MessagesNotifier extends _$MessagesNotifier {
   late final Dio _apiClient;
@@ -96,26 +297,34 @@ class MessagesNotifier extends _$MessagesNotifier {
     _database = ref.watch(databaseProvider);
     final room = await ref.watch(chatroomProvider(roomId).future);
     final identity = await ref.watch(chatroomIdentityProvider(roomId).future);
-    if (room == null || identity == null) {
-      throw Exception('Room or identity not found');
+
+    if (room == null) {
+      throw Exception('Room not found');
     }
     _room = room;
-    _identity = identity;
+
+    // Allow building even if identity is null for public rooms
+    if (identity != null) {
+      _identity = identity;
+    }
 
     developer.log(
       'MessagesNotifier built for room $roomId',
       name: 'MessagesNotifier',
     );
 
-    ref.listen(appLifecycleStateProvider, (_, next) {
-      if (next.hasValue && next.value == AppLifecycleState.resumed) {
-        developer.log(
-          'App resumed, syncing messages',
-          name: 'MessagesNotifier',
-        );
-        syncMessages();
-      }
-    });
+    // Only setup sync and lifecycle listeners if user is a member
+    if (identity != null) {
+      ref.listen(appLifecycleStateProvider, (_, next) {
+        if (next.hasValue && next.value == AppLifecycleState.resumed) {
+          developer.log(
+            'App resumed, syncing messages',
+            name: 'MessagesNotifier',
+          );
+          syncMessages();
+        }
+      });
+    }
 
     return await loadInitial();
   }
@@ -737,57 +946,77 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
     } else if (chatIdentity.value == null) {
       // Identity was not found, user was not joined
-      return AppScaffold(
-        appBar: AppBar(leading: const PageBackButton()),
-        body: Center(
-          child:
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 280),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      chatRoom.value?.isCommunity == true
-                          ? Symbols.person_add
-                          : Symbols.person_remove,
-                      size: 36,
-                      fill: 1,
-                    ).padding(bottom: 4),
-                    Text('chatNotJoined').tr(),
-                    if (chatRoom.value?.isCommunity != true)
-                      Text(
-                        'chatUnableJoin',
-                        textAlign: TextAlign.center,
-                      ).tr().bold()
-                    else
-                      FilledButton.tonalIcon(
-                        onPressed: () async {
-                          try {
-                            showLoadingModal(context);
-                            final apiClient = ref.read(apiClientProvider);
-                            if (chatRoom.value == null) {
-                              hideLoadingModal(context);
-                              return;
-                            }
-
-                            await apiClient.post(
-                              '/sphere/chat/${chatRoom.value!.id}/members/me',
-                            );
-                            ref.invalidate(chatroomIdentityProvider(id));
-                          } catch (err) {
-                            showErrorAlert(err);
-                          } finally {
-                            if (context.mounted) hideLoadingModal(context);
-                          }
-                        },
-                        label: Text('chatJoin').tr(),
-                        icon: const Icon(Icons.add),
-                      ).padding(top: 8),
-                  ],
-                ),
-              ).center(),
-        ),
+      return chatRoom.when(
+        data: (room) {
+          if (room!.isPublic) {
+            // Show public room preview with messages but no input
+            return _PublicRoomPreview(id: id, room: room);
+          } else {
+            // Show regular "not joined" screen for private rooms
+            return AppScaffold(
+              appBar: AppBar(leading: const PageBackButton()),
+              body: Center(
+                child:
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 280),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            room.isCommunity == true
+                                ? Symbols.person_add
+                                : Symbols.person_remove,
+                            size: 36,
+                            fill: 1,
+                          ).padding(bottom: 4),
+                          Text('chatNotJoined').tr(),
+                          if (room.isCommunity != true)
+                            Text(
+                              'chatUnableJoin',
+                              textAlign: TextAlign.center,
+                            ).tr().bold()
+                          else
+                            FilledButton.tonalIcon(
+                              onPressed: () async {
+                                try {
+                                  showLoadingModal(context);
+                                  final apiClient = ref.read(apiClientProvider);
+                                  await apiClient.post(
+                                    '/sphere/chat/${room.id}/members/me',
+                                  );
+                                  ref.invalidate(chatroomIdentityProvider(id));
+                                } catch (err) {
+                                  showErrorAlert(err);
+                                } finally {
+                                  if (context.mounted) {
+                                    hideLoadingModal(context);
+                                  }
+                                }
+                              },
+                              label: Text('chatJoin').tr(),
+                              icon: const Icon(Icons.add),
+                            ).padding(top: 8),
+                        ],
+                      ),
+                    ).center(),
+              ),
+            );
+          }
+        },
+        loading:
+            () => AppScaffold(
+              appBar: AppBar(leading: const PageBackButton()),
+              body: CircularProgressIndicator().center(),
+            ),
+        error:
+            (error, _) => AppScaffold(
+              appBar: AppBar(leading: const PageBackButton()),
+              body: ResponseErrorWidget(
+                error: error,
+                onRetry: () => ref.refresh(chatroomProvider(id)),
+              ),
+            ),
       );
     }
 
