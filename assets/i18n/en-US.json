@@ -943,5 +943,6 @@
   "pin": "Pin",
   "unpinPostHint": "Are you sure you want to unpin this post?",
   "all": "All",
-  "statusPresent": "Present"
+  "statusPresent": "Present",
+  "accountAutomated": "Automated"
 }
