@@ -356,6 +356,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                               SliverPostList(
                                 key: ValueKey(categoryTab.value),
                                 pubName: name,
+                                pinned: false,
                                 type: switch (categoryTab.value) {
                                   1 => 0,
                                   2 => 1,
@@ -438,10 +439,12 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           child: publisherVerificationWidget(data),
                         ),
                         SliverToBoxAdapter(child: publisherBioWidget(data)),
+                        SliverPostList(pubName: name, pinned: true),
                         SliverToBoxAdapter(child: publisherCategoryTabWidget()),
                         SliverPostList(
                           key: ValueKey(categoryTab.value),
                           pubName: name,
+                          pinned: false,
                           type: switch (categoryTab.value) {
                             1 => 0,
                             2 => 1,

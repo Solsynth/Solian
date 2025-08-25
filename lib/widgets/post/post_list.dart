@@ -21,8 +21,8 @@ class PostListNotifier extends _$PostListNotifier
     int? type,
     List<String>? categories,
     List<String>? tags,
+    bool? pinned,
     bool shuffle = false,
-    bool pinned = false,
   }) {
     return fetch(cursor: null);
   }
@@ -41,7 +41,7 @@ class PostListNotifier extends _$PostListNotifier
       if (tags != null) 'tags': tags,
       if (categories != null) 'categories': categories,
       if (shuffle) 'shuffle': true,
-      if (pinned) 'pinned': true,
+      if (pinned != null) 'pinned': pinned,
     };
 
     final response = await client.get(
@@ -79,7 +79,7 @@ class SliverPostList extends HookConsumerWidget {
   final List<String>? categories;
   final List<String>? tags;
   final bool shuffle;
-  final bool pinned;
+  final bool? pinned;
   final PostItemType itemType;
   final Color? backgroundColor;
   final EdgeInsets? padding;
@@ -96,7 +96,7 @@ class SliverPostList extends HookConsumerWidget {
     this.categories,
     this.tags,
     this.shuffle = false,
-    this.pinned = false,
+    this.pinned,
     this.itemType = PostItemType.regular,
     this.backgroundColor,
     this.padding,

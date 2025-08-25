@@ -244,7 +244,10 @@ class RealmDetailScreen extends HookConsumerWidget {
                         Flexible(
                           flex: 3,
                           child: CustomScrollView(
-                            slivers: [SliverPostList(realm: slug)],
+                            slivers: [
+                              SliverPostList(realm: slug, pinned: true),
+                              SliverPostList(realm: slug, pinned: false),
+                            ],
                           ),
                         ),
                         Flexible(
@@ -359,7 +362,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                         SliverToBoxAdapter(
                           child: realmChatRoomListWidget(realm),
                         ),
-                        SliverPostList(realm: slug),
+                        SliverPostList(realm: slug, pinned: true),
+                        SliverPostList(realm: slug, pinned: false),
                       ],
                     ),
       ),

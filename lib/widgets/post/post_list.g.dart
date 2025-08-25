@@ -6,7 +6,7 @@ part of 'post_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$postListNotifierHash() => r'7be076e6cee1c52c258d0fad2cd9fe9ac5e100ac';
+String _$postListNotifierHash() => r'3c0a8154ded4bcd8f5456f7a4ea2e542f57efa85';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -36,8 +36,8 @@ abstract class _$PostListNotifier
   late final int? type;
   late final List<String>? categories;
   late final List<String>? tags;
+  late final bool? pinned;
   late final bool shuffle;
-  late final bool pinned;
 
   FutureOr<CursorPagingData<SnPost>> build({
     String? pubName,
@@ -45,8 +45,8 @@ abstract class _$PostListNotifier
     int? type,
     List<String>? categories,
     List<String>? tags,
+    bool? pinned,
     bool shuffle = false,
-    bool pinned = false,
   });
 }
 
@@ -67,8 +67,8 @@ class PostListNotifierFamily
     int? type,
     List<String>? categories,
     List<String>? tags,
+    bool? pinned,
     bool shuffle = false,
-    bool pinned = false,
   }) {
     return PostListNotifierProvider(
       pubName: pubName,
@@ -76,8 +76,8 @@ class PostListNotifierFamily
       type: type,
       categories: categories,
       tags: tags,
-      shuffle: shuffle,
       pinned: pinned,
+      shuffle: shuffle,
     );
   }
 
@@ -91,8 +91,8 @@ class PostListNotifierFamily
       type: provider.type,
       categories: provider.categories,
       tags: provider.tags,
-      shuffle: provider.shuffle,
       pinned: provider.pinned,
+      shuffle: provider.shuffle,
     );
   }
 
@@ -125,8 +125,8 @@ class PostListNotifierProvider
     int? type,
     List<String>? categories,
     List<String>? tags,
+    bool? pinned,
     bool shuffle = false,
-    bool pinned = false,
   }) : this._internal(
          () =>
              PostListNotifier()
@@ -135,8 +135,8 @@ class PostListNotifierProvider
                ..type = type
                ..categories = categories
                ..tags = tags
-               ..shuffle = shuffle
-               ..pinned = pinned,
+               ..pinned = pinned
+               ..shuffle = shuffle,
          from: postListNotifierProvider,
          name: r'postListNotifierProvider',
          debugGetCreateSourceHash:
@@ -151,8 +151,8 @@ class PostListNotifierProvider
          type: type,
          categories: categories,
          tags: tags,
-         shuffle: shuffle,
          pinned: pinned,
+         shuffle: shuffle,
        );
 
   PostListNotifierProvider._internal(
@@ -167,8 +167,8 @@ class PostListNotifierProvider
     required this.type,
     required this.categories,
     required this.tags,
-    required this.shuffle,
     required this.pinned,
+    required this.shuffle,
   }) : super.internal();
 
   final String? pubName;
@@ -176,8 +176,8 @@ class PostListNotifierProvider
   final int? type;
   final List<String>? categories;
   final List<String>? tags;
+  final bool? pinned;
   final bool shuffle;
-  final bool pinned;
 
   @override
   FutureOr<CursorPagingData<SnPost>> runNotifierBuild(
@@ -189,8 +189,8 @@ class PostListNotifierProvider
       type: type,
       categories: categories,
       tags: tags,
-      shuffle: shuffle,
       pinned: pinned,
+      shuffle: shuffle,
     );
   }
 
@@ -206,8 +206,8 @@ class PostListNotifierProvider
               ..type = type
               ..categories = categories
               ..tags = tags
-              ..shuffle = shuffle
-              ..pinned = pinned,
+              ..pinned = pinned
+              ..shuffle = shuffle,
         from: from,
         name: null,
         dependencies: null,
@@ -218,8 +218,8 @@ class PostListNotifierProvider
         type: type,
         categories: categories,
         tags: tags,
-        shuffle: shuffle,
         pinned: pinned,
+        shuffle: shuffle,
       ),
     );
   }
@@ -241,8 +241,8 @@ class PostListNotifierProvider
         other.type == type &&
         other.categories == categories &&
         other.tags == tags &&
-        other.shuffle == shuffle &&
-        other.pinned == pinned;
+        other.pinned == pinned &&
+        other.shuffle == shuffle;
   }
 
   @override
@@ -253,8 +253,8 @@ class PostListNotifierProvider
     hash = _SystemHash.combine(hash, type.hashCode);
     hash = _SystemHash.combine(hash, categories.hashCode);
     hash = _SystemHash.combine(hash, tags.hashCode);
-    hash = _SystemHash.combine(hash, shuffle.hashCode);
     hash = _SystemHash.combine(hash, pinned.hashCode);
+    hash = _SystemHash.combine(hash, shuffle.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -279,11 +279,11 @@ mixin PostListNotifierRef
   /// The parameter `tags` of this provider.
   List<String>? get tags;
 
+  /// The parameter `pinned` of this provider.
+  bool? get pinned;
+
   /// The parameter `shuffle` of this provider.
   bool get shuffle;
-
-  /// The parameter `pinned` of this provider.
-  bool get pinned;
 }
 
 class _PostListNotifierProviderElement
@@ -307,9 +307,9 @@ class _PostListNotifierProviderElement
   @override
   List<String>? get tags => (origin as PostListNotifierProvider).tags;
   @override
-  bool get shuffle => (origin as PostListNotifierProvider).shuffle;
+  bool? get pinned => (origin as PostListNotifierProvider).pinned;
   @override
-  bool get pinned => (origin as PostListNotifierProvider).pinned;
+  bool get shuffle => (origin as PostListNotifierProvider).shuffle;
 }
 
 // ignore_for_file: type=lint
