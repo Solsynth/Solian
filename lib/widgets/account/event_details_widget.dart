@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/activity.dart';
+import 'package:island/services/time.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -53,6 +54,33 @@ class EventDetailsWidget extends StatelessWidget {
                     ),
                   ],
                 ).padding(top: 8),
+              if (event!.statuses.isNotEmpty) ...[
+                const Gap(16),
+                Text('statusLabel').tr().fontSize(16).bold(),
+              ],
+              for (final status in event!.statuses) ...[
+                Row(
+                  spacing: 8,
+                  children: [
+                    Icon(switch (status.attitude) {
+                      0 => Symbols.sentiment_satisfied,
+                      2 => Symbols.sentiment_dissatisfied,
+                      _ => Symbols.sentiment_neutral,
+                    }),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(status.label),
+                          Text(
+                            '${status.createdAt.formatSystem()} - ${status.clearedAt?.formatSystem() ?? 'present'.tr()}',
+                          ).fontSize(11).opacity(0.8),
+                        ],
+                      ),
+                    ),
+                  ],
+                ).padding(vertical: 8),
+              ],
             ],
           ),
         if (event?.checkInResult == null && (event?.statuses.isEmpty ?? true))

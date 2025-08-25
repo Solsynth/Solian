@@ -2,7 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/account.dart';
 import 'package:island/models/activity.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/account/event_details_widget.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -87,24 +89,56 @@ class EventCalendarWidget extends HookConsumerWidget {
               return Center(child: Text(text));
             },
             markerBuilder: (context, day, events) {
-              var checkInResult =
+              final checkInResult =
                   events.whereType<SnCheckInResult>().firstOrNull;
+              final statuses = events.whereType<SnAccountStatus>().toList();
+
+              final textColor =
+                  isSameDay(selectedDay.value, day)
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : isSameDay(DateTime.now(), day)
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurface;
+
+              final shadow =
+                  isSameDay(selectedDay.value, day) ||
+                          isSameDay(DateTime.now(), day)
+                      ? [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.5),
+                          offset: const Offset(0, 1),
+                          blurRadius: 4,
+                        ),
+                      ]
+                      : null;
+
               if (checkInResult != null) {
                 return Positioned(
                   top: 32,
-                  child: Text(
-                    'checkInResultT${checkInResult.level}'.tr(),
-                    style: TextStyle(
-                      fontSize: 9,
-                      color:
-                          isSameDay(selectedDay.value, day)
-                              ? Theme.of(context).colorScheme.onPrimaryContainer
-                              : isSameDay(DateTime.now(), day)
-                              ? Theme.of(
-                                context,
-                              ).colorScheme.onSecondaryContainer
-                              : Theme.of(context).colorScheme.onSurface,
-                    ),
+                  child: Row(
+                    spacing: 2,
+                    children: [
+                      Text(
+                        'checkInResultT${checkInResult.level}'.tr(),
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: textColor,
+                          shadows: shadow,
+                        ),
+                      ),
+                      if (statuses.isNotEmpty) ...[
+                        Icon(
+                          switch (statuses.first.attitude) {
+                            0 => Symbols.sentiment_satisfied,
+                            2 => Symbols.sentiment_dissatisfied,
+                            _ => Symbols.sentiment_neutral,
+                          },
+                          size: 12,
+                          color: textColor,
+                          shadows: shadow,
+                        ),
+                      ],
+                    ],
                   ),
                 );
               }

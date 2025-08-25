@@ -855,5 +855,6 @@
   "newSecretGenerated": "已生成新密钥",
   "copySecretHint": "请复制此密钥并将其存放在安全的地方。您将无法再次看到它。",
   "expiresIn": "过期时间（秒）",
-  "isOidc": "OIDC 兼容"
+  "isOidc": "OIDC 兼容",
+  "statusPresent": "至今"
 }
