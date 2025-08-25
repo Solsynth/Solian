@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_saver/file_saver.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
@@ -321,7 +324,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
     Future<void> saveToGallery() async {
       try {
         // Show loading indicator
-        showSnackBar('Saving image to gallery...');
+        showSnackBar('Saving image...');
 
         // Get the image URL
         final client = ref.watch(apiClientProvider);
@@ -339,10 +342,18 @@ class CloudFileZoomIn extends HookConsumerWidget {
           filePath,
           queryParameters: {'original': true},
         );
-        await Gal.putImage(filePath, album: 'Solar Network');
-
-        // Show success message
-        showSnackBar('Image saved to gallery');
+        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+          // Save to gallery
+          await Gal.putImage(filePath, album: 'Solar Network');
+          // Show success message
+          showSnackBar('Image saved to gallery');
+        } else {
+          await FileSaver.instance.saveFile(
+            name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
+            file: File(filePath),
+          );
+          showSnackBar('Image saved to $filePath');
+        }
       } catch (e) {
         showErrorAlert(e);
       }
@@ -623,6 +634,10 @@ class CloudFileZoomIn extends HookConsumerWidget {
       );
     }
 
+    final shadow = [
+      Shadow(color: Colors.black54, blurRadius: 5.0, offset: Offset(1.0, 1.0)),
+    ];
+
     return DismissiblePage(
       isFullScreen: true,
       backgroundColor: Colors.transparent,
@@ -660,22 +675,17 @@ class CloudFileZoomIn extends HookConsumerWidget {
               children: [
                 Row(
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.save_alt,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black54,
-                            blurRadius: 5.0,
-                            offset: Offset(1.0, 1.0),
-                          ),
-                        ],
+                    if (!kIsWeb)
+                      IconButton(
+                        icon: Icon(
+                          Icons.save_alt,
+                          color: Colors.white,
+                          shadows: shadow,
+                        ),
+                        onPressed: () async {
+                          saveToGallery();
+                        },
                       ),
-                      onPressed: () async {
-                        saveToGallery();
-                      },
-                    ),
                     IconButton(
                       onPressed: () {
                         showOriginal.value = !showOriginal.value;
@@ -683,29 +693,13 @@ class CloudFileZoomIn extends HookConsumerWidget {
                       icon: Icon(
                         showOriginal.value ? Symbols.hd : Symbols.sd,
                         color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black54,
-                            blurRadius: 5.0,
-                            offset: Offset(1.0, 1.0),
-                          ),
-                        ],
+                        shadows: shadow,
                       ),
                     ),
                   ],
                 ),
                 IconButton(
-                  icon: Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black54,
-                        blurRadius: 5.0,
-                        offset: Offset(1.0, 1.0),
-                      ),
-                    ],
-                  ),
+                  icon: Icon(Icons.close, color: Colors.white, shadows: shadow),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -722,26 +716,24 @@ class CloudFileZoomIn extends HookConsumerWidget {
                   icon: Icon(
                     Icons.info_outline,
                     color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black54,
-                        blurRadius: 5.0,
-                        offset: Offset(1.0, 1.0),
-                      ),
-                    ],
+                    shadows: shadow,
                   ),
                   onPressed: showInfoSheet,
                 ),
                 Spacer(),
                 IconButton(
-                  icon: Icon(Icons.remove, color: Colors.white),
+                  icon: Icon(
+                    Icons.remove,
+                    color: Colors.white,
+                    shadows: shadow,
+                  ),
                   onPressed: () {
                     photoViewController.scale =
                         (photoViewController.scale ?? 1) - 0.05;
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.add, color: Colors.white),
+                  icon: Icon(Icons.add, color: Colors.white, shadows: shadow),
                   onPressed: () {
                     photoViewController.scale =
                         (photoViewController.scale ?? 1) + 0.05;
@@ -752,13 +744,7 @@ class CloudFileZoomIn extends HookConsumerWidget {
                   icon: Icon(
                     Icons.rotate_left,
                     color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black54,
-                        blurRadius: 5.0,
-                        offset: Offset(1.0, 1.0),
-                      ),
-                    ],
+                    shadows: shadow,
                   ),
                   onPressed: () {
                     rotation.value = (rotation.value - 1) % 4;
