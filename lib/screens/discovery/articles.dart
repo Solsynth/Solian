@@ -137,6 +137,7 @@ class ArticlesScreen extends ConsumerWidget {
         return DefaultTabController(
           length: feeds.length + 1,
           child: AppScaffold(
+            isNoBackground: false,
             appBar: AppBar(
               title: const Text('Articles'),
               bottom: TabBar(
@@ -192,11 +193,13 @@ class ArticlesScreen extends ConsumerWidget {
       },
       loading:
           () => AppScaffold(
+            isNoBackground: false,
             appBar: AppBar(title: const Text('Articles')),
             body: const Center(child: CircularProgressIndicator()),
           ),
       error:
           (err, stack) => AppScaffold(
+            isNoBackground: false,
             appBar: AppBar(title: const Text('Articles')),
             body: Center(child: Text('Error: $err')),
           ),
