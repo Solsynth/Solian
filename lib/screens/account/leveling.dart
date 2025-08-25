@@ -95,8 +95,24 @@ class LevelingScreen extends HookConsumerWidget {
           title: Text('levelingProgress'.tr()),
           bottom: TabBar(
             tabs: [
-              Tab(text: 'leveling'.tr()),
-              Tab(text: 'stellarProgram'.tr()),
+              Tab(
+                child: Text(
+                  'leveling'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor!,
+                  ),
+                ),
+              ),
+              Tab(
+                child: Text(
+                  'stellarProgram'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor!,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

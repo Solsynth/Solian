@@ -355,17 +355,20 @@ class MessagesNotifier extends _$MessagesNotifier {
         offset: offset,
         limit: take,
       );
-      dbMessages = chatMessagesFromDb.map(_database.companionToMessage).toList();
+      dbMessages =
+          chatMessagesFromDb.map(_database.companionToMessage).toList();
     }
 
     List<LocalChatMessage> filteredMessages = dbMessages;
 
     if (_withLinks == true) {
-      filteredMessages = filteredMessages.where((msg) => _hasLink(msg)).toList();
+      filteredMessages =
+          filteredMessages.where((msg) => _hasLink(msg)).toList();
     }
 
     if (_withAttachments == true) {
-      filteredMessages = filteredMessages.where((msg) => _hasAttachment(msg)).toList();
+      filteredMessages =
+          filteredMessages.where((msg) => _hasAttachment(msg)).toList();
     }
 
     final dbLocalMessages = filteredMessages;
@@ -513,7 +516,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       showErrorAlert(err);
     } finally {
       developer.log('Finished message sync', name: 'MessagesNotifier');
-      Future.microtask(() => ref.read(isSyncingProvider.notifier).state = false);
+      Future.microtask(
+        () => ref.read(isSyncingProvider.notifier).state = false,
+      );
       _isSyncing = false;
     }
   }
@@ -524,7 +529,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     bool synced = false,
   }) async {
     try {
-      if (offset == 0 && !synced && (_searchQuery == null || _searchQuery!.isEmpty)) {
+      if (offset == 0 &&
+          !synced &&
+          (_searchQuery == null || _searchQuery!.isEmpty)) {
         _fetchAndCacheMessages(offset: 0, take: take).catchError((_) {
           return <LocalChatMessage>[];
         });
@@ -584,7 +591,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         _hasMore = false;
       }
 
-      state = AsyncValue.data(_sortMessages([...currentMessages, ...newMessages]));
+      state = AsyncValue.data(
+        _sortMessages([...currentMessages, ...newMessages]),
+      );
     } catch (err, stackTrace) {
       developer.log(
         'Error loading more messages',
@@ -1481,12 +1490,6 @@ class ChatRoomScreen extends HookConsumerWidget {
               ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              context.pushNamed('searchMessages', pathParameters: {'id': id});
-            },
-          ),
           AudioCallButton(roomId: id),
           IconButton(
             icon: const Icon(Icons.more_vert),
@@ -1496,14 +1499,15 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           const Gap(8),
         ],
-        bottom: isSyncing
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(2),
-                child: LinearProgressIndicator(
-                  borderRadius: BorderRadius.zero,
-                ),
-              )
-            : null,
+        bottom:
+            isSyncing
+                ? const PreferredSize(
+                  preferredSize: Size.fromHeight(2),
+                  child: LinearProgressIndicator(
+                    borderRadius: BorderRadius.zero,
+                  ),
+                )
+                : null,
       ),
       body: Stack(
         children: [

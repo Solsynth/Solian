@@ -52,7 +52,26 @@ class BotDetailScreen extends HookConsumerWidget {
         ],
         bottom: TabBar(
           controller: tabController,
-          tabs: [Tab(text: 'overview'.tr()), Tab(text: 'keys'.tr())],
+          tabs: [
+            Tab(
+              child: Text(
+                'overview'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).appBarTheme.foregroundColor!,
+                ),
+              ),
+            ),
+            Tab(
+              child: Text(
+                'keys'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).appBarTheme.foregroundColor!,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       body: botData.when(

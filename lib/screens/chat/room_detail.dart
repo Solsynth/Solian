@@ -20,9 +20,16 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/pods/database.dart';
 
 part 'room_detail.freezed.dart';
 part 'room_detail.g.dart';
+
+@riverpod
+Future<int> totalMessagesCount(Ref ref, String roomId) async {
+  final database = ref.watch(databaseProvider);
+  return database.getTotalMessagesForRoom(roomId);
+}
 
 class ChatDetailScreen extends HookConsumerWidget {
   final String id;
@@ -32,6 +39,7 @@ class ChatDetailScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final roomState = ref.watch(chatroomProvider(id));
     final roomIdentity = ref.watch(chatroomIdentityProvider(id));
+    final totalMessages = ref.watch(totalMessagesCountProvider(id));
 
     const kNotifyLevelText = [
       'chatNotifyLevelAll',
@@ -366,6 +374,11 @@ class ChatDetailScreen extends HookConsumerWidget {
                                   leading: const Icon(Icons.search),
                                   trailing: const Icon(Symbols.chevron_right),
                                   title: const Text('Search Messages').tr(),
+                                  subtitle: totalMessages.when(
+                                    data: (count) => Text('$count messages').tr(),
+                                    loading: () => const CircularProgressIndicator(),
+                                    error: (err, stack) => Text('Error: $err'),
+                                  ),
                                   onTap: () {
                                     context.pushNamed('searchMessages', pathParameters: {'id': id});
                                   },

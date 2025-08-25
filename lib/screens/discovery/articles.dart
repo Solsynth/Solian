@@ -143,8 +143,26 @@ class ArticlesScreen extends ConsumerWidget {
               bottom: TabBar(
                 isScrollable: true,
                 tabs: [
-                  const Tab(text: 'All'),
-                  ...feeds.map((feed) => Tab(text: feed.title)),
+                  Tab(
+                    child: Text(
+                      'All',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Theme.of(context).appBarTheme.foregroundColor!,
+                      ),
+                    ),
+                  ),
+                  ...feeds.map(
+                    (feed) => Tab(
+                      child: Text(
+                        feed.title,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).appBarTheme.foregroundColor!,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

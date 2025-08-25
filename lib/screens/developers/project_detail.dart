@@ -58,7 +58,26 @@ class ProjectDetailScreen extends HookConsumerWidget {
         ],
         bottom: TabBar(
           controller: tabController,
-          tabs: [Tab(text: 'customApps'.tr()), Tab(text: 'bots'.tr())],
+          tabs: [
+            Tab(
+              child: Text(
+                'customApps'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).appBarTheme.foregroundColor!,
+                ),
+              ),
+            ),
+            Tab(
+              child: Text(
+                'bots'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).appBarTheme.foregroundColor!,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       body: TabBarView(

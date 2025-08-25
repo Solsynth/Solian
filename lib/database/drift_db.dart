@@ -68,6 +68,10 @@ class AppDatabase extends _$AppDatabase {
     return (delete(chatMessages)..where((m) => m.id.equals(id))).go();
   }
 
+  Future<int> getTotalMessagesForRoom(String roomId) {
+    return (select(chatMessages)..where((m) => m.roomId.equals(roomId))).get().then((list) => list.length);
+  }
+
   Future<List<LocalChatMessage>> searchMessages(
     String roomId,
     String query,

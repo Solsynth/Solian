@@ -27,7 +27,9 @@ class AppDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 2);
-    final appData = ref.watch(customAppProvider(publisherName, projectId, appId));
+    final appData = ref.watch(
+      customAppProvider(publisherName, projectId, appId),
+    );
 
     return AppScaffold(
       appBar: AppBar(
@@ -35,23 +37,43 @@ class AppDetailScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Symbols.edit),
-            onPressed: appData.value == null
-                ? null
-                : () {
-                    context.pushNamed(
-                      'developerAppEdit',
-                      pathParameters: {
-                        'name': publisherName,
-                        'projectId': projectId,
-                        'id': appId,
-                      },
-                    );
-                  },
+            onPressed:
+                appData.value == null
+                    ? null
+                    : () {
+                      context.pushNamed(
+                        'developerAppEdit',
+                        pathParameters: {
+                          'name': publisherName,
+                          'projectId': projectId,
+                          'id': appId,
+                        },
+                      );
+                    },
           ),
         ],
         bottom: TabBar(
           controller: tabController,
-          tabs: [Tab(text: 'overview'.tr()), Tab(text: 'secrets'.tr())],
+          tabs: [
+            Tab(
+              child: Text(
+                'overview'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).appBarTheme.foregroundColor!,
+                ),
+              ),
+            ),
+            Tab(
+              child: Text(
+                'secrets'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).appBarTheme.foregroundColor!,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       body: appData.when(
@@ -70,12 +92,14 @@ class AppDetailScreen extends HookConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => ResponseErrorWidget(
-          error: err,
-          onRetry: () => ref.invalidate(
-            customAppProvider(publisherName, projectId, appId),
-          ),
-        ),
+        error:
+            (err, stack) => ResponseErrorWidget(
+              error: err,
+              onRetry:
+                  () => ref.invalidate(
+                    customAppProvider(publisherName, projectId, appId),
+                  ),
+            ),
       ),
     );
   }
@@ -98,12 +122,13 @@ class _AppOverview extends StatelessWidget {
               children: [
                 Container(
                   color: Theme.of(context).colorScheme.surfaceContainer,
-                  child: app.background != null
-                      ? CloudFileWidget(
-                          item: app.background!,
-                          fit: BoxFit.cover,
-                        )
-                      : const SizedBox.shrink(),
+                  child:
+                      app.background != null
+                          ? CloudFileWidget(
+                            item: app.background!,
+                            fit: BoxFit.cover,
+                          )
+                          : const SizedBox.shrink(),
                 ),
                 Positioned(
                   left: 20,
