@@ -545,107 +545,119 @@ class PostHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: 12,
+    return Column(
       children: [
-        GestureDetector(
-          onTap:
-              isInteractive
-                  ? () {
-                    context.pushNamed(
-                      'publisherProfile',
-                      pathParameters: {'name': item.publisher.name},
-                    );
-                  }
-                  : null,
-          child: ProfilePictureWidget(
-            file: item.publisher.picture,
-            radius: 16,
-            borderRadius: item.publisher.type == 0 ? null : 6,
-          ),
-        ),
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+        if (item.pinMode != null)
+          Row(
+            spacing: 4,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 4,
+              const Icon(Symbols.keep, size: 15, fill: 1),
+              Text('pinnedPost').tr().fontSize(13),
+            ],
+          ).opacity(0.8).padding(horizontal: 8, bottom: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: 12,
+          children: [
+            GestureDetector(
+              onTap:
+                  isInteractive
+                      ? () {
+                        context.pushNamed(
+                          'publisherProfile',
+                          pathParameters: {'name': item.publisher.name},
+                        );
+                      }
+                      : null,
+              child: ProfilePictureWidget(
+                file: item.publisher.picture,
+                radius: 16,
+                borderRadius: item.publisher.type == 0 ? null : 6,
+              ),
+            ),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.publisher.nick).bold(),
-                  if (item.publisher.verification != null)
-                    VerificationMark(mark: item.publisher.verification!),
-                  if (item.realm == null)
-                    Text('@${item.publisher.name}').fontSize(11)
-                  else
-                    ...([
-                      const Icon(Symbols.arrow_right, size: 14),
-                      Flexible(
-                        child: InkWell(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 5,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  item.realm!.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    spacing: 4,
+                    children: [
+                      Text(item.publisher.nick).bold(),
+                      if (item.publisher.verification != null)
+                        VerificationMark(mark: item.publisher.verification!),
+                      if (item.realm == null)
+                        Text('@${item.publisher.name}').fontSize(11)
+                      else
+                        ...([
+                          const Icon(Symbols.arrow_right, size: 14),
+                          Flexible(
+                            child: InkWell(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                spacing: 5,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      item.realm!.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  ProfilePictureWidget(
+                                    file: item.realm!.picture,
+                                    fallbackIcon: Symbols.group,
+                                    radius: 9,
+                                  ),
+                                ],
                               ),
-                              ProfilePictureWidget(
-                                file: item.realm!.picture,
-                                fallbackIcon: Symbols.group,
-                                radius: 9,
-                              ),
+                              onTap: () {
+                                GoRouter.of(context).pushNamed(
+                                  'realmDetail',
+                                  pathParameters: {'slug': item.realm!.slug},
+                                );
+                              },
+                            ),
+                          ),
+                        ]),
+                    ],
+                  ),
+                  Row(
+                    spacing: 6,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        !isFullPost && isRelativeTime
+                            ? (item.publishedAt ?? item.createdAt)!
+                                .formatRelative(context)
+                            : (item.publishedAt ?? item.createdAt)!
+                                .formatSystem(),
+                      ).fontSize(10),
+                      if (item.editedAt != null)
+                        Text(
+                          'editedAt'.tr(
+                            args: [
+                              !isFullPost && isRelativeTime
+                                  ? item.editedAt!.formatRelative(context)
+                                  : item.editedAt!.formatSystem(),
                             ],
                           ),
-                          onTap: () {
-                            GoRouter.of(context).pushNamed(
-                              'realmDetail',
-                              pathParameters: {'slug': item.realm!.slug},
-                            );
-                          },
-                        ),
-                      ),
-                    ]),
+                        ).fontSize(10),
+                      if (item.visibility != 0)
+                        Text(
+                          PostVisibilityHelpers.getVisibilityText(
+                            item.visibility,
+                          ).tr(),
+                        ).fontSize(10),
+                    ],
+                  ),
                 ],
               ),
-              Row(
-                spacing: 6,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    !isFullPost && isRelativeTime
-                        ? (item.publishedAt ?? item.createdAt)!.formatRelative(
-                          context,
-                        )
-                        : (item.publishedAt ?? item.createdAt)!.formatSystem(),
-                  ).fontSize(10),
-                  if (item.editedAt != null)
-                    Text(
-                      'editedAt'.tr(
-                        args: [
-                          !isFullPost && isRelativeTime
-                              ? item.editedAt!.formatRelative(context)
-                              : item.editedAt!.formatSystem(),
-                        ],
-                      ),
-                    ).fontSize(10),
-                  if (item.visibility != 0)
-                    Text(
-                      PostVisibilityHelpers.getVisibilityText(
-                        item.visibility,
-                      ).tr(),
-                    ).fontSize(10),
-                ],
-              ),
-            ],
-          ),
+            ),
+            if (trailing != null) trailing!,
+          ],
         ),
-        if (trailing != null) trailing!,
       ],
     ).padding(horizontal: renderingPadding.horizontal, bottom: 4);
   }
