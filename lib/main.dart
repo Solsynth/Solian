@@ -169,12 +169,12 @@ class IslandApp extends HookConsumerWidget {
     final theme = ref.watch(themeProvider);
 
     void handleMessage(RemoteMessage notification) {
-      if (notification.data['action_uri'] != null) {
-        var uri = notification.data['action_uri'] as String;
+      if (notification.data['meta']?['action_uri'] != null) {
+        var uri = notification.data['meta']['action_uri'] as String;
         if (uri.startsWith('/')) {
           // In-app routes
           final router = ref.read(routerProvider);
-          router.go(notification.data['action_uri']);
+          router.push(notification.data['meta']['action_uri']);
         } else {
           // External links
           launchUrlString(uri);
@@ -186,27 +186,6 @@ class IslandApp extends HookConsumerWidget {
       if (!kIsWeb && Platform.isLinux) {
         return null;
       }
-      const channel = MethodChannel('dev.solsynth.solian/notifications');
-
-      Future<void> handleInitialLink() async {
-        final String? link = await channel.invokeMethod('initialLink');
-        if (link != null) {
-          final router = ref.read(routerProvider);
-          router.go(link);
-        }
-      }
-
-      if (!kIsWeb && Platform.isAndroid) {
-        handleInitialLink();
-      }
-
-      channel.setMethodCallHandler((call) async {
-        if (call.method == 'newLink') {
-          final String link = call.arguments;
-          final router = ref.read(routerProvider);
-          router.go(link);
-        }
-      });
 
       // When the app is opened from a terminated state.
       FirebaseMessaging.instance.getInitialMessage().then((message) {
