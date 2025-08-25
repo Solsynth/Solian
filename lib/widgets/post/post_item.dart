@@ -18,6 +18,7 @@ import 'package:island/screens/posts/compose.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_item_screenshot.dart';
+import 'package:island/widgets/post/post_pin_sheet.dart';
 import 'package:island/widgets/post/post_shared.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
@@ -202,6 +203,45 @@ class PostActionableItem extends HookConsumerWidget {
                 );
               },
             ),
+            if (isAuthor && item.pinMode == null)
+              MenuAction(
+                title: 'pinPost'.tr(),
+                image: MenuImage.icon(Symbols.keep),
+                callback: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => PostPinSheet(post: item),
+                  ).then((value) {
+                    if (value is int) {
+                      onUpdate?.call(item.copyWith(pinMode: value));
+                    }
+                  });
+                },
+              )
+            else if (isAuthor && item.pinMode != null)
+              MenuAction(
+                title: 'unpinPost'.tr(),
+                image: MenuImage.icon(Symbols.keep_off),
+                callback: () {
+                  showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then(
+                    (confirm) async {
+                      if (confirm) {
+                        final client = ref.watch(apiClientProvider);
+                        try {
+                          if (context.mounted) showLoadingModal(context);
+                          await client.delete('/sphere/posts/${item.id}/pin');
+                          onUpdate?.call(item.copyWith(pinMode: null));
+                        } catch (err) {
+                          showErrorAlert(err);
+                        } finally {
+                          if (context.mounted) hideLoadingModal(context);
+                        }
+                      }
+                    },
+                  );
+                },
+              ),
             MenuSeparator(),
             MenuAction(
               title: 'share'.tr(),

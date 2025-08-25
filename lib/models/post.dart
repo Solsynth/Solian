@@ -27,6 +27,7 @@ sealed class SnPost with _$SnPost {
     @Default(0) int upvotes,
     @Default(0) int downvotes,
     @Default(0) int repliesCount,
+    int? pinMode,
     String? threadedPostId,
     SnPost? threadedPost,
     String? repliedPostId,

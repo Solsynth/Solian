@@ -22,6 +22,7 @@ class PostListNotifier extends _$PostListNotifier
     List<String>? categories,
     List<String>? tags,
     bool shuffle = false,
+    bool pinned = false,
   }) {
     return fetch(cursor: null);
   }
@@ -40,6 +41,7 @@ class PostListNotifier extends _$PostListNotifier
       if (tags != null) 'tags': tags,
       if (categories != null) 'categories': categories,
       if (shuffle) 'shuffle': true,
+      if (pinned) 'pinned': true,
     };
 
     final response = await client.get(
@@ -77,6 +79,7 @@ class SliverPostList extends HookConsumerWidget {
   final List<String>? categories;
   final List<String>? tags;
   final bool shuffle;
+  final bool pinned;
   final PostItemType itemType;
   final Color? backgroundColor;
   final EdgeInsets? padding;
@@ -93,6 +96,7 @@ class SliverPostList extends HookConsumerWidget {
     this.categories,
     this.tags,
     this.shuffle = false,
+    this.pinned = false,
     this.itemType = PostItemType.regular,
     this.backgroundColor,
     this.padding,
@@ -104,33 +108,19 @@ class SliverPostList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final provider = postListNotifierProvider(
+      pubName: pubName,
+      realm: realm,
+      type: type,
+      categories: categories,
+      tags: tags,
+      shuffle: shuffle,
+      pinned: pinned,
+    );
     return PagingHelperSliverView(
-      provider: postListNotifierProvider(
-        pubName: pubName,
-        realm: realm,
-        type: type,
-        categories: categories,
-        tags: tags,
-        shuffle: shuffle,
-      ),
-      futureRefreshable:
-          postListNotifierProvider(
-            pubName: pubName,
-            realm: realm,
-            type: type,
-            categories: categories,
-            tags: tags,
-            shuffle: shuffle,
-          ).future,
-      notifierRefreshable:
-          postListNotifierProvider(
-            pubName: pubName,
-            realm: realm,
-            type: type,
-            categories: categories,
-            tags: tags,
-            shuffle: shuffle,
-          ).notifier,
+      provider: provider,
+      futureRefreshable: provider.future,
+      notifierRefreshable: provider.notifier,
       contentBuilder:
           (data, widgetCount, endItemView) => SliverList.builder(
             itemCount: widgetCount,

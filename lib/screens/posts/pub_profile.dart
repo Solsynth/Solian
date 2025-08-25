@@ -288,7 +288,11 @@ class PublisherProfileScreen extends HookConsumerWidget {
         controller: categoryTabController,
         dividerColor: Colors.transparent,
         splashBorderRadius: const BorderRadius.all(Radius.circular(8)),
-        tabs: [Tab(text: 'All'), Tab(text: 'Posts'), Tab(text: 'Articles')],
+        tabs: [
+          Tab(text: 'all'.tr()),
+          Tab(text: 'postTypePost'.tr()),
+          Tab(text: 'postArticle'.tr()),
+        ],
       ),
     );
 
@@ -345,6 +349,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           child: CustomScrollView(
                             slivers: [
                               SliverGap(16),
+                              SliverPostList(pubName: name, pinned: true),
                               SliverToBoxAdapter(
                                 child: publisherCategoryTabWidget(),
                               ),

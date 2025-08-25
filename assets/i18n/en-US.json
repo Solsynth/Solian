@@ -386,6 +386,7 @@
   "postSettings": "Settings",
   "postPublisherUnselected": "Publisher Unspecified",
   "postType": "Post Type",
+  "postTypePost": "Post",
   "articleAttachmentHint": "Attachments must be uploaded and inserted into the article body to be visible.",
   "postVisibility": "Post Visibility",
   "postVisibilityPublic": "Public",
@@ -926,5 +927,19 @@
   "newSecretGenerated": "New Secret Generated",
   "copySecretHint": "Please copy this secret and store it somewhere safe. You will not be able to see it again.",
   "expiresIn": "Expires In (seconds)",
-  "isOidc": "OIDC Compliant"
+  "isOidc": "OIDC Compliant",
+  "pinPost": "Pin Post",
+  "unpinPost": "Unpin Post",
+  "pinnedPost": "Pinned",
+  "publisherPage": "Publisher Page",
+  "realmPage": "Realm Page",
+  "replyPage": "Reply Page",
+  "pinPostPublisherHint": "Pin this post to your publisher page",
+  "pinPostRealmHint": "Pin this post to the realm page",
+  "pinPostRealmDisabledHint": "This post doesn't belong to any realm",
+  "pinPostReplyHint": "Pin this post to the reply page",
+  "pinPostReplyDisabledHint": "This post is not a reply",
+  "pin": "Pin",
+  "unpinPostHint": "Are you sure you want to unpin this post?",
+  "all": "All"
 }
