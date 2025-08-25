@@ -83,32 +83,32 @@ class PostPinSheet extends HookConsumerWidget {
           ),
 
           // Reply page pin option (show always, but disabled when not available)
-          ListTile(
-            leading: Radio<int>(
-              value: 2,
-              groupValue: mode.value,
-              onChanged:
-                  post.repliedPostId != null && post.repliedPostId!.isNotEmpty
-                      ? (value) {
-                        mode.value = value!;
-                      }
-                      : null,
-            ),
-            title: Text('replyPage'.tr()),
-            subtitle:
-                post.repliedPostId != null && post.repliedPostId!.isNotEmpty
-                    ? Text('pinPostReplyHint'.tr())
-                    : Text('pinPostReplyDisabledHint'.tr()),
-            onTap:
-                post.repliedPostId != null && post.repliedPostId!.isNotEmpty
-                    ? () {
-                      mode.value = 2;
-                    }
-                    : null,
-            enabled:
-                post.repliedPostId != null && post.repliedPostId!.isNotEmpty,
-          ),
-
+          // Disabled for now because im being lazy
+          // ListTile(
+          //   leading: Radio<int>(
+          //     value: 2,
+          //     groupValue: mode.value,
+          //     onChanged:
+          //         post.repliedPostId != null && post.repliedPostId!.isNotEmpty
+          //             ? (value) {
+          //               mode.value = value!;
+          //             }
+          //             : null,
+          //   ),
+          //   title: Text('replyPage'.tr()),
+          //   subtitle:
+          //       post.repliedPostId != null && post.repliedPostId!.isNotEmpty
+          //           ? Text('pinPostReplyHint'.tr())
+          //           : Text('pinPostReplyDisabledHint'.tr()),
+          //   onTap:
+          //       post.repliedPostId != null && post.repliedPostId!.isNotEmpty
+          //           ? () {
+          //             mode.value = 2;
+          //           }
+          //           : null,
+          //   enabled:
+          //       post.repliedPostId != null && post.repliedPostId!.isNotEmpty,
+          // ),
           const SizedBox(height: 16),
 
           // Pin button
