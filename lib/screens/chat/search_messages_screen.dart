@@ -32,7 +32,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
     }, []);
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Search Messages')),
+      appBar: AppBar(title: const Text('searchMessages').tr()),
       body: Column(
         children: [
           Column(
@@ -40,7 +40,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
               TextField(
                 controller: searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search messages...',
+                  hintText: 'searchMessagesHint'.tr(),
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.only(
@@ -72,7 +72,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
                   Expanded(
                     child: CheckboxListTile(
                       secondary: const Icon(Symbols.link),
-                      title: const Text('Links'),
+                      title: const Text('searchLinks').tr(),
                       value: withLinks.value,
                       onChanged: (bool? value) {
                         withLinks.value = value!;
@@ -87,7 +87,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
                   Expanded(
                     child: CheckboxListTile(
                       secondary: const Icon(Symbols.file_copy),
-                      title: const Text('Attachments'),
+                      title: const Text('searchAttachments').tr(),
                       value: withAttachments.value,
                       onChanged: (bool? value) {
                         withAttachments.value = value!;
@@ -109,7 +109,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
               data:
                   (messageList) =>
                       messageList.isEmpty
-                          ? Center(child: Text('No messages found'.tr()))
+                          ? Center(child: Text('noMessagesFound'.tr()))
                           : SuperListView.builder(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             reverse: true, // Show newest messages at the bottom
@@ -129,7 +129,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
                             },
                           ),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(child: Text('Error: $error')),
+              error: (error, _) => Center(child: Text('errorGeneric'.tr(args: [error.toString()]))),
             ),
           ),
         ],

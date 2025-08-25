@@ -140,7 +140,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                   const Text('chatBreakDescription').tr(),
                   const Gap(16),
                   ListTile(
-                    title: const Text('Clear').tr(),
+                    title: const Text('chatBreakClearButton').tr(),
                     subtitle: const Text('chatBreakClear').tr(),
                     leading: const Icon(Icons.notifications_active),
                     onTap: () {
@@ -152,8 +152,8 @@ class ChatDetailScreen extends HookConsumerWidget {
                     },
                   ),
                   ListTile(
-                    title: const Text('5m'),
-                    subtitle: const Text('chatBreakHour').tr(args: ['5m']),
+                    title: const Text('chatBreak5m').tr(),
+                    subtitle: const Text('chatBreakHour').tr(args: ['chatBreak5m'.tr()]),
                     leading: const Icon(Symbols.circle),
                     onTap: () {
                       setChatBreak(now.add(const Duration(minutes: 5)));
@@ -164,8 +164,8 @@ class ChatDetailScreen extends HookConsumerWidget {
                     },
                   ),
                   ListTile(
-                    title: const Text('10m'),
-                    subtitle: const Text('chatBreakHour').tr(args: ['10m']),
+                    title: const Text('chatBreak10m').tr(),
+                    subtitle: const Text('chatBreakHour').tr(args: ['chatBreak10m'.tr()]),
                     leading: const Icon(Symbols.circle),
                     onTap: () {
                       setChatBreak(now.add(const Duration(minutes: 10)));
@@ -176,8 +176,8 @@ class ChatDetailScreen extends HookConsumerWidget {
                     },
                   ),
                   ListTile(
-                    title: const Text('15m'),
-                    subtitle: const Text('chatBreakHour').tr(args: ['15m']),
+                    title: const Text('chatBreak15m').tr(),
+                    subtitle: const Text('chatBreakHour').tr(args: ['chatBreak15m'.tr()]),
                     leading: const Icon(Symbols.timer_3),
                     onTap: () {
                       setChatBreak(now.add(const Duration(minutes: 15)));
@@ -188,8 +188,8 @@ class ChatDetailScreen extends HookConsumerWidget {
                     },
                   ),
                   ListTile(
-                    title: const Text('30m'),
-                    subtitle: const Text('chatBreakHour').tr(args: ['30m']),
+                    title: const Text('chatBreak30m').tr(),
+                    subtitle: const Text('chatBreakHour').tr(args: ['chatBreak30m'.tr()]),
                     leading: const Icon(Symbols.timer),
                     onTap: () {
                       setChatBreak(now.add(const Duration(minutes: 30)));
@@ -203,8 +203,8 @@ class ChatDetailScreen extends HookConsumerWidget {
                   TextField(
                     controller: durationController,
                     decoration: InputDecoration(
-                      labelText: 'Custom (minutes)'.tr(),
-                      hintText: 'Enter minutes'.tr(),
+                      labelText: 'chatBreakCustomMinutes'.tr(),
+                      hintText: 'chatBreakEnterMinutes'.tr(),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.check),
@@ -247,7 +247,7 @@ class ChatDetailScreen extends HookConsumerWidget {
     return AppScaffold(
       body: roomState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+        error: (error, _) => Center(child: Text('errorGeneric'.tr(args: [error.toString()]))),
         data:
             (currentRoom) => CustomScrollView(
               slivers: [
@@ -373,11 +373,11 @@ class ChatDetailScreen extends HookConsumerWidget {
                                   ),
                                   leading: const Icon(Icons.search),
                                   trailing: const Icon(Symbols.chevron_right),
-                                  title: const Text('Search Messages').tr(),
+                                  title: const Text('searchMessages').tr(),
                                   subtitle: totalMessages.when(
-                                    data: (count) => Text('$count messages').tr(),
+                                    data: (count) => Text('messagesCount'.tr(args: [count.toString()])),
                                     loading: () => const CircularProgressIndicator(),
-                                    error: (err, stack) => Text('Error: $err'),
+                                    error: (err, stack) => Text('errorGeneric'.tr(args: [err.toString()])),
                                   ),
                                   onTap: () {
                                     context.pushNamed('searchMessages', pathParameters: {'id': id});
@@ -716,7 +716,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                                 ? 'permissionModerator'
                                 : 'permissionMember',
                           ).tr(),
-                          Text('·').bold().padding(horizontal: 6),
+                          Text('dotSeparator').bold().padding(horizontal: 6),
                           Expanded(child: Text("@${member.account.name}")),
                         ],
                       ),
@@ -876,7 +876,7 @@ class _ChatMemberRoleSheet extends HookConsumerWidget {
                     try {
                       final newRole = int.parse(roleController.text);
                       if (newRole < 0 || newRole > 100) {
-                        throw 'Role must be between 0 and 100';
+                        throw 'roleValidationHint'.tr();
                       }
 
                       final apiClient = ref.read(apiClientProvider);

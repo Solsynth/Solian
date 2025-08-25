@@ -944,5 +944,21 @@
   "unpinPostHint": "Are you sure you want to unpin this post?",
   "all": "All",
   "statusPresent": "Present",
-  "accountAutomated": "Automated"
+  "accountAutomated": "Automated",
+  "chatBreakClearButton": "Clear",
+  "chatBreak5m": "5m",
+  "chatBreak10m": "10m",
+  "chatBreak15m": "15m",
+  "chatBreak30m": "30m",
+  "chatBreakCustomMinutes": "Custom (minutes)",
+  "chatBreakEnterMinutes": "Enter minutes",
+  "errorGeneric": "Error: {}",
+  "searchMessages": "Search Messages",
+  "messagesCount": "{} messages",
+  "dotSeparator": "·",
+  "roleValidationHint": "Role must be between 0 and 100",
+  "searchMessagesHint": "Search messages...",
+  "searchLinks": "Links",
+  "searchAttachments": "Attachments",
+  "noMessagesFound": "No messages found"
 }
