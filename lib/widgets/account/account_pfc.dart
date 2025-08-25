@@ -107,7 +107,7 @@ class AccountProfileCard extends HookConsumerWidget {
                               size: 17,
                               fill: 1,
                             ).padding(right: 2),
-                            Text('accountAutomated').tr(),
+                            Text('accountAutomated').tr().fontSize(12),
                           ],
                         ),
                       if (data.profile.timeZone.isNotEmpty && !kIsWeb)

@@ -42,6 +42,16 @@ class AccountName extends StatelessWidget {
           StellarMembershipMark(membership: account.perkSubscription!),
         if (account.profile.verification != null)
           VerificationMark(mark: account.profile.verification!),
+        if (account.automatedId != null)
+          Tooltip(
+            message: 'automatedAccount'.tr(),
+            child: Icon(
+              Symbols.smart_toy,
+              size: 16,
+              color: nameStyle.color,
+              fill: 1,
+            ),
+          ),
       ],
     );
   }
@@ -141,7 +151,7 @@ class VerificationStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Icon(
           mark.type == 4
