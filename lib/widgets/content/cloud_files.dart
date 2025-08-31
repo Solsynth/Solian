@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
@@ -10,6 +12,7 @@ import 'package:island/services/time.dart';
 import 'package:island/widgets/content/audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import 'image.dart';
 import 'video.dart';
@@ -31,6 +34,16 @@ class CloudFileWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/drive/files/${item.id}';
+
+    String formatFileSize(int bytes) {
+      if (bytes <= 0) return '0 B';
+      if (bytes < 1024) return '$bytes B';
+      if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(2)} KB';
+      if (bytes < 1024 * 1024 * 1024) {
+        return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+      }
+      return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+    }
 
     var ratio =
         item.fileMeta?['ratio'] is num
@@ -60,7 +73,45 @@ class CloudFileWidget extends HookConsumerWidget {
           child: UniversalAudio(uri: uri, filename: item.name),
         ),
       ),
-      _ => Text('Unable render for ${item.mimeType}'),
+      _ => Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Symbols.insert_drive_file,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const Gap(8),
+          Text(
+            item.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            formatFileSize(item.size),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const Gap(8),
+          TextButton.icon(
+            onPressed: () {
+              launchUrlString(
+                'https://fs.solian.app/files/${item.id}',
+                mode: LaunchMode.externalApplication,
+              );
+            },
+            icon: const Icon(Symbols.launch),
+            label: Text('openInBrowser').tr(),
+          ),
+        ],
+      ).padding(all: 8),
     };
 
     if (heroTag != null) {
