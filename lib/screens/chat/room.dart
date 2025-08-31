@@ -4,6 +4,7 @@ import "dart:developer" as developer;
 import "dart:io";
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
+import "package:file_picker/file_picker.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
@@ -1251,26 +1252,32 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, [id]);
 
     Future<void> pickPhotoMedia() async {
-      final result = await ref
-          .watch(imagePickerProvider)
-          .pickMultiImage(requestFullMetadata: true);
-      if (result.isEmpty) return;
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: true,
+        allowCompression: false,
+      );
+      if (result == null || result.count == 0) return;
       attachments.value = [
         ...attachments.value,
-        ...result.map(
+        ...result.files.map(
           (e) => UniversalFile(data: e, type: UniversalFileType.image),
         ),
       ];
     }
 
     Future<void> pickVideoMedia() async {
-      final result = await ref
-          .watch(imagePickerProvider)
-          .pickVideo(source: ImageSource.gallery);
-      if (result == null) return;
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.video,
+        allowMultiple: true,
+        allowCompression: false,
+      );
+      if (result == null || result.count == 0) return;
       attachments.value = [
         ...attachments.value,
-        UniversalFile(data: result, type: UniversalFileType.video),
+        ...result.files.map(
+          (e) => UniversalFile(data: e, type: UniversalFileType.video),
+        ),
       ];
     }
 

@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -388,26 +389,32 @@ class ComposeLogic {
   }
 
   static Future<void> pickPhotoMedia(WidgetRef ref, ComposeState state) async {
-    final result = await ref
-        .watch(imagePickerProvider)
-        .pickMultiImage(requestFullMetadata: true);
-    if (result.isEmpty) return;
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: true,
+      allowCompression: false,
+    );
+    if (result == null || result.count == 0) return;
     state.attachments.value = [
       ...state.attachments.value,
-      ...result.map(
+      ...result.files.map(
         (e) => UniversalFile(data: e, type: UniversalFileType.image),
       ),
     ];
   }
 
   static Future<void> pickVideoMedia(WidgetRef ref, ComposeState state) async {
-    final result = await ref
-        .watch(imagePickerProvider)
-        .pickVideo(source: ImageSource.gallery);
-    if (result == null) return;
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.video,
+      allowMultiple: true,
+      allowCompression: false,
+    );
+    if (result == null || result.count == 0) return;
     state.attachments.value = [
       ...state.attachments.value,
-      UniversalFile(data: result, type: UniversalFileType.video),
+      ...result.files.map(
+        (e) => UniversalFile(data: e, type: UniversalFileType.video),
+      ),
     ];
   }
 
