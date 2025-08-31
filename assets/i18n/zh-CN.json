@@ -857,5 +857,6 @@
   "expiresIn": "过期时间（秒）",
   "isOidc": "OIDC 兼容",
   "statusPresent": "至今",
-  "accountAutomated": "机器人"
+  "accountAutomated": "机器人",
+  "openInBrowser": "在浏览器中打开"
 }

@@ -951,7 +951,6 @@
   "chatBreak15m": "15m",
   "chatBreak30m": "30m",
   "chatBreakCustomMinutes": "Custom (minutes)",
-  "chatBreakEnterMinutes": "Enter minutes",
   "errorGeneric": "Error: {}",
   "searchMessages": "Search Messages",
   "messagesCount": "{} messages",
@@ -960,5 +959,6 @@
   "searchMessagesHint": "Search messages...",
   "searchLinks": "Links",
   "searchAttachments": "Attachments",
-  "noMessagesFound": "No messages found"
+  "noMessagesFound": "No messages found",
+  "openInBrowser": "Open in Browser"
 }
