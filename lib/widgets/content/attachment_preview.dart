@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
+import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
@@ -284,6 +285,13 @@ class AttachmentPreview extends HookConsumerWidget {
                   Builder(
                     key: ValueKey(item.hashCode),
                     builder: (context) {
+                      final fallbackIcon = switch (item.type) {
+                        UniversalFileType.video => Symbols.video_file,
+                        UniversalFileType.audio => Symbols.audio_file,
+                        UniversalFileType.image => Symbols.image,
+                        _ => Symbols.insert_drive_file,
+                      };
+
                       if (item.isOnCloud) {
                         return CloudFileWidget(item: item.data);
                       } else if (item.data is XFile) {
@@ -309,9 +317,23 @@ class AttachmentPreview extends HookConsumerWidget {
                                 : Image.file(File(file.path));
                           default:
                             return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Symbols.document_scanner),
+                                Icon(fallbackIcon),
+                                const Gap(6),
                                 Text(file.name),
+                                FutureBuilder(
+                                  future: file.length(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      final size = snapshot.data as int;
+                                      return Text(
+                                        formatFileSize(size),
+                                      ).fontSize(11);
+                                    }
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
                               ],
                             );
                         }
@@ -321,7 +343,14 @@ class AttachmentPreview extends HookConsumerWidget {
                             return Image.memory(item.data);
                           default:
                             return Column(
-                              children: [const Icon(Symbols.document_scanner)],
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(fallbackIcon),
+                                const Gap(6),
+                                Text(
+                                  formatFileSize(item.data.length),
+                                ).fontSize(11),
+                              ],
                             );
                         }
                       }
