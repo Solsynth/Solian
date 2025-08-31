@@ -25,7 +25,7 @@ class PostShuffleScreen extends HookConsumerWidget {
       return cardSwiperController.dispose;
     }, []);
 
-    const kBottomControlHeight = 64.0;
+    const kBottomControlHeight = 80.0;
 
     return AppScaffold(
       appBar: AppBar(title: const Text('postShuffle').tr()),

@@ -762,7 +762,9 @@ class PostBody extends ConsumerWidget {
                   ).padding(bottom: 4),
                 MarkdownTextContent(
                   content:
-                      item.isTruncated ? '${item.content!}...' : item.content!,
+                      item.isTruncated
+                          ? '${item.content!}...'
+                          : item.content ?? '',
                   isSelectable: isTextSelectable,
                 ),
                 if (translationSection != null) translationSection!,
