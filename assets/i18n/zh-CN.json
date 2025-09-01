@@ -858,5 +858,6 @@
   "isOidc": "OIDC 兼容",
   "statusPresent": "至今",
   "accountAutomated": "机器人",
-  "openInBrowser": "在浏览器中打开"
+  "openInBrowser": "在浏览器中打开",
+  "highlightPost": "精选帖子"
 }

@@ -10,6 +10,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_shared.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
 class PostItemCreator extends HookConsumerWidget {
@@ -33,7 +34,7 @@ class PostItemCreator extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final renderingPadding =
-        padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
+        padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
     return ContextMenuWidget(
       menuProvider: (_) {
@@ -97,18 +98,22 @@ class PostItemCreator extends HookConsumerWidget {
               context.goNamed('postDetail', pathParameters: {'id': item.id});
             }
           },
-          child: Padding(
-            padding: renderingPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PostHeader(item: item),
-                PostBody(item: item),
-                ReferencedPostWidget(item: item),
-                const Gap(16),
-                _buildAnalyticsSection(context),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Gap(renderingPadding.vertical),
+              PostHeader(item: item, renderingPadding: renderingPadding),
+              PostBody(item: item, renderingPadding: renderingPadding),
+              ReferencedPostWidget(
+                item: item,
+                renderingPadding: renderingPadding,
+              ),
+              const Gap(16),
+              _buildAnalyticsSection(
+                context,
+              ).padding(horizontal: renderingPadding.horizontal),
+              Gap(renderingPadding.vertical),
+            ],
           ),
         ),
       ),

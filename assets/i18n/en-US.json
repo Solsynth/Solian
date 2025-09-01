@@ -960,5 +960,6 @@
   "searchLinks": "Links",
   "searchAttachments": "Attachments",
   "noMessagesFound": "No messages found",
-  "openInBrowser": "Open in Browser"
+  "openInBrowser": "Open in Browser",
+  "highlightPost": "Highlight Post"
 }
