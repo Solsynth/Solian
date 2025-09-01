@@ -68,6 +68,7 @@ class AccountScreen extends HookConsumerWidget {
       body: SingleChildScrollView(
         padding: getTabbedPadding(context),
         child: Column(
+          spacing: 4,
           children: <Widget>[
             Card(
               child: Column(
@@ -112,20 +113,22 @@ class AccountScreen extends HookConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                               textBaseline: TextBaseline.alphabetic,
                               children: [
-                                AccountName(
-                                  account: user.value!,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                Flexible(
+                                  child: AccountName(
+                                    account: user.value!,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                                Text('@${user.value!.name}'),
+                                Flexible(child: Text('@${user.value!.name}')),
                               ],
                             ),
                             Text(
                               (user.value!.profile.bio.isNotEmpty)
                                   ? user.value!.profile.bio
-                                  : 'No description yet.',
+                                  : 'descriptionNone'.tr(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -158,8 +161,16 @@ class AccountScreen extends HookConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Symbols.draw, size: 28).padding(bottom: 8),
-                          Text('creatorHub').tr().fontSize(16).bold(),
-                          Text('creatorHubDescription').tr(),
+                          Text(
+                            'creatorHub',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ).tr().fontSize(16).bold(),
+                          Text(
+                            'creatorHubDescription',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ).tr(),
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {
@@ -176,8 +187,16 @@ class AccountScreen extends HookConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Symbols.code, size: 28).padding(bottom: 8),
-                          Text('developerPortal').tr().fontSize(16).bold(),
-                          Text('developerPortalDescription').tr(),
+                          Text(
+                            'developerPortal',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ).tr().fontSize(16).bold(),
+                          Text(
+                            'developerPortalDescription',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ).tr(),
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {

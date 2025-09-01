@@ -60,7 +60,9 @@ class AccountStatusCreationWidget extends HookConsumerWidget {
                         spacing: 4,
                         children: [
                           Icon(Symbols.keyboard_arrow_up),
-                          Text('statusCreateHint').tr(),
+                          Expanded(
+                            child: Text('statusCreateHint', maxLines: 1).tr(),
+                          ),
                         ],
                       ),
                     ).opacity(0.85),

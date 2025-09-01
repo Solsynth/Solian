@@ -1394,6 +1394,8 @@ class ChatRoomScreen extends HookConsumerWidget {
       ],
     );
 
+    const messageKeyPrefix = 'message-';
+
     Widget chatMessageListWidget(List<LocalChatMessage> messageList) =>
         SuperListView.builder(
           listController: listController,
@@ -1403,7 +1405,9 @@ class ChatRoomScreen extends HookConsumerWidget {
           itemCount: messageList.length,
           findChildIndexCallback: (key) {
             final valueKey = key as ValueKey;
-            final messageId = valueKey.value as String;
+            final messageId = (valueKey.value as String).substring(
+              messageKeyPrefix.length,
+            );
             return messageList.indexWhere((m) => m.id == messageId);
           },
           extentEstimation: (_, _) => 40,
@@ -1420,10 +1424,13 @@ class ChatRoomScreen extends HookConsumerWidget {
                         .abs() >
                     3;
 
+            final key = ValueKey('$messageKeyPrefix${message.id}');
+
             return chatIdentity.when(
               skipError: true,
               data:
                   (identity) => MessageItem(
+                    key: key,
                     message: message,
                     isCurrentUser: identity?.id == message.senderId,
                     onAction: (action) {
@@ -1466,6 +1473,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                   ),
               loading:
                   () => MessageItem(
+                    key: key,
                     message: message,
                     isCurrentUser: false,
                     onAction: null,
@@ -1473,7 +1481,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                     showAvatar: false,
                     onJump: (_) {},
                   ),
-              error: (_, _) => const SizedBox.shrink(),
+              error: (_, _) => SizedBox.shrink(key: key),
             );
           },
         );
