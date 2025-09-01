@@ -340,7 +340,14 @@ class PostItem extends HookConsumerWidget {
             final delta = isRemoving ? -1 : 1;
             final reactionsCount = Map<String, int>.from(item.reactionsCount);
             reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
-            onUpdate?.call(item.copyWith(reactionsCount: reactionsCount));
+            final reactionsMade = Map<String, bool>.from(item.reactionsMade);
+            reactionsMade[symbol] = delta == 1 ? true : false;
+            onUpdate?.call(
+              item.copyWith(
+                reactionsCount: reactionsCount,
+                reactionsMade: reactionsMade,
+              ),
+            );
             HapticFeedback.heavyImpact();
           });
       reacting.value = false;
