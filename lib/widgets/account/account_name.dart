@@ -37,7 +37,14 @@ class AccountName extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       spacing: 4,
       children: [
-        Flexible(child: Text(account.nick, style: nameStyle)),
+        Flexible(
+          child: Text(
+            account.nick,
+            style: nameStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         if (account.perkSubscription != null)
           StellarMembershipMark(membership: account.perkSubscription!),
         if (account.profile.verification != null)
