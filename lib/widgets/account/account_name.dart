@@ -162,7 +162,7 @@ class VerificationStatusCard extends StatelessWidget {
           size: 32,
           color: kVerificationMarkColors[mark.type],
           fill: 1,
-        ),
+        ).alignment(Alignment.centerLeft),
         const Gap(8),
         Text(mark.title ?? 'No title').bold(),
         Text(mark.description ?? 'descriptionNone'.tr()),

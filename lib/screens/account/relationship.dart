@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -99,7 +100,10 @@ class RelationshipListTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 16, right: 12),
-      leading: ProfilePictureWidget(fileId: account.profile.picture?.id),
+      leading: AccountPfcGestureDetector(
+        uname: account.name,
+        child: ProfilePictureWidget(fileId: account.profile.picture?.id),
+      ),
       title: Row(
         spacing: 6,
         children: [

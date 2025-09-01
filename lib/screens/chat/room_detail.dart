@@ -153,7 +153,9 @@ class ChatDetailScreen extends HookConsumerWidget {
                   ),
                   ListTile(
                     title: const Text('chatBreak5m').tr(),
-                    subtitle: const Text('chatBreakHour').tr(args: ['chatBreak5m'.tr()]),
+                    subtitle: const Text(
+                      'chatBreakHour',
+                    ).tr(args: ['chatBreak5m'.tr()]),
                     leading: const Icon(Symbols.circle),
                     onTap: () {
                       setChatBreak(now.add(const Duration(minutes: 5)));
@@ -165,7 +167,9 @@ class ChatDetailScreen extends HookConsumerWidget {
                   ),
                   ListTile(
                     title: const Text('chatBreak10m').tr(),
-                    subtitle: const Text('chatBreakHour').tr(args: ['chatBreak10m'.tr()]),
+                    subtitle: const Text(
+                      'chatBreakHour',
+                    ).tr(args: ['chatBreak10m'.tr()]),
                     leading: const Icon(Symbols.circle),
                     onTap: () {
                       setChatBreak(now.add(const Duration(minutes: 10)));
@@ -177,7 +181,9 @@ class ChatDetailScreen extends HookConsumerWidget {
                   ),
                   ListTile(
                     title: const Text('chatBreak15m').tr(),
-                    subtitle: const Text('chatBreakHour').tr(args: ['chatBreak15m'.tr()]),
+                    subtitle: const Text(
+                      'chatBreakHour',
+                    ).tr(args: ['chatBreak15m'.tr()]),
                     leading: const Icon(Symbols.timer_3),
                     onTap: () {
                       setChatBreak(now.add(const Duration(minutes: 15)));
@@ -189,7 +195,9 @@ class ChatDetailScreen extends HookConsumerWidget {
                   ),
                   ListTile(
                     title: const Text('chatBreak30m').tr(),
-                    subtitle: const Text('chatBreakHour').tr(args: ['chatBreak30m'.tr()]),
+                    subtitle: const Text(
+                      'chatBreakHour',
+                    ).tr(args: ['chatBreak30m'.tr()]),
                     leading: const Icon(Symbols.timer),
                     onTap: () {
                       setChatBreak(now.add(const Duration(minutes: 30)));
@@ -247,7 +255,10 @@ class ChatDetailScreen extends HookConsumerWidget {
     return AppScaffold(
       body: roomState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('errorGeneric'.tr(args: [error.toString()]))),
+        error:
+            (error, _) => Center(
+              child: Text('errorGeneric'.tr(args: [error.toString()])),
+            ),
         data:
             (currentRoom) => CustomScrollView(
               slivers: [
@@ -375,12 +386,26 @@ class ChatDetailScreen extends HookConsumerWidget {
                                   trailing: const Icon(Symbols.chevron_right),
                                   title: const Text('searchMessages').tr(),
                                   subtitle: totalMessages.when(
-                                    data: (count) => Text('messagesCount'.tr(args: [count.toString()])),
-                                    loading: () => const CircularProgressIndicator(),
-                                    error: (err, stack) => Text('errorGeneric'.tr(args: [err.toString()])),
+                                    data:
+                                        (count) => Text(
+                                          'messagesCount'.tr(
+                                            args: [count.toString()],
+                                          ),
+                                        ),
+                                    loading:
+                                        () => const CircularProgressIndicator(),
+                                    error:
+                                        (err, stack) => Text(
+                                          'errorGeneric'.tr(
+                                            args: [err.toString()],
+                                          ),
+                                        ),
                                   ),
                                   onTap: () {
-                                    context.pushNamed('searchMessages', pathParameters: {'id': id});
+                                    context.pushNamed(
+                                      'searchMessages',
+                                      pathParameters: {'id': id},
+                                    );
                                   },
                                 ),
                               ],
@@ -716,7 +741,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                                 ? 'permissionModerator'
                                 : 'permissionMember',
                           ).tr(),
-                          Text('dotSeparator').bold().padding(horizontal: 6),
+                          Text('·').bold().padding(horizontal: 6),
                           Expanded(child: Text("@${member.account.name}")),
                         ],
                       ),

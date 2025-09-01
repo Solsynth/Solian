@@ -111,26 +111,39 @@ class AccountProfileCard extends HookConsumerWidget {
                           ],
                         ),
                       if (data.profile.timeZone.isNotEmpty && !kIsWeb)
-                        Row(
-                          spacing: 6,
-                          children: [
-                            Icon(
-                              Symbols.alarm,
-                              size: 17,
-                              fill: 1,
-                            ).padding(right: 2),
-                            Text(
-                              getTzInfo(
-                                data.profile.timeZone,
-                              ).$2.formatCustomGlobal('HH:mm'),
-                            ).fontSize(12),
-                            Text(
-                              getTzInfo(
-                                data.profile.timeZone,
-                              ).$1.formatOffsetLocal(),
-                            ).fontSize(12),
-                          ],
-                        ).padding(top: 2),
+                        () {
+                          try {
+                            final tzInfo = getTzInfo(data.profile.timeZone);
+                            return Row(
+                              spacing: 6,
+                              children: [
+                                Icon(
+                                  Symbols.alarm,
+                                  size: 17,
+                                  fill: 1,
+                                ).padding(right: 2),
+                                Text(
+                                  tzInfo.$2.formatCustomGlobal('HH:mm'),
+                                ).fontSize(12),
+                                Text(
+                                  tzInfo.$1.formatOffsetLocal(),
+                                ).fontSize(12),
+                              ],
+                            ).padding(top: 2);
+                          } catch (e) {
+                            return Row(
+                              spacing: 6,
+                              children: [
+                                Icon(
+                                  Symbols.alarm,
+                                  size: 17,
+                                  fill: 1,
+                                ).padding(right: 2),
+                                Text('timezoneNotFound'.tr()).fontSize(12),
+                              ],
+                            ).padding(top: 2);
+                          }
+                        }(),
                       if (data.badges.isNotEmpty)
                         BadgeList(badges: data.badges).padding(top: 12),
                       LevelingProgressCard(
