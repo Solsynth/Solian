@@ -961,5 +961,13 @@
   "searchAttachments": "Attachments",
   "noMessagesFound": "No messages found",
   "openInBrowser": "Open in Browser",
-  "highlightPost": "Highlight Post"
+  "highlightPost": "Highlight Post",
+  "filters": "Filters",
+  "apply": "Apply",
+  "pubName": "Pub Name",
+  "realm": "Realm",
+  "shuffle": "Shuffle",
+  "pinned": "Pinned",
+  "noResultsFound": "No results found",
+  "toggleFilters": "Toggle filters"
 }
