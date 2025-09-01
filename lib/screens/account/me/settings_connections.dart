@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/auth.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/account/me/account_settings.dart';
 import 'package:island/screens/auth/oidc.native.dart';
@@ -16,6 +18,7 @@ import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 // Helper function to get provider icon and localized name
 Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
@@ -165,9 +168,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
               scopes: [AppleIDAuthorizationScopes.email],
               webAuthenticationOptions: WebAuthenticationOptions(
                 clientId: 'dev.solsynth.solarpass',
-                redirectUri: Uri.parse(
-                  'https://id.solian.app/auth/callback/apple',
-                ),
+                redirectUri: Uri.parse('https://id.solian.app/auth/callback'),
               ),
             );
 
@@ -195,17 +196,25 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
         case 'github':
         case 'discord':
         case 'afdian':
-          await Navigator.of(context, rootNavigator: true).push(
-            MaterialPageRoute(
-              builder:
-                  (context) => OidcScreen(
-                    provider: selectedProvider.value.toLowerCase(),
-                    title:
-                        'Connect with ${selectedProvider.value.capitalizeEachWord()}',
-                  ),
-            ),
-          );
-          if (context.mounted) Navigator.pop(context, true);
+          if (kIsWeb) {
+            final serverUrl = ref.watch(serverUrlProvider);
+            final accessToken = ref.watch(tokenProvider);
+            launchUrlString(
+              '$serverUrl/id/auth/login/${selectedProvider.value}?tk=${accessToken!.token}',
+            );
+          } else {
+            await Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder:
+                    (context) => OidcScreen(
+                      provider: selectedProvider.value.toLowerCase(),
+                      title:
+                          'Connect with ${selectedProvider.value.capitalizeEachWord()}',
+                    ),
+              ),
+            );
+            if (context.mounted) Navigator.pop(context, true);
+          }
           break;
         default:
           showSnackBar('accountConnectionAddError'.tr());

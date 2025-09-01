@@ -14,7 +14,6 @@ import 'package:island/screens/account/me/settings_connections.dart';
 import 'package:island/screens/account/me/settings_contacts.dart';
 import 'package:island/screens/auth/captcha.dart';
 import 'package:island/screens/auth/login.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_devices.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -57,7 +56,6 @@ class AccountSettingsScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop =
         !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
-    final isWide = isWideScreen(context);
 
     Future<void> requestAccountDeletion() async {
       final confirm = await showConfirmAlert(
@@ -440,51 +438,19 @@ class AccountSettingsScreen extends HookConsumerWidget {
 
     // Create a responsive layout based on screen width
     Widget buildSettingsList() {
-      if (isWide) {
-        // Two-column layout for wide screens
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _SettingsSection(
-                    title: 'accountSecurityTitle',
-                    children: securitySettings,
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _SettingsSection(
-                    title: 'accountDangerZoneTitle',
-                    children: dangerZoneSettings,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      } else {
-        // Single column layout for narrow screens
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SettingsSection(
-              title: 'accountSecurityTitle',
-              children: securitySettings,
-            ),
-            _SettingsSection(
-              title: 'accountDangerZoneTitle',
-              children: dangerZoneSettings,
-            ),
-          ],
-        );
-      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SettingsSection(
+            title: 'accountSecurityTitle',
+            children: securitySettings,
+          ),
+          _SettingsSection(
+            title: 'accountDangerZoneTitle',
+            children: dangerZoneSettings,
+          ),
+        ],
+      );
     }
 
     return AppScaffold(

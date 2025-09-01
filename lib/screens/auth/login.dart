@@ -700,45 +700,48 @@ class _LoginLookupScreen extends HookConsumerWidget {
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNewTicket(),
         ).padding(horizontal: 7),
-        Row(
-          spacing: 6,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Text("loginOr").tr().fontSize(11).opacity(0.85),
-            const Gap(8),
-            Spacer(),
-            IconButton.filledTonal(
-              onPressed: () => withOidc('github'),
-              padding: EdgeInsets.zero,
-              icon: getProviderIcon(
-                "github",
-                size: 16,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+        if (!kIsWeb)
+          Row(
+            spacing: 6,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text("loginOr").tr().fontSize(11).opacity(0.85),
+              const Gap(8),
+              Spacer(),
+              IconButton.filledTonal(
+                onPressed: () => withOidc('github'),
+                padding: EdgeInsets.zero,
+                icon: getProviderIcon(
+                  "github",
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                tooltip: 'GitHub',
               ),
-              tooltip: 'GitHub',
-            ),
-            IconButton.filledTonal(
-              onPressed: () => withOidc('google'),
-              padding: EdgeInsets.zero,
-              icon: getProviderIcon(
-                "google",
-                size: 16,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              IconButton.filledTonal(
+                onPressed: () => withOidc('google'),
+                padding: EdgeInsets.zero,
+                icon: getProviderIcon(
+                  "google",
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                tooltip: 'Google',
               ),
-              tooltip: 'Google',
-            ),
-            IconButton.filledTonal(
-              onPressed: withApple,
-              padding: EdgeInsets.zero,
-              icon: getProviderIcon(
-                "apple",
-                size: 16,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              IconButton.filledTonal(
+                onPressed: withApple,
+                padding: EdgeInsets.zero,
+                icon: getProviderIcon(
+                  "apple",
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                tooltip: 'Apple Account',
               ),
-              tooltip: 'Apple Account',
-            ),
-          ],
-        ).padding(horizontal: 8, vertical: 8),
+            ],
+          ).padding(horizontal: 8, vertical: 8)
+        else
+          const Gap(12),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
