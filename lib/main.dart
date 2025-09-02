@@ -30,7 +30,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:flutter_langdetect/flutter_langdetect.dart' as langdetect;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -52,7 +51,6 @@ void main() async {
   }
 
   try {
-    await langdetect.initLangDetect();
     await EasyLocalization.ensureInitialized();
 
     if (kIsWeb || !Platform.isLinux) {

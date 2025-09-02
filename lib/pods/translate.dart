@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/network.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:flutter_langdetect/flutter_langdetect.dart' as langdetect;
 
 part 'translate.freezed.dart';
 part 'translate.g.dart';
@@ -29,10 +27,17 @@ Future<String> translateString(Ref ref, TranslateQuery query) async {
 
 @riverpod
 String? detectStringLanguage(Ref ref, String text) {
-  try {
-    return langdetect.detectLangs(text).firstOrNull?.lang;
-  } catch (err) {
-    log('[Language] Unable to detect text\'s language: $text');
-    return null;
+  bool isChinese(String text) {
+    final chineseRegex = RegExp(r'[\u4e00-\u9fff]');
+    return chineseRegex.hasMatch(text);
   }
+
+  bool isEnglish(String text) {
+    final englishRegex = RegExp(r'[a-zA-Z]');
+    return englishRegex.hasMatch(text) && !isChinese(text);
+  }
+
+  if (isChinese(text)) return "zh";
+  if (isEnglish(text)) return "en";
+  return null;
 }
