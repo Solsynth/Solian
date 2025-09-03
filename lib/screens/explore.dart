@@ -629,7 +629,7 @@ class ActivityListNotifier extends _$ActivityListNotifier
         items.isNotEmpty
             ? items
                 .map((x) => x.createdAt)
-                .reduce((a, b) => a.isAfter(b) ? a : b)
+                .reduce((a, b) => a.isBefore(b) ? a : b)
                 .toUtc()
                 .toIso8601String()
             : null;
