@@ -219,6 +219,33 @@ class SettingsScreen extends HookConsumerWidget {
           },
         ),
 
+      // Background image enabled
+      if (!kIsWeb && docBasepath.value != null)
+        FutureBuilder<bool>(
+          future:
+              File('${docBasepath.value}/$kAppBackgroundImagePath').exists(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || !snapshot.data!) {
+              return const SizedBox.shrink();
+            }
+
+            return ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsBackgroundImageEnable').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.image),
+              trailing: Switch(
+                value: settings.showBackgroundImage,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsNotifierProvider.notifier)
+                      .setShowBackgroundImage(value);
+                },
+              ),
+            );
+          },
+        ),
+
       // Clear background image option
       if (!kIsWeb && docBasepath.value != null)
         FutureBuilder<bool>(
@@ -426,63 +453,8 @@ class SettingsScreen extends HookConsumerWidget {
     ];
 
     // Desktop-specific settings
-    final desktopSettings =
-        !isDesktop
-            ? <Widget>[]
-            : <Widget>[
-              ListTile(
-                minLeadingWidth: 48,
-                title: Text('settingsKeyboardShortcuts').tr(),
-                contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                leading: const Icon(Symbols.keyboard),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: Text('settingsKeyboardShortcuts').tr(),
-                          content: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _ShortcutRow(
-                                  shortcut: 'Ctrl+F',
-                                  description:
-                                      'settingsKeyboardShortcutSearch'.tr(),
-                                ),
-                                _ShortcutRow(
-                                  shortcut: 'Ctrl+,',
-                                  description:
-                                      'settingsKeyboardShortcutSettings'.tr(),
-                                ),
-                                _ShortcutRow(
-                                  shortcut: 'Ctrl+N',
-                                  description:
-                                      'settingsKeyboardShortcutNewMessage'.tr(),
-                                ),
-                                _ShortcutRow(
-                                  shortcut: 'Esc',
-                                  description:
-                                      'settingsKeyboardShortcutCloseDialog'
-                                          .tr(),
-                                ),
-                                // Add more shortcuts as needed
-                              ],
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Text('close').tr(),
-                            ),
-                          ],
-                        ),
-                  );
-                },
-                trailing: const Icon(Symbols.chevron_right),
-              ),
-            ];
+    // But nothing for now
+    final desktopSettings = !isDesktop ? <Widget>[] : <Widget>[];
 
     // Create a responsive layout based on screen width
     Widget buildSettingsList() {
@@ -553,34 +525,7 @@ class SettingsScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(
-        title: Text('settings').tr(),
-        actions:
-            isDesktop
-                ? [
-                  IconButton(
-                    icon: const Icon(Symbols.help_outline),
-                    onPressed: () {
-                      // Show help dialog
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: Text('settingsHelp').tr(),
-                              content: Text('settingsHelpContent').tr(),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: Text('close').tr(),
-                                ),
-                              ],
-                            ),
-                      );
-                    },
-                  ),
-                ]
-                : null,
-      ),
+      appBar: AppBar(title: Text('settings').tr()),
       body: Focus(
         autofocus: true,
         onKeyEvent: (node, event) {
@@ -627,38 +572,6 @@ class _SettingsSection extends StatelessWidget {
         ...children,
         const SizedBox(height: 16),
       ],
-    );
-  }
-}
-
-// Helper widget for displaying keyboard shortcuts
-class _ShortcutRow extends StatelessWidget {
-  final String shortcut;
-  final String description;
-
-  const _ShortcutRow({required this.shortcut, required this.description});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-              ),
-            ),
-            child: Text(shortcut, style: TextStyle(fontFamily: 'monospace')),
-          ),
-          SizedBox(width: 16),
-          Text(description),
-        ],
-      ),
     );
   }
 }

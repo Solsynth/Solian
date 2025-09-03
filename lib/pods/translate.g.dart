@@ -149,7 +149,7 @@ class _TranslateStringProviderElement
 }
 
 String _$detectStringLanguageHash() =>
-    r'697b68464b3d00927cc43ccc1ba8ba93f2a470ed';
+    r'24fbf52edbbffcc8dc4f09f7206f82d69728e703';
 
 /// See also [detectStringLanguage].
 @ProviderFor(detectStringLanguage)

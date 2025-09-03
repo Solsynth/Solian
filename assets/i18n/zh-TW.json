@@ -303,7 +303,8 @@
     "notifications": "通知",
     "posts": "帖子",
     "settingsBackgroundImage": "背景圖片",
-    "settingsBackgroundImageClear": "清除背景圖片",
+  "settingsBackgroundImageEnable": "顯示背景圖片",
+  "settingsBackgroundImageClear": "清除背景圖片",
     "settingsBackgroundGenerateColor": "從背景圖像生成主題色",
     "messageNone": "沒有內容可顯示",
     "unreadMessages": {
