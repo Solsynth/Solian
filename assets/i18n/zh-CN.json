@@ -304,6 +304,7 @@
   "notifications": "通知",
   "posts": "帖子",
   "settingsBackgroundImage": "背景图片",
+  "settingsBackgroundImageEnable": "显示背景图片",
   "settingsBackgroundImageClear": "清除背景图片",
   "settingsBackgroundGenerateColor": "从背景图像生成主题色",
   "messageNone": "没有内容可显示",

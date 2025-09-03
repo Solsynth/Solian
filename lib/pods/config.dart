@@ -15,6 +15,7 @@ const kNetworkServerStoreKey = 'app_server_url';
 
 const kAppbarTransparentStoreKey = 'app_bar_transparent';
 const kAppBackgroundStoreKey = 'app_has_background';
+const kAppShowBackgroundImage = 'app_show_background_image';
 const kAppColorSchemeStoreKey = 'app_color_scheme';
 const kAppNotifyWithHaptic = 'app_notify_with_haptic';
 const kAppCustomFonts = 'app_custom_fonts';
@@ -58,6 +59,7 @@ sealed class AppSettings with _$AppSettings {
     required bool aprilFoolFeatures,
     required bool enterToSend,
     required bool appBarTransparent,
+    required bool showBackgroundImage,
     required String? customFonts,
     required int? appColorScheme, // The color stored via the int type
     required Size? windowSize, // The window size for desktop platforms
@@ -75,6 +77,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       aprilFoolFeatures: prefs.getBool(kAppAprilFoolFeatures) ?? true,
       enterToSend: prefs.getBool(kAppEnterToSend) ?? true,
       appBarTransparent: prefs.getBool(kAppbarTransparentStoreKey) ?? false,
+      showBackgroundImage: prefs.getBool(kAppShowBackgroundImage) ?? true,
       customFonts: prefs.getString(kAppCustomFonts),
       appColorScheme: prefs.getInt(kAppColorSchemeStoreKey),
       windowSize: _getWindowSizeFromPrefs(prefs),
@@ -127,6 +130,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     prefs.setBool(kAppbarTransparentStoreKey, value);
     state = state.copyWith(appBarTransparent: value);
     ref.read(themeProvider.notifier).reloadTheme();
+  }
+
+  void setShowBackgroundImage(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppShowBackgroundImage, value);
+    state = state.copyWith(showBackgroundImage: value);
   }
 
   void setCustomFonts(String? value) {

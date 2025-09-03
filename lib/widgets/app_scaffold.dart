@@ -271,11 +271,12 @@ class AppBackground extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final imageFileAsync = ref.watch(backgroundImageFileProvider);
+    final settings = ref.watch(appSettingsNotifierProvider);
 
     if (isRoot || !isWideScreen(context)) {
       return imageFileAsync.when(
         data: (file) {
-          if (file != null) {
+          if (file != null && settings.showBackgroundImage) {
             return Container(
               color: Theme.of(context).colorScheme.surface,
               child: Container(
