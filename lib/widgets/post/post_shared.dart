@@ -532,6 +532,7 @@ class PostHeader extends StatelessWidget {
   final bool isInteractive;
   final EdgeInsets renderingPadding;
   final bool isRelativeTime;
+  final bool isCompact;
 
   const PostHeader({
     super.key,
@@ -541,6 +542,7 @@ class PostHeader extends StatelessWidget {
     this.isInteractive = true,
     this.renderingPadding = EdgeInsets.zero,
     this.isRelativeTime = true,
+    this.isCompact = false,
   });
 
   @override
@@ -584,11 +586,27 @@ class PostHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     spacing: 4,
                     children: [
-                      Text(item.publisher.nick).bold(),
+                      Flexible(
+                        child:
+                            Text(
+                              item.publisher.nick,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ).bold(),
+                      ),
                       if (item.publisher.verification != null)
                         VerificationMark(mark: item.publisher.verification!),
                       if (item.realm == null)
-                        Text('@${item.publisher.name}').fontSize(11)
+                        Flexible(
+                          child:
+                              isCompact
+                                  ? const SizedBox.shrink()
+                                  : Text(
+                                    '@${item.publisher.name}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ).fontSize(11),
+                        )
                       else
                         ...([
                           const Icon(Symbols.arrow_right, size: 14),

@@ -7,7 +7,7 @@ part of 'room_detail.dart';
 // **************************************************************************
 
 String _$totalMessagesCountHash() =>
-    r'a15c03461f25c2d4d39c0926509bf626ae2550a6';
+    r'd55f1507aba2acdce5e468c1c2e15dba7640c571';
 
 /// Copied from Dart SDK
 class _SystemHash {

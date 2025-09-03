@@ -36,6 +36,7 @@ class PostActionableItem extends HookConsumerWidget {
   final bool isShowReference;
   final bool isEmbedReply;
   final bool isEmbedOpenable;
+  final bool isCompact;
   final double? borderRadius;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
@@ -48,6 +49,7 @@ class PostActionableItem extends HookConsumerWidget {
     this.isShowReference = true,
     this.isEmbedReply = true,
     this.isEmbedOpenable = false,
+    this.isCompact = false,
     this.borderRadius,
     this.onRefresh,
     this.onUpdate,
@@ -76,6 +78,7 @@ class PostActionableItem extends HookConsumerWidget {
         isEmbedReply: isEmbedReply,
         isEmbedOpenable: isEmbedOpenable,
         isTextSelectable: false,
+        isCompact: isCompact,
         onRefresh: onRefresh,
         onUpdate: onUpdate,
         onOpen: onOpen,
@@ -298,6 +301,7 @@ class PostItem extends HookConsumerWidget {
   final bool isEmbedOpenable;
   final bool isTextSelectable;
   final bool isTranslatable;
+  final bool isCompact;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
   final VoidCallback? onOpen;
@@ -311,6 +315,7 @@ class PostItem extends HookConsumerWidget {
     this.isEmbedOpenable = false,
     this.isTextSelectable = true,
     this.isTranslatable = true,
+    this.isCompact = false,
     this.onRefresh,
     this.onUpdate,
     this.onOpen,
@@ -465,54 +470,64 @@ class PostItem extends HookConsumerWidget {
         PostHeader(
           item: item,
           isFullPost: isFullPost,
+          isCompact: isCompact,
           renderingPadding: renderingPadding,
-          trailing: IconButton(
-            icon:
-                mostReaction == null
-                    ? const Icon(Symbols.add_reaction)
-                    : Badge(
-                      label: Center(
-                        child: Text(
-                          'x${item.reactionsCount[mostReaction]}',
-                          style: const TextStyle(fontSize: 11),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      offset: const Offset(4, 20),
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.75),
-                      textColor: Theme.of(context).colorScheme.onPrimary,
-                      child: Text(
-                        kReactionTemplates[mostReaction]?.icon ?? '',
-                        style: const TextStyle(fontSize: 20),
+          trailing:
+              isCompact
+                  ? null
+                  : IconButton(
+                    icon:
+                        mostReaction == null
+                            ? const Icon(Symbols.add_reaction)
+                            : Badge(
+                              label: Center(
+                                child: Text(
+                                  'x${item.reactionsCount[mostReaction]}',
+                                  style: const TextStyle(fontSize: 11),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              offset: const Offset(4, 20),
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.75),
+                              textColor:
+                                  Theme.of(context).colorScheme.onPrimary,
+                              child: Text(
+                                kReactionTemplates[mostReaction]?.icon ?? '',
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ),
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        (item.reactionsMade[mostReaction] ?? false)
+                            ? Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.5)
+                            : null,
                       ),
                     ),
-            style: ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll(
-                (item.reactionsMade[mostReaction] ?? false)
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
-                    : null,
-              ),
-            ),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                useRootNavigator: true,
-                builder: (BuildContext context) {
-                  return _PostReactionSheet(
-                    reactionsCount: item.reactionsCount,
-                    reactionsMade: item.reactionsMade,
-                    onReact: (symbol, attitude) {
-                      reactPost(symbol, attitude);
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        useRootNavigator: true,
+                        builder: (BuildContext context) {
+                          return _PostReactionSheet(
+                            reactionsCount: item.reactionsCount,
+                            reactionsMade: item.reactionsMade,
+                            onReact: (symbol, attitude) {
+                              reactPost(symbol, attitude);
+                            },
+                          );
+                        },
+                      );
                     },
-                  );
-                },
-              );
-            },
-            padding: EdgeInsets.zero,
-            visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
-          ),
+                    padding: EdgeInsets.zero,
+                    visualDensity: const VisualDensity(
+                      horizontal: -3,
+                      vertical: -3,
+                    ),
+                  ),
         ),
         PostBody(
           item: item,

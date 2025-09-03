@@ -399,6 +399,69 @@ class _DiscoveryActivityItem extends StatelessWidget {
     final items = data['items'] as List;
     final type = items.firstOrNull?['type'] ?? 'unknown';
 
+    var flexWeights = isWideScreen(context) ? <int>[3, 2, 1] : <int>[4, 1];
+    if (type == 'post') flexWeights = <int>[3, 2];
+
+    final height = type == 'post' ? 280.0 : 180.0;
+
+    final contentWidget = switch (type) {
+      'post' => ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        separatorBuilder: (context, index) => const Gap(12),
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return Container(
+            width: 320,
+            decoration: BoxDecoration(
+              border: Border.all(
+                width: 1 / MediaQuery.of(context).devicePixelRatio,
+                color: Theme.of(context).dividerColor.withOpacity(0.5),
+              ),
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              child: SingleChildScrollView(
+                child: PostActionableItem(
+                  item: SnPost.fromJson(item['data']),
+                  isCompact: true,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+      _ => CarouselView.weighted(
+        flexWeights: flexWeights,
+        consumeMaxWeight: false,
+        enableSplash: false,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
+        itemSnapping: false,
+        children: [
+          for (final item in items)
+            switch (type) {
+              'realm' => RealmCard(
+                realm: SnRealm.fromJson(item['data']),
+                maxWidth: 280,
+              ),
+              'publisher' => PublisherCard(
+                publisher: SnPublisher.fromJson(item['data']),
+                maxWidth: 280,
+              ),
+              'article' => WebArticleCard(
+                article: SnWebArticle.fromJson(item['data']),
+                maxWidth: 280,
+              ),
+              _ => const Placeholder(),
+            },
+        ],
+      ),
+    };
+
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Column(
@@ -407,13 +470,20 @@ class _DiscoveryActivityItem extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(Symbols.explore, size: 19),
+              Icon(switch (type) {
+                'realm' => Symbols.public,
+                'publisher' => Symbols.account_circle,
+                'article' => Symbols.auto_stories,
+                'post' => Symbols.shuffle,
+                _ => Symbols.explore,
+              }, size: 19),
               const Gap(8),
               Text(
                 (switch (type) {
                   'realm' => 'discoverRealms',
                   'publisher' => 'discoverPublishers',
                   'article' => 'discoverWebArticles',
+                  'post' => 'discoverShuffledPost',
                   _ => 'unknown',
                 }).tr(),
                 style: Theme.of(context).textTheme.titleMedium,
@@ -421,37 +491,8 @@ class _DiscoveryActivityItem extends StatelessWidget {
             ],
           ).padding(horizontal: 20, top: 8, bottom: 4),
           SizedBox(
-            height: 180,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: CarouselView.weighted(
-                flexWeights:
-                    isWideScreen(context) ? <int>[3, 2, 1] : <int>[4, 1],
-                consumeMaxWeight: false,
-                enableSplash: false,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                ),
-                children: [
-                  for (final item in items)
-                    switch (type) {
-                      'realm' => RealmCard(
-                        realm: SnRealm.fromJson(item['data']),
-                        maxWidth: 280,
-                      ),
-                      'publisher' => PublisherCard(
-                        publisher: SnPublisher.fromJson(item['data']),
-                        maxWidth: 280,
-                      ),
-                      'article' => WebArticleCard(
-                        article: SnWebArticle.fromJson(item['data']),
-                        maxWidth: 280,
-                      ),
-                      _ => Placeholder(),
-                    },
-                ],
-              ),
-            ),
+            height: height,
+            child: contentWidget,
           ).padding(bottom: 8, horizontal: 8),
         ],
       ),
@@ -569,7 +610,8 @@ class ActivityListNotifier extends _$ActivityListNotifier
       if (cursor != null) 'cursor': cursor,
       'take': take,
       if (filter != null) 'filter': filter,
-      if (kDebugMode) 'debugInclude': 'realms,publishers,articles',
+      if (kDebugMode)
+        'debugInclude': 'realms,publishers,articles,shuffledPosts',
     };
 
     final response = await client.get(
@@ -584,12 +626,13 @@ class ActivityListNotifier extends _$ActivityListNotifier
 
     final hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
     final nextCursor =
-        items
-            .map((x) => x.createdAt)
-            .lastOrNull
-            ?.toUtc()
-            .toIso8601String()
-            .toString();
+        items.isNotEmpty
+            ? items
+                .map((x) => x.createdAt)
+                .reduce((a, b) => a.isAfter(b) ? a : b)
+                .toUtc()
+                .toIso8601String()
+            : null;
 
     return CursorPagingData(
       items: items,
