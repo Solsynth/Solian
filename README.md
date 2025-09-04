@@ -62,4 +62,3 @@ If you want to build the release version, use the flutter build command. Learn m
 ```bash
 flutter build <platform>
 ```
-

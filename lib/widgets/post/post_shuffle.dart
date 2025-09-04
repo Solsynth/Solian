@@ -41,6 +41,7 @@ class PostShuffleScreen extends HookConsumerWidget {
                     ? CardSwiper(
                       controller: cardSwiperController,
                       cardsCount: postListState.value!.items.length,
+                      isLoop: false,
                       cardBuilder: (
                         context,
                         index,

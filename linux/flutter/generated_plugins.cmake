@@ -19,6 +19,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   record_linux
   sqlite3_flutter_libs
   super_native_extensions
+  tray_manager
   url_launcher_linux
   volume_controller
 )

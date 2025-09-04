@@ -10,7 +10,7 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/account/me/account_settings.dart';
 import 'package:island/screens/auth/oidc.native.dart';
-import 'package:island/services/text.dart';
+import 'package:island/utils/text.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';

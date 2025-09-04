@@ -17,7 +17,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/color.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/services/text.dart';
+import 'package:island/utils/text.dart';
 import 'package:island/services/time.dart';
 import 'package:island/services/timezone/native.dart';
 import 'package:island/widgets/account/account_name.dart';
