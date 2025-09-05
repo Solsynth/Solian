@@ -20,6 +20,7 @@ const kAppColorSchemeStoreKey = 'app_color_scheme';
 const kAppNotifyWithHaptic = 'app_notify_with_haptic';
 const kAppCustomFonts = 'app_custom_fonts';
 const kAppAutoTranslate = 'app_auto_translate';
+const kAppDataSavingMode = 'app_data_saving_mode';
 const kAppSoundEffects = 'app_sound_effects';
 const kAppAprilFoolFeatures = 'app_april_fool_features';
 const kAppWindowSize = 'app_window_size';
@@ -55,6 +56,7 @@ final serverUrlProvider = Provider<String>((ref) {
 sealed class AppSettings with _$AppSettings {
   const factory AppSettings({
     required bool autoTranslate,
+    required bool dataSavingMode,
     required bool soundEffects,
     required bool aprilFoolFeatures,
     required bool enterToSend,
@@ -73,6 +75,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.watch(sharedPreferencesProvider);
     return AppSettings(
       autoTranslate: prefs.getBool(kAppAutoTranslate) ?? false,
+      dataSavingMode: prefs.getBool(kAppDataSavingMode) ?? false,
       soundEffects: prefs.getBool(kAppSoundEffects) ?? true,
       aprilFoolFeatures: prefs.getBool(kAppAprilFoolFeatures) ?? true,
       enterToSend: prefs.getBool(kAppEnterToSend) ?? true,
@@ -105,6 +108,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppAutoTranslate, value);
     state = state.copyWith(autoTranslate: value);
+  }
+
+  void setDataSavingMode(bool value){
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDataSavingMode, value);
+    state = state.copyWith(dataSavingMode: value);
   }
 
   void setSoundEffects(bool value) {

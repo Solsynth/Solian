@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AppSettings {
 
- bool get autoTranslate; bool get soundEffects; bool get aprilFoolFeatures; bool get enterToSend; bool get appBarTransparent; bool get showBackgroundImage; String? get customFonts; int? get appColorScheme;// The color stored via the int type
+ bool get autoTranslate; bool get dataSavingMode; bool get soundEffects; bool get aprilFoolFeatures; bool get enterToSend; bool get appBarTransparent; bool get showBackgroundImage; String? get customFonts; int? get appColorScheme;// The color stored via the int type
  Size? get windowSize;
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -26,16 +26,16 @@ $AppSettingsCopyWith<AppSettings> get copyWith => _$AppSettingsCopyWithImpl<AppS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,autoTranslate,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,windowSize);
+int get hashCode => Object.hash(runtimeType,autoTranslate,dataSavingMode,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,windowSize);
 
 @override
 String toString() {
-  return 'AppSettings(autoTranslate: $autoTranslate, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, windowSize: $windowSize)';
+  return 'AppSettings(autoTranslate: $autoTranslate, dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, windowSize: $windowSize)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $AppSettingsCopyWith<$Res>  {
   factory $AppSettingsCopyWith(AppSettings value, $Res Function(AppSettings) _then) = _$AppSettingsCopyWithImpl;
 @useResult
 $Res call({
- bool autoTranslate, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, Size? windowSize
+ bool autoTranslate, bool dataSavingMode, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, Size? windowSize
 });
 
 
@@ -63,9 +63,10 @@ class _$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? autoTranslate = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? windowSize = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? autoTranslate = null,Object? dataSavingMode = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? windowSize = freezed,}) {
   return _then(_self.copyWith(
 autoTranslate: null == autoTranslate ? _self.autoTranslate : autoTranslate // ignore: cast_nullable_to_non_nullable
+as bool,dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
 as bool,soundEffects: null == soundEffects ? _self.soundEffects : soundEffects // ignore: cast_nullable_to_non_nullable
 as bool,aprilFoolFeatures: null == aprilFoolFeatures ? _self.aprilFoolFeatures : aprilFoolFeatures // ignore: cast_nullable_to_non_nullable
 as bool,enterToSend: null == enterToSend ? _self.enterToSend : enterToSend // ignore: cast_nullable_to_non_nullable
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool autoTranslate,  bool soundEffects,  bool aprilFoolFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  Size? windowSize)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool autoTranslate,  bool dataSavingMode,  bool soundEffects,  bool aprilFoolFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  Size? windowSize)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.autoTranslate,_that.soundEffects,_that.aprilFoolFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.windowSize);case _:
+return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_that.aprilFoolFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.windowSize);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.autoTranslate,_that.soundEffects,_that.aprilFoolFeatures,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool autoTranslate,  bool soundEffects,  bool aprilFoolFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  Size? windowSize)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool autoTranslate,  bool dataSavingMode,  bool soundEffects,  bool aprilFoolFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  Size? windowSize)  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings():
-return $default(_that.autoTranslate,_that.soundEffects,_that.aprilFoolFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.windowSize);}
+return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_that.aprilFoolFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.windowSize);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -194,10 +195,10 @@ return $default(_that.autoTranslate,_that.soundEffects,_that.aprilFoolFeatures,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool autoTranslate,  bool soundEffects,  bool aprilFoolFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  Size? windowSize)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool autoTranslate,  bool dataSavingMode,  bool soundEffects,  bool aprilFoolFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  String? customFonts,  int? appColorScheme,  Size? windowSize)?  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.autoTranslate,_that.soundEffects,_that.aprilFoolFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.windowSize);case _:
+return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_that.aprilFoolFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.customFonts,_that.appColorScheme,_that.windowSize);case _:
   return null;
 
 }
@@ -209,10 +210,11 @@ return $default(_that.autoTranslate,_that.soundEffects,_that.aprilFoolFeatures,_
 
 
 class _AppSettings implements AppSettings {
-  const _AppSettings({required this.autoTranslate, required this.soundEffects, required this.aprilFoolFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.customFonts, required this.appColorScheme, required this.windowSize});
+  const _AppSettings({required this.autoTranslate, required this.dataSavingMode, required this.soundEffects, required this.aprilFoolFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.customFonts, required this.appColorScheme, required this.windowSize});
   
 
 @override final  bool autoTranslate;
+@override final  bool dataSavingMode;
 @override final  bool soundEffects;
 @override final  bool aprilFoolFeatures;
 @override final  bool enterToSend;
@@ -233,16 +235,16 @@ _$AppSettingsCopyWith<_AppSettings> get copyWith => __$AppSettingsCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,autoTranslate,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,windowSize);
+int get hashCode => Object.hash(runtimeType,autoTranslate,dataSavingMode,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,windowSize);
 
 @override
 String toString() {
-  return 'AppSettings(autoTranslate: $autoTranslate, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, windowSize: $windowSize)';
+  return 'AppSettings(autoTranslate: $autoTranslate, dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, windowSize: $windowSize)';
 }
 
 
@@ -253,7 +255,7 @@ abstract mixin class _$AppSettingsCopyWith<$Res> implements $AppSettingsCopyWith
   factory _$AppSettingsCopyWith(_AppSettings value, $Res Function(_AppSettings) _then) = __$AppSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- bool autoTranslate, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, Size? windowSize
+ bool autoTranslate, bool dataSavingMode, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, Size? windowSize
 });
 
 
@@ -270,9 +272,10 @@ class __$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? autoTranslate = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? windowSize = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? autoTranslate = null,Object? dataSavingMode = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? windowSize = freezed,}) {
   return _then(_AppSettings(
 autoTranslate: null == autoTranslate ? _self.autoTranslate : autoTranslate // ignore: cast_nullable_to_non_nullable
+as bool,dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
 as bool,soundEffects: null == soundEffects ? _self.soundEffects : soundEffects // ignore: cast_nullable_to_non_nullable
 as bool,aprilFoolFeatures: null == aprilFoolFeatures ? _self.aprilFoolFeatures : aprilFoolFeatures // ignore: cast_nullable_to_non_nullable
 as bool,enterToSend: null == enterToSend ? _self.enterToSend : enterToSend // ignore: cast_nullable_to_non_nullable

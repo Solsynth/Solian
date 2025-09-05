@@ -450,6 +450,20 @@ class SettingsScreen extends HookConsumerWidget {
           },
         ),
       ),
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsDataSavingMode').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.data_saver_on_rounded),
+        trailing: Switch(
+          value: settings.dataSavingMode,
+          onChanged: (value) {
+            ref
+                .read(appSettingsNotifierProvider.notifier)
+                .setDataSavingMode(value);
+          },
+        ),
+      ),
     ];
 
     // Desktop-specific settings
