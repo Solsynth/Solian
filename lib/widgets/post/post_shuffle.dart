@@ -36,46 +36,50 @@ class PostShuffleScreen extends HookConsumerWidget {
               bottom:
                   kBottomControlHeight + MediaQuery.of(context).padding.bottom,
             ),
-            child:
-                (postListState.value?.items.length ?? 0) > 0
-                    ? CardSwiper(
-                      controller: cardSwiperController,
-                      cardsCount: postListState.value!.items.length,
-                      isLoop: false,
-                      cardBuilder: (
-                        context,
-                        index,
-                        horizontalOffsetPercentage,
-                        verticalOffsetPercentage,
-                      ) {
-                        return Center(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: 540),
-                            child: SingleChildScrollView(
-                              child: Card(
-                                margin: EdgeInsets.zero,
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.all(
-                                    Radius.circular(8),
-                                  ),
-                                  child: PostActionableItem(
-                                    item: postListState.value!.items[index],
-                                  ),
+            child: Builder(
+              key: ValueKey(postListState.value?.items.length ?? 0),
+              builder: (context) {
+                if ((postListState.value?.items.length ?? 0) > 0) {
+                  return CardSwiper(
+                    controller: cardSwiperController,
+                    cardsCount: postListState.value!.items.length,
+                    isLoop: false,
+                    cardBuilder: (
+                      context,
+                      index,
+                      horizontalOffsetPercentage,
+                      verticalOffsetPercentage,
+                    ) {
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 540),
+                          child: SingleChildScrollView(
+                            child: Card(
+                              margin: EdgeInsets.zero,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                                child: PostActionableItem(
+                                  item: postListState.value!.items[index],
                                 ),
                               ),
                             ),
                           ),
-                        );
-                      },
-                      onEnd: () {
-                        if (postListState.value?.hasMore ?? true) {
-                          postListNotifier.fetch(
-                            cursor: postListState.value?.nextCursor,
-                          );
-                        }
-                      },
-                    )
-                    : Center(child: CircularProgressIndicator()),
+                        ),
+                      );
+                    },
+                    onEnd: () async {
+                      if (postListState.value?.hasMore ?? true) {
+                        postListNotifier.forceRefresh();
+                      }
+                    },
+                  );
+                } else {
+                  return Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
           ),
           Positioned(
             left: 0,
