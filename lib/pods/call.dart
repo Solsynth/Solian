@@ -9,6 +9,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/models/chat.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 part 'call.g.dart';
 part 'call.freezed.dart';
@@ -277,14 +278,27 @@ class CallNotifier extends _$CallNotifier {
 
         // Listen for connection updates
         _room!.addListener(() {
+          final wasConnected = state.isConnected;
+          final isNowConnected =
+              _room!.connectionState == ConnectionState.connected;
           state = state.copyWith(
-            isConnected: _room!.connectionState == ConnectionState.connected,
+            isConnected: isNowConnected,
             isMicrophoneEnabled: _localParticipant!.isMicrophoneEnabled(),
             isCameraEnabled: _localParticipant!.isCameraEnabled(),
             isScreenSharing: _localParticipant!.isScreenShareEnabled(),
           );
+          // Enable wakelock when call connects
+          if (!wasConnected && isNowConnected) {
+            WakelockPlus.enable();
+          }
+          // Disable wakelock when call disconnects
+          else if (wasConnected && !isNowConnected) {
+            WakelockPlus.disable();
+          }
         });
         state = state.copyWith(isConnected: true);
+        // Enable wakelock when call connects
+        WakelockPlus.enable();
       } else {
         state = state.copyWith(error: 'Failed to join room');
       }
@@ -344,6 +358,8 @@ class CallNotifier extends _$CallNotifier {
         isCameraEnabled: false,
         isScreenSharing: false,
       );
+      // Disable wakelock when call disconnects
+      WakelockPlus.disable();
     }
   }
 
@@ -381,5 +397,7 @@ class CallNotifier extends _$CallNotifier {
     _durationTimer?.cancel();
     _roomId = null;
     participantsVolumes = {};
+    // Disable wakelock when disposing
+    WakelockPlus.disable();
   }
 }
