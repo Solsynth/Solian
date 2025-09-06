@@ -115,7 +115,7 @@ dependencies:
   flutter_timezone: ^4.1.1
   fl_chart: ^1.1.0
   sign_in_with_apple: ^7.0.1
-  flutter_svg: ^2.2.0
+  flutter_svg: ^2.2.1
   native_exif: ^0.6.2
   local_auth: ^2.3.0
   flutter_secure_storage: ^9.2.4
@@ -139,6 +139,7 @@ dependencies:
   flutter_card_swiper: ^7.0.2
   file_saver: ^0.3.1
   tray_manager: ^0.5.1
+  flutter_webrtc: ^1.1.0
 
 dev_dependencies:
   flutter_test:
