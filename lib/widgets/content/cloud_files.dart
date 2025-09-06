@@ -34,88 +34,85 @@ class CloudFileWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dataSaving = ref.watch(appSettingsNotifierProvider.select((s) => s.dataSavingMode));
+    final dataSaving = ref.watch(
+      appSettingsNotifierProvider.select((s) => s.dataSavingMode),
+    );
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/drive/files/${item.id}';
 
-    var ratio =
-        item.fileMeta?['ratio'] is num
-            ? item.fileMeta!['ratio'].toDouble()
-            : 1.0;
+    final unlocked = useState(false);
+
+    final meta = item.fileMeta is Map ? (item.fileMeta as Map) : const {};
+    final blurHash = noBlurhash ? null : (meta['blur'] as String?);
+    var ratio = meta['ratio'] is num ? (meta['ratio'] as num).toDouble() : 1.0;
     if (ratio == 0) ratio = 1.0;
+
+    Widget cloudImage() => UniversalImage(uri: uri, blurHash: blurHash, fit: fit);
+    Widget cloudVideo() => CloudVideoWidget(item: item);
+
+    Widget dataPlaceHolder(IconData icon) => _DataSavingPlaceholder(
+          icon: icon,
+          onTap: () {
+            unlocked.value = true;
+          },
+        );
+
     var content = switch (item.mimeType?.split('/').firstOrNull) {
-      "image" => AspectRatio(
-        aspectRatio: ratio,
-        child: dataSaving ? _DataSavingPlaceholder(
-            icon: Symbols.image,
-            onTap: () {
-                // TODO: single picture unlock logic
-            })
-        : UniversalImage(
-          uri: uri,
-          blurHash:
-              noBlurhash
-                  ? null
-                  : (item.fileMeta is String ? item.fileMeta!['blur'] : null),
+      'image' => AspectRatio(
+          aspectRatio: ratio,
+          child: (dataSaving && !unlocked.value) ? dataPlaceHolder(Symbols.image) : cloudImage(),
         ),
-      ),
-      "video" => AspectRatio(
-        aspectRatio: ratio,
-        child: dataSaving ? _DataSavingPlaceholder(
-            icon: Symbols.play_arrow,
-            onTap: () {
-                // TODO: single vedio unlock logic
-            }
-        )
-        : CloudVideoWidget(item: item),
-      ),
-      "audio" => Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: math.min(360, MediaQuery.of(context).size.width * 0.8),
+      'video' => AspectRatio(
+          aspectRatio: ratio,
+          child: (dataSaving && !unlocked.value) ? dataPlaceHolder(Symbols.play_arrow) : cloudVideo(),
+        ),
+      'audio' => Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: math.min(360, MediaQuery.of(context).size.width * 0.8),
+            ),
+            child: UniversalAudio(uri: uri, filename: item.name),
           ),
-          child: UniversalAudio(uri: uri, filename: item.name),
         ),
-      ),
       _ => Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Symbols.insert_drive_file,
-            size: 48,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const Gap(8),
-          Text(
-            item.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 14,
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Symbols.insert_drive_file,
+              size: 48,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-          ),
-          Text(
-            formatFileSize(item.size),
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            const Gap(8),
+            Text(
+              item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          const Gap(8),
-          TextButton.icon(
-            onPressed: () {
-              launchUrlString(
-                'https://fs.solian.app/files/${item.id}',
-                mode: LaunchMode.externalApplication,
-              );
-            },
-            icon: const Icon(Symbols.launch),
-            label: Text('openInBrowser').tr(),
-          ),
-        ],
-      ).padding(all: 8),
+            Text(
+              formatFileSize(item.size),
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Gap(8),
+            TextButton.icon(
+              onPressed: () {
+                launchUrlString(
+                  'https://fs.solian.app/files/${item.id}',
+                  mode: LaunchMode.externalApplication,
+                );
+              },
+              icon: const Icon(Symbols.launch),
+              label: Text('openInBrowser').tr(),
+            ),
+          ],
+        ).padding(all: 8),
     };
 
     if (heroTag != null) {
@@ -375,7 +372,7 @@ class ProfilePictureWidget extends ConsumerWidget {
         child: id == null
             ? fallback
             : DataSavingGate(
-                bypass: true, // 小頭像永遠繞過低數據
+                bypass: true,
                 placeholder: fallback,
                 content: () => UniversalImage(
                   uri: '$serverUrl/drive/files/$id',
