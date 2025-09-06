@@ -9,6 +9,7 @@ import 'package:island/widgets/poll/poll_feedback.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 
 part 'poll_list.g.dart';
 
@@ -86,7 +87,7 @@ class CreatorPollListScreen extends HookConsumerWidget {
         onPressed: () => _createPoll(context),
         child: const Icon(Icons.add),
       ),
-      body: RefreshIndicator(
+      body: ExtendedRefreshIndicator(
         onRefresh: () => ref.refresh(pollListNotifierProvider(pubName).future),
         child: CustomScrollView(
           slivers: [

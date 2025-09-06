@@ -9,6 +9,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 
 part 'bots.g.dart';
 
@@ -60,7 +61,7 @@ class BotsScreen extends HookConsumerWidget {
             ),
           );
         }
-        return RefreshIndicator(
+        return ExtendedRefreshIndicator(
           onRefresh:
               () => ref.refresh(botsProvider(publisherName, projectId).future),
           child: ListView.builder(
