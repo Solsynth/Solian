@@ -908,7 +908,17 @@ class _SensitiveOverlay extends StatelessWidget {
         child: IconButton(
           iconSize: 16,
           constraints: const BoxConstraints(),
-          icon: const Icon(Icons.visibility_off, color: Colors.white),
+          icon: const Icon(
+            Icons.visibility_off,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                color: Colors.black,
+                blurRadius: 5.0,
+                offset: Offset(1.0, 1.0),
+              ),
+            ],
+          ),
           tooltip: 'Blur content',
           onPressed: onHide,
         ),
