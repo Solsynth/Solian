@@ -52,12 +52,10 @@ class UniversalImage extends StatelessWidget {
             },
             errorWidget: (context, url, error) {
               return Image.asset(
-                'assets/images/media-offline.png',
+                'assets/images/media-offline.jpg',
                 fit: BoxFit.cover,
+                key: Key('image-broke-$uri'),
               );
-              // return const Center(
-              //   child: Icon(Icons.broken_image, color: Colors.white, size: 16),
-              // );
             },
           ),
         ],

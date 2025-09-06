@@ -398,7 +398,7 @@ class ComposeLogic {
     state.attachments.value = [
       ...state.attachments.value,
       ...result.files.map(
-        (e) => UniversalFile(data: e, type: UniversalFileType.image),
+        (e) => UniversalFile(data: e.xFile, type: UniversalFileType.image),
       ),
     ];
   }
@@ -413,7 +413,7 @@ class ComposeLogic {
     state.attachments.value = [
       ...state.attachments.value,
       ...result.files.map(
-        (e) => UniversalFile(data: e, type: UniversalFileType.video),
+        (e) => UniversalFile(data: e.xFile, type: UniversalFileType.video),
       ),
     ];
   }
