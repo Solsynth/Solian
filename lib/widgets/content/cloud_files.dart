@@ -14,7 +14,7 @@ import 'package:island/widgets/content/audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:island/utils/data_saving_gate.dart';
+import 'package:island/widgets/data_saving_gate.dart';
 
 import 'image.dart';
 import 'video.dart';
@@ -24,12 +24,14 @@ class CloudFileWidget extends HookConsumerWidget {
   final BoxFit fit;
   final String? heroTag;
   final bool noBlurhash;
+  final bool useInternalGate;
   const CloudFileWidget({
     super.key,
     required this.item,
     this.fit = BoxFit.cover,
     this.heroTag,
     this.noBlurhash = false,
+    this.useInternalGate = true,
   });
 
   @override
@@ -60,11 +62,11 @@ class CloudFileWidget extends HookConsumerWidget {
     var content = switch (item.mimeType?.split('/').firstOrNull) {
       'image' => AspectRatio(
           aspectRatio: ratio,
-          child: (dataSaving && !unlocked.value) ? dataPlaceHolder(Symbols.image) : cloudImage(),
+          child: (useInternalGate && dataSaving && !unlocked.value) ? dataPlaceHolder(Symbols.image) : cloudImage(),
         ),
       'video' => AspectRatio(
           aspectRatio: ratio,
-          child: (dataSaving && !unlocked.value) ? dataPlaceHolder(Symbols.play_arrow) : cloudVideo(),
+          child: (useInternalGate && dataSaving && !unlocked.value) ? dataPlaceHolder(Symbols.play_arrow) : cloudVideo(),
         ),
       'audio' => Center(
           child: ConstrainedBox(
