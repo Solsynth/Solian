@@ -6,6 +6,7 @@ import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_quick_reply.dart';
 import 'package:island/widgets/post/post_replies.dart';
@@ -66,29 +67,36 @@ class PostDetailScreen extends HookConsumerWidget {
           return Stack(
             fit: StackFit.expand,
             children: [
-              CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: 600),
-                        child: PostItem(
-                          item: post!,
-                          isFullPost: true,
-                          isEmbedReply: false,
-                          onUpdate: (newItem) {
-                            // Update the local state with the new post data
-                            ref
-                                .read(postStateProvider(id).notifier)
-                                .updatePost(newItem);
-                          },
+              ExtendedRefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(postProvider(id));
+                  ref.invalidate(postRepliesNotifierProvider(id));
+                },
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 600),
+                          child: PostItem(
+                            item: post!,
+                            isFullPost: true,
+                            isEmbedReply: false,
+                            onUpdate: (newItem) {
+                              // Update the local state with the new post data
+                              ref
+                                  .read(postStateProvider(id).notifier)
+                                  .updatePost(newItem);
+                            },
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  PostRepliesList(postId: id, maxWidth: 600),
-                  SliverGap(MediaQuery.of(context).padding.bottom + 80),
-                ],
+                    PostRepliesList(postId: id, maxWidth: 600),
+                    SliverGap(MediaQuery.of(context).padding.bottom + 80),
+                  ],
+                ),
               ),
               if (user.value != null)
                 Positioned(
@@ -126,7 +134,7 @@ class PostDetailScreen extends HookConsumerWidget {
         error:
             (e, _) => ResponseErrorWidget(
               error: e,
-              onRetry: () => ref.invalidate(postStateProvider(id)),
+              onRetry: () => ref.invalidate(postProvider(id)),
             ),
       ),
     );

@@ -339,14 +339,16 @@ class _AccountPublisherList extends StatelessWidget {
           for (final publisher in publishers)
             ListTile(
               title: Text(publisher.nick),
-              subtitle:
-                  publisher.bio.isNotEmpty
-                      ? Text(
-                        publisher.bio,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      )
-                      : null,
+              subtitle: Text(
+                publisher.bio.isNotEmpty
+                    ? publisher.bio
+                        .split('\n')
+                        .where((line) => line.trim().isNotEmpty)
+                        .join('\n')
+                    : 'descriptionNone'.tr(),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
               leading: ProfilePictureWidget(
                 file: publisher.picture,
                 borderRadius: publisher.type == 1 ? 8 : null,
