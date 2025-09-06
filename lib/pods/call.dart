@@ -55,7 +55,7 @@ sealed class CallParticipantLive with _$CallParticipantLive {
   bool get hasAudio => remoteParticipant.hasAudio;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class CallNotifier extends _$CallNotifier {
   Room? _room;
   LocalParticipant? _localParticipant;
