@@ -83,7 +83,7 @@ dependencies:
   flutter_udid: ^4.0.0
   firebase_core: ^4.1.0
   web_socket_channel: ^3.0.3
-  material_symbols_icons: ^4.2867.0
+  material_symbols_icons: ^4.2872.0
   drift: ^2.28.1
   drift_flutter: ^0.2.5
   path: ^1.9.1
@@ -140,6 +140,7 @@ dependencies:
   file_saver: ^0.3.1
   tray_manager: ^0.5.1
   flutter_webrtc: ^1.1.0
+  flutter_local_notifications: ^19.4.1
 
 dev_dependencies:
   flutter_test:

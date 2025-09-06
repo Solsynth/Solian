@@ -223,6 +223,7 @@ class IslandApp extends HookConsumerWidget {
           if (user.value != null) {
             final apiClient = ref.read(apiClientProvider);
             subscribePushNotification(apiClient);
+            initializeLocalNotifications();
             final wsNotifier = ref.read(websocketStateProvider.notifier);
             wsNotifier.connect();
           }

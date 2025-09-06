@@ -3,6 +3,7 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -153,7 +154,7 @@ class _WindowSizeObserver extends WidgetsBindingObserver {
 
 final rootScaffoldKey = GlobalKey<ScaffoldState>();
 
-class AppScaffold extends StatelessWidget {
+class AppScaffold extends HookConsumerWidget {
   final Widget? body;
   final PreferredSizeWidget? bottomNavigationBar;
   final PreferredSizeWidget? bottomSheet;
@@ -186,7 +187,14 @@ class AppScaffold extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final focusNode = useFocusNode();
+
+    useEffect(() {
+      focusNode.requestFocus();
+      return null;
+    }, []);
+
     final appBarHeight = appBar?.preferredSize.height ?? 0;
     final safeTop = MediaQuery.of(context).padding.top;
 
@@ -201,26 +209,56 @@ class AppScaffold extends StatelessWidget {
       ],
     );
 
-    return Scaffold(
-      extendBody: extendBody ?? true,
-      extendBodyBehindAppBar: true,
-      backgroundColor:
-          noBackground
-              ? Colors.transparent
-              : Theme.of(context).scaffoldBackgroundColor,
-      body:
-          noBackground ? content : AppBackground(isRoot: true, child: content),
-      appBar: appBar,
-      bottomNavigationBar: bottomNavigationBar,
-      bottomSheet: bottomSheet,
-      drawer: drawer,
-      endDrawer: endDrawer,
-      floatingActionButton: floatingActionButton,
-      floatingActionButtonAnimator: floatingActionButtonAnimator,
-      floatingActionButtonLocation: floatingActionButtonLocation,
-      onDrawerChanged: onDrawerChanged,
-      onEndDrawerChanged: onEndDrawerChanged,
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{PopIntent: PopAction(context)},
+        child: Focus(
+          focusNode: focusNode,
+          child: Scaffold(
+            extendBody: extendBody ?? true,
+            extendBodyBehindAppBar: true,
+            backgroundColor:
+                noBackground
+                    ? Colors.transparent
+                    : Theme.of(context).scaffoldBackgroundColor,
+            body:
+                noBackground
+                    ? content
+                    : AppBackground(isRoot: true, child: content),
+            appBar: appBar,
+            bottomNavigationBar: bottomNavigationBar,
+            bottomSheet: bottomSheet,
+            drawer: drawer,
+            endDrawer: endDrawer,
+            floatingActionButton: floatingActionButton,
+            floatingActionButtonAnimator: floatingActionButtonAnimator,
+            floatingActionButtonLocation: floatingActionButtonLocation,
+            onDrawerChanged: onDrawerChanged,
+            onEndDrawerChanged: onEndDrawerChanged,
+          ),
+        ),
+      ),
     );
+  }
+}
+
+class PopIntent extends Intent {
+  const PopIntent();
+}
+
+class PopAction extends Action<PopIntent> {
+  final BuildContext context;
+
+  PopAction(this.context);
+
+  @override
+  void invoke(PopIntent intent) {
+    if (context.canPop()) {
+      context.pop();
+    }
   }
 }
 
