@@ -802,97 +802,119 @@ class _CloudFileListEntry extends HookConsumerWidget {
     this.onTap,
   });
 
-@override
-Widget build(BuildContext context, WidgetRef ref) {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final dataSaving = ref.watch(
-        appSettingsNotifierProvider.select((s) => s.dataSavingMode),
+      appSettingsNotifierProvider.select((s) => s.dataSavingMode),
     );
     final showMature = useState(false);
     final showDataSaving = useState(!dataSaving);
-    final lockedByDS     = dataSaving && !showDataSaving.value;
+    final lockedByDS = dataSaving && !showDataSaving.value;
     final lockedByMature = file.sensitiveMarks.isNotEmpty && !showMature.value;
     final meta = file.fileMeta is Map ? file.fileMeta as Map : const {};
-    final ratio = (meta['ratio'] is num && (meta['ratio'] as num) != 0)
-      ? (meta['ratio'] as num).toDouble()
-      : 1.0;
+    final ratio =
+        (meta['ratio'] is num && (meta['ratio'] as num) != 0)
+            ? (meta['ratio'] as num).toDouble()
+            : 1.0;
 
     Widget bg = const SizedBox.shrink();
     if (isImage) {
-        if (meta['blur'] is String) {
-            bg = BlurHash(hash: meta['blur'] as String);
-        } else if (!lockedByDS && !lockedByMature) {
-            bg = ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: CloudFileWidget(
-                    item: file,
-                    noBlurhash: true,
-                    useInternalGate: false,
-                ),
-            );
-        } else {
-            bg = const ColoredBox(color: Colors.black26);
-        }
+      if (meta['blur'] is String) {
+        bg = BlurHash(hash: meta['blur'] as String);
+      } else if (!lockedByDS && !lockedByMature) {
+        bg = ImageFiltered(
+          imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: CloudFileWidget(
+            item: file,
+            noBlurhash: true,
+            useInternalGate: false,
+          ),
+        );
+      } else {
+        bg = const ColoredBox(color: Colors.black26);
+      }
     }
 
     final bool fullyUnlocked = !lockedByDS && !lockedByMature;
-    Widget fg = fullyUnlocked
-        ? (isImage
-            ? CloudFileWidget(
-                item: file,
-                heroTag: heroTag,
-                noBlurhash: true,
-                fit: BoxFit.contain,
-                useInternalGate: false,
-            )
-            : CloudFileWidget(
-                item: file,
-                heroTag: heroTag,
-                fit: BoxFit.contain,
-                useInternalGate: false,
-            )
-        )
-        : AspectRatio(aspectRatio: ratio, child: const SizedBox.shrink());
+    Widget fg =
+        fullyUnlocked
+            ? (isImage
+                ? CloudFileWidget(
+                  item: file,
+                  heroTag: heroTag,
+                  noBlurhash: true,
+                  fit: BoxFit.contain,
+                  useInternalGate: false,
+                )
+                : CloudFileWidget(
+                  item: file,
+                  heroTag: heroTag,
+                  fit: BoxFit.contain,
+                  useInternalGate: false,
+                ))
+            : AspectRatio(aspectRatio: ratio, child: const SizedBox.shrink());
 
     Widget overlays;
     if (lockedByDS) {
-        overlays = _DataSavingOverlay();
-    } else if (lockedByMature) {
-        overlays = _SensitiveOverlay(file: file);
+      overlays = _DataSavingOverlay();
+    } else if (file.sensitiveMarks.isNotEmpty) {
+      overlays = _SensitiveOverlay(
+        file: file,
+        isRevealed: showMature.value,
+        onHide: () => showMature.value = false,
+      );
     } else {
-        overlays = const SizedBox.shrink();
+      overlays = const SizedBox.shrink();
     }
 
     final content = Stack(
-        fit: StackFit.expand,
-        children: [
-            if (isImage) Positioned.fill(child: bg),
-            fg,
-            overlays,
-        ],
+      fit: StackFit.expand,
+      children: [if (isImage) Positioned.fill(child: bg), fg, overlays],
     );
 
     return InkWell(
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
-        onTap: () {
-            if (lockedByDS) {
-                showDataSaving.value = true;
-            } else if (lockedByMature) {
-                showMature.value = true;
-            } else {
-                onTap?.call();
-            }
-        },
-        child: content,
+      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      onTap: () {
+        if (lockedByDS) {
+          showDataSaving.value = true;
+        } else if (lockedByMature) {
+          showMature.value = true;
+        } else {
+          onTap?.call();
+        }
+      },
+      child: content,
     );
-}
+  }
 }
 
 class _SensitiveOverlay extends StatelessWidget {
   final SnCloudFile file;
-  const _SensitiveOverlay({required this.file});
+  final VoidCallback? onHide;
+  final bool isRevealed;
+
+  const _SensitiveOverlay({
+    required this.file,
+    this.onHide,
+    this.isRevealed = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (isRevealed) {
+      return Positioned(
+        top: 3,
+        left: 4,
+        child: IconButton(
+          iconSize: 16,
+          constraints: const BoxConstraints(),
+          icon: const Icon(Icons.visibility_off, color: Colors.white),
+          tooltip: 'Blur content',
+          onPressed: onHide,
+        ),
+      );
+    }
+
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 64, sigmaY: 64),
       child: Container(
@@ -928,6 +950,7 @@ class _DataSavingOverlay extends StatelessWidget {
     );
   }
 }
+
 class _OverlayCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -956,15 +979,20 @@ class _OverlayCard extends StatelessWidget {
         children: [
           Icon(icon, color: Colors.white, size: 24),
           const Gap(4),
-          Text(title,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center),
-          Text(subtitle,
-              style: const TextStyle(color: Colors.white, fontSize: 13)),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            subtitle,
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+          ),
           const Gap(4),
-          Text(hint,
-              style: const TextStyle(color: Colors.white, fontSize: 11)),
+          Text(hint, style: const TextStyle(color: Colors.white, fontSize: 11)),
         ],
       ),
     );
