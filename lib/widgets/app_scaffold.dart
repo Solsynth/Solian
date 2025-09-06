@@ -20,6 +20,7 @@ class AppScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
     PointerDeviceKind.touch, // default
+    PointerDeviceKind.trackpad, // default
     PointerDeviceKind.mouse, // add mouse dragging
   };
 }
