@@ -39,6 +39,407 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 part 'profile.g.dart';
 
+class _AccountBasicInfo extends StatelessWidget {
+  final SnAccount data;
+  final String uname;
+  final AsyncValue<SnDeveloper?> accountDeveloper;
+
+  const _AccountBasicInfo({
+    required this.data,
+    required this.uname,
+    required this.accountDeveloper,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfilePictureWidget(file: data.profile.picture, radius: 32),
+          const Gap(20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    AccountName(account: data, style: TextStyle(fontSize: 20)),
+                    const Gap(6),
+                    Flexible(
+                      child: Text(
+                        '@${data.name}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ).fontSize(14).opacity(0.85),
+                    ),
+                  ],
+                ),
+                if (accountDeveloper.value != null)
+                  Row(
+                    spacing: 7,
+                    children: [
+                      const Icon(Symbols.smart_toy, size: 18),
+                      Text(
+                        'botAutomatedBy'.tr(
+                          args: [accountDeveloper.value!.publisher!.nick],
+                        ),
+                      ).fontSize(13),
+                    ],
+                  ).opacity(0.75),
+                const Gap(4),
+                AccountStatusWidget(uname: uname, padding: EdgeInsets.zero),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              SharePlus.instance.share(
+                ShareParams(
+                  uri: Uri.parse('https://id.solian.app/@${data.name}'),
+                ),
+              );
+            },
+            icon: const Icon(Symbols.share),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountProfileBio extends StatelessWidget {
+  final SnAccount data;
+
+  const _AccountProfileBio({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('bio').tr().bold().fontSize(15).padding(bottom: 8),
+          if (data.profile.bio.isEmpty)
+            Text('descriptionNone').tr().italic()
+          else
+            MarkdownTextContent(
+              content: data.profile.bio,
+              linesMargin: EdgeInsets.zero,
+            ),
+        ],
+      ).padding(horizontal: 24, vertical: 20),
+    );
+  }
+}
+
+class _AccountProfileDetail extends StatelessWidget {
+  final SnAccount data;
+
+  const _AccountProfileDetail({required this.data});
+
+  List<Widget> _buildSubcolumn() {
+    return [
+      Row(
+        spacing: 6,
+        children: [
+          const Icon(Symbols.join, size: 17, fill: 1),
+          Text(
+            'joinedAt'.tr(args: [data.createdAt.formatCustom('yyyy-MM-dd')]),
+          ),
+        ],
+      ),
+      if (data.profile.birthday != null)
+        Row(
+          spacing: 6,
+          children: [
+            const Icon(Symbols.cake, size: 17, fill: 1),
+            Text(data.profile.birthday!.formatCustom('yyyy-MM-dd')),
+            Text('·').bold(),
+            Text(
+              '${DateTime.now().difference(data.profile.birthday!).inDays ~/ 365} yrs old',
+            ),
+          ],
+        ),
+      if (data.profile.location.isNotEmpty)
+        Row(
+          spacing: 6,
+          children: [
+            const Icon(Symbols.location_on, size: 17, fill: 1),
+            Text(data.profile.location),
+          ],
+        ),
+      if (data.profile.pronouns.isNotEmpty || data.profile.gender.isNotEmpty)
+        Row(
+          spacing: 6,
+          children: [
+            const Icon(Symbols.person, size: 17, fill: 1),
+            Text(
+              data.profile.gender.isEmpty
+                  ? 'unspecified'.tr()
+                  : data.profile.gender,
+            ),
+            Text('·').bold(),
+            Text(
+              data.profile.pronouns.isEmpty
+                  ? 'unspecified'.tr()
+                  : data.profile.pronouns,
+            ),
+          ],
+        ),
+      if (data.profile.firstName.isNotEmpty ||
+          data.profile.middleName.isNotEmpty ||
+          data.profile.lastName.isNotEmpty)
+        Row(
+          spacing: 6,
+          children: [
+            const Icon(Symbols.id_card, size: 17, fill: 1),
+            if (data.profile.firstName.isNotEmpty) Text(data.profile.firstName),
+            if (data.profile.middleName.isNotEmpty)
+              Text(data.profile.middleName),
+            if (data.profile.lastName.isNotEmpty) Text(data.profile.lastName),
+          ],
+        ),
+      Tooltip(
+        message: 'creditsStatus'.tr(),
+        child: Row(
+          spacing: 6,
+          children: [
+            Icon(Symbols.star, size: 17, fill: 1).padding(right: 2),
+            Text('${data.profile.socialCredits.toStringAsFixed(2)} pts'),
+            Text('·').bold(),
+            switch (data.profile.socialCreditsLevel) {
+              -1 => Text('socialCreditsLevelPoor').tr(),
+              0 => Text('socialCreditsLevelNormal').tr(),
+              1 => Text('socialCreditsLevelGood').tr(),
+              2 => Text('socialCreditsLevelExcellent').tr(),
+              _ => Text('unknown').tr(),
+            },
+          ],
+        ),
+      ),
+      InkWell(
+        child: Row(
+          spacing: 6,
+          children: [
+            Icon(Symbols.fingerprint, size: 17, fill: 1).padding(right: 2),
+            Text(data.id),
+          ],
+        ),
+        onTap: () {
+          Clipboard.setData(ClipboardData(text: data.id));
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 24,
+        children: [
+          if (_buildSubcolumn().isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 2,
+              children: _buildSubcolumn(),
+            ),
+          if (data.profile.timeZone.isNotEmpty && !kIsWeb)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('timeZone').tr().bold(),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  spacing: 6,
+                  children: [
+                    Text(data.profile.timeZone),
+                    Text(
+                      getTzInfo(
+                        data.profile.timeZone,
+                      ).$2.formatCustomGlobal('HH:mm'),
+                    ),
+                    Text(
+                      getTzInfo(data.profile.timeZone).$1.formatOffsetLocal(),
+                    ).fontSize(11),
+                    Text(
+                      'UTC${getTzInfo(data.profile.timeZone).$1.formatOffset()}',
+                    ).fontSize(11).opacity(0.75),
+                  ],
+                ),
+              ],
+            ),
+        ],
+      ).padding(horizontal: 24, vertical: 16),
+    );
+  }
+}
+
+class _AccountProfileLinks extends StatelessWidget {
+  final SnAccount data;
+
+  const _AccountProfileLinks({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('links').tr().bold().padding(horizontal: 24, top: 12, bottom: 4),
+          for (final link in data.profile.links)
+            ListTile(
+              title: Text(link.name.capitalizeEachWord()),
+              subtitle: Text(link.url),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              trailing: const Icon(Symbols.chevron_right),
+              shape: RoundedRectangleBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+              ),
+              onTap: () {
+                if (!link.url.startsWith('http') && !link.url.contains('://')) {
+                  launchUrlString('https://${link.url}');
+                } else {
+                  launchUrlString(link.url);
+                }
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountAction extends StatelessWidget {
+  final SnAccount data;
+  final AsyncValue<SnRelationship?> accountRelationship;
+  final AsyncValue<SnChatRoom?> accountChat;
+  final VoidCallback relationshipAction;
+  final VoidCallback blockAction;
+  final VoidCallback directMessageAction;
+
+  const _AccountAction({
+    required this.data,
+    required this.accountRelationship,
+    required this.accountChat,
+    required this.relationshipAction,
+    required this.blockAction,
+    required this.directMessageAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          Row(
+            spacing: 8,
+            children: [
+              if (accountRelationship.value == null ||
+                  accountRelationship.value!.status > -100)
+                Expanded(
+                  child: FilledButton.icon(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        accountRelationship.value == null
+                            ? null
+                            : Theme.of(context).colorScheme.secondary,
+                      ),
+                      foregroundColor: WidgetStatePropertyAll(
+                        accountRelationship.value == null
+                            ? null
+                            : Theme.of(context).colorScheme.onSecondary,
+                      ),
+                    ),
+                    onPressed: relationshipAction,
+                    label:
+                        Text(
+                          accountRelationship.value == null
+                              ? 'addFriendShort'
+                              : 'added',
+                        ).tr(),
+                    icon:
+                        accountRelationship.value == null
+                            ? const Icon(Symbols.person_add)
+                            : const Icon(Symbols.person_check),
+                  ),
+                ),
+              if (accountRelationship.value == null ||
+                  accountRelationship.value!.status <= -100)
+                Expanded(
+                  child: FilledButton.icon(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        accountRelationship.value == null
+                            ? null
+                            : Theme.of(context).colorScheme.secondary,
+                      ),
+                      foregroundColor: WidgetStatePropertyAll(
+                        accountRelationship.value == null
+                            ? null
+                            : Theme.of(context).colorScheme.onSecondary,
+                      ),
+                    ),
+                    onPressed: blockAction,
+                    label:
+                        Text(
+                          accountRelationship.value == null
+                              ? 'blockUser'
+                              : 'unblockUser',
+                        ).tr(),
+                    icon:
+                        accountRelationship.value == null
+                            ? const Icon(Symbols.block)
+                            : const Icon(Symbols.person_cancel),
+                  ),
+                ),
+            ],
+          ),
+          Row(
+            spacing: 8,
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: directMessageAction,
+                  icon: const Icon(Symbols.message),
+                  label:
+                      Text(
+                        accountChat.value == null
+                            ? 'createDirectMessage'
+                            : 'gotoDirectMessage',
+                        maxLines: 1,
+                      ).tr(),
+                ),
+              ),
+              IconButton.filled(
+                onPressed: () {
+                  showAbuseReportSheet(
+                    context,
+                    resourceIdentifier: 'account/${data.id}',
+                  );
+                },
+                icon: Icon(
+                  Symbols.flag,
+                  color: Theme.of(context).colorScheme.onError,
+                ),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ).padding(horizontal: 16, vertical: 12),
+    );
+  }
+}
+
 @riverpod
 Future<SnAccount> account(Ref ref, String uname) async {
   if (uname == 'me') {
@@ -217,349 +618,10 @@ class AccountProfileScreen extends HookConsumerWidget {
       }
     }
 
-    List<Widget> buildSubcolumn(SnAccount data) {
-      return [
-        Row(
-          spacing: 6,
-          children: [
-            const Icon(Symbols.join, size: 17, fill: 1),
-            Text(
-              'joinedAt'.tr(args: [data.createdAt.formatCustom('yyyy-MM-dd')]),
-            ),
-          ],
-        ),
-        if (data.profile.birthday != null)
-          Row(
-            spacing: 6,
-            children: [
-              const Icon(Symbols.cake, size: 17, fill: 1),
-              Text(data.profile.birthday!.formatCustom('yyyy-MM-dd')),
-              Text('·').bold(),
-              Text(
-                '${DateTime.now().difference(data.profile.birthday!).inDays ~/ 365} yrs old',
-              ),
-            ],
-          ),
-        if (data.profile.location.isNotEmpty)
-          Row(
-            spacing: 6,
-            children: [
-              const Icon(Symbols.location_on, size: 17, fill: 1),
-              Text(data.profile.location),
-            ],
-          ),
-        if (data.profile.pronouns.isNotEmpty || data.profile.gender.isNotEmpty)
-          Row(
-            spacing: 6,
-            children: [
-              const Icon(Symbols.person, size: 17, fill: 1),
-              Text(
-                data.profile.gender.isEmpty
-                    ? 'unspecified'.tr()
-                    : data.profile.gender,
-              ),
-              Text('·').bold(),
-              Text(
-                data.profile.pronouns.isEmpty
-                    ? 'unspecified'.tr()
-                    : data.profile.pronouns,
-              ),
-            ],
-          ),
-        if (data.profile.firstName.isNotEmpty ||
-            data.profile.middleName.isNotEmpty ||
-            data.profile.lastName.isNotEmpty)
-          Row(
-            spacing: 6,
-            children: [
-              const Icon(Symbols.id_card, size: 17, fill: 1),
-              if (data.profile.firstName.isNotEmpty)
-                Text(data.profile.firstName),
-              if (data.profile.middleName.isNotEmpty)
-                Text(data.profile.middleName),
-              if (data.profile.lastName.isNotEmpty) Text(data.profile.lastName),
-            ],
-          ),
-        Tooltip(
-          message: 'creditsStatus'.tr(),
-          child: Row(
-            spacing: 6,
-            children: [
-              Icon(Symbols.star, size: 17, fill: 1).padding(right: 2),
-              Text('${data.profile.socialCredits.toStringAsFixed(2)} pts'),
-              Text('·').bold(),
-              switch (data.profile.socialCreditsLevel) {
-                -1 => Text('socialCreditsLevelPoor').tr(),
-                0 => Text('socialCreditsLevelNormal').tr(),
-                1 => Text('socialCreditsLevelGood').tr(),
-                2 => Text('socialCreditsLevelExcellent').tr(),
-                _ => Text('unknown').tr(),
-              },
-            ],
-          ),
-        ),
-        InkWell(
-          child: Row(
-            spacing: 6,
-            children: [
-              Icon(Symbols.fingerprint, size: 17, fill: 1).padding(right: 2),
-              Text(data.id),
-            ],
-          ),
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: data.id));
-          },
-        ),
-      ];
-    }
-
     final user = ref.watch(userInfoProvider);
     final isCurrentUser = useMemoized(
       () => user.value?.id == account.value?.id,
       [user, account],
-    );
-
-    Widget accountBasicInfo(SnAccount data) => Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ProfilePictureWidget(file: data.profile.picture, radius: 32),
-          const Gap(20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    AccountName(account: data, style: TextStyle(fontSize: 20)),
-                    const Gap(6),
-                    Flexible(
-                      child: Text(
-                        '@${data.name}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ).fontSize(14).opacity(0.85),
-                    ),
-                  ],
-                ),
-                if (accountDeveloper.value != null)
-                  Row(
-                    spacing: 7,
-                    children: [
-                      const Icon(Symbols.smart_toy, size: 18),
-                      Text(
-                        'botAutomatedBy'.tr(
-                          args: [accountDeveloper.value!.publisher!.nick],
-                        ),
-                      ).fontSize(13),
-                    ],
-                  ).opacity(0.75),
-                const Gap(4),
-                AccountStatusWidget(uname: name, padding: EdgeInsets.zero),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: () {
-              SharePlus.instance.share(
-                ShareParams(
-                  uri: Uri.parse('https://id.solian.app/@${data.name}'),
-                ),
-              );
-            },
-            icon: const Icon(Symbols.share),
-          ),
-        ],
-      ),
-    );
-
-    Widget accountProfileBio(SnAccount data) => Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('bio').tr().bold().fontSize(15).padding(bottom: 8),
-          if (data.profile.bio.isEmpty)
-            Text('descriptionNone').tr().italic()
-          else
-            MarkdownTextContent(
-              content: data.profile.bio,
-              linesMargin: EdgeInsets.zero,
-            ),
-        ],
-      ).padding(horizontal: 24, vertical: 20),
-    );
-
-    Widget accountProfileDetail(SnAccount data) => Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 24,
-        children: [
-          if (buildSubcolumn(data).isNotEmpty)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 2,
-              children: buildSubcolumn(data),
-            ),
-          if (data.profile.timeZone.isNotEmpty && !kIsWeb)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('timeZone').tr().bold(),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  spacing: 6,
-                  children: [
-                    Text(data.profile.timeZone),
-                    Text(
-                      getTzInfo(
-                        data.profile.timeZone,
-                      ).$2.formatCustomGlobal('HH:mm'),
-                    ),
-                    Text(
-                      getTzInfo(data.profile.timeZone).$1.formatOffsetLocal(),
-                    ).fontSize(11),
-                    Text(
-                      'UTC${getTzInfo(data.profile.timeZone).$1.formatOffset()}',
-                    ).fontSize(11).opacity(0.75),
-                  ],
-                ),
-              ],
-            ),
-        ],
-      ).padding(horizontal: 24, vertical: 16),
-    );
-
-    Widget accountProfileLinks(SnAccount data) => Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('links').tr().bold().padding(horizontal: 24, top: 12, bottom: 4),
-          for (final link in data.profile.links)
-            ListTile(
-              title: Text(link.name.capitalizeEachWord()),
-              subtitle: Text(link.url),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              trailing: const Icon(Symbols.chevron_right),
-              shape: RoundedRectangleBorder(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-              ),
-              onTap: () {
-                if (!link.url.startsWith('http') && !link.url.contains('://')) {
-                  launchUrlString('https://${link.url}');
-                } else {
-                  launchUrlString(link.url);
-                }
-              },
-            ),
-        ],
-      ),
-    );
-
-    Widget accountAction(SnAccount data) => Card(
-      child: Column(
-        children: [
-          Row(
-            spacing: 8,
-            children: [
-              if (accountRelationship.value == null ||
-                  accountRelationship.value!.status > -100)
-                Expanded(
-                  child: FilledButton.icon(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        accountRelationship.value == null
-                            ? null
-                            : Theme.of(context).colorScheme.secondary,
-                      ),
-                      foregroundColor: WidgetStatePropertyAll(
-                        accountRelationship.value == null
-                            ? null
-                            : Theme.of(context).colorScheme.onSecondary,
-                      ),
-                    ),
-                    onPressed: relationshipAction,
-                    label:
-                        Text(
-                          accountRelationship.value == null
-                              ? 'addFriendShort'
-                              : 'added',
-                        ).tr(),
-                    icon:
-                        accountRelationship.value == null
-                            ? const Icon(Symbols.person_add)
-                            : const Icon(Symbols.person_check),
-                  ),
-                ),
-              if (accountRelationship.value == null ||
-                  accountRelationship.value!.status <= -100)
-                Expanded(
-                  child: FilledButton.icon(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        accountRelationship.value == null
-                            ? null
-                            : Theme.of(context).colorScheme.secondary,
-                      ),
-                      foregroundColor: WidgetStatePropertyAll(
-                        accountRelationship.value == null
-                            ? null
-                            : Theme.of(context).colorScheme.onSecondary,
-                      ),
-                    ),
-                    onPressed: blockAction,
-                    label:
-                        Text(
-                          accountRelationship.value == null
-                              ? 'blockUser'
-                              : 'unblockUser',
-                        ).tr(),
-                    icon:
-                        accountRelationship.value == null
-                            ? const Icon(Symbols.block)
-                            : const Icon(Symbols.person_cancel),
-                  ),
-                ),
-            ],
-          ),
-          Row(
-            spacing: 8,
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: directMessageAction,
-                  icon: const Icon(Symbols.message),
-                  label:
-                      Text(
-                        accountChat.value == null
-                            ? 'createDirectMessage'
-                            : 'gotoDirectMessage',
-                        maxLines: 1,
-                      ).tr(),
-                ),
-              ),
-              IconButton.filled(
-                onPressed: () {
-                  showAbuseReportSheet(
-                    context,
-                    resourceIdentifier: 'account/${data.id}',
-                  );
-                },
-                icon: Icon(
-                  Symbols.flag,
-                  color: Theme.of(context).colorScheme.onError,
-                ),
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(
-                    Theme.of(context).colorScheme.error,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ).padding(horizontal: 16, vertical: 12),
     );
 
     return account.when(
@@ -613,7 +675,13 @@ class AccountProfileScreen extends HookConsumerWidget {
                         Flexible(
                           child: CustomScrollView(
                             slivers: [
-                              SliverToBoxAdapter(child: accountBasicInfo(data)),
+                              SliverToBoxAdapter(
+                                child: _AccountBasicInfo(
+                                  data: data,
+                                  uname: name,
+                                  accountDeveloper: accountDeveloper,
+                                ),
+                              ),
                               if (data.badges.isNotEmpty)
                                 SliverToBoxAdapter(
                                   child: Card(
@@ -642,14 +710,16 @@ class AccountProfileScreen extends HookConsumerWidget {
                                 ).padding(horizontal: 4, top: 8),
                               ),
                               SliverToBoxAdapter(
-                                child: accountProfileBio(data).padding(top: 4),
+                                child: _AccountProfileBio(
+                                  data: data,
+                                ).padding(top: 4),
                               ),
                               if (data.profile.links.isNotEmpty)
                                 SliverToBoxAdapter(
-                                  child: accountProfileLinks(data),
+                                  child: _AccountProfileLinks(data: data),
                                 ),
                               SliverToBoxAdapter(
-                                child: accountProfileDetail(data),
+                                child: _AccountProfileDetail(data: data),
                               ),
                             ],
                           ),
@@ -659,7 +729,16 @@ class AccountProfileScreen extends HookConsumerWidget {
                             slivers: [
                               SliverGap(24),
                               if (user.value != null && !isCurrentUser)
-                                SliverToBoxAdapter(child: accountAction(data)),
+                                SliverToBoxAdapter(
+                                  child: _AccountAction(
+                                    data: data,
+                                    accountRelationship: accountRelationship,
+                                    accountChat: accountChat,
+                                    relationshipAction: relationshipAction,
+                                    blockAction: blockAction,
+                                    directMessageAction: directMessageAction,
+                                  ),
+                                ),
                               SliverToBoxAdapter(
                                 child: Card(
                                   child: FortuneGraphWidget(
@@ -715,7 +794,13 @@ class AccountProfileScreen extends HookConsumerWidget {
                             ],
                           ),
                         ),
-                        SliverToBoxAdapter(child: accountBasicInfo(data)),
+                        SliverToBoxAdapter(
+                          child: _AccountBasicInfo(
+                            data: data,
+                            uname: name,
+                            accountDeveloper: accountDeveloper,
+                          ),
+                        ),
                         if (data.badges.isNotEmpty)
                           SliverToBoxAdapter(
                             child: Card(
@@ -742,22 +827,31 @@ class AccountProfileScreen extends HookConsumerWidget {
                           ),
                         ),
                         SliverToBoxAdapter(
-                          child: accountProfileBio(data).padding(horizontal: 4),
+                          child: _AccountProfileBio(
+                            data: data,
+                          ).padding(horizontal: 4),
                         ),
                         if (data.profile.links.isNotEmpty)
                           SliverToBoxAdapter(
-                            child: accountProfileLinks(
-                              data,
+                            child: _AccountProfileLinks(
+                              data: data,
                             ).padding(horizontal: 4),
                           ),
                         SliverToBoxAdapter(
-                          child: accountProfileDetail(
-                            data,
+                          child: _AccountProfileDetail(
+                            data: data,
                           ).padding(horizontal: 4),
                         ),
                         if (user.value != null && !isCurrentUser)
                           SliverToBoxAdapter(
-                            child: accountAction(data).padding(horizontal: 4),
+                            child: _AccountAction(
+                              data: data,
+                              accountRelationship: accountRelationship,
+                              accountChat: accountChat,
+                              relationshipAction: relationshipAction,
+                              blockAction: blockAction,
+                              directMessageAction: directMessageAction,
+                            ).padding(horizontal: 4),
                           ),
                         SliverToBoxAdapter(
                           child: Card(

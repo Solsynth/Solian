@@ -27,112 +27,24 @@ import 'package:styled_widget/styled_widget.dart';
 
 part 'pub_profile.g.dart';
 
-@riverpod
-Future<SnPublisher> publisher(Ref ref, String uname) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/sphere/publishers/$uname");
-  return SnPublisher.fromJson(resp.data);
-}
+class _PublisherBasisWidget extends StatelessWidget {
+  final SnPublisher data;
+  final AsyncValue<SnSubscriptionStatus> subStatus;
+  final ValueNotifier<bool> subscribing;
+  final VoidCallback subscribe;
+  final VoidCallback unsubscribe;
 
-@riverpod
-Future<List<SnAccountBadge>> publisherBadges(Ref ref, String pubName) async {
-  final pub = await ref.watch(publisherProvider(pubName).future);
-  if (pub.type != 0 || pub.account == null) return [];
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/id/accounts/${pub.account!.name}/badges");
-  return List<SnAccountBadge>.from(
-    resp.data.map((x) => SnAccountBadge.fromJson(x)),
-  );
-}
-
-@riverpod
-Future<SnSubscriptionStatus> publisherSubscriptionStatus(
-  Ref ref,
-  String pubName,
-) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/sphere/publishers/$pubName/subscription");
-  return SnSubscriptionStatus.fromJson(resp.data);
-}
-
-@riverpod
-Future<Color?> publisherAppbarForcegroundColor(Ref ref, String pubName) async {
-  try {
-    final publisher = await ref.watch(publisherProvider(pubName).future);
-    if (publisher.background == null) return null;
-    final palette = await PaletteGenerator.fromImageProvider(
-      CloudImageWidget.provider(
-        fileId: publisher.background!.id,
-        serverUrl: ref.watch(serverUrlProvider),
-      ),
-    );
-    final dominantColor = palette.dominantColor?.color;
-    if (dominantColor == null) return null;
-    return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-  } catch (_) {
-    return null;
-  }
-}
-
-class PublisherProfileScreen extends HookConsumerWidget {
-  final String name;
-  const PublisherProfileScreen({super.key, required this.name});
+  const _PublisherBasisWidget({
+    required this.data,
+    required this.subStatus,
+    required this.subscribing,
+    required this.subscribe,
+    required this.unsubscribe,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final publisher = ref.watch(publisherProvider(name));
-    final badges = ref.watch(publisherBadgesProvider(name));
-    final subStatus = ref.watch(publisherSubscriptionStatusProvider(name));
-    final appbarColor = ref.watch(
-      publisherAppbarForcegroundColorProvider(name),
-    );
-
-    final categoryTabController = useTabController(initialLength: 3);
-    final categoryTab = useState(0);
-    categoryTabController.addListener(() {
-      categoryTab.value = categoryTabController.index;
-    });
-
-    final subscribing = useState(false);
-
-    Future<void> subscribe() async {
-      final apiClient = ref.watch(apiClientProvider);
-      subscribing.value = true;
-      try {
-        await apiClient.post(
-          "/sphere/publishers/$name/subscribe",
-          data: {'tier': 0},
-        );
-        ref.invalidate(publisherSubscriptionStatusProvider(name));
-        HapticFeedback.heavyImpact();
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        subscribing.value = false;
-      }
-    }
-
-    Future<void> unsubscribe() async {
-      final apiClient = ref.watch(apiClientProvider);
-      subscribing.value = true;
-      try {
-        await apiClient.post("/sphere/publishers/$name/unsubscribe");
-        ref.invalidate(publisherSubscriptionStatusProvider(name));
-        HapticFeedback.heavyImpact();
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        subscribing.value = false;
-      }
-    }
-
-    final appbarShadow = Shadow(
-      color: appbarColor.value?.invert ?? Colors.transparent,
-      blurRadius: 5.0,
-      offset: Offset(1.0, 1.0),
-    );
-
-    Widget publisherBasisWidget(SnPublisher data) => Row(
+  Widget build(BuildContext context) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 20,
       children: [
@@ -247,25 +159,51 @@ class PublisherProfileScreen extends HookConsumerWidget {
         ),
       ],
     ).padding(horizontal: 24, top: 24);
+  }
+}
 
-    Widget publisherBadgesWidget(SnPublisher data) =>
-        (badges.value?.isNotEmpty ?? false)
-            ? Card(
-              child: BadgeList(
-                badges: badges.value!,
-              ).padding(horizontal: 26, vertical: 20),
-            ).padding(horizontal: 4)
-            : const SizedBox.shrink();
+class _PublisherBadgesWidget extends StatelessWidget {
+  final SnPublisher data;
+  final AsyncValue<List<SnAccountBadge>> badges;
 
-    Widget publisherVerificationWidget(SnPublisher data) =>
-        (data.verification != null)
-            ? Card(
-              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: VerificationStatusCard(mark: data.verification!),
-            )
-            : const SizedBox.shrink();
+  const _PublisherBadgesWidget({required this.data, required this.badges});
 
-    Widget publisherBioWidget(SnPublisher data) => Card(
+  @override
+  Widget build(BuildContext context) {
+    return (badges.value?.isNotEmpty ?? false)
+        ? Card(
+          child: BadgeList(
+            badges: badges.value!,
+          ).padding(horizontal: 26, vertical: 20),
+        ).padding(horizontal: 4)
+        : const SizedBox.shrink();
+  }
+}
+
+class _PublisherVerificationWidget extends StatelessWidget {
+  final SnPublisher data;
+
+  const _PublisherVerificationWidget({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return (data.verification != null)
+        ? Card(
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: VerificationStatusCard(mark: data.verification!),
+        )
+        : const SizedBox.shrink();
+  }
+}
+
+class _PublisherBioWidget extends StatelessWidget {
+  final SnPublisher data;
+
+  const _PublisherBioWidget({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -281,8 +219,17 @@ class PublisherProfileScreen extends HookConsumerWidget {
         ],
       ).padding(horizontal: 20, vertical: 16),
     );
+  }
+}
 
-    Widget publisherCategoryTabWidget() => Card(
+class _PublisherCategoryTabWidget extends StatelessWidget {
+  final TabController categoryTabController;
+
+  const _PublisherCategoryTabWidget({required this.categoryTabController});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: TabBar(
         controller: categoryTabController,
@@ -294,6 +241,113 @@ class PublisherProfileScreen extends HookConsumerWidget {
           Tab(text: 'postArticle'.tr()),
         ],
       ),
+    );
+  }
+}
+
+@riverpod
+Future<SnPublisher> publisher(Ref ref, String uname) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get("/sphere/publishers/$uname");
+  return SnPublisher.fromJson(resp.data);
+}
+
+@riverpod
+Future<List<SnAccountBadge>> publisherBadges(Ref ref, String pubName) async {
+  final pub = await ref.watch(publisherProvider(pubName).future);
+  if (pub.type != 0 || pub.account == null) return [];
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get("/id/accounts/${pub.account!.name}/badges");
+  return List<SnAccountBadge>.from(
+    resp.data.map((x) => SnAccountBadge.fromJson(x)),
+  );
+}
+
+@riverpod
+Future<SnSubscriptionStatus> publisherSubscriptionStatus(
+  Ref ref,
+  String pubName,
+) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get("/sphere/publishers/$pubName/subscription");
+  return SnSubscriptionStatus.fromJson(resp.data);
+}
+
+@riverpod
+Future<Color?> publisherAppbarForcegroundColor(Ref ref, String pubName) async {
+  try {
+    final publisher = await ref.watch(publisherProvider(pubName).future);
+    if (publisher.background == null) return null;
+    final palette = await PaletteGenerator.fromImageProvider(
+      CloudImageWidget.provider(
+        fileId: publisher.background!.id,
+        serverUrl: ref.watch(serverUrlProvider),
+      ),
+    );
+    final dominantColor = palette.dominantColor?.color;
+    if (dominantColor == null) return null;
+    return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+  } catch (_) {
+    return null;
+  }
+}
+
+class PublisherProfileScreen extends HookConsumerWidget {
+  final String name;
+  const PublisherProfileScreen({super.key, required this.name});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final publisher = ref.watch(publisherProvider(name));
+    final badges = ref.watch(publisherBadgesProvider(name));
+    final subStatus = ref.watch(publisherSubscriptionStatusProvider(name));
+    final appbarColor = ref.watch(
+      publisherAppbarForcegroundColorProvider(name),
+    );
+
+    final categoryTabController = useTabController(initialLength: 3);
+    final categoryTab = useState(0);
+    categoryTabController.addListener(() {
+      categoryTab.value = categoryTabController.index;
+    });
+
+    final subscribing = useState(false);
+
+    Future<void> subscribe() async {
+      final apiClient = ref.watch(apiClientProvider);
+      subscribing.value = true;
+      try {
+        await apiClient.post(
+          "/sphere/publishers/$name/subscribe",
+          data: {'tier': 0},
+        );
+        ref.invalidate(publisherSubscriptionStatusProvider(name));
+        HapticFeedback.heavyImpact();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        subscribing.value = false;
+      }
+    }
+
+    Future<void> unsubscribe() async {
+      final apiClient = ref.watch(apiClientProvider);
+      subscribing.value = true;
+      try {
+        await apiClient.post("/sphere/publishers/$name/unsubscribe");
+        ref.invalidate(publisherSubscriptionStatusProvider(name));
+        HapticFeedback.heavyImpact();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        subscribing.value = false;
+      }
+    }
+
+    final appbarShadow = Shadow(
+      color: appbarColor.value?.invert ?? Colors.transparent,
+      blurRadius: 5.0,
+      offset: Offset(1.0, 1.0),
     );
 
     return publisher.when(
@@ -351,7 +405,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
                               SliverGap(16),
                               SliverPostList(pubName: name, pinned: true),
                               SliverToBoxAdapter(
-                                child: publisherCategoryTabWidget(),
+                                child: _PublisherCategoryTabWidget(
+                                  categoryTabController: categoryTabController,
+                                ),
                               ),
                               SliverPostList(
                                 key: ValueKey(categoryTab.value),
@@ -377,10 +433,19 @@ class PublisherProfileScreen extends HookConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  publisherBasisWidget(data).padding(bottom: 8),
-                                  publisherBadgesWidget(data),
-                                  publisherVerificationWidget(data),
-                                  publisherBioWidget(data),
+                                  _PublisherBasisWidget(
+                                    data: data,
+                                    subStatus: subStatus,
+                                    subscribing: subscribing,
+                                    subscribe: subscribe,
+                                    unsubscribe: unsubscribe,
+                                  ).padding(bottom: 8),
+                                  _PublisherBadgesWidget(
+                                    data: data,
+                                    badges: badges,
+                                  ),
+                                  _PublisherVerificationWidget(data: data),
+                                  _PublisherBioWidget(data: data),
                                 ],
                               ),
                             ),
@@ -432,15 +497,32 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           ),
                         ),
                         SliverToBoxAdapter(
-                          child: publisherBasisWidget(data).padding(bottom: 8),
+                          child: _PublisherBasisWidget(
+                            data: data,
+                            subStatus: subStatus,
+                            subscribing: subscribing,
+                            subscribe: subscribe,
+                            unsubscribe: unsubscribe,
+                          ).padding(bottom: 8),
                         ),
-                        SliverToBoxAdapter(child: publisherBadgesWidget(data)),
                         SliverToBoxAdapter(
-                          child: publisherVerificationWidget(data),
+                          child: _PublisherBadgesWidget(
+                            data: data,
+                            badges: badges,
+                          ),
                         ),
-                        SliverToBoxAdapter(child: publisherBioWidget(data)),
+                        SliverToBoxAdapter(
+                          child: _PublisherVerificationWidget(data: data),
+                        ),
+                        SliverToBoxAdapter(
+                          child: _PublisherBioWidget(data: data),
+                        ),
                         SliverPostList(pubName: name, pinned: true),
-                        SliverToBoxAdapter(child: publisherCategoryTabWidget()),
+                        SliverToBoxAdapter(
+                          child: _PublisherCategoryTabWidget(
+                            categoryTabController: categoryTabController,
+                          ),
+                        ),
                         SliverPostList(
                           key: ValueKey(categoryTab.value),
                           pubName: name,
