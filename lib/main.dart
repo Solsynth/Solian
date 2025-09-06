@@ -240,6 +240,7 @@ class IslandApp extends HookConsumerWidget {
       themeMode: ThemeMode.system,
       routerConfig: router,
       supportedLocales: context.supportedLocales,
+      scrollBehavior: AppScrollBehavior(),
       localizationsDelegates: [
         ...context.localizationDelegates,
         CroppyLocalizations.delegate,
