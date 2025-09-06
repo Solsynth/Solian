@@ -14,6 +14,7 @@ import 'package:island/widgets/content/audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:island/utils/data_saving_gate.dart';
 
 import 'image.dart';
 import 'video.dart';
@@ -33,6 +34,7 @@ class CloudFileWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final dataSaving = ref.watch(appSettingsNotifierProvider.select((s) => s.dataSavingMode));
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/drive/files/${item.id}';
 
@@ -44,7 +46,12 @@ class CloudFileWidget extends HookConsumerWidget {
     var content = switch (item.mimeType?.split('/').firstOrNull) {
       "image" => AspectRatio(
         aspectRatio: ratio,
-        child: UniversalImage(
+        child: dataSaving ? _DataSavingPlaceholder(
+            icon: Symbols.image,
+            onTap: () {
+                // TODO: single picture unlock logic
+            })
+        : UniversalImage(
           uri: uri,
           blurHash:
               noBlurhash
@@ -54,7 +61,13 @@ class CloudFileWidget extends HookConsumerWidget {
       ),
       "video" => AspectRatio(
         aspectRatio: ratio,
-        child: CloudVideoWidget(item: item),
+        child: dataSaving ? _DataSavingPlaceholder(
+            icon: Symbols.play_arrow,
+            onTap: () {
+                // TODO: single vedio unlock logic
+            }
+        )
+        : CloudVideoWidget(item: item),
       ),
       "audio" => Center(
         child: ConstrainedBox(
@@ -113,6 +126,35 @@ class CloudFileWidget extends HookConsumerWidget {
   }
 }
 
+class _DataSavingPlaceholder extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _DataSavingPlaceholder({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        color: Colors.black26,
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 36,
+              color: Theme.of(context).colorScheme.onSurfaceVariant),
+            const Gap(8),
+            Text(
+              'dataSavingHint'.tr(),
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 class CloudVideoWidget extends HookConsumerWidget {
   final SnCloudFile item;
   const CloudVideoWidget({super.key, required this.item});
@@ -311,32 +353,35 @@ class ProfilePictureWidget extends ConsumerWidget {
     this.fallbackColor,
   });
 
-  @override
+@override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/drive/files/${file?.id ?? fileId}';
+    final String? id = file?.id ?? fileId;
+
+    final fallback = Icon(
+      fallbackIcon ?? Symbols.account_circle,
+      size: radius,
+      color: fallbackColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
+    ).center();
 
     return ClipRRect(
-      borderRadius:
-          borderRadius == null
-              ? BorderRadius.all(Radius.circular(radius))
-              : BorderRadius.all(Radius.circular(borderRadius!)),
+      borderRadius: borderRadius == null
+          ? BorderRadius.all(Radius.circular(radius))
+          : BorderRadius.all(Radius.circular(borderRadius!)),
       child: Container(
         width: radius * 2,
         height: radius * 2,
         color: Theme.of(context).colorScheme.primaryContainer,
-        child:
-            file != null
-                ? CloudFileWidget(item: file!, fit: BoxFit.cover)
-                : fileId == null
-                ? Icon(
-                  fallbackIcon ?? Symbols.account_circle,
-                  size: radius,
-                  color:
-                      fallbackColor ??
-                      Theme.of(context).colorScheme.onPrimaryContainer,
-                ).center()
-                : UniversalImage(uri: uri, fit: BoxFit.cover),
+        child: id == null
+            ? fallback
+            : DataSavingGate(
+                bypass: true, // 小頭像永遠繞過低數據
+                placeholder: fallback,
+                content: () => UniversalImage(
+                  uri: '$serverUrl/drive/files/$id',
+                  fit: BoxFit.cover,
+                ),
+              ),
       ),
     );
   }
