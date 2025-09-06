@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:island/pods/webfeed.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/empty_state.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class WebFeedListScreen extends ConsumerWidget {
@@ -20,7 +21,10 @@ class WebFeedListScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Symbols.add),
         onPressed: () {
-          context.pushNamed('creatorFeedNew', pathParameters: {'name': pubName});
+          context.pushNamed(
+            'creatorFeedNew',
+            pathParameters: {'name': pubName},
+          );
         },
       ),
       body: feedsAsync.when(
@@ -32,7 +36,7 @@ class WebFeedListScreen extends ConsumerWidget {
               description: 'Add a new web feed to get started',
             );
           }
-          return RefreshIndicator(
+          return ExtendedRefreshIndicator(
             onRefresh: () => ref.refresh(webFeedListProvider(pubName).future),
             child: ListView.builder(
               padding: EdgeInsets.only(top: 8),
@@ -62,7 +66,10 @@ class WebFeedListScreen extends ConsumerWidget {
                     ),
                     trailing: const Icon(Symbols.chevron_right),
                     onTap: () {
-                      context.pushNamed('creatorFeedEdit', pathParameters: {'name': pubName, 'feedId': feed.id});
+                      context.pushNamed(
+                        'creatorFeedEdit',
+                        pathParameters: {'name': pubName, 'feedId': feed.id},
+                      );
                     },
                   ),
                 );

@@ -27,6 +27,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/widgets/realm/realm_card.dart';
 import 'package:island/widgets/publisher/publisher_card.dart';
 import 'package:island/widgets/web_article_card.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'explore.g.dart';
@@ -368,7 +369,7 @@ class ExploreScreen extends HookConsumerWidget {
 
     final isWide = isWideScreen(context);
 
-    return RefreshIndicator(
+    return ExtendedRefreshIndicator(
       onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
       child: PagingHelperView(
         provider: activityListNotifierProvider(filter),

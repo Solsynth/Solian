@@ -23,6 +23,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/realm/realm_list_tile.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 
 part 'realms.g.dart';
 
@@ -90,7 +91,7 @@ class RealmListScreen extends HookConsumerWidget {
         },
       ),
       floatingActionButtonLocation: TabbedFabLocation(context),
-      body: RefreshIndicator(
+      body: ExtendedRefreshIndicator(
         child: realms.when(
           data:
               (value) => Column(

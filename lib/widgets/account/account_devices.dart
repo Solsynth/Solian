@@ -12,6 +12,7 @@ import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 
 part 'account_devices.g.dart';
 
@@ -177,7 +178,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       titleText: 'authSessions'.tr(),
       child: authDevices.when(
         data:
-            (data) => RefreshIndicator(
+            (data) => ExtendedRefreshIndicator(
               onRefresh:
                   () => Future.sync(() => ref.invalidate(authDevicesProvider)),
               child: ListView.builder(

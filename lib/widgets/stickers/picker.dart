@@ -12,6 +12,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
+import 'package:island/widgets/extended_refresh_indicator.dart';
 
 part 'picker.g.dart';
 
@@ -208,7 +209,7 @@ class _PackSwitcherState extends State<_PackSwitcher> {
 
         // Content
         Expanded(
-          child: RefreshIndicator(
+          child: ExtendedRefreshIndicator(
             onRefresh: widget.onRefresh,
             child: _StickersGrid(
               pack: selectedPack,
