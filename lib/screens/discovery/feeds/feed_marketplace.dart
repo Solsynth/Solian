@@ -72,7 +72,7 @@ class MarketplaceWebFeedsScreen extends HookConsumerWidget {
         searchController.clear();
       }
       return null;
-    }, [query.value]);
+    }, [query]);
 
     // Clean up timer on dispose
     useEffect(() {

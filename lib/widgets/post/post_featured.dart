@@ -48,7 +48,7 @@ class PostFeaturedList extends HookConsumerWidget {
         'PostFeaturedList: isCollapsed changed to ${isCollapsed.value}',
       );
       return null;
-    }, [isCollapsed.value]);
+    }, [isCollapsed]);
 
     useEffect(() {
       if (featuredPostsAsync.hasValue && featuredPostsAsync.value!.isNotEmpty) {
@@ -93,7 +93,7 @@ class PostFeaturedList extends HookConsumerWidget {
         );
       }
       return null;
-    }, [featuredPostsAsync.value]);
+    }, [featuredPostsAsync]);
 
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(8)),
