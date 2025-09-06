@@ -66,8 +66,8 @@ class _PublisherBasisWidget extends StatelessWidget {
             ),
           ),
           onTap: () {
-            Navigator.pop(context, true);
             if (data.account?.name != null) {
+              Navigator.pop(context, true);
               context.pushNamed(
                 'accountProfile',
                 pathParameters: {'name': data.account!.name},
