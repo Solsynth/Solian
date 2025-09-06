@@ -47,6 +47,7 @@ class NotificationService: UNNotificationServiceExtension {
     private func processNotification(request: UNNotificationRequest, content: UNMutableNotificationContent) throws {
         switch content.userInfo["type"] as? String {
         case "messages.new":
+            content.categoryIdentifier = "REPLYABLE_MESSAGE"
             try handleMessagingNotification(request: request, content: content)
         default:
             try handleDefaultNotification(content: content)
@@ -59,8 +60,6 @@ class NotificationService: UNNotificationServiceExtension {
         }
         
         let pfpIdentifier = meta["pfp"] as? String
-        
-        content.categoryIdentifier = "REPLYABLE_MESSAGE"
         
         let metaCopy = meta as? [String: Any] ?? [:]
         let pfpUrl = pfpIdentifier != nil ? getAttachmentUrl(for: pfpIdentifier!) : nil
