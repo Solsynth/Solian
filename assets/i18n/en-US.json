@@ -1002,5 +1002,17 @@
   "toggleFilters": "Toggle filters",
   "notableDayNext": "{} is in",
   "expandPoll": "Expand Poll",
-  "collapsePoll": "Collapse Poll"
+  "collapsePoll": "Collapse Poll",
+  "embedView": "Embed View",
+  "embedUri": "Embed URI",
+  "aspectRatio": "Aspect Ratio",
+  "renderer": "Renderer",
+  "addEmbed": "Add Embed",
+  "editEmbed": "Edit Embed",
+  "deleteEmbed": "Delete Embed",
+  "deleteEmbedConfirm": "Are you sure you want to delete this embed?",
+  "currentEmbed": "Current Embed",
+  "noEmbed": "No embed yet",
+  "save": "Save",
+  "webView": "Web View"
 }

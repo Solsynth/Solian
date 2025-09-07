@@ -727,7 +727,11 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                         children: [
                           Flexible(child: Text(member.account.nick)),
                           if (member.status != null)
-                            AccountStatusLabel(status: member.status!),
+                            AccountStatusLabel(
+                              status: member.status!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           if (member.joinedAt == null)
                             const Icon(Symbols.pending_actions, size: 20),
                         ],

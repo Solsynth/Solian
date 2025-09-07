@@ -22,6 +22,7 @@ sealed class SnPost with _$SnPost {
     String? slug,
     @Default(0) int type,
     Map<String, dynamic>? meta,
+    SnPostEmbedView? embedView,
     @Default(0) int viewsUnique,
     @Default(0) int viewsTotal,
     @Default(0) int upvotes,
@@ -105,3 +106,20 @@ const Map<String, ReactInfo> kReactionTemplates = {
   'pray': ReactInfo(icon: '🙏', attitude: 0),
   'heart': ReactInfo(icon: '❤️', attitude: 0),
 };
+
+enum PostEmbedViewRenderer {
+  @JsonValue(0)
+  webView,
+}
+
+@freezed
+sealed class SnPostEmbedView with _$SnPostEmbedView {
+  const factory SnPostEmbedView({
+    required String uri,
+    double? aspectRatio,
+    @Default(PostEmbedViewRenderer.webView) PostEmbedViewRenderer renderer,
+  }) = _SnPostEmbedView;
+
+  factory SnPostEmbedView.fromJson(Map<String, dynamic> json) =>
+      _$SnPostEmbedViewFromJson(json);
+}
