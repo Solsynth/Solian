@@ -270,9 +270,284 @@ as String,
 
 
 /// @nodoc
+mixin _$GeoIpLocation {
+
+ double get latitude; double get longitude; String get countryCode; String get country; String get city;
+/// Create a copy of GeoIpLocation
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$GeoIpLocationCopyWith<GeoIpLocation> get copyWith => _$GeoIpLocationCopyWithImpl<GeoIpLocation>(this as GeoIpLocation, _$identity);
+
+  /// Serializes this GeoIpLocation to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GeoIpLocation&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.country, country) || other.country == country)&&(identical(other.city, city) || other.city == city));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,latitude,longitude,countryCode,country,city);
+
+@override
+String toString() {
+  return 'GeoIpLocation(latitude: $latitude, longitude: $longitude, countryCode: $countryCode, country: $country, city: $city)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $GeoIpLocationCopyWith<$Res>  {
+  factory $GeoIpLocationCopyWith(GeoIpLocation value, $Res Function(GeoIpLocation) _then) = _$GeoIpLocationCopyWithImpl;
+@useResult
+$Res call({
+ double latitude, double longitude, String countryCode, String country, String city
+});
+
+
+
+
+}
+/// @nodoc
+class _$GeoIpLocationCopyWithImpl<$Res>
+    implements $GeoIpLocationCopyWith<$Res> {
+  _$GeoIpLocationCopyWithImpl(this._self, this._then);
+
+  final GeoIpLocation _self;
+  final $Res Function(GeoIpLocation) _then;
+
+/// Create a copy of GeoIpLocation
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? latitude = null,Object? longitude = null,Object? countryCode = null,Object? country = null,Object? city = null,}) {
+  return _then(_self.copyWith(
+latitude: null == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double,longitude: null == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double,countryCode: null == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String,country: null == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
+as String,city: null == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [GeoIpLocation].
+extension GeoIpLocationPatterns on GeoIpLocation {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _GeoIpLocation value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _GeoIpLocation() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _GeoIpLocation value)  $default,){
+final _that = this;
+switch (_that) {
+case _GeoIpLocation():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _GeoIpLocation value)?  $default,){
+final _that = this;
+switch (_that) {
+case _GeoIpLocation() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double latitude,  double longitude,  String countryCode,  String country,  String city)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _GeoIpLocation() when $default != null:
+return $default(_that.latitude,_that.longitude,_that.countryCode,_that.country,_that.city);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double latitude,  double longitude,  String countryCode,  String country,  String city)  $default,) {final _that = this;
+switch (_that) {
+case _GeoIpLocation():
+return $default(_that.latitude,_that.longitude,_that.countryCode,_that.country,_that.city);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double latitude,  double longitude,  String countryCode,  String country,  String city)?  $default,) {final _that = this;
+switch (_that) {
+case _GeoIpLocation() when $default != null:
+return $default(_that.latitude,_that.longitude,_that.countryCode,_that.country,_that.city);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _GeoIpLocation implements GeoIpLocation {
+  const _GeoIpLocation({required this.latitude, required this.longitude, required this.countryCode, required this.country, required this.city});
+  factory _GeoIpLocation.fromJson(Map<String, dynamic> json) => _$GeoIpLocationFromJson(json);
+
+@override final  double latitude;
+@override final  double longitude;
+@override final  String countryCode;
+@override final  String country;
+@override final  String city;
+
+/// Create a copy of GeoIpLocation
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$GeoIpLocationCopyWith<_GeoIpLocation> get copyWith => __$GeoIpLocationCopyWithImpl<_GeoIpLocation>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$GeoIpLocationToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GeoIpLocation&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.country, country) || other.country == country)&&(identical(other.city, city) || other.city == city));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,latitude,longitude,countryCode,country,city);
+
+@override
+String toString() {
+  return 'GeoIpLocation(latitude: $latitude, longitude: $longitude, countryCode: $countryCode, country: $country, city: $city)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$GeoIpLocationCopyWith<$Res> implements $GeoIpLocationCopyWith<$Res> {
+  factory _$GeoIpLocationCopyWith(_GeoIpLocation value, $Res Function(_GeoIpLocation) _then) = __$GeoIpLocationCopyWithImpl;
+@override @useResult
+$Res call({
+ double latitude, double longitude, String countryCode, String country, String city
+});
+
+
+
+
+}
+/// @nodoc
+class __$GeoIpLocationCopyWithImpl<$Res>
+    implements _$GeoIpLocationCopyWith<$Res> {
+  __$GeoIpLocationCopyWithImpl(this._self, this._then);
+
+  final _GeoIpLocation _self;
+  final $Res Function(_GeoIpLocation) _then;
+
+/// Create a copy of GeoIpLocation
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? latitude = null,Object? longitude = null,Object? countryCode = null,Object? country = null,Object? city = null,}) {
+  return _then(_GeoIpLocation(
+latitude: null == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double,longitude: null == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double,countryCode: null == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String,country: null == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
+as String,city: null == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnAuthChallenge {
 
- String get id; DateTime get expiredAt; int get stepRemain; int get stepTotal; int get failedAttempts; int get type; List<String> get blacklistFactors; List<dynamic> get audiences; List<dynamic> get scopes; String get ipAddress; String get userAgent; String? get nonce; String? get location; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; DateTime get expiredAt; int get stepRemain; int get stepTotal; int get failedAttempts; int get type; List<String> get blacklistFactors; List<dynamic> get audiences; List<dynamic> get scopes; String get ipAddress; String get userAgent; String? get nonce; GeoIpLocation? get location; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAuthChallenge
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -305,11 +580,11 @@ abstract mixin class $SnAuthChallengeCopyWith<$Res>  {
   factory $SnAuthChallengeCopyWith(SnAuthChallenge value, $Res Function(SnAuthChallenge) _then) = _$SnAuthChallengeCopyWithImpl;
 @useResult
 $Res call({
- String id, DateTime expiredAt, int stepRemain, int stepTotal, int failedAttempts, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String? nonce, String? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime expiredAt, int stepRemain, int stepTotal, int failedAttempts, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String? nonce, GeoIpLocation? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-
+$GeoIpLocationCopyWith<$Res>? get location;
 
 }
 /// @nodoc
@@ -337,14 +612,26 @@ as List<dynamic>,ipAddress: null == ipAddress ? _self.ipAddress : ipAddress // i
 as String,userAgent: null == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable
 as String,nonce: freezed == nonce ? _self.nonce : nonce // ignore: cast_nullable_to_non_nullable
 as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
-as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as GeoIpLocation?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
+/// Create a copy of SnAuthChallenge
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$GeoIpLocationCopyWith<$Res>? get location {
+    if (_self.location == null) {
+    return null;
+  }
 
+  return $GeoIpLocationCopyWith<$Res>(_self.location!, (value) {
+    return _then(_self.copyWith(location: value));
+  });
+}
 }
 
 
@@ -423,7 +710,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  String? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  GeoIpLocation? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAuthChallenge() when $default != null:
 return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.failedAttempts,_that.type,_that.blacklistFactors,_that.audiences,_that.scopes,_that.ipAddress,_that.userAgent,_that.nonce,_that.location,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -444,7 +731,7 @@ return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  String? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  GeoIpLocation? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthChallenge():
 return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.failedAttempts,_that.type,_that.blacklistFactors,_that.audiences,_that.scopes,_that.ipAddress,_that.userAgent,_that.nonce,_that.location,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -461,7 +748,7 @@ return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  String? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  GeoIpLocation? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthChallenge() when $default != null:
 return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.failedAttempts,_that.type,_that.blacklistFactors,_that.audiences,_that.scopes,_that.ipAddress,_that.userAgent,_that.nonce,_that.location,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -509,7 +796,7 @@ class _SnAuthChallenge implements SnAuthChallenge {
 @override final  String ipAddress;
 @override final  String userAgent;
 @override final  String? nonce;
-@override final  String? location;
+@override final  GeoIpLocation? location;
 @override final  String accountId;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -548,11 +835,11 @@ abstract mixin class _$SnAuthChallengeCopyWith<$Res> implements $SnAuthChallenge
   factory _$SnAuthChallengeCopyWith(_SnAuthChallenge value, $Res Function(_SnAuthChallenge) _then) = __$SnAuthChallengeCopyWithImpl;
 @override @useResult
 $Res call({
- String id, DateTime expiredAt, int stepRemain, int stepTotal, int failedAttempts, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String? nonce, String? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime expiredAt, int stepRemain, int stepTotal, int failedAttempts, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String? nonce, GeoIpLocation? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-
+@override $GeoIpLocationCopyWith<$Res>? get location;
 
 }
 /// @nodoc
@@ -580,7 +867,7 @@ as List<dynamic>,ipAddress: null == ipAddress ? _self.ipAddress : ipAddress // i
 as String,userAgent: null == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable
 as String,nonce: freezed == nonce ? _self.nonce : nonce // ignore: cast_nullable_to_non_nullable
 as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
-as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as GeoIpLocation?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -588,7 +875,19 @@ as DateTime?,
   ));
 }
 
+/// Create a copy of SnAuthChallenge
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$GeoIpLocationCopyWith<$Res>? get location {
+    if (_self.location == null) {
+    return null;
+  }
 
+  return $GeoIpLocationCopyWith<$Res>(_self.location!, (value) {
+    return _then(_self.copyWith(location: value));
+  });
+}
 }
 
 

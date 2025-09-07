@@ -12,6 +12,20 @@ sealed class AppToken with _$AppToken {
 }
 
 @freezed
+sealed class GeoIpLocation with _$GeoIpLocation {
+  const factory GeoIpLocation({
+    required double latitude,
+    required double longitude,
+    required String countryCode,
+    required String country,
+    required String city,
+  }) = _GeoIpLocation;
+
+  factory GeoIpLocation.fromJson(Map<String, dynamic> json) =>
+      _$GeoIpLocationFromJson(json);
+}
+
+@freezed
 sealed class SnAuthChallenge with _$SnAuthChallenge {
   const factory SnAuthChallenge({
     required String id,
@@ -26,7 +40,7 @@ sealed class SnAuthChallenge with _$SnAuthChallenge {
     required String ipAddress,
     required String userAgent,
     required String? nonce,
-    required String? location,
+    required GeoIpLocation? location,
     required String accountId,
     required DateTime createdAt,
     required DateTime updatedAt,
