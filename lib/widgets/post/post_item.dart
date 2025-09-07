@@ -18,6 +18,7 @@ import 'package:island/screens/posts/compose.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_item_screenshot.dart';
+import 'package:island/widgets/post/post_award_sheet.dart';
 import 'package:island/widgets/post/post_pin_sheet.dart';
 import 'package:island/widgets/post/post_shared.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
@@ -245,6 +246,18 @@ class PostActionableItem extends HookConsumerWidget {
                   );
                 },
               ),
+            MenuAction(
+              title: 'award'.tr(),
+              image: MenuImage.icon(Symbols.star),
+              callback: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useRootNavigator: true,
+                  builder: (context) => PostAwardSheet(post: item),
+                );
+              },
+            ),
             MenuSeparator(),
             MenuAction(
               title: 'share'.tr(),

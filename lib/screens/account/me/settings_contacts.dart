@@ -62,6 +62,32 @@ class ContactMethodSheet extends HookConsumerWidget {
       }
     }
 
+    Future<void> makeContactMethodPublic() async {
+      try {
+        showLoadingModal(context);
+        final client = ref.read(apiClientProvider);
+        await client.post('/id/accounts/me/contacts/${contact.id}/public');
+        if (context.mounted) Navigator.pop(context, true);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> makeContactMethodPrivate() async {
+      try {
+        showLoadingModal(context);
+        final client = ref.read(apiClientProvider);
+        await client.delete('/id/accounts/me/contacts/${contact.id}/public');
+        if (context.mounted) Navigator.pop(context, true);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
     return SheetScaffold(
       titleText: 'contactMethod'.tr(),
       child: Column(
@@ -111,6 +137,27 @@ class ContactMethodSheet extends HookConsumerWidget {
                         backgroundColor: Theme.of(context).colorScheme.tertiary,
                       ),
                     ),
+                  if (contact.isPublic)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Badge(
+                        label: Text('contactMethodPublic'.tr()),
+                        textColor: Theme.of(context).colorScheme.onPrimary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  if (!contact.isPublic)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Badge(
+                        label: Text('contactMethodPrivate'.tr()),
+                        textColor: Theme.of(context).colorScheme.onSurface,
+                        backgroundColor:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -128,6 +175,20 @@ class ContactMethodSheet extends HookConsumerWidget {
               leading: const Icon(Symbols.star),
               title: Text('contactMethodSetPrimary').tr(),
               onTap: setContactMethodAsPrimary,
+              contentPadding: EdgeInsets.symmetric(horizontal: 20),
+            ),
+          if (contact.verifiedAt != null && !contact.isPublic)
+            ListTile(
+              leading: const Icon(Symbols.public),
+              title: Text('contactMethodMakePublic').tr(),
+              onTap: makeContactMethodPublic,
+              contentPadding: EdgeInsets.symmetric(horizontal: 20),
+            ),
+          if (contact.verifiedAt != null && contact.isPublic)
+            ListTile(
+              leading: const Icon(Symbols.visibility_off),
+              title: Text('contactMethodMakePrivate').tr(),
+              onTap: makeContactMethodPrivate,
               contentPadding: EdgeInsets.symmetric(horizontal: 20),
             ),
           ListTile(

@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/auth.dart';
 import 'package:island/models/account.dart';
@@ -479,6 +480,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
                       );
                     },
                   ),
+                  const Gap(8),
                 ]
                 : null,
       ),

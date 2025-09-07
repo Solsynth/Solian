@@ -321,6 +321,59 @@ class _AccountProfileLinks extends StatelessWidget {
   }
 }
 
+class _AccountProfileContacts extends StatelessWidget {
+  final SnAccount data;
+
+  const _AccountProfileContacts({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final publicContacts = data.contacts.where((c) => c.isPublic).toList();
+    if (publicContacts.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'contactMethod',
+          ).tr().bold().padding(horizontal: 24, top: 12, bottom: 4),
+          for (final contact in publicContacts)
+            ListTile(
+              title: Text(contact.content),
+              subtitle: Text(switch (contact.type) {
+                0 => 'contactMethodTypeEmail'.tr(),
+                1 => 'contactMethodTypePhone'.tr(),
+                _ => 'contactMethodTypeAddress'.tr(),
+              }),
+              leading: Icon(switch (contact.type) {
+                0 => Symbols.mail,
+                1 => Symbols.phone,
+                _ => Symbols.home,
+              }),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              trailing: const Icon(Symbols.chevron_right),
+              shape: RoundedRectangleBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+              ),
+              onTap: () {
+                switch (contact.type) {
+                  case 0:
+                    launchUrlString('mailto:${contact.content}');
+                  case 1:
+                    launchUrlString('tel:${contact.content}');
+                  default:
+                    // For address, maybe copy to clipboard or do nothing
+                    Clipboard.setData(ClipboardData(text: contact.content));
+                }
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AccountPublisherList extends StatelessWidget {
   final List<SnPublisher> publishers;
 
@@ -792,6 +845,10 @@ class AccountProfileScreen extends HookConsumerWidget {
                               SliverToBoxAdapter(
                                 child: _AccountProfileLinks(data: data),
                               ),
+                            if (data.contacts.any((c) => c.isPublic))
+                              SliverToBoxAdapter(
+                                child: _AccountProfileContacts(data: data),
+                              ),
                             SliverToBoxAdapter(
                               child: _AccountProfileDetail(data: data),
                             ),
@@ -913,6 +970,12 @@ class AccountProfileScreen extends HookConsumerWidget {
                       if (data.profile.links.isNotEmpty)
                         SliverToBoxAdapter(
                           child: _AccountProfileLinks(
+                            data: data,
+                          ).padding(horizontal: 4),
+                        ),
+                      if (data.contacts.any((c) => c.isPublic))
+                        SliverToBoxAdapter(
+                          child: _AccountProfileContacts(
                             data: data,
                           ).padding(horizontal: 4),
                         ),

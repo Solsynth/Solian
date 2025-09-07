@@ -26,6 +26,11 @@ _SnAccount _$SnAccountFromJson(Map<String, dynamic> json) => _SnAccount(
           ?.map((e) => SnAccountBadge.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  contacts:
+      (json['contacts'] as List<dynamic>?)
+          ?.map((e) => SnContactMethod.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
   deletedAt:
@@ -46,6 +51,7 @@ Map<String, dynamic> _$SnAccountToJson(_SnAccount instance) =>
       'profile': instance.profile.toJson(),
       'perk_subscription': instance.perkSubscription?.toJson(),
       'badges': instance.badges.map((e) => e.toJson()).toList(),
+      'contacts': instance.contacts.map((e) => e.toJson()).toList(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
@@ -229,6 +235,7 @@ _SnContactMethod _$SnContactMethodFromJson(Map<String, dynamic> json) =>
               ? null
               : DateTime.parse(json['verified_at'] as String),
       isPrimary: json['is_primary'] as bool,
+      isPublic: json['is_public'] as bool,
       content: json['content'] as String,
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -245,6 +252,7 @@ Map<String, dynamic> _$SnContactMethodToJson(_SnContactMethod instance) =>
       'type': instance.type,
       'verified_at': instance.verifiedAt?.toIso8601String(),
       'is_primary': instance.isPrimary,
+      'is_public': instance.isPublic,
       'content': instance.content,
       'account_id': instance.accountId,
       'created_at': instance.createdAt.toIso8601String(),
