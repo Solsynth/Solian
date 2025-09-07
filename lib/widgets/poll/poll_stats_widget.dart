@@ -44,13 +44,13 @@ class PollStatsWidget extends StatelessWidget {
         // yes/no: map {true: count, false: count}
         if (raw is Map) {
           final int yes =
-              (raw[true] is int)
-                  ? raw[true] as int
-                  : int.tryParse('${raw[true]}') ?? 0;
+              (raw['true'] is int)
+                  ? raw['true'] as int
+                  : int.tryParse('${raw['true']}') ?? 0;
           final int no =
-              (raw[false] is int)
-                  ? raw[false] as int
-                  : int.tryParse('${raw[false]}') ?? 0;
+              (raw['false'] is int)
+                  ? raw['false'] as int
+                  : int.tryParse('${raw['false']}') ?? 0;
           final total = (yes + no).clamp(0, 1 << 31);
           final yesPct = total == 0 ? 0.0 : yes / total;
           final noPct = total == 0 ? 0.0 : no / total;
