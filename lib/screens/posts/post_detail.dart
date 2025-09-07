@@ -365,9 +365,7 @@ class PostActionButtons extends HookConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(
-          horizontal: renderingPadding.horizontal + 4,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: renderingPadding.horizontal),
         children: children,
       ),
     );

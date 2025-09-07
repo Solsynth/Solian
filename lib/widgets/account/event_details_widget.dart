@@ -46,6 +46,10 @@ class EventDetailsWidget extends StatelessWidget {
                       size: 12,
                       fill: 1,
                     ).padding(top: 4, right: 4),
+                    Icon(
+                      tip.isPositive ? Symbols.thumb_up : Symbols.thumb_down,
+                      size: 14,
+                    ).padding(top: 2.5),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

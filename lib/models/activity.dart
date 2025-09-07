@@ -5,6 +5,20 @@ part 'activity.freezed.dart';
 part 'activity.g.dart';
 
 @freezed
+sealed class SnNotableDay with _$SnNotableDay {
+  const factory SnNotableDay({
+    required DateTime date,
+    required String localName,
+    required String globalName,
+    required String countryCode,
+    required List<int> holidays,
+  }) = _SnNotableDay;
+
+  factory SnNotableDay.fromJson(Map<String, dynamic> json) =>
+      _$SnNotableDayFromJson(json);
+}
+
+@freezed
 sealed class SnActivity with _$SnActivity {
   const factory SnActivity({
     required String id,

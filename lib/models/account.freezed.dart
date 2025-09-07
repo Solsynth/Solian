@@ -236,14 +236,14 @@ return $default(_that.id,_that.name,_that.nick,_that.language,_that.region,_that
 @JsonSerializable()
 
 class _SnAccount implements SnAccount {
-  const _SnAccount({required this.id, required this.name, required this.nick, required this.language, required this.region, required this.isSuperuser, required this.automatedId, required this.profile, required this.perkSubscription, final  List<SnAccountBadge> badges = const [], required this.createdAt, required this.updatedAt, required this.deletedAt}): _badges = badges;
+  const _SnAccount({required this.id, required this.name, required this.nick, required this.language, this.region = "", required this.isSuperuser, required this.automatedId, required this.profile, required this.perkSubscription, final  List<SnAccountBadge> badges = const [], required this.createdAt, required this.updatedAt, required this.deletedAt}): _badges = badges;
   factory _SnAccount.fromJson(Map<String, dynamic> json) => _$SnAccountFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  String nick;
 @override final  String language;
-@override final  String region;
+@override@JsonKey() final  String region;
 @override final  bool isSuperuser;
 @override final  String? automatedId;
 @override final  SnAccountProfile profile;

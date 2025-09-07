@@ -6,6 +6,27 @@ part of 'activity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_SnNotableDay _$SnNotableDayFromJson(Map<String, dynamic> json) =>
+    _SnNotableDay(
+      date: DateTime.parse(json['date'] as String),
+      localName: json['local_name'] as String,
+      globalName: json['global_name'] as String,
+      countryCode: json['country_code'] as String,
+      holidays:
+          (json['holidays'] as List<dynamic>)
+              .map((e) => (e as num).toInt())
+              .toList(),
+    );
+
+Map<String, dynamic> _$SnNotableDayToJson(_SnNotableDay instance) =>
+    <String, dynamic>{
+      'date': instance.date.toIso8601String(),
+      'local_name': instance.localName,
+      'global_name': instance.globalName,
+      'country_code': instance.countryCode,
+      'holidays': instance.holidays,
+    };
+
 _SnActivity _$SnActivityFromJson(Map<String, dynamic> json) => _SnActivity(
   id: json['id'] as String,
   type: json['type'] as String,

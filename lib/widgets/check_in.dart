@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,6 +15,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:slide_countdown/slide_countdown.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'check_in.g.dart';
@@ -34,6 +36,17 @@ Future<SnCheckInResult?> checkInResultToday(Ref ref) async {
   }
 }
 
+@riverpod
+Future<SnNotableDay?> nextNotableDay(Ref ref) async {
+  final client = ref.watch(apiClientProvider);
+  try {
+    final resp = await client.get('/id/notable/me/next');
+    return SnNotableDay.fromJson(resp.data);
+  } catch (err) {
+    return null;
+  }
+}
+
 class CheckInWidget extends HookConsumerWidget {
   final EdgeInsets? margin;
   final VoidCallback? onChecked;
@@ -42,6 +55,22 @@ class CheckInWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final todayResult = ref.watch(checkInResultTodayProvider);
+    final nextNotableDay = ref.watch(nextNotableDayProvider);
+
+    final userinfo = ref.watch(userInfoProvider);
+    final isAdult = useMemoized(() {
+      final birthday = userinfo.value?.profile.birthday;
+      if (birthday == null) return false;
+      final now = DateTime.now();
+      final age =
+          now.year -
+          birthday.year -
+          ((now.month < birthday.month ||
+                  (now.month == birthday.month && now.day < birthday.day))
+              ? 1
+              : 0);
+      return age >= 18;
+    }, [userinfo]);
 
     Future<void> checkIn({String? captchatTk}) async {
       final client = ref.read(apiClientProvider);
@@ -71,119 +100,147 @@ class CheckInWidget extends HookConsumerWidget {
     return Card(
       margin:
           margin ?? EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        spacing: 16,
+        spacing: 8,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              color: Theme.of(context).colorScheme.secondaryContainer,
-              width: 56,
-              height: 56,
-              child:
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(DateFormat('EEE').format(DateTime.now()))
-                          .fontSize(16)
-                          .bold()
-                          .textColor(
-                            Theme.of(context).colorScheme.onSecondaryContainer,
-                          ),
-                      Text(DateFormat('MM/dd').format(DateTime.now()))
-                          .fontSize(12)
-                          .textColor(
-                            Theme.of(context).colorScheme.onSecondaryContainer,
-                          ),
-                    ],
-                  ).center(),
-            ),
-          ),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: todayResult.when(
-                data: (result) {
-                  if (result == null) return _CheckInNoneWidget();
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'checkInResultLevel${result.level}',
-                      ).tr().fontSize(15).bold(),
-                      Wrap(
-                        children:
-                            result.tips
-                                .map((e) {
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        e.isPositive
-                                            ? Symbols.thumb_up
-                                            : Symbols.thumb_down,
-                                        size: 12,
-                                      ),
-                                      const Gap(4),
-                                      Text(e.title).fontSize(11),
-                                    ],
-                                  );
-                                })
-                                .toList()
-                                .expand(
-                                  (widget) => [
-                                    widget,
-                                    Text('  ·  ').fontSize(11),
-                                  ],
-                                )
-                                .toList()
-                              ..removeLast(),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                spacing: 8,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    switch (DateTime.now().weekday) {
+                      6 || 7 => Symbols.weekend,
+                      _ => isAdult ? Symbols.work : Symbols.school,
+                    },
+                    fill: 1,
+                    size: 16,
+                  ).padding(right: 2),
+                  Text(DateFormat('EEE').format(DateTime.now()))
+                      .fontSize(16)
+                      .bold()
+                      .textColor(
+                        Theme.of(context).colorScheme.onSecondaryContainer,
                       ),
-                    ],
-                  );
+                  Text(DateFormat('MM/dd').format(DateTime.now()))
+                      .fontSize(12)
+                      .textColor(
+                        Theme.of(context).colorScheme.onSecondaryContainer,
+                      )
+                      .padding(top: 2),
+                ],
+              ),
+              Row(
+                spacing: 5,
+                children: [
+                  Text('notableDayNext')
+                      .tr(args: [nextNotableDay.value?.localName ?? 'idk'])
+                      .fontSize(12),
+                  SlideCountdown(
+                    decoration: const BoxDecoration(),
+                    style: const TextStyle(fontSize: 12),
+                    separatorStyle: const TextStyle(fontSize: 12),
+                    padding: EdgeInsets.zero,
+                    duration: nextNotableDay.value?.date.difference(
+                      DateTime.now(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ).padding(horizontal: 16, top: 8),
+          const Divider(height: 1),
+          Row(
+            children: [
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: todayResult.when(
+                    data: (result) {
+                      if (result == null) return _CheckInNoneWidget();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'checkInResultLevel${result.level}',
+                          ).tr().fontSize(15).bold(),
+                          Wrap(
+                            children:
+                                result.tips
+                                    .map((e) {
+                                      return Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            e.isPositive
+                                                ? Symbols.thumb_up
+                                                : Symbols.thumb_down,
+                                            size: 12,
+                                          ),
+                                          const Gap(4),
+                                          Text(e.title).fontSize(11),
+                                        ],
+                                      );
+                                    })
+                                    .toList()
+                                    .expand(
+                                      (widget) => [
+                                        widget,
+                                        Text('  ·  ').fontSize(11),
+                                      ],
+                                    )
+                                    .toList()
+                                  ..removeLast(),
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => _CheckInNoneWidget(),
+                    error:
+                        (err, stack) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('error').tr().fontSize(15).bold(),
+                            Text(err.toString()).fontSize(11),
+                          ],
+                        ),
+                  ),
+                ),
+              ),
+              IconButton.outlined(
+                onPressed: () {
+                  if (todayResult.valueOrNull == null) {
+                    checkIn();
+                  } else {
+                    context.pushNamed(
+                      'accountCalendar',
+                      pathParameters: {'name': 'me'},
+                    );
+                  }
                 },
-                loading: () => _CheckInNoneWidget(),
-                error:
-                    (err, stack) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('error').tr().fontSize(15).bold(),
-                        Text(err.toString()).fontSize(11),
-                      ],
-                    ),
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: todayResult.when(
+                    data:
+                        (result) => Icon(
+                          result == null
+                              ? Symbols.local_fire_department
+                              : Symbols.event,
+                          key: ValueKey(result != null),
+                        ),
+                    loading: () => const Icon(Symbols.refresh),
+                    error: (_, _) => const Icon(Symbols.error),
+                  ),
+                ),
               ),
-            ),
-          ),
-          IconButton.outlined(
-            onPressed: () {
-              if (todayResult.valueOrNull == null) {
-                checkIn();
-              } else {
-                context.pushNamed(
-                  'accountCalendar',
-                  pathParameters: {'name': 'me'},
-                );
-              }
-            },
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: todayResult.when(
-                data:
-                    (result) => Icon(
-                      result == null
-                          ? Symbols.local_fire_department
-                          : Symbols.event,
-                      key: ValueKey(result != null),
-                    ),
-                loading: () => const Icon(Symbols.refresh),
-                error: (_, _) => const Icon(Symbols.error),
-              ),
-            ),
-          ),
+            ],
+          ).padding(horizontal: 16, bottom: 12, top: 4),
         ],
-      ).padding(horizontal: 16, vertical: 12),
+      ),
     );
   }
 }

@@ -13,6 +13,281 @@ part of 'activity.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
+mixin _$SnNotableDay {
+
+ DateTime get date; String get localName; String get globalName; String get countryCode; List<int> get holidays;
+/// Create a copy of SnNotableDay
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnNotableDayCopyWith<SnNotableDay> get copyWith => _$SnNotableDayCopyWithImpl<SnNotableDay>(this as SnNotableDay, _$identity);
+
+  /// Serializes this SnNotableDay to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotableDay&&(identical(other.date, date) || other.date == date)&&(identical(other.localName, localName) || other.localName == localName)&&(identical(other.globalName, globalName) || other.globalName == globalName)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&const DeepCollectionEquality().equals(other.holidays, holidays));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,date,localName,globalName,countryCode,const DeepCollectionEquality().hash(holidays));
+
+@override
+String toString() {
+  return 'SnNotableDay(date: $date, localName: $localName, globalName: $globalName, countryCode: $countryCode, holidays: $holidays)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnNotableDayCopyWith<$Res>  {
+  factory $SnNotableDayCopyWith(SnNotableDay value, $Res Function(SnNotableDay) _then) = _$SnNotableDayCopyWithImpl;
+@useResult
+$Res call({
+ DateTime date, String localName, String globalName, String countryCode, List<int> holidays
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnNotableDayCopyWithImpl<$Res>
+    implements $SnNotableDayCopyWith<$Res> {
+  _$SnNotableDayCopyWithImpl(this._self, this._then);
+
+  final SnNotableDay _self;
+  final $Res Function(SnNotableDay) _then;
+
+/// Create a copy of SnNotableDay
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? countryCode = null,Object? holidays = null,}) {
+  return _then(_self.copyWith(
+date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime,localName: null == localName ? _self.localName : localName // ignore: cast_nullable_to_non_nullable
+as String,globalName: null == globalName ? _self.globalName : globalName // ignore: cast_nullable_to_non_nullable
+as String,countryCode: null == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String,holidays: null == holidays ? _self.holidays : holidays // ignore: cast_nullable_to_non_nullable
+as List<int>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnNotableDay].
+extension SnNotableDayPatterns on SnNotableDay {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnNotableDay value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnNotableDay() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnNotableDay value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnNotableDay():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnNotableDay value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnNotableDay() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  String localName,  String globalName,  String countryCode,  List<int> holidays)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnNotableDay() when $default != null:
+return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_that.holidays);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  String localName,  String globalName,  String countryCode,  List<int> holidays)  $default,) {final _that = this;
+switch (_that) {
+case _SnNotableDay():
+return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_that.holidays);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  String localName,  String globalName,  String countryCode,  List<int> holidays)?  $default,) {final _that = this;
+switch (_that) {
+case _SnNotableDay() when $default != null:
+return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_that.holidays);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnNotableDay implements SnNotableDay {
+  const _SnNotableDay({required this.date, required this.localName, required this.globalName, required this.countryCode, required final  List<int> holidays}): _holidays = holidays;
+  factory _SnNotableDay.fromJson(Map<String, dynamic> json) => _$SnNotableDayFromJson(json);
+
+@override final  DateTime date;
+@override final  String localName;
+@override final  String globalName;
+@override final  String countryCode;
+ final  List<int> _holidays;
+@override List<int> get holidays {
+  if (_holidays is EqualUnmodifiableListView) return _holidays;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_holidays);
+}
+
+
+/// Create a copy of SnNotableDay
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnNotableDayCopyWith<_SnNotableDay> get copyWith => __$SnNotableDayCopyWithImpl<_SnNotableDay>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnNotableDayToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotableDay&&(identical(other.date, date) || other.date == date)&&(identical(other.localName, localName) || other.localName == localName)&&(identical(other.globalName, globalName) || other.globalName == globalName)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&const DeepCollectionEquality().equals(other._holidays, _holidays));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,date,localName,globalName,countryCode,const DeepCollectionEquality().hash(_holidays));
+
+@override
+String toString() {
+  return 'SnNotableDay(date: $date, localName: $localName, globalName: $globalName, countryCode: $countryCode, holidays: $holidays)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnNotableDayCopyWith<$Res> implements $SnNotableDayCopyWith<$Res> {
+  factory _$SnNotableDayCopyWith(_SnNotableDay value, $Res Function(_SnNotableDay) _then) = __$SnNotableDayCopyWithImpl;
+@override @useResult
+$Res call({
+ DateTime date, String localName, String globalName, String countryCode, List<int> holidays
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnNotableDayCopyWithImpl<$Res>
+    implements _$SnNotableDayCopyWith<$Res> {
+  __$SnNotableDayCopyWithImpl(this._self, this._then);
+
+  final _SnNotableDay _self;
+  final $Res Function(_SnNotableDay) _then;
+
+/// Create a copy of SnNotableDay
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? countryCode = null,Object? holidays = null,}) {
+  return _then(_SnNotableDay(
+date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime,localName: null == localName ? _self.localName : localName // ignore: cast_nullable_to_non_nullable
+as String,globalName: null == globalName ? _self.globalName : globalName // ignore: cast_nullable_to_non_nullable
+as String,countryCode: null == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String,holidays: null == holidays ? _self._holidays : holidays // ignore: cast_nullable_to_non_nullable
+as List<int>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnActivity {
 
  String get id; String get type; String get resourceIdentifier; dynamic get data; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;

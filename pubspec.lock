@@ -1789,6 +1789,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  pausable_timer:
+    dependency: transitive
+    description:
+      name: pausable_timer
+      sha256: "6ef1a95441ec3439de6fb63f39a011b67e693198e7dae14e20675c3c00e86074"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0+3"
   petitparser:
     dependency: transitive
     description:
@@ -2258,6 +2266,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  slide_countdown:
+    dependency: "direct main"
+    description:
+      name: slide_countdown
+      sha256: "363914f96389502467d4dc9c0f26e88f93df3d8e37de2d5ff05b16d981fe973d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
   source_gen:
     dependency: transitive
     description:

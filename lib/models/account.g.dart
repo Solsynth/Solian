@@ -11,7 +11,7 @@ _SnAccount _$SnAccountFromJson(Map<String, dynamic> json) => _SnAccount(
   name: json['name'] as String,
   nick: json['nick'] as String,
   language: json['language'] as String,
-  region: json['region'] as String,
+  region: json['region'] as String? ?? "",
   isSuperuser: json['is_superuser'] as bool,
   automatedId: json['automated_id'] as String?,
   profile: SnAccountProfile.fromJson(json['profile'] as Map<String, dynamic>),

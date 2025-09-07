@@ -976,5 +976,6 @@
   "shuffle": "Shuffle",
   "pinned": "Pinned",
   "noResultsFound": "No results found",
-  "toggleFilters": "Toggle filters"
+  "toggleFilters": "Toggle filters",
+  "notableDayNext": "{} is in"
 }

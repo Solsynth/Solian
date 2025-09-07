@@ -321,7 +321,7 @@ class AttachmentPreview extends HookConsumerWidget {
                               children: [
                                 Icon(fallbackIcon),
                                 const Gap(6),
-                                Text(file.name),
+                                Text(file.name, textAlign: TextAlign.center),
                                 FutureBuilder(
                                   future: file.length(),
                                   builder: (context, snapshot) {

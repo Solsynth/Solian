@@ -863,5 +863,6 @@
   "statusPresent": "至今",
   "accountAutomated": "机器人",
   "openInBrowser": "在浏览器中打开",
-  "highlightPost": "精选帖子"
+  "highlightPost": "精选帖子",
+  "notableDayNext": "距离 {} 还有"
 }

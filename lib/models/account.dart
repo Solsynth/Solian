@@ -13,7 +13,7 @@ sealed class SnAccount with _$SnAccount {
     required String name,
     required String nick,
     required String language,
-    required String region,
+    @Default("") String region,
     required bool isSuperuser,
     required String? automatedId,
     required SnAccountProfile profile,
