@@ -110,13 +110,10 @@ class EmbedViewRenderer extends HookConsumerWidget {
                   builtInZoomControls: false,
                   displayZoomControls: false,
                   minimumFontSize: 12,
-                  preferredContentMode: UserPreferredContentMode.MOBILE,
+                  preferredContentMode: UserPreferredContentMode.RECOMMENDED,
                   allowsBackForwardNavigationGestures: false,
                   allowsLinkPreview: false,
                   isInspectable: false,
-                  applicationNameForUserAgent: 'Solian/3.0',
-                  userAgent:
-                      'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36 Solian/3.0',
                 ),
                 onWebViewCreated: (controller) {
                   // Configure webview settings
