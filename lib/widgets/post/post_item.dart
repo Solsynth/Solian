@@ -21,6 +21,7 @@ import 'package:island/widgets/post/post_item_screenshot.dart';
 import 'package:island/widgets/post/post_award_sheet.dart';
 import 'package:island/widgets/post/post_pin_sheet.dart';
 import 'package:island/widgets/post/post_shared.dart';
+import 'package:island/widgets/post/embed_view_renderer.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -549,6 +550,12 @@ class PostItem extends HookConsumerWidget {
           translationSection: translationSection,
           renderingPadding: renderingPadding,
         ),
+        if (item.embedView != null)
+          EmbedViewRenderer(
+            embedView: item.embedView!,
+            maxHeight: 400,
+            borderRadius: BorderRadius.circular(12),
+          ).padding(horizontal: renderingPadding.horizontal, vertical: 8),
         if (isShowReference)
           ReferencedPostWidget(item: item, renderingPadding: renderingPadding),
         if (item.repliesCount > 0 && isEmbedReply)
