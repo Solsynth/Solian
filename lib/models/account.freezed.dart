@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnAccount {
 
- String get id; String get name; String get nick; String get language; bool get isSuperuser; String? get automatedId; SnAccountProfile get profile; SnWalletSubscriptionRef? get perkSubscription; List<SnAccountBadge> get badges; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get name; String get nick; String get language; String get region; bool get isSuperuser; String? get automatedId; SnAccountProfile get profile; SnWalletSubscriptionRef? get perkSubscription; List<SnAccountBadge> get badges; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccount
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnAccountCopyWith<SnAccount> get copyWith => _$SnAccountCopyWithImpl<SnAccount>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.language, language) || other.language == language)&&(identical(other.isSuperuser, isSuperuser) || other.isSuperuser == isSuperuser)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.perkSubscription, perkSubscription) || other.perkSubscription == perkSubscription)&&const DeepCollectionEquality().equals(other.badges, badges)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.language, language) || other.language == language)&&(identical(other.region, region) || other.region == region)&&(identical(other.isSuperuser, isSuperuser) || other.isSuperuser == isSuperuser)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.perkSubscription, perkSubscription) || other.perkSubscription == perkSubscription)&&const DeepCollectionEquality().equals(other.badges, badges)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,nick,language,isSuperuser,automatedId,profile,perkSubscription,const DeepCollectionEquality().hash(badges),createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,name,nick,language,region,isSuperuser,automatedId,profile,perkSubscription,const DeepCollectionEquality().hash(badges),createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnAccount(id: $id, name: $name, nick: $nick, language: $language, isSuperuser: $isSuperuser, automatedId: $automatedId, profile: $profile, perkSubscription: $perkSubscription, badges: $badges, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccount(id: $id, name: $name, nick: $nick, language: $language, region: $region, isSuperuser: $isSuperuser, automatedId: $automatedId, profile: $profile, perkSubscription: $perkSubscription, badges: $badges, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnAccountCopyWith<$Res>  {
   factory $SnAccountCopyWith(SnAccount value, $Res Function(SnAccount) _then) = _$SnAccountCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String nick, String language, bool isSuperuser, String? automatedId, SnAccountProfile profile, SnWalletSubscriptionRef? perkSubscription, List<SnAccountBadge> badges, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String name, String nick, String language, String region, bool isSuperuser, String? automatedId, SnAccountProfile profile, SnWalletSubscriptionRef? perkSubscription, List<SnAccountBadge> badges, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -65,12 +65,13 @@ class _$SnAccountCopyWithImpl<$Res>
 
 /// Create a copy of SnAccount
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? nick = null,Object? language = null,Object? isSuperuser = null,Object? automatedId = freezed,Object? profile = null,Object? perkSubscription = freezed,Object? badges = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? nick = null,Object? language = null,Object? region = null,Object? isSuperuser = null,Object? automatedId = freezed,Object? profile = null,Object? perkSubscription = freezed,Object? badges = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,nick: null == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
 as String,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as String,isSuperuser: null == isSuperuser ? _self.isSuperuser : isSuperuser // ignore: cast_nullable_to_non_nullable
 as bool,automatedId: freezed == automatedId ? _self.automatedId : automatedId // ignore: cast_nullable_to_non_nullable
 as String?,profile: null == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
@@ -182,10 +183,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String nick,  String language,  bool isSuperuser,  String? automatedId,  SnAccountProfile profile,  SnWalletSubscriptionRef? perkSubscription,  List<SnAccountBadge> badges,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String nick,  String language,  String region,  bool isSuperuser,  String? automatedId,  SnAccountProfile profile,  SnWalletSubscriptionRef? perkSubscription,  List<SnAccountBadge> badges,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAccount() when $default != null:
-return $default(_that.id,_that.name,_that.nick,_that.language,_that.isSuperuser,_that.automatedId,_that.profile,_that.perkSubscription,_that.badges,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.name,_that.nick,_that.language,_that.region,_that.isSuperuser,_that.automatedId,_that.profile,_that.perkSubscription,_that.badges,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -203,10 +204,10 @@ return $default(_that.id,_that.name,_that.nick,_that.language,_that.isSuperuser,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String nick,  String language,  bool isSuperuser,  String? automatedId,  SnAccountProfile profile,  SnWalletSubscriptionRef? perkSubscription,  List<SnAccountBadge> badges,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String nick,  String language,  String region,  bool isSuperuser,  String? automatedId,  SnAccountProfile profile,  SnWalletSubscriptionRef? perkSubscription,  List<SnAccountBadge> badges,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAccount():
-return $default(_that.id,_that.name,_that.nick,_that.language,_that.isSuperuser,_that.automatedId,_that.profile,_that.perkSubscription,_that.badges,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.name,_that.nick,_that.language,_that.region,_that.isSuperuser,_that.automatedId,_that.profile,_that.perkSubscription,_that.badges,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -220,10 +221,10 @@ return $default(_that.id,_that.name,_that.nick,_that.language,_that.isSuperuser,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String nick,  String language,  bool isSuperuser,  String? automatedId,  SnAccountProfile profile,  SnWalletSubscriptionRef? perkSubscription,  List<SnAccountBadge> badges,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String nick,  String language,  String region,  bool isSuperuser,  String? automatedId,  SnAccountProfile profile,  SnWalletSubscriptionRef? perkSubscription,  List<SnAccountBadge> badges,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAccount() when $default != null:
-return $default(_that.id,_that.name,_that.nick,_that.language,_that.isSuperuser,_that.automatedId,_that.profile,_that.perkSubscription,_that.badges,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.name,_that.nick,_that.language,_that.region,_that.isSuperuser,_that.automatedId,_that.profile,_that.perkSubscription,_that.badges,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -235,13 +236,14 @@ return $default(_that.id,_that.name,_that.nick,_that.language,_that.isSuperuser,
 @JsonSerializable()
 
 class _SnAccount implements SnAccount {
-  const _SnAccount({required this.id, required this.name, required this.nick, required this.language, required this.isSuperuser, required this.automatedId, required this.profile, required this.perkSubscription, final  List<SnAccountBadge> badges = const [], required this.createdAt, required this.updatedAt, required this.deletedAt}): _badges = badges;
+  const _SnAccount({required this.id, required this.name, required this.nick, required this.language, required this.region, required this.isSuperuser, required this.automatedId, required this.profile, required this.perkSubscription, final  List<SnAccountBadge> badges = const [], required this.createdAt, required this.updatedAt, required this.deletedAt}): _badges = badges;
   factory _SnAccount.fromJson(Map<String, dynamic> json) => _$SnAccountFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  String nick;
 @override final  String language;
+@override final  String region;
 @override final  bool isSuperuser;
 @override final  String? automatedId;
 @override final  SnAccountProfile profile;
@@ -270,16 +272,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.language, language) || other.language == language)&&(identical(other.isSuperuser, isSuperuser) || other.isSuperuser == isSuperuser)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.perkSubscription, perkSubscription) || other.perkSubscription == perkSubscription)&&const DeepCollectionEquality().equals(other._badges, _badges)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.language, language) || other.language == language)&&(identical(other.region, region) || other.region == region)&&(identical(other.isSuperuser, isSuperuser) || other.isSuperuser == isSuperuser)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.perkSubscription, perkSubscription) || other.perkSubscription == perkSubscription)&&const DeepCollectionEquality().equals(other._badges, _badges)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,nick,language,isSuperuser,automatedId,profile,perkSubscription,const DeepCollectionEquality().hash(_badges),createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,name,nick,language,region,isSuperuser,automatedId,profile,perkSubscription,const DeepCollectionEquality().hash(_badges),createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnAccount(id: $id, name: $name, nick: $nick, language: $language, isSuperuser: $isSuperuser, automatedId: $automatedId, profile: $profile, perkSubscription: $perkSubscription, badges: $badges, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccount(id: $id, name: $name, nick: $nick, language: $language, region: $region, isSuperuser: $isSuperuser, automatedId: $automatedId, profile: $profile, perkSubscription: $perkSubscription, badges: $badges, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -290,7 +292,7 @@ abstract mixin class _$SnAccountCopyWith<$Res> implements $SnAccountCopyWith<$Re
   factory _$SnAccountCopyWith(_SnAccount value, $Res Function(_SnAccount) _then) = __$SnAccountCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String nick, String language, bool isSuperuser, String? automatedId, SnAccountProfile profile, SnWalletSubscriptionRef? perkSubscription, List<SnAccountBadge> badges, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String name, String nick, String language, String region, bool isSuperuser, String? automatedId, SnAccountProfile profile, SnWalletSubscriptionRef? perkSubscription, List<SnAccountBadge> badges, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -307,12 +309,13 @@ class __$SnAccountCopyWithImpl<$Res>
 
 /// Create a copy of SnAccount
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? nick = null,Object? language = null,Object? isSuperuser = null,Object? automatedId = freezed,Object? profile = null,Object? perkSubscription = freezed,Object? badges = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? nick = null,Object? language = null,Object? region = null,Object? isSuperuser = null,Object? automatedId = freezed,Object? profile = null,Object? perkSubscription = freezed,Object? badges = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAccount(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,nick: null == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
 as String,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as String,isSuperuser: null == isSuperuser ? _self.isSuperuser : isSuperuser // ignore: cast_nullable_to_non_nullable
 as bool,automatedId: freezed == automatedId ? _self.automatedId : automatedId // ignore: cast_nullable_to_non_nullable
 as String?,profile: null == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable

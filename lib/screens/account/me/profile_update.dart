@@ -21,6 +21,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 const kServerSupportedLanguages = {'en-US': 'en-us', 'zh-CN': 'zh-hans'};
+const kServerSupportedRegions = ['US', 'JP', 'CN'];
 
 class UpdateProfileScreen extends HookConsumerWidget {
   const UpdateProfileScreen({super.key});
@@ -97,6 +98,7 @@ class UpdateProfileScreen extends HookConsumerWidget {
     final usernameController = useTextEditingController(text: user.value!.name);
     final nicknameController = useTextEditingController(text: user.value!.nick);
     final language = useState(user.value!.language);
+    final region = useState(user.value!.region);
     final links = useState<List<ProfileLink>>(user.value!.profile.links);
 
     void updateBasicInfo() async {
@@ -111,6 +113,7 @@ class UpdateProfileScreen extends HookConsumerWidget {
             'name': usernameController.text,
             'nick': nicknameController.text,
             'language': language.value,
+            'region': region.value,
           },
         );
         final userNotifier = ref.read(userInfoProvider.notifier);
@@ -287,6 +290,32 @@ class UpdateProfileScreen extends HookConsumerWidget {
                     customButton: Row(
                       children: [
                         Expanded(child: Text(language.value)),
+                        Icon(Symbols.arrow_drop_down),
+                      ],
+                    ),
+                  ),
+                  DropdownButtonFormField2<String>(
+                    decoration: InputDecoration(
+                      labelText: 'region'.tr(),
+                      helperText: 'accountRegionHint'.tr(),
+                    ),
+                    items: [
+                      ...kServerSupportedRegions.map(
+                        (e) => DropdownMenuItem(value: e, child: Text(e)),
+                      ),
+                      if (!kServerSupportedRegions.contains(region.value))
+                        DropdownMenuItem(
+                          value: region.value,
+                          child: Text(region.value),
+                        ),
+                    ],
+                    value: region.value,
+                    onChanged: (value) {
+                      region.value = value ?? region.value;
+                    },
+                    customButton: Row(
+                      children: [
+                        Expanded(child: Text(region.value)),
                         Icon(Symbols.arrow_drop_down),
                       ],
                     ),

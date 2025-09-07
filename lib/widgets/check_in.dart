@@ -113,13 +113,34 @@ class CheckInWidget extends HookConsumerWidget {
                       Text(
                         'checkInResultLevel${result.level}',
                       ).tr().fontSize(15).bold(),
-                      Text(
-                        result.tips
-                            .map(
-                              (e) => '${e.isPositive ? '宜' : '忌'} ${e.title}',
-                            )
-                            .join('  ·  '),
-                      ).fontSize(11),
+                      Wrap(
+                        children:
+                            result.tips
+                                .map((e) {
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        e.isPositive
+                                            ? Symbols.thumb_up
+                                            : Symbols.thumb_down,
+                                        size: 12,
+                                      ),
+                                      const Gap(4),
+                                      Text(e.title).fontSize(11),
+                                    ],
+                                  );
+                                })
+                                .toList()
+                                .expand(
+                                  (widget) => [
+                                    widget,
+                                    Text('  ·  ').fontSize(11),
+                                  ],
+                                )
+                                .toList()
+                              ..removeLast(),
+                      ),
                     ],
                   );
                 },
