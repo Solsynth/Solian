@@ -59,12 +59,14 @@ class PostState extends StateNotifier<AsyncValue<SnPost?>> {
 
 class PostActionButtons extends HookConsumerWidget {
   final SnPost post;
+  final EdgeInsets renderingPadding;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
 
   const PostActionButtons({
     super.key,
     required this.post,
+    this.renderingPadding = EdgeInsets.zero,
     this.onRefresh,
     this.onUpdate,
   });
@@ -151,7 +153,9 @@ class PostActionButtons extends HookConsumerWidget {
           children:
               editButtons
                   .map((e) => SizedBox(height: kButtonHeight, child: e))
-                  .toList(),
+                  .expand((widget) => [widget, const VerticalDivider(width: 1)])
+                  .toList()
+                ..removeLast(),
         ),
       );
 
@@ -316,7 +320,9 @@ class PostActionButtons extends HookConsumerWidget {
         children:
             shareButtons
                 .map((e) => SizedBox(height: kButtonHeight, child: e))
-                .toList(),
+                .expand((widget) => [widget, const VerticalDivider(width: 1)])
+                .toList()
+              ..removeLast(),
       ),
     );
 
@@ -359,7 +365,9 @@ class PostActionButtons extends HookConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: renderingPadding.horizontal + 4,
+        ),
         children: children,
       ),
     );
@@ -418,6 +426,9 @@ class PostDetailScreen extends HookConsumerWidget {
                           constraints: BoxConstraints(maxWidth: 600),
                           child: PostActionButtons(
                             post: post,
+                            renderingPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                            ),
                             onRefresh: () {
                               ref.invalidate(postProvider(id));
                               ref.invalidate(postRepliesNotifierProvider(id));
