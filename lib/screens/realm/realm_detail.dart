@@ -668,7 +668,13 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                   title: Row(
                     spacing: 6,
                     children: [
-                      Flexible(child: Text(member.account!.nick)),
+                      Flexible(
+                        child: Text(
+                          member.account!.nick,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       if (member.status != null)
                         AccountStatusLabel(status: member.status!),
                       if (member.joinedAt == null)

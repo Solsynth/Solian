@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/services/compose_storage_db.dart';
+import 'package:island/widgets/post/compose_embed_sheet.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:island/widgets/post/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -38,6 +39,14 @@ class ComposeToolbar extends HookConsumerWidget {
 
     void pickPoll() {
       ComposeLogic.pickPoll(ref, state, context);
+    }
+
+    void showEmbedSheet() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => ComposeEmbedSheet(state: state),
+      );
     }
 
     void showDraftManager() {
@@ -105,6 +114,25 @@ class ComposeToolbar extends HookConsumerWidget {
                     style: ButtonStyle(
                       backgroundColor: WidgetStatePropertyAll(
                         state.pollId.value != null
+                            ? colorScheme.primary.withOpacity(0.15)
+                            : null,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              // Embed button with visual state when embed is present
+              ListenableBuilder(
+                listenable: state.embedView,
+                builder: (context, _) {
+                  return IconButton(
+                    onPressed: showEmbedSheet,
+                    icon: const Icon(Symbols.web),
+                    tooltip: 'embedView'.tr(),
+                    color: colorScheme.primary,
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        state.embedView.value != null
                             ? colorScheme.primary.withOpacity(0.15)
                             : null,
                       ),

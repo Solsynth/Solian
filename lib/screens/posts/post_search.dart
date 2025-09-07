@@ -277,8 +277,6 @@ class PostSearchScreen extends HookConsumerWidget {
                   Text('pinned'.tr()),
                 ],
               ),
-              // TODO: Add dropdown for type selection
-              // TODO: Add multi-select for categories and tags
             ],
           ),
         ),

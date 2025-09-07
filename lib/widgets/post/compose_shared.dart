@@ -37,6 +37,7 @@ class ComposeState {
   final ValueNotifier<List<SnPostCategory>> categories;
   StringTagController tagsController;
   final ValueNotifier<SnRealm?> realm;
+  final ValueNotifier<SnPostEmbedView?> embedView;
   final String draftId;
   int postType;
   // Linked poll id for this compose session (nullable)
@@ -56,6 +57,7 @@ class ComposeState {
     required this.tagsController,
     required this.categories,
     required this.realm,
+    required this.embedView,
     required this.draftId,
     this.postType = 0,
     String? pollId,
@@ -120,6 +122,7 @@ class ComposeLogic {
         originalPost?.categories ?? [],
       ),
       realm: ValueNotifier(originalPost?.realm),
+      embedView: ValueNotifier<SnPostEmbedView?>(originalPost?.embedView),
       draftId: id,
       postType: postType,
       // initialize without poll by default
@@ -151,6 +154,7 @@ class ComposeLogic {
       tagsController: tagsController,
       categories: ValueNotifier<List<SnPostCategory>>([]),
       realm: ValueNotifier(null),
+      embedView: ValueNotifier<SnPostEmbedView?>(draft.embedView),
       draftId: draft.id,
       postType: postType,
       pollId: null,
@@ -253,6 +257,7 @@ class ComposeLogic {
         tags: [],
         categories: [],
         collections: [],
+        embedView: state.embedView.value,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         deletedAt: null,
@@ -329,6 +334,7 @@ class ComposeLogic {
         tags: [],
         categories: [],
         collections: [],
+        embedView: state.embedView.value,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         deletedAt: null,
@@ -577,6 +583,18 @@ class ComposeLogic {
     );
   }
 
+  static void setEmbedView(ComposeState state, SnPostEmbedView embedView) {
+    state.embedView.value = embedView;
+  }
+
+  static void updateEmbedView(ComposeState state, SnPostEmbedView embedView) {
+    state.embedView.value = embedView;
+  }
+
+  static void deleteEmbedView(ComposeState state) {
+    state.embedView.value = null;
+  }
+
   static Future<void> pickPoll(
     WidgetRef ref,
     ComposeState state,
@@ -660,6 +678,8 @@ class ComposeLogic {
         'categories': state.categories.value.map((e) => e.slug).toList(),
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
+        if (state.embedView.value != null)
+          'embed_view': state.embedView.value!.toJson(),
       };
 
       // Send request
@@ -753,6 +773,7 @@ class ComposeLogic {
     state.tagsController.dispose();
     state.categories.dispose();
     state.realm.dispose();
+    state.embedView.dispose();
     state.pollId.dispose();
   }
 }

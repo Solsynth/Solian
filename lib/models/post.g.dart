@@ -24,6 +24,12 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   slug: json['slug'] as String?,
   type: (json['type'] as num?)?.toInt() ?? 0,
   meta: json['meta'] as Map<String, dynamic>?,
+  embedView:
+      json['embed_view'] == null
+          ? null
+          : SnPostEmbedView.fromJson(
+            json['embed_view'] as Map<String, dynamic>,
+          ),
   viewsUnique: (json['views_unique'] as num?)?.toInt() ?? 0,
   viewsTotal: (json['views_total'] as num?)?.toInt() ?? 0,
   upvotes: (json['upvotes'] as num?)?.toInt() ?? 0,
@@ -105,6 +111,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'slug': instance.slug,
   'type': instance.type,
   'meta': instance.meta,
+  'embed_view': instance.embedView?.toJson(),
   'views_unique': instance.viewsUnique,
   'views_total': instance.viewsTotal,
   'upvotes': instance.upvotes,
@@ -166,3 +173,24 @@ Map<String, dynamic> _$SnSubscriptionStatusToJson(
   'publisher_id': instance.publisherId,
   'publisher_name': instance.publisherName,
 };
+
+_SnPostEmbedView _$SnPostEmbedViewFromJson(Map<String, dynamic> json) =>
+    _SnPostEmbedView(
+      uri: json['uri'] as String,
+      aspectRatio: (json['aspect_ratio'] as num?)?.toDouble(),
+      renderer:
+          $enumDecodeNullable(
+            _$PostEmbedViewRendererEnumMap,
+            json['renderer'],
+          ) ??
+          PostEmbedViewRenderer.webView,
+    );
+
+Map<String, dynamic> _$SnPostEmbedViewToJson(_SnPostEmbedView instance) =>
+    <String, dynamic>{
+      'uri': instance.uri,
+      'aspect_ratio': instance.aspectRatio,
+      'renderer': _$PostEmbedViewRendererEnumMap[instance.renderer]!,
+    };
+
+const _$PostEmbedViewRendererEnumMap = {PostEmbedViewRenderer.webView: 0};
