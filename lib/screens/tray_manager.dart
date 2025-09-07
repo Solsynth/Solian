@@ -48,7 +48,11 @@ class TrayService {
   void handleAction(MenuItem item) {
     switch (item.key) {
       case 'show_window':
-        appWindow.show();
+        if (appWindow.isVisible) {
+          appWindow.restore();
+        } else {
+          appWindow.show();
+        }
         break;
       case 'exit_app':
         appWindow.close();

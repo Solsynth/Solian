@@ -63,7 +63,11 @@ class AppWrapper extends HookConsumerWidget with TrayListener {
   }
 
   void _trayIconPrimaryAction() {
-    appWindow.show();
+    if (appWindow.isVisible) {
+      appWindow.restore();
+    } else {
+      appWindow.show();
+    }
   }
 
   void _trayIconSecondaryAction() {
