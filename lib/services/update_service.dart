@@ -211,11 +211,11 @@ class UpdateService {
 
     // Prioritize arm64, then armeabi, then x86_64
     if (arm64 != null) {
-      return arm64.browserDownloadUrl;
+      return 'https://fs.solsynth.dev/d/official/solian/${arm64.name}';
     } else if (armeabi != null) {
-      return armeabi.browserDownloadUrl;
+      return 'https://fs.solsynth.dev/d/official/solian/${armeabi.name}';
     } else if (x86_64 != null) {
-      return x86_64.browserDownloadUrl;
+      return 'https://fs.solsynth.dev/d/official/solian/${x86_64.name}';
     }
     return null;
   }
@@ -299,8 +299,11 @@ class _UpdateSheetState extends State<_UpdateSheet> {
   }
 
   Future<void> _installUpdate(String url) async {
-    final downloadUrl =
-        _useProxy ? 'https://ghfast.top/${Uri.encodeComponent(url)}' : url;
+    String downloadUrl = url;
+    if (_useProxy) {
+      final fileName = url.split('/').last;
+      downloadUrl = 'https://fs.solsynth.dev/d/rainyun02/solian/$fileName';
+    }
 
     UpdateModel model = UpdateModel(
       downloadUrl,
@@ -350,7 +353,7 @@ class _UpdateSheetState extends State<_UpdateSheet> {
             ),
             if (!kIsWeb && Platform.isAndroid)
               SwitchListTile(
-                title: const Text('Use GitHub Proxy for Download'),
+                title: const Text('Use secondary source for download'),
                 value: _useProxy,
                 onChanged: (value) {
                   setState(() {
