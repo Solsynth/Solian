@@ -900,6 +900,7 @@ class PostBody extends ConsumerWidget {
                               poll: SnPollWithStats.fromJson(embedData['poll']),
                               onSubmit: (_) {},
                               isReadonly: !isInteractive,
+                              isInitiallyExpanded: isFullPost,
                             ).padding(horizontal: 16, vertical: 12),
                   ),
                   _ => Text('Unable show embed: ${embedData['type']}'),
