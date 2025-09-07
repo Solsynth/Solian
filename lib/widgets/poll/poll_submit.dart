@@ -405,6 +405,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
               });
             },
             multiSelectionEnabled: false,
+            emptySelectionAllowed: true,
           ),
         ),
       ],
