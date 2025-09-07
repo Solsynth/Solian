@@ -6,17 +6,21 @@ import 'package:flutter_platform_alert/flutter_platform_alert.dart';
 
 String _parseRemoteError(DioException err) {
   log('${err.requestOptions.method} ${err.requestOptions.uri} ${err.message}');
-  if (err.response?.data is String) return err.response?.data;
-  if (err.response?.data?['errors'] != null) {
+  String? message;
+  if (err.response?.data is String) {
+    message = err.response?.data;
+  } else if (err.response?.data?['errors'] != null) {
     final errors = err.response?.data['errors'] as Map<String, dynamic>;
-    return errors.values
+    message = errors.values
         .map(
           (ele) =>
               (ele as List<dynamic>).map((ele) => ele.toString()).join('\n'),
         )
         .join('\n');
   }
-  return err.message ?? err.toString();
+  if (message == null || message.isEmpty) message = err.response?.statusMessage;
+  message ??= err.message;
+  return message ?? err.toString();
 }
 
 void showErrorAlert(dynamic err) async {
