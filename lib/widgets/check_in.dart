@@ -100,106 +100,117 @@ class CheckInWidget extends HookConsumerWidget {
     return Card(
       margin:
           margin ?? EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        spacing: 8,
+      child: Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                spacing: 8,
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    switch (DateTime.now().weekday) {
-                      6 || 7 => Symbols.weekend,
-                      _ => isAdult ? Symbols.work : Symbols.school,
-                    },
-                    fill: 1,
-                    size: 16,
-                  ).padding(right: 2),
-                  Text(DateFormat('EEE').format(DateTime.now()))
-                      .fontSize(16)
-                      .bold()
-                      .textColor(
-                        Theme.of(context).colorScheme.onSecondaryContainer,
-                      ),
-                  Text(DateFormat('MM/dd').format(DateTime.now()))
-                      .fontSize(12)
-                      .textColor(
-                        Theme.of(context).colorScheme.onSecondaryContainer,
-                      )
-                      .padding(top: 2),
-                ],
-              ),
-              Row(
-                spacing: 5,
-                children: [
-                  Text('notableDayNext')
-                      .tr(args: [nextNotableDay.value?.localName ?? 'idk'])
-                      .fontSize(12),
-                  SlideCountdown(
-                    decoration: const BoxDecoration(),
-                    style: const TextStyle(fontSize: 12),
-                    separatorStyle: const TextStyle(fontSize: 12),
-                    padding: EdgeInsets.zero,
-                    duration: nextNotableDay.value?.date.difference(
-                      DateTime.now(),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  spacing: 6,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      switch (DateTime.now().weekday) {
+                        6 || 7 => Symbols.weekend,
+                        _ => isAdult ? Symbols.work : Symbols.school,
+                      },
+                      fill: 1,
+                      size: 16,
+                    ).padding(right: 2),
+                    Text(DateFormat('EEE').format(DateTime.now()))
+                        .fontSize(16)
+                        .bold()
+                        .textColor(
+                          Theme.of(context).colorScheme.onSecondaryContainer,
+                        ),
+                    Text(DateFormat('MM/dd').format(DateTime.now()))
+                        .fontSize(16)
+                        .textColor(
+                          Theme.of(context).colorScheme.onSecondaryContainer,
+                        ),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: todayResult.when(
+                          data: (result) {
+                            return Text(
+                              result == null
+                                  ? 'checkInNone'
+                                  : 'checkInResultLevel${result.level}',
+                              textAlign: TextAlign.start,
+                            ).tr().fontSize(15).bold();
+                          },
+                          loading:
+                              () =>
+                                  Text('checkInNone').tr().fontSize(15).bold(),
+                          error:
+                              (err, stack) =>
+                                  Text('error').tr().fontSize(15).bold(),
+                        ),
+                      ).alignment(Alignment.centerLeft),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ).padding(horizontal: 16, top: 8),
-          const Divider(height: 1),
-          Row(
-            children: [
-              Expanded(
-                child: AnimatedSwitcher(
+                  ],
+                ),
+                Row(
+                  spacing: 5,
+                  children: [
+                    Text('notableDayNext')
+                        .tr(args: [nextNotableDay.value?.localName ?? 'idk'])
+                        .fontSize(12),
+                    if (nextNotableDay.value != null)
+                      SlideCountdown(
+                        decoration: const BoxDecoration(),
+                        style: const TextStyle(fontSize: 12),
+                        separatorStyle: const TextStyle(fontSize: 12),
+                        padding: EdgeInsets.zero,
+                        duration: nextNotableDay.value?.date.difference(
+                          DateTime.now(),
+                        ),
+                      ),
+                  ],
+                ),
+                const Gap(6),
+                AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   child: todayResult.when(
                     data: (result) {
-                      if (result == null) return _CheckInNoneWidget();
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'checkInResultLevel${result.level}',
-                          ).tr().fontSize(15).bold(),
-                          Wrap(
-                            children:
-                                result.tips
-                                    .map((e) {
-                                      return Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            e.isPositive
-                                                ? Symbols.thumb_up
-                                                : Symbols.thumb_down,
-                                            size: 12,
-                                          ),
-                                          const Gap(4),
-                                          Text(e.title).fontSize(11),
-                                        ],
-                                      );
-                                    })
-                                    .toList()
-                                    .expand(
-                                      (widget) => [
-                                        widget,
-                                        Text('  ·  ').fontSize(11),
-                                      ],
-                                    )
-                                    .toList()
-                                  ..removeLast(),
-                          ),
-                        ],
+                      if (result == null) {
+                        return Text('checkInNoneHint').tr().fontSize(11);
+                      }
+                      return Wrap(
+                        alignment: WrapAlignment.start,
+                        runAlignment: WrapAlignment.start,
+                        children:
+                            result.tips
+                                .map((e) {
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        e.isPositive
+                                            ? Symbols.thumb_up
+                                            : Symbols.thumb_down,
+                                        size: 12,
+                                      ),
+                                      const Gap(4),
+                                      Text(e.title).fontSize(11),
+                                    ],
+                                  );
+                                })
+                                .toList()
+                                .expand(
+                                  (widget) => [
+                                    widget,
+                                    Text('  ·  ').fontSize(11),
+                                  ],
+                                )
+                                .toList()
+                              ..removeLast(),
                       );
                     },
-                    loading: () => _CheckInNoneWidget(),
+                    loading: () => Text('checkInNoneHint').tr().fontSize(11),
                     error:
                         (err, stack) => Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,53 +220,38 @@ class CheckInWidget extends HookConsumerWidget {
                           ],
                         ),
                   ),
-                ),
+                ).alignment(Alignment.centerLeft),
+              ],
+            ),
+          ),
+          IconButton.outlined(
+            onPressed: () {
+              if (todayResult.valueOrNull == null) {
+                checkIn();
+              } else {
+                context.pushNamed(
+                  'accountCalendar',
+                  pathParameters: {'name': 'me'},
+                );
+              }
+            },
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: todayResult.when(
+                data:
+                    (result) => Icon(
+                      result == null
+                          ? Symbols.local_fire_department
+                          : Symbols.event,
+                      key: ValueKey(result != null),
+                    ),
+                loading: () => const Icon(Symbols.refresh),
+                error: (_, _) => const Icon(Symbols.error),
               ),
-              IconButton.outlined(
-                onPressed: () {
-                  if (todayResult.valueOrNull == null) {
-                    checkIn();
-                  } else {
-                    context.pushNamed(
-                      'accountCalendar',
-                      pathParameters: {'name': 'me'},
-                    );
-                  }
-                },
-                icon: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: todayResult.when(
-                    data:
-                        (result) => Icon(
-                          result == null
-                              ? Symbols.local_fire_department
-                              : Symbols.event,
-                          key: ValueKey(result != null),
-                        ),
-                    loading: () => const Icon(Symbols.refresh),
-                    error: (_, _) => const Icon(Symbols.error),
-                  ),
-                ),
-              ),
-            ],
-          ).padding(horizontal: 16, bottom: 12, top: 4),
+            ),
+          ),
         ],
-      ),
-    );
-  }
-}
-
-class _CheckInNoneWidget extends StatelessWidget {
-  const _CheckInNoneWidget();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('checkInNone').tr().fontSize(15).bold(),
-        Text('checkInNoneHint').tr().fontSize(11),
-      ],
+      ).padding(horizontal: 16, vertical: 12),
     );
   }
 }
