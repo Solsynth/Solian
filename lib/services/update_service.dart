@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,9 @@ import 'package:flutter_app_update/update_model.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:process_run/process_run.dart';
 import 'package:collection/collection.dart'; // Added for firstWhereOrNull
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -180,8 +184,12 @@ class UpdateService {
       useRootNavigator: true,
       builder: (ctx) {
         String? androidUpdateUrl;
+        String? windowsUpdateUrl;
         if (Platform.isAndroid) {
           androidUpdateUrl = _getAndroidUpdateUrl(release.assets);
+        }
+        if (Platform.isWindows) {
+          windowsUpdateUrl = _getWindowsUpdateUrl();
         }
         return _UpdateSheet(
           release: release,
@@ -192,6 +200,7 @@ class UpdateService {
             }
           },
           androidUpdateUrl: androidUpdateUrl,
+          windowsUpdateUrl: windowsUpdateUrl,
           useProxy: useProxy, // Pass the useProxy flag
         );
       },
@@ -218,6 +227,261 @@ class UpdateService {
       return 'https://fs.solsynth.dev/d/official/solian/${x86_64.name}';
     }
     return null;
+  }
+
+  String _getWindowsUpdateUrl() {
+    return 'https://fs.solsynth.dev/d/official/solian/build-output-windows-installer.zip';
+  }
+
+  /// Downloads the Windows installer ZIP file
+  Future<String?> _downloadWindowsInstaller(String url) async {
+    try {
+      log('[Update] Starting Windows installer download from: $url');
+
+      final tempDir = await getTemporaryDirectory();
+      final fileName =
+          'solian-installer-${DateTime.now().millisecondsSinceEpoch}.zip';
+      final filePath = path.join(tempDir.path, fileName);
+
+      final response = await _dio.download(
+        url,
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            log(
+              '[Update] Download progress: ${(received / total * 100).toStringAsFixed(1)}%',
+            );
+          }
+        },
+      );
+
+      if (response.statusCode == 200) {
+        log('[Update] Windows installer downloaded successfully to: $filePath');
+        return filePath;
+      } else {
+        log(
+          '[Update] Failed to download Windows installer. Status: ${response.statusCode}',
+        );
+        return null;
+      }
+    } catch (e) {
+      log('[Update] Error downloading Windows installer: $e');
+      return null;
+    }
+  }
+
+  /// Extracts the ZIP file to a temporary directory
+  Future<String?> _extractWindowsInstaller(String zipPath) async {
+    try {
+      log('[Update] Extracting Windows installer from: $zipPath');
+
+      final tempDir = await getTemporaryDirectory();
+      final extractDir = path.join(
+        tempDir.path,
+        'solian-installer-${DateTime.now().millisecondsSinceEpoch}',
+      );
+
+      final zipFile = File(zipPath);
+      final bytes = await zipFile.readAsBytes();
+      final archive = ZipDecoder().decodeBytes(bytes);
+
+      for (final file in archive) {
+        final filename = file.name;
+        if (file.isFile) {
+          final data = file.content as List<int>;
+          final filePath = path.join(extractDir, filename);
+          await Directory(path.dirname(filePath)).create(recursive: true);
+          await File(filePath).writeAsBytes(data);
+        } else {
+          final dirPath = path.join(extractDir, filename);
+          await Directory(dirPath).create(recursive: true);
+        }
+      }
+
+      log('[Update] Windows installer extracted successfully to: $extractDir');
+      return extractDir;
+    } catch (e) {
+      log('[Update] Error extracting Windows installer: $e');
+      return null;
+    }
+  }
+
+  /// Runs the setup.exe file
+  Future<bool> _runWindowsInstaller(String extractDir) async {
+    try {
+      log('[Update] Running Windows installer from: $extractDir');
+
+      final setupExePath = path.join(extractDir, 'setup.exe');
+
+      if (!await File(setupExePath).exists()) {
+        log('[Update] setup.exe not found in extracted directory');
+        return false;
+      }
+
+      final shell = Shell();
+      final results = await shell.run(setupExePath);
+      final result = results.first;
+
+      if (result.exitCode == 0) {
+        log('[Update] Windows installer completed successfully');
+        return true;
+      } else {
+        log(
+          '[Update] Windows installer failed with exit code: ${result.exitCode}',
+        );
+        log('[Update] Installer output: ${result.stdout}');
+        log('[Update] Installer errors: ${result.stderr}');
+        return false;
+      }
+    } catch (e) {
+      log('[Update] Error running Windows installer: $e');
+      return false;
+    }
+  }
+
+  /// Performs automatic Windows update: download, extract, and install
+  Future<void> _performAutomaticWindowsUpdate(
+    BuildContext context,
+    String url,
+  ) async {
+    if (!context.mounted) return;
+
+    // Show progress dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => const AlertDialog(
+            title: Text('Installing Update'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Downloading installer...'),
+              ],
+            ),
+          ),
+    );
+
+    try {
+      // Step 1: Download
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Close progress dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (context) => const AlertDialog(
+              title: Text('Installing Update'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Extracting installer...'),
+                ],
+              ),
+            ),
+      );
+
+      final zipPath = await _downloadWindowsInstaller(url);
+      if (zipPath == null) {
+        if (!context.mounted) return;
+        Navigator.of(context).pop();
+        _showErrorDialog(context, 'Failed to download installer');
+        return;
+      }
+
+      // Step 2: Extract
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Close progress dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (context) => const AlertDialog(
+              title: Text('Installing Update'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Running installer...'),
+                ],
+              ),
+            ),
+      );
+
+      final extractDir = await _extractWindowsInstaller(zipPath);
+      if (extractDir == null) {
+        if (!context.mounted) return;
+        Navigator.of(context).pop();
+        _showErrorDialog(context, 'Failed to extract installer');
+        return;
+      }
+
+      // Step 3: Run installer
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Close progress dialog
+
+      final success = await _runWindowsInstaller(extractDir);
+      if (!context.mounted) return;
+
+      if (success) {
+        showDialog(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Update Complete'),
+                content: const Text(
+                  'The application has been updated successfully. Please restart the application.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      // Close the update sheet
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+        );
+      } else {
+        _showErrorDialog(context, 'Failed to run installer');
+      }
+
+      // Cleanup
+      try {
+        await File(zipPath).delete();
+        await Directory(extractDir).delete(recursive: true);
+      } catch (e) {
+        log('[Update] Error cleaning up temporary files: $e');
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Close any open dialogs
+      _showErrorDialog(context, 'Update failed: $e');
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Update Failed'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
   }
 
   /// Fetch the latest release info from GitHub.
@@ -277,10 +541,12 @@ class _UpdateSheet extends StatefulWidget {
     required this.release,
     required this.onOpen,
     this.androidUpdateUrl,
+    this.windowsUpdateUrl,
     this.useProxy = false,
   });
 
   final String? androidUpdateUrl;
+  final String? windowsUpdateUrl;
   final bool useProxy;
   final GithubReleaseInfo release;
   final VoidCallback onOpen;
@@ -374,6 +640,25 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                           onPressed: () {
                             log(widget.androidUpdateUrl!);
                             _installUpdate(widget.androidUpdateUrl!);
+                          },
+                          icon: const Icon(Symbols.update),
+                          label: const Text('Install update'),
+                        ),
+                      ),
+                    if (!kIsWeb &&
+                        Platform.isWindows &&
+                        widget.windowsUpdateUrl != null)
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            // Access the UpdateService instance to call the automatic update method
+                            final updateService = UpdateService(
+                              useProxy: widget.useProxy,
+                            );
+                            updateService._performAutomaticWindowsUpdate(
+                              context,
+                              widget.windowsUpdateUrl!,
+                            );
                           },
                           icon: const Icon(Symbols.update),
                           label: const Text('Install update'),
