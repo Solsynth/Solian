@@ -17,6 +17,7 @@ class PollSubmit extends ConsumerStatefulWidget {
     this.onCancel,
     this.showProgress = true,
     this.isReadonly = false,
+    this.isInitiallyExpanded = false,
   });
 
   final SnPollWithStats poll;
@@ -36,6 +37,9 @@ class PollSubmit extends ConsumerStatefulWidget {
 
   final bool isReadonly;
 
+  /// Whether the poll should start expanded instead of collapsed.
+  final bool isInitiallyExpanded;
+
   @override
   ConsumerState<PollSubmit> createState() => _PollSubmitState();
 }
@@ -45,6 +49,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   int _index = 0;
   bool _submitting = false;
   bool _isModifying = false; // New state to track if user is modifying answers
+  bool _isCollapsed = true; // New state to track collapse/expand
 
   /// Collected answers, keyed by questionId
   late Map<String, dynamic> _answers;
@@ -65,6 +70,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     _questions = [...widget.poll.questions]
       ..sort((a, b) => a.order.compareTo(b.order));
     _answers = Map<String, dynamic>.from(widget.initialAnswers ?? {});
+    // Set initial collapse state based on the parameter
+    _isCollapsed = !widget.isInitiallyExpanded;
     if (!widget.isReadonly) {
       _loadCurrentIntoLocalState();
       // If initial answers are provided, set _isModifying to false initially
@@ -653,39 +660,179 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
+  Widget _buildCollapsedView(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.poll.title != null)
+                    Text(
+                      widget.poll.title!,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (widget.poll.description != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        widget.poll.description!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        '${_questions.length} question${_questions.length == 1 ? '' : 's'}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                _isCollapsed ? Icons.expand_more : Icons.expand_less,
+                size: 20,
+              ),
+              onPressed: () {
+                setState(() {
+                  _isCollapsed = !_isCollapsed;
+                });
+              },
+              visualDensity: VisualDensity.compact,
+              tooltip: _isCollapsed ? 'expandPoll'.tr() : 'collapsePoll'.tr(),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_questions.isEmpty) {
       return const SizedBox.shrink();
     }
 
+    // If collapsed, show collapsed view for all states
+    if (_isCollapsed) {
+      return _buildCollapsedView(context);
+    }
+
     // If poll is already submitted and not in readonly mode, and not in modification mode, show submitted view
     if (widget.initialAnswers != null && !widget.isReadonly && !_isModifying) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [_buildSubmittedView(context), _buildNavBar(context)],
+        children: [
+          _buildCollapsedView(context),
+          const SizedBox(height: 8),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, anim) {
+              final offset = Tween<Offset>(
+                begin: const Offset(0, -0.1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut));
+              final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
+              return FadeTransition(
+                opacity: fade,
+                child: SlideTransition(position: offset, child: child),
+              );
+            },
+            child: Column(
+              key: const ValueKey('submitted_expanded'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [_buildSubmittedView(context), _buildNavBar(context)],
+            ),
+          ),
+        ],
       );
     }
 
     // If poll is in readonly mode, show readonly view
     if (widget.isReadonly) {
-      return _buildReadonlyView(context);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildCollapsedView(context),
+          const SizedBox(height: 8),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, anim) {
+              final offset = Tween<Offset>(
+                begin: const Offset(0, -0.1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut));
+              final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
+              return FadeTransition(
+                opacity: fade,
+                child: SlideTransition(position: offset, child: child),
+              );
+            },
+            child: _buildReadonlyView(context),
+          ),
+        ],
+      );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(context),
-        const SizedBox(height: 12),
-        _AnimatedStep(
-          key: ValueKey(_current.id),
+        _buildCollapsedView(context),
+        const SizedBox(height: 8),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, anim) {
+            final offset = Tween<Offset>(
+              begin: const Offset(0, -0.1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut));
+            final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
+            return FadeTransition(
+              opacity: fade,
+              child: SlideTransition(position: offset, child: child),
+            );
+          },
           child: Column(
+            key: const ValueKey('normal_expanded'),
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [_buildBody(context), _buildStats(context, _current)],
+            children: [
+              _buildHeader(context),
+              const SizedBox(height: 12),
+              _AnimatedStep(
+                key: ValueKey(_current.id),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildBody(context),
+                    _buildStats(context, _current),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildNavBar(context),
+            ],
           ),
         ),
-        const SizedBox(height: 16),
-        _buildNavBar(context),
       ],
     );
   }

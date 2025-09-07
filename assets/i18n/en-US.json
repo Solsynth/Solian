@@ -133,6 +133,25 @@
     "other": "{} replies"
   },
   "forward": "Forward",
+  "award": "Award",
+  "awardPost": "Award Post",
+  "awardMessage": "Message",
+  "awardMessageHint": "Enter your award message...",
+  "awardAttitude": "Attitude",
+  "awardAttitudePositive": "Positive",
+  "awardAttitudeNegative": "Negative",
+  "awardAmount": "Amount",
+  "awardAmountHint": "Enter amount...",
+  "awardAmountRequired": "Amount is required",
+  "awardAmountInvalid": "Please enter a valid amount",
+  "awardMessageTooLong": "Message is too long (max 4096 characters)",
+  "awardSuccess": "Award sent successfully!",
+  "awardSubmit": "Award",
+  "awardPostPreview": "Post Preview",
+  "awardNoContent": "No content available",
+  "awardByPublisher": "By {}",
+  "awardBenefits": "Award Benefits",
+  "awardBenefitsDescription": "Awarding this post increases its value and visibility. Higher valued posts have a better chance of being featured and highlighted in the community.",
   "repliedTo": "Replied to",
   "forwarded": "Forwarded",
   "hasAttachments": {
@@ -977,5 +996,7 @@
   "pinned": "Pinned",
   "noResultsFound": "No results found",
   "toggleFilters": "Toggle filters",
-  "notableDayNext": "{} is in"
+  "notableDayNext": "{} is in",
+  "expandPoll": "Expand Poll",
+  "collapsePoll": "Collapse Poll"
 }
