@@ -31,35 +31,31 @@ class UniversalImage extends StatelessWidget {
           height != null ? (height! * devicePixelRatio).round() : null;
     }
 
-    return SizedBox(
-      width: width,
-      height: height,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (blurHash != null) BlurHash(hash: blurHash!),
-          CachedNetworkImage(
-            imageUrl: uri,
-            fit: fit,
-            width: width,
-            height: height,
-            memCacheHeight: cacheHeight,
-            memCacheWidth: cacheWidth,
-            progressIndicatorBuilder: (context, url, progress) {
-              return Center(
-                child: CircularProgressIndicator(value: progress.progress),
-              );
-            },
-            errorWidget: (context, url, error) {
-              return Image.asset(
-                'assets/images/media-offline.jpg',
-                fit: BoxFit.cover,
-                key: Key('image-broke-$uri'),
-              );
-            },
-          ),
-        ],
-      ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (blurHash != null) BlurHash(hash: blurHash!),
+        CachedNetworkImage(
+          imageUrl: uri,
+          fit: fit,
+          width: width,
+          height: height,
+          memCacheHeight: cacheHeight,
+          memCacheWidth: cacheWidth,
+          progressIndicatorBuilder: (context, url, progress) {
+            return Center(
+              child: CircularProgressIndicator(value: progress.progress),
+            );
+          },
+          errorWidget: (context, url, error) {
+            return Image.asset(
+              'assets/images/media-offline.jpg',
+              fit: BoxFit.cover,
+              key: Key('image-broke-$uri'),
+            );
+          },
+        ),
+      ],
     );
   }
 }

@@ -812,10 +812,15 @@ class _CloudFileListEntry extends HookConsumerWidget {
     final lockedByDS = dataSaving && !showDataSaving.value;
     final lockedByMature = file.sensitiveMarks.isNotEmpty && !showMature.value;
     final meta = file.fileMeta is Map ? file.fileMeta as Map : const {};
+    final hasRatio =
+        meta.containsKey('ratio') &&
+        (meta['ratio'] is num && (meta['ratio'] as num) != 0);
     final ratio =
         (meta['ratio'] is num && (meta['ratio'] as num) != 0)
             ? (meta['ratio'] as num).toDouble()
             : 1.0;
+
+    final fit = hasRatio ? BoxFit.cover : BoxFit.contain;
 
     Widget bg = const SizedBox.shrink();
     if (isImage) {
@@ -825,6 +830,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
         bg = ImageFiltered(
           imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: CloudFileWidget(
+            fit: fit,
             item: file,
             noBlurhash: true,
             useInternalGate: false,
@@ -843,13 +849,13 @@ class _CloudFileListEntry extends HookConsumerWidget {
                   item: file,
                   heroTag: heroTag,
                   noBlurhash: true,
-                  fit: BoxFit.contain,
+                  fit: fit,
                   useInternalGate: false,
                 )
                 : CloudFileWidget(
                   item: file,
                   heroTag: heroTag,
-                  fit: BoxFit.contain,
+                  fit: fit,
                   useInternalGate: false,
                 ))
             : AspectRatio(aspectRatio: ratio, child: const SizedBox.shrink());
