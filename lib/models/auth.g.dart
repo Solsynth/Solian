@@ -13,6 +13,24 @@ Map<String, dynamic> _$AppTokenToJson(_AppToken instance) => <String, dynamic>{
   'token': instance.token,
 };
 
+_GeoIpLocation _$GeoIpLocationFromJson(Map<String, dynamic> json) =>
+    _GeoIpLocation(
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      countryCode: json['country_code'] as String,
+      country: json['country'] as String,
+      city: json['city'] as String,
+    );
+
+Map<String, dynamic> _$GeoIpLocationToJson(_GeoIpLocation instance) =>
+    <String, dynamic>{
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'country_code': instance.countryCode,
+      'country': instance.country,
+      'city': instance.city,
+    };
+
 _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
     _SnAuthChallenge(
       id: json['id'] as String,
@@ -30,7 +48,12 @@ _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
       ipAddress: json['ip_address'] as String,
       userAgent: json['user_agent'] as String,
       nonce: json['nonce'] as String?,
-      location: json['location'] as String?,
+      location:
+          json['location'] == null
+              ? null
+              : GeoIpLocation.fromJson(
+                json['location'] as Map<String, dynamic>,
+              ),
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -54,7 +77,7 @@ Map<String, dynamic> _$SnAuthChallengeToJson(_SnAuthChallenge instance) =>
       'ip_address': instance.ipAddress,
       'user_agent': instance.userAgent,
       'nonce': instance.nonce,
-      'location': instance.location,
+      'location': instance.location?.toJson(),
       'account_id': instance.accountId,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
