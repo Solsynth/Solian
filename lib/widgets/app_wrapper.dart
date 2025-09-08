@@ -3,6 +3,7 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/activity_rpc.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/screens/tray_manager.dart';
 import 'package:island/services/notify.dart';
@@ -31,7 +32,10 @@ class AppWrapper extends HookConsumerWidget with TrayListener {
 
       TrayService.instance.initialize(this);
 
+      ref.read(rpcServerStateProvider.notifier).start();
+
       return () {
+        ref.read(rpcServerProvider).stop();
         TrayService.instance.dispose(this);
         sharingService.dispose();
         ntySubs?.cancel();
