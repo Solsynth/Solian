@@ -830,7 +830,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
         bg = ImageFiltered(
           imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: CloudFileWidget(
-            fit: fit,
+            fit: BoxFit.cover,
             item: file,
             noBlurhash: true,
             useInternalGate: false,
