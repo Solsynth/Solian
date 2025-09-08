@@ -789,11 +789,8 @@ class LevelingScreen extends HookConsumerWidget {
       if (context.mounted) showLoadingModal(context);
 
       if (paidOrder != null) {
-        await client.post(
-          '/id/subscriptions/order/handle',
-          data: {'order_id': paidOrder.id},
-        );
-
+        // Wait for server to handle order
+        await Future.delayed(const Duration(seconds: 1));
         ref.invalidate(accountStellarSubscriptionProvider);
         ref.read(userInfoProvider.notifier).fetchUser();
         if (context.mounted) {
