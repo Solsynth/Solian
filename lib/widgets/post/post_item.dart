@@ -436,6 +436,7 @@ class PostItem extends HookConsumerWidget {
                 MarkdownTextContent(
                   content: translatedText.value!,
                   isSelectable: isTextSelectable,
+                  attachments: item.attachments,
                 ),
               ],
             )
