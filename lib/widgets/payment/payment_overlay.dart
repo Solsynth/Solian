@@ -142,10 +142,6 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
       // Set initial mode based on stored PIN and biometric support
       if (_hasStoredPin && _hasBiometricSupport && widget.enableBiometric) {
         _isPinMode = false;
-        // Automatically trigger biometric authentication
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _authenticateWithBiometric();
-        });
       } else {
         _isPinMode = true;
       }
