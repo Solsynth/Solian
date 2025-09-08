@@ -6,6 +6,8 @@ import 'package:island/models/poll.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/services/time.dart';
+import 'package:island/widgets/account/account_pfc.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/poll/poll_stats_widget.dart';
 import 'package:island/widgets/response.dart';
@@ -134,19 +136,27 @@ class _PollHeader extends StatelessWidget {
                   ),
                 ),
             ],
-          ),
-        Text('pollQuestions').tr().fontSize(17).bold(),
-        for (final q in poll.questions)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (q.title.isNotEmpty) Text(q.title).bold(),
-              if (q.description?.isNotEmpty ?? false) Text(q.description!),
-              PollStatsWidget(question: q, stats: poll.stats),
-            ],
-          ),
+          ).padding(horizontal: 20, top: 16),
+        ExpansionTile(
+          title: Text('pollQuestions').tr().fontSize(17).bold(),
+          tilePadding: EdgeInsets.symmetric(horizontal: 20),
+          children:
+              poll.questions
+                  .map(
+                    (q) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (q.title.isNotEmpty) Text(q.title).bold(),
+                        if (q.description?.isNotEmpty ?? false)
+                          Text(q.description!),
+                        PollStatsWidget(question: q, stats: poll.stats),
+                      ],
+                    ).padding(horizontal: 20, top: 8, bottom: 16),
+                  )
+                  .toList(),
+        ),
       ],
-    ).padding(horizontal: 20, vertical: 16);
+    );
   }
 }
 
@@ -207,7 +217,10 @@ class _PollAnswerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Submit date/time (title)
-    final submitText = answer.createdAt.formatSystem();
+    final submitText =
+        answer.account == null
+            ? answer.createdAt.formatSystem()
+            : '${answer.account!.nick} · ${answer.createdAt.formatSystem()}';
 
     // Compose content from poll questions if provided, otherwise fallback to joined key-values
     String content;
@@ -244,10 +257,18 @@ class _PollAnswerTile extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
       isThreeLine: true,
-      leading: const CircleAvatar(
-        radius: 16,
-        child: Icon(Icons.how_to_vote, size: 16),
-      ),
+      leading:
+          answer.account == null
+              ? const CircleAvatar(
+                radius: 16,
+                child: Icon(Icons.how_to_vote, size: 16),
+              )
+              : AccountPfcGestureDetector(
+                uname: answer.account!.name,
+                child: ProfilePictureWidget(
+                  file: answer.account!.profile.picture,
+                ),
+              ),
       title: Text(submitText),
       subtitle: Text(content),
       trailing: null,
