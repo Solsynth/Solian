@@ -77,6 +77,22 @@ class PostActionButtons extends HookConsumerWidget {
     final isAuthor =
         user.value != null && user.value?.id == post.publisher.accountId;
 
+    String formatScore(int score) {
+      if (score >= 1000000) {
+        double value = score / 1000000;
+        return value % 1 == 0
+            ? '${value.toInt()}m'
+            : '${value.toStringAsFixed(1)}m';
+      } else if (score >= 1000) {
+        double value = score / 1000;
+        return value % 1 == 0
+            ? '${value.toInt()}k'
+            : '${value.toStringAsFixed(1)}k';
+      } else {
+        return score.toString();
+      }
+    }
+
     final actions = <Widget>[];
 
     const kButtonHeight = 40.0;
@@ -253,6 +269,17 @@ class PostActionButtons extends HookConsumerWidget {
         ),
       ),
     ];
+
+    actions.add(
+      FilledButton.tonalIcon(
+        onPressed: () {},
+        icon: const Icon(Symbols.star),
+        label:
+            post.awardedScore > 0
+                ? Text('${formatScore(post.awardedScore)} pts')
+                : Text('award').tr(),
+      ),
+    );
 
     actions.add(
       Row(

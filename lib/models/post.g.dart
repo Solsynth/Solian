@@ -35,6 +35,7 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   upvotes: (json['upvotes'] as num?)?.toInt() ?? 0,
   downvotes: (json['downvotes'] as num?)?.toInt() ?? 0,
   repliesCount: (json['replies_count'] as num?)?.toInt() ?? 0,
+  awardedScore: (json['awarded_score'] as num?)?.toInt() ?? 0,
   pinMode: (json['pin_mode'] as num?)?.toInt(),
   threadedPostId: json['threaded_post_id'] as String?,
   threadedPost:
@@ -117,6 +118,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'upvotes': instance.upvotes,
   'downvotes': instance.downvotes,
   'replies_count': instance.repliesCount,
+  'awarded_score': instance.awardedScore,
   'pin_mode': instance.pinMode,
   'threaded_post_id': instance.threadedPostId,
   'threaded_post': instance.threadedPost?.toJson(),
