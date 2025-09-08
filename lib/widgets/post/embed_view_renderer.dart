@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
@@ -21,6 +22,10 @@ class EmbedViewRenderer extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // State management for lazy loading
+    final shouldLoad = useState(false);
+    final isLoading = useState(false);
 
     return Container(
       constraints: BoxConstraints(maxHeight: maxHeight ?? 400),
@@ -93,125 +98,181 @@ class EmbedViewRenderer extends HookConsumerWidget {
               ),
             ),
 
-            // WebView content
+            // WebView content with lazy loading
             AspectRatio(
               aspectRatio: embedView.aspectRatio ?? 1,
-              child: InAppWebView(
-                initialUrlRequest: URLRequest(url: WebUri(embedView.uri)),
-                initialSettings: InAppWebViewSettings(
-                  javaScriptEnabled: true,
-                  mediaPlaybackRequiresUserGesture: false,
-                  allowsInlineMediaPlayback: true,
-                  useShouldOverrideUrlLoading: true,
-                  useOnLoadResource: true,
-                  supportZoom: false,
-                  useWideViewPort: false,
-                  loadWithOverviewMode: true,
-                  builtInZoomControls: false,
-                  displayZoomControls: false,
-                  minimumFontSize: 12,
-                  preferredContentMode: UserPreferredContentMode.RECOMMENDED,
-                  allowsBackForwardNavigationGestures: false,
-                  allowsLinkPreview: false,
-                  isInspectable: false,
-                ),
-                onWebViewCreated: (controller) {
-                  // Configure webview settings
-                  controller.addJavaScriptHandler(
-                    handlerName: 'onHeightChanged',
-                    callback: (args) {
-                      // Handle dynamic height changes if needed
-                    },
-                  );
-                },
-                onLoadStart: (controller, url) {
-                  // Handle load start
-                },
-                onLoadStop: (controller, url) async {
-                  // Inject CSS to improve mobile display and remove borders
-                  await controller.evaluateJavascript(
-                    source: '''
-                    // Remove unwanted elements
-                    var elements = document.querySelectorAll('nav, header, footer, .ads, .advertisement, .sidebar');
-                    for (var i = 0; i < elements.length; i++) {
-                      elements[i].style.display = 'none';
-                    }
-            
-                    // Remove borders from embedded content (YouTube, Vimeo, etc.)
-                    var iframes = document.querySelectorAll('iframe');
-                    for (var i = 0; i < iframes.length; i++) {
-                      iframes[i].style.border = 'none';
-                      iframes[i].style.borderRadius = '0';
-                    }
-            
-                    // Remove borders from video elements
-                    var videos = document.querySelectorAll('video');
-                    for (var i = 0; i < videos.length; i++) {
-                      videos[i].style.border = 'none';
-                      videos[i].style.borderRadius = '0';
-                    }
-            
-                    // Remove borders from any element that might have them
-                    var allElements = document.querySelectorAll('*');
-                    for (var i = 0; i < allElements.length; i++) {
-                      if (allElements[i].style.border) {
-                        allElements[i].style.border = 'none';
-                      }
-                    }
-            
-                    // Improve readability
-                    var body = document.body;
-                    body.style.fontSize = '14px';
-                    body.style.lineHeight = '1.4';
-                    body.style.margin = '0';
-                    body.style.padding = '0';
-            
-                    // Handle dynamic content
-                    var observer = new MutationObserver(function(mutations) {
-                      // Remove borders from newly added elements
-                      var newIframes = document.querySelectorAll('iframe');
-                      for (var i = 0; i < newIframes.length; i++) {
-                        if (!newIframes[i].style.border || newIframes[i].style.border !== 'none') {
-                          newIframes[i].style.border = 'none';
-                          newIframes[i].style.borderRadius = '0';
-                        }
-                      }
-                      var newVideos = document.querySelectorAll('video');
-                      for (var i = 0; i < newVideos.length; i++) {
-                        if (!newVideos[i].style.border || newVideos[i].style.border !== 'none') {
-                          newVideos[i].style.border = 'none';
-                          newVideos[i].style.borderRadius = '0';
-                        }
-                      }
-                      window.flutter_inappwebview.callHandler('onHeightChanged', document.body.scrollHeight);
-                    });
-                    observer.observe(document.body, { childList: true, subtree: true });
-                  ''',
-                  );
-                },
-                onLoadError: (controller, url, code, message) {
-                  // Handle load errors
-                },
-                onLoadHttpError: (controller, url, statusCode, description) {
-                  // Handle HTTP errors
-                },
-                shouldOverrideUrlLoading: (controller, navigationAction) async {
-                  final uri = navigationAction.request.url;
-                  if (uri != null && uri.toString() != embedView.uri) {
-                    // Open external links in browser
-                    // You might want to use url_launcher here
-                    return NavigationActionPolicy.CANCEL;
-                  }
-                  return NavigationActionPolicy.ALLOW;
-                },
-                onProgressChanged: (controller, progress) {
-                  // Handle progress changes if needed
-                },
-                onConsoleMessage: (controller, consoleMessage) {
-                  // Handle console messages for debugging
-                  debugPrint('WebView Console: ${consoleMessage.message}');
-                },
-              ),
+              child:
+                  shouldLoad.value
+                      ? Stack(
+                        children: [
+                          InAppWebView(
+                            initialUrlRequest: URLRequest(
+                              url: WebUri(embedView.uri),
+                            ),
+                            initialSettings: InAppWebViewSettings(
+                              javaScriptEnabled: true,
+                              mediaPlaybackRequiresUserGesture: false,
+                              allowsInlineMediaPlayback: true,
+                              useShouldOverrideUrlLoading: true,
+                              useOnLoadResource: true,
+                              supportZoom: false,
+                              useWideViewPort: false,
+                              loadWithOverviewMode: true,
+                              builtInZoomControls: false,
+                              displayZoomControls: false,
+                              minimumFontSize: 12,
+                              preferredContentMode:
+                                  UserPreferredContentMode.RECOMMENDED,
+                              allowsBackForwardNavigationGestures: false,
+                              allowsLinkPreview: false,
+                              isInspectable: false,
+                            ),
+                            onWebViewCreated: (controller) {
+                              // Configure webview settings
+                              controller.addJavaScriptHandler(
+                                handlerName: 'onHeightChanged',
+                                callback: (args) {
+                                  // Handle dynamic height changes if needed
+                                },
+                              );
+                            },
+                            onLoadStart: (controller, url) {
+                              isLoading.value = true;
+                            },
+                            onLoadStop: (controller, url) async {
+                              isLoading.value = false;
+                              // Inject CSS to improve mobile display and remove borders
+                              await controller.evaluateJavascript(
+                                source: '''
+                            // Remove unwanted elements
+                            var elements = document.querySelectorAll('nav, header, footer, .ads, .advertisement, .sidebar');
+                            for (var i = 0; i < elements.length; i++) {
+                              elements[i].style.display = 'none';
+                            }
+
+                            // Remove borders from embedded content (YouTube, Vimeo, etc.)
+                            var iframes = document.querySelectorAll('iframe');
+                            for (var i = 0; i < iframes.length; i++) {
+                              iframes[i].style.border = 'none';
+                              iframes[i].style.borderRadius = '0';
+                            }
+
+                            // Remove borders from video elements
+                            var videos = document.querySelectorAll('video');
+                            for (var i = 0; i < videos.length; i++) {
+                              videos[i].style.border = 'none';
+                              videos[i].style.borderRadius = '0';
+                            }
+
+                            // Remove borders from any element that might have them
+                            var allElements = document.querySelectorAll('*');
+                            for (var i = 0; i < allElements.length; i++) {
+                              if (allElements[i].style.border) {
+                                allElements[i].style.border = 'none';
+                              }
+                            }
+
+                            // Improve readability
+                            var body = document.body;
+                            body.style.fontSize = '14px';
+                            body.style.lineHeight = '1.4';
+                            body.style.margin = '0';
+                            body.style.padding = '0';
+
+                            // Handle dynamic content
+                            var observer = new MutationObserver(function(mutations) {
+                              // Remove borders from newly added elements
+                              var newIframes = document.querySelectorAll('iframe');
+                              for (var i = 0; i < newIframes.length; i++) {
+                                if (!newIframes[i].style.border || newIframes[i].style.border !== 'none') {
+                                  newIframes[i].style.border = 'none';
+                                  newIframes[i].style.borderRadius = '0';
+                                }
+                              }
+                              var newVideos = document.querySelectorAll('video');
+                              for (var i = 0; i < newVideos.length; i++) {
+                                if (!newVideos[i].style.border || newVideos[i].style.border !== 'none') {
+                                  newVideos[i].style.border = 'none';
+                                  newVideos[i].style.borderRadius = '0';
+                                }
+                              }
+                              window.flutter_inappwebview.callHandler('onHeightChanged', document.body.scrollHeight);
+                            });
+                            observer.observe(document.body, { childList: true, subtree: true });
+                          ''',
+                              );
+                            },
+                            onLoadError: (controller, url, code, message) {
+                              isLoading.value = false;
+                            },
+                            onLoadHttpError: (
+                              controller,
+                              url,
+                              statusCode,
+                              description,
+                            ) {
+                              isLoading.value = false;
+                            },
+                            shouldOverrideUrlLoading: (
+                              controller,
+                              navigationAction,
+                            ) async {
+                              final uri = navigationAction.request.url;
+                              if (uri != null &&
+                                  uri.toString() != embedView.uri) {
+                                // Open external links in browser
+                                // You might want to use url_launcher here
+                                return NavigationActionPolicy.CANCEL;
+                              }
+                              return NavigationActionPolicy.ALLOW;
+                            },
+                            onProgressChanged: (controller, progress) {
+                              // Handle progress changes if needed
+                            },
+                            onConsoleMessage: (controller, consoleMessage) {
+                              // Handle console messages for debugging
+                              debugPrint(
+                                'WebView Console: ${consoleMessage.message}',
+                              );
+                            },
+                          ),
+                          if (isLoading.value)
+                            Container(
+                              color: colorScheme.surfaceContainerLowest,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                        ],
+                      )
+                      : GestureDetector(
+                        onTap: () {
+                          shouldLoad.value = true;
+                        },
+                        child: Container(
+                          color: colorScheme.surfaceContainerLowest,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Symbols.play_arrow,
+                                size: 48,
+                                color: colorScheme.onSurfaceVariant.withOpacity(
+                                  0.6,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Tap to load content',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant
+                                      .withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
             ),
           ],
         ),
