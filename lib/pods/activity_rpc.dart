@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -193,8 +192,8 @@ class ActivityRpcServer {
       );
     }
 
-    // Start IPC server (skip on macOS in production due to sandboxing)
-    final shouldStartIpc = !(Platform.isMacOS && kReleaseMode);
+    // Start IPC server (skip on macOS due to sandboxing)
+    final shouldStartIpc = !Platform.isMacOS;
     if (shouldStartIpc) {
       try {
         final ipcPath = await _findAvailableIpcPath();
