@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -57,11 +58,21 @@ class CheckInWidget extends HookConsumerWidget {
     final todayResult = ref.watch(checkInResultTodayProvider);
     final nextNotableDay = ref.watch(nextNotableDayProvider);
 
+    // Update time every second for live progress
+    final currentTime = useState(DateTime.now());
+    useEffect(() {
+      final timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        currentTime.value = DateTime.now();
+      });
+      return timer.cancel;
+    }, []);
+
+    final now = currentTime.value;
+
     final userinfo = ref.watch(userInfoProvider);
     final isAdult = useMemoized(() {
       final birthday = userinfo.value?.profile.birthday;
       if (birthday == null) return false;
-      final now = DateTime.now();
       final age =
           now.year -
           birthday.year -
@@ -71,6 +82,12 @@ class CheckInWidget extends HookConsumerWidget {
               : 0);
       return age >= 18;
     }, [userinfo]);
+
+    final progress = (now.hour * 60.0 + now.minute) / (24 * 60);
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    final timeLeft = endOfDay.difference(now);
+    final timeLeftFormatted =
+        '${timeLeft.inHours.toString().padLeft(2, '0')}:${(timeLeft.inMinutes % 60).toString().padLeft(2, '0')}:${(timeLeft.inSeconds % 60).toString().padLeft(2, '0')}';
 
     Future<void> checkIn({String? captchatTk}) async {
       final client = ref.read(apiClientProvider);
@@ -119,37 +136,22 @@ class CheckInWidget extends HookConsumerWidget {
                       fill: 1,
                       size: 16,
                     ).padding(right: 2),
-                    Text(DateFormat('EEE').format(DateTime.now()))
-                        .fontSize(16)
-                        .bold()
-                        .textColor(
-                          Theme.of(context).colorScheme.onSecondaryContainer,
+                    Text(
+                      DateFormat('EEE').format(DateTime.now()),
+                    ).fontSize(16).bold(),
+                    Text(
+                      DateFormat('MM/dd').format(DateTime.now()),
+                    ).fontSize(16),
+                    Tooltip(
+                      message: timeLeftFormatted,
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          value: progress,
+                          strokeWidth: 2,
                         ),
-                    Text(DateFormat('MM/dd').format(DateTime.now()))
-                        .fontSize(16)
-                        .textColor(
-                          Theme.of(context).colorScheme.onSecondaryContainer,
-                        ),
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: todayResult.when(
-                          data: (result) {
-                            return Text(
-                              result == null
-                                  ? 'checkInNone'
-                                  : 'checkInResultLevel${result.level}',
-                              textAlign: TextAlign.start,
-                            ).tr().fontSize(15).bold();
-                          },
-                          loading:
-                              () =>
-                                  Text('checkInNone').tr().fontSize(15).bold(),
-                          error:
-                              (err, stack) =>
-                                  Text('error').tr().fontSize(15).bold(),
-                        ),
-                      ).alignment(Alignment.centerLeft),
+                      ),
                     ),
                   ],
                 ),
@@ -171,7 +173,7 @@ class CheckInWidget extends HookConsumerWidget {
                       ),
                   ],
                 ),
-                const Gap(6),
+                const Gap(2),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   child: todayResult.when(
@@ -224,31 +226,57 @@ class CheckInWidget extends HookConsumerWidget {
               ],
             ),
           ),
-          IconButton.outlined(
-            onPressed: () {
-              if (todayResult.valueOrNull == null) {
-                checkIn();
-              } else {
-                context.pushNamed(
-                  'accountCalendar',
-                  pathParameters: {'name': 'me'},
-                );
-              }
-            },
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: todayResult.when(
-                data:
-                    (result) => Icon(
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            spacing: 3,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: todayResult.when(
+                  data: (result) {
+                    return Text(
                       result == null
-                          ? Symbols.local_fire_department
-                          : Symbols.event,
-                      key: ValueKey(result != null),
-                    ),
-                loading: () => const Icon(Symbols.refresh),
-                error: (_, _) => const Icon(Symbols.error),
+                          ? 'checkInNone'
+                          : 'checkInResultLevel${result.level}',
+                      textAlign: TextAlign.start,
+                    ).tr().fontSize(15).bold();
+                  },
+                  loading: () => Text('checkInNone').tr().fontSize(15).bold(),
+                  error: (err, stack) => Text('error').tr().fontSize(15).bold(),
+                ),
               ),
-            ),
+              IconButton.outlined(
+                iconSize: 16,
+                visualDensity: const VisualDensity(
+                  horizontal: -3,
+                  vertical: -2,
+                ),
+                onPressed: () {
+                  if (todayResult.valueOrNull == null) {
+                    checkIn();
+                  } else {
+                    context.pushNamed(
+                      'accountCalendar',
+                      pathParameters: {'name': 'me'},
+                    );
+                  }
+                },
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: todayResult.when(
+                    data:
+                        (result) => Icon(
+                          result == null
+                              ? Symbols.local_fire_department
+                              : Symbols.event,
+                          key: ValueKey(result != null),
+                        ),
+                    loading: () => const Icon(Symbols.refresh),
+                    error: (_, _) => const Icon(Symbols.error),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ).padding(horizontal: 16, vertical: 12),
