@@ -12,7 +12,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -28,8 +28,66 @@ class AppDatabase extends _$AppDatabase {
         // Drop old draft tables if they exist
         await m.createTable(postDrafts);
       }
+      if (from < 6) {
+        // Migrate from old schema to new schema with separate searchable fields
+        await _migrateToVersion6(m);
+      }
     },
   );
+
+  Future<void> _migrateToVersion6(Migrator m) async {
+    // Rename existing table to old if it exists
+    try {
+      await customStatement(
+        'ALTER TABLE post_drafts RENAME TO post_drafts_old',
+      );
+    } catch (e) {
+      // Table might not exist
+    }
+
+    // Drop the table
+    await customStatement('DROP TABLE IF EXISTS post_drafts');
+
+    // Create new table
+    await m.createTable(postDrafts);
+
+    // Migrate existing data if any
+    try {
+      final oldDrafts =
+          await customSelect(
+            'SELECT id, post, lastModified FROM post_drafts_old',
+            readsFrom: {postDrafts},
+          ).get();
+
+      for (final row in oldDrafts) {
+        final postJson = row.read<String>('post');
+        final id = row.read<String>('id');
+        final lastModified = row.read<DateTime>('lastModified');
+
+        if (postJson.isNotEmpty) {
+          final post = SnPost.fromJson(jsonDecode(postJson));
+          await into(postDrafts).insert(
+            PostDraftsCompanion(
+              id: Value(id),
+              title: Value(post.title),
+              description: Value(post.description),
+              content: Value(post.content),
+              visibility: Value(post.visibility),
+              type: Value(post.type),
+              lastModified: Value(lastModified),
+              postData: Value(postJson),
+            ),
+          );
+        }
+      }
+
+      // Drop old table
+      await customStatement('DROP TABLE IF EXISTS post_drafts_old');
+    } catch (e) {
+      // If migration fails, just recreate the table
+      await m.createTable(postDrafts);
+    }
+  }
 
   // Methods for chat messages
   Future<List<ChatMessage>> getMessagesForRoom(
@@ -69,7 +127,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<int> getTotalMessagesForRoom(String roomId) {
-    return (select(chatMessages)..where((m) => m.roomId.equals(roomId))).get().then((list) => list.length);
+    return (select(
+      chatMessages,
+    )..where((m) => m.roomId.equals(roomId))).get().then((list) => list.length);
   }
 
   Future<List<LocalChatMessage>> searchMessages(
@@ -84,10 +144,6 @@ class AppDatabase extends _$AppDatabase {
           selectStatement
             ..where((m) => m.content.like('%${query.toLowerCase()}%'));
     }
-
-    
-
-    
 
     final messages =
         await (selectStatement
@@ -129,8 +185,29 @@ class AppDatabase extends _$AppDatabase {
   Future<List<SnPost>> getAllPostDrafts() async {
     final drafts = await select(postDrafts).get();
     return drafts
-        .map((draft) => SnPost.fromJson(jsonDecode(draft.post)))
+        .map((draft) => SnPost.fromJson(jsonDecode(draft.postData)))
         .toList();
+  }
+
+  Future<List<PostDraft>> getAllPostDraftRecords() async {
+    return await select(postDrafts).get();
+  }
+
+  Future<List<PostDraft>> searchPostDrafts(String query) async {
+    if (query.isEmpty) {
+      return await select(postDrafts).get();
+    }
+
+    final searchTerm = '%${query.toLowerCase()}%';
+    return await (select(postDrafts)
+          ..where(
+            (draft) =>
+                draft.title.like(searchTerm) |
+                draft.description.like(searchTerm) |
+                draft.content.like(searchTerm),
+          )
+          ..orderBy([(draft) => OrderingTerm.desc(draft.lastModified)]))
+        .get();
   }
 
   Future<void> addPostDraft(PostDraftsCompanion entry) async {
@@ -143,5 +220,10 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> clearAllPostDrafts() async {
     await delete(postDrafts).go();
+  }
+
+  Future<PostDraft?> getPostDraftById(String id) async {
+    return await (select(postDrafts)
+      ..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 }

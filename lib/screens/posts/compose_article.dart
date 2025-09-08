@@ -128,14 +128,6 @@ class ArticleComposeScreen extends HookConsumerWidget {
       return null;
     }, []);
 
-    // Auto-save cleanup
-    useEffect(() {
-      return () {
-        state.stopAutoSave();
-        ComposeLogic.dispose(state);
-      };
-    }, [state]);
-
     // Helper methods
     void showSettingsSheet() {
       showModalBottomSheet(
@@ -182,6 +174,12 @@ class ArticleComposeScreen extends HookConsumerWidget {
                           MarkdownTextContent(
                             content: contentValue.text,
                             textStyle: theme.textTheme.bodyMedium,
+                            attachments:
+                                state.attachments.value
+                                    .where((e) => e.isOnCloud)
+                                    .map((e) => e.data)
+                                    .cast<SnCloudFile>()
+                                    .toList(),
                           ),
                       ],
                     );
@@ -268,7 +266,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                 child: KeyboardListener(
                   focusNode: FocusNode(),
                   onKeyEvent:
-                      (event) => _handleKeyPress(
+                      (event) => ComposeLogic.handleKeyPress(
                         event,
                         state,
                         ref,
@@ -511,38 +509,4 @@ class ArticleComposeScreen extends HookConsumerWidget {
       ),
     );
   }
-
-  // Helper method to handle keyboard shortcuts
-  void _handleKeyPress(
-    KeyEvent event,
-    ComposeState state,
-    WidgetRef ref,
-    BuildContext context, {
-    SnPost? originalPost,
-  }) {
-    if (event is! RawKeyDownEvent) return;
-
-    final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
-    final isSave = event.logicalKey == LogicalKeyboardKey.keyS;
-    final isModifierPressed =
-        HardwareKeyboard.instance.isMetaPressed ||
-        HardwareKeyboard.instance.isControlPressed;
-    final isSubmit = event.logicalKey == LogicalKeyboardKey.enter;
-
-    if (isPaste && isModifierPressed) {
-      ComposeLogic.handlePaste(state);
-    } else if (isSave && isModifierPressed) {
-      ComposeLogic.saveDraft(ref, state);
-      ComposeLogic.saveDraft(ref, state);
-    } else if (isSubmit && isModifierPressed && !state.submitting.value) {
-      ComposeLogic.performAction(
-        ref,
-        state,
-        context,
-        originalPost: originalPost,
-      );
-    }
-  }
-
-  // Helper method to save article draft
 }

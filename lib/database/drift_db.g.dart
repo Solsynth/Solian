@@ -584,14 +584,58 @@ class $PostDraftsTable extends PostDrafts
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _postMeta = const VerificationMeta('post');
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
-  late final GeneratedColumn<String> post = GeneratedColumn<String>(
-    'post',
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _visibilityMeta = const VerificationMeta(
+    'visibility',
+  );
+  @override
+  late final GeneratedColumn<int> visibility = GeneratedColumn<int>(
+    'visibility',
     aliasedName,
     false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _lastModifiedMeta = const VerificationMeta(
     'lastModified',
@@ -604,8 +648,28 @@ class $PostDraftsTable extends PostDrafts
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _postDataMeta = const VerificationMeta(
+    'postData',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, post, lastModified];
+  late final GeneratedColumn<String> postData = GeneratedColumn<String>(
+    'post_data',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    description,
+    content,
+    visibility,
+    type,
+    lastModified,
+    postData,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -623,13 +687,38 @@ class $PostDraftsTable extends PostDrafts
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('post')) {
+    if (data.containsKey('title')) {
       context.handle(
-        _postMeta,
-        post.isAcceptableOrUnknown(data['post']!, _postMeta),
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
       );
-    } else if (isInserting) {
-      context.missing(_postMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
+    }
+    if (data.containsKey('visibility')) {
+      context.handle(
+        _visibilityMeta,
+        visibility.isAcceptableOrUnknown(data['visibility']!, _visibilityMeta),
+      );
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
     }
     if (data.containsKey('last_modified')) {
       context.handle(
@@ -641,6 +730,14 @@ class $PostDraftsTable extends PostDrafts
       );
     } else if (isInserting) {
       context.missing(_lastModifiedMeta);
+    }
+    if (data.containsKey('post_data')) {
+      context.handle(
+        _postDataMeta,
+        postData.isAcceptableOrUnknown(data['post_data']!, _postDataMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_postDataMeta);
     }
     return context;
   }
@@ -656,15 +753,37 @@ class $PostDraftsTable extends PostDrafts
             DriftSqlType.string,
             data['${effectivePrefix}id'],
           )!,
-      post:
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      ),
+      visibility:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}post'],
+            DriftSqlType.int,
+            data['${effectivePrefix}visibility'],
+          )!,
+      type:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}type'],
           )!,
       lastModified:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
             data['${effectivePrefix}last_modified'],
+          )!,
+      postData:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}post_data'],
           )!,
     );
   }
@@ -677,27 +796,60 @@ class $PostDraftsTable extends PostDrafts
 
 class PostDraft extends DataClass implements Insertable<PostDraft> {
   final String id;
-  final String post;
+  final String? title;
+  final String? description;
+  final String? content;
+  final int visibility;
+  final int type;
   final DateTime lastModified;
+  final String postData;
   const PostDraft({
     required this.id,
-    required this.post,
+    this.title,
+    this.description,
+    this.content,
+    required this.visibility,
+    required this.type,
     required this.lastModified,
+    required this.postData,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['post'] = Variable<String>(post);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || content != null) {
+      map['content'] = Variable<String>(content);
+    }
+    map['visibility'] = Variable<int>(visibility);
+    map['type'] = Variable<int>(type);
     map['last_modified'] = Variable<DateTime>(lastModified);
+    map['post_data'] = Variable<String>(postData);
     return map;
   }
 
   PostDraftsCompanion toCompanion(bool nullToAbsent) {
     return PostDraftsCompanion(
       id: Value(id),
-      post: Value(post),
+      title:
+          title == null && nullToAbsent ? const Value.absent() : Value(title),
+      description:
+          description == null && nullToAbsent
+              ? const Value.absent()
+              : Value(description),
+      content:
+          content == null && nullToAbsent
+              ? const Value.absent()
+              : Value(content),
+      visibility: Value(visibility),
+      type: Value(type),
       lastModified: Value(lastModified),
+      postData: Value(postData),
     );
   }
 
@@ -708,8 +860,13 @@ class PostDraft extends DataClass implements Insertable<PostDraft> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PostDraft(
       id: serializer.fromJson<String>(json['id']),
-      post: serializer.fromJson<String>(json['post']),
+      title: serializer.fromJson<String?>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
+      content: serializer.fromJson<String?>(json['content']),
+      visibility: serializer.fromJson<int>(json['visibility']),
+      type: serializer.fromJson<int>(json['type']),
       lastModified: serializer.fromJson<DateTime>(json['lastModified']),
+      postData: serializer.fromJson<String>(json['postData']),
     );
   }
   @override
@@ -717,25 +874,50 @@ class PostDraft extends DataClass implements Insertable<PostDraft> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'post': serializer.toJson<String>(post),
+      'title': serializer.toJson<String?>(title),
+      'description': serializer.toJson<String?>(description),
+      'content': serializer.toJson<String?>(content),
+      'visibility': serializer.toJson<int>(visibility),
+      'type': serializer.toJson<int>(type),
       'lastModified': serializer.toJson<DateTime>(lastModified),
+      'postData': serializer.toJson<String>(postData),
     };
   }
 
-  PostDraft copyWith({String? id, String? post, DateTime? lastModified}) =>
-      PostDraft(
-        id: id ?? this.id,
-        post: post ?? this.post,
-        lastModified: lastModified ?? this.lastModified,
-      );
+  PostDraft copyWith({
+    String? id,
+    Value<String?> title = const Value.absent(),
+    Value<String?> description = const Value.absent(),
+    Value<String?> content = const Value.absent(),
+    int? visibility,
+    int? type,
+    DateTime? lastModified,
+    String? postData,
+  }) => PostDraft(
+    id: id ?? this.id,
+    title: title.present ? title.value : this.title,
+    description: description.present ? description.value : this.description,
+    content: content.present ? content.value : this.content,
+    visibility: visibility ?? this.visibility,
+    type: type ?? this.type,
+    lastModified: lastModified ?? this.lastModified,
+    postData: postData ?? this.postData,
+  );
   PostDraft copyWithCompanion(PostDraftsCompanion data) {
     return PostDraft(
       id: data.id.present ? data.id.value : this.id,
-      post: data.post.present ? data.post.value : this.post,
+      title: data.title.present ? data.title.value : this.title,
+      description:
+          data.description.present ? data.description.value : this.description,
+      content: data.content.present ? data.content.value : this.content,
+      visibility:
+          data.visibility.present ? data.visibility.value : this.visibility,
+      type: data.type.present ? data.type.value : this.type,
       lastModified:
           data.lastModified.present
               ? data.lastModified.value
               : this.lastModified,
+      postData: data.postData.present ? data.postData.value : this.postData,
     );
   }
 
@@ -743,66 +925,120 @@ class PostDraft extends DataClass implements Insertable<PostDraft> {
   String toString() {
     return (StringBuffer('PostDraft(')
           ..write('id: $id, ')
-          ..write('post: $post, ')
-          ..write('lastModified: $lastModified')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('content: $content, ')
+          ..write('visibility: $visibility, ')
+          ..write('type: $type, ')
+          ..write('lastModified: $lastModified, ')
+          ..write('postData: $postData')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, post, lastModified);
+  int get hashCode => Object.hash(
+    id,
+    title,
+    description,
+    content,
+    visibility,
+    type,
+    lastModified,
+    postData,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is PostDraft &&
           other.id == this.id &&
-          other.post == this.post &&
-          other.lastModified == this.lastModified);
+          other.title == this.title &&
+          other.description == this.description &&
+          other.content == this.content &&
+          other.visibility == this.visibility &&
+          other.type == this.type &&
+          other.lastModified == this.lastModified &&
+          other.postData == this.postData);
 }
 
 class PostDraftsCompanion extends UpdateCompanion<PostDraft> {
   final Value<String> id;
-  final Value<String> post;
+  final Value<String?> title;
+  final Value<String?> description;
+  final Value<String?> content;
+  final Value<int> visibility;
+  final Value<int> type;
   final Value<DateTime> lastModified;
+  final Value<String> postData;
   final Value<int> rowid;
   const PostDraftsCompanion({
     this.id = const Value.absent(),
-    this.post = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.content = const Value.absent(),
+    this.visibility = const Value.absent(),
+    this.type = const Value.absent(),
     this.lastModified = const Value.absent(),
+    this.postData = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PostDraftsCompanion.insert({
     required String id,
-    required String post,
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.content = const Value.absent(),
+    this.visibility = const Value.absent(),
+    this.type = const Value.absent(),
     required DateTime lastModified,
+    required String postData,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
-       post = Value(post),
-       lastModified = Value(lastModified);
+       lastModified = Value(lastModified),
+       postData = Value(postData);
   static Insertable<PostDraft> custom({
     Expression<String>? id,
-    Expression<String>? post,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<String>? content,
+    Expression<int>? visibility,
+    Expression<int>? type,
     Expression<DateTime>? lastModified,
+    Expression<String>? postData,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (post != null) 'post': post,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (content != null) 'content': content,
+      if (visibility != null) 'visibility': visibility,
+      if (type != null) 'type': type,
       if (lastModified != null) 'last_modified': lastModified,
+      if (postData != null) 'post_data': postData,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   PostDraftsCompanion copyWith({
     Value<String>? id,
-    Value<String>? post,
+    Value<String?>? title,
+    Value<String?>? description,
+    Value<String?>? content,
+    Value<int>? visibility,
+    Value<int>? type,
     Value<DateTime>? lastModified,
+    Value<String>? postData,
     Value<int>? rowid,
   }) {
     return PostDraftsCompanion(
       id: id ?? this.id,
-      post: post ?? this.post,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      content: content ?? this.content,
+      visibility: visibility ?? this.visibility,
+      type: type ?? this.type,
       lastModified: lastModified ?? this.lastModified,
+      postData: postData ?? this.postData,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -813,11 +1049,26 @@ class PostDraftsCompanion extends UpdateCompanion<PostDraft> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (post.present) {
-      map['post'] = Variable<String>(post.value);
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (visibility.present) {
+      map['visibility'] = Variable<int>(visibility.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<int>(type.value);
     }
     if (lastModified.present) {
       map['last_modified'] = Variable<DateTime>(lastModified.value);
+    }
+    if (postData.present) {
+      map['post_data'] = Variable<String>(postData.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -829,8 +1080,13 @@ class PostDraftsCompanion extends UpdateCompanion<PostDraft> {
   String toString() {
     return (StringBuffer('PostDraftsCompanion(')
           ..write('id: $id, ')
-          ..write('post: $post, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('content: $content, ')
+          ..write('visibility: $visibility, ')
+          ..write('type: $type, ')
           ..write('lastModified: $lastModified, ')
+          ..write('postData: $postData, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1140,15 +1396,25 @@ typedef $$ChatMessagesTableProcessedTableManager =
 typedef $$PostDraftsTableCreateCompanionBuilder =
     PostDraftsCompanion Function({
       required String id,
-      required String post,
+      Value<String?> title,
+      Value<String?> description,
+      Value<String?> content,
+      Value<int> visibility,
+      Value<int> type,
       required DateTime lastModified,
+      required String postData,
       Value<int> rowid,
     });
 typedef $$PostDraftsTableUpdateCompanionBuilder =
     PostDraftsCompanion Function({
       Value<String> id,
-      Value<String> post,
+      Value<String?> title,
+      Value<String?> description,
+      Value<String?> content,
+      Value<int> visibility,
+      Value<int> type,
       Value<DateTime> lastModified,
+      Value<String> postData,
       Value<int> rowid,
     });
 
@@ -1166,13 +1432,38 @@ class $$PostDraftsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get post => $composableBuilder(
-    column: $table.post,
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get visibility => $composableBuilder(
+    column: $table.visibility,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get type => $composableBuilder(
+    column: $table.type,
     builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<DateTime> get lastModified => $composableBuilder(
     column: $table.lastModified,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get postData => $composableBuilder(
+    column: $table.postData,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1191,13 +1482,38 @@ class $$PostDraftsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get post => $composableBuilder(
-    column: $table.post,
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get visibility => $composableBuilder(
+    column: $table.visibility,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get type => $composableBuilder(
+    column: $table.type,
     builder: (column) => ColumnOrderings(column),
   );
 
   ColumnOrderings<DateTime> get lastModified => $composableBuilder(
     column: $table.lastModified,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get postData => $composableBuilder(
+    column: $table.postData,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -1214,13 +1530,32 @@ class $$PostDraftsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get post =>
-      $composableBuilder(column: $table.post, builder: (column) => column);
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<int> get visibility => $composableBuilder(
+    column: $table.visibility,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastModified => $composableBuilder(
     column: $table.lastModified,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get postData =>
+      $composableBuilder(column: $table.postData, builder: (column) => column);
 }
 
 class $$PostDraftsTableTableManager
@@ -1255,25 +1590,45 @@ class $$PostDraftsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                Value<String> post = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> content = const Value.absent(),
+                Value<int> visibility = const Value.absent(),
+                Value<int> type = const Value.absent(),
                 Value<DateTime> lastModified = const Value.absent(),
+                Value<String> postData = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PostDraftsCompanion(
                 id: id,
-                post: post,
+                title: title,
+                description: description,
+                content: content,
+                visibility: visibility,
+                type: type,
                 lastModified: lastModified,
+                postData: postData,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String id,
-                required String post,
+                Value<String?> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> content = const Value.absent(),
+                Value<int> visibility = const Value.absent(),
+                Value<int> type = const Value.absent(),
                 required DateTime lastModified,
+                required String postData,
                 Value<int> rowid = const Value.absent(),
               }) => PostDraftsCompanion.insert(
                 id: id,
-                post: post,
+                title: title,
+                description: description,
+                content: content,
+                visibility: visibility,
+                type: type,
                 lastModified: lastModified,
+                postData: postData,
                 rowid: rowid,
               ),
           withReferenceMapper:

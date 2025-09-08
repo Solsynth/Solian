@@ -39,8 +39,13 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
       await database.addPostDraft(
         PostDraftsCompanion(
           id: Value(updatedDraft.id),
-          post: Value(jsonEncode(updatedDraft.toJson())),
+          title: Value(updatedDraft.title),
+          description: Value(updatedDraft.description),
+          content: Value(updatedDraft.content),
+          visibility: Value(updatedDraft.visibility),
+          type: Value(updatedDraft.type),
           lastModified: Value(updatedDraft.updatedAt ?? DateTime.now()),
+          postData: Value(jsonEncode(updatedDraft.toJson())),
         ),
       );
     } catch (e) {
