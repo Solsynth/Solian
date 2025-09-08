@@ -34,7 +34,7 @@ class ComposeToolbar extends HookConsumerWidget {
     }
 
     void saveDraft() {
-      ComposeLogic.saveDraft(ref, state);
+      ComposeLogic.saveDraftManually(ref, state, context);
     }
 
     void pickPoll() {

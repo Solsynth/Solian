@@ -16,138 +16,145 @@ class DraftManagerSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isLoading = useState(true);
+    final searchController = useTextEditingController();
+    final searchQuery = useState('');
 
     final drafts = ref.watch(composeStorageNotifierProvider);
 
-    // Track loading state based on drafts being loaded
-    useEffect(() {
-      // Set loading to false after drafts are loaded
-      // We consider drafts loaded when the provider has been initialized
-      Future.microtask(() {
-        if (isLoading.value) {
-          isLoading.value = false;
-        }
-      });
-      return null;
-    }, [drafts]);
+    // Search functionality
+    final filteredDrafts = useMemoized(() {
+      if (searchQuery.value.isEmpty) {
+        return drafts.values.toList()
+          ..sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
+      }
 
-    final sortedDrafts = useMemoized(
-      () {
-        final draftList = drafts.values.toList();
-        draftList.sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
-        return draftList;
-      },
-      [
-        drafts.length,
-        drafts.values.map((e) => e.updatedAt!.millisecondsSinceEpoch).join(),
-      ],
-    );
+      final query = searchQuery.value.toLowerCase();
+      return drafts.values.where((draft) {
+          return (draft.title?.toLowerCase().contains(query) ?? false) ||
+              (draft.description?.toLowerCase().contains(query) ?? false) ||
+              (draft.content?.toLowerCase().contains(query) ?? false);
+        }).toList()
+        ..sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
+    }, [drafts, searchQuery.value]);
 
     return SheetScaffold(
       titleText: 'drafts'.tr(),
-      child:
-          isLoading.value
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                children: [
-                  if (sortedDrafts.isEmpty)
-                    Expanded(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Symbols.draft,
-                              size: 64,
-                              color: colorScheme.onSurface.withOpacity(0.3),
-                            ),
-                            const Gap(16),
-                            Text(
-                              'noDrafts'.tr(),
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onSurface.withOpacity(0.6),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  else
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: sortedDrafts.length,
-                        itemBuilder: (context, index) {
-                          final draft = sortedDrafts[index];
-                          return _DraftItem(
-                            draft: draft,
-                            onTap: () {
-                              Navigator.of(context).pop();
-                              onDraftSelected?.call(draft.id);
-                            },
-                            onDelete: () async {
-                              await ref
-                                  .read(composeStorageNotifierProvider.notifier)
-                                  .deleteDraft(draft.id);
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  if (sortedDrafts.isNotEmpty) ...[
-                    const Divider(),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () async {
-                                final confirmed = await showDialog<bool>(
-                                  context: context,
-                                  builder:
-                                      (context) => AlertDialog(
-                                        title: Text('clearAllDrafts'.tr()),
-                                        content: Text(
-                                          'clearAllDraftsConfirm'.tr(),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed:
-                                                () => Navigator.of(
-                                                  context,
-                                                ).pop(false),
-                                            child: Text('cancel'.tr()),
-                                          ),
-                                          TextButton(
-                                            onPressed:
-                                                () => Navigator.of(
-                                                  context,
-                                                ).pop(true),
-                                            child: Text('confirm'.tr()),
-                                          ),
-                                        ],
-                                      ),
-                                );
+      child: Column(
+        children: [
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'searchDrafts'.tr(),
+                prefixIcon: const Icon(Symbols.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              onChanged: (value) => searchQuery.value = value,
+            ),
+          ),
 
-                                if (confirmed == true) {
-                                  await ref
-                                      .read(
-                                        composeStorageNotifierProvider.notifier,
-                                      )
-                                      .clearAllDrafts();
-                                }
-                              },
-                              icon: const Icon(Symbols.delete_sweep),
-                              label: Text('clearAll'.tr()),
-                            ),
-                          ),
-                        ],
+          // Drafts list
+          if (filteredDrafts.isEmpty)
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Symbols.draft,
+                      size: 64,
+                      color: colorScheme.onSurface.withOpacity(0.3),
+                    ),
+                    const Gap(16),
+                    Text(
+                      searchQuery.value.isEmpty
+                          ? 'noDrafts'.tr()
+                          : 'noSearchResults'.tr(),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.builder(
+                itemCount: filteredDrafts.length,
+                itemBuilder: (context, index) {
+                  final draft = filteredDrafts[index];
+                  return _DraftItem(
+                    draft: draft,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      onDraftSelected?.call(draft.id);
+                    },
+                    onDelete: () async {
+                      await ref
+                          .read(composeStorageNotifierProvider.notifier)
+                          .deleteDraft(draft.id);
+                    },
+                  );
+                },
+              ),
+            ),
+
+          // Clear all button
+          if (filteredDrafts.isNotEmpty) ...[
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: Text('clearAllDrafts'.tr()),
+                                content: Text('clearAllDraftsConfirm'.tr()),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(false),
+                                    child: Text('cancel'.tr()),
+                                  ),
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(true),
+                                    child: Text('confirm'.tr()),
+                                  ),
+                                ],
+                              ),
+                        );
+
+                        if (confirmed == true) {
+                          await ref
+                              .read(composeStorageNotifierProvider.notifier)
+                              .clearAllDrafts();
+                        }
+                      },
+                      icon: const Icon(Symbols.delete_sweep),
+                      label: Text('clearAll'.tr()),
+                    ),
+                  ),
                 ],
               ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

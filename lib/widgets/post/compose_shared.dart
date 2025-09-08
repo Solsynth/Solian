@@ -173,10 +173,6 @@ class ComposeLogic {
     }
 
     try {
-      if (state._autoSaveTimer == null) {
-        return;
-      }
-
       // Upload any local attachments first
       final baseUrl = ref.watch(serverUrlProvider);
       final token = await getToken(ref.watch(tokenProvider));
@@ -284,10 +280,6 @@ class ComposeLogic {
     }
 
     try {
-      if (state._autoSaveTimer == null) {
-        return;
-      }
-
       final draft = SnPost(
         id: state.draftId,
         title: state.titleController.text,

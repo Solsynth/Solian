@@ -471,6 +471,8 @@
   "close": "Close",
   "drafts": "Drafts",
   "noDrafts": "No drafts yet",
+  "searchDrafts": "Search drafts...",
+  "noSearchResults": "No search results",
   "articleDrafts": "Article drafts",
   "postDrafts": "Post drafts",
   "saveDraft": "Save draft",
