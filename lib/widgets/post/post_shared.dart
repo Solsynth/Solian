@@ -141,6 +141,7 @@ class PostReplyPreview extends HookConsumerWidget {
                               Expanded(
                                 child: MarkdownTextContent(
                                   content: post.content!,
+                                  attachments: post.attachments,
                                 ).padding(top: 2),
                               )
                             else
@@ -210,6 +211,7 @@ class PostReplyPreview extends HookConsumerWidget {
                         Expanded(
                           child: MarkdownTextContent(
                             content: data.value!.content!,
+                            attachments: data.value!.attachments,
                           ),
                         )
                       else
@@ -745,7 +747,10 @@ class PostBody extends ConsumerWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                   )
                 else
-                  MarkdownTextContent(content: '${item.content!}...'),
+                  MarkdownTextContent(
+                    content: '${item.content!}...',
+                    attachments: item.attachments,
+                  ),
               ],
             ),
           )
@@ -784,6 +789,7 @@ class PostBody extends ConsumerWidget {
                           ? '${item.content!}...'
                           : item.content ?? '',
                   isSelectable: isTextSelectable,
+                  attachments: item.attachments,
                 ),
                 if (translationSection != null) translationSection!,
               ],
