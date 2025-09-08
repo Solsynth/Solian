@@ -195,25 +195,14 @@ _SnWalletOrder _$SnWalletOrderFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       status: (json['status'] as num).toInt(),
       currency: json['currency'] as String,
-      remarks: json['remarks'],
+      remarks: json['remarks'] as String?,
       appIdentifier: json['app_identifier'] as String,
       meta: json['meta'] as Map<String, dynamic>? ?? const {},
       amount: (json['amount'] as num).toInt(),
       expiredAt: DateTime.parse(json['expired_at'] as String),
       payeeWalletId: json['payee_wallet_id'] as String?,
-      payeeWallet:
-          json['payee_wallet'] == null
-              ? null
-              : SnWallet.fromJson(json['payee_wallet'] as Map<String, dynamic>),
       transactionId: json['transaction_id'] as String?,
-      transaction:
-          json['transaction'] == null
-              ? null
-              : SnTransaction.fromJson(
-                json['transaction'] as Map<String, dynamic>,
-              ),
       issuerAppId: json['issuer_app_id'] as String?,
-      issuerApp: json['issuer_app'],
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt:
@@ -233,11 +222,8 @@ Map<String, dynamic> _$SnWalletOrderToJson(_SnWalletOrder instance) =>
       'amount': instance.amount,
       'expired_at': instance.expiredAt.toIso8601String(),
       'payee_wallet_id': instance.payeeWalletId,
-      'payee_wallet': instance.payeeWallet?.toJson(),
       'transaction_id': instance.transactionId,
-      'transaction': instance.transaction?.toJson(),
       'issuer_app_id': instance.issuerAppId,
-      'issuer_app': instance.issuerApp,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),

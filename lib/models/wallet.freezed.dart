@@ -1554,7 +1554,7 @@ as String,
 /// @nodoc
 mixin _$SnWalletOrder {
 
- String get id; int get status; String get currency; dynamic get remarks; String get appIdentifier; Map<String, dynamic> get meta; int get amount; DateTime get expiredAt; String? get payeeWalletId; SnWallet? get payeeWallet; String? get transactionId; SnTransaction? get transaction; String? get issuerAppId; dynamic get issuerApp; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; int get status; String get currency; String? get remarks; String get appIdentifier; Map<String, dynamic> get meta; int get amount; DateTime get expiredAt; String? get payeeWalletId; String? get transactionId; String? get issuerAppId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnWalletOrder
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1567,16 +1567,16 @@ $SnWalletOrderCopyWith<SnWalletOrder> get copyWith => _$SnWalletOrderCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletOrder&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.currency, currency) || other.currency == currency)&&const DeepCollectionEquality().equals(other.remarks, remarks)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.payeeWalletId, payeeWalletId) || other.payeeWalletId == payeeWalletId)&&(identical(other.payeeWallet, payeeWallet) || other.payeeWallet == payeeWallet)&&(identical(other.transactionId, transactionId) || other.transactionId == transactionId)&&(identical(other.transaction, transaction) || other.transaction == transaction)&&(identical(other.issuerAppId, issuerAppId) || other.issuerAppId == issuerAppId)&&const DeepCollectionEquality().equals(other.issuerApp, issuerApp)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletOrder&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.remarks, remarks) || other.remarks == remarks)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.payeeWalletId, payeeWalletId) || other.payeeWalletId == payeeWalletId)&&(identical(other.transactionId, transactionId) || other.transactionId == transactionId)&&(identical(other.issuerAppId, issuerAppId) || other.issuerAppId == issuerAppId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,status,currency,const DeepCollectionEquality().hash(remarks),appIdentifier,const DeepCollectionEquality().hash(meta),amount,expiredAt,payeeWalletId,payeeWallet,transactionId,transaction,issuerAppId,const DeepCollectionEquality().hash(issuerApp),createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,status,currency,remarks,appIdentifier,const DeepCollectionEquality().hash(meta),amount,expiredAt,payeeWalletId,transactionId,issuerAppId,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnWalletOrder(id: $id, status: $status, currency: $currency, remarks: $remarks, appIdentifier: $appIdentifier, meta: $meta, amount: $amount, expiredAt: $expiredAt, payeeWalletId: $payeeWalletId, payeeWallet: $payeeWallet, transactionId: $transactionId, transaction: $transaction, issuerAppId: $issuerAppId, issuerApp: $issuerApp, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnWalletOrder(id: $id, status: $status, currency: $currency, remarks: $remarks, appIdentifier: $appIdentifier, meta: $meta, amount: $amount, expiredAt: $expiredAt, payeeWalletId: $payeeWalletId, transactionId: $transactionId, issuerAppId: $issuerAppId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1587,11 +1587,11 @@ abstract mixin class $SnWalletOrderCopyWith<$Res>  {
   factory $SnWalletOrderCopyWith(SnWalletOrder value, $Res Function(SnWalletOrder) _then) = _$SnWalletOrderCopyWithImpl;
 @useResult
 $Res call({
- String id, int status, String currency, dynamic remarks, String appIdentifier, Map<String, dynamic> meta, int amount, DateTime expiredAt, String? payeeWalletId, SnWallet? payeeWallet, String? transactionId, SnTransaction? transaction, String? issuerAppId, dynamic issuerApp, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int status, String currency, String? remarks, String appIdentifier, Map<String, dynamic> meta, int amount, DateTime expiredAt, String? payeeWalletId, String? transactionId, String? issuerAppId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnWalletCopyWith<$Res>? get payeeWallet;$SnTransactionCopyWith<$Res>? get transaction;
+
 
 }
 /// @nodoc
@@ -1604,53 +1604,26 @@ class _$SnWalletOrderCopyWithImpl<$Res>
 
 /// Create a copy of SnWalletOrder
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? status = null,Object? currency = null,Object? remarks = freezed,Object? appIdentifier = null,Object? meta = null,Object? amount = null,Object? expiredAt = null,Object? payeeWalletId = freezed,Object? payeeWallet = freezed,Object? transactionId = freezed,Object? transaction = freezed,Object? issuerAppId = freezed,Object? issuerApp = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? status = null,Object? currency = null,Object? remarks = freezed,Object? appIdentifier = null,Object? meta = null,Object? amount = null,Object? expiredAt = null,Object? payeeWalletId = freezed,Object? transactionId = freezed,Object? issuerAppId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,remarks: freezed == remarks ? _self.remarks : remarks // ignore: cast_nullable_to_non_nullable
-as dynamic,appIdentifier: null == appIdentifier ? _self.appIdentifier : appIdentifier // ignore: cast_nullable_to_non_nullable
+as String?,appIdentifier: null == appIdentifier ? _self.appIdentifier : appIdentifier // ignore: cast_nullable_to_non_nullable
 as String,meta: null == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as int,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime,payeeWalletId: freezed == payeeWalletId ? _self.payeeWalletId : payeeWalletId // ignore: cast_nullable_to_non_nullable
-as String?,payeeWallet: freezed == payeeWallet ? _self.payeeWallet : payeeWallet // ignore: cast_nullable_to_non_nullable
-as SnWallet?,transactionId: freezed == transactionId ? _self.transactionId : transactionId // ignore: cast_nullable_to_non_nullable
-as String?,transaction: freezed == transaction ? _self.transaction : transaction // ignore: cast_nullable_to_non_nullable
-as SnTransaction?,issuerAppId: freezed == issuerAppId ? _self.issuerAppId : issuerAppId // ignore: cast_nullable_to_non_nullable
-as String?,issuerApp: freezed == issuerApp ? _self.issuerApp : issuerApp // ignore: cast_nullable_to_non_nullable
-as dynamic,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,transactionId: freezed == transactionId ? _self.transactionId : transactionId // ignore: cast_nullable_to_non_nullable
+as String?,issuerAppId: freezed == issuerAppId ? _self.issuerAppId : issuerAppId // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
-/// Create a copy of SnWalletOrder
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnWalletCopyWith<$Res>? get payeeWallet {
-    if (_self.payeeWallet == null) {
-    return null;
-  }
 
-  return $SnWalletCopyWith<$Res>(_self.payeeWallet!, (value) {
-    return _then(_self.copyWith(payeeWallet: value));
-  });
-}/// Create a copy of SnWalletOrder
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnTransactionCopyWith<$Res>? get transaction {
-    if (_self.transaction == null) {
-    return null;
-  }
-
-  return $SnTransactionCopyWith<$Res>(_self.transaction!, (value) {
-    return _then(_self.copyWith(transaction: value));
-  });
-}
 }
 
 
@@ -1729,10 +1702,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int status,  String currency,  dynamic remarks,  String appIdentifier,  Map<String, dynamic> meta,  int amount,  DateTime expiredAt,  String? payeeWalletId,  SnWallet? payeeWallet,  String? transactionId,  SnTransaction? transaction,  String? issuerAppId,  dynamic issuerApp,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int status,  String currency,  String? remarks,  String appIdentifier,  Map<String, dynamic> meta,  int amount,  DateTime expiredAt,  String? payeeWalletId,  String? transactionId,  String? issuerAppId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnWalletOrder() when $default != null:
-return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIdentifier,_that.meta,_that.amount,_that.expiredAt,_that.payeeWalletId,_that.payeeWallet,_that.transactionId,_that.transaction,_that.issuerAppId,_that.issuerApp,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIdentifier,_that.meta,_that.amount,_that.expiredAt,_that.payeeWalletId,_that.transactionId,_that.issuerAppId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -1750,10 +1723,10 @@ return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIden
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int status,  String currency,  dynamic remarks,  String appIdentifier,  Map<String, dynamic> meta,  int amount,  DateTime expiredAt,  String? payeeWalletId,  SnWallet? payeeWallet,  String? transactionId,  SnTransaction? transaction,  String? issuerAppId,  dynamic issuerApp,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int status,  String currency,  String? remarks,  String appIdentifier,  Map<String, dynamic> meta,  int amount,  DateTime expiredAt,  String? payeeWalletId,  String? transactionId,  String? issuerAppId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnWalletOrder():
-return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIdentifier,_that.meta,_that.amount,_that.expiredAt,_that.payeeWalletId,_that.payeeWallet,_that.transactionId,_that.transaction,_that.issuerAppId,_that.issuerApp,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIdentifier,_that.meta,_that.amount,_that.expiredAt,_that.payeeWalletId,_that.transactionId,_that.issuerAppId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1767,10 +1740,10 @@ return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIden
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int status,  String currency,  dynamic remarks,  String appIdentifier,  Map<String, dynamic> meta,  int amount,  DateTime expiredAt,  String? payeeWalletId,  SnWallet? payeeWallet,  String? transactionId,  SnTransaction? transaction,  String? issuerAppId,  dynamic issuerApp,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int status,  String currency,  String? remarks,  String appIdentifier,  Map<String, dynamic> meta,  int amount,  DateTime expiredAt,  String? payeeWalletId,  String? transactionId,  String? issuerAppId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnWalletOrder() when $default != null:
-return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIdentifier,_that.meta,_that.amount,_that.expiredAt,_that.payeeWalletId,_that.payeeWallet,_that.transactionId,_that.transaction,_that.issuerAppId,_that.issuerApp,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIdentifier,_that.meta,_that.amount,_that.expiredAt,_that.payeeWalletId,_that.transactionId,_that.issuerAppId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -1782,13 +1755,13 @@ return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIden
 @JsonSerializable()
 
 class _SnWalletOrder implements SnWalletOrder {
-  const _SnWalletOrder({required this.id, required this.status, required this.currency, required this.remarks, required this.appIdentifier, final  Map<String, dynamic> meta = const {}, required this.amount, required this.expiredAt, required this.payeeWalletId, required this.payeeWallet, required this.transactionId, required this.transaction, required this.issuerAppId, required this.issuerApp, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  const _SnWalletOrder({required this.id, required this.status, required this.currency, required this.remarks, required this.appIdentifier, final  Map<String, dynamic> meta = const {}, required this.amount, required this.expiredAt, required this.payeeWalletId, required this.transactionId, required this.issuerAppId, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
   factory _SnWalletOrder.fromJson(Map<String, dynamic> json) => _$SnWalletOrderFromJson(json);
 
 @override final  String id;
 @override final  int status;
 @override final  String currency;
-@override final  dynamic remarks;
+@override final  String? remarks;
 @override final  String appIdentifier;
  final  Map<String, dynamic> _meta;
 @override@JsonKey() Map<String, dynamic> get meta {
@@ -1800,11 +1773,8 @@ class _SnWalletOrder implements SnWalletOrder {
 @override final  int amount;
 @override final  DateTime expiredAt;
 @override final  String? payeeWalletId;
-@override final  SnWallet? payeeWallet;
 @override final  String? transactionId;
-@override final  SnTransaction? transaction;
 @override final  String? issuerAppId;
-@override final  dynamic issuerApp;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -1822,16 +1792,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletOrder&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.currency, currency) || other.currency == currency)&&const DeepCollectionEquality().equals(other.remarks, remarks)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.payeeWalletId, payeeWalletId) || other.payeeWalletId == payeeWalletId)&&(identical(other.payeeWallet, payeeWallet) || other.payeeWallet == payeeWallet)&&(identical(other.transactionId, transactionId) || other.transactionId == transactionId)&&(identical(other.transaction, transaction) || other.transaction == transaction)&&(identical(other.issuerAppId, issuerAppId) || other.issuerAppId == issuerAppId)&&const DeepCollectionEquality().equals(other.issuerApp, issuerApp)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletOrder&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.remarks, remarks) || other.remarks == remarks)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.payeeWalletId, payeeWalletId) || other.payeeWalletId == payeeWalletId)&&(identical(other.transactionId, transactionId) || other.transactionId == transactionId)&&(identical(other.issuerAppId, issuerAppId) || other.issuerAppId == issuerAppId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,status,currency,const DeepCollectionEquality().hash(remarks),appIdentifier,const DeepCollectionEquality().hash(_meta),amount,expiredAt,payeeWalletId,payeeWallet,transactionId,transaction,issuerAppId,const DeepCollectionEquality().hash(issuerApp),createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,status,currency,remarks,appIdentifier,const DeepCollectionEquality().hash(_meta),amount,expiredAt,payeeWalletId,transactionId,issuerAppId,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnWalletOrder(id: $id, status: $status, currency: $currency, remarks: $remarks, appIdentifier: $appIdentifier, meta: $meta, amount: $amount, expiredAt: $expiredAt, payeeWalletId: $payeeWalletId, payeeWallet: $payeeWallet, transactionId: $transactionId, transaction: $transaction, issuerAppId: $issuerAppId, issuerApp: $issuerApp, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnWalletOrder(id: $id, status: $status, currency: $currency, remarks: $remarks, appIdentifier: $appIdentifier, meta: $meta, amount: $amount, expiredAt: $expiredAt, payeeWalletId: $payeeWalletId, transactionId: $transactionId, issuerAppId: $issuerAppId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1842,11 +1812,11 @@ abstract mixin class _$SnWalletOrderCopyWith<$Res> implements $SnWalletOrderCopy
   factory _$SnWalletOrderCopyWith(_SnWalletOrder value, $Res Function(_SnWalletOrder) _then) = __$SnWalletOrderCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int status, String currency, dynamic remarks, String appIdentifier, Map<String, dynamic> meta, int amount, DateTime expiredAt, String? payeeWalletId, SnWallet? payeeWallet, String? transactionId, SnTransaction? transaction, String? issuerAppId, dynamic issuerApp, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int status, String currency, String? remarks, String appIdentifier, Map<String, dynamic> meta, int amount, DateTime expiredAt, String? payeeWalletId, String? transactionId, String? issuerAppId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnWalletCopyWith<$Res>? get payeeWallet;@override $SnTransactionCopyWith<$Res>? get transaction;
+
 
 }
 /// @nodoc
@@ -1859,54 +1829,27 @@ class __$SnWalletOrderCopyWithImpl<$Res>
 
 /// Create a copy of SnWalletOrder
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? status = null,Object? currency = null,Object? remarks = freezed,Object? appIdentifier = null,Object? meta = null,Object? amount = null,Object? expiredAt = null,Object? payeeWalletId = freezed,Object? payeeWallet = freezed,Object? transactionId = freezed,Object? transaction = freezed,Object? issuerAppId = freezed,Object? issuerApp = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? status = null,Object? currency = null,Object? remarks = freezed,Object? appIdentifier = null,Object? meta = null,Object? amount = null,Object? expiredAt = null,Object? payeeWalletId = freezed,Object? transactionId = freezed,Object? issuerAppId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnWalletOrder(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,remarks: freezed == remarks ? _self.remarks : remarks // ignore: cast_nullable_to_non_nullable
-as dynamic,appIdentifier: null == appIdentifier ? _self.appIdentifier : appIdentifier // ignore: cast_nullable_to_non_nullable
+as String?,appIdentifier: null == appIdentifier ? _self.appIdentifier : appIdentifier // ignore: cast_nullable_to_non_nullable
 as String,meta: null == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as int,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime,payeeWalletId: freezed == payeeWalletId ? _self.payeeWalletId : payeeWalletId // ignore: cast_nullable_to_non_nullable
-as String?,payeeWallet: freezed == payeeWallet ? _self.payeeWallet : payeeWallet // ignore: cast_nullable_to_non_nullable
-as SnWallet?,transactionId: freezed == transactionId ? _self.transactionId : transactionId // ignore: cast_nullable_to_non_nullable
-as String?,transaction: freezed == transaction ? _self.transaction : transaction // ignore: cast_nullable_to_non_nullable
-as SnTransaction?,issuerAppId: freezed == issuerAppId ? _self.issuerAppId : issuerAppId // ignore: cast_nullable_to_non_nullable
-as String?,issuerApp: freezed == issuerApp ? _self.issuerApp : issuerApp // ignore: cast_nullable_to_non_nullable
-as dynamic,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,transactionId: freezed == transactionId ? _self.transactionId : transactionId // ignore: cast_nullable_to_non_nullable
+as String?,issuerAppId: freezed == issuerAppId ? _self.issuerAppId : issuerAppId // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
 
-/// Create a copy of SnWalletOrder
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnWalletCopyWith<$Res>? get payeeWallet {
-    if (_self.payeeWallet == null) {
-    return null;
-  }
 
-  return $SnWalletCopyWith<$Res>(_self.payeeWallet!, (value) {
-    return _then(_self.copyWith(payeeWallet: value));
-  });
-}/// Create a copy of SnWalletOrder
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnTransactionCopyWith<$Res>? get transaction {
-    if (_self.transaction == null) {
-    return null;
-  }
-
-  return $SnTransactionCopyWith<$Res>(_self.transaction!, (value) {
-    return _then(_self.copyWith(transaction: value));
-  });
-}
 }
 
 // dart format on
