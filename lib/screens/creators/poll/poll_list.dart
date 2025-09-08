@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 part 'poll_list.g.dart';
 
@@ -117,14 +119,14 @@ class CreatorPollListScreen extends HookConsumerWidget {
   }
 }
 
-class _CreatorPollItem extends StatelessWidget {
+class _CreatorPollItem extends HookConsumerWidget {
   final String pubName;
   const _CreatorPollItem({required this.pollWithStats, required this.pubName});
 
   final SnPollWithStats pollWithStats;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final ended = pollWithStats.endedAt;
     final endedText =
@@ -167,7 +169,7 @@ class _CreatorPollItem extends StatelessWidget {
                     children: [
                       const Icon(Symbols.edit),
                       const Gap(16),
-                      Text('Edit'),
+                      Text('edit').tr(),
                     ],
                   ),
                   onTap: () {
@@ -175,6 +177,61 @@ class _CreatorPollItem extends StatelessWidget {
                       'creatorPollEdit',
                       pathParameters: {'name': pubName, 'id': pollWithStats.id},
                     );
+                  },
+                ),
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.delete, color: Colors.red),
+                      const Gap(16),
+                      Text('delete').tr().textColor(Colors.red),
+                    ],
+                  ),
+                  onTap: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            title: Text('Delete Poll'),
+                            content: Text(
+                              'Are you sure you want to delete this poll?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(false),
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                child: Text('Delete'),
+                              ),
+                            ],
+                          ),
+                    );
+                    if (confirmed == true) {
+                      try {
+                        final client = ref.read(apiClientProvider);
+                        await client.delete(
+                          '/sphere/polls/${pollWithStats.id}',
+                        );
+                        ref.invalidate(pollListNotifierProvider(pubName));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Poll deleted successfully'),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to delete poll')),
+                          );
+                        }
+                      }
+                    }
                   },
                 ),
               ],
