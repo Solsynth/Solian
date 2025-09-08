@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/network.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
@@ -521,11 +522,16 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
     : super(ServerState(status: 'Server not started'));
 
   Future<void> start() async {
-    try {
-      await server.start();
-      state = state.copyWith(status: 'Server running');
-    } catch (e) {
-      state = state.copyWith(status: 'Server failed: $e');
+    // Only start server on desktop platforms
+    if (!Platform.isAndroid && !Platform.isIOS && !kIsWeb) {
+      try {
+        await server.start();
+        state = state.copyWith(status: 'Server running');
+      } catch (e) {
+        state = state.copyWith(status: 'Server failed: $e');
+      }
+    } else {
+      state = state.copyWith(status: 'Server disabled on mobile/web');
     }
   }
 
@@ -572,11 +578,22 @@ final rpcServerStateProvider =
             'nonce': '12345', // Should be dynamic
           });
         },
-        'message': (socket, dynamic data) {
+        'message': (socket, dynamic data) async {
           if (data['cmd'] == 'SET_ACTIVITY') {
             notifier.addActivity(
               'Activity: ${data['args']['activity']['details'] ?? 'Unknown'}',
             );
+            // Call setRemoteActivityStatus
+            final label = data['args']['activity']['details'] ?? 'Unknown';
+            final appId = socket.clientId;
+            try {
+              await setRemoteActivityStatus(ref, label, appId);
+            } catch (e) {
+              developer.log(
+                'Failed to set remote activity status: $e',
+                name: kRpcLogPrefix,
+              );
+            }
             // Echo back success
             socket.send({
               'cmd': 'SET_ACTIVITY',
@@ -586,8 +603,17 @@ final rpcServerStateProvider =
             });
           }
         },
-        'close': (socket) {
+        'close': (socket) async {
           notifier.updateStatus('Client disconnected');
+          final appId = socket.clientId;
+          try {
+            await unsetRemoteActivityStatus(ref, appId);
+          } catch (e) {
+            developer.log(
+              'Failed to unset remote activity status: $e',
+              name: kRpcLogPrefix,
+            );
+          }
         },
       });
       return notifier;
@@ -597,3 +623,29 @@ final rpcServerProvider = Provider<ActivityRpcServer>((ref) {
   final notifier = ref.watch(rpcServerStateProvider.notifier);
   return notifier.server;
 });
+
+Future<void> setRemoteActivityStatus(
+  Ref ref,
+  String label,
+  String appId,
+) async {
+  final apiClient = ref.read(apiClientProvider);
+  await apiClient.post(
+    '/id/accounts/me/statuses',
+    data: {
+      'is_invisible': false,
+      'is_not_disturb': false,
+      'is_automated': true,
+      'label': label,
+      'app_identifier': appId,
+    },
+  );
+}
+
+Future<void> unsetRemoteActivityStatus(Ref ref, String appId) async {
+  final apiClient = ref.read(apiClientProvider);
+  await apiClient.delete(
+    '/id/accounts/me/statuses',
+    queryParameters: {'app': appId},
+  );
+}
