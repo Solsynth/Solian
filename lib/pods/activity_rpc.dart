@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -78,18 +79,37 @@ class ActivityRpcServer {
 
   // Find available IPC socket path
   Future<String> _findAvailableIpcPath() async {
-    final baseDirs = [
-      if (Platform.isMacOS) await _getMacOsSystemTmpDir(),
+    // Build list of directories to try, with macOS-specific handling
+    final baseDirs = <String>[];
+
+    if (Platform.isMacOS) {
+      try {
+        final macTempDir = await _getMacOsSystemTmpDir();
+        if (macTempDir.isNotEmpty) {
+          baseDirs.add(macTempDir);
+        }
+      } catch (e) {
+        developer.log(
+          'Failed to get macOS system temp dir: $e',
+          name: kRpcIpcLogPrefix,
+        );
+      }
+    }
+
+    // Add other standard directories
+    final otherDirs = [
       Platform.environment['XDG_RUNTIME_DIR'], // User runtime directory
       Platform.environment['TMPDIR'], // App container temp (fallback)
       Platform.environment['TMP'],
       Platform.environment['TEMP'],
-      '/temp',
       '/tmp', // System temp directory - most compatible
     ];
 
+    baseDirs.addAll(
+      otherDirs.where((dir) => dir != null && dir.isNotEmpty).cast<String>(),
+    );
+
     for (final baseDir in baseDirs) {
-      if (baseDir == null || baseDir.isEmpty) continue;
       for (int i = 0; i < 10; i++) {
         final socketPath = path.join(baseDir, '$kIpcBasePath-$i');
         try {
@@ -173,21 +193,29 @@ class ActivityRpcServer {
       );
     }
 
-    // Start IPC server
-    try {
-      final ipcPath = await _findAvailableIpcPath();
-      _ipcServer = await ServerSocket.bind(
-        InternetAddress(ipcPath, type: InternetAddressType.unix),
-        0,
-      );
-      developer.log('IPC listening at $ipcPath', name: kRpcIpcLogPrefix);
+    // Start IPC server (skip on macOS in production due to sandboxing)
+    final shouldStartIpc = !(Platform.isMacOS && kReleaseMode);
+    if (shouldStartIpc) {
+      try {
+        final ipcPath = await _findAvailableIpcPath();
+        _ipcServer = await ServerSocket.bind(
+          InternetAddress(ipcPath, type: InternetAddressType.unix),
+          0,
+        );
+        developer.log('IPC listening at $ipcPath', name: kRpcIpcLogPrefix);
 
-      _ipcServer!.listen((Socket socket) {
-        _onIpcConnection(socket);
-      });
-    } catch (e) {
-      developer.log('IPC server error: $e', name: kRpcIpcLogPrefix);
-      // Continue without IPC if it fails
+        _ipcServer!.listen((Socket socket) {
+          _onIpcConnection(socket);
+        });
+      } catch (e) {
+        developer.log('IPC server error: $e', name: kRpcIpcLogPrefix);
+        // Continue without IPC if it fails
+      }
+    } else {
+      developer.log(
+        'IPC server disabled on macOS in production mode due to sandboxing',
+        name: kRpcIpcLogPrefix,
+      );
     }
   }
 
