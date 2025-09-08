@@ -10,6 +10,7 @@ import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:uuid/uuid.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -516,8 +517,7 @@ class PollEditorScreen extends ConsumerWidget {
                   if (model.questions.isEmpty)
                     _EmptyState(
                       title: 'pollNoQuestionsYet'.tr(),
-                      subtitle:
-                          'pollNoQuestionsHint'.tr(),
+                      subtitle: 'pollNoQuestionsHint'.tr(),
                     )
                   else
                     ReorderableListView.builder(
@@ -579,24 +579,32 @@ class PollEditorScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Row(
-            children: [
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).maybePop();
-                },
-                icon: const Icon(Icons.close),
-                label: Text('cancel'.tr()),
-              ),
-              const Spacer(),
-              FilledButton.icon(
-                onPressed: () {
-                  _submitPoll(context, ref);
-                },
-                icon: const Icon(Icons.cloud_upload_outlined),
-                label: Text(model.id == null ? 'create'.tr() : 'update'.tr()),
-              ),
-            ],
+          Material(
+            elevation: 2,
+            color: Theme.of(context).colorScheme.surfaceContainer,
+            child: Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).maybePop();
+                  },
+                  icon: const Icon(Icons.close),
+                  label: Text('cancel'.tr()),
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: () {
+                    _submitPoll(context, ref);
+                  },
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  label: Text(model.id == null ? 'create'.tr() : 'update'.tr()),
+                ),
+              ],
+            ).padding(
+              horizontal: 24,
+              top: 16,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+            ),
           ),
         ],
       ),
@@ -1049,7 +1057,9 @@ class _TextAnswerPreview extends StatelessWidget {
       maxLines: long ? 4 : 1,
       decoration: InputDecoration(
         labelText:
-            long ? 'pollLongTextAnswerPreview'.tr() : 'pollShortTextAnswerPreview'.tr(),
+            long
+                ? 'pollLongTextAnswerPreview'.tr()
+                : 'pollShortTextAnswerPreview'.tr(),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
@@ -1083,9 +1093,15 @@ class _EmptyState extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('pollNoQuestionsYet'.tr(), style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'pollNoQuestionsYet'.tr(),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const Gap(4),
-                Text('pollNoQuestionsHint'.tr(), style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  'pollNoQuestionsHint'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ],
             ),
           ),
