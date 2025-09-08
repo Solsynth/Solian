@@ -144,6 +144,10 @@ _SnPollAnswer _$SnPollAnswerFromJson(Map<String, dynamic> json) =>
           json['deleted_at'] == null
               ? null
               : DateTime.parse(json['deleted_at'] as String),
+      account:
+          json['account'] == null
+              ? null
+              : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SnPollAnswerToJson(_SnPollAnswer instance) =>
@@ -155,4 +159,5 @@ Map<String, dynamic> _$SnPollAnswerToJson(_SnPollAnswer instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
+      'account': instance.account?.toJson(),
     };

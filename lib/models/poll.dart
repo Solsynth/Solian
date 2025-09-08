@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:island/models/account.dart';
 import 'package:island/models/publisher.dart';
 
 part 'poll.freezed.dart';
@@ -101,6 +102,7 @@ sealed class SnPollAnswer with _$SnPollAnswer {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    SnAccount? account,
   }) = _SnPollAnswer;
 
   factory SnPollAnswer.fromJson(Map<String, dynamic> json) =>
