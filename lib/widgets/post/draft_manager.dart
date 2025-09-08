@@ -176,7 +176,7 @@ class _DraftItem extends StatelessWidget {
     final preview =
         content.length > 100 ? '${content.substring(0, 100)}...' : content;
     final timeAgo = _formatTimeAgo(draft.updatedAt!);
-    final visibility = _parseVisibility(draft.visibility);
+    final visibility = _parseVisibility(draft.visibility).tr();
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
