@@ -162,7 +162,7 @@ class ActivityRpcServer {
         shelf_io.serveRequests(_httpServer!, (Request request) async {
           developer.log('new request', name: kRpcLogPrefix);
           if (request.headers['upgrade']?.toLowerCase() == 'websocket') {
-            final handler = webSocketHandler((WebSocketChannel channel) {
+            final handler = webSocketHandler((WebSocketChannel channel, _) {
               _wsSockets.add(channel);
               _onWsConnection(channel, request);
             });
