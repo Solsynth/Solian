@@ -152,8 +152,8 @@ class ActivityRpcServer {
 
   // Find available TCP port for Windows IPC
   Future<String> _findAvailableTcpPort() async {
-    // Use ports in the range 6463-6472 (same as WebSocket server)
-    for (int port = 6463; port <= 6472; port++) {
+    // Use ports in the range 6473-6482 (different from WebSocket server range 6463-6472)
+    for (int port = 6473; port <= 6482; port++) {
       try {
         final socket = await ServerSocket.bind(
           InternetAddress.loopbackIPv4,
@@ -167,7 +167,7 @@ class ActivityRpcServer {
         return port.toString(); // Return as string to match existing interface
       } catch (e) {
         // Port not available, try next
-        if (port == 6463) {
+        if (port == 6473) {
           developer.log(
             'IPC TCP port $port not available: $e',
             name: kRpcIpcLogPrefix,
