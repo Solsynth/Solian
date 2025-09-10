@@ -196,3 +196,37 @@ Map<String, dynamic> _$SnPostEmbedViewToJson(_SnPostEmbedView instance) =>
     };
 
 const _$PostEmbedViewRendererEnumMap = {PostEmbedViewRenderer.webView: 0};
+
+_SnPostAward _$SnPostAwardFromJson(Map<String, dynamic> json) => _SnPostAward(
+  id: json['id'] as String,
+  amount: (json['amount'] as num).toDouble(),
+  attitude: (json['attitude'] as num).toInt(),
+  message: json['message'] as String?,
+  postId: json['post_id'] as String,
+  accountId: json['account_id'] as String,
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
+  deletedAt:
+      json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+);
+
+Map<String, dynamic> _$SnPostAwardToJson(_SnPostAward instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'amount': instance.amount,
+      'attitude': instance.attitude,
+      'message': instance.message,
+      'post_id': instance.postId,
+      'account_id': instance.accountId,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };

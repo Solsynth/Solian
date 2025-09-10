@@ -124,3 +124,21 @@ sealed class SnPostEmbedView with _$SnPostEmbedView {
   factory SnPostEmbedView.fromJson(Map<String, dynamic> json) =>
       _$SnPostEmbedViewFromJson(json);
 }
+
+@freezed
+sealed class SnPostAward with _$SnPostAward {
+  const factory SnPostAward({
+    required String id,
+    required double amount,
+    required int attitude,
+    String? message,
+    required String postId,
+    required String accountId,
+    @Default(null) DateTime? createdAt,
+    @Default(null) DateTime? updatedAt,
+    DateTime? deletedAt,
+  }) = _SnPostAward;
+
+  factory SnPostAward.fromJson(Map<String, dynamic> json) =>
+      _$SnPostAwardFromJson(json);
+}
