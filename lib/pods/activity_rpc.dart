@@ -79,6 +79,11 @@ class ActivityRpcServer {
 
   // Find available IPC socket path
   Future<String> _findAvailableIpcPath() async {
+    if (Platform.isWindows) {
+      // Use TCP sockets on Windows for IPC (simpler and more compatible)
+      return _findAvailableTcpPort();
+    }
+
     // Build list of directories to try, with macOS-specific handling
     final baseDirs = <String>[];
 
@@ -145,6 +150,35 @@ class ActivityRpcServer {
     );
   }
 
+  // Find available TCP port for Windows IPC
+  Future<String> _findAvailableTcpPort() async {
+    // Use ports in the range 6463-6472 (same as WebSocket server)
+    for (int port = 6463; port <= 6472; port++) {
+      try {
+        final socket = await ServerSocket.bind(
+          InternetAddress.loopbackIPv4,
+          port,
+        );
+        socket.close();
+        developer.log(
+          'IPC TCP socket will be created on port: $port',
+          name: kRpcIpcLogPrefix,
+        );
+        return port.toString(); // Return as string to match existing interface
+      } catch (e) {
+        // Port not available, try next
+        if (port == 6463) {
+          developer.log(
+            'IPC TCP port $port not available: $e',
+            name: kRpcIpcLogPrefix,
+          );
+        }
+        continue;
+      }
+    }
+    throw Exception('No available IPC TCP ports found');
+  }
+
   // Start the WebSocket server
   Future<void> start() async {
     int port = portRange[0];
@@ -197,12 +231,27 @@ class ActivityRpcServer {
     final shouldStartIpc = !Platform.isMacOS;
     if (shouldStartIpc) {
       try {
-        final ipcPath = await _findAvailableIpcPath();
-        _ipcServer = await ServerSocket.bind(
-          InternetAddress(ipcPath, type: InternetAddressType.unix),
-          0,
-        );
-        developer.log('IPC listening at $ipcPath', name: kRpcIpcLogPrefix);
+        if (Platform.isWindows) {
+          // Use TCP socket on Windows
+          final ipcPortStr = await _findAvailableIpcPath();
+          final ipcPort = int.parse(ipcPortStr);
+          _ipcServer = await ServerSocket.bind(
+            InternetAddress.loopbackIPv4,
+            ipcPort,
+          );
+          developer.log(
+            'IPC listening on TCP port $ipcPort',
+            name: kRpcIpcLogPrefix,
+          );
+        } else {
+          // Use Unix socket on other platforms
+          final ipcPath = await _findAvailableIpcPath();
+          _ipcServer = await ServerSocket.bind(
+            InternetAddress(ipcPath, type: InternetAddressType.unix),
+            0,
+          );
+          developer.log('IPC listening at $ipcPath', name: kRpcIpcLogPrefix);
+        }
 
         _ipcServer!.listen((Socket socket) {
           _onIpcConnection(socket);
@@ -213,7 +262,7 @@ class ActivityRpcServer {
       }
     } else {
       developer.log(
-        'IPC server disabled on macOS in production mode due to sandboxing',
+        'IPC server disabled on macOS due to sandboxing',
         name: kRpcIpcLogPrefix,
       );
     }
