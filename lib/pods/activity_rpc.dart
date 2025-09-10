@@ -12,7 +12,6 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:path/path.dart' as path;
 import 'package:win32/win32.dart';
-import 'package:win32/winsock2.dart' as winsock2;
 import 'package:ffi/ffi.dart';
 
 const String kRpcLogPrefix = 'arRPC.websocket';

@@ -181,7 +181,7 @@ class IslandApp extends HookConsumerWidget {
     }
 
     useEffect(() {
-      if (!kIsWeb && Platform.isLinux) {
+      if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
         return null;
       }
 
