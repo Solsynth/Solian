@@ -1619,4 +1619,285 @@ as PostEmbedViewRenderer,
 
 }
 
+
+/// @nodoc
+mixin _$SnPostAward {
+
+ String get id; double get amount; int get attitude; String? get message; String get postId; String get accountId; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnPostAward
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPostAwardCopyWith<SnPostAward> get copyWith => _$SnPostAwardCopyWithImpl<SnPostAward>(this as SnPostAward, _$identity);
+
+  /// Serializes this SnPostAward to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostAward&&(identical(other.id, id) || other.id == id)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.message, message) || other.message == message)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,amount,attitude,message,postId,accountId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnPostAward(id: $id, amount: $amount, attitude: $attitude, message: $message, postId: $postId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPostAwardCopyWith<$Res>  {
+  factory $SnPostAwardCopyWith(SnPostAward value, $Res Function(SnPostAward) _then) = _$SnPostAwardCopyWithImpl;
+@useResult
+$Res call({
+ String id, double amount, int attitude, String? message, String postId, String accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnPostAwardCopyWithImpl<$Res>
+    implements $SnPostAwardCopyWith<$Res> {
+  _$SnPostAwardCopyWithImpl(this._self, this._then);
+
+  final SnPostAward _self;
+  final $Res Function(SnPostAward) _then;
+
+/// Create a copy of SnPostAward
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? amount = null,Object? attitude = null,Object? message = freezed,Object? postId = null,Object? accountId = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as double,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
+as int,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,postId: null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnPostAward].
+extension SnPostAwardPatterns on SnPostAward {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPostAward value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPostAward() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPostAward value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPostAward():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPostAward value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPostAward() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  double amount,  int attitude,  String? message,  String postId,  String accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPostAward() when $default != null:
+return $default(_that.id,_that.amount,_that.attitude,_that.message,_that.postId,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  double amount,  int attitude,  String? message,  String postId,  String accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnPostAward():
+return $default(_that.id,_that.amount,_that.attitude,_that.message,_that.postId,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  double amount,  int attitude,  String? message,  String postId,  String accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPostAward() when $default != null:
+return $default(_that.id,_that.amount,_that.attitude,_that.message,_that.postId,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPostAward implements SnPostAward {
+  const _SnPostAward({required this.id, required this.amount, required this.attitude, this.message, required this.postId, required this.accountId, this.createdAt = null, this.updatedAt = null, this.deletedAt});
+  factory _SnPostAward.fromJson(Map<String, dynamic> json) => _$SnPostAwardFromJson(json);
+
+@override final  String id;
+@override final  double amount;
+@override final  int attitude;
+@override final  String? message;
+@override final  String postId;
+@override final  String accountId;
+@override@JsonKey() final  DateTime? createdAt;
+@override@JsonKey() final  DateTime? updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnPostAward
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPostAwardCopyWith<_SnPostAward> get copyWith => __$SnPostAwardCopyWithImpl<_SnPostAward>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPostAwardToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostAward&&(identical(other.id, id) || other.id == id)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.message, message) || other.message == message)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,amount,attitude,message,postId,accountId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnPostAward(id: $id, amount: $amount, attitude: $attitude, message: $message, postId: $postId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPostAwardCopyWith<$Res> implements $SnPostAwardCopyWith<$Res> {
+  factory _$SnPostAwardCopyWith(_SnPostAward value, $Res Function(_SnPostAward) _then) = __$SnPostAwardCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, double amount, int attitude, String? message, String postId, String accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnPostAwardCopyWithImpl<$Res>
+    implements _$SnPostAwardCopyWith<$Res> {
+  __$SnPostAwardCopyWithImpl(this._self, this._then);
+
+  final _SnPostAward _self;
+  final $Res Function(_SnPostAward) _then;
+
+/// Create a copy of SnPostAward
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? amount = null,Object? attitude = null,Object? message = freezed,Object? postId = null,Object? accountId = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,}) {
+  return _then(_SnPostAward(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as double,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
+as int,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,postId: null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
 // dart format on

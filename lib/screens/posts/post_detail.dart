@@ -13,6 +13,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/post/post_award_history_sheet.dart';
 import 'package:island/widgets/post/post_pin_sheet.dart';
 import 'package:island/widgets/post/post_quick_reply.dart';
 import 'package:island/widgets/post/post_replies.dart';
@@ -273,6 +274,13 @@ class PostActionButtons extends HookConsumerWidget {
     actions.add(
       FilledButton.tonalIcon(
         onPressed: () {},
+        onLongPress: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => PostAwardHistorySheet(postId: post.id),
+          );
+        },
         icon: const Icon(Symbols.star),
         label:
             post.awardedScore > 0
