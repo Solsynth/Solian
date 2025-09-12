@@ -48,11 +48,12 @@ class TrayService {
   void handleAction(MenuItem item) {
     switch (item.key) {
       case 'show_window':
-        if (appWindow.isVisible) {
-          appWindow.restore();
-        } else {
-          appWindow.show();
-        }
+        () async {
+        appWindow.show();
+        appWindow.restore();
+        await Future.delayed(const Duration(milliseconds: 32));
+        appWindow.show();
+        }();
         break;
       case 'exit_app':
         appWindow.close();
