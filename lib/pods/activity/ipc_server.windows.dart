@@ -13,7 +13,7 @@ class WindowsIpcServer extends IpcServer {
 
   @override
   Future<void> start() async {
-    final pipeName = r'\\.\pipe\discord-ipc'.toNativeUtf16();
+    final pipeName = r'\\.\pipe\discord-ipc-0'.toNativeUtf16();
     try {
       _pipeHandle = CreateNamedPipe(
         pipeName,
@@ -32,7 +32,7 @@ class WindowsIpcServer extends IpcServer {
       }
 
       developer.log(
-        'IPC named pipe created at \\\\.\\pipe\\discord-ipc',
+        r'IPC named pipe created at \\.\pipe\discord-ipc-0',
         name: kRpcIpcLogPrefix,
       );
 
@@ -71,6 +71,7 @@ class WindowsIpcServer extends IpcServer {
     await Isolate.spawn(_windowsIpcIsolate, receivePort.sendPort);
 
     receivePort.listen((message) {
+      developer.log(message.toString(), name: kRpcIpcLogPrefix);
       if (message is int) {
         final socketWrapper = WindowsIpcSocketWrapper(message);
         addSocket(socketWrapper);
@@ -87,7 +88,7 @@ class WindowsIpcServer extends IpcServer {
   static void _windowsIpcIsolate(SendPort sendPort) {
     while (true) {
       final pipeHandle = CreateNamedPipe(
-        r'\\.\pipe\discord-ipc'.toNativeUtf16(),
+        r'\\.\pipe\discord-ipc-0'.toNativeUtf16(),
         PIPE_ACCESS_DUPLEX,
         PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
         PIPE_UNLIMITED_INSTANCES,
@@ -108,7 +109,7 @@ class WindowsIpcServer extends IpcServer {
         sendPort.send(pipeHandle);
       }
       // Avoid tight loop
-      sleep(Duration(milliseconds: 100));
+      sleep(Duration(milliseconds: 500));
     }
   }
 
