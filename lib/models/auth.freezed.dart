@@ -541,7 +541,7 @@ as String,
 /// @nodoc
 mixin _$SnAuthChallenge {
 
- String get id; DateTime get expiredAt; int get stepRemain; int get stepTotal; int get failedAttempts; int get type; List<String> get blacklistFactors; List<dynamic> get audiences; List<dynamic> get scopes; String get ipAddress; String get userAgent; String? get nonce; GeoIpLocation? get location; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; DateTime? get expiredAt; int get stepRemain; int get stepTotal; int get failedAttempts; int get type; List<String> get blacklistFactors; List<dynamic> get audiences; List<dynamic> get scopes; String get ipAddress; String get userAgent; String? get nonce; GeoIpLocation? get location; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAuthChallenge
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -574,7 +574,7 @@ abstract mixin class $SnAuthChallengeCopyWith<$Res>  {
   factory $SnAuthChallengeCopyWith(SnAuthChallenge value, $Res Function(SnAuthChallenge) _then) = _$SnAuthChallengeCopyWithImpl;
 @useResult
 $Res call({
- String id, DateTime expiredAt, int stepRemain, int stepTotal, int failedAttempts, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String? nonce, GeoIpLocation? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime? expiredAt, int stepRemain, int stepTotal, int failedAttempts, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String? nonce, GeoIpLocation? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -591,11 +591,11 @@ class _$SnAuthChallengeCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthChallenge
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? expiredAt = null,Object? stepRemain = null,Object? stepTotal = null,Object? failedAttempts = null,Object? type = null,Object? blacklistFactors = null,Object? audiences = null,Object? scopes = null,Object? ipAddress = null,Object? userAgent = null,Object? nonce = freezed,Object? location = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? expiredAt = freezed,Object? stepRemain = null,Object? stepTotal = null,Object? failedAttempts = null,Object? type = null,Object? blacklistFactors = null,Object? audiences = null,Object? scopes = null,Object? ipAddress = null,Object? userAgent = null,Object? nonce = freezed,Object? location = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
-as DateTime,stepRemain: null == stepRemain ? _self.stepRemain : stepRemain // ignore: cast_nullable_to_non_nullable
+as String,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,stepRemain: null == stepRemain ? _self.stepRemain : stepRemain // ignore: cast_nullable_to_non_nullable
 as int,stepTotal: null == stepTotal ? _self.stepTotal : stepTotal // ignore: cast_nullable_to_non_nullable
 as int,failedAttempts: null == failedAttempts ? _self.failedAttempts : failedAttempts // ignore: cast_nullable_to_non_nullable
 as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -704,7 +704,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  GeoIpLocation? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime? expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  GeoIpLocation? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAuthChallenge() when $default != null:
 return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.failedAttempts,_that.type,_that.blacklistFactors,_that.audiences,_that.scopes,_that.ipAddress,_that.userAgent,_that.nonce,_that.location,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -725,7 +725,7 @@ return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  GeoIpLocation? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime? expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  GeoIpLocation? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthChallenge():
 return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.failedAttempts,_that.type,_that.blacklistFactors,_that.audiences,_that.scopes,_that.ipAddress,_that.userAgent,_that.nonce,_that.location,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -742,7 +742,7 @@ return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  GeoIpLocation? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime? expiredAt,  int stepRemain,  int stepTotal,  int failedAttempts,  int type,  List<String> blacklistFactors,  List<dynamic> audiences,  List<dynamic> scopes,  String ipAddress,  String userAgent,  String? nonce,  GeoIpLocation? location,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthChallenge() when $default != null:
 return $default(_that.id,_that.expiredAt,_that.stepRemain,_that.stepTotal,_that.failedAttempts,_that.type,_that.blacklistFactors,_that.audiences,_that.scopes,_that.ipAddress,_that.userAgent,_that.nonce,_that.location,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -761,7 +761,7 @@ class _SnAuthChallenge implements SnAuthChallenge {
   factory _SnAuthChallenge.fromJson(Map<String, dynamic> json) => _$SnAuthChallengeFromJson(json);
 
 @override final  String id;
-@override final  DateTime expiredAt;
+@override final  DateTime? expiredAt;
 @override final  int stepRemain;
 @override final  int stepTotal;
 @override final  int failedAttempts;
@@ -829,7 +829,7 @@ abstract mixin class _$SnAuthChallengeCopyWith<$Res> implements $SnAuthChallenge
   factory _$SnAuthChallengeCopyWith(_SnAuthChallenge value, $Res Function(_SnAuthChallenge) _then) = __$SnAuthChallengeCopyWithImpl;
 @override @useResult
 $Res call({
- String id, DateTime expiredAt, int stepRemain, int stepTotal, int failedAttempts, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String? nonce, GeoIpLocation? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime? expiredAt, int stepRemain, int stepTotal, int failedAttempts, int type, List<String> blacklistFactors, List<dynamic> audiences, List<dynamic> scopes, String ipAddress, String userAgent, String? nonce, GeoIpLocation? location, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -846,11 +846,11 @@ class __$SnAuthChallengeCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthChallenge
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? expiredAt = null,Object? stepRemain = null,Object? stepTotal = null,Object? failedAttempts = null,Object? type = null,Object? blacklistFactors = null,Object? audiences = null,Object? scopes = null,Object? ipAddress = null,Object? userAgent = null,Object? nonce = freezed,Object? location = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? expiredAt = freezed,Object? stepRemain = null,Object? stepTotal = null,Object? failedAttempts = null,Object? type = null,Object? blacklistFactors = null,Object? audiences = null,Object? scopes = null,Object? ipAddress = null,Object? userAgent = null,Object? nonce = freezed,Object? location = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAuthChallenge(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
-as DateTime,stepRemain: null == stepRemain ? _self.stepRemain : stepRemain // ignore: cast_nullable_to_non_nullable
+as String,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,stepRemain: null == stepRemain ? _self.stepRemain : stepRemain // ignore: cast_nullable_to_non_nullable
 as int,stepTotal: null == stepTotal ? _self.stepTotal : stepTotal // ignore: cast_nullable_to_non_nullable
 as int,failedAttempts: null == failedAttempts ? _self.failedAttempts : failedAttempts // ignore: cast_nullable_to_non_nullable
 as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -888,7 +888,7 @@ $GeoIpLocationCopyWith<$Res>? get location {
 /// @nodoc
 mixin _$SnAuthSession {
 
- String get id; String? get label; DateTime get lastGrantedAt; DateTime get expiredAt; String get accountId; String get challengeId; SnAuthChallenge get challenge; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String? get label; DateTime get lastGrantedAt; DateTime? get expiredAt; String get accountId; String get challengeId; SnAuthChallenge get challenge; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAuthSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -921,7 +921,7 @@ abstract mixin class $SnAuthSessionCopyWith<$Res>  {
   factory $SnAuthSessionCopyWith(SnAuthSession value, $Res Function(SnAuthSession) _then) = _$SnAuthSessionCopyWithImpl;
 @useResult
 $Res call({
- String id, String? label, DateTime lastGrantedAt, DateTime expiredAt, String accountId, String challengeId, SnAuthChallenge challenge, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? label, DateTime lastGrantedAt, DateTime? expiredAt, String accountId, String challengeId, SnAuthChallenge challenge, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -938,13 +938,13 @@ class _$SnAuthSessionCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthSession
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = freezed,Object? lastGrantedAt = null,Object? expiredAt = null,Object? accountId = null,Object? challengeId = null,Object? challenge = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = freezed,Object? lastGrantedAt = null,Object? expiredAt = freezed,Object? accountId = null,Object? challengeId = null,Object? challenge = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,lastGrantedAt: null == lastGrantedAt ? _self.lastGrantedAt : lastGrantedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
-as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as DateTime,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,challengeId: null == challengeId ? _self.challengeId : challengeId // ignore: cast_nullable_to_non_nullable
 as String,challenge: null == challenge ? _self.challenge : challenge // ignore: cast_nullable_to_non_nullable
 as SnAuthChallenge,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -1041,7 +1041,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime expiredAt,  String accountId,  String challengeId,  SnAuthChallenge challenge,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime? expiredAt,  String accountId,  String challengeId,  SnAuthChallenge challenge,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAuthSession() when $default != null:
 return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.accountId,_that.challengeId,_that.challenge,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -1062,7 +1062,7 @@ return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime expiredAt,  String accountId,  String challengeId,  SnAuthChallenge challenge,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime? expiredAt,  String accountId,  String challengeId,  SnAuthChallenge challenge,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthSession():
 return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.accountId,_that.challengeId,_that.challenge,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -1079,7 +1079,7 @@ return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime expiredAt,  String accountId,  String challengeId,  SnAuthChallenge challenge,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime? expiredAt,  String accountId,  String challengeId,  SnAuthChallenge challenge,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthSession() when $default != null:
 return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.accountId,_that.challengeId,_that.challenge,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -1100,7 +1100,7 @@ class _SnAuthSession implements SnAuthSession {
 @override final  String id;
 @override final  String? label;
 @override final  DateTime lastGrantedAt;
-@override final  DateTime expiredAt;
+@override final  DateTime? expiredAt;
 @override final  String accountId;
 @override final  String challengeId;
 @override final  SnAuthChallenge challenge;
@@ -1141,7 +1141,7 @@ abstract mixin class _$SnAuthSessionCopyWith<$Res> implements $SnAuthSessionCopy
   factory _$SnAuthSessionCopyWith(_SnAuthSession value, $Res Function(_SnAuthSession) _then) = __$SnAuthSessionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? label, DateTime lastGrantedAt, DateTime expiredAt, String accountId, String challengeId, SnAuthChallenge challenge, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? label, DateTime lastGrantedAt, DateTime? expiredAt, String accountId, String challengeId, SnAuthChallenge challenge, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1158,13 +1158,13 @@ class __$SnAuthSessionCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthSession
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = freezed,Object? lastGrantedAt = null,Object? expiredAt = null,Object? accountId = null,Object? challengeId = null,Object? challenge = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = freezed,Object? lastGrantedAt = null,Object? expiredAt = freezed,Object? accountId = null,Object? challengeId = null,Object? challenge = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAuthSession(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,lastGrantedAt: null == lastGrantedAt ? _self.lastGrantedAt : lastGrantedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
-as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as DateTime,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,challengeId: null == challengeId ? _self.challengeId : challengeId // ignore: cast_nullable_to_non_nullable
 as String,challenge: null == challenge ? _self.challenge : challenge // ignore: cast_nullable_to_non_nullable
 as SnAuthChallenge,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

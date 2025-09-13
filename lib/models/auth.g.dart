@@ -34,7 +34,10 @@ Map<String, dynamic> _$GeoIpLocationToJson(_GeoIpLocation instance) =>
 _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
     _SnAuthChallenge(
       id: json['id'] as String,
-      expiredAt: DateTime.parse(json['expired_at'] as String),
+      expiredAt:
+          json['expired_at'] == null
+              ? null
+              : DateTime.parse(json['expired_at'] as String),
       stepRemain: (json['step_remain'] as num).toInt(),
       stepTotal: (json['step_total'] as num).toInt(),
       failedAttempts: (json['failed_attempts'] as num).toInt(),
@@ -66,7 +69,7 @@ _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SnAuthChallengeToJson(_SnAuthChallenge instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'expired_at': instance.expiredAt.toIso8601String(),
+      'expired_at': instance.expiredAt?.toIso8601String(),
       'step_remain': instance.stepRemain,
       'step_total': instance.stepTotal,
       'failed_attempts': instance.failedAttempts,
@@ -89,7 +92,10 @@ _SnAuthSession _$SnAuthSessionFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       label: json['label'] as String?,
       lastGrantedAt: DateTime.parse(json['last_granted_at'] as String),
-      expiredAt: DateTime.parse(json['expired_at'] as String),
+      expiredAt:
+          json['expired_at'] == null
+              ? null
+              : DateTime.parse(json['expired_at'] as String),
       accountId: json['account_id'] as String,
       challengeId: json['challenge_id'] as String,
       challenge: SnAuthChallenge.fromJson(
@@ -108,7 +114,7 @@ Map<String, dynamic> _$SnAuthSessionToJson(_SnAuthSession instance) =>
       'id': instance.id,
       'label': instance.label,
       'last_granted_at': instance.lastGrantedAt.toIso8601String(),
-      'expired_at': instance.expiredAt.toIso8601String(),
+      'expired_at': instance.expiredAt?.toIso8601String(),
       'account_id': instance.accountId,
       'challenge_id': instance.challengeId,
       'challenge': instance.challenge.toJson(),

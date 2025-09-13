@@ -29,7 +29,7 @@ sealed class GeoIpLocation with _$GeoIpLocation {
 sealed class SnAuthChallenge with _$SnAuthChallenge {
   const factory SnAuthChallenge({
     required String id,
-    required DateTime expiredAt,
+    required DateTime? expiredAt,
     required int stepRemain,
     required int stepTotal,
     required int failedAttempts,
@@ -57,7 +57,7 @@ sealed class SnAuthSession with _$SnAuthSession {
     required String id,
     required String? label,
     required DateTime lastGrantedAt,
-    required DateTime expiredAt,
+    required DateTime? expiredAt,
     required String accountId,
     required String challengeId,
     required SnAuthChallenge challenge,
