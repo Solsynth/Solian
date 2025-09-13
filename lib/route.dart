@@ -89,8 +89,7 @@ bool get _supportsAnalytics =>
     kIsWeb ||
     Platform.isAndroid ||
     Platform.isIOS ||
-    Platform.isMacOS ||
-    Platform.isWindows;
+    Platform.isMacOS;
 
 // Provider for the router
 final routerProvider = Provider<GoRouter>((ref) {
