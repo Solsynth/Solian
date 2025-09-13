@@ -9,6 +9,11 @@ String _parseRemoteError(DioException err) {
   String? message;
   if (err.response?.data is String) {
     message = err.response?.data;
+  } else if (err.response?.data?['message'] != null) {
+    message = <String?>[
+      err.response?.data?['message']?.toString(),
+      err.response?.data?['detail']?.toString(),
+    ].where((e) => e != null).cast<String>().map((e) => e.trim()).join('\n');
   } else if (err.response?.data?['errors'] != null) {
     final errors = err.response?.data['errors'] as Map<String, dynamic>;
     message = errors.values
