@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
+import 'dart:io';
 import 'dart:typed_data';
+import 'package:dart_ipc/dart_ipc.dart';
+import 'package:path/path.dart' as path;
 
 const String kRpcIpcLogPrefix = 'arRPC.ipc';
 
@@ -114,5 +118,180 @@ abstract class IpcSocketWrapper {
     }
 
     return packets;
+  }
+}
+
+// Multiplatform IPC Server implementation using dart_ipc
+class MultiPlatformIpcServer extends IpcServer {
+  StreamSubscription? _serverSubscription;
+
+  @override
+  Future<void> start() async {
+    try {
+      final ipcPath = Platform.isWindows
+          ? r'\\.\pipe\discord-ipc-0'
+          : await _findAvailableUnixIpcPath();
+
+      final serverSocket = await bind(ipcPath);
+      developer.log(
+        'IPC listening at $ipcPath',
+        name: kRpcIpcLogPrefix,
+      );
+
+      _serverSubscription = serverSocket.listen((socket) {
+        final socketWrapper = MultiPlatformIpcSocketWrapper(socket);
+        addSocket(socketWrapper);
+        developer.log(
+          'New IPC connection!',
+          name: kRpcIpcLogPrefix,
+        );
+        _handleIpcData(socketWrapper);
+      });
+    } catch (e) {
+      throw Exception('Failed to start IPC server: $e');
+    }
+  }
+
+  @override
+  Future<void> stop() async {
+    for (var socket in sockets) {
+      try {
+        socket.close();
+      } catch (e) {
+        developer.log('Error closing IPC socket: $e', name: kRpcIpcLogPrefix);
+      }
+    }
+    sockets.clear();
+    _serverSubscription?.cancel();
+  }
+
+  // Handle incoming IPC data
+  void _handleIpcData(MultiPlatformIpcSocketWrapper socket) {
+    final startTime = DateTime.now();
+    socket.socket.listen((data) {
+      final readStart = DateTime.now();
+      socket.addData(data);
+      final readDuration = DateTime.now().difference(readStart).inMicroseconds;
+      developer.log(
+        'Read data took $readDuration microseconds',
+        name: kRpcIpcLogPrefix,
+      );
+
+      final packets = socket.readPackets();
+      for (final packet in packets) {
+        handlePacket?.call(socket, packet, {});
+      }
+    }, onDone: () {
+      developer.log('IPC connection closed', name: kRpcIpcLogPrefix);
+      socket.close();
+    }, onError: (e) {
+      developer.log('IPC data error: $e', name: kRpcIpcLogPrefix);
+      socket.closeWithCode(IpcCloseCodes.closeUnsupported, e.toString());
+    });
+    final totalDuration = DateTime.now().difference(startTime).inMicroseconds;
+    developer.log(
+      '_handleIpcData took $totalDuration microseconds',
+      name: kRpcIpcLogPrefix,
+    );
+  }
+
+  Future<String> _getMacOsSystemTmpDir() async {
+    final result = await Process.run('getconf', ['DARWIN_USER_TEMP_DIR']);
+    return (result.stdout as String).trim();
+  }
+
+  // Find available IPC socket path for Unix-like systems
+  Future<String> _findAvailableUnixIpcPath() async {
+    // Build list of directories to try, with macOS-specific handling
+    final baseDirs = <String>[];
+
+    if (Platform.isMacOS) {
+      try {
+        final macTempDir = await _getMacOsSystemTmpDir();
+        if (macTempDir.isNotEmpty) {
+          baseDirs.add(macTempDir);
+        }
+      } catch (e) {
+        developer.log(
+          'Failed to get macOS system temp dir: $e',
+          name: kRpcIpcLogPrefix,
+        );
+      }
+    }
+
+    // Add other standard directories
+    final otherDirs = [
+      Platform.environment['XDG_RUNTIME_DIR'],
+      Platform.environment['TMPDIR'],
+      Platform.environment['TMP'],
+      Platform.environment['TEMP'],
+      '/tmp',
+    ];
+
+    baseDirs.addAll(
+      otherDirs.where((dir) => dir != null && dir.isNotEmpty).cast<String>(),
+    );
+
+    for (final baseDir in baseDirs) {
+      for (int i = 0; i < 10; i++) {
+        final socketPath = path.join(baseDir, 'discord-ipc-$i');
+        try {
+          final socket = await bind(socketPath);
+          socket.close();
+          try {
+            await File(socketPath).delete();
+          } catch (_) {}
+          developer.log(
+            'IPC socket will be created at: $socketPath',
+            name: kRpcIpcLogPrefix,
+          );
+          return socketPath;
+        } catch (e) {
+          if (i == 0) {
+            developer.log(
+              'IPC path $socketPath not available: $e',
+              name: kRpcIpcLogPrefix,
+            );
+          }
+          continue;
+        }
+      }
+    }
+    throw Exception(
+      'No available IPC socket paths found in any temp directory',
+    );
+  }
+}
+
+// Multiplatform IPC Socket Wrapper
+class MultiPlatformIpcSocketWrapper extends IpcSocketWrapper {
+  final dynamic socket;
+
+  MultiPlatformIpcSocketWrapper(this.socket);
+
+  @override
+  void send(Map<String, dynamic> msg) {
+    developer.log('IPC sending: $msg', name: kRpcIpcLogPrefix);
+    final packet = IpcServer.encodeIpcPacket(IpcTypes.frame, msg);
+    socket.add(packet);
+  }
+
+  @override
+  void sendPong(dynamic data) {
+    final packet = IpcServer.encodeIpcPacket(IpcTypes.pong, data ?? {});
+    socket.add(packet);
+  }
+
+  @override
+  void close() {
+    socket.close();
+  }
+
+  @override
+  void closeWithCode(int code, [String message = '']) {
+    final closeData = {'code': code, 'message': message};
+    final packet = IpcServer.encodeIpcPacket(IpcTypes.close, closeData);
+    socket.add(packet);
+    socket.close();
   }
 }

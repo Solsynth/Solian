@@ -56,8 +56,6 @@ class IpcSocketWrapper {
   List<dynamic> readPackets() => [];
 }
 
-class WindowsIpcServer extends IpcServer {}
+class MultiPlatformIpcServer extends IpcServer {}
 
-class UnixIpcServer extends IpcServer {}
-
-class WindowsIpcSocketWrapper extends IpcSocketWrapper {}
+class MultiPlatformIpcSocketWrapper extends IpcSocketWrapper {}
