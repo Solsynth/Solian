@@ -163,37 +163,6 @@ class WindowsIpcServer extends IpcServer {
       );
     }
   }
-
-  // Handle IPC handshake
-  void _onIpcHandshake(
-    IpcSocketWrapper socket,
-    Map<String, dynamic> params,
-    Map<String, Function> handlers,
-  ) {
-    developer.log('IPC handshake: $params', name: kRpcIpcLogPrefix);
-
-    final ver = int.tryParse(params['v']?.toString() ?? '1') ?? 1;
-    final clientId = params['client_id']?.toString() ?? '';
-
-    if (ver != 1) {
-      developer.log(
-        'IPC unsupported version requested: $ver',
-        name: kRpcIpcLogPrefix,
-      );
-      socket.closeWithCode(IpcErrorCodes.invalidVersion);
-      return;
-    }
-
-    if (clientId.isEmpty) {
-      developer.log('IPC client ID required', name: kRpcIpcLogPrefix);
-      socket.closeWithCode(IpcErrorCodes.invalidClientId);
-      return;
-    }
-
-    socket.clientId = clientId;
-
-    handlers['connection']?.call(socket);
-  }
 }
 
 class WindowsIpcSocketWrapper extends IpcSocketWrapper {
