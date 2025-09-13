@@ -9,9 +9,11 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'ipc_server.dart';
-import 'ipc_server.windows.dart';
-import 'ipc_server.unix.dart';
+
+// Conditional imports for IPC server - use web stubs on web platform
+import 'ipc_server.dart' if (dart.library.html) 'ipc_server.web.dart';
+import 'ipc_server.windows.dart' if (dart.library.html) 'ipc_server.web.dart';
+import 'ipc_server.unix.dart' if (dart.library.html) 'ipc_server.web.dart';
 
 const String kRpcLogPrefix = 'arRPC.websocket';
 const String kRpcIpcLogPrefix = 'arRPC.ipc';
