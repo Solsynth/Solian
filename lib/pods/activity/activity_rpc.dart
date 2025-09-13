@@ -12,8 +12,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 // Conditional imports for IPC server - use web stubs on web platform
 import 'ipc_server.dart' if (dart.library.html) 'ipc_server.web.dart';
-import 'ipc_server.windows.dart' if (dart.library.html) 'ipc_server.web.dart';
-import 'ipc_server.unix.dart' if (dart.library.html) 'ipc_server.web.dart';
 
 const String kRpcLogPrefix = 'arRPC.websocket';
 const String kRpcIpcLogPrefix = 'arRPC.ipc';
@@ -112,11 +110,7 @@ class ActivityRpcServer {
     final shouldStartIpc = !Platform.isMacOS && !kIsWeb;
     if (shouldStartIpc) {
       try {
-        if (Platform.isWindows) {
-          _ipcServer = WindowsIpcServer();
-        } else {
-          _ipcServer = UnixIpcServer();
-        }
+        _ipcServer = MultiPlatformIpcServer();
 
         // Set up IPC handlers
         _ipcServer!.handlePacket = (socket, packet, _) {

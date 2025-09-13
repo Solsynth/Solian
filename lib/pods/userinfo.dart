@@ -30,7 +30,7 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
       final user = SnAccount.fromJson(response.data);
       state = AsyncValue.data(user);
 
-      if (kIsWeb || !Platform.isLinux) {
+      if (kIsWeb || !(Platform.isLinux || Platform.isWindows)) {
         FirebaseAnalytics.instance.setUserId(id: user.id);
       }
     } catch (error, stackTrace) {
@@ -44,7 +44,7 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
                       : 'failedToLoadUserInfoNetwork')
                   .tr()
                   .trim(),
-              '${error.response!.statusCode}\n${error.response?.headers}',
+              '${error.response?.statusCode ?? 'Network Error'}\n${error.response?.headers}',
               jsonEncode(error.response?.data),
             ].join('\n\n'),
             iconStyle: IconStyle.error,
@@ -87,7 +87,7 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
     final prefs = _ref.read(sharedPreferencesProvider);
     await prefs.remove(kTokenPairStoreKey);
     _ref.invalidate(tokenProvider);
-    if (kIsWeb || !Platform.isLinux) {
+    if (kIsWeb || !(Platform.isLinux || Platform.isWindows)) {
       FirebaseAnalytics.instance.setUserId(id: null);
     }
   }
