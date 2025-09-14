@@ -15,11 +15,11 @@ Map<String, dynamic> _$AppTokenToJson(_AppToken instance) => <String, dynamic>{
 
 _GeoIpLocation _$GeoIpLocationFromJson(Map<String, dynamic> json) =>
     _GeoIpLocation(
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-      countryCode: json['country_code'] as String,
-      country: json['country'] as String,
-      city: json['city'] as String,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      countryCode: json['country_code'] as String?,
+      country: json['country'] as String?,
+      city: json['city'] as String?,
     );
 
 Map<String, dynamic> _$GeoIpLocationToJson(_GeoIpLocation instance) =>
