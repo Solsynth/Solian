@@ -272,7 +272,7 @@ as String,
 /// @nodoc
 mixin _$GeoIpLocation {
 
- double get latitude; double get longitude; String get countryCode; String get country; String get city;
+ double? get latitude; double? get longitude; String? get countryCode; String? get country; String? get city;
 /// Create a copy of GeoIpLocation
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -305,7 +305,7 @@ abstract mixin class $GeoIpLocationCopyWith<$Res>  {
   factory $GeoIpLocationCopyWith(GeoIpLocation value, $Res Function(GeoIpLocation) _then) = _$GeoIpLocationCopyWithImpl;
 @useResult
 $Res call({
- double latitude, double longitude, String countryCode, String country, String city
+ double? latitude, double? longitude, String? countryCode, String? country, String? city
 });
 
 
@@ -322,14 +322,14 @@ class _$GeoIpLocationCopyWithImpl<$Res>
 
 /// Create a copy of GeoIpLocation
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? latitude = null,Object? longitude = null,Object? countryCode = null,Object? country = null,Object? city = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? latitude = freezed,Object? longitude = freezed,Object? countryCode = freezed,Object? country = freezed,Object? city = freezed,}) {
   return _then(_self.copyWith(
-latitude: null == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
-as double,longitude: null == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
-as double,countryCode: null == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
-as String,country: null == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
-as String,city: null == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
-as String,
+latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,country: freezed == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
+as String?,city: freezed == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -411,7 +411,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double latitude,  double longitude,  String countryCode,  String country,  String city)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double? latitude,  double? longitude,  String? countryCode,  String? country,  String? city)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GeoIpLocation() when $default != null:
 return $default(_that.latitude,_that.longitude,_that.countryCode,_that.country,_that.city);case _:
@@ -432,7 +432,7 @@ return $default(_that.latitude,_that.longitude,_that.countryCode,_that.country,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double latitude,  double longitude,  String countryCode,  String country,  String city)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double? latitude,  double? longitude,  String? countryCode,  String? country,  String? city)  $default,) {final _that = this;
 switch (_that) {
 case _GeoIpLocation():
 return $default(_that.latitude,_that.longitude,_that.countryCode,_that.country,_that.city);}
@@ -449,7 +449,7 @@ return $default(_that.latitude,_that.longitude,_that.countryCode,_that.country,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double latitude,  double longitude,  String countryCode,  String country,  String city)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double? latitude,  double? longitude,  String? countryCode,  String? country,  String? city)?  $default,) {final _that = this;
 switch (_that) {
 case _GeoIpLocation() when $default != null:
 return $default(_that.latitude,_that.longitude,_that.countryCode,_that.country,_that.city);case _:
@@ -467,11 +467,11 @@ class _GeoIpLocation implements GeoIpLocation {
   const _GeoIpLocation({required this.latitude, required this.longitude, required this.countryCode, required this.country, required this.city});
   factory _GeoIpLocation.fromJson(Map<String, dynamic> json) => _$GeoIpLocationFromJson(json);
 
-@override final  double latitude;
-@override final  double longitude;
-@override final  String countryCode;
-@override final  String country;
-@override final  String city;
+@override final  double? latitude;
+@override final  double? longitude;
+@override final  String? countryCode;
+@override final  String? country;
+@override final  String? city;
 
 /// Create a copy of GeoIpLocation
 /// with the given fields replaced by the non-null parameter values.
@@ -506,7 +506,7 @@ abstract mixin class _$GeoIpLocationCopyWith<$Res> implements $GeoIpLocationCopy
   factory _$GeoIpLocationCopyWith(_GeoIpLocation value, $Res Function(_GeoIpLocation) _then) = __$GeoIpLocationCopyWithImpl;
 @override @useResult
 $Res call({
- double latitude, double longitude, String countryCode, String country, String city
+ double? latitude, double? longitude, String? countryCode, String? country, String? city
 });
 
 
@@ -523,14 +523,14 @@ class __$GeoIpLocationCopyWithImpl<$Res>
 
 /// Create a copy of GeoIpLocation
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? latitude = null,Object? longitude = null,Object? countryCode = null,Object? country = null,Object? city = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? latitude = freezed,Object? longitude = freezed,Object? countryCode = freezed,Object? country = freezed,Object? city = freezed,}) {
   return _then(_GeoIpLocation(
-latitude: null == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
-as double,longitude: null == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
-as double,countryCode: null == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
-as String,country: null == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
-as String,city: null == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
-as String,
+latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,country: freezed == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
+as String?,city: freezed == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

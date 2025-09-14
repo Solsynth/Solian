@@ -14,11 +14,11 @@ sealed class AppToken with _$AppToken {
 @freezed
 sealed class GeoIpLocation with _$GeoIpLocation {
   const factory GeoIpLocation({
-    required double latitude,
-    required double longitude,
-    required String countryCode,
-    required String country,
-    required String city,
+    required double? latitude,
+    required double? longitude,
+    required String? countryCode,
+    required String? country,
+    required String? city,
   }) = _GeoIpLocation;
 
   factory GeoIpLocation.fromJson(Map<String, dynamic> json) =>
