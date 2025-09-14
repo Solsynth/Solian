@@ -1,9 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math' as math;
-
 import 'package:animations/animations.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -41,22 +38,6 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
   3: ('authFactorTOTP', 'authFactorTOTPDescription', Symbols.timer),
   4: ('authFactorPin', 'authFactorPinDescription', Symbols.nest_secure_alarm),
 };
-
-Future<String?> getDeviceName() async {
-  if (kIsWeb) return null;
-  String? name;
-  if (Platform.isIOS) {
-    final deviceInfo = await DeviceInfoPlugin().iosInfo;
-    name = deviceInfo.name;
-  } else if (Platform.isAndroid) {
-    final deviceInfo = await DeviceInfoPlugin().androidInfo;
-    name = deviceInfo.name;
-  } else if (Platform.isWindows) {
-    final deviceInfo = await DeviceInfoPlugin().windowsInfo;
-    name = deviceInfo.computerName;
-  }
-  return name;
-}
 
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});

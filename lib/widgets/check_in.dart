@@ -228,7 +228,7 @@ class CheckInWidget extends HookConsumerWidget {
           ),
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            spacing: 3,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
@@ -244,7 +244,7 @@ class CheckInWidget extends HookConsumerWidget {
                   loading: () => Text('checkInNone').tr().fontSize(15).bold(),
                   error: (err, stack) => Text('error').tr().fontSize(15).bold(),
                 ),
-              ),
+              ).padding(right: 4),
               IconButton.outlined(
                 iconSize: 16,
                 visualDensity: const VisualDensity(

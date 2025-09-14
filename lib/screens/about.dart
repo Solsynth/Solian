@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/services/udid.native.dart';
+import 'package:island/services/udid.dart' as udid;
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -68,7 +68,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     try {
       final deviceInfoPlugin = DeviceInfoPlugin();
       _deviceInfo = await deviceInfoPlugin.deviceInfo;
-      _deviceUdid = await getUdid();
+      _deviceUdid = await udid.getUdid();
       if (mounted) {
         setState(() {});
       }
@@ -174,12 +174,20 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                             context,
                             title: 'Device Information',
                             children: [
-                              _buildInfoItem(
-                                context,
-                                icon: Symbols.label,
-                                label: 'aboutDeviceName'.tr(),
-                                value:
-                                    _deviceInfo?.data['name'] ?? 'unknown'.tr(),
+                              FutureBuilder<String>(
+                                future: udid.getDeviceName(),
+                                builder: (context, snapshot) {
+                                  final value =
+                                      snapshot.hasData
+                                          ? snapshot.data!
+                                          : 'unknown'.tr();
+                                  return _buildInfoItem(
+                                    context,
+                                    icon: Symbols.label,
+                                    label: 'aboutDeviceName'.tr(),
+                                    value: value,
+                                  );
+                                },
                               ),
                               _buildInfoItem(
                                 context,
