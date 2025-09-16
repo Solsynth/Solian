@@ -226,7 +226,7 @@ Future<void> _putTokenToRemote(
   int provider,
 ) async {
   await apiClient.put(
-    "/pusher/notifications/subscription",
+    "/ring/notifications/subscription",
     data: {"provider": provider, "device_token": token},
   );
 }
