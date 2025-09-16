@@ -39,7 +39,7 @@ class NotificationUnreadCountNotifier
 
     try {
       final client = ref.read(apiClientProvider);
-      final response = await client.get('/pusher/notifications/count');
+      final response = await client.get('/ring/notifications/count');
       return (response.data as num).toInt();
     } catch (_) {
       return 0;
@@ -89,7 +89,7 @@ class NotificationListNotifier extends _$NotificationListNotifier
     final queryParams = {'offset': offset, 'take': _pageSize};
 
     final response = await client.get(
-      '/pusher/notifications',
+      '/ring/notifications',
       queryParameters: queryParams,
     );
     final total = int.parse(response.headers.value('X-Total') ?? '0');
@@ -121,7 +121,7 @@ class NotificationScreen extends HookConsumerWidget {
     Future<void> markAllRead() async {
       showLoadingModal(context);
       final apiClient = ref.watch(apiClientProvider);
-      await apiClient.post('/pusher/notifications/all/read');
+      await apiClient.post('/ring/notifications/all/read');
       if (!context.mounted) return;
       hideLoadingModal(context);
       ref.invalidate(notificationListNotifierProvider);
