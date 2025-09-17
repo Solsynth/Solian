@@ -289,7 +289,6 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool? _withAttachments;
 
   late final String _roomId;
-  int _currentPage = 0;
   static const int _pageSize = 20;
   bool _hasMore = true;
   bool _isSyncing = false;
@@ -565,47 +564,46 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-  Future<void> loadInitial() async {
-    developer.log('Loading initial messages', name: 'MessagesNotifier');
-    if (_searchQuery == null || _searchQuery!.isEmpty) {
-      syncMessages();
-    }
-    final messages = await _getCachedMessages(offset: 0, take: 100);
-    _currentPage = 0;
-    _hasMore = messages.length == _pageSize;
-    state = AsyncValue.data(messages);
+Future<void> loadInitial() async {
+  developer.log('Loading initial messages', name: 'MessagesNotifier');
+  if (_searchQuery == null || _searchQuery!.isEmpty) {
+    syncMessages();
   }
 
-  Future<void> loadMore() async {
-    if (!_hasMore || state is AsyncLoading) return;
-    developer.log('Loading more messages', name: 'MessagesNotifier');
+  final messages = await _getCachedMessages(offset: 0, take: _pageSize);
 
-    try {
-      final currentMessages = state.value ?? [];
-      _currentPage++;
-      final newMessages = await listMessages(
-        offset: _currentPage * _pageSize,
-        take: _pageSize,
-      );
+  _hasMore = messages.length == _pageSize;
 
-      if (newMessages.isEmpty || newMessages.length < _pageSize) {
-        _hasMore = false;
-      }
+  state = AsyncValue.data(messages);
+}
 
-      state = AsyncValue.data(
-        _sortMessages([...currentMessages, ...newMessages]),
-      );
-    } catch (err, stackTrace) {
-      developer.log(
-        'Error loading more messages',
-        name: 'MessagesNotifier',
-        error: err,
-        stackTrace: stackTrace,
-      );
-      showErrorAlert(err);
-      _currentPage--;
+Future<void> loadMore() async {
+  if (!_hasMore || state is AsyncLoading) return;
+  developer.log('Loading more messages', name: 'MessagesNotifier');
+
+  try {
+    final currentMessages = state.value ?? [];
+    final offset = currentMessages.length;
+
+    final newMessages = await listMessages(offset: offset, take: _pageSize);
+
+    if (newMessages.isEmpty || newMessages.length < _pageSize) {
+      _hasMore = false;
     }
+
+    state = AsyncValue.data(
+      _sortMessages([...currentMessages, ...newMessages]),
+    );
+  } catch (err, stackTrace) {
+    developer.log(
+      'Error loading more messages',
+      name: 'MessagesNotifier',
+      error: err,
+      stackTrace: stackTrace,
+    );
+    showErrorAlert(err);
   }
+}
 
   Future<void> sendMessage(
     String content,
