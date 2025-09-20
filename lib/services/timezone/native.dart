@@ -14,7 +14,7 @@ Future<void> initializeTzdb() async {
 }
 
 Future<String> getMachineTz() async {
-  return await FlutterTimezone.getLocalTimezone();
+  return (await FlutterTimezone.getLocalTimezone()).identifier;
 }
 
 List<String> getAvailableTz() {

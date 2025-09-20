@@ -111,9 +111,9 @@ PODS:
   - flutter_udid (0.0.1):
     - FlutterMacOS
     - SAMKeychain
-  - flutter_webrtc (1.1.0):
+  - flutter_webrtc (1.2.0):
     - FlutterMacOS
-    - WebRTC-SDK (= 137.7151.03)
+    - WebRTC-SDK (= 137.7151.04)
   - FlutterMacOS (1.0.0)
   - gal (1.0.0):
     - Flutter
@@ -175,7 +175,7 @@ PODS:
   - livekit_client (2.5.0):
     - flutter_webrtc
     - FlutterMacOS
-    - WebRTC-SDK (= 137.7151.03)
+    - WebRTC-SDK (= 137.7151.04)
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -247,7 +247,7 @@ PODS:
     - FlutterMacOS
   - wakelock_plus (0.0.1):
     - FlutterMacOS
-  - WebRTC-SDK (137.7151.03)
+  - WebRTC-SDK (137.7151.04)
 
 DEPENDENCIES:
   - bitsdojo_window_macos (from `Flutter/ephemeral/.symlinks/plugins/bitsdojo_window_macos/macos`)
@@ -419,17 +419,17 @@ SPEC CHECKSUMS:
   flutter_local_notifications: 4bf37a31afde695b56091b4ae3e4d9c7a7e6cda0
   flutter_platform_alert: 8fa7a7c21f95b26d08b4a3891936ca27e375f284
   flutter_secure_storage_macos: 7f45e30f838cf2659862a4e4e3ee1c347c2b3b54
-  flutter_timezone: d59eea86178cbd7943cd2431cc2eaa9850f935d8
+  flutter_timezone: d272288c69082ad571630e0d17140b3d6b93dc0c
   flutter_udid: d26e455e8c06174e6aff476e147defc6cae38495
-  flutter_webrtc: 1ce7fe9a42f085286378355a575e682edd7f114d
+  flutter_webrtc: 718eae22a371cd94e5d56aa4f301443ebc5bb737
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   GoogleAppMeasurement: 09f341dfa8527d1612a09cbfe809a242c0b737af
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
-  livekit_client: 5a5c0f1081978542bbf9a986c7ac9bffcdb73906
-  local_auth_darwin: d2e8c53ef0c4f43c646462e3415432c4dab3ae19
+  livekit_client: 95b4a47f51f98a8be3a181c3fa251be7823dddd4
+  local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
@@ -451,8 +451,8 @@ SPEC CHECKSUMS:
   tray_manager: a104b5c81b578d83f3c3d0f40a997c8b10810166
   url_launcher_macos: 0fba8ddabfc33ce0a9afe7c5fef5aab3d8d2d673
   volume_controller: 5c068e6d085c80dadd33fc2c918d2114b775b3dd
-  wakelock_plus: 21ddc249ac4b8d018838dbdabd65c5976c308497
-  WebRTC-SDK: 69d4e56b0b4b27d788e87bab9b9a1326ed05b1e3
+  wakelock_plus: 917609be14d812ddd9e9528876538b2263aaa03b
+  WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
 
 PODFILE CHECKSUM: 346bfb2deb41d4a6ebd6f6799f92188bde2d246f
 
