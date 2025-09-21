@@ -32,7 +32,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:palette_generator/palette_generator.dart';
+import 'package:island/services/color_extraction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -581,14 +581,14 @@ Future<Color?> accountAppbarForcegroundColor(Ref ref, String uname) async {
   try {
     final account = await ref.watch(accountProvider(uname).future);
     if (account.profile.background == null) return null;
-    final palette = await PaletteGenerator.fromImageProvider(
+    final colors = await ColorExtractionService.getColorsFromImage(
       CloudImageWidget.provider(
         fileId: account.profile.background!.id,
         serverUrl: ref.watch(serverUrlProvider),
       ),
     );
-    final dominantColor = palette.dominantColor?.color;
-    if (dominantColor == null) return null;
+    if (colors.isEmpty) return null;
+    final dominantColor = colors.first;
     return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
   } catch (_) {
     return null;

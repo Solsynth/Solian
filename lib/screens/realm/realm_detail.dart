@@ -8,7 +8,7 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:island/widgets/post/post_list.dart';
-import 'package:palette_generator/palette_generator.dart';
+import 'package:island/services/color_extraction.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -32,14 +32,14 @@ part 'realm_detail.g.dart';
 Future<Color?> realmAppbarForegroundColor(Ref ref, String realmSlug) async {
   final realm = await ref.watch(realmProvider(realmSlug).future);
   if (realm?.background == null) return null;
-  final palette = await PaletteGenerator.fromImageProvider(
+  final colors = await ColorExtractionService.getColorsFromImage(
     CloudImageWidget.provider(
       fileId: realm!.background!.id,
       serverUrl: ref.watch(serverUrlProvider),
     ),
   );
-  final dominantColor = palette.dominantColor?.color;
-  if (dominantColor == null) return null;
+  if (colors.isEmpty) return null;
+  final dominantColor = colors.first;
   return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 }
 

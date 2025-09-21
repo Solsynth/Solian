@@ -12,11 +12,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/services/color_extraction.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
@@ -293,24 +293,26 @@ class SettingsScreen extends HookConsumerWidget {
               trailing: const Icon(Symbols.chevron_right),
               onTap: () async {
                 showLoadingModal(context);
-                final palette = await PaletteGenerator.fromImageProvider(
+                final colors = await ColorExtractionService.getColorsFromImage(
                   FileImage(
                     File('${docBasepath.value}/$kAppBackgroundImagePath'),
                   ),
                 );
-                if (palette.darkVibrantColor == null ||
-                    palette.lightVibrantColor == null) {
+                if (colors.isEmpty) {
                   if (context.mounted) hideLoadingModal(context);
                   showErrorAlert(
-                    'Unable to calculate the domiant color of the background image.',
+                    'Unable to calculate the dominant color of the background image.',
                   );
                   return;
                 }
                 if (!context.mounted) return;
+                final colorScheme = ColorScheme.fromSeed(
+                  seedColor: colors.first,
+                );
                 final color =
                     MediaQuery.of(context).platformBrightness == Brightness.dark
-                        ? palette.darkVibrantColor!.color
-                        : palette.lightVibrantColor!.color;
+                        ? colorScheme.primary
+                        : colorScheme.primary;
                 ref
                     .read(appSettingsNotifierProvider.notifier)
                     .setAppColorScheme(color.value);

@@ -21,7 +21,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:palette_generator/palette_generator.dart';
+import 'package:island/services/color_extraction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -278,14 +278,14 @@ Future<Color?> publisherAppbarForcegroundColor(Ref ref, String pubName) async {
   try {
     final publisher = await ref.watch(publisherProvider(pubName).future);
     if (publisher.background == null) return null;
-    final palette = await PaletteGenerator.fromImageProvider(
+    final colors = await ColorExtractionService.getColorsFromImage(
       CloudImageWidget.provider(
         fileId: publisher.background!.id,
         serverUrl: ref.watch(serverUrlProvider),
       ),
     );
-    final dominantColor = palette.dominantColor?.color;
-    if (dominantColor == null) return null;
+    if (colors.isEmpty) return null;
+    final dominantColor = colors.first;
     return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
   } catch (_) {
     return null;
