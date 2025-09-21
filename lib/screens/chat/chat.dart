@@ -543,7 +543,7 @@ class EditChatScreen extends HookConsumerWidget {
         final token = await getToken(ref.watch(tokenProvider));
         if (token == null) throw ArgumentError('Token is null');
         final cloudFile =
-            await putMediaToCloud(
+            await putFileToCloud(
               fileData: UniversalFile(
                 data: result,
                 type: UniversalFileType.image,
