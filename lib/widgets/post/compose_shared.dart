@@ -185,7 +185,7 @@ class ComposeLogic {
         if (attachment.data is! SnCloudFile) {
           try {
             final cloudFile =
-                await putMediaToCloud(
+                await putFileToCloud(
                   fileData: attachment,
                   atk: token,
                   baseUrl: baseUrl,
@@ -523,44 +523,34 @@ class ComposeLogic {
 
       SnCloudFile? cloudFile;
 
-    final pools = await ref.read(poolsProvider.future);
-    final selectedPoolId = resolveDefaultPoolId(ref, pools);
-      if (attachment.type == UniversalFileType.file) {
-        cloudFile =
-            await putFileToPool(
-              fileData: attachment,
-              atk: token,
-              baseUrl: baseUrl,
-              poolId: selectedPoolId,
-              filename: attachment.data.name ?? 'General file',
-              mimetype:
-                  attachment.data.mimeType ??
-                  getMimeTypeFromFileType(attachment.type),
-              onProgress: (progress, _) {
-                state.attachmentProgress.value = {
-                  ...state.attachmentProgress.value,
-                  index: progress,
-                };
-              },
-            ).future;
-      } else {
-        cloudFile =
-            await putMediaToCloud(
-              fileData: attachment,
-              atk: token,
-              baseUrl: baseUrl,
-              filename: attachment.data.name ?? 'Post media',
-              mimetype:
-                  attachment.data.mimeType ??
-                  getMimeTypeFromFileType(attachment.type),
-              onProgress: (progress, _) {
-                state.attachmentProgress.value = {
-                  ...state.attachmentProgress.value,
-                  index: progress,
-                };
-              },
-            ).future;
-      }
+      final pools = await ref.read(poolsProvider.future);
+      final selectedPoolId = resolveDefaultPoolId(ref, pools);
+
+      cloudFile =
+          await putFileToCloud(
+            fileData: attachment,
+            atk: token,
+            baseUrl: baseUrl,
+            poolId: selectedPoolId,
+            filename:
+                attachment.data.name ??
+                (attachment.type == UniversalFileType.file
+                    ? 'General file'
+                    : 'Post media'),
+            mimetype:
+                attachment.data.mimeType ??
+                getMimeTypeFromFileType(attachment.type),
+            mode:
+                attachment.type == UniversalFileType.file
+                    ? FileUploadMode.generic
+                    : FileUploadMode.mediaSafe,
+            onProgress: (progress, _) {
+              state.attachmentProgress.value = {
+                ...state.attachmentProgress.value,
+                index: progress,
+              };
+            },
+          ).future;
 
       if (cloudFile == null) {
         throw ArgumentError('Failed to upload the file...');

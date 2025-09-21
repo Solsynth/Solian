@@ -649,7 +649,7 @@ Future<void> loadMore() async {
       var cloudAttachments = List.empty(growable: true);
       for (var idx = 0; idx < attachments.length; idx++) {
         final cloudFile =
-            await putMediaToCloud(
+            await putFileToCloud(
               fileData: attachments[idx],
               atk: token,
               baseUrl: baseUrl,
