@@ -25,6 +25,10 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.pickVideoMedia(ref, state);
     }
 
+    void pickGeneralFile() {
+      ComposeLogic.pickGeneralFile(ref, state);
+    }
+
     void addAudio() {
       ComposeLogic.recordAudioMedia(ref, state, context);
     }
@@ -94,6 +98,12 @@ class ComposeToolbar extends HookConsumerWidget {
                 onPressed: addAudio,
                 tooltip: 'addAudio'.tr(),
                 icon: const Icon(Symbols.mic),
+                color: colorScheme.primary,
+              ),
+              IconButton(
+                onPressed: pickGeneralFile,
+                tooltip: 'uploadFile'.tr(),
+                icon: const Icon(Symbols.file_upload),
                 color: colorScheme.primary,
               ),
               IconButton(

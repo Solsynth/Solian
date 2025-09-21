@@ -40,6 +40,55 @@ Future<XFile?> cropImage(
   );
 }
 
+Completer<SnCloudFile?> putFileToPool({
+  required UniversalFile fileData,
+  required String atk,
+  required String baseUrl,
+  required String poolId,
+  String? filename,
+  String? mimetype,
+  Function(double progress, Duration estimate)? onProgress,
+}) {
+  final completer = Completer<SnCloudFile?>();
+
+  final data = fileData.data;
+  if (data is! XFile) {
+    completer.completeError(
+      ArgumentError('Unsupported fileData type for putFileToPool'),
+    );
+    return completer;
+  }
+
+  final actualFilename = filename ?? data.name;
+  final actualMimetype = mimetype ?? data.mimeType ?? 'application/octet-stream';
+
+  final metadata = {
+    'filename': actualFilename,
+    'content-type': actualMimetype,
+  };
+
+  final client = TusClient(data);
+  client
+      .upload(
+        uri: Uri.parse('$baseUrl/drive/tus'),
+        headers: {
+          'Authorization': 'AtField $atk',
+          'X-FilePool': poolId,
+        },
+        metadata: metadata,
+        onComplete: (lastResponse) {
+          final resp = jsonDecode(lastResponse!.headers['x-fileinfo']!);
+          completer.complete(SnCloudFile.fromJson(resp));
+        },
+        onProgress: (progress, est) {
+          onProgress?.call(progress, est);
+        },
+      )
+      .catchError(completer.completeError);
+
+  return completer;
+}
+
 Completer<SnCloudFile?> putMediaToCloud({
   required UniversalFile fileData,
   required String atk,

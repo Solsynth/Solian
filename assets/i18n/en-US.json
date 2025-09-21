@@ -168,6 +168,7 @@
   "addPhoto": "Add photo",
   "addAudio": "Add audio",
   "addFile": "Add file",
+  "uploadFile": "Upload File",
   "recordAudio": "Record Audio",
   "linkAttachment": "Link Attachment",
   "fileIdCannotBeEmpty": "File ID cannot be empty",
