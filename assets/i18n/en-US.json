@@ -447,6 +447,8 @@
   "lastActiveAt": "Last active at {}",
   "authDeviceLogout": "Logout",
   "authDeviceLogoutHint": "Are you sure you want to logout this device? This will also disable the push notification to this device.",
+  "authDeviceChallenges": "Device Usage",
+  "authDeviceHint": "Swipe left to edit label, swipe right to logout device.",
   "typingHint": {
     "one": "{} is typing...",
     "other": "{} are typing..."

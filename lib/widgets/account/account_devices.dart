@@ -6,10 +6,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/responsive.dart';
+import 'package:island/services/time.dart';
 import 'package:island/services/udid.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
@@ -43,32 +45,11 @@ class _DeviceListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      isThreeLine: true,
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: Icon(switch (device.platform) {
-        0 => Icons.device_unknown, // Unidentified
-        1 => Icons.web, // Web
-        2 => Icons.phone_iphone, // iOS
-        3 => Icons.phone_android, // Android
-        4 => Icons.laptop_mac, // macOS
-        5 => Icons.window, // Windows
-        6 => Icons.computer, // Linux
-        _ => Icons.device_unknown, // fallback
-      }).padding(top: 4),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    return ExpansionTile(
+      title: Row(
+        spacing: 8,
         children: [
-          Text(
-            'lastActiveAt'.tr(
-              args: [
-                DateFormat().format(
-                  device.challenges.first.createdAt.toLocal(),
-                ),
-              ],
-            ),
-          ),
-          Text(device.challenges.first.ipAddress),
+          Flexible(child: Text(device.deviceLabel ?? device.deviceName)),
           if (device.isCurrent)
             Row(
               children: [
@@ -82,10 +63,29 @@ class _DeviceListTile extends StatelessWidget {
                   ),
                 ),
               ],
-            ).padding(top: 4),
+            ),
         ],
       ),
-      title: Text(device.deviceLabel ?? device.deviceName),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'lastActiveAt'.tr(
+              args: [device.challenges.first.createdAt.formatSystem()],
+            ),
+          ),
+        ],
+      ),
+      leading: Icon(switch (device.platform) {
+        0 => Icons.device_unknown, // Unidentified
+        1 => Icons.web, // Web
+        2 => Icons.phone_iphone, // iOS
+        3 => Icons.phone_android, // Android
+        4 => Icons.laptop_mac, // macOS
+        5 => Icons.window, // Windows
+        6 => Icons.computer, // Linux
+        _ => Icons.device_unknown, // fallback
+      }).padding(top: 4),
       trailing:
           isWideScreen(context)
               ? Row(
@@ -105,6 +105,36 @@ class _DeviceListTile extends StatelessWidget {
                 ],
               )
               : null,
+      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceVariant,
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text('authDeviceChallenges'.tr()),
+        ),
+        for (final challenge in device.challenges)
+          ListTile(
+            minTileHeight: 48,
+            title: Text(DateFormat().format(challenge.createdAt.toLocal())),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(challenge.ipAddress),
+                if (challenge.location != null)
+                  Row(
+                    spacing: 4,
+                    children:
+                        [challenge.location?.city, challenge.location?.country]
+                            .where((e) => e?.isNotEmpty ?? false)
+                            .map((e) => Text(e!))
+                            .toList(),
+                  ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
@@ -176,72 +206,116 @@ class AccountSessionSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'authSessions'.tr(),
-      child: authDevices.when(
-        data:
-            (data) => ExtendedRefreshIndicator(
-              onRefresh:
-                  () => Future.sync(() => ref.invalidate(authDevicesProvider)),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: data.length,
-                itemBuilder: (context, index) {
-                  final device = data[index];
-                  if (wideScreen) {
-                    return _DeviceListTile(
-                      device: device,
-                      updateDeviceLabel: updateDeviceLabel,
-                      logoutDevice: logoutDevice,
-                    );
-                  } else {
-                    return Dismissible(
-                      key: Key('device-${device.id}'),
-                      direction:
-                          device.isCurrent
-                              ? DismissDirection.startToEnd
-                              : DismissDirection.horizontal,
-                      background: Container(
-                        color: Colors.blue,
-                        alignment: Alignment.centerLeft,
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Icon(Icons.edit, color: Colors.white),
+      child: Column(
+        children: [
+          if (!wideScreen)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  const Icon(Symbols.info, size: 16).padding(top: 2),
+                  Flexible(
+                    child: Text(
+                      'authDeviceHint'.tr(),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                      secondaryBackground: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerRight,
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Icon(Icons.logout, color: Colors.white),
-                      ),
-                      confirmDismiss: (direction) async {
-                        if (direction == DismissDirection.startToEnd) {
-                          updateDeviceLabel(device.deviceId);
-                          return false;
-                        } else {
-                          final confirm = await showConfirmAlert(
-                            'authDeviceLogoutHint'.tr(),
-                            'authDeviceLogout'.tr(),
-                          );
-                          if (confirm && context.mounted) {
-                            logoutDevice(device.deviceId);
-                          }
-                          return false; // Don't dismiss
-                        }
-                      },
-                      child: _DeviceListTile(
-                        device: device,
-                        updateDeviceLabel: updateDeviceLabel,
-                        logoutDevice: logoutDevice,
-                      ),
-                    );
-                  }
-                },
+                    ),
+                  ),
+                ],
               ),
             ),
-        error:
-            (err, _) => ResponseErrorWidget(
-              error: err,
-              onRetry: () => ref.invalidate(authDevicesProvider),
+          Expanded(
+            child: authDevices.when(
+              data:
+                  (data) => ExtendedRefreshIndicator(
+                    onRefresh:
+                        () => Future.sync(
+                          () => ref.invalidate(authDevicesProvider),
+                        ),
+                    child: ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: data.length,
+                      itemBuilder: (context, index) {
+                        final device = data[index];
+                        if (wideScreen) {
+                          return _DeviceListTile(
+                            device: device,
+                            updateDeviceLabel: updateDeviceLabel,
+                            logoutDevice: logoutDevice,
+                          );
+                        } else {
+                          return Dismissible(
+                            key: Key('device-${device.id}'),
+                            direction:
+                                device.isCurrent
+                                    ? DismissDirection.startToEnd
+                                    : DismissDirection.horizontal,
+                            background: Container(
+                              color: Colors.blue,
+                              alignment: Alignment.centerLeft,
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Icon(Icons.edit, color: Colors.white),
+                            ),
+                            secondaryBackground: Container(
+                              color: Colors.red,
+                              alignment: Alignment.centerRight,
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Icon(Icons.logout, color: Colors.white),
+                            ),
+                            confirmDismiss: (direction) async {
+                              if (direction == DismissDirection.startToEnd) {
+                                updateDeviceLabel(device.deviceId);
+                                return false;
+                              } else {
+                                final confirm = await showConfirmAlert(
+                                  'authDeviceLogoutHint'.tr(),
+                                  'authDeviceLogout'.tr(),
+                                );
+                                if (confirm && context.mounted) {
+                                  try {
+                                    showLoadingModal(context);
+                                    final apiClient = ref.watch(
+                                      apiClientProvider,
+                                    );
+                                    await apiClient.delete(
+                                      '/id/accounts/me/devices/${device.deviceId}',
+                                    );
+                                    ref.invalidate(authDevicesProvider);
+                                  } catch (err) {
+                                    showErrorAlert(err);
+                                  } finally {
+                                    if (context.mounted)
+                                      hideLoadingModal(context);
+                                  }
+                                }
+                                return confirm;
+                              }
+                            },
+                            child: _DeviceListTile(
+                              device: device,
+                              updateDeviceLabel: updateDeviceLabel,
+                              logoutDevice: logoutDevice,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+              error:
+                  (err, _) => ResponseErrorWidget(
+                    error: err,
+                    onRetry: () => ref.invalidate(authDevicesProvider),
+                  ),
+              loading: () => ResponseLoadingWidget(),
             ),
-        loading: () => ResponseLoadingWidget(),
+          ),
+        ],
       ),
     );
   }

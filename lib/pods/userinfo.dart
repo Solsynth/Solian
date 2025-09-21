@@ -44,9 +44,12 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
                       : 'failedToLoadUserInfoNetwork')
                   .tr()
                   .trim(),
-              '${error.response?.statusCode ?? 'Network Error'}\n${error.response?.headers}',
-              jsonEncode(error.response?.data),
-            ].join('\n\n'),
+              '',
+              '${error.response?.statusCode ?? 'Network Error'}',
+              if (error.response?.headers != null) error.response?.headers,
+              if (error.response?.data != null)
+                jsonEncode(error.response?.data),
+            ].join('\n'),
             iconStyle: IconStyle.error,
             neutralButtonTitle: 'retry'.tr(),
             negativeButtonTitle: 'okay'.tr(),
