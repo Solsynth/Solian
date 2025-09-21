@@ -17,7 +17,7 @@ Future<XFile?> cropImage(
   BuildContext context, {
   required XFile image,
   List<CropAspectRatio?>? allowedAspectRatios,
-  bool replacePath = false,
+  bool replacePath = true,
 }) async {
   final result = await showMaterialImageCropper(
     context,
@@ -211,8 +211,9 @@ Completer<SnCloudFile?> _processUpload(
     getTemporaryDirectory()
         .then((tempDir) {
           final tempFile = File('${tempDir.path}/temp_upload_$actualFilename');
-          tempFile
-              .writeAsBytes(byteData!)
+          file
+              .readAsBytes()
+              .then((bytes) => tempFile.writeAsBytes(bytes))
               .then((_) {
                 fileObj = tempFile;
                 // Call progress start

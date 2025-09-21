@@ -78,6 +78,7 @@ class EditPublisherScreen extends HookConsumerWidget {
       result = await cropImage(
         context,
         image: result,
+        replacePath: true,
         allowedAspectRatios: [
           if (position == 'background')
             CropAspectRatio(height: 7, width: 16)
