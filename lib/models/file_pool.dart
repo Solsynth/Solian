@@ -1,36 +1,37 @@
-class FilePool {
-  final String id;
-  final String name;
-  final String? description;
-  final Map<String, dynamic> storageConfig;
-  final Map<String, dynamic> billingConfig;
-  final Map<String, dynamic> policyConfig;
-  final bool isHidden;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  FilePool({
-    required this.id,
-    required this.name,
-    this.description,
-    required this.storageConfig,
-    required this.billingConfig,
-    required this.policyConfig,
-    required this.isHidden,
-  });
+part 'file_pool.freezed.dart';
+part 'file_pool.g.dart';
 
-  factory FilePool.fromJson(Map<String, dynamic> json) {
-    return FilePool(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String?,
-      storageConfig: json['storage_config'] as Map<String, dynamic>,
-      billingConfig: json['billing_config'] as Map<String, dynamic>,
-      policyConfig: json['policy_config'] as Map<String, dynamic>,
-      isHidden: json['is_hidden'] as bool,
-    );
-  }
+@freezed
+sealed class SnFilePool with _$SnFilePool {
+  const factory SnFilePool({
+    required String id,
+    required String name,
+    String? description,
+    Map<String, dynamic>? storageConfig,
+    Map<String, dynamic>? billingConfig,
+    Map<String, dynamic>? policyConfig,
+    bool? isHidden,
+    String? accountId,
+    String? resourceIdentifier,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
+  }) = _SnFilePool;
 
-  static List<FilePool> listFromResponse(dynamic data) {
-    final parsed = data as List<dynamic>;
-    return parsed.map((e) => FilePool.fromJson(e)).toList();
+  factory SnFilePool.fromJson(Map<String, dynamic> json) =>
+      _$SnFilePoolFromJson(json);
+}
+
+extension SnFilePoolList on SnFilePool {
+  static List<SnFilePool> listFromResponse(dynamic data) {
+    if (data is List) {
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(SnFilePool.fromJson)
+          .toList();
+    }
+    throw ArgumentError('Unexpected response format: $data');
   }
 }

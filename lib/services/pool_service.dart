@@ -7,11 +7,11 @@ class PoolService {
 
   PoolService(this._dio);
 
-  Future<List<FilePool>> fetchPools() async {
+  Future<List<SnFilePool>> fetchPools() async {
     final response = await _dio.get('/drive/pools');
 
     if (response.statusCode == 200) {
-      return FilePool.listFromResponse(response.data);
+      return SnFilePoolList.listFromResponse(response.data);
     } else {
       throw Exception('Failed to fetch pools: ${response.statusCode}');
     }

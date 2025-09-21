@@ -1,35 +1,37 @@
-
-import '../models/file_pool.dart';
+import 'package:island/models/file_pool.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../pods/config.dart';
+import 'package:island/pods/config.dart';
 
-List<FilePool> filterValidPools(List<FilePool> pools) {
+List<SnFilePool> filterValidPools(List<SnFilePool> pools) {
   return pools.where((p) {
-    final accept = p.policyConfig['accept_types'];
-    if (accept != null) {
+    final accept = p.policyConfig?['accept_types'];
+
+    if (accept is List) {
       final acceptsOnlyMedia = accept.every((t) =>
-          t.startsWith('image/') ||
-          t.startsWith('video/') ||
-          t.startsWith('audio/'));
+          t is String &&
+          (t.startsWith('image/') ||
+              t.startsWith('video/') ||
+              t.startsWith('audio/')));
       if (acceptsOnlyMedia) return false;
     }
+
     return true;
   }).toList();
 }
 
-String resolveDefaultPoolId(WidgetRef ref, List<FilePool> pools) {
+String resolveDefaultPoolId(WidgetRef ref, List<SnFilePool> pools) {
   final settings = ref.watch(appSettingsNotifierProvider);
   final validPools = filterValidPools(pools);
 
-  if (settings.defaultPoolId != null &&
-      validPools.any((p) => p.id == settings.defaultPoolId)) {
-    return settings.defaultPoolId!;
+  final configuredId = settings.defaultPoolId;
+  if (configuredId != null &&
+      validPools.any((p) => p.id == configuredId)) {
+    return configuredId;
   }
 
   if (validPools.isNotEmpty) {
     return validPools.first.id;
   }
-  // DEFAULT: Solar Network Driver
-  return '500e5ed8-bd44-4359-bc0a-ec85e2adf447';
-}
 
+  return '500e5ed8-bd44-4359-bc0a-ec85e2adf447'; // Solar Network Driver
+}

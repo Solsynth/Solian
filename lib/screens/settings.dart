@@ -373,7 +373,7 @@ class SettingsScreen extends HookConsumerWidget {
       poolsAsync.when(
         data: (pools) {
           final validPools = filterValidPools(pools);
-          final currentPoolId = resolveDefaultPoolId(ref, pools);
+          final currentPoolId = resolveDefaultPoolId(ref, validPools);
 
           return ListTile(
             isThreeLine: true,
@@ -392,12 +392,14 @@ class SettingsScreen extends HookConsumerWidget {
               child: DropdownButton2<String>(
                 isExpanded: true,
                 items:
-                    validPools.map((p) {
-                      return DropdownMenuItem<String>(
-                        value: p.id,
-                        child: Text(p.name).fontSize(14),
-                      );
-                    }).toList(),
+                    validPools
+                        .map(
+                          (p) => DropdownMenuItem<String>(
+                            value: p.id,
+                            child: Text(p.name).fontSize(14),
+                          ),
+                        )
+                        .toList(),
                 value: currentPoolId,
                 onChanged: (value) {
                   ref
