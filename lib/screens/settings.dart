@@ -21,7 +21,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/pool_provider.dart';
-import 'package:island/utils/pool_utils.dart';
+import 'package:island/models/file_pool.dart';
 
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
@@ -372,8 +372,8 @@ class SettingsScreen extends HookConsumerWidget {
 
       poolsAsync.when(
         data: (pools) {
-          final validPools = filterValidPools(pools);
-          final currentPoolId = resolveDefaultPoolId(ref, validPools);
+          final validPools = pools.filterValid();
+          final currentPoolId = resolveDefaultPoolId(ref, pools);
 
           return ListTile(
             isThreeLine: true,
@@ -392,14 +392,12 @@ class SettingsScreen extends HookConsumerWidget {
               child: DropdownButton2<String>(
                 isExpanded: true,
                 items:
-                    validPools
-                        .map(
-                          (p) => DropdownMenuItem<String>(
-                            value: p.id,
-                            child: Text(p.name).fontSize(14),
-                          ),
-                        )
-                        .toList(),
+                    validPools.map((p) {
+                      return DropdownMenuItem<String>(
+                        value: p.id,
+                        child: Text(p.name).fontSize(14),
+                      );
+                    }).toList(),
                 value: currentPoolId,
                 onChanged: (value) {
                   ref

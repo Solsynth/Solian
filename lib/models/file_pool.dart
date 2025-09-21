@@ -24,7 +24,7 @@ sealed class SnFilePool with _$SnFilePool {
       _$SnFilePoolFromJson(json);
 }
 
-extension SnFilePoolList on SnFilePool {
+extension SnFilePoolList on List<SnFilePool> {
   static List<SnFilePool> listFromResponse(dynamic data) {
     if (data is List) {
       return data
@@ -33,5 +33,21 @@ extension SnFilePoolList on SnFilePool {
           .toList();
     }
     throw ArgumentError('Unexpected response format: $data');
+  }
+
+  List<SnFilePool> filterValid() {
+    return where((p) {
+      final accept = p.policyConfig?['accept_types'];
+
+      if (accept is List) {
+        final acceptsOnlyMedia = accept.every((t) =>
+            t is String &&
+            (t.startsWith('image/') ||
+                t.startsWith('video/') ||
+                t.startsWith('audio/')));
+        if (acceptsOnlyMedia) return false;
+      }
+      return true;
+    }).toList();
   }
 }

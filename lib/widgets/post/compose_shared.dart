@@ -21,7 +21,6 @@ import 'package:island/widgets/post/compose_link_attachments.dart';
 import 'package:island/widgets/post/compose_poll.dart';
 import 'package:island/widgets/post/compose_recorder.dart';
 import 'package:island/pods/pool_provider.dart';
-import 'package:island/utils/pool_utils.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 import 'dart:async';
