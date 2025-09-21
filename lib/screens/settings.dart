@@ -21,6 +21,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/pool_provider.dart';
+import 'package:island/utils/pool_utils.dart';
 
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
@@ -368,8 +369,12 @@ class SettingsScreen extends HookConsumerWidget {
           ),
         ),
       ),
+
       poolsAsync.when(
         data: (pools) {
+          final validPools = filterValidPools(pools);
+          final currentPoolId = resolveDefaultPoolId(ref, pools);
+
           return ListTile(
             isThreeLine: true,
             minLeadingWidth: 48,
@@ -377,29 +382,23 @@ class SettingsScreen extends HookConsumerWidget {
             contentPadding: const EdgeInsets.only(left: 24, right: 17),
             leading: const Icon(Symbols.cloud),
             subtitle: Text(
-              settings.defaultPoolId != null
-                  ? pools
-                          .firstWhereOrNull(
-                            (p) => p.id == settings.defaultPoolId,
-                          )
-                          ?.description ??
-                      'settingsDefaultPoolHelper'.tr()
-                  : 'settingsDefaultPoolHelper'.tr(),
+              validPools
+                      .firstWhereOrNull((p) => p.id == currentPoolId)
+                      ?.description ??
+                  'settingsDefaultPoolHelper'.tr(),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
                 isExpanded: true,
                 items:
-                    pools.map((p) {
+                    validPools.map((p) {
                       return DropdownMenuItem<String>(
                         value: p.id,
                         child: Text(p.name).fontSize(14),
                       );
                     }).toList(),
-                value:
-                    settings.defaultPoolId ??
-                    (pools.isNotEmpty ? pools.first.id : null),
+                value: currentPoolId,
                 onChanged: (value) {
                   ref
                       .read(appSettingsNotifierProvider.notifier)

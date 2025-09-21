@@ -20,6 +20,8 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_link_attachments.dart';
 import 'package:island/widgets/post/compose_poll.dart';
 import 'package:island/widgets/post/compose_recorder.dart';
+import 'package:island/pods/pool_provider.dart';
+import 'package:island/utils/pool_utils.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 import 'dart:async';
@@ -522,8 +524,8 @@ class ComposeLogic {
 
       SnCloudFile? cloudFile;
 
-    final settings = ref.watch(appSettingsNotifierProvider);
-    final selectedPoolId = poolId ?? settings.defaultPoolId ?? '500e5ed8-bd44-4359-bc0a-ec85e2adf447';
+    final pools = await ref.read(poolsProvider.future);
+    final selectedPoolId = resolveDefaultPoolId(ref, pools);
       if (attachment.type == UniversalFileType.file) {
         cloudFile =
             await putFileToPool(
