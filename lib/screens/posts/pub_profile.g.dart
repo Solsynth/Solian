@@ -400,7 +400,7 @@ class _PublisherSubscriptionStatusProviderElement
 }
 
 String _$publisherAppbarForcegroundColorHash() =>
-    r'd781a806a242aea5c1609ec98c97c52fdd9f7db1';
+    r'cd9a9816177a6eecc2bc354acebbbd48892ffdd7';
 
 /// See also [publisherAppbarForcegroundColor].
 @ProviderFor(publisherAppbarForcegroundColor)

@@ -11,6 +11,8 @@ import 'package:island/services/file_uploader.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:path_provider/path_provider.dart';
 
+enum FileUploadMode { generic, mediaSafe }
+
 Future<XFile?> cropImage(
   BuildContext context, {
   required XFile image,
@@ -40,49 +42,46 @@ Future<XFile?> cropImage(
   );
 }
 
-Completer<SnCloudFile?> putMediaToCloud({
+Completer<SnCloudFile?> putFileToCloud({
   required UniversalFile fileData,
   required String atk,
   required String baseUrl,
   String? poolId,
   String? filename,
   String? mimetype,
+  FileUploadMode? mode,
   Function(double progress, Duration estimate)? onProgress,
 }) {
   final completer = Completer<SnCloudFile?>();
 
-  // Process the image to remove GPS EXIF data if needed
-  if (fileData.isOnDevice && fileData.type == UniversalFileType.image) {
+  final effectiveMode =
+      mode ??
+      (fileData.type == UniversalFileType.file
+          ? FileUploadMode.generic
+          : FileUploadMode.mediaSafe);
+
+  if (effectiveMode == FileUploadMode.mediaSafe &&
+      fileData.isOnDevice &&
+      fileData.type == UniversalFileType.image) {
     final data = fileData.data;
     if (data is XFile && !kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-      // Use native_exif to selectively remove GPS data
       Exif.fromPath(data.path)
-          .then((exif) {
-            // Remove GPS-related attributes
-            final gpsAttributes = [
-              'GPSLatitude',
-              'GPSLatitudeRef',
-              'GPSLongitude',
-              'GPSLongitudeRef',
-              'GPSAltitude',
-              'GPSAltitudeRef',
-              'GPSTimeStamp',
-              'GPSProcessingMethod',
-              'GPSDateStamp',
-            ];
-
-            // Create a map of attributes to clear
-            final clearAttributes = <String, String>{};
-            for (final attr in gpsAttributes) {
-              clearAttributes[attr] = '';
-            }
-
-            // Write empty values to remove GPS data
-            return exif.writeAttributes(clearAttributes);
+          .then((exif) async {
+            final gpsAttributes = {
+              'GPSLatitude': '',
+              'GPSLatitudeRef': '',
+              'GPSLongitude': '',
+              'GPSLongitudeRef': '',
+              'GPSAltitude': '',
+              'GPSAltitudeRef': '',
+              'GPSTimeStamp': '',
+              'GPSProcessingMethod': '',
+              'GPSDateStamp': '',
+            };
+            await exif.writeAttributes(gpsAttributes);
           })
-          .then((_) {
-            // Continue with upload after GPS data is removed
-            _processUpload(
+          .then(
+            (_) => _processUpload(
               fileData,
               atk,
               baseUrl,
@@ -91,12 +90,11 @@ Completer<SnCloudFile?> putMediaToCloud({
               mimetype,
               onProgress,
               completer,
-            );
-          })
+            ),
+          )
           .catchError((e) {
-            // If there's an error, continue with the original file
             debugPrint('Error removing GPS EXIF data: $e');
-            _processUpload(
+            return _processUpload(
               fileData,
               atk,
               baseUrl,
@@ -112,7 +110,6 @@ Completer<SnCloudFile?> putMediaToCloud({
     }
   }
 
-  // If not an image or on web, continue with normal upload
   _processUpload(
     fileData,
     atk,

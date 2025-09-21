@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:mime/mime.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
@@ -19,6 +20,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_link_attachments.dart';
 import 'package:island/widgets/post/compose_poll.dart';
 import 'package:island/widgets/post/compose_recorder.dart';
+import 'package:island/pods/pool_provider.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 import 'dart:async';
@@ -183,7 +185,7 @@ class ComposeLogic {
         if (attachment.data is! SnCloudFile) {
           try {
             final cloudFile =
-                await putMediaToCloud(
+                await putFileToCloud(
                   fileData: attachment,
                   atk: token,
                   baseUrl: baseUrl,
@@ -386,6 +388,30 @@ class ComposeLogic {
     };
   }
 
+  static Future<void> pickGeneralFile(WidgetRef ref, ComposeState state) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      allowMultiple: true,
+    );
+    if (result == null || result.count == 0) return;
+
+    final newFiles = <UniversalFile>[];
+
+    for (final f in result.files) {
+      if (f.path == null) continue;
+
+      final mimeType =
+          lookupMimeType(f.path!, headerBytes: f.bytes) ??
+          'application/octet-stream';
+      final xfile = XFile(f.path!, name: f.name, mimeType: mimeType);
+
+      final uf = UniversalFile(data: xfile, type: UniversalFileType.file);
+      newFiles.add(uf);
+    }
+
+    state.attachments.value = [...state.attachments.value, ...newFiles];
+  }
+
   static Future<void> pickPhotoMedia(WidgetRef ref, ComposeState state) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.image,
@@ -479,8 +505,9 @@ class ComposeLogic {
   static Future<void> uploadAttachment(
     WidgetRef ref,
     ComposeState state,
-    int index,
-  ) async {
+    int index, {
+    String? poolId, // For Unit Test
+  }) async {
     final attachment = state.attachments.value[index];
     if (attachment.isOnCloud) return;
 
@@ -489,22 +516,34 @@ class ComposeLogic {
     if (token == null) throw ArgumentError('Token is null');
 
     try {
-      // Update progress state
       state.attachmentProgress.value = {
         ...state.attachmentProgress.value,
         index: 0,
       };
 
-      // Upload file to cloud
-      final cloudFile =
-          await putMediaToCloud(
+      SnCloudFile? cloudFile;
+
+      final pools = await ref.read(poolsProvider.future);
+      final selectedPoolId = resolveDefaultPoolId(ref, pools);
+
+      cloudFile =
+          await putFileToCloud(
             fileData: attachment,
             atk: token,
             baseUrl: baseUrl,
-            filename: attachment.data.name ?? 'Post media',
+            poolId: selectedPoolId,
+            filename:
+                attachment.data.name ??
+                (attachment.type == UniversalFileType.file
+                    ? 'General file'
+                    : 'Post media'),
             mimetype:
                 attachment.data.mimeType ??
                 getMimeTypeFromFileType(attachment.type),
+            mode:
+                attachment.type == UniversalFileType.file
+                    ? FileUploadMode.generic
+                    : FileUploadMode.mediaSafe,
             onProgress: (progress, _) {
               state.attachmentProgress.value = {
                 ...state.attachmentProgress.value,
@@ -517,14 +556,12 @@ class ComposeLogic {
         throw ArgumentError('Failed to upload the file...');
       }
 
-      // Update attachments list with cloud file
       final clone = List.of(state.attachments.value);
       clone[index] = UniversalFile(data: cloudFile, type: attachment.type);
       state.attachments.value = clone;
     } catch (err) {
-      showErrorAlert(err);
+      showErrorAlert(err.toString());
     } finally {
-      // Clean up progress state
       state.attachmentProgress.value = {...state.attachmentProgress.value}
         ..remove(index);
     }
@@ -643,7 +680,6 @@ class ComposeLogic {
             .where((entry) => entry.value.isOnDevice)
             .map((entry) => uploadAttachment(ref, state, entry.key)),
       );
-
       // Prepare API request
       final client = ref.watch(apiClientProvider);
       final isNewPost = originalPost == null;

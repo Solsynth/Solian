@@ -7,7 +7,7 @@ part of 'realm_detail.dart';
 // **************************************************************************
 
 String _$realmAppbarForegroundColorHash() =>
-    r'14b5563d861996ea182d0d2db7aa5c2bb3bbaf48';
+    r'8131c047a984318a4cc3fbb5daa5ef0ce44dfae5';
 
 /// Copied from Dart SDK
 class _SystemHash {

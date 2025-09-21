@@ -247,7 +247,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
             for (var idx = 0; idx < universalFiles.length; idx++) {
               final file = universalFiles[idx];
               final cloudFile =
-                  await putMediaToCloud(
+                  await putFileToCloud(
                     fileData: file,
                     atk: token,
                     baseUrl: serverUrl,

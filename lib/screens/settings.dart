@@ -20,6 +20,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/pods/pool_provider.dart';
+import 'package:island/models/file_pool.dart';
 
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
@@ -33,7 +35,7 @@ class SettingsScreen extends HookConsumerWidget {
     final isDesktop =
         !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
     final isWide = isWideScreen(context);
-
+    final poolsAsync = ref.watch(poolsProvider);
     final docBasepath = useState<String?>(null);
 
     useEffect(() {
@@ -366,6 +368,66 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
         ),
+      ),
+
+      poolsAsync.when(
+        data: (pools) {
+          final validPools = pools.filterValid();
+          final currentPoolId = resolveDefaultPoolId(ref, pools);
+
+          return ListTile(
+            isThreeLine: true,
+            minLeadingWidth: 48,
+            title: Text('settingsDefaultPool').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.cloud),
+            subtitle: Text(
+              validPools
+                      .firstWhereOrNull((p) => p.id == currentPoolId)
+                      ?.description ??
+                  'settingsDefaultPoolHelper'.tr(),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items:
+                    validPools.map((p) {
+                      return DropdownMenuItem<String>(
+                        value: p.id,
+                        child: Text(p.name).fontSize(14),
+                      );
+                    }).toList(),
+                value: currentPoolId,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsNotifierProvider.notifier)
+                      .setDefaultPoolId(value);
+                  showSnackBar('settingsApplied'.tr());
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 220,
+                ),
+                menuItemStyleData: const MenuItemStyleData(height: 40),
+              ),
+            ),
+          );
+        },
+        loading:
+            () => const ListTile(
+              minLeadingWidth: 48,
+              title: Text('Loading pools...'),
+              leading: CircularProgressIndicator(),
+            ),
+        error:
+            (err, st) => ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsDefaultPool').tr(),
+              subtitle: Text('Error: $err'),
+              leading: const Icon(Icons.error, color: Colors.red),
+            ),
       ),
     ];
 

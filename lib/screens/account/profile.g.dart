@@ -268,7 +268,7 @@ class _AccountBadgesProviderElement
 }
 
 String _$accountAppbarForcegroundColorHash() =>
-    r'8ee0cae10817b77fb09548a482f5247662b4374c';
+    r'127fcc7fd6ec6a41ac4a6975276b5271aa4fa7d0';
 
 /// See also [accountAppbarForcegroundColor].
 @ProviderFor(accountAppbarForcegroundColor)
