@@ -1,15 +1,15 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-
 import 'package:croppy/croppy.dart';
 import 'package:cross_file/cross_file.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:island/models/file.dart';
+import 'package:island/services/file_uploader.dart';
 import 'package:native_exif/native_exif.dart';
-import 'package:tus_client_dart/tus_client_dart.dart';
+import 'package:path_provider/path_provider.dart';
 
 Future<XFile?> cropImage(
   BuildContext context, {
@@ -44,6 +44,7 @@ Completer<SnCloudFile?> putMediaToCloud({
   required UniversalFile fileData,
   required String atk,
   required String baseUrl,
+  String? poolId,
   String? filename,
   String? mimetype,
   Function(double progress, Duration estimate)? onProgress,
@@ -85,6 +86,7 @@ Completer<SnCloudFile?> putMediaToCloud({
               fileData,
               atk,
               baseUrl,
+              poolId,
               filename,
               mimetype,
               onProgress,
@@ -98,6 +100,7 @@ Completer<SnCloudFile?> putMediaToCloud({
               fileData,
               atk,
               baseUrl,
+              poolId,
               filename,
               mimetype,
               onProgress,
@@ -114,6 +117,7 @@ Completer<SnCloudFile?> putMediaToCloud({
     fileData,
     atk,
     baseUrl,
+    poolId,
     filename,
     mimetype,
     onProgress,
@@ -127,6 +131,7 @@ Completer<SnCloudFile?> _processUpload(
   UniversalFile fileData,
   String atk,
   String baseUrl,
+  String? poolId,
   String? filename,
   String? mimetype,
   Function(double progress, Duration estimate)? onProgress,
@@ -168,26 +173,80 @@ Completer<SnCloudFile?> _processUpload(
     return completer;
   }
 
-  final Map<String, String> metadata = {
-    'filename': actualFilename,
-    'content-type': actualMimetype,
-  };
+  // Create Dio instance
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: baseUrl,
+      headers: {
+        'Authorization': 'AtField $atk',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    ),
+  );
 
-  final client = TusClient(file);
-  client
-      .upload(
-        uri: Uri.parse('$baseUrl/drive/tus'),
-        headers: {'Authorization': 'AtField $atk'},
-        metadata: metadata,
-        onComplete: (lastResponse) {
-          final resp = jsonDecode(lastResponse!.headers['x-fileinfo']!);
-          completer.complete(SnCloudFile.fromJson(resp));
-        },
-        onProgress: (double progress, Duration estimate) {
-          onProgress?.call(progress, estimate);
-        },
-      )
-      .catchError(completer.completeError);
+  final uploader = FileUploader(dio);
+
+  // Get File object
+  File fileObj;
+  if (file.path.isNotEmpty) {
+    fileObj = File(file.path);
+    // Call progress start
+    onProgress?.call(0.0, Duration.zero);
+    uploader
+        .uploadFile(
+          file: fileObj,
+          fileName: actualFilename,
+          contentType: actualMimetype,
+          poolId: poolId,
+        )
+        .then((result) {
+          // Call progress end
+          onProgress?.call(1.0, Duration.zero);
+          completer.complete(result);
+        })
+        .catchError((e) {
+          completer.completeError(e);
+          throw e;
+        });
+  } else {
+    // Write to temp file
+    getTemporaryDirectory()
+        .then((tempDir) {
+          final tempFile = File('${tempDir.path}/temp_upload_$actualFilename');
+          tempFile
+              .writeAsBytes(byteData!)
+              .then((_) {
+                fileObj = tempFile;
+                // Call progress start
+                onProgress?.call(0.0, Duration.zero);
+                uploader
+                    .uploadFile(
+                      file: fileObj,
+                      fileName: actualFilename,
+                      contentType: actualMimetype,
+                      poolId: poolId,
+                    )
+                    .then((result) {
+                      // Call progress end
+                      onProgress?.call(1.0, Duration.zero);
+                      completer.complete(result);
+                    })
+                    .catchError((e) {
+                      completer.completeError(e);
+                      throw e;
+                    });
+              })
+              .catchError((e) {
+                completer.completeError(e);
+                throw e;
+              });
+        })
+        .catchError((e) {
+          completer.completeError(e);
+          throw e;
+        });
+  }
 
   return completer;
 }
