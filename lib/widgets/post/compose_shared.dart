@@ -505,7 +505,7 @@ class ComposeLogic {
     WidgetRef ref,
     ComposeState state,
     int index, {
-    String? poolId,
+    String? poolId, // For Unit Test
   }) async {
     final attachment = state.attachments.value[index];
     if (attachment.isOnCloud) return;
@@ -522,14 +522,15 @@ class ComposeLogic {
 
       SnCloudFile? cloudFile;
 
+    final settings = ref.watch(appSettingsNotifierProvider);
+    final selectedPoolId = poolId ?? settings.defaultPoolId ?? '500e5ed8-bd44-4359-bc0a-ec85e2adf447';
       if (attachment.type == UniversalFileType.file) {
         cloudFile =
             await putFileToPool(
               fileData: attachment,
               atk: token,
               baseUrl: baseUrl,
-              // TODO: Generic Pool ID (Now: Solian Network Driver)
-              poolId: poolId ?? '500e5ed8-bd44-4359-bc0a-ec85e2adf447',
+              poolId: selectedPoolId,
               filename: attachment.data.name ?? 'General file',
               mimetype:
                   attachment.data.mimeType ??

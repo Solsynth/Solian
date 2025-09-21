@@ -25,6 +25,7 @@ const kAppSoundEffects = 'app_sound_effects';
 const kAppAprilFoolFeatures = 'app_april_fool_features';
 const kAppWindowSize = 'app_window_size';
 const kAppEnterToSend = 'app_enter_to_send';
+const kAppDefaultPoolId = 'app_default_pool_id';
 const kFeaturedPostsCollapsedId =
     'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
 
@@ -65,6 +66,7 @@ sealed class AppSettings with _$AppSettings {
     required String? customFonts,
     required int? appColorScheme, // The color stored via the int type
     required Size? windowSize, // The window size for desktop platforms
+    required String? defaultPoolId,
   }) = _AppSettings;
 }
 
@@ -84,6 +86,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       customFonts: prefs.getString(kAppCustomFonts),
       appColorScheme: prefs.getInt(kAppColorSchemeStoreKey),
       windowSize: _getWindowSizeFromPrefs(prefs),
+      defaultPoolId: prefs.getString(kAppDefaultPoolId),
     );
   }
 
@@ -102,6 +105,15 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       // Invalid format, return null
     }
     return null;
+  }
+  void setDefaultPoolId(String? value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (value != null) {
+      prefs.setString(kAppDefaultPoolId, value);
+    } else {
+      prefs.remove(kAppDefaultPoolId);
+    }
+    state = state.copyWith(defaultPoolId: value);
   }
 
   void setAutoTranslate(bool value) {

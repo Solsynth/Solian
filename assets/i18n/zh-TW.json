@@ -123,6 +123,9 @@
     "addPhoto": "添加照片",
     "addFile": "添加文件",
     "uploadFile": "上傳文件",
+    "settingsDefaultPool": "選擇文件池",
+    "settingsDefaultPoolHelper": "爲文件上傳選擇一個默認池",
+ 
     "createDirectMessage": "創建新私人消息",
     "gotoDirectMessage": "前往私信",
     "react": "反應",

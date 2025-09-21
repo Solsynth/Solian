@@ -30,6 +30,8 @@
   "fieldEmailAddressMustBeValid": "The email address must be valid.",
   "logout": "Logout",
   "updateYourProfile": "Profile Settings",
+  "settingsDefaultPool": "Default file pool",
+  "settingsDefaultPoolHelper": "Select the default storage pool for file uploads",
   "accountBasicInfo": "Basic Info",
   "accountProfile": "Your Profile",
   "saveChanges": "Save Changes",
