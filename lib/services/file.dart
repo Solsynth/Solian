@@ -50,7 +50,6 @@ Completer<SnCloudFile?> putFileToPool({
   Function(double progress, Duration estimate)? onProgress,
 }) {
   final completer = Completer<SnCloudFile?>();
-
   final data = fileData.data;
   if (data is! XFile) {
     completer.completeError(
@@ -62,32 +61,33 @@ Completer<SnCloudFile?> putFileToPool({
   final actualFilename = filename ?? data.name;
   final actualMimetype = mimetype ?? data.mimeType ?? 'application/octet-stream';
 
-  final metadata = {
-    'filename': actualFilename,
-    'content-type': actualMimetype,
-  };
+  final dio = Dio(BaseOptions(
+    baseUrl: baseUrl,
+    headers: {
+      'Authorization': 'AtField $atk',
+      'Accept': 'application/json',
+    },
+  ));
 
-  final client = TusClient(data);
-  client
-      .upload(
-        uri: Uri.parse('$baseUrl/drive/tus'),
-        headers: {
-          'Authorization': 'AtField $atk',
-          'X-FilePool': poolId,
-        },
-        metadata: metadata,
-        onComplete: (lastResponse) {
-          final resp = jsonDecode(lastResponse!.headers['x-fileinfo']!);
-          completer.complete(SnCloudFile.fromJson(resp));
-        },
-        onProgress: (progress, est) {
-          onProgress?.call(progress, est);
-        },
-      )
-      .catchError(completer.completeError);
+  final uploader = FileUploader(dio);
+  final fileObj = File(data.path);
+
+  onProgress?.call(0.0, Duration.zero);
+  uploader.uploadFile(
+    file: fileObj,
+    fileName: actualFilename,
+    contentType: actualMimetype,
+    poolId: poolId,
+  ).then((result) {
+    onProgress?.call(1.0, Duration.zero);
+    completer.complete(result);
+  }).catchError((e) {
+    completer.completeError(e);
+  });
 
   return completer;
 }
+
 
 Completer<SnCloudFile?> putMediaToCloud({
   required UniversalFile fileData,
