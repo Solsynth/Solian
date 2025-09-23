@@ -1021,5 +1021,6 @@
   "currentEmbed": "Current Embed",
   "noEmbed": "No embed yet",
   "save": "Save",
-  "webView": "Web View"
+  "webView": "Web View",
+  "messageActions": "Message Actions"
 }

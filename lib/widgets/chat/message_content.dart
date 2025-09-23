@@ -18,6 +18,32 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (item.type == 'messages.delete' || item.deletedAt != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            Symbols.delete,
+            size: 14,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withOpacity(0.6),
+          ),
+          const Gap(4),
+          Text(
+            item.content ?? 'Deleted a message',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withOpacity(0.6),
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      );
+    }
+
     switch (item.type) {
       case 'call.start':
       case 'call.ended':
@@ -69,30 +95,6 @@ class MessageContent extends StatelessWidget {
                   ).colorScheme.onSurfaceVariant.withOpacity(0.6),
                 ),
               ),
-          ],
-        );
-      case 'messages.delete':
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              Symbols.delete,
-              size: 14,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withOpacity(0.6),
-            ),
-            const Gap(4),
-            Text(
-              item.content ?? 'Deleted a message',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withOpacity(0.6),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
           ],
         );
       case 'text':
