@@ -178,7 +178,7 @@ class MessageItem extends HookConsumerWidget {
         duration: const Duration(milliseconds: kFlashDuration),
         decoration: BoxDecoration(color: flashColor),
         child: switch (settings.messageDisplayStyle) {
-          'irc' => MessageItemDisplayIRC(
+          'compact' => MessageItemDisplayIRC(
             message: message,
             isCurrentUser: isCurrentUser,
             progress: progress,
