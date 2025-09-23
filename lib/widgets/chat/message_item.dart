@@ -10,22 +10,19 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/database/message.dart';
-import 'package:island/models/chat.dart';
 import 'package:island/models/embed.dart';
-import 'package:island/pods/call.dart';
+import 'package:island/pods/messages_notifier.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/screens/chat/room.dart';
 import 'package:island/utils/mapping.dart';
-import 'package:island/widgets/account/account_name.dart';
-import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/chat/message_content.dart';
+import 'package:island/widgets/chat/message_indicators.dart';
+import 'package:island/widgets/chat/message_sender_info.dart';
 import 'package:island/widgets/content/alert.native.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
-import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/embed/link.dart';
-import 'package:island/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
@@ -228,62 +225,10 @@ class MessageItem extends HookConsumerWidget {
             children: [
               if (showAvatar) ...[
                 const Gap(8),
-                Row(
-                  spacing: 8,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AccountPfcGestureDetector(
-                      uname: sender.account.name,
-                      child: ProfilePictureWidget(
-                        fileId: sender.account.profile.picture?.id,
-                        radius: 16,
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 2,
-                      children: [
-                        Text(
-                          DateTime.now().difference(message.createdAt).inDays >
-                                  365
-                              ? DateFormat(
-                                'yyyy/MM/dd HH:mm',
-                              ).format(message.createdAt.toLocal())
-                              : DateTime.now()
-                                      .difference(message.createdAt)
-                                      .inDays >
-                                  0
-                              ? DateFormat(
-                                'MM/dd HH:mm',
-                              ).format(message.createdAt.toLocal())
-                              : DateFormat(
-                                'HH:mm',
-                              ).format(message.createdAt.toLocal()),
-                          style: TextStyle(fontSize: 10, color: textColor),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          spacing: 5,
-                          children: [
-                            AccountName(
-                              account: sender.account,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            Badge(
-                              label:
-                                  Text(
-                                    sender.role >= 100
-                                        ? 'permissionOwner'
-                                        : sender.role >= 50
-                                        ? 'permissionModerator'
-                                        : 'permissionMember',
-                                  ).tr(),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                MessageSenderInfo(
+                  sender: sender,
+                  createdAt: message.createdAt,
+                  textColor: textColor,
                 ),
                 const Gap(4),
               ],
@@ -319,8 +264,8 @@ class MessageItem extends HookConsumerWidget {
                               textColor: textColor,
                               isReply: false,
                             ).padding(vertical: 4),
-                          if (_MessageItemContent.hasContent(remoteMessage))
-                            _MessageItemContent(
+                          if (MessageContent.hasContent(remoteMessage))
+                            MessageContent(
                               item: remoteMessage,
                               translatedText: translatedText.value,
                             ),
@@ -406,12 +351,11 @@ class MessageItem extends HookConsumerWidget {
                       ),
                     ),
                   ),
-                  _buildMessageIndicators(
-                    context,
-                    textColor,
-                    remoteMessage,
-                    message,
-                    isCurrentUser,
+                  MessageIndicators(
+                    editedAt: remoteMessage.editedAt,
+                    status: message.status,
+                    isCurrentUser: isCurrentUser,
+                    textColor: textColor,
                   ),
                 ],
               ),
@@ -420,61 +364,6 @@ class MessageItem extends HookConsumerWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildMessageIndicators(
-    BuildContext context,
-    Color textColor,
-    SnChatMessage remoteMessage,
-    LocalChatMessage message,
-    bool isCurrentUser,
-  ) {
-    return Row(
-      spacing: 4,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (remoteMessage.editedAt != null)
-          Text(
-            'edited'.tr().toLowerCase(),
-            style: TextStyle(fontSize: 11, color: textColor.withOpacity(0.7)),
-          ),
-        if (isCurrentUser)
-          _buildStatusIcon(
-            context,
-            message.status,
-            textColor.withOpacity(0.7),
-          ).padding(bottom: 3),
-      ],
-    );
-  }
-
-  Widget _buildStatusIcon(
-    BuildContext context,
-    MessageStatus status,
-    Color textColor,
-  ) {
-    switch (status) {
-      case MessageStatus.pending:
-        return Icon(Icons.access_time, size: 12, color: textColor);
-      case MessageStatus.sent:
-        return Icon(Icons.check, size: 12, color: textColor);
-      case MessageStatus.failed:
-        return Consumer(
-          builder:
-              (context, ref, _) => GestureDetector(
-                onTap: () {
-                  ref
-                      .read(messagesNotifierProvider(message.roomId).notifier)
-                      .retryMessage(message.id);
-                },
-                child: const Icon(
-                  Icons.error_outline,
-                  size: 12,
-                  color: Colors.red,
-                ),
-              ),
-        );
-    }
   }
 }
 
@@ -552,8 +441,8 @@ class MessageQuoteWidget extends HookConsumerWidget {
                           ).textColor(textColor).bold(),
                         ],
                       ).padding(right: 8),
-                    if (_MessageItemContent.hasContent(remoteMessage))
-                      _MessageItemContent(item: remoteMessage),
+                    if (MessageContent.hasContent(remoteMessage))
+                      MessageContent(item: remoteMessage),
                     if (remoteMessage.attachments.isNotEmpty)
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -577,162 +466,6 @@ class MessageQuoteWidget extends HookConsumerWidget {
           return SizedBox.shrink();
         }
       },
-    );
-  }
-}
-
-class _MessageItemContent extends StatelessWidget {
-  final SnChatMessage item;
-  final String? translatedText;
-  const _MessageItemContent({required this.item, this.translatedText});
-
-  @override
-  Widget build(BuildContext context) {
-    switch (item.type) {
-      case 'call.start':
-      case 'call.ended':
-        return _MessageContentCall(
-          isEnded: item.type == 'call.ended',
-          duration: item.meta['duration']?.toDouble(),
-        );
-      case 'messages.update':
-      case 'messages.update.links':
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              Symbols.edit,
-              size: 14,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withOpacity(0.6),
-            ),
-            const Gap(4),
-            if (item.meta['previous_content'] is String)
-              PrettyDiffText(
-                oldText: item.meta['previous_content'],
-                newText: item.content ?? 'Edited a message',
-                defaultTextStyle: Theme.of(
-                  context,
-                ).textTheme.bodySmall!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                addedTextStyle: TextStyle(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primaryFixedDim.withOpacity(0.4),
-                ),
-                deletedTextStyle: TextStyle(
-                  decoration: TextDecoration.lineThrough,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withOpacity(0.7),
-                ),
-              )
-            else
-              Text(
-                item.content ?? 'Edited a message',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withOpacity(0.6),
-                ),
-              ),
-          ],
-        );
-      case 'messages.delete':
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              Symbols.delete,
-              size: 14,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withOpacity(0.6),
-            ),
-            const Gap(4),
-            Text(
-              item.content ?? 'Deleted a message',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withOpacity(0.6),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        );
-      case 'text':
-      default:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            MarkdownTextContent(
-              content: item.content ?? '*${item.type} has no content*',
-              isSelectable: true,
-              linesMargin: EdgeInsets.zero,
-            ),
-            if (translatedText?.isNotEmpty ?? false)
-              ...([
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: math.min(
-                      280,
-                      MediaQuery.of(context).size.width * 0.4,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('translated').tr().fontSize(11).opacity(0.75),
-                      const Gap(8),
-                      Flexible(child: Divider()),
-                    ],
-                  ).padding(vertical: 4),
-                ),
-                MarkdownTextContent(
-                  content: translatedText!,
-                  isSelectable: true,
-                  linesMargin: EdgeInsets.zero,
-                ),
-              ]),
-          ],
-        );
-    }
-  }
-
-  static bool hasContent(SnChatMessage item) {
-    return item.type != 'text' || (item.content?.isNotEmpty ?? false);
-  }
-}
-
-class _MessageContentCall extends StatelessWidget {
-  final bool isEnded;
-  final double? duration;
-  const _MessageContentCall({required this.isEnded, this.duration});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          isEnded ? Symbols.call_end : Symbols.phone_in_talk,
-          size: 16,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        Gap(4),
-        Text(
-          isEnded
-              ? 'Call ended after ${formatDuration(Duration(seconds: duration!.toInt()))}'
-              : 'Call started',
-          style: TextStyle(color: Theme.of(context).colorScheme.primary),
-        ),
-      ],
     );
   }
 }

@@ -21,6 +21,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/database.dart';
+import 'package:island/screens/chat/search_messages.dart';
 
 part 'room_detail.freezed.dart';
 part 'room_detail.g.dart';
@@ -401,11 +402,17 @@ class ChatDetailScreen extends HookConsumerWidget {
                                           ),
                                         ),
                                   ),
-                                  onTap: () {
-                                    context.pushNamed(
+                                  onTap: () async {
+                                    final result = await context.pushNamed(
                                       'searchMessages',
                                       pathParameters: {'id': id},
                                     );
+                                    if (result is SearchMessagesResult) {
+                                      // Navigate back to room screen with message to jump to
+                                      if (context.mounted) {
+                                        context.pop(result.messageId);
+                                      }
+                                    }
                                   },
                                 ),
                               ],
