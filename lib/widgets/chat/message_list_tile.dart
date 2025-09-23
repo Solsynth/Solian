@@ -41,7 +41,7 @@ class MessageListTile extends StatelessWidget {
             sender: sender,
             createdAt: message.createdAt,
             textColor: Theme.of(context).colorScheme.onSurfaceVariant,
-            compact: true,
+            showAvatar: false,
           ),
           const SizedBox(height: 4),
           MessageContent(item: remoteMessage),
