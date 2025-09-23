@@ -141,15 +141,27 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<LocalChatMessage>> searchMessages(
     String roomId,
-    String query,
-  ) async {
+    String query, {
+    bool? withAttachments,
+  }) async {
     var selectStatement = select(chatMessages)
       ..where((m) => m.roomId.equals(roomId));
 
     if (query.isNotEmpty) {
+      final searchTerm = '%${query}%';
       selectStatement =
-          selectStatement
-            ..where((m) => m.content.like('%${query.toLowerCase()}%'));
+          selectStatement..where(
+            (m) =>
+                m.content.like(searchTerm) |
+                m.meta.like(searchTerm) |
+                m.attachments.like(searchTerm) |
+                m.type.like(searchTerm),
+          );
+    }
+
+    if (withAttachments == true) {
+      selectStatement =
+          selectStatement..where((m) => m.attachments.equals('[]').not());
     }
 
     final messages =

@@ -38,7 +38,7 @@ import 'package:island/screens/chat/chat.dart';
 import 'package:island/screens/chat/room.dart';
 import 'package:island/screens/chat/room_detail.dart';
 import 'package:island/screens/chat/call.dart';
-import 'package:island/screens/chat/search_messages_screen.dart';
+import 'package:island/screens/chat/search_messages.dart';
 import 'package:island/screens/creators/hub.dart';
 import 'package:island/screens/creators/posts/post_manage_list.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
@@ -86,10 +86,7 @@ Widget _tabPagesTransitionBuilder(
 }
 
 bool get _supportsAnalytics =>
-    kIsWeb ||
-    Platform.isAndroid ||
-    Platform.isIOS ||
-    Platform.isMacOS;
+    kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
 
 // Provider for the router
 final routerProvider = Provider<GoRouter>((ref) {

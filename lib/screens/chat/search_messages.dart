@@ -112,7 +112,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
                           ? Center(child: Text('noMessagesFound'.tr()))
                           : SuperListView.builder(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            reverse: true, // Show newest messages at the bottom
+                            reverse: false, // Show newest messages at the top
                             itemCount: messageList.length,
                             itemBuilder: (context, index) {
                               final message = messageList[index];
@@ -129,7 +129,10 @@ class SearchMessagesScreen extends HookConsumerWidget {
                             },
                           ),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(child: Text('errorGeneric'.tr(args: [error.toString()]))),
+              error:
+                  (error, _) => Center(
+                    child: Text('errorGeneric'.tr(args: [error.toString()])),
+                  ),
             ),
           ),
         ],

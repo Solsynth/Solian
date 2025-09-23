@@ -348,7 +348,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
     final List<LocalChatMessage> dbMessages;
     if (_searchQuery != null && _searchQuery!.isNotEmpty) {
-      dbMessages = await _database.searchMessages(_roomId, _searchQuery ?? '');
+      dbMessages = await _database.searchMessages(
+        _roomId,
+        _searchQuery ?? '',
+        withAttachments: _withAttachments,
+      );
     } else {
       final chatMessagesFromDb = await _database.getMessagesForRoom(
         _roomId,
@@ -364,11 +368,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (_withLinks == true) {
       filteredMessages =
           filteredMessages.where((msg) => _hasLink(msg)).toList();
-    }
-
-    if (_withAttachments == true) {
-      filteredMessages =
-          filteredMessages.where((msg) => _hasAttachment(msg)).toList();
     }
 
     final dbLocalMessages = filteredMessages;
@@ -852,9 +851,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (existingIndex >= 0) {
       final newList = [...currentMessages];
       newList[existingIndex] = localMessage;
-      state = AsyncValue.data(newList);
+      state = AsyncValue.data(_sortMessages(newList));
     } else {
-      state = AsyncValue.data([localMessage, ...currentMessages]);
+      state = AsyncValue.data(
+        _sortMessages([localMessage, ...currentMessages]),
+      );
     }
   }
 
@@ -986,11 +987,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (content == null) return false;
     final urlRegex = RegExp(r'https?://[^\s/$.?#].[^\s]*');
     return urlRegex.hasMatch(content);
-  }
-
-  bool _hasAttachment(LocalChatMessage message) {
-    final remoteMessage = message.toRemoteMessage();
-    return remoteMessage.attachments.isNotEmpty;
   }
 }
 
