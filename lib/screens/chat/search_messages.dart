@@ -1,12 +1,19 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/screens/chat/room.dart';
+import 'package:island/pods/messages_notifier.dart';
 import 'package:island/widgets/app_scaffold.dart';
-import 'package:island/widgets/chat/message_item.dart';
+import 'package:island/widgets/chat/message_list_tile.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
+
+// Class to represent the result when popping from search messages
+class SearchMessagesResult {
+  final String messageId;
+  const SearchMessagesResult(this.messageId);
+}
 
 class SearchMessagesScreen extends HookConsumerWidget {
   final String roomId;
@@ -116,15 +123,12 @@ class SearchMessagesScreen extends HookConsumerWidget {
                             itemCount: messageList.length,
                             itemBuilder: (context, index) {
                               final message = messageList[index];
-                              // Simplified MessageItem for search results, no grouping logic
-                              return MessageItem(
+                              return MessageListTile(
                                 message: message,
-                                isCurrentUser:
-                                    false, // Or determine based on actual user
-                                onAction: null,
-                                onJump: (_) {},
-                                progress: null,
-                                showAvatar: true,
+                                onJump: (messageId) {
+                                  // Return the search result and pop back to room detail
+                                  context.pop(SearchMessagesResult(messageId));
+                                },
                               );
                             },
                           ),
