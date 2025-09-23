@@ -146,12 +146,12 @@ class SettingsScreen extends HookConsumerWidget {
                 child: Text('Bubble').fontSize(14),
               ),
               DropdownMenuItem<String>(
-                value: 'discord',
-                child: Text('Discord').fontSize(14),
+                value: 'column',
+                child: Text('Column').fontSize(14),
               ),
               DropdownMenuItem<String>(
-                value: 'irc',
-                child: Text('IRC').fontSize(14),
+                value: 'compact',
+                child: Text('Compact').fontSize(14),
               ),
             ],
             value: settings.messageDisplayStyle,
