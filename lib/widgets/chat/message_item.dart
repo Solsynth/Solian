@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -66,6 +67,46 @@ class MessageItem extends HookConsumerWidget {
 
     final hasBackground =
         ref.watch(backgroundImageFileProvider).valueOrNull != null;
+
+    final flashing = ref.watch(
+      flashingMessagesProvider.select((set) => set.contains(message.id)),
+    );
+
+    final isFlashing = useState(false);
+    final flashTimer = useState<Timer?>(null);
+
+    useEffect(() {
+      if (flashing) {
+        if (flashTimer.value != null) return null;
+        isFlashing.value = true;
+        flashTimer.value = Timer.periodic(const Duration(milliseconds: 200), (
+          timer,
+        ) {
+          isFlashing.value = !isFlashing.value;
+          if (timer.tick >= 4) {
+            // 4 ticks: true, false, true, false
+            timer.cancel();
+            flashTimer.value = null;
+            isFlashing.value = false;
+            ref
+                .read(flashingMessagesProvider.notifier)
+                .update((set) => set.difference({message.id}));
+          }
+        });
+      } else {
+        flashTimer.value?.cancel();
+        flashTimer.value = null;
+        isFlashing.value = false;
+      }
+      return () {
+        flashTimer.value?.cancel();
+      };
+    }, [flashing]);
+
+    final flashColor =
+        isFlashing.value
+            ? Theme.of(context).colorScheme.primary.withOpacity(0.8)
+            : containerColor;
 
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
@@ -253,9 +294,10 @@ class MessageItem extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Flexible(
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
-                        color: containerColor,
+                        color: flashColor,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       padding: const EdgeInsets.symmetric(

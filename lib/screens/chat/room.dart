@@ -3,6 +3,7 @@ import "dart:convert";
 import "dart:developer" as developer;
 import "dart:io";
 import "package:dio/dio.dart";
+import "package:drift/drift.dart" show Variable;
 import "package:easy_localization/easy_localization.dart";
 import "package:file_picker/file_picker.dart";
 import "package:flutter/foundation.dart";
@@ -45,6 +46,8 @@ import "package:island/widgets/stickers/picker.dart";
 part 'room.g.dart';
 
 final isSyncingProvider = StateProvider.autoDispose<bool>((ref) => false);
+
+final flashingMessagesProvider = StateProvider<Set<String>>((ref) => {});
 
 final appLifecycleStateProvider = StreamProvider<AppLifecycleState>((ref) {
   final controller = StreamController<AppLifecycleState>();
@@ -292,6 +295,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   static const int _pageSize = 20;
   bool _hasMore = true;
   bool _isSyncing = false;
+  bool _isJumping = false;
 
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
@@ -372,26 +376,35 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     final dbLocalMessages = filteredMessages;
 
+    // Always ensure unique messages to prevent duplicate keys
+    final uniqueMessages = <LocalChatMessage>[];
+    final seenIds = <String>{};
+    for (final message in dbLocalMessages) {
+      if (seenIds.add(message.id)) {
+        uniqueMessages.add(message);
+      }
+    }
+
     if (offset == 0) {
       final pendingForRoom =
           _pendingMessages.values
               .where((msg) => msg.roomId == _roomId)
               .toList();
 
-      final allMessages = [...pendingForRoom, ...dbLocalMessages];
+      final allMessages = [...pendingForRoom, ...uniqueMessages];
       _sortMessages(allMessages); // Use the helper function
 
-      final uniqueMessages = <LocalChatMessage>[];
-      final seenIds = <String>{};
+      final finalUniqueMessages = <LocalChatMessage>[];
+      final finalSeenIds = <String>{};
       for (final message in allMessages) {
-        if (seenIds.add(message.id)) {
-          uniqueMessages.add(message);
+        if (finalSeenIds.add(message.id)) {
+          finalUniqueMessages.add(message);
         }
       }
-      return uniqueMessages;
+      return finalUniqueMessages;
     }
 
-    return dbLocalMessages;
+    return uniqueMessages;
   }
 
   Future<List<LocalChatMessage>> _fetchAndCacheMessages({
@@ -982,6 +995,111 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  Future<int> jumpToMessage(String messageId) async {
+    developer.log(
+      'Starting jump to message $messageId',
+      name: 'MessagesNotifier',
+    );
+    if (_isJumping) {
+      developer.log(
+        'Jump already in progress, skipping',
+        name: 'MessagesNotifier',
+      );
+      return -1;
+    }
+    _isJumping = true;
+
+    try {
+      developer.log('Fetching message $messageId', name: 'MessagesNotifier');
+      final message = await fetchMessageById(messageId);
+      if (message == null) {
+        developer.log('Message $messageId not found', name: 'MessagesNotifier');
+        showSnackBar('messageNotFound'.tr());
+        return -1;
+      }
+
+      // Check if message is already in current state to avoid duplicate loading
+      final currentMessages = state.value ?? [];
+      final existingIndex = currentMessages.indexWhere(
+        (m) => m.id == messageId,
+      );
+      if (existingIndex >= 0) {
+        developer.log(
+          'Message $messageId already in current state at index $existingIndex, jumping directly',
+          name: 'MessagesNotifier',
+        );
+        return existingIndex;
+      }
+
+      developer.log(
+        'Message $messageId not in current state, loading messages around it',
+        name: 'MessagesNotifier',
+      );
+
+      // Count messages newer than this one
+      final query = _database.customSelect(
+        'SELECT COUNT(*) as count FROM chat_messages WHERE room_id = ? AND created_at > ?',
+        variables: [
+          Variable.withString(_roomId),
+          Variable.withDateTime(message.createdAt),
+        ],
+        readsFrom: {_database.chatMessages},
+      );
+      final result = await query.getSingle();
+      final newerCount = result.read<int>('count');
+
+      // Load messages around this position
+      final offset =
+          (newerCount - _pageSize ~/ 2).clamp(0, double.infinity).toInt();
+      developer.log(
+        'Loading messages with offset $offset, take $_pageSize',
+        name: 'MessagesNotifier',
+      );
+      final loadedMessages = await _getCachedMessages(
+        offset: offset,
+        take: _pageSize,
+      );
+
+      // Check if loaded messages are already in current state
+      final currentIds = currentMessages.map((m) => m.id).toSet();
+      final newMessages =
+          loadedMessages.where((m) => !currentIds.contains(m.id)).toList();
+      developer.log(
+        'Loaded ${loadedMessages.length} messages, ${newMessages.length} are new',
+        name: 'MessagesNotifier',
+      );
+
+      if (newMessages.isNotEmpty) {
+        // Merge with current messages
+        final allMessages = [...currentMessages, ...newMessages];
+        final uniqueMessages = <LocalChatMessage>[];
+        final seenIds = <String>{};
+        for (final message in allMessages) {
+          if (seenIds.add(message.id)) {
+            uniqueMessages.add(message);
+          }
+        }
+        _sortMessages(uniqueMessages);
+        state = AsyncValue.data(uniqueMessages);
+        developer.log(
+          'Updated state with ${uniqueMessages.length} total messages',
+          name: 'MessagesNotifier',
+        );
+      }
+
+      final finalIndex = (state.value ?? []).indexWhere(
+        (m) => m.id == messageId,
+      );
+      developer.log(
+        'Final index for message $messageId is $finalIndex',
+        name: 'MessagesNotifier',
+      );
+      return finalIndex;
+    } finally {
+      _isJumping = false;
+    }
+  }
+
   bool _hasLink(LocalChatMessage message) {
     final content = message.toRemoteMessage().content;
     if (content == null) return false;
@@ -1454,17 +1572,40 @@ class ChatRoomScreen extends HookConsumerWidget {
                         (m) => m.id == messageId,
                       );
                       if (messageIndex == -1) {
-                        showSnackBar('messageJumpNotLoaded'.tr());
+                        messagesNotifier.jumpToMessage(messageId).then((index) {
+                          if (index != -1) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              listController.animateToItem(
+                                index: index,
+                                scrollController: scrollController,
+                                alignment: 0.5,
+                                duration:
+                                    (estimatedDistance) =>
+                                        Duration(milliseconds: 250),
+                                curve: (estimatedDistance) => Curves.easeInOut,
+                              );
+                            });
+                            ref
+                                .read(flashingMessagesProvider.notifier)
+                                .update((set) => set.union({messageId}));
+                          }
+                        });
                         return;
                       }
-                      listController.animateToItem(
-                        index: messageIndex,
-                        scrollController: scrollController,
-                        alignment: 0.5,
-                        duration:
-                            (estimatedDistance) => Duration(milliseconds: 250),
-                        curve: (estimatedDistance) => Curves.easeInOut,
-                      );
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        listController.animateToItem(
+                          index: messageIndex,
+                          scrollController: scrollController,
+                          alignment: 0.5,
+                          duration:
+                              (estimatedDistance) =>
+                                  Duration(milliseconds: 250),
+                          curve: (estimatedDistance) => Curves.easeInOut,
+                        );
+                      });
+                      ref
+                          .read(flashingMessagesProvider.notifier)
+                          .update((set) => set.union({messageId}));
                     },
                     progress: attachmentProgress.value[message.id],
                     showAvatar: isLastInGroup,
