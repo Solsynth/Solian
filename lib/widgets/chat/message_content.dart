@@ -25,7 +25,7 @@ class MessageContent extends StatelessWidget {
         children: [
           Icon(
             Symbols.delete,
-            size: 14,
+            size: 16,
             color: Theme.of(
               context,
             ).colorScheme.onSurfaceVariant.withOpacity(0.6),
@@ -34,6 +34,7 @@ class MessageContent extends StatelessWidget {
           Text(
             item.content ?? 'Deleted a message',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontSize: 13,
               color: Theme.of(
                 context,
               ).colorScheme.onSurfaceVariant.withOpacity(0.6),
@@ -59,7 +60,7 @@ class MessageContent extends StatelessWidget {
           children: [
             Icon(
               Symbols.edit,
-              size: 14,
+              size: 16,
               color: Theme.of(
                 context,
               ).colorScheme.onSurfaceVariant.withOpacity(0.6),
@@ -71,7 +72,7 @@ class MessageContent extends StatelessWidget {
                 newText: item.content ?? 'Edited a message',
                 defaultTextStyle: Theme.of(
                   context,
-                ).textTheme.bodySmall!.copyWith(
+                ).textTheme.bodyMedium!.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 addedTextStyle: TextStyle(
