@@ -546,7 +546,39 @@ class _MessageItemContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (item.type) {
-      case 'deleted':
+      case 'call.start':
+      case 'call.ended':
+        return _MessageContentCall(
+          isEnded: item.type == 'call.ended',
+          duration: item.meta['duration']?.toDouble(),
+        );
+      case 'messages.update':
+      case 'messages.update.links':
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Symbols.edit,
+              size: 14,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withOpacity(0.6),
+            ),
+            const Gap(4),
+            Text(
+              item.content ?? 'Edited a message',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withOpacity(0.6),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        );
+      case 'deleted': // Client side history // TODO add seprate is_deleted column to indicate it
+      case 'messages.delete':
         return Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -554,23 +586,21 @@ class _MessageItemContent extends StatelessWidget {
             Icon(
               Symbols.delete,
               size: 14,
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withOpacity(0.6),
             ),
             const Gap(4),
             Text(
-              item.content!,
+              item.content ?? 'Deleted a message',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
-                    fontStyle: FontStyle.italic,
-                  ),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withOpacity(0.6),
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ],
-        );
-      case 'call.start':
-      case 'call.ended':
-        return _MessageContentCall(
-          isEnded: item.type == 'call.ended',
-          duration: item.meta['duration']?.toDouble(),
         );
       case 'text':
       default:
@@ -579,7 +609,7 @@ class _MessageItemContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             MarkdownTextContent(
-              content: item.content!,
+              content: item.content ?? '*${item.type} has no content*',
               isSelectable: true,
               linesMargin: EdgeInsets.zero,
             ),

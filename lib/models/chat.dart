@@ -40,7 +40,7 @@ sealed class SnChatMessage with _$SnChatMessage {
     String? content,
     String? nonce,
     @Default({}) Map<String, dynamic> meta,
-    @Default([]) List<String> membersMetioned,
+    @Default([]) List<String> membersMentioned,
     DateTime? editedAt,
     @Default([]) List<SnCloudFile> attachments,
     @Default([]) List<SnChatReaction> reactions,
@@ -118,22 +118,9 @@ class MessageChangeAction {
 }
 
 @freezed
-sealed class MessageChange with _$MessageChange {
-  const factory MessageChange({
-    required String messageId,
-    required String action,
-    SnChatMessage? message,
-    required DateTime timestamp,
-  }) = _MessageChange;
-
-  factory MessageChange.fromJson(Map<String, dynamic> json) =>
-      _$MessageChangeFromJson(json);
-}
-
-@freezed
 sealed class MessageSyncResponse with _$MessageSyncResponse {
   const factory MessageSyncResponse({
-    @Default([]) List<MessageChange> changes,
+    @Default([]) List<SnChatMessage> messages,
     required DateTime currentTimestamp,
   }) = _MessageSyncResponse;
 

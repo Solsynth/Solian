@@ -490,21 +490,21 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       final response = MessageSyncResponse.fromJson(resp.data);
       developer.log(
-        'Sync response: ${response.changes.length} changes',
+        'Sync response: ${response.messages.length} changes',
         name: 'MessagesNotifier',
       );
-      for (final change in response.changes) {
-        switch (change.action) {
-          case MessageChangeAction.create:
-            await receiveMessage(change.message!);
+      for (final message in response.messages) {
+        switch (message.type) {
+          case "messages.update":
+          case "messages.update.links":
+            await receiveMessageUpdate(message);
             break;
-          case MessageChangeAction.update:
-            await receiveMessageUpdate(change.message!);
-            break;
-          case MessageChangeAction.delete:
-            await receiveMessageDeletion(change.messageId.toString());
+          case "messages.delete":
+            await receiveMessageDeletion(message.id.toString());
             break;
         }
+        // Still need receive the message to show the history actions
+        await receiveMessage(message);
       }
     } catch (err, stackTrace) {
       developer.log(
@@ -564,46 +564,46 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-Future<void> loadInitial() async {
-  developer.log('Loading initial messages', name: 'MessagesNotifier');
-  if (_searchQuery == null || _searchQuery!.isEmpty) {
-    syncMessages();
-  }
-
-  final messages = await _getCachedMessages(offset: 0, take: _pageSize);
-
-  _hasMore = messages.length == _pageSize;
-
-  state = AsyncValue.data(messages);
-}
-
-Future<void> loadMore() async {
-  if (!_hasMore || state is AsyncLoading) return;
-  developer.log('Loading more messages', name: 'MessagesNotifier');
-
-  try {
-    final currentMessages = state.value ?? [];
-    final offset = currentMessages.length;
-
-    final newMessages = await listMessages(offset: offset, take: _pageSize);
-
-    if (newMessages.isEmpty || newMessages.length < _pageSize) {
-      _hasMore = false;
+  Future<void> loadInitial() async {
+    developer.log('Loading initial messages', name: 'MessagesNotifier');
+    if (_searchQuery == null || _searchQuery!.isEmpty) {
+      syncMessages();
     }
 
-    state = AsyncValue.data(
-      _sortMessages([...currentMessages, ...newMessages]),
-    );
-  } catch (err, stackTrace) {
-    developer.log(
-      'Error loading more messages',
-      name: 'MessagesNotifier',
-      error: err,
-      stackTrace: stackTrace,
-    );
-    showErrorAlert(err);
+    final messages = await _getCachedMessages(offset: 0, take: _pageSize);
+
+    _hasMore = messages.length == _pageSize;
+
+    state = AsyncValue.data(messages);
   }
-}
+
+  Future<void> loadMore() async {
+    if (!_hasMore || state is AsyncLoading) return;
+    developer.log('Loading more messages', name: 'MessagesNotifier');
+
+    try {
+      final currentMessages = state.value ?? [];
+      final offset = currentMessages.length;
+
+      final newMessages = await listMessages(offset: offset, take: _pageSize);
+
+      if (newMessages.isEmpty || newMessages.length < _pageSize) {
+        _hasMore = false;
+      }
+
+      state = AsyncValue.data(
+        _sortMessages([...currentMessages, ...newMessages]),
+      );
+    } catch (err, stackTrace) {
+      developer.log(
+        'Error loading more messages',
+        name: 'MessagesNotifier',
+        error: err,
+        stackTrace: stackTrace,
+      );
+      showErrorAlert(err);
+    }
+  }
 
   Future<void> sendMessage(
     String content,

@@ -87,19 +87,136 @@ class $ChatMessagesTable extends ChatMessages
         type: DriftSqlType.int,
         requiredDuringInsert: true,
       ).withConverter<MessageStatus>($ChatMessagesTable.$converterstatus);
-  static const VerificationMeta _isReadMeta = const VerificationMeta('isRead');
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
   @override
-  late final GeneratedColumn<bool> isRead = GeneratedColumn<bool>(
-    'is_read',
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_read" IN (0, 1))',
+      'CHECK ("is_deleted" IN (0, 1))',
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('text'),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Map<String, dynamic>, String>
+  meta = GeneratedColumn<String>(
+    'meta',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  ).withConverter<Map<String, dynamic>>($ChatMessagesTable.$convertermeta);
+  @override
+  late final GeneratedColumnWithTypeConverter<List<String>, String>
+  membersMentioned = GeneratedColumn<String>(
+    'members_mentioned',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  ).withConverter<List<String>>($ChatMessagesTable.$convertermembersMentioned);
+  static const VerificationMeta _editedAtMeta = const VerificationMeta(
+    'editedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> editedAt = GeneratedColumn<DateTime>(
+    'edited_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<
+    List<Map<String, dynamic>>,
+    String
+  >
+  attachments = GeneratedColumn<String>(
+    'attachments',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  ).withConverter<List<Map<String, dynamic>>>(
+    $ChatMessagesTable.$converterattachments,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<
+    List<Map<String, dynamic>>,
+    String
+  >
+  reactions = GeneratedColumn<String>(
+    'reactions',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  ).withConverter<List<Map<String, dynamic>>>(
+    $ChatMessagesTable.$converterreactions,
+  );
+  static const VerificationMeta _repliedMessageIdMeta = const VerificationMeta(
+    'repliedMessageId',
+  );
+  @override
+  late final GeneratedColumn<String> repliedMessageId = GeneratedColumn<String>(
+    'replied_message_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _forwardedMessageIdMeta =
+      const VerificationMeta('forwardedMessageId');
+  @override
+  late final GeneratedColumn<String> forwardedMessageId =
+      GeneratedColumn<String>(
+        'forwarded_message_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -110,7 +227,17 @@ class $ChatMessagesTable extends ChatMessages
     data,
     createdAt,
     status,
-    isRead,
+    isDeleted,
+    updatedAt,
+    deletedAt,
+    type,
+    meta,
+    membersMentioned,
+    editedAt,
+    attachments,
+    reactions,
+    repliedMessageId,
+    forwardedMessageId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -173,10 +300,52 @@ class $ChatMessagesTable extends ChatMessages
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
-    if (data.containsKey('is_read')) {
+    if (data.containsKey('is_deleted')) {
       context.handle(
-        _isReadMeta,
-        isRead.isAcceptableOrUnknown(data['is_read']!, _isReadMeta),
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    }
+    if (data.containsKey('edited_at')) {
+      context.handle(
+        _editedAtMeta,
+        editedAt.isAcceptableOrUnknown(data['edited_at']!, _editedAtMeta),
+      );
+    }
+    if (data.containsKey('replied_message_id')) {
+      context.handle(
+        _repliedMessageIdMeta,
+        repliedMessageId.isAcceptableOrUnknown(
+          data['replied_message_id']!,
+          _repliedMessageIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('forwarded_message_id')) {
+      context.handle(
+        _forwardedMessageIdMeta,
+        forwardedMessageId.isAcceptableOrUnknown(
+          data['forwarded_message_id']!,
+          _forwardedMessageIdMeta,
+        ),
       );
     }
     return context;
@@ -227,11 +396,59 @@ class $ChatMessagesTable extends ChatMessages
           data['${effectivePrefix}status'],
         )!,
       ),
-      isRead:
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      type:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.bool,
-            data['${effectivePrefix}is_read'],
+            DriftSqlType.string,
+            data['${effectivePrefix}type'],
           )!,
+      meta: $ChatMessagesTable.$convertermeta.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}meta'],
+        )!,
+      ),
+      membersMentioned: $ChatMessagesTable.$convertermembersMentioned.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}members_mentioned'],
+        )!,
+      ),
+      editedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}edited_at'],
+      ),
+      attachments: $ChatMessagesTable.$converterattachments.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}attachments'],
+        )!,
+      ),
+      reactions: $ChatMessagesTable.$converterreactions.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}reactions'],
+        )!,
+      ),
+      repliedMessageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}replied_message_id'],
+      ),
+      forwardedMessageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}forwarded_message_id'],
+      ),
     );
   }
 
@@ -242,6 +459,14 @@ class $ChatMessagesTable extends ChatMessages
 
   static JsonTypeConverter2<MessageStatus, int, int> $converterstatus =
       const EnumIndexConverter<MessageStatus>(MessageStatus.values);
+  static TypeConverter<Map<String, dynamic>, String> $convertermeta =
+      const MapConverter();
+  static TypeConverter<List<String>, String> $convertermembersMentioned =
+      const ListStringConverter();
+  static TypeConverter<List<Map<String, dynamic>>, String>
+  $converterattachments = const ListMapConverter();
+  static TypeConverter<List<Map<String, dynamic>>, String> $converterreactions =
+      const ListMapConverter();
 }
 
 class ChatMessage extends DataClass implements Insertable<ChatMessage> {
@@ -253,7 +478,17 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
   final String data;
   final DateTime createdAt;
   final MessageStatus status;
-  final bool isRead;
+  final bool? isDeleted;
+  final DateTime? updatedAt;
+  final DateTime? deletedAt;
+  final String type;
+  final Map<String, dynamic> meta;
+  final List<String> membersMentioned;
+  final DateTime? editedAt;
+  final List<Map<String, dynamic>> attachments;
+  final List<Map<String, dynamic>> reactions;
+  final String? repliedMessageId;
+  final String? forwardedMessageId;
   const ChatMessage({
     required this.id,
     required this.roomId,
@@ -263,7 +498,17 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     required this.data,
     required this.createdAt,
     required this.status,
-    required this.isRead,
+    this.isDeleted,
+    this.updatedAt,
+    this.deletedAt,
+    required this.type,
+    required this.meta,
+    required this.membersMentioned,
+    this.editedAt,
+    required this.attachments,
+    required this.reactions,
+    this.repliedMessageId,
+    this.forwardedMessageId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -284,7 +529,45 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
         $ChatMessagesTable.$converterstatus.toSql(status),
       );
     }
-    map['is_read'] = Variable<bool>(isRead);
+    if (!nullToAbsent || isDeleted != null) {
+      map['is_deleted'] = Variable<bool>(isDeleted);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['type'] = Variable<String>(type);
+    {
+      map['meta'] = Variable<String>(
+        $ChatMessagesTable.$convertermeta.toSql(meta),
+      );
+    }
+    {
+      map['members_mentioned'] = Variable<String>(
+        $ChatMessagesTable.$convertermembersMentioned.toSql(membersMentioned),
+      );
+    }
+    if (!nullToAbsent || editedAt != null) {
+      map['edited_at'] = Variable<DateTime>(editedAt);
+    }
+    {
+      map['attachments'] = Variable<String>(
+        $ChatMessagesTable.$converterattachments.toSql(attachments),
+      );
+    }
+    {
+      map['reactions'] = Variable<String>(
+        $ChatMessagesTable.$converterreactions.toSql(reactions),
+      );
+    }
+    if (!nullToAbsent || repliedMessageId != null) {
+      map['replied_message_id'] = Variable<String>(repliedMessageId);
+    }
+    if (!nullToAbsent || forwardedMessageId != null) {
+      map['forwarded_message_id'] = Variable<String>(forwardedMessageId);
+    }
     return map;
   }
 
@@ -302,7 +585,35 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       data: Value(data),
       createdAt: Value(createdAt),
       status: Value(status),
-      isRead: Value(isRead),
+      isDeleted:
+          isDeleted == null && nullToAbsent
+              ? const Value.absent()
+              : Value(isDeleted),
+      updatedAt:
+          updatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(updatedAt),
+      deletedAt:
+          deletedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(deletedAt),
+      type: Value(type),
+      meta: Value(meta),
+      membersMentioned: Value(membersMentioned),
+      editedAt:
+          editedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(editedAt),
+      attachments: Value(attachments),
+      reactions: Value(reactions),
+      repliedMessageId:
+          repliedMessageId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(repliedMessageId),
+      forwardedMessageId:
+          forwardedMessageId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(forwardedMessageId),
     );
   }
 
@@ -322,7 +633,25 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       status: $ChatMessagesTable.$converterstatus.fromJson(
         serializer.fromJson<int>(json['status']),
       ),
-      isRead: serializer.fromJson<bool>(json['isRead']),
+      isDeleted: serializer.fromJson<bool?>(json['isDeleted']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      type: serializer.fromJson<String>(json['type']),
+      meta: serializer.fromJson<Map<String, dynamic>>(json['meta']),
+      membersMentioned: serializer.fromJson<List<String>>(
+        json['membersMentioned'],
+      ),
+      editedAt: serializer.fromJson<DateTime?>(json['editedAt']),
+      attachments: serializer.fromJson<List<Map<String, dynamic>>>(
+        json['attachments'],
+      ),
+      reactions: serializer.fromJson<List<Map<String, dynamic>>>(
+        json['reactions'],
+      ),
+      repliedMessageId: serializer.fromJson<String?>(json['repliedMessageId']),
+      forwardedMessageId: serializer.fromJson<String?>(
+        json['forwardedMessageId'],
+      ),
     );
   }
   @override
@@ -339,7 +668,17 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       'status': serializer.toJson<int>(
         $ChatMessagesTable.$converterstatus.toJson(status),
       ),
-      'isRead': serializer.toJson<bool>(isRead),
+      'isDeleted': serializer.toJson<bool?>(isDeleted),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'type': serializer.toJson<String>(type),
+      'meta': serializer.toJson<Map<String, dynamic>>(meta),
+      'membersMentioned': serializer.toJson<List<String>>(membersMentioned),
+      'editedAt': serializer.toJson<DateTime?>(editedAt),
+      'attachments': serializer.toJson<List<Map<String, dynamic>>>(attachments),
+      'reactions': serializer.toJson<List<Map<String, dynamic>>>(reactions),
+      'repliedMessageId': serializer.toJson<String?>(repliedMessageId),
+      'forwardedMessageId': serializer.toJson<String?>(forwardedMessageId),
     };
   }
 
@@ -352,7 +691,17 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     String? data,
     DateTime? createdAt,
     MessageStatus? status,
-    bool? isRead,
+    Value<bool?> isDeleted = const Value.absent(),
+    Value<DateTime?> updatedAt = const Value.absent(),
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? type,
+    Map<String, dynamic>? meta,
+    List<String>? membersMentioned,
+    Value<DateTime?> editedAt = const Value.absent(),
+    List<Map<String, dynamic>>? attachments,
+    List<Map<String, dynamic>>? reactions,
+    Value<String?> repliedMessageId = const Value.absent(),
+    Value<String?> forwardedMessageId = const Value.absent(),
   }) => ChatMessage(
     id: id ?? this.id,
     roomId: roomId ?? this.roomId,
@@ -362,7 +711,23 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     data: data ?? this.data,
     createdAt: createdAt ?? this.createdAt,
     status: status ?? this.status,
-    isRead: isRead ?? this.isRead,
+    isDeleted: isDeleted.present ? isDeleted.value : this.isDeleted,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    type: type ?? this.type,
+    meta: meta ?? this.meta,
+    membersMentioned: membersMentioned ?? this.membersMentioned,
+    editedAt: editedAt.present ? editedAt.value : this.editedAt,
+    attachments: attachments ?? this.attachments,
+    reactions: reactions ?? this.reactions,
+    repliedMessageId:
+        repliedMessageId.present
+            ? repliedMessageId.value
+            : this.repliedMessageId,
+    forwardedMessageId:
+        forwardedMessageId.present
+            ? forwardedMessageId.value
+            : this.forwardedMessageId,
   );
   ChatMessage copyWithCompanion(ChatMessagesCompanion data) {
     return ChatMessage(
@@ -374,7 +739,27 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       data: data.data.present ? data.data.value : this.data,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       status: data.status.present ? data.status.value : this.status,
-      isRead: data.isRead.present ? data.isRead.value : this.isRead,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      type: data.type.present ? data.type.value : this.type,
+      meta: data.meta.present ? data.meta.value : this.meta,
+      membersMentioned:
+          data.membersMentioned.present
+              ? data.membersMentioned.value
+              : this.membersMentioned,
+      editedAt: data.editedAt.present ? data.editedAt.value : this.editedAt,
+      attachments:
+          data.attachments.present ? data.attachments.value : this.attachments,
+      reactions: data.reactions.present ? data.reactions.value : this.reactions,
+      repliedMessageId:
+          data.repliedMessageId.present
+              ? data.repliedMessageId.value
+              : this.repliedMessageId,
+      forwardedMessageId:
+          data.forwardedMessageId.present
+              ? data.forwardedMessageId.value
+              : this.forwardedMessageId,
     );
   }
 
@@ -389,7 +774,17 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
           ..write('data: $data, ')
           ..write('createdAt: $createdAt, ')
           ..write('status: $status, ')
-          ..write('isRead: $isRead')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('type: $type, ')
+          ..write('meta: $meta, ')
+          ..write('membersMentioned: $membersMentioned, ')
+          ..write('editedAt: $editedAt, ')
+          ..write('attachments: $attachments, ')
+          ..write('reactions: $reactions, ')
+          ..write('repliedMessageId: $repliedMessageId, ')
+          ..write('forwardedMessageId: $forwardedMessageId')
           ..write(')'))
         .toString();
   }
@@ -404,7 +799,17 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     data,
     createdAt,
     status,
-    isRead,
+    isDeleted,
+    updatedAt,
+    deletedAt,
+    type,
+    meta,
+    membersMentioned,
+    editedAt,
+    attachments,
+    reactions,
+    repliedMessageId,
+    forwardedMessageId,
   );
   @override
   bool operator ==(Object other) =>
@@ -418,7 +823,17 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
           other.data == this.data &&
           other.createdAt == this.createdAt &&
           other.status == this.status &&
-          other.isRead == this.isRead);
+          other.isDeleted == this.isDeleted &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.type == this.type &&
+          other.meta == this.meta &&
+          other.membersMentioned == this.membersMentioned &&
+          other.editedAt == this.editedAt &&
+          other.attachments == this.attachments &&
+          other.reactions == this.reactions &&
+          other.repliedMessageId == this.repliedMessageId &&
+          other.forwardedMessageId == this.forwardedMessageId);
 }
 
 class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
@@ -430,7 +845,17 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
   final Value<String> data;
   final Value<DateTime> createdAt;
   final Value<MessageStatus> status;
-  final Value<bool> isRead;
+  final Value<bool?> isDeleted;
+  final Value<DateTime?> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> type;
+  final Value<Map<String, dynamic>> meta;
+  final Value<List<String>> membersMentioned;
+  final Value<DateTime?> editedAt;
+  final Value<List<Map<String, dynamic>>> attachments;
+  final Value<List<Map<String, dynamic>>> reactions;
+  final Value<String?> repliedMessageId;
+  final Value<String?> forwardedMessageId;
   final Value<int> rowid;
   const ChatMessagesCompanion({
     this.id = const Value.absent(),
@@ -441,7 +866,17 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     this.data = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.status = const Value.absent(),
-    this.isRead = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.type = const Value.absent(),
+    this.meta = const Value.absent(),
+    this.membersMentioned = const Value.absent(),
+    this.editedAt = const Value.absent(),
+    this.attachments = const Value.absent(),
+    this.reactions = const Value.absent(),
+    this.repliedMessageId = const Value.absent(),
+    this.forwardedMessageId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChatMessagesCompanion.insert({
@@ -453,7 +888,17 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     required String data,
     required DateTime createdAt,
     required MessageStatus status,
-    this.isRead = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.type = const Value.absent(),
+    this.meta = const Value.absent(),
+    this.membersMentioned = const Value.absent(),
+    this.editedAt = const Value.absent(),
+    this.attachments = const Value.absent(),
+    this.reactions = const Value.absent(),
+    this.repliedMessageId = const Value.absent(),
+    this.forwardedMessageId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        roomId = Value(roomId),
@@ -470,7 +915,17 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     Expression<String>? data,
     Expression<DateTime>? createdAt,
     Expression<int>? status,
-    Expression<bool>? isRead,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? type,
+    Expression<String>? meta,
+    Expression<String>? membersMentioned,
+    Expression<DateTime>? editedAt,
+    Expression<String>? attachments,
+    Expression<String>? reactions,
+    Expression<String>? repliedMessageId,
+    Expression<String>? forwardedMessageId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -482,7 +937,18 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
       if (data != null) 'data': data,
       if (createdAt != null) 'created_at': createdAt,
       if (status != null) 'status': status,
-      if (isRead != null) 'is_read': isRead,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (type != null) 'type': type,
+      if (meta != null) 'meta': meta,
+      if (membersMentioned != null) 'members_mentioned': membersMentioned,
+      if (editedAt != null) 'edited_at': editedAt,
+      if (attachments != null) 'attachments': attachments,
+      if (reactions != null) 'reactions': reactions,
+      if (repliedMessageId != null) 'replied_message_id': repliedMessageId,
+      if (forwardedMessageId != null)
+        'forwarded_message_id': forwardedMessageId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -496,7 +962,17 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     Value<String>? data,
     Value<DateTime>? createdAt,
     Value<MessageStatus>? status,
-    Value<bool>? isRead,
+    Value<bool?>? isDeleted,
+    Value<DateTime?>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? type,
+    Value<Map<String, dynamic>>? meta,
+    Value<List<String>>? membersMentioned,
+    Value<DateTime?>? editedAt,
+    Value<List<Map<String, dynamic>>>? attachments,
+    Value<List<Map<String, dynamic>>>? reactions,
+    Value<String?>? repliedMessageId,
+    Value<String?>? forwardedMessageId,
     Value<int>? rowid,
   }) {
     return ChatMessagesCompanion(
@@ -508,7 +984,17 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
       data: data ?? this.data,
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
-      isRead: isRead ?? this.isRead,
+      isDeleted: isDeleted ?? this.isDeleted,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      type: type ?? this.type,
+      meta: meta ?? this.meta,
+      membersMentioned: membersMentioned ?? this.membersMentioned,
+      editedAt: editedAt ?? this.editedAt,
+      attachments: attachments ?? this.attachments,
+      reactions: reactions ?? this.reactions,
+      repliedMessageId: repliedMessageId ?? this.repliedMessageId,
+      forwardedMessageId: forwardedMessageId ?? this.forwardedMessageId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -542,8 +1028,48 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
         $ChatMessagesTable.$converterstatus.toSql(status.value),
       );
     }
-    if (isRead.present) {
-      map['is_read'] = Variable<bool>(isRead.value);
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (meta.present) {
+      map['meta'] = Variable<String>(
+        $ChatMessagesTable.$convertermeta.toSql(meta.value),
+      );
+    }
+    if (membersMentioned.present) {
+      map['members_mentioned'] = Variable<String>(
+        $ChatMessagesTable.$convertermembersMentioned.toSql(
+          membersMentioned.value,
+        ),
+      );
+    }
+    if (editedAt.present) {
+      map['edited_at'] = Variable<DateTime>(editedAt.value);
+    }
+    if (attachments.present) {
+      map['attachments'] = Variable<String>(
+        $ChatMessagesTable.$converterattachments.toSql(attachments.value),
+      );
+    }
+    if (reactions.present) {
+      map['reactions'] = Variable<String>(
+        $ChatMessagesTable.$converterreactions.toSql(reactions.value),
+      );
+    }
+    if (repliedMessageId.present) {
+      map['replied_message_id'] = Variable<String>(repliedMessageId.value);
+    }
+    if (forwardedMessageId.present) {
+      map['forwarded_message_id'] = Variable<String>(forwardedMessageId.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -562,7 +1088,17 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
           ..write('data: $data, ')
           ..write('createdAt: $createdAt, ')
           ..write('status: $status, ')
-          ..write('isRead: $isRead, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('type: $type, ')
+          ..write('meta: $meta, ')
+          ..write('membersMentioned: $membersMentioned, ')
+          ..write('editedAt: $editedAt, ')
+          ..write('attachments: $attachments, ')
+          ..write('reactions: $reactions, ')
+          ..write('repliedMessageId: $repliedMessageId, ')
+          ..write('forwardedMessageId: $forwardedMessageId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1118,7 +1654,17 @@ typedef $$ChatMessagesTableCreateCompanionBuilder =
       required String data,
       required DateTime createdAt,
       required MessageStatus status,
-      Value<bool> isRead,
+      Value<bool?> isDeleted,
+      Value<DateTime?> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> type,
+      Value<Map<String, dynamic>> meta,
+      Value<List<String>> membersMentioned,
+      Value<DateTime?> editedAt,
+      Value<List<Map<String, dynamic>>> attachments,
+      Value<List<Map<String, dynamic>>> reactions,
+      Value<String?> repliedMessageId,
+      Value<String?> forwardedMessageId,
       Value<int> rowid,
     });
 typedef $$ChatMessagesTableUpdateCompanionBuilder =
@@ -1131,7 +1677,17 @@ typedef $$ChatMessagesTableUpdateCompanionBuilder =
       Value<String> data,
       Value<DateTime> createdAt,
       Value<MessageStatus> status,
-      Value<bool> isRead,
+      Value<bool?> isDeleted,
+      Value<DateTime?> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> type,
+      Value<Map<String, dynamic>> meta,
+      Value<List<String>> membersMentioned,
+      Value<DateTime?> editedAt,
+      Value<List<Map<String, dynamic>>> attachments,
+      Value<List<Map<String, dynamic>>> reactions,
+      Value<String?> repliedMessageId,
+      Value<String?> forwardedMessageId,
       Value<int> rowid,
     });
 
@@ -1185,8 +1741,74 @@ class $$ChatMessagesTableFilterComposer
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
-  ColumnFilters<bool> get isRead => $composableBuilder(
-    column: $table.isRead,
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    Map<String, dynamic>,
+    Map<String, dynamic>,
+    String
+  >
+  get meta => $composableBuilder(
+    column: $table.meta,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String>
+  get membersMentioned => $composableBuilder(
+    column: $table.membersMentioned,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<DateTime> get editedAt => $composableBuilder(
+    column: $table.editedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    List<Map<String, dynamic>>,
+    List<Map<String, dynamic>>,
+    String
+  >
+  get attachments => $composableBuilder(
+    column: $table.attachments,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    List<Map<String, dynamic>>,
+    List<Map<String, dynamic>>,
+    String
+  >
+  get reactions => $composableBuilder(
+    column: $table.reactions,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get repliedMessageId => $composableBuilder(
+    column: $table.repliedMessageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get forwardedMessageId => $composableBuilder(
+    column: $table.forwardedMessageId,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1240,8 +1862,58 @@ class $$ChatMessagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get isRead => $composableBuilder(
-    column: $table.isRead,
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get meta => $composableBuilder(
+    column: $table.meta,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get membersMentioned => $composableBuilder(
+    column: $table.membersMentioned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get editedAt => $composableBuilder(
+    column: $table.editedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get attachments => $composableBuilder(
+    column: $table.attachments,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reactions => $composableBuilder(
+    column: $table.reactions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get repliedMessageId => $composableBuilder(
+    column: $table.repliedMessageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get forwardedMessageId => $composableBuilder(
+    column: $table.forwardedMessageId,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -1279,8 +1951,49 @@ class $$ChatMessagesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<MessageStatus, int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
-  GeneratedColumn<bool> get isRead =>
-      $composableBuilder(column: $table.isRead, builder: (column) => column);
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Map<String, dynamic>, String> get meta =>
+      $composableBuilder(column: $table.meta, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<String>, String> get membersMentioned =>
+      $composableBuilder(
+        column: $table.membersMentioned,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<DateTime> get editedAt =>
+      $composableBuilder(column: $table.editedAt, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<Map<String, dynamic>>, String>
+  get attachments => $composableBuilder(
+    column: $table.attachments,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<List<Map<String, dynamic>>, String>
+  get reactions =>
+      $composableBuilder(column: $table.reactions, builder: (column) => column);
+
+  GeneratedColumn<String> get repliedMessageId => $composableBuilder(
+    column: $table.repliedMessageId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get forwardedMessageId => $composableBuilder(
+    column: $table.forwardedMessageId,
+    builder: (column) => column,
+  );
 }
 
 class $$ChatMessagesTableTableManager
@@ -1323,7 +2036,19 @@ class $$ChatMessagesTableTableManager
                 Value<String> data = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<MessageStatus> status = const Value.absent(),
-                Value<bool> isRead = const Value.absent(),
+                Value<bool?> isDeleted = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<Map<String, dynamic>> meta = const Value.absent(),
+                Value<List<String>> membersMentioned = const Value.absent(),
+                Value<DateTime?> editedAt = const Value.absent(),
+                Value<List<Map<String, dynamic>>> attachments =
+                    const Value.absent(),
+                Value<List<Map<String, dynamic>>> reactions =
+                    const Value.absent(),
+                Value<String?> repliedMessageId = const Value.absent(),
+                Value<String?> forwardedMessageId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatMessagesCompanion(
                 id: id,
@@ -1334,7 +2059,17 @@ class $$ChatMessagesTableTableManager
                 data: data,
                 createdAt: createdAt,
                 status: status,
-                isRead: isRead,
+                isDeleted: isDeleted,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                type: type,
+                meta: meta,
+                membersMentioned: membersMentioned,
+                editedAt: editedAt,
+                attachments: attachments,
+                reactions: reactions,
+                repliedMessageId: repliedMessageId,
+                forwardedMessageId: forwardedMessageId,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1347,7 +2082,19 @@ class $$ChatMessagesTableTableManager
                 required String data,
                 required DateTime createdAt,
                 required MessageStatus status,
-                Value<bool> isRead = const Value.absent(),
+                Value<bool?> isDeleted = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<Map<String, dynamic>> meta = const Value.absent(),
+                Value<List<String>> membersMentioned = const Value.absent(),
+                Value<DateTime?> editedAt = const Value.absent(),
+                Value<List<Map<String, dynamic>>> attachments =
+                    const Value.absent(),
+                Value<List<Map<String, dynamic>>> reactions =
+                    const Value.absent(),
+                Value<String?> repliedMessageId = const Value.absent(),
+                Value<String?> forwardedMessageId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatMessagesCompanion.insert(
                 id: id,
@@ -1358,7 +2105,17 @@ class $$ChatMessagesTableTableManager
                 data: data,
                 createdAt: createdAt,
                 status: status,
-                isRead: isRead,
+                isDeleted: isDeleted,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                type: type,
+                meta: meta,
+                membersMentioned: membersMentioned,
+                editedAt: editedAt,
+                attachments: attachments,
+                reactions: reactions,
+                repliedMessageId: repliedMessageId,
+                forwardedMessageId: forwardedMessageId,
                 rowid: rowid,
               ),
           withReferenceMapper:

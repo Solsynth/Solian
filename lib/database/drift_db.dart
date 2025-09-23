@@ -12,7 +12,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -21,8 +21,8 @@ class AppDatabase extends _$AppDatabase {
     },
     onUpgrade: (Migrator m, int from, int to) async {
       if (from < 2) {
-        // Add isRead column with default value false
-        await m.addColumn(chatMessages, chatMessages.isRead);
+        // Add isDeleted column with default value false
+        await m.addColumn(chatMessages, chatMessages.isDeleted);
       }
       if (from < 4) {
         // Drop old draft tables if they exist
@@ -31,6 +31,19 @@ class AppDatabase extends _$AppDatabase {
       if (from < 6) {
         // Migrate from old schema to new schema with separate searchable fields
         await _migrateToVersion6(m);
+      }
+      if (from < 7) {
+        // Add new columns from SnChatMessage
+        await m.addColumn(chatMessages, chatMessages.updatedAt);
+        await m.addColumn(chatMessages, chatMessages.deletedAt);
+        await m.addColumn(chatMessages, chatMessages.type);
+        await m.addColumn(chatMessages, chatMessages.meta);
+        await m.addColumn(chatMessages, chatMessages.membersMentioned);
+        await m.addColumn(chatMessages, chatMessages.editedAt);
+        await m.addColumn(chatMessages, chatMessages.attachments);
+        await m.addColumn(chatMessages, chatMessages.reactions);
+        await m.addColumn(chatMessages, chatMessages.repliedMessageId);
+        await m.addColumn(chatMessages, chatMessages.forwardedMessageId);
       }
     },
   );
@@ -116,12 +129,6 @@ class AppDatabase extends _$AppDatabase {
     )).write(ChatMessagesCompanion(status: Value(status)));
   }
 
-  Future<int> markMessageAsRead(String id) {
-    return (update(chatMessages)..where(
-      (m) => m.id.equals(id),
-    )).write(ChatMessagesCompanion(isRead: const Value(true)));
-  }
-
   Future<int> deleteMessage(String id) {
     return (delete(chatMessages)..where((m) => m.id.equals(id))).go();
   }
@@ -154,16 +161,26 @@ class AppDatabase extends _$AppDatabase {
 
   // Convert between Drift and model objects
   ChatMessagesCompanion messageToCompanion(LocalChatMessage message) {
+    final remote = message.toRemoteMessage();
     return ChatMessagesCompanion(
       id: Value(message.id),
       roomId: Value(message.roomId),
       senderId: Value(message.senderId),
-      content: Value(message.toRemoteMessage().content),
+      content: Value(remote.content),
       nonce: Value(message.nonce),
       data: Value(jsonEncode(message.data)),
       createdAt: Value(message.createdAt),
       status: Value(message.status),
-      isRead: Value(message.isRead),
+      updatedAt: Value(remote.updatedAt),
+      deletedAt: Value(remote.deletedAt),
+      type: Value(remote.type),
+      meta: Value(remote.meta),
+      membersMentioned: Value(remote.membersMentioned),
+      editedAt: Value(remote.editedAt),
+      attachments: Value(remote.attachments.map((e) => e.toJson()).toList()),
+      reactions: Value(remote.reactions.map((e) => e.toJson()).toList()),
+      repliedMessageId: Value(remote.repliedMessageId),
+      forwardedMessageId: Value(remote.forwardedMessageId),
     );
   }
 
@@ -177,7 +194,6 @@ class AppDatabase extends _$AppDatabase {
       createdAt: dbMessage.createdAt,
       status: dbMessage.status,
       nonce: dbMessage.nonce,
-      isRead: dbMessage.isRead,
     );
   }
 

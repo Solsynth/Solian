@@ -69,8 +69,8 @@ _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
       content: json['content'] as String?,
       nonce: json['nonce'] as String?,
       meta: json['meta'] as Map<String, dynamic>? ?? const {},
-      membersMetioned:
-          (json['members_metioned'] as List<dynamic>?)
+      membersMentioned:
+          (json['members_mentioned'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -105,7 +105,7 @@ Map<String, dynamic> _$SnChatMessageToJson(_SnChatMessage instance) =>
       'content': instance.content,
       'nonce': instance.nonce,
       'meta': instance.meta,
-      'members_metioned': instance.membersMetioned,
+      'members_mentioned': instance.membersMentioned,
       'edited_at': instance.editedAt?.toIso8601String(),
       'attachments': instance.attachments.map((e) => e.toJson()).toList(),
       'reactions': instance.reactions.map((e) => e.toJson()).toList(),
@@ -227,30 +227,11 @@ Map<String, dynamic> _$SnChatSummaryToJson(_SnChatSummary instance) =>
       'last_message': instance.lastMessage?.toJson(),
     };
 
-_MessageChange _$MessageChangeFromJson(Map<String, dynamic> json) =>
-    _MessageChange(
-      messageId: json['message_id'] as String,
-      action: json['action'] as String,
-      message:
-          json['message'] == null
-              ? null
-              : SnChatMessage.fromJson(json['message'] as Map<String, dynamic>),
-      timestamp: DateTime.parse(json['timestamp'] as String),
-    );
-
-Map<String, dynamic> _$MessageChangeToJson(_MessageChange instance) =>
-    <String, dynamic>{
-      'message_id': instance.messageId,
-      'action': instance.action,
-      'message': instance.message?.toJson(),
-      'timestamp': instance.timestamp.toIso8601String(),
-    };
-
 _MessageSyncResponse _$MessageSyncResponseFromJson(Map<String, dynamic> json) =>
     _MessageSyncResponse(
-      changes:
-          (json['changes'] as List<dynamic>?)
-              ?.map((e) => MessageChange.fromJson(e as Map<String, dynamic>))
+      messages:
+          (json['messages'] as List<dynamic>?)
+              ?.map((e) => SnChatMessage.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       currentTimestamp: DateTime.parse(json['current_timestamp'] as String),
@@ -259,7 +240,7 @@ _MessageSyncResponse _$MessageSyncResponseFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$MessageSyncResponseToJson(
   _MessageSyncResponse instance,
 ) => <String, dynamic>{
-  'changes': instance.changes.map((e) => e.toJson()).toList(),
+  'messages': instance.messages.map((e) => e.toJson()).toList(),
   'current_timestamp': instance.currentTimestamp.toIso8601String(),
 };
 
