@@ -189,6 +189,7 @@ flutter:
     - assets/i18n/
     - assets/images/
     - assets/images/oidc/
+    - assets/images/stickers/
     - assets/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see

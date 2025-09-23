@@ -31,6 +31,29 @@ import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
+const kAvailableStickers = {'angry', 'clap', 'confuse', 'pray', 'thumb_up'};
+
+bool _getReactionImageAvailable(String symbol) {
+  return kAvailableStickers.contains(symbol);
+}
+
+Widget _buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
+  if (_getReactionImageAvailable(symbol)) {
+    return Image.asset(
+      'assets/images/stickers/$symbol.png',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      alignment: Alignment.bottomCenter,
+    );
+  } else {
+    return Text(
+      kReactionTemplates[symbol]?.icon ?? '',
+      style: TextStyle(fontSize: iconSize),
+    );
+  }
+}
+
 class PostActionableItem extends HookConsumerWidget {
   final SnPost item;
   final EdgeInsets? padding;
@@ -490,57 +513,61 @@ class PostItem extends HookConsumerWidget {
           trailing:
               isCompact
                   ? null
-                  : IconButton(
-                    icon:
-                        mostReaction == null
-                            ? const Icon(Symbols.add_reaction)
-                            : Badge(
-                              label: Center(
-                                child: Text(
-                                  'x${item.reactionsCount[mostReaction]}',
-                                  style: const TextStyle(fontSize: 11),
-                                  textAlign: TextAlign.center,
+                  : SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: IconButton(
+                      icon:
+                          mostReaction == null
+                              ? const Icon(Symbols.add_reaction)
+                              : Badge(
+                                label: Center(
+                                  child: Text(
+                                    'x${item.reactionsCount[mostReaction]}',
+                                    style: const TextStyle(fontSize: 11),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
+                                offset: const Offset(4, 20),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.75),
+                                textColor:
+                                    Theme.of(context).colorScheme.onPrimary,
+                                child: _buildReactionIcon(
+                                  mostReaction,
+                                  32,
+                                ).padding(bottom: 2),
                               ),
-                              offset: const Offset(4, 20),
-                              backgroundColor: Theme.of(
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll(
+                          (item.reactionsMade[mostReaction] ?? false)
+                              ? Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.75),
-                              textColor:
-                                  Theme.of(context).colorScheme.onPrimary,
-                              child: Text(
-                                kReactionTemplates[mostReaction]?.icon ?? '',
-                                style: const TextStyle(fontSize: 20),
-                              ),
-                            ),
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        (item.reactionsMade[mostReaction] ?? false)
-                            ? Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.5)
-                            : null,
+                              ).colorScheme.primary.withOpacity(0.5)
+                              : null,
+                        ),
                       ),
-                    ),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        useRootNavigator: true,
-                        builder: (BuildContext context) {
-                          return _PostReactionSheet(
-                            reactionsCount: item.reactionsCount,
-                            reactionsMade: item.reactionsMade,
-                            onReact: (symbol, attitude) {
-                              reactPost(symbol, attitude);
-                            },
-                          );
-                        },
-                      );
-                    },
-                    padding: EdgeInsets.zero,
-                    visualDensity: const VisualDensity(
-                      horizontal: -3,
-                      vertical: -3,
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          useRootNavigator: true,
+                          builder: (BuildContext context) {
+                            return _PostReactionSheet(
+                              reactionsCount: item.reactionsCount,
+                              reactionsMade: item.reactionsMade,
+                              onReact: (symbol, attitude) {
+                                reactPost(symbol, attitude);
+                              },
+                            );
+                          },
+                        );
+                      },
+                      padding: EdgeInsets.zero,
+                      visualDensity: const VisualDensity(
+                        horizontal: -3,
+                        vertical: -3,
+                      ),
                     ),
                   ),
         ),
@@ -611,7 +638,7 @@ class PostReactionList extends HookConsumerWidget {
     }
 
     return SizedBox(
-      height: 28,
+      height: 40,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: padding ?? EdgeInsets.zero,
@@ -649,7 +676,7 @@ class PostReactionList extends HookConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ActionChip(
-                avatar: Text(kReactionTemplates[symbol]?.icon ?? '?'),
+                avatar: _buildReactionIcon(symbol, 24),
                 label: Row(
                   spacing: 4,
                   children: [
@@ -786,37 +813,96 @@ class _PostReactionSheet extends StatelessWidget {
             itemBuilder: (context, index) {
               final symbol = allReactions[index];
               final count = reactionsCount[symbol] ?? 0;
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                color:
-                    (reactionsMade[symbol] ?? false)
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : Theme.of(context).colorScheme.surfaceContainerLowest,
-                child: InkWell(
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  onTap: () {
-                    onReact(symbol, attitude);
-                    Navigator.pop(context);
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        kReactionTemplates[symbol]?.icon ?? '',
-                        textAlign: TextAlign.center,
-                      ).fontSize(24),
-                      Text(
-                        ReactInfo.getTranslationKey(symbol),
-                        textAlign: TextAlign.center,
-                      ).tr(),
-                      if (count > 0)
-                        Text(
-                          'x$count',
-                          textAlign: TextAlign.center,
-                        ).bold().padding(bottom: 4)
-                      else
-                        const Gap(20),
-                    ],
+              final hasImage = _getReactionImageAvailable(symbol);
+              return Badge(
+                label: Text('x$count'),
+                isLabelVisible: count > 0,
+                textColor: Theme.of(context).colorScheme.onPrimary,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                offset: Offset(0, 0),
+                child: Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                  child: InkWell(
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    onTap: () {
+                      onReact(symbol, attitude);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      decoration:
+                          hasImage
+                              ? BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                image: DecorationImage(
+                                  image: AssetImage(
+                                    'assets/images/stickers/$symbol.png',
+                                  ),
+                                  fit: BoxFit.cover,
+                                  colorFilter:
+                                      (reactionsMade[symbol] ?? false)
+                                          ? ColorFilter.mode(
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primaryContainer
+                                                .withOpacity(0.7),
+                                            BlendMode.srcATop,
+                                          )
+                                          : null,
+                                ),
+                              )
+                              : null,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (hasImage)
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest
+                                        .withOpacity(0.7),
+                                    Colors.transparent,
+                                  ],
+                                  stops: [0.0, 0.3],
+                                ),
+                              ),
+                            ),
+                          Column(
+                            mainAxisAlignment:
+                                hasImage
+                                    ? MainAxisAlignment.end
+                                    : MainAxisAlignment.center,
+                            children: [
+                              if (!hasImage) _buildReactionIcon(symbol, 36),
+                              Text(
+                                ReactInfo.getTranslationKey(symbol),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: hasImage ? Colors.white : null,
+                                  shadows:
+                                      hasImage
+                                          ? [
+                                            const Shadow(
+                                              blurRadius: 4,
+                                              offset: Offset(0.5, 0.5),
+                                              color: Colors.black,
+                                            ),
+                                          ]
+                                          : null,
+                                ),
+                              ).tr(),
+                              if (hasImage) const Gap(4),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               );
