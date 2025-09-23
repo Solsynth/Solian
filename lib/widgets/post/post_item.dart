@@ -31,7 +31,14 @@ import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
-const kAvailableStickers = {'angry', 'clap', 'confuse', 'pray', 'thumb_up'};
+const kAvailableStickers = {
+  'angry',
+  'clap',
+  'confuse',
+  'pray',
+  'thumb_up',
+  'party',
+};
 
 bool _getReactionImageAvailable(String symbol) {
   return kAvailableStickers.contains(symbol);
