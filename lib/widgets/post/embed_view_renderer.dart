@@ -276,7 +276,7 @@ class EmbedViewRenderer extends HookConsumerWidget {
                                 ),
                               ),
                               Text(
-                                'embedViewLoadHint'.tr(),
+                                'viewEmbedLoadHint'.tr(),
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: colorScheme.onSurfaceVariant
                                       .withOpacity(0.6),
