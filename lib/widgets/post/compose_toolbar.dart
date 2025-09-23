@@ -82,75 +82,83 @@ class ComposeToolbar extends HookConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 560),
           child: Row(
             children: [
-              IconButton(
-                onPressed: pickPhotoMedia,
-                tooltip: 'addPhoto'.tr(),
-                icon: const Icon(Symbols.add_a_photo),
-                color: colorScheme.primary,
-              ),
-              IconButton(
-                onPressed: pickVideoMedia,
-                tooltip: 'addVideo'.tr(),
-                icon: const Icon(Symbols.videocam),
-                color: colorScheme.primary,
-              ),
-              IconButton(
-                onPressed: addAudio,
-                tooltip: 'addAudio'.tr(),
-                icon: const Icon(Symbols.mic),
-                color: colorScheme.primary,
-              ),
-              IconButton(
-                onPressed: pickGeneralFile,
-                tooltip: 'uploadFile'.tr(),
-                icon: const Icon(Symbols.file_upload),
-                color: colorScheme.primary,
-              ),
-              IconButton(
-                onPressed: linkAttachment,
-                icon: const Icon(Symbols.attach_file),
-                tooltip: 'linkAttachment'.tr(),
-                color: colorScheme.primary,
-              ),
-              // Poll button with visual state when a poll is linked
-              ListenableBuilder(
-                listenable: state.pollId,
-                builder: (context, _) {
-                  return IconButton(
-                    onPressed: pickPoll,
-                    icon: const Icon(Symbols.how_to_vote),
-                    tooltip: 'poll'.tr(),
-                    color: colorScheme.primary,
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        state.pollId.value != null
-                            ? colorScheme.primary.withOpacity(0.15)
-                            : null,
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: pickPhotoMedia,
+                        tooltip: 'addPhoto'.tr(),
+                        icon: const Icon(Symbols.add_a_photo),
+                        color: colorScheme.primary,
                       ),
-                    ),
-                  );
-                },
-              ),
-              // Embed button with visual state when embed is present
-              ListenableBuilder(
-                listenable: state.embedView,
-                builder: (context, _) {
-                  return IconButton(
-                    onPressed: showEmbedSheet,
-                    icon: const Icon(Symbols.web),
-                    tooltip: 'embedView'.tr(),
-                    color: colorScheme.primary,
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        state.embedView.value != null
-                            ? colorScheme.primary.withOpacity(0.15)
-                            : null,
+                      IconButton(
+                        onPressed: pickVideoMedia,
+                        tooltip: 'addVideo'.tr(),
+                        icon: const Icon(Symbols.videocam),
+                        color: colorScheme.primary,
                       ),
-                    ),
-                  );
-                },
+                      IconButton(
+                        onPressed: addAudio,
+                        tooltip: 'addAudio'.tr(),
+                        icon: const Icon(Symbols.mic),
+                        color: colorScheme.primary,
+                      ),
+                      IconButton(
+                        onPressed: pickGeneralFile,
+                        tooltip: 'uploadFile'.tr(),
+                        icon: const Icon(Symbols.file_upload),
+                        color: colorScheme.primary,
+                      ),
+                      IconButton(
+                        onPressed: linkAttachment,
+                        icon: const Icon(Symbols.attach_file),
+                        tooltip: 'linkAttachment'.tr(),
+                        color: colorScheme.primary,
+                      ),
+                      // Poll button with visual state when a poll is linked
+                      ListenableBuilder(
+                        listenable: state.pollId,
+                        builder: (context, _) {
+                          return IconButton(
+                            onPressed: pickPoll,
+                            icon: const Icon(Symbols.how_to_vote),
+                            tooltip: 'poll'.tr(),
+                            color: colorScheme.primary,
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStatePropertyAll(
+                                state.pollId.value != null
+                                    ? colorScheme.primary.withOpacity(0.15)
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      // Embed button with visual state when embed is present
+                      ListenableBuilder(
+                        listenable: state.embedView,
+                        builder: (context, _) {
+                          return IconButton(
+                            onPressed: showEmbedSheet,
+                            icon: const Icon(Symbols.iframe),
+                            tooltip: 'embedView'.tr(),
+                            color: colorScheme.primary,
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStatePropertyAll(
+                                state.embedView.value != null
+                                    ? colorScheme.primary.withOpacity(0.15)
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const Spacer(),
               if (originalPost == null && state.isEmpty)
                 IconButton(
                   icon: const Icon(Symbols.draft),

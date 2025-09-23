@@ -1012,6 +1012,11 @@
   "expandPoll": "Expand Poll",
   "collapsePoll": "Collapse Poll",
   "embedView": "Embed View",
+  "auto": "Auto",
+  "manual": "Manual",
+  "iframeCode": "Iframe Code",
+  "iframeCodeHint": "<iframe src=\"...\" width=\"...\" height=\"...\">",
+  "parseIframe": "Parse Iframe",
   "embedUri": "Embed URI",
   "aspectRatio": "Aspect Ratio",
   "renderer": "Renderer",
@@ -1023,5 +1028,6 @@
   "noEmbed": "No embed yet",
   "save": "Save",
   "webView": "Web View",
-  "messageActions": "Message Actions"
+  "messageActions": "Message Actions",
+  "viewEmbedLoadHint": "Tap to load"
 }

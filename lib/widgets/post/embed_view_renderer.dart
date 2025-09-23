@@ -1,3 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -58,8 +61,8 @@ class EmbedViewRenderer extends HookConsumerWidget {
                 children: [
                   Icon(
                     embedView.renderer == PostEmbedViewRenderer.webView
-                        ? Symbols.web
-                        : Symbols.web,
+                        ? Symbols.globe
+                        : Symbols.iframe,
                     size: 16,
                     color: colorScheme.primary,
                   ),
@@ -74,13 +77,13 @@ class EmbedViewRenderer extends HookConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(
+                  InkWell(
+                    child: Icon(
                       Symbols.open_in_new,
                       size: 16,
                       color: colorScheme.onSurfaceVariant,
                     ),
-                    onPressed: () async {
+                    onTap: () async {
                       final uri = Uri.parse(embedView.uri);
                       if (await canLaunchUrl(uri)) {
                         await launchUrl(
@@ -89,10 +92,6 @@ class EmbedViewRenderer extends HookConsumerWidget {
                         );
                       }
                     },
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    visualDensity: VisualDensity.compact,
-                    tooltip: 'Open in browser',
                   ),
                 ],
               ),
@@ -106,6 +105,20 @@ class EmbedViewRenderer extends HookConsumerWidget {
                       ? Stack(
                         children: [
                           InAppWebView(
+                            gestureRecognizers: {
+                              Factory<VerticalDragGestureRecognizer>(
+                                () => VerticalDragGestureRecognizer(),
+                              ),
+                              Factory<HorizontalDragGestureRecognizer>(
+                                () => HorizontalDragGestureRecognizer(),
+                              ),
+                              Factory<ScaleGestureRecognizer>(
+                                () => ScaleGestureRecognizer(),
+                              ),
+                              Factory<TapGestureRecognizer>(
+                                () => TapGestureRecognizer(),
+                              ),
+                            },
                             initialUrlRequest: URLRequest(
                               url: WebUri(embedView.uri),
                             ),
@@ -256,14 +269,14 @@ class EmbedViewRenderer extends HookConsumerWidget {
                             children: [
                               Icon(
                                 Symbols.play_arrow,
+                                fill: 1,
                                 size: 48,
                                 color: colorScheme.onSurfaceVariant.withOpacity(
                                   0.6,
                                 ),
                               ),
-                              const SizedBox(height: 8),
                               Text(
-                                'Tap to load content',
+                                'embedViewLoadHint'.tr(),
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: colorScheme.onSurfaceVariant
                                       .withOpacity(0.6),
