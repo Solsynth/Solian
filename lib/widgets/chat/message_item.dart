@@ -106,84 +106,21 @@ class MessageItem extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         builder:
-            (context) => SheetScaffold(
-              titleText: 'messageActions'.tr(),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    if (isCurrentUser)
-                      ListTile(
-                        leading: Icon(Symbols.edit),
-                        title: Text('edit'.tr()),
-                        onTap: () {
-                          onAction!.call(MessageItemAction.edit);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    if (isCurrentUser)
-                      ListTile(
-                        leading: Icon(Symbols.delete),
-                        title: Text('delete'.tr()),
-                        onTap: () {
-                          onAction!.call(MessageItemAction.delete);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    if (isCurrentUser) Divider(),
-                    ListTile(
-                      leading: Icon(Symbols.reply),
-                      title: Text('reply'.tr()),
-                      onTap: () {
-                        onAction!.call(MessageItemAction.reply);
-                        Navigator.pop(context);
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(Symbols.forward),
-                      title: Text('forward'.tr()),
-                      onTap: () {
-                        onAction!.call(MessageItemAction.forward);
-                        Navigator.pop(context);
-                      },
-                    ),
-                    if (translatableLanguage) Divider(),
-                    if (translatableLanguage)
-                      ListTile(
-                        leading: Icon(Symbols.translate),
-                        title: Text(
-                          translatedText.value == null
-                              ? 'translate'.tr()
-                              : translating.value
-                              ? 'translating'.tr()
-                              : 'translated'.tr(),
-                        ),
-                        onTap: () {
-                          translate();
-                          Navigator.pop(context);
-                        },
-                      ),
-                    if (isMobile) Divider(),
-                    if (isMobile)
-                      ListTile(
-                        leading: Icon(Symbols.copy_all),
-                        title: Text('copyMessage'.tr()),
-                        onTap: () {
-                          Clipboard.setData(
-                            ClipboardData(text: remoteMessage.content ?? ''),
-                          );
-                          Navigator.pop(context);
-                        },
-                      ),
-                  ],
-                ),
-              ),
+            (context) => MessageActionSheet(
+              isCurrentUser: isCurrentUser,
+              onAction: onAction,
+              translatableLanguage: translatableLanguage,
+              translating: translating.value,
+              translatedText: translatedText.value,
+              translate: translate,
+              isMobile: isMobile,
+              remoteMessage: remoteMessage,
             ),
       );
     }
 
-    return GestureDetector(
+    return InkWell(
       onLongPress: showActionMenu,
-      onSecondaryTap: showActionMenu,
       child: switch (settings.messageDisplayStyle) {
         'irc' => MessageItemDisplayIRC(
           message: message,
@@ -194,7 +131,7 @@ class MessageItem extends HookConsumerWidget {
           translatedText: translatedText.value,
           translating: translating.value,
         ),
-        'discord' => MessageItemDisplayDiscord(
+        'column' => MessageItemDisplayDiscord(
           message: message,
           isCurrentUser: isCurrentUser,
           progress: progress,
@@ -213,6 +150,112 @@ class MessageItem extends HookConsumerWidget {
           translating: translating.value,
         ),
       },
+    );
+  }
+}
+
+class MessageActionSheet extends StatelessWidget {
+  final bool isCurrentUser;
+  final Function(String action)? onAction;
+  final bool translatableLanguage;
+  final bool translating;
+  final String? translatedText;
+  final VoidCallback translate;
+  final bool isMobile;
+  final dynamic remoteMessage;
+
+  const MessageActionSheet({
+    super.key,
+    required this.isCurrentUser,
+    required this.onAction,
+    required this.translatableLanguage,
+    required this.translating,
+    required this.translatedText,
+    required this.translate,
+    required this.isMobile,
+    required this.remoteMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SheetScaffold(
+      titleText: 'messageActions'.tr(),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const Gap(4),
+            if (isCurrentUser)
+              ListTile(
+                leading: Icon(Symbols.edit),
+                title: Text('edit'.tr()),
+                minTileHeight: 48,
+                onTap: () {
+                  onAction!.call(MessageItemAction.edit);
+                  Navigator.pop(context);
+                },
+              ),
+            if (isCurrentUser)
+              ListTile(
+                leading: Icon(Symbols.delete),
+                title: Text('delete'.tr()),
+                minTileHeight: 48,
+                onTap: () {
+                  onAction!.call(MessageItemAction.delete);
+                  Navigator.pop(context);
+                },
+              ),
+            if (isCurrentUser) const Divider(height: 8),
+            ListTile(
+              leading: Icon(Symbols.reply),
+              title: Text('reply'.tr()),
+              minTileHeight: 48,
+              onTap: () {
+                onAction!.call(MessageItemAction.reply);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Symbols.forward),
+              title: Text('forward'.tr()),
+              minTileHeight: 48,
+              onTap: () {
+                onAction!.call(MessageItemAction.forward);
+                Navigator.pop(context);
+              },
+            ),
+            if (translatableLanguage) const Divider(height: 8),
+            if (translatableLanguage)
+              ListTile(
+                leading: Icon(Symbols.translate),
+                minTileHeight: 48,
+                title: Text(
+                  translatedText == null
+                      ? 'translate'.tr()
+                      : translating
+                      ? 'translating'.tr()
+                      : 'translated'.tr(),
+                ),
+                onTap: () {
+                  translate();
+                  Navigator.pop(context);
+                },
+              ),
+            if (isMobile) const Divider(height: 8),
+            if (isMobile)
+              ListTile(
+                leading: Icon(Symbols.copy_all),
+                title: Text('copyMessage'.tr()),
+                minTileHeight: 48,
+                onTap: () {
+                  Clipboard.setData(
+                    ClipboardData(text: remoteMessage.content ?? ''),
+                  );
+                  Navigator.pop(context);
+                },
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -470,21 +513,109 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             DateFormat('HH:mm').format(message.createdAt),
             style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 12),
+          ).padding(top: 2),
+          AccountPfcGestureDetector(
+            uname: sender.account.name,
+            child: ProfilePictureWidget(
+              file: sender.account.profile.picture,
+              radius: 8,
+            ).padding(horizontal: 6, top: 2),
           ),
-          const SizedBox(width: 8),
           Text(
-            '<${sender.account.nick}>',
-            style: TextStyle(color: Colors.blue),
+            sender.account.nick,
+            style: TextStyle(color: Theme.of(context).colorScheme.primary),
           ),
-          const SizedBox(width: 8),
+          const Gap(8),
           Expanded(
-            child: Text(
-              translatedText ?? remoteMessage.content ?? '',
-              style: TextStyle(color: textColor),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (remoteMessage.repliedMessageId != null)
+                  MessageQuoteWidget(
+                    message: message,
+                    textColor: textColor,
+                    isReply: true,
+                  ).padding(vertical: 4),
+                if (remoteMessage.forwardedMessageId != null)
+                  MessageQuoteWidget(
+                    message: message,
+                    textColor: textColor,
+                    isReply: false,
+                  ).padding(vertical: 4),
+                if (MessageContent.hasContent(remoteMessage))
+                  MessageContent(
+                    item: remoteMessage,
+                    translatedText: translatedText,
+                  ),
+                if (remoteMessage.attachments.isNotEmpty)
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return CloudFileList(
+                        files: remoteMessage.attachments,
+                        maxWidth: constraints.maxWidth,
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                      );
+                    },
+                  ),
+                if (remoteMessage.meta['embeds'] != null)
+                  ...((remoteMessage.meta['embeds'] as List<dynamic>)
+                      .map((embed) => convertMapKeysToSnakeCase(embed))
+                      .where((embed) => embed['type'] == 'link')
+                      .map((embed) => SnScrappedLink.fromJson(embed))
+                      .map(
+                        (link) => LayoutBuilder(
+                          builder: (context, constraints) {
+                            return EmbedLinkWidget(
+                              link: link,
+                              maxWidth: math.min(constraints.maxWidth, 480),
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                            );
+                          },
+                        ),
+                      )
+                      .toList()),
+                if (progress != null && progress!.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 8,
+                    children: [
+                      if ((remoteMessage.content?.isNotEmpty ?? false))
+                        const SizedBox.shrink(),
+                      for (var entry in progress!.entries)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'fileUploadingProgress'.tr(
+                                args: [
+                                  (entry.key + 1).toString(),
+                                  entry.value.toStringAsFixed(1),
+                                ],
+                              ),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: textColor.withOpacity(0.8),
+                              ),
+                            ),
+                            const Gap(4),
+                            LinearProgressIndicator(
+                              value: entry.value / 100,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.surfaceVariant,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+              ],
             ),
           ),
         ],
@@ -635,7 +766,6 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                                   ),
                                 ],
                               ),
-                            const Gap(0),
                           ],
                         ),
                     ],
