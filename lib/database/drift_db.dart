@@ -206,6 +206,18 @@ class AppDatabase extends _$AppDatabase {
       createdAt: dbMessage.createdAt,
       status: dbMessage.status,
       nonce: dbMessage.nonce,
+      content: dbMessage.content,
+      isDeleted: dbMessage.isDeleted,
+      updatedAt: dbMessage.updatedAt,
+      deletedAt: dbMessage.deletedAt,
+      type: dbMessage.type,
+      meta: dbMessage.meta,
+      membersMentioned: dbMessage.membersMentioned,
+      editedAt: dbMessage.editedAt,
+      attachments: dbMessage.attachments,
+      reactions: dbMessage.reactions,
+      repliedMessageId: dbMessage.repliedMessageId,
+      forwardedMessageId: dbMessage.forwardedMessageId,
     );
   }
 

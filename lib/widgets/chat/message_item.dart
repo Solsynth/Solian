@@ -24,6 +24,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/embed/link.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
@@ -566,18 +567,38 @@ class _MessageItemContent extends StatelessWidget {
               ).colorScheme.onSurfaceVariant.withOpacity(0.6),
             ),
             const Gap(4),
-            Text(
-              item.content ?? 'Edited a message',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(
+            if (item.meta['previous_content'] is String)
+              PrettyDiffText(
+                oldText: item.meta['previous_content'],
+                newText: item.content ?? 'Edited a message',
+                defaultTextStyle: Theme.of(
                   context,
-                ).colorScheme.onSurfaceVariant.withOpacity(0.6),
-                fontStyle: FontStyle.italic,
+                ).textTheme.bodySmall!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                addedTextStyle: TextStyle(
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryFixedDim.withOpacity(0.4),
+                ),
+                deletedTextStyle: TextStyle(
+                  decoration: TextDecoration.lineThrough,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                ),
+              )
+            else
+              Text(
+                item.content ?? 'Edited a message',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.6),
+                ),
               ),
-            ),
           ],
         );
-      case 'deleted': // Client side history // TODO add seprate is_deleted column to indicate it
       case 'messages.delete':
         return Row(
           mainAxisSize: MainAxisSize.min,

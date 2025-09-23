@@ -76,8 +76,19 @@ class LocalChatMessage {
   final DateTime createdAt;
   MessageStatus status;
   final String? nonce;
+  final String? content;
+  final bool? isDeleted;
+  final DateTime? updatedAt;
+  final DateTime? deletedAt;
+  final String type;
+  final Map<String, dynamic> meta;
+  final List<String> membersMentioned;
+  final DateTime? editedAt;
+  final List<Map<String, dynamic>> attachments;
+  final List<Map<String, dynamic>> reactions;
+  final String? repliedMessageId;
+  final String? forwardedMessageId;
   List<UniversalFile>? localAttachments;
-  bool isRead;
 
   LocalChatMessage({
     required this.id,
@@ -87,8 +98,19 @@ class LocalChatMessage {
     required this.createdAt,
     required this.nonce,
     required this.status,
+    this.content,
+    this.isDeleted,
+    this.updatedAt,
+    this.deletedAt,
+    required this.type,
+    required this.meta,
+    required this.membersMentioned,
+    this.editedAt,
+    required this.attachments,
+    required this.reactions,
+    this.repliedMessageId,
+    this.forwardedMessageId,
     this.localAttachments,
-    this.isRead = false,
   });
 
   SnChatMessage toRemoteMessage() {
@@ -99,7 +121,6 @@ class LocalChatMessage {
     SnChatMessage message,
     MessageStatus status, {
     String? nonce,
-    bool isRead = false,
   }) {
     return LocalChatMessage(
       id: message.id,
@@ -109,7 +130,18 @@ class LocalChatMessage {
       createdAt: message.createdAt,
       status: status,
       nonce: nonce ?? message.nonce,
-      isRead: isRead,
+      content: message.content,
+      isDeleted: false,
+      updatedAt: message.updatedAt,
+      deletedAt: null,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments.map((e) => e.toJson()).toList(),
+      reactions: message.reactions.map((e) => e.toJson()).toList(),
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
     );
   }
 }

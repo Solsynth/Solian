@@ -904,7 +904,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     final remote = messageToUpdate.toRemoteMessage();
     final updatedRemote = remote.copyWith(
       content: 'This message was deleted',
-      type: 'deleted',
+      deletedAt: DateTime.now(),
       attachments: [],
     );
 

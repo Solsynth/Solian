@@ -449,6 +449,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.3"
+  diff_match_patch:
+    dependency: transitive
+    description:
+      name: diff_match_patch
+      sha256: "2efc9e6e8f449d0abe15be240e2c2a3bcd977c8d126cfd70598aee60af35c0a4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.1"
   dio:
     dependency: "direct main"
     description:
@@ -1885,6 +1893,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.3"
+  pretty_diff_text:
+    dependency: "direct main"
+    description:
+      name: pretty_diff_text
+      sha256: "2d4decf2bb6dac14c4e7a2cbd2da9ae7e004ccadc1155c723a0ca20a5daa7c57"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   process_run:
     dependency: "direct main"
     description:

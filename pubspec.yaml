@@ -152,6 +152,7 @@ dependencies:
   win32: ^5.14.0
   ffi: ^2.1.4
   dart_ipc: ^1.0.1
+  pretty_diff_text: ^2.1.0
 
 dev_dependencies:
   flutter_test:
