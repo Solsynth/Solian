@@ -12,6 +12,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/userinfo.dart';
 import 'package:island/services/color_extraction.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
@@ -35,7 +36,8 @@ class SettingsScreen extends HookConsumerWidget {
     final isDesktop =
         !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
     final isWide = isWideScreen(context);
-    final poolsAsync = ref.watch(poolsProvider);
+    final pools = ref.watch(poolsProvider);
+    final user = ref.watch(userInfoProvider);
     final docBasepath = useState<String?>(null);
 
     useEffect(() {
@@ -125,6 +127,48 @@ class SettingsScreen extends HookConsumerWidget {
                   .setCustomFonts(value.isEmpty ? null : value);
               showSnackBar('settingsApplied'.tr());
             },
+          ),
+        ),
+      ),
+
+      // Message display style settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsMessageDisplayStyle').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.chat),
+        trailing: DropdownButtonHideUnderline(
+          child: DropdownButton2<String>(
+            isExpanded: true,
+            items: [
+              DropdownMenuItem<String>(
+                value: 'bubble',
+                child: Text('Bubble').fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'discord',
+                child: Text('Discord').fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'irc',
+                child: Text('IRC').fontSize(14),
+              ),
+            ],
+            value: settings.messageDisplayStyle,
+            onChanged: (String? value) {
+              if (value != null) {
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setMessageDisplayStyle(value);
+                showSnackBar('settingsApplied'.tr());
+              }
+            },
+            buttonStyleData: const ButtonStyleData(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+              height: 40,
+              width: 140,
+            ),
+            menuItemStyleData: const MenuItemStyleData(height: 40),
           ),
         ),
       ),
@@ -370,65 +414,67 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
-      poolsAsync.when(
-        data: (pools) {
-          final validPools = pools.filterValid();
-          final currentPoolId = resolveDefaultPoolId(ref, pools);
+      if (user.value != null)
+        pools.when(
+          data: (data) {
+            final validPools = data.filterValid();
+            final currentPoolId = resolveDefaultPoolId(ref, data);
 
-          return ListTile(
-            isThreeLine: true,
-            minLeadingWidth: 48,
-            title: Text('settingsDefaultPool').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.cloud),
-            subtitle: Text(
-              validPools
-                      .firstWhereOrNull((p) => p.id == currentPoolId)
-                      ?.description ??
-                  'settingsDefaultPoolHelper'.tr(),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            trailing: DropdownButtonHideUnderline(
-              child: DropdownButton2<String>(
-                isExpanded: true,
-                items:
-                    validPools.map((p) {
-                      return DropdownMenuItem<String>(
-                        value: p.id,
-                        child: Text(p.name).fontSize(14),
-                      );
-                    }).toList(),
-                value: currentPoolId,
-                onChanged: (value) {
-                  ref
-                      .read(appSettingsNotifierProvider.notifier)
-                      .setDefaultPoolId(value);
-                  showSnackBar('settingsApplied'.tr());
-                },
-                buttonStyleData: const ButtonStyleData(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                  height: 40,
-                  width: 220,
-                ),
-                menuItemStyleData: const MenuItemStyleData(height: 40),
-              ),
-            ),
-          );
-        },
-        loading:
-            () => const ListTile(
-              minLeadingWidth: 48,
-              title: Text('Loading pools...'),
-              leading: CircularProgressIndicator(),
-            ),
-        error:
-            (err, st) => ListTile(
+            return ListTile(
+              isThreeLine: true,
               minLeadingWidth: 48,
               title: Text('settingsDefaultPool').tr(),
-              subtitle: Text('Error: $err'),
-              leading: const Icon(Icons.error, color: Colors.red),
-            ),
-      ),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.cloud),
+              subtitle: Text(
+                'settingsDefaultPoolHelper'.tr(),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              trailing: DropdownButtonHideUnderline(
+                child: DropdownButton2<String>(
+                  isExpanded: true,
+                  items:
+                      validPools.map((p) {
+                        return DropdownMenuItem<String>(
+                          value: p.id,
+                          child: Text(
+                            p.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ).fontSize(14),
+                        );
+                      }).toList(),
+                  value: currentPoolId,
+                  onChanged: (value) {
+                    ref
+                        .read(appSettingsNotifierProvider.notifier)
+                        .setDefaultPoolId(value);
+                    showSnackBar('settingsApplied'.tr());
+                  },
+                  buttonStyleData: const ButtonStyleData(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                    height: 40,
+                    width: 120,
+                  ),
+                  menuItemStyleData: const MenuItemStyleData(height: 40),
+                ),
+              ),
+            );
+          },
+          loading:
+              () => const ListTile(
+                minLeadingWidth: 48,
+                title: Text('Loading pools...'),
+                leading: CircularProgressIndicator(),
+              ),
+          error:
+              (err, st) => ListTile(
+                minLeadingWidth: 48,
+                title: Text('settingsDefaultPool').tr(),
+                subtitle: Text('Error: $err'),
+                leading: const Icon(Icons.error, color: Colors.red),
+              ),
+        ),
     ];
 
     final behaviorSettings = [

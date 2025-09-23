@@ -26,6 +26,7 @@ const kAppAprilFoolFeatures = 'app_april_fool_features';
 const kAppWindowSize = 'app_window_size';
 const kAppEnterToSend = 'app_enter_to_send';
 const kAppDefaultPoolId = 'app_default_pool_id';
+const kAppMessageDisplayStyle = 'app_message_display_style';
 const kFeaturedPostsCollapsedId =
     'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
 
@@ -67,6 +68,7 @@ sealed class AppSettings with _$AppSettings {
     required int? appColorScheme, // The color stored via the int type
     required Size? windowSize, // The window size for desktop platforms
     required String? defaultPoolId,
+    required String messageDisplayStyle,
   }) = _AppSettings;
 }
 
@@ -87,6 +89,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       appColorScheme: prefs.getInt(kAppColorSchemeStoreKey),
       windowSize: _getWindowSizeFromPrefs(prefs),
       defaultPoolId: prefs.getString(kAppDefaultPoolId),
+      messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
     );
   }
 
@@ -106,6 +109,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     }
     return null;
   }
+
   void setDefaultPoolId(String? value) {
     final prefs = ref.read(sharedPreferencesProvider);
     if (value != null) {
@@ -122,7 +126,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     state = state.copyWith(autoTranslate: value);
   }
 
-  void setDataSavingMode(bool value){
+  void setDataSavingMode(bool value) {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppDataSavingMode, value);
     state = state.copyWith(dataSavingMode: value);
@@ -185,6 +189,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   Size? getWindowSize() {
     return state.windowSize;
+  }
+
+  void setMessageDisplayStyle(String value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppMessageDisplayStyle, value);
+    state = state.copyWith(messageDisplayStyle: value);
   }
 }
 

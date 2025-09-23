@@ -13,6 +13,7 @@ import 'package:island/database/message.dart';
 import 'package:island/models/embed.dart';
 import 'package:island/pods/messages_notifier.dart';
 import 'package:island/pods/translate.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/screens/chat/room.dart';
 import 'package:island/utils/mapping.dart';
 import 'package:island/widgets/account/account_pfc.dart';
@@ -27,8 +28,6 @@ import 'package:island/widgets/content/embed/link.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/content/sheet.dart';
-
-const kChatMessageStyle = 'discord';
 
 class MessageItemAction {
   static const String edit = "edit";
@@ -58,6 +57,7 @@ class MessageItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final remoteMessage = message.toRemoteMessage();
+    final settings = ref.watch(appSettingsNotifierProvider);
 
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
@@ -184,7 +184,7 @@ class MessageItem extends HookConsumerWidget {
     return GestureDetector(
       onLongPress: showActionMenu,
       onSecondaryTap: showActionMenu,
-      child: switch (kChatMessageStyle) {
+      child: switch (settings.messageDisplayStyle) {
         'irc' => MessageItemDisplayIRC(
           message: message,
           isCurrentUser: isCurrentUser,

@@ -66,14 +66,13 @@ class MessageSenderInfo extends StatelessWidget {
       return Row(
         spacing: 8,
         children: [
-          if (!showAvatar)
-            AccountPfcGestureDetector(
-              uname: sender.account.name,
-              child: ProfilePictureWidget(
-                fileId: sender.account.profile.picture?.id,
-                radius: 14,
-              ),
+          AccountPfcGestureDetector(
+            uname: sender.account.name,
+            child: ProfilePictureWidget(
+              fileId: sender.account.profile.picture?.id,
+              radius: 14,
             ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
