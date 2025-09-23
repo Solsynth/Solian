@@ -1212,9 +1212,13 @@ class ChatRoomScreen extends HookConsumerWidget {
             // Send read receipt for new message
             sendReadReceipt();
           case 'messages.update':
-            messagesNotifier.receiveMessageUpdate(message);
+            messagesNotifier.receiveMessageUpdate(message).then((_) {
+              messagesNotifier.receiveMessage(message);
+            });
           case 'messages.delete':
-            messagesNotifier.receiveMessageDeletion(message.id);
+            messagesNotifier.receiveMessageDeletion(message.id).then((_) {
+              messagesNotifier.receiveMessage(message);
+            });
         }
       }
 
