@@ -391,7 +391,7 @@ $SnRealmCopyWith<$Res>? get realm {
 /// @nodoc
 mixin _$SnChatMessage {
 
- DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get type; String? get content; String? get nonce; Map<String, dynamic> get meta; List<String> get membersMetioned; DateTime? get editedAt; List<SnCloudFile> get attachments; List<SnChatReaction> get reactions; String? get repliedMessageId; String? get forwardedMessageId; String get senderId; SnChatMember get sender; String get chatRoomId;
+ DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get type; String? get content; String? get nonce; Map<String, dynamic> get meta; List<String> get membersMentioned; DateTime? get editedAt; List<SnCloudFile> get attachments; List<SnChatReaction> get reactions; String? get repliedMessageId; String? get forwardedMessageId; String get senderId; SnChatMember get sender; String get chatRoomId;
 /// Create a copy of SnChatMessage
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -404,16 +404,16 @@ $SnChatMessageCopyWith<SnChatMessage> get copyWith => _$SnChatMessageCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatMessage&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&const DeepCollectionEquality().equals(other.meta, meta)&&const DeepCollectionEquality().equals(other.membersMetioned, membersMetioned)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&const DeepCollectionEquality().equals(other.reactions, reactions)&&(identical(other.repliedMessageId, repliedMessageId) || other.repliedMessageId == repliedMessageId)&&(identical(other.forwardedMessageId, forwardedMessageId) || other.forwardedMessageId == forwardedMessageId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatMessage&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&const DeepCollectionEquality().equals(other.meta, meta)&&const DeepCollectionEquality().equals(other.membersMentioned, membersMentioned)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&const DeepCollectionEquality().equals(other.reactions, reactions)&&(identical(other.repliedMessageId, repliedMessageId) || other.repliedMessageId == repliedMessageId)&&(identical(other.forwardedMessageId, forwardedMessageId) || other.forwardedMessageId == forwardedMessageId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,id,type,content,nonce,const DeepCollectionEquality().hash(meta),const DeepCollectionEquality().hash(membersMetioned),editedAt,const DeepCollectionEquality().hash(attachments),const DeepCollectionEquality().hash(reactions),repliedMessageId,forwardedMessageId,senderId,sender,chatRoomId);
+int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,id,type,content,nonce,const DeepCollectionEquality().hash(meta),const DeepCollectionEquality().hash(membersMentioned),editedAt,const DeepCollectionEquality().hash(attachments),const DeepCollectionEquality().hash(reactions),repliedMessageId,forwardedMessageId,senderId,sender,chatRoomId);
 
 @override
 String toString() {
-  return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, nonce: $nonce, meta: $meta, membersMetioned: $membersMetioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
+  return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, nonce: $nonce, meta: $meta, membersMentioned: $membersMentioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
 }
 
 
@@ -424,7 +424,7 @@ abstract mixin class $SnChatMessageCopyWith<$Res>  {
   factory $SnChatMessageCopyWith(SnChatMessage value, $Res Function(SnChatMessage) _then) = _$SnChatMessageCopyWithImpl;
 @useResult
 $Res call({
- DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content, String? nonce, Map<String, dynamic> meta, List<String> membersMetioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
+ DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
 });
 
 
@@ -441,7 +441,7 @@ class _$SnChatMessageCopyWithImpl<$Res>
 
 /// Create a copy of SnChatMessage
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? type = null,Object? content = freezed,Object? nonce = freezed,Object? meta = null,Object? membersMetioned = null,Object? editedAt = freezed,Object? attachments = null,Object? reactions = null,Object? repliedMessageId = freezed,Object? forwardedMessageId = freezed,Object? senderId = null,Object? sender = null,Object? chatRoomId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? type = null,Object? content = freezed,Object? nonce = freezed,Object? meta = null,Object? membersMentioned = null,Object? editedAt = freezed,Object? attachments = null,Object? reactions = null,Object? repliedMessageId = freezed,Object? forwardedMessageId = freezed,Object? senderId = null,Object? sender = null,Object? chatRoomId = null,}) {
   return _then(_self.copyWith(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -451,7 +451,7 @@ as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non
 as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String?,nonce: freezed == nonce ? _self.nonce : nonce // ignore: cast_nullable_to_non_nullable
 as String?,meta: null == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,membersMetioned: null == membersMetioned ? _self.membersMetioned : membersMetioned // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,membersMentioned: null == membersMentioned ? _self.membersMentioned : membersMentioned // ignore: cast_nullable_to_non_nullable
 as List<String>,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,attachments: null == attachments ? _self.attachments : attachments // ignore: cast_nullable_to_non_nullable
 as List<SnCloudFile>,reactions: null == reactions ? _self.reactions : reactions // ignore: cast_nullable_to_non_nullable
@@ -551,10 +551,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMetioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnChatMessage() when $default != null:
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.nonce,_that.meta,_that.membersMetioned,_that.editedAt,_that.attachments,_that.reactions,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
   return orElse();
 
 }
@@ -572,10 +572,10 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMetioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)  $default,) {final _that = this;
 switch (_that) {
 case _SnChatMessage():
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.nonce,_that.meta,_that.membersMetioned,_that.editedAt,_that.attachments,_that.reactions,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);}
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -589,10 +589,10 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMetioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,) {final _that = this;
 switch (_that) {
 case _SnChatMessage() when $default != null:
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.nonce,_that.meta,_that.membersMetioned,_that.editedAt,_that.attachments,_that.reactions,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
   return null;
 
 }
@@ -604,7 +604,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 @JsonSerializable()
 
 class _SnChatMessage implements SnChatMessage {
-  const _SnChatMessage({required this.createdAt, required this.updatedAt, this.deletedAt, required this.id, this.type = 'text', this.content, this.nonce, final  Map<String, dynamic> meta = const {}, final  List<String> membersMetioned = const [], this.editedAt, final  List<SnCloudFile> attachments = const [], final  List<SnChatReaction> reactions = const [], this.repliedMessageId, this.forwardedMessageId, required this.senderId, required this.sender, required this.chatRoomId}): _meta = meta,_membersMetioned = membersMetioned,_attachments = attachments,_reactions = reactions;
+  const _SnChatMessage({required this.createdAt, required this.updatedAt, this.deletedAt, required this.id, this.type = 'text', this.content, this.nonce, final  Map<String, dynamic> meta = const {}, final  List<String> membersMentioned = const [], this.editedAt, final  List<SnCloudFile> attachments = const [], final  List<SnChatReaction> reactions = const [], this.repliedMessageId, this.forwardedMessageId, required this.senderId, required this.sender, required this.chatRoomId}): _meta = meta,_membersMentioned = membersMentioned,_attachments = attachments,_reactions = reactions;
   factory _SnChatMessage.fromJson(Map<String, dynamic> json) => _$SnChatMessageFromJson(json);
 
 @override final  DateTime createdAt;
@@ -621,11 +621,11 @@ class _SnChatMessage implements SnChatMessage {
   return EqualUnmodifiableMapView(_meta);
 }
 
- final  List<String> _membersMetioned;
-@override@JsonKey() List<String> get membersMetioned {
-  if (_membersMetioned is EqualUnmodifiableListView) return _membersMetioned;
+ final  List<String> _membersMentioned;
+@override@JsonKey() List<String> get membersMentioned {
+  if (_membersMentioned is EqualUnmodifiableListView) return _membersMentioned;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_membersMetioned);
+  return EqualUnmodifiableListView(_membersMentioned);
 }
 
 @override final  DateTime? editedAt;
@@ -662,16 +662,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatMessage&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&const DeepCollectionEquality().equals(other._meta, _meta)&&const DeepCollectionEquality().equals(other._membersMetioned, _membersMetioned)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&const DeepCollectionEquality().equals(other._reactions, _reactions)&&(identical(other.repliedMessageId, repliedMessageId) || other.repliedMessageId == repliedMessageId)&&(identical(other.forwardedMessageId, forwardedMessageId) || other.forwardedMessageId == forwardedMessageId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatMessage&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&const DeepCollectionEquality().equals(other._meta, _meta)&&const DeepCollectionEquality().equals(other._membersMentioned, _membersMentioned)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&const DeepCollectionEquality().equals(other._reactions, _reactions)&&(identical(other.repliedMessageId, repliedMessageId) || other.repliedMessageId == repliedMessageId)&&(identical(other.forwardedMessageId, forwardedMessageId) || other.forwardedMessageId == forwardedMessageId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,id,type,content,nonce,const DeepCollectionEquality().hash(_meta),const DeepCollectionEquality().hash(_membersMetioned),editedAt,const DeepCollectionEquality().hash(_attachments),const DeepCollectionEquality().hash(_reactions),repliedMessageId,forwardedMessageId,senderId,sender,chatRoomId);
+int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,id,type,content,nonce,const DeepCollectionEquality().hash(_meta),const DeepCollectionEquality().hash(_membersMentioned),editedAt,const DeepCollectionEquality().hash(_attachments),const DeepCollectionEquality().hash(_reactions),repliedMessageId,forwardedMessageId,senderId,sender,chatRoomId);
 
 @override
 String toString() {
-  return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, nonce: $nonce, meta: $meta, membersMetioned: $membersMetioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
+  return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, nonce: $nonce, meta: $meta, membersMentioned: $membersMentioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
 }
 
 
@@ -682,7 +682,7 @@ abstract mixin class _$SnChatMessageCopyWith<$Res> implements $SnChatMessageCopy
   factory _$SnChatMessageCopyWith(_SnChatMessage value, $Res Function(_SnChatMessage) _then) = __$SnChatMessageCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content, String? nonce, Map<String, dynamic> meta, List<String> membersMetioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
+ DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
 });
 
 
@@ -699,7 +699,7 @@ class __$SnChatMessageCopyWithImpl<$Res>
 
 /// Create a copy of SnChatMessage
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? type = null,Object? content = freezed,Object? nonce = freezed,Object? meta = null,Object? membersMetioned = null,Object? editedAt = freezed,Object? attachments = null,Object? reactions = null,Object? repliedMessageId = freezed,Object? forwardedMessageId = freezed,Object? senderId = null,Object? sender = null,Object? chatRoomId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? type = null,Object? content = freezed,Object? nonce = freezed,Object? meta = null,Object? membersMentioned = null,Object? editedAt = freezed,Object? attachments = null,Object? reactions = null,Object? repliedMessageId = freezed,Object? forwardedMessageId = freezed,Object? senderId = null,Object? sender = null,Object? chatRoomId = null,}) {
   return _then(_SnChatMessage(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -709,7 +709,7 @@ as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non
 as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String?,nonce: freezed == nonce ? _self.nonce : nonce // ignore: cast_nullable_to_non_nullable
 as String?,meta: null == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,membersMetioned: null == membersMetioned ? _self._membersMetioned : membersMetioned // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,membersMentioned: null == membersMentioned ? _self._membersMentioned : membersMentioned // ignore: cast_nullable_to_non_nullable
 as List<String>,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,attachments: null == attachments ? _self._attachments : attachments // ignore: cast_nullable_to_non_nullable
 as List<SnCloudFile>,reactions: null == reactions ? _self._reactions : reactions // ignore: cast_nullable_to_non_nullable
@@ -1692,299 +1692,9 @@ $SnChatMessageCopyWith<$Res>? get lastMessage {
 
 
 /// @nodoc
-mixin _$MessageChange {
-
- String get messageId; String get action; SnChatMessage? get message; DateTime get timestamp;
-/// Create a copy of MessageChange
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$MessageChangeCopyWith<MessageChange> get copyWith => _$MessageChangeCopyWithImpl<MessageChange>(this as MessageChange, _$identity);
-
-  /// Serializes this MessageChange to a JSON map.
-  Map<String, dynamic> toJson();
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageChange&&(identical(other.messageId, messageId) || other.messageId == messageId)&&(identical(other.action, action) || other.action == action)&&(identical(other.message, message) || other.message == message)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,messageId,action,message,timestamp);
-
-@override
-String toString() {
-  return 'MessageChange(messageId: $messageId, action: $action, message: $message, timestamp: $timestamp)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $MessageChangeCopyWith<$Res>  {
-  factory $MessageChangeCopyWith(MessageChange value, $Res Function(MessageChange) _then) = _$MessageChangeCopyWithImpl;
-@useResult
-$Res call({
- String messageId, String action, SnChatMessage? message, DateTime timestamp
-});
-
-
-$SnChatMessageCopyWith<$Res>? get message;
-
-}
-/// @nodoc
-class _$MessageChangeCopyWithImpl<$Res>
-    implements $MessageChangeCopyWith<$Res> {
-  _$MessageChangeCopyWithImpl(this._self, this._then);
-
-  final MessageChange _self;
-  final $Res Function(MessageChange) _then;
-
-/// Create a copy of MessageChange
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? messageId = null,Object? action = null,Object? message = freezed,Object? timestamp = null,}) {
-  return _then(_self.copyWith(
-messageId: null == messageId ? _self.messageId : messageId // ignore: cast_nullable_to_non_nullable
-as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
-as String,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as SnChatMessage?,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
-as DateTime,
-  ));
-}
-/// Create a copy of MessageChange
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnChatMessageCopyWith<$Res>? get message {
-    if (_self.message == null) {
-    return null;
-  }
-
-  return $SnChatMessageCopyWith<$Res>(_self.message!, (value) {
-    return _then(_self.copyWith(message: value));
-  });
-}
-}
-
-
-/// Adds pattern-matching-related methods to [MessageChange].
-extension MessageChangePatterns on MessageChange {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MessageChange value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _MessageChange() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MessageChange value)  $default,){
-final _that = this;
-switch (_that) {
-case _MessageChange():
-return $default(_that);}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MessageChange value)?  $default,){
-final _that = this;
-switch (_that) {
-case _MessageChange() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String messageId,  String action,  SnChatMessage? message,  DateTime timestamp)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _MessageChange() when $default != null:
-return $default(_that.messageId,_that.action,_that.message,_that.timestamp);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String messageId,  String action,  SnChatMessage? message,  DateTime timestamp)  $default,) {final _that = this;
-switch (_that) {
-case _MessageChange():
-return $default(_that.messageId,_that.action,_that.message,_that.timestamp);}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String messageId,  String action,  SnChatMessage? message,  DateTime timestamp)?  $default,) {final _that = this;
-switch (_that) {
-case _MessageChange() when $default != null:
-return $default(_that.messageId,_that.action,_that.message,_that.timestamp);case _:
-  return null;
-
-}
-}
-
-}
-
-/// @nodoc
-@JsonSerializable()
-
-class _MessageChange implements MessageChange {
-  const _MessageChange({required this.messageId, required this.action, this.message, required this.timestamp});
-  factory _MessageChange.fromJson(Map<String, dynamic> json) => _$MessageChangeFromJson(json);
-
-@override final  String messageId;
-@override final  String action;
-@override final  SnChatMessage? message;
-@override final  DateTime timestamp;
-
-/// Create a copy of MessageChange
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$MessageChangeCopyWith<_MessageChange> get copyWith => __$MessageChangeCopyWithImpl<_MessageChange>(this, _$identity);
-
-@override
-Map<String, dynamic> toJson() {
-  return _$MessageChangeToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageChange&&(identical(other.messageId, messageId) || other.messageId == messageId)&&(identical(other.action, action) || other.action == action)&&(identical(other.message, message) || other.message == message)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,messageId,action,message,timestamp);
-
-@override
-String toString() {
-  return 'MessageChange(messageId: $messageId, action: $action, message: $message, timestamp: $timestamp)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$MessageChangeCopyWith<$Res> implements $MessageChangeCopyWith<$Res> {
-  factory _$MessageChangeCopyWith(_MessageChange value, $Res Function(_MessageChange) _then) = __$MessageChangeCopyWithImpl;
-@override @useResult
-$Res call({
- String messageId, String action, SnChatMessage? message, DateTime timestamp
-});
-
-
-@override $SnChatMessageCopyWith<$Res>? get message;
-
-}
-/// @nodoc
-class __$MessageChangeCopyWithImpl<$Res>
-    implements _$MessageChangeCopyWith<$Res> {
-  __$MessageChangeCopyWithImpl(this._self, this._then);
-
-  final _MessageChange _self;
-  final $Res Function(_MessageChange) _then;
-
-/// Create a copy of MessageChange
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? messageId = null,Object? action = null,Object? message = freezed,Object? timestamp = null,}) {
-  return _then(_MessageChange(
-messageId: null == messageId ? _self.messageId : messageId // ignore: cast_nullable_to_non_nullable
-as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
-as String,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as SnChatMessage?,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
-as DateTime,
-  ));
-}
-
-/// Create a copy of MessageChange
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnChatMessageCopyWith<$Res>? get message {
-    if (_self.message == null) {
-    return null;
-  }
-
-  return $SnChatMessageCopyWith<$Res>(_self.message!, (value) {
-    return _then(_self.copyWith(message: value));
-  });
-}
-}
-
-
-/// @nodoc
 mixin _$MessageSyncResponse {
 
- List<MessageChange> get changes; DateTime get currentTimestamp;
+ List<SnChatMessage> get messages; DateTime get currentTimestamp;
 /// Create a copy of MessageSyncResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1997,16 +1707,16 @@ $MessageSyncResponseCopyWith<MessageSyncResponse> get copyWith => _$MessageSyncR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageSyncResponse&&const DeepCollectionEquality().equals(other.changes, changes)&&(identical(other.currentTimestamp, currentTimestamp) || other.currentTimestamp == currentTimestamp));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageSyncResponse&&const DeepCollectionEquality().equals(other.messages, messages)&&(identical(other.currentTimestamp, currentTimestamp) || other.currentTimestamp == currentTimestamp));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(changes),currentTimestamp);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(messages),currentTimestamp);
 
 @override
 String toString() {
-  return 'MessageSyncResponse(changes: $changes, currentTimestamp: $currentTimestamp)';
+  return 'MessageSyncResponse(messages: $messages, currentTimestamp: $currentTimestamp)';
 }
 
 
@@ -2017,7 +1727,7 @@ abstract mixin class $MessageSyncResponseCopyWith<$Res>  {
   factory $MessageSyncResponseCopyWith(MessageSyncResponse value, $Res Function(MessageSyncResponse) _then) = _$MessageSyncResponseCopyWithImpl;
 @useResult
 $Res call({
- List<MessageChange> changes, DateTime currentTimestamp
+ List<SnChatMessage> messages, DateTime currentTimestamp
 });
 
 
@@ -2034,10 +1744,10 @@ class _$MessageSyncResponseCopyWithImpl<$Res>
 
 /// Create a copy of MessageSyncResponse
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? changes = null,Object? currentTimestamp = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? messages = null,Object? currentTimestamp = null,}) {
   return _then(_self.copyWith(
-changes: null == changes ? _self.changes : changes // ignore: cast_nullable_to_non_nullable
-as List<MessageChange>,currentTimestamp: null == currentTimestamp ? _self.currentTimestamp : currentTimestamp // ignore: cast_nullable_to_non_nullable
+messages: null == messages ? _self.messages : messages // ignore: cast_nullable_to_non_nullable
+as List<SnChatMessage>,currentTimestamp: null == currentTimestamp ? _self.currentTimestamp : currentTimestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
@@ -2120,10 +1830,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<MessageChange> changes,  DateTime currentTimestamp)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<SnChatMessage> messages,  DateTime currentTimestamp)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MessageSyncResponse() when $default != null:
-return $default(_that.changes,_that.currentTimestamp);case _:
+return $default(_that.messages,_that.currentTimestamp);case _:
   return orElse();
 
 }
@@ -2141,10 +1851,10 @@ return $default(_that.changes,_that.currentTimestamp);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<MessageChange> changes,  DateTime currentTimestamp)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<SnChatMessage> messages,  DateTime currentTimestamp)  $default,) {final _that = this;
 switch (_that) {
 case _MessageSyncResponse():
-return $default(_that.changes,_that.currentTimestamp);}
+return $default(_that.messages,_that.currentTimestamp);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2158,10 +1868,10 @@ return $default(_that.changes,_that.currentTimestamp);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<MessageChange> changes,  DateTime currentTimestamp)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<SnChatMessage> messages,  DateTime currentTimestamp)?  $default,) {final _that = this;
 switch (_that) {
 case _MessageSyncResponse() when $default != null:
-return $default(_that.changes,_that.currentTimestamp);case _:
+return $default(_that.messages,_that.currentTimestamp);case _:
   return null;
 
 }
@@ -2173,14 +1883,14 @@ return $default(_that.changes,_that.currentTimestamp);case _:
 @JsonSerializable()
 
 class _MessageSyncResponse implements MessageSyncResponse {
-  const _MessageSyncResponse({final  List<MessageChange> changes = const [], required this.currentTimestamp}): _changes = changes;
+  const _MessageSyncResponse({final  List<SnChatMessage> messages = const [], required this.currentTimestamp}): _messages = messages;
   factory _MessageSyncResponse.fromJson(Map<String, dynamic> json) => _$MessageSyncResponseFromJson(json);
 
- final  List<MessageChange> _changes;
-@override@JsonKey() List<MessageChange> get changes {
-  if (_changes is EqualUnmodifiableListView) return _changes;
+ final  List<SnChatMessage> _messages;
+@override@JsonKey() List<SnChatMessage> get messages {
+  if (_messages is EqualUnmodifiableListView) return _messages;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_changes);
+  return EqualUnmodifiableListView(_messages);
 }
 
 @override final  DateTime currentTimestamp;
@@ -2198,16 +1908,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageSyncResponse&&const DeepCollectionEquality().equals(other._changes, _changes)&&(identical(other.currentTimestamp, currentTimestamp) || other.currentTimestamp == currentTimestamp));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageSyncResponse&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.currentTimestamp, currentTimestamp) || other.currentTimestamp == currentTimestamp));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_changes),currentTimestamp);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_messages),currentTimestamp);
 
 @override
 String toString() {
-  return 'MessageSyncResponse(changes: $changes, currentTimestamp: $currentTimestamp)';
+  return 'MessageSyncResponse(messages: $messages, currentTimestamp: $currentTimestamp)';
 }
 
 
@@ -2218,7 +1928,7 @@ abstract mixin class _$MessageSyncResponseCopyWith<$Res> implements $MessageSync
   factory _$MessageSyncResponseCopyWith(_MessageSyncResponse value, $Res Function(_MessageSyncResponse) _then) = __$MessageSyncResponseCopyWithImpl;
 @override @useResult
 $Res call({
- List<MessageChange> changes, DateTime currentTimestamp
+ List<SnChatMessage> messages, DateTime currentTimestamp
 });
 
 
@@ -2235,10 +1945,10 @@ class __$MessageSyncResponseCopyWithImpl<$Res>
 
 /// Create a copy of MessageSyncResponse
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? changes = null,Object? currentTimestamp = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? messages = null,Object? currentTimestamp = null,}) {
   return _then(_MessageSyncResponse(
-changes: null == changes ? _self._changes : changes // ignore: cast_nullable_to_non_nullable
-as List<MessageChange>,currentTimestamp: null == currentTimestamp ? _self.currentTimestamp : currentTimestamp // ignore: cast_nullable_to_non_nullable
+messages: null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
+as List<SnChatMessage>,currentTimestamp: null == currentTimestamp ? _self.currentTimestamp : currentTimestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }

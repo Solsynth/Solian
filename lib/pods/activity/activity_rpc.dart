@@ -339,7 +339,9 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
         state = state.copyWith(status: 'Server failed: $e');
       }
     } else {
-      state = state.copyWith(status: 'Server disabled on mobile/web');
+      Future(() {
+        state = state.copyWith(status: 'Server disabled on mobile/web');
+      });
     }
   }
 
