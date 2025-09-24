@@ -130,7 +130,7 @@ class MessageItem extends HookConsumerWidget {
 
     useEffect(() {
       if (flashing) {
-        if (flashTimer.value != null) return null;
+        flashTimer.value?.cancel();
         isFlashing.value = true;
         flashTimer.value = Timer.periodic(
           const Duration(milliseconds: kFlashDuration),

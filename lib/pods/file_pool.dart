@@ -6,7 +6,10 @@ import 'package:island/pods/network.dart';
 final poolsProvider = FutureProvider<List<SnFilePool>>((ref) async {
   final dio = ref.watch(apiClientProvider);
   final response = await dio.get('/drive/pools');
-  return response.data.map((e) => SnFilePool.fromJson(e)).toList();
+  return response.data
+      .map((e) => SnFilePool.fromJson(e))
+      .cast<SnFilePool>()
+      .toList();
 });
 
 String? resolveDefaultPoolId(WidgetRef ref, List<SnFilePool> pools) {
