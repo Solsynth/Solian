@@ -23,15 +23,3 @@ sealed class SnFilePool with _$SnFilePool {
   factory SnFilePool.fromJson(Map<String, dynamic> json) =>
       _$SnFilePoolFromJson(json);
 }
-
-extension SnFilePoolList on List<SnFilePool> {
-  static List<SnFilePool> listFromResponse(dynamic data) {
-    if (data is List) {
-      return data
-          .whereType<Map<String, dynamic>>()
-          .map(SnFilePool.fromJson)
-          .toList();
-    }
-    throw ArgumentError('Unexpected response format: $data');
-  }
-}

@@ -33,17 +33,27 @@ class AppDatabase extends _$AppDatabase {
         await _migrateToVersion6(m);
       }
       if (from < 7) {
-        // Add new columns from SnChatMessage
-        await m.addColumn(chatMessages, chatMessages.updatedAt);
-        await m.addColumn(chatMessages, chatMessages.deletedAt);
-        await m.addColumn(chatMessages, chatMessages.type);
-        await m.addColumn(chatMessages, chatMessages.meta);
-        await m.addColumn(chatMessages, chatMessages.membersMentioned);
-        await m.addColumn(chatMessages, chatMessages.editedAt);
-        await m.addColumn(chatMessages, chatMessages.attachments);
-        await m.addColumn(chatMessages, chatMessages.reactions);
-        await m.addColumn(chatMessages, chatMessages.repliedMessageId);
-        await m.addColumn(chatMessages, chatMessages.forwardedMessageId);
+        // Add new columns from SnChatMessage, ignore if they already exist
+        final columnsToAdd = [
+          chatMessages.updatedAt,
+          chatMessages.deletedAt,
+          chatMessages.type,
+          chatMessages.meta,
+          chatMessages.membersMentioned,
+          chatMessages.editedAt,
+          chatMessages.attachments,
+          chatMessages.reactions,
+          chatMessages.repliedMessageId,
+          chatMessages.forwardedMessageId,
+        ];
+
+        for (final column in columnsToAdd) {
+          try {
+            await m.addColumn(chatMessages, column);
+          } catch (e) {
+            // Column already exists, skip
+          }
+        }
       }
     },
   );

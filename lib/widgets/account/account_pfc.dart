@@ -147,6 +147,7 @@ class AccountProfileCard extends HookConsumerWidget {
                       if (data.badges.isNotEmpty)
                         BadgeList(badges: data.badges).padding(top: 12),
                       LevelingProgressCard(
+                        isCompact: true,
                         level: data.profile.level,
                         experience: data.profile.experience,
                         progress: data.profile.levelingProgress,

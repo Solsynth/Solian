@@ -10,17 +10,19 @@ Future<void> resetDatabase(WidgetRef ref) async {
   if (kIsWeb) return;
 
   final db = ref.read(databaseProvider);
-  final basepath = await getApplicationSupportDirectory();
-  final file = File(join(basepath.path, 'solar_network_data.sqlite'));
 
   // Close current database connection
-  db.close();
+  await db.close();
 
-  // Delete database file
+  // Get the correct database file path
+  final dbFolder = await getApplicationDocumentsDirectory();
+  final file = File(join(dbFolder.path, 'solar_network_data.sqlite'));
+
+  // Delete database file if it exists
   if (await file.exists()) {
     await file.delete();
   }
 
-  // Force refresh the database provider
+  // Force refresh the database provider to create a new instance
   ref.invalidate(databaseProvider);
 }
