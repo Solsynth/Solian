@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/pods/pool_provider.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -20,6 +22,15 @@ part 'file_list.g.dart';
 @riverpod
 class CloudFileListNotifier extends _$CloudFileListNotifier
     with CursorPagingNotifierMixin<SnCloudFile> {
+  String? _poolId;
+  bool _includeRecycled = false;
+
+  void setFilters(String? poolId, bool includeRecycled) {
+    _poolId = poolId;
+    _includeRecycled = includeRecycled;
+    ref.invalidateSelf();
+  }
+
   @override
   Future<CursorPagingData<SnCloudFile>> build() => fetch(cursor: null);
 
@@ -29,7 +40,15 @@ class CloudFileListNotifier extends _$CloudFileListNotifier
     final offset = cursor == null ? 0 : int.parse(cursor);
     final take = 20;
 
-    final queryParameters = {'offset': offset, 'take': take};
+    final queryParameters = <String, dynamic>{'offset': offset, 'take': take};
+
+    // Add filter parameters
+    if (_poolId != null) {
+      queryParameters['pool'] = _poolId!;
+    }
+    if (_includeRecycled) {
+      queryParameters['recycled'] = 'true';
+    }
 
     final response = await client.get(
       '/drive/files/me',
@@ -72,14 +91,33 @@ class FileListScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Filter state
+    final selectedPool = useState<String?>(null);
+    final includeRecycled = useState(false);
+
     final usageAsync = ref.watch(billingUsageProvider);
     final quotaAsync = ref.watch(billingQuotaProvider);
+
+    // Update notifier filters when state changes
+    useEffect(() {
+      final notifier = ref.read(cloudFileListNotifierProvider.notifier);
+      notifier.setFilters(selectedPool.value, includeRecycled.value);
+      return null;
+    }, [selectedPool.value, includeRecycled.value]);
+
     return AppScaffold(
       appBar: AppBar(title: Text('Files')),
       body: usageAsync.when(
         data:
             (usage) => quotaAsync.when(
-              data: (quota) => _buildQuotaUI(usage, quota, ref),
+              data:
+                  (quota) => _buildQuotaUI(
+                    usage,
+                    quota,
+                    ref,
+                    selectedPool,
+                    includeRecycled,
+                  ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Error loading quota')),
             ),
@@ -93,6 +131,8 @@ class FileListScreen extends HookConsumerWidget {
     Map<String, dynamic>? usage,
     Map<String, dynamic>? quota,
     WidgetRef ref,
+    ValueNotifier<String?> selectedPool,
+    ValueNotifier<bool> includeRecycled,
   ) {
     if (usage == null) return const SizedBox.shrink();
     return CustomScrollView(
@@ -176,6 +216,10 @@ class FileListScreen extends HookConsumerWidget {
               ),
             ],
           ).padding(horizontal: 8),
+        ),
+        const SliverGap(8),
+        SliverToBoxAdapter(
+          child: _buildFilters(ref, selectedPool, includeRecycled),
         ),
         const SliverGap(8),
         PagingHelperSliverView(
@@ -314,6 +358,165 @@ class FileListScreen extends HookConsumerWidget {
         ),
       ],
     );
+  }
+
+  Widget _buildFilters(
+    WidgetRef ref,
+    ValueNotifier<String?> selectedPool,
+    ValueNotifier<bool> includeRecycled,
+  ) {
+    final poolsAsync = ref.watch(poolsProvider);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'filters'.tr(),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Gap(16),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth > 600;
+                return isWide
+                    ? Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: poolsAsync.when(
+                            data:
+                                (pools) => DropdownButtonFormField<String?>(
+                                  value: selectedPool.value,
+                                  decoration: InputDecoration(
+                                    labelText: 'Pool',
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  items: [
+                                    DropdownMenuItem<String?>(
+                                      value: null,
+                                      child: Text('allPools'.tr()),
+                                    ),
+                                    ...pools.map(
+                                      (pool) => DropdownMenuItem<String?>(
+                                        value: pool.id,
+                                        child: Text(pool.name),
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged:
+                                      (value) => selectedPool.value = value,
+                                ),
+                            loading: () => const CircularProgressIndicator(),
+                            error: (e, _) => const Text('Error loading pools'),
+                          ),
+                        ),
+                        const Gap(8),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Text('includeRecycled'.tr()),
+                              const Gap(8),
+                              Switch(
+                                value: includeRecycled.value,
+                                onChanged:
+                                    (value) => includeRecycled.value = value,
+                                padding: EdgeInsets.zero,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Gap(16),
+                        IconButton(
+                          icon: const Icon(Symbols.delete_sweep),
+                          tooltip: 'deleteRecycledFiles'.tr(),
+                          onPressed:
+                              includeRecycled.value
+                                  ? () => _deleteRecycledFiles(ref)
+                                  : null,
+                        ),
+                      ],
+                    )
+                    : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        poolsAsync.when(
+                          data:
+                              (pools) => DropdownButtonFormField<String?>(
+                                value: selectedPool.value,
+                                decoration: const InputDecoration(
+                                  labelText: 'Pool',
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: [
+                                  DropdownMenuItem<String?>(
+                                    value: null,
+                                    child: Text('allPools'.tr()),
+                                  ),
+                                  ...pools.map(
+                                    (pool) => DropdownMenuItem<String?>(
+                                      value: pool.id,
+                                      child: Text(pool.name),
+                                    ),
+                                  ),
+                                ],
+                                onChanged:
+                                    (value) => selectedPool.value = value,
+                              ),
+                          loading: () => const CircularProgressIndicator(),
+                          error: (e, _) => const Text('Error loading pools'),
+                        ),
+                        const Gap(16),
+                        Row(
+                          children: [
+                            Text('includeRecycled'.tr()),
+                            const Gap(8),
+                            Switch(
+                              value: includeRecycled.value,
+                              onChanged:
+                                  (value) => includeRecycled.value = value,
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Symbols.delete_sweep),
+                              tooltip: 'deleteRecycledFiles'.tr(),
+                              onPressed:
+                                  includeRecycled.value
+                                      ? () => _deleteRecycledFiles(ref)
+                                      : null,
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+              },
+            ),
+          ],
+        ),
+      ),
+    ).padding(horizontal: 8);
+  }
+
+  Future<void> _deleteRecycledFiles(WidgetRef ref) async {
+    final confirmed = await showConfirmAlert(
+      'confirmDeleteRecycledFiles'.tr(),
+      'deleteRecycledFiles'.tr(),
+    );
+    if (!confirmed) return;
+
+    if (ref.context.mounted) showLoadingModal(ref.context);
+    try {
+      final client = ref.read(apiClientProvider);
+      await client.delete('/drive/files/recycled');
+      ref.invalidate(cloudFileListNotifierProvider);
+      showSnackBar('recycledFilesDeleted'.tr());
+    } catch (e) {
+      showSnackBar('failedToDeleteRecycledFiles'.tr());
+    } finally {
+      if (ref.context.mounted) hideLoadingModal(ref.context);
+    }
   }
 
   Widget _buildStatCard(String label, String value, {double? progress}) {
