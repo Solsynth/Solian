@@ -935,7 +935,7 @@ class _ChatAttachmentUploaderSheetState
           if (snapshot.hasError) {
             return Center(child: Text('errorLoadingPools'.tr()));
           }
-          final pools = snapshot.data!.filterValid();
+          final pools = snapshot.data!;
           selectedPoolId ??= resolveDefaultPoolId(widget.ref, pools);
 
           return Column(
@@ -1162,9 +1162,7 @@ class _ChatAttachmentUploaderSheetState
 
     // Get the selected pool to check constraints
     final pools = await widget.ref.read(poolsProvider.future);
-    final selectedPool = pools.filterValid().firstWhere(
-      (p) => p.id == selectedPoolId,
-    );
+    final selectedPool = pools.firstWhere((p) => p.id == selectedPoolId);
 
     // Check constraints
     final maxFileSize = selectedPool.policyConfig?['max_file_size'] as int?;
