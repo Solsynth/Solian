@@ -1041,5 +1041,10 @@
   "save": "Save",
   "webView": "Web View",
   "messageActions": "Message Actions",
-  "viewEmbedLoadHint": "Tap to load"
+  "viewEmbedLoadHint": "Tap to load",
+  "files": "Files",
+  "confirmDeleteFile": "Are you sure you want to delete this file?",
+  "deleteFile": "Delete File",
+  "failedToDeleteFile": "Failed to delete file",
+  "drive": "Drive"
 }

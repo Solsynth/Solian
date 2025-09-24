@@ -148,7 +148,7 @@ class AppDatabase extends _$AppDatabase {
       ..where((m) => m.roomId.equals(roomId));
 
     if (query.isNotEmpty) {
-      final searchTerm = '%${query}%';
+      final searchTerm = '%$query%';
       selectStatement =
           selectStatement..where(
             (m) =>
