@@ -106,7 +106,7 @@ class FileListScreen extends HookConsumerWidget {
     }, [selectedPool.value, includeRecycled.value]);
 
     return AppScaffold(
-      appBar: AppBar(title: Text('Files')),
+      appBar: AppBar(title: Text('Files'), leading: const PageBackButton()),
       body: usageAsync.when(
         data:
             (usage) => quotaAsync.when(
