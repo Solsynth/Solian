@@ -1053,7 +1053,7 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 /// @nodoc
 mixin _$SnAccountStatus {
 
- String get id; int get attitude; bool get isOnline; bool get isInvisible; bool get isNotDisturb; bool get isCustomized; String get label; DateTime? get clearedAt; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; int get attitude; bool get isOnline; bool get isInvisible; bool get isNotDisturb; bool get isCustomized; String get label; Map<String, dynamic>? get meta; DateTime? get clearedAt; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1066,16 +1066,16 @@ $SnAccountStatusCopyWith<SnAccountStatus> get copyWith => _$SnAccountStatusCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isInvisible, isInvisible) || other.isInvisible == isInvisible)&&(identical(other.isNotDisturb, isNotDisturb) || other.isNotDisturb == isNotDisturb)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.label, label) || other.label == label)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isInvisible, isInvisible) || other.isInvisible == isInvisible)&&(identical(other.isNotDisturb, isNotDisturb) || other.isNotDisturb == isNotDisturb)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.label, label) || other.label == label)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,attitude,isOnline,isInvisible,isNotDisturb,isCustomized,label,clearedAt,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,attitude,isOnline,isInvisible,isNotDisturb,isCustomized,label,const DeepCollectionEquality().hash(meta),clearedAt,accountId,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isInvisible: $isInvisible, isNotDisturb: $isNotDisturb, isCustomized: $isCustomized, label: $label, clearedAt: $clearedAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isInvisible: $isInvisible, isNotDisturb: $isNotDisturb, isCustomized: $isCustomized, label: $label, meta: $meta, clearedAt: $clearedAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1086,7 +1086,7 @@ abstract mixin class $SnAccountStatusCopyWith<$Res>  {
   factory $SnAccountStatusCopyWith(SnAccountStatus value, $Res Function(SnAccountStatus) _then) = _$SnAccountStatusCopyWithImpl;
 @useResult
 $Res call({
- String id, int attitude, bool isOnline, bool isInvisible, bool isNotDisturb, bool isCustomized, String label, DateTime? clearedAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int attitude, bool isOnline, bool isInvisible, bool isNotDisturb, bool isCustomized, String label, Map<String, dynamic>? meta, DateTime? clearedAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1103,7 +1103,7 @@ class _$SnAccountStatusCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isInvisible = null,Object? isNotDisturb = null,Object? isCustomized = null,Object? label = null,Object? clearedAt = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isInvisible = null,Object? isNotDisturb = null,Object? isCustomized = null,Object? label = null,Object? meta = freezed,Object? clearedAt = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
@@ -1112,7 +1112,8 @@ as bool,isInvisible: null == isInvisible ? _self.isInvisible : isInvisible // ig
 as bool,isNotDisturb: null == isNotDisturb ? _self.isNotDisturb : isNotDisturb // ignore: cast_nullable_to_non_nullable
 as bool,isCustomized: null == isCustomized ? _self.isCustomized : isCustomized // ignore: cast_nullable_to_non_nullable
 as bool,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String,clearedAt: freezed == clearedAt ? _self.clearedAt : clearedAt // ignore: cast_nullable_to_non_nullable
+as String,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,clearedAt: freezed == clearedAt ? _self.clearedAt : clearedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -1199,10 +1200,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isInvisible,  bool isNotDisturb,  bool isCustomized,  String label,  DateTime? clearedAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isInvisible,  bool isNotDisturb,  bool isCustomized,  String label,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAccountStatus() when $default != null:
-return $default(_that.id,_that.attitude,_that.isOnline,_that.isInvisible,_that.isNotDisturb,_that.isCustomized,_that.label,_that.clearedAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.attitude,_that.isOnline,_that.isInvisible,_that.isNotDisturb,_that.isCustomized,_that.label,_that.meta,_that.clearedAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -1220,10 +1221,10 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isInvisible,_that.i
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isInvisible,  bool isNotDisturb,  bool isCustomized,  String label,  DateTime? clearedAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isInvisible,  bool isNotDisturb,  bool isCustomized,  String label,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountStatus():
-return $default(_that.id,_that.attitude,_that.isOnline,_that.isInvisible,_that.isNotDisturb,_that.isCustomized,_that.label,_that.clearedAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.attitude,_that.isOnline,_that.isInvisible,_that.isNotDisturb,_that.isCustomized,_that.label,_that.meta,_that.clearedAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1237,10 +1238,10 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isInvisible,_that.i
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int attitude,  bool isOnline,  bool isInvisible,  bool isNotDisturb,  bool isCustomized,  String label,  DateTime? clearedAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int attitude,  bool isOnline,  bool isInvisible,  bool isNotDisturb,  bool isCustomized,  String label,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountStatus() when $default != null:
-return $default(_that.id,_that.attitude,_that.isOnline,_that.isInvisible,_that.isNotDisturb,_that.isCustomized,_that.label,_that.clearedAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.attitude,_that.isOnline,_that.isInvisible,_that.isNotDisturb,_that.isCustomized,_that.label,_that.meta,_that.clearedAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -1252,7 +1253,7 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isInvisible,_that.i
 @JsonSerializable()
 
 class _SnAccountStatus implements SnAccountStatus {
-  const _SnAccountStatus({required this.id, required this.attitude, required this.isOnline, required this.isInvisible, required this.isNotDisturb, required this.isCustomized, this.label = "", required this.clearedAt, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  const _SnAccountStatus({required this.id, required this.attitude, required this.isOnline, required this.isInvisible, required this.isNotDisturb, required this.isCustomized, this.label = "", required final  Map<String, dynamic>? meta, required this.clearedAt, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
   factory _SnAccountStatus.fromJson(Map<String, dynamic> json) => _$SnAccountStatusFromJson(json);
 
 @override final  String id;
@@ -1262,6 +1263,15 @@ class _SnAccountStatus implements SnAccountStatus {
 @override final  bool isNotDisturb;
 @override final  bool isCustomized;
 @override@JsonKey() final  String label;
+ final  Map<String, dynamic>? _meta;
+@override Map<String, dynamic>? get meta {
+  final value = _meta;
+  if (value == null) return null;
+  if (_meta is EqualUnmodifiableMapView) return _meta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 @override final  DateTime? clearedAt;
 @override final  String accountId;
 @override final  DateTime createdAt;
@@ -1281,16 +1291,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isInvisible, isInvisible) || other.isInvisible == isInvisible)&&(identical(other.isNotDisturb, isNotDisturb) || other.isNotDisturb == isNotDisturb)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.label, label) || other.label == label)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isInvisible, isInvisible) || other.isInvisible == isInvisible)&&(identical(other.isNotDisturb, isNotDisturb) || other.isNotDisturb == isNotDisturb)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.label, label) || other.label == label)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,attitude,isOnline,isInvisible,isNotDisturb,isCustomized,label,clearedAt,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,attitude,isOnline,isInvisible,isNotDisturb,isCustomized,label,const DeepCollectionEquality().hash(_meta),clearedAt,accountId,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isInvisible: $isInvisible, isNotDisturb: $isNotDisturb, isCustomized: $isCustomized, label: $label, clearedAt: $clearedAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isInvisible: $isInvisible, isNotDisturb: $isNotDisturb, isCustomized: $isCustomized, label: $label, meta: $meta, clearedAt: $clearedAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1301,7 +1311,7 @@ abstract mixin class _$SnAccountStatusCopyWith<$Res> implements $SnAccountStatus
   factory _$SnAccountStatusCopyWith(_SnAccountStatus value, $Res Function(_SnAccountStatus) _then) = __$SnAccountStatusCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int attitude, bool isOnline, bool isInvisible, bool isNotDisturb, bool isCustomized, String label, DateTime? clearedAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int attitude, bool isOnline, bool isInvisible, bool isNotDisturb, bool isCustomized, String label, Map<String, dynamic>? meta, DateTime? clearedAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1318,7 +1328,7 @@ class __$SnAccountStatusCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isInvisible = null,Object? isNotDisturb = null,Object? isCustomized = null,Object? label = null,Object? clearedAt = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isInvisible = null,Object? isNotDisturb = null,Object? isCustomized = null,Object? label = null,Object? meta = freezed,Object? clearedAt = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAccountStatus(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
@@ -1327,7 +1337,8 @@ as bool,isInvisible: null == isInvisible ? _self.isInvisible : isInvisible // ig
 as bool,isNotDisturb: null == isNotDisturb ? _self.isNotDisturb : isNotDisturb // ignore: cast_nullable_to_non_nullable
 as bool,isCustomized: null == isCustomized ? _self.isCustomized : isCustomized // ignore: cast_nullable_to_non_nullable
 as bool,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String,clearedAt: freezed == clearedAt ? _self.clearedAt : clearedAt // ignore: cast_nullable_to_non_nullable
+as String,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,clearedAt: freezed == clearedAt ? _self.clearedAt : clearedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

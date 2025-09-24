@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/account/status.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
@@ -390,9 +391,9 @@ final rpcServerStateProvider =
         'message': (socket, dynamic data) async {
           if (data['cmd'] == 'SET_ACTIVITY') {
             notifier.addActivity(
-              'Activity: ${data['args']['activity']['details'] ?? 'Unknown'}',
+              'Activity: ${data['args']['activity']['details'] ?? ''}',
             );
-            final label = data['args']['activity']['details'] ?? 'Unknown';
+            final label = data['args']['activity']['details'] ?? '';
             final appId = socket.clientId;
             try {
               await setRemoteActivityStatus(
@@ -401,6 +402,7 @@ final rpcServerStateProvider =
                 appId,
                 data['args']['activity'],
               );
+              ref.invalidate(accountStatusProvider('me'));
             } catch (e) {
               developer.log(
                 'Failed to set remote activity status: $e',
@@ -420,6 +422,7 @@ final rpcServerStateProvider =
           final appId = socket.clientId;
           try {
             await unsetRemoteActivityStatus(ref, appId);
+            ref.invalidate(accountStatusProvider('me'));
           } catch (e) {
             developer.log(
               'Failed to unset remote activity status: $e',

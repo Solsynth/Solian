@@ -98,6 +98,7 @@ sealed class SnAccountStatus with _$SnAccountStatus {
     required bool isNotDisturb,
     required bool isCustomized,
     @Default("") String label,
+    required Map<String, dynamic>? meta,
     required DateTime? clearedAt,
     required String accountId,
     required DateTime createdAt,

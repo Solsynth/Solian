@@ -158,6 +158,7 @@ _SnAccountStatus _$SnAccountStatusFromJson(Map<String, dynamic> json) =>
       isNotDisturb: json['is_not_disturb'] as bool,
       isCustomized: json['is_customized'] as bool,
       label: json['label'] as String? ?? "",
+      meta: json['meta'] as Map<String, dynamic>?,
       clearedAt:
           json['cleared_at'] == null
               ? null
@@ -180,6 +181,7 @@ Map<String, dynamic> _$SnAccountStatusToJson(_SnAccountStatus instance) =>
       'is_not_disturb': instance.isNotDisturb,
       'is_customized': instance.isCustomized,
       'label': instance.label,
+      'meta': instance.meta,
       'cleared_at': instance.clearedAt?.toIso8601String(),
       'account_id': instance.accountId,
       'created_at': instance.createdAt.toIso8601String(),
