@@ -1046,5 +1046,11 @@
   "confirmDeleteFile": "Are you sure you want to delete this file?",
   "deleteFile": "Delete File",
   "failedToDeleteFile": "Failed to delete file",
-  "drive": "Drive"
+  "drive": "Drive",
+  "allPools": "All Pools",
+  "includeRecycled": "Include Recycled",
+  "confirmDeleteRecycledFiles": "Are you sure you want to delete all recycled files?",
+  "deleteRecycledFiles": "Delete Recycled Files",
+  "recycledFilesDeleted": "Recycled files deleted successfully",
+  "failedToDeleteRecycledFiles": "Failed to delete recycled files"
 }
