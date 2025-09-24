@@ -148,7 +148,6 @@ class LevelingScreen extends HookConsumerWidget {
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        constraints: const BoxConstraints(maxWidth: 480),
         child: CustomScrollView(
           slivers: [
             const SliverGap(20),
@@ -180,6 +179,12 @@ class LevelingScreen extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Text(
+                      '${'levelingProgressLevel'.tr(args: [currentLevel.toString()])} / 120',
+                      textAlign: TextAlign.start,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const Gap(8),
                     LinearProgressIndicator(
                       value: currentLevel / 120,
                       minHeight: 10,
@@ -189,12 +194,6 @@ class LevelingScreen extends HookConsumerWidget {
                       backgroundColor:
                           Theme.of(context).colorScheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(32),
-                    ),
-                    const Gap(8),
-                    Text(
-                      '${'levelingProgressLevel'.tr(args: [currentLevel.toString()])} / 120',
-                      textAlign: TextAlign.right,
-                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
                 ).padding(horizontal: 16, top: 16, bottom: 12),
@@ -272,17 +271,12 @@ class LevelingScreen extends HookConsumerWidget {
 
     return SingleChildScrollView(
       padding: getTabbedPadding(context, horizontal: 20, vertical: 20),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildMembershipSection(context, ref, stellarSubscription),
-              const Gap(16),
-            ],
-          ),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildMembershipSection(context, ref, stellarSubscription),
+          const Gap(16),
+        ],
       ),
     );
   }
