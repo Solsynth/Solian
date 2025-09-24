@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/services/time.dart';
+import 'package:island/utils/activity_utils.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -75,7 +76,10 @@ class EventDetailsWidget extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(status.label),
+                          if ((getActivityTitle(status.label, status.meta) ?? status.label).isNotEmpty)
+                            Text(getActivityTitle(status.label, status.meta) ?? status.label),
+                          if (getActivitySubtitle(status.meta) != null)
+                            Text(getActivitySubtitle(status.meta)!).fontSize(11).opacity(0.8),
                           Text(
                             '${status.createdAt.formatSystem()} - ${status.clearedAt?.formatSystem() ?? 'present'.tr()}',
                           ).fontSize(11).opacity(0.8),

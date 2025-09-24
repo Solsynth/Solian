@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:shelf/shelf.dart';
@@ -395,14 +396,31 @@ final rpcServerStateProvider =
             );
             final label = data['args']['activity']['details'] ?? '';
             final appId = socket.clientId;
+            final meta = data['args']['activity'];
             try {
               await setRemoteActivityStatus(
                 ref,
                 label,
                 appId,
-                data['args']['activity'],
+                meta,
               );
-              ref.invalidate(accountStatusProvider('me'));
+              final now = DateTime.now();
+              final status = SnAccountStatus(
+                id: 'local_$appId',
+                attitude: 0,
+                isOnline: true,
+                isInvisible: false,
+                isNotDisturb: false,
+                isCustomized: true,
+                label: label,
+                meta: meta,
+                clearedAt: null,
+                accountId: 'me',
+                createdAt: now,
+                updatedAt: now,
+                deletedAt: null,
+              );
+              ref.read(currentAccountStatusProvider.notifier).setStatus(status);
             } catch (e) {
               developer.log(
                 'Failed to set remote activity status: $e',
@@ -422,7 +440,7 @@ final rpcServerStateProvider =
           final appId = socket.clientId;
           try {
             await unsetRemoteActivityStatus(ref, appId);
-            ref.invalidate(accountStatusProvider('me'));
+            ref.read(currentAccountStatusProvider.notifier).clearStatus();
           } catch (e) {
             developer.log(
               'Failed to unset remote activity status: $e',
