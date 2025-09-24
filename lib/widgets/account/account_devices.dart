@@ -290,8 +290,9 @@ class AccountSessionSheet extends HookConsumerWidget {
                                   } catch (err) {
                                     showErrorAlert(err);
                                   } finally {
-                                    if (context.mounted)
+                                    if (context.mounted) {
                                       hideLoadingModal(context);
+                                    }
                                   }
                                 }
                                 return confirm;

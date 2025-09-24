@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/screens/about.dart';
-import 'package:island/screens/account/credits.dart';
 import 'package:island/screens/developers/app_detail.dart';
 import 'package:island/screens/developers/bot_detail.dart';
 import 'package:island/screens/developers/edit_app.dart';
@@ -654,11 +653,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     name: 'wallet',
                     path: '/account/wallet',
                     builder: (context, state) => const WalletScreen(),
-                  ),
-                  GoRoute(
-                    name: 'socialCredits',
-                    path: '/account/credits',
-                    builder: (context, state) => const SocialCreditsScreen(),
                   ),
                   GoRoute(
                     name: 'relationships',

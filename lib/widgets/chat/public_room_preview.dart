@@ -18,7 +18,7 @@ import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:styled_widget/styled_widget.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
 import "package:material_symbols_icons/symbols.dart";
-import "package:riverpod_annotation/riverpod_annotation.dart";
+
 import "package:island/screens/chat/chat.dart";
 
 class PublicRoomPreview extends HookConsumerWidget {
