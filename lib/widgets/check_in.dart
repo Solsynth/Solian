@@ -229,6 +229,7 @@ class CheckInWidget extends HookConsumerWidget {
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
+            spacing: 4,
             children: [
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
