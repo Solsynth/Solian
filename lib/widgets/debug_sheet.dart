@@ -64,6 +64,7 @@ class DebugSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'Debug',
+      heightFactor: 0.6,
       child: Column(
         children: [
           ListTile(

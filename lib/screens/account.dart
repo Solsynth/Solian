@@ -150,10 +150,13 @@ class AccountScreen extends HookConsumerWidget {
                 context.pushNamed('leveling');
               },
             ).padding(horizontal: 12),
+            const SizedBox.shrink(),
             Row(
+              spacing: 8,
               children: [
                 Expanded(
                   child: Card(
+                    margin: EdgeInsets.zero,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(8),
                       child: Column(
@@ -180,6 +183,7 @@ class AccountScreen extends HookConsumerWidget {
                 ),
                 Expanded(
                   child: Card(
+                    margin: EdgeInsets.zero,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(8),
                       child: Column(
@@ -205,7 +209,73 @@ class AccountScreen extends HookConsumerWidget {
                   ).height(140),
                 ),
               ],
-            ).padding(horizontal: 8),
+            ).padding(horizontal: 12),
+            const SizedBox.shrink(),
+            Row(
+              spacing: 8,
+              children: [
+                Expanded(
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Symbols.settings, size: 28).padding(bottom: 8),
+                          Text('appSettings').tr().fontSize(16).bold(),
+                        ],
+                      ).padding(horizontal: 16, vertical: 12),
+                      onTap: () {
+                        context.pushNamed('settings');
+                      },
+                    ),
+                  ).height(120),
+                ),
+                Expanded(
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Symbols.person_edit,
+                            size: 28,
+                          ).padding(bottom: 8),
+                          Text('updateYourProfile').tr().fontSize(16).bold(),
+                        ],
+                      ).padding(horizontal: 16, vertical: 12),
+                      onTap: () {
+                        context.pushNamed('profileUpdate');
+                      },
+                    ),
+                  ).height(120),
+                ),
+                Expanded(
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Symbols.manage_accounts,
+                            size: 28,
+                          ).padding(bottom: 8),
+                          Text('accountSettings').tr().fontSize(16).bold(),
+                        ],
+                      ).padding(horizontal: 16, vertical: 12),
+                      onTap: () {
+                        context.pushNamed('accountSettings');
+                      },
+                    ),
+                  ).height(120),
+                ),
+              ],
+            ).padding(horizontal: 12),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.notifications),
@@ -275,37 +345,6 @@ class AccountScreen extends HookConsumerWidget {
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
               minTileHeight: 48,
-              leading: const Icon(Symbols.settings),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('appSettings').tr(),
-              onTap: () {
-                context.pushNamed('settings');
-              },
-            ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.person_edit),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('updateYourProfile').tr(),
-              onTap: () {
-                context.pushNamed('profileUpdate');
-              },
-            ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.manage_accounts),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('accountSettings').tr(),
-              onTap: () {
-                context.pushNamed('accountSettings');
-              },
-            ),
-            const Divider(height: 1).padding(vertical: 8),
-            ListTile(
-              minTileHeight: 48,
               leading: const Icon(Symbols.info),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
@@ -322,6 +361,8 @@ class AccountScreen extends HookConsumerWidget {
               title: Text('debugOptions').tr(),
               onTap: () {
                 showModalBottomSheet(
+                  useRootNavigator: true,
+                  isScrollControlled: true,
                   context: context,
                   builder: (context) => DebugSheet(),
                 );
