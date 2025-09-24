@@ -33,6 +33,10 @@ _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
   description: json['description'] as String?,
   fileMeta: json['file_meta'] as Map<String, dynamic>?,
   userMeta: json['user_meta'] as Map<String, dynamic>?,
+  pool:
+      json['pool'] == null
+          ? null
+          : SnFilePool.fromJson(json['pool'] as Map<String, dynamic>),
   sensitiveMarks:
       (json['sensitive_marks'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
@@ -61,6 +65,7 @@ Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
       'description': instance.description,
       'file_meta': instance.fileMeta,
       'user_meta': instance.userMeta,
+      'pool': instance.pool?.toJson(),
       'sensitive_marks': instance.sensitiveMarks,
       'mime_type': instance.mimeType,
       'hash': instance.hash,

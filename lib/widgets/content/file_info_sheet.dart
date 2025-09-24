@@ -21,7 +21,7 @@ class FileInfoSheet extends StatelessWidget {
     final exifData = item.fileMeta?['exif'] as Map<String, dynamic>? ?? {};
 
     return SheetScaffold(
-      titleText: 'File Information',
+      titleText: 'fileInfoTitle'.tr(),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +81,7 @@ class FileInfoSheet extends StatelessWidget {
                       ),
                       onLongPress: () {
                         Clipboard.setData(ClipboardData(text: item.hash!));
-                        showSnackBar('File hash copied to clipboard');
+                        showSnackBar('fileHashCopied'.tr());
                       },
                     ),
                   ),
@@ -101,7 +101,7 @@ class FileInfoSheet extends StatelessWidget {
                 icon: const Icon(Icons.copy),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: item.id));
-                  showSnackBar('File ID copied to clipboard');
+                  showSnackBar('fileIdCopied'.tr());
                 },
               ),
             ),
@@ -118,10 +118,28 @@ class FileInfoSheet extends StatelessWidget {
                 icon: const Icon(Icons.copy),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: item.name));
-                  showSnackBar('File name copied to clipboard');
+                  showSnackBar('fileNameCopied'.tr());
                 },
               ),
             ),
+            if (item.pool != null)
+              ListTile(
+                leading: const Icon(Symbols.calendar_today),
+                title: Text('File Pool').tr(),
+                subtitle: Text(
+                  item.pool!.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                trailing: IconButton(
+                  icon: const Icon(Icons.copy),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: item.pool!.id));
+                    showSnackBar('fileNameCopied'.tr());
+                  },
+                ),
+              ),
             if (exifData.isNotEmpty) ...[
               const Divider(height: 1),
               Theme(
@@ -163,7 +181,7 @@ class FileInfoSheet extends StatelessWidget {
                               Clipboard.setData(
                                 ClipboardData(text: '${entry.value}'),
                               );
-                              showSnackBar('Value copied to clipboard');
+                              showSnackBar('valueCopied'.tr());
                             },
                           ),
                         ),
@@ -180,7 +198,7 @@ class FileInfoSheet extends StatelessWidget {
                 child: ExpansionTile(
                   tilePadding: const EdgeInsets.symmetric(horizontal: 24),
                   title: Text(
-                    'File Metadata',
+                    'fileMetadata'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -212,7 +230,7 @@ class FileInfoSheet extends StatelessWidget {
                               Clipboard.setData(
                                 ClipboardData(text: jsonEncode(entry.value)),
                               );
-                              showSnackBar('Value copied to clipboard');
+                              showSnackBar('valueCopied'.tr());
                             },
                           ),
                         ),
@@ -229,7 +247,7 @@ class FileInfoSheet extends StatelessWidget {
                 child: ExpansionTile(
                   tilePadding: const EdgeInsets.symmetric(horizontal: 24),
                   title: Text(
-                    'User Metadata',
+                    'userMetadata'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -261,7 +279,7 @@ class FileInfoSheet extends StatelessWidget {
                               Clipboard.setData(
                                 ClipboardData(text: jsonEncode(entry.value)),
                               );
-                              showSnackBar('Value copied to clipboard');
+                              showSnackBar('valueCopied'.tr());
                             },
                           ),
                         ),
