@@ -32,6 +32,7 @@ class ChatInput extends HookConsumerWidget {
   final Function(int) onDeleteAttachment;
   final Function(int, int) onMoveAttachment;
   final Function(List<UniversalFile>) onAttachmentsChanged;
+  final Map<String, Map<int, double>> attachmentProgress;
 
   const ChatInput({
     super.key,
@@ -48,6 +49,7 @@ class ChatInput extends HookConsumerWidget {
     required this.onDeleteAttachment,
     required this.onMoveAttachment,
     required this.onAttachmentsChanged,
+    required this.attachmentProgress,
   });
 
   @override
@@ -123,6 +125,7 @@ class ChatInput extends HookConsumerWidget {
                     width: 280,
                     child: AttachmentPreview(
                       item: attachments[idx],
+                      progress: attachmentProgress['chat-upload']?[idx],
                       onRequestUpload: () => onUploadAttachment(idx),
                       onDelete: () => onDeleteAttachment(idx),
                       onUpdate: (value) {
