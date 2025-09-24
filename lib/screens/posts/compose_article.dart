@@ -11,6 +11,7 @@ import 'package:island/models/post.dart';
 import 'package:island/screens/creators/publishers.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/attachment_uploader.dart';
 import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/widgets/content/attachment_preview.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -345,12 +346,30 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                       isCompact: true,
                                       item: attachments[idx],
                                       progress: progressMap[idx],
-                                      onRequestUpload:
-                                          () => ComposeLogic.uploadAttachment(
+                                      onRequestUpload: () async {
+                                        final config =
+                                            await showModalBottomSheet<
+                                              AttachmentUploadConfig
+                                            >(
+                                              context: context,
+                                              isScrollControlled: true,
+                                              builder:
+                                                  (context) =>
+                                                      AttachmentUploaderSheet(
+                                                        ref: ref,
+                                                        state: state,
+                                                        index: idx,
+                                                      ),
+                                            );
+                                        if (config != null) {
+                                          await ComposeLogic.uploadAttachment(
                                             ref,
                                             state,
                                             idx,
-                                          ),
+                                            poolId: config.poolId,
+                                          );
+                                        }
+                                      },
                                       onUpdate:
                                           (value) =>
                                               ComposeLogic.updateAttachment(

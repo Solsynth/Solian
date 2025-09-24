@@ -20,7 +20,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_link_attachments.dart';
 import 'package:island/widgets/post/compose_poll.dart';
 import 'package:island/widgets/post/compose_recorder.dart';
-import 'package:island/pods/pool_provider.dart';
+import 'package:island/pods/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 import 'dart:async';
@@ -672,7 +672,7 @@ class ComposeLogic {
     try {
       state.submitting.value = true;
 
-      // Upload any local attachments first
+      // pload any local attachments first
       await Future.wait(
         state.attachments.value
             .asMap()

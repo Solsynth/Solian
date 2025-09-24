@@ -470,7 +470,8 @@ class AttachmentPreview extends HookConsumerWidget {
                 if (onRequestUpload != null)
                   InkWell(
                     borderRadius: BorderRadius.circular(8),
-                    onTap: () => onRequestUpload?.call(),
+                    onTap:
+                        item.isOnCloud ? null : () => onRequestUpload?.call(),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Container(

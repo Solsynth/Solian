@@ -6,7 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/pods/pool_provider.dart';
+import 'package:island/pods/file_pool.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';

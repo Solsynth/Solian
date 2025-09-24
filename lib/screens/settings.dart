@@ -21,7 +21,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/pods/pool_provider.dart';
+import 'package:island/pods/file_pool.dart';
 import 'package:island/models/file_pool.dart';
 
 class SettingsScreen extends HookConsumerWidget {

@@ -10,6 +10,7 @@ import 'package:island/screens/creators/publishers.dart';
 import 'package:island/screens/posts/compose_article.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/attachment_uploader.dart';
 import 'package:island/widgets/content/attachment_preview.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/compose_shared.dart';
@@ -225,8 +226,26 @@ class PostComposeScreen extends HookConsumerWidget {
           return AttachmentPreview(
             item: state.attachments.value[idx],
             progress: progressMap[idx],
-            onRequestUpload:
-                () => ComposeLogic.uploadAttachment(ref, state, idx),
+            onRequestUpload: () async {
+              final config = await showModalBottomSheet<AttachmentUploadConfig>(
+                context: context,
+                isScrollControlled: true,
+                builder:
+                    (context) => AttachmentUploaderSheet(
+                      ref: ref,
+                      state: state,
+                      index: idx,
+                    ),
+              );
+              if (config != null) {
+                await ComposeLogic.uploadAttachment(
+                  ref,
+                  state,
+                  idx,
+                  poolId: config.poolId,
+                );
+              }
+            },
             onDelete: () => ComposeLogic.deleteAttachment(ref, state, idx),
             onUpdate:
                 (value) => ComposeLogic.updateAttachment(state, value, idx),
@@ -253,8 +272,27 @@ class PostComposeScreen extends HookConsumerWidget {
                 return AttachmentPreview(
                   item: state.attachments.value[idx],
                   progress: progressMap[idx],
-                  onRequestUpload:
-                      () => ComposeLogic.uploadAttachment(ref, state, idx),
+                  onRequestUpload: () async {
+                    final config =
+                        await showModalBottomSheet<AttachmentUploadConfig>(
+                          context: context,
+                          isScrollControlled: true,
+                          builder:
+                              (context) => AttachmentUploaderSheet(
+                                ref: ref,
+                                state: state,
+                                index: idx,
+                              ),
+                        );
+                    if (config != null) {
+                      await ComposeLogic.uploadAttachment(
+                        ref,
+                        state,
+                        idx,
+                        poolId: config.poolId,
+                      );
+                    }
+                  },
                   onDelete:
                       () => ComposeLogic.deleteAttachment(ref, state, idx),
                   onUpdate:

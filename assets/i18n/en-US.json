@@ -908,6 +908,15 @@
   "attachmentOnDevice": "On-device",
   "attachmentOnCloud": "On-cloud",
   "attachments": "Attachments",
+  "uploadAttachment": "Upload Attachment",
+  "attachmentPreview": "Attachment Preview",
+  "selectPool": "Select Pool",
+  "choosePool": "Choose a pool",
+  "errorLoadingPools": "Error loading pools",
+  "quotaCostInfo": "This upload will cost {} quota points",
+  "uploadConstraints": "Upload Constraints",
+  "fileSizeExceeded": "File size exceeds the maximum limit of {}",
+  "fileTypeNotAccepted": "File type is not accepted by this pool",
   "publisherCollabInvitation": "Collabration invitations",
   "publisherCollabInvitationCount": {
     "zero": "No invitation",
@@ -1052,5 +1061,6 @@
   "confirmDeleteRecycledFiles": "Are you sure you want to delete all recycled files?",
   "deleteRecycledFiles": "Delete Recycled Files",
   "recycledFilesDeleted": "Recycled files deleted successfully",
-  "failedToDeleteRecycledFiles": "Failed to delete recycled files"
+  "failedToDeleteRecycledFiles": "Failed to delete recycled files",
+  "upload": "Upload"
 }
