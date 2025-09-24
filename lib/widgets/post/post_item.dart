@@ -544,7 +544,12 @@ class PostItem extends HookConsumerWidget {
                                 child: _buildReactionIcon(
                                   mostReaction,
                                   32,
-                                ).padding(bottom: 2),
+                                ).padding(
+                                  bottom:
+                                      _getReactionImageAvailable(mostReaction)
+                                          ? 2
+                                          : 0,
+                                ),
                               ),
                       style: ButtonStyle(
                         backgroundColor: WidgetStatePropertyAll(
