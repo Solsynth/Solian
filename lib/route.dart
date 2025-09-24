@@ -18,6 +18,7 @@ import 'package:island/screens/developers/edit_project.dart';
 import 'package:island/screens/developers/new_project.dart';
 import 'package:island/screens/developers/project_detail.dart';
 import 'package:island/screens/discovery/articles.dart';
+import 'package:island/screens/files/file_list.dart';
 import 'package:island/screens/posts/post_categories_list.dart';
 import 'package:island/screens/posts/post_category_detail.dart';
 import 'package:island/screens/posts/post_search.dart';
@@ -653,6 +654,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                     name: 'wallet',
                     path: '/account/wallet',
                     builder: (context, state) => const WalletScreen(),
+                  ),
+                  GoRoute(
+                    name: 'files',
+                    path: '/account/files',
+                    builder: (context, state) => const FileListScreen(),
                   ),
                   GoRoute(
                     name: 'relationships',

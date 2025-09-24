@@ -306,6 +306,16 @@ class AccountScreen extends HookConsumerWidget {
             ),
             ListTile(
               minTileHeight: 48,
+              leading: const Icon(Symbols.files),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('files').tr(),
+              onTap: () {
+                context.pushNamed('files');
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
               leading: const Icon(Symbols.people),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
