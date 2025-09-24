@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:island/models/file_pool.dart';
 
 part 'file.freezed.dart';
 part 'file.g.dart';
@@ -42,6 +43,7 @@ sealed class SnCloudFile with _$SnCloudFile {
     required String? description,
     required Map<String, dynamic>? fileMeta,
     required Map<String, dynamic>? userMeta,
+    required SnFilePool? pool,
     @Default([]) List<int> sensitiveMarks,
     required String? mimeType,
     required String? hash,
