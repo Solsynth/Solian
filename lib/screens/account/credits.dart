@@ -4,7 +4,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -59,94 +58,93 @@ class SocialCreditHistoryNotifier extends _$SocialCreditHistoryNotifier
   }
 }
 
-class SocialCreditsScreen extends HookConsumerWidget {
-  const SocialCreditsScreen({super.key});
+class SocialCreditsTab extends HookConsumerWidget {
+  const SocialCreditsTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final socialCredits = ref.watch(socialCreditsProvider);
-
-    return AppScaffold(
-      appBar: AppBar(title: Text('socialCredits').tr()),
-      body: Column(
-        children: [
-          Card(
-            margin: EdgeInsets.only(left: 16, right: 16, top: 8),
-            child: socialCredits
-                .when(
-                  data:
-                      (credits) => Stack(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                credits < 100
-                                    ? 'socialCreditsLevelPoor'.tr()
-                                    : credits < 150
-                                    ? 'socialCreditsLevelNormal'.tr()
-                                    : credits < 200
-                                    ? 'socialCreditsLevelGood'.tr()
-                                    : 'socialCreditsLevelExcellent'.tr(),
-                              ).tr().bold().fontSize(20),
-                              Text(
-                                '${credits.toStringAsFixed(2)} pts',
-                              ).fontSize(14),
-                              const Gap(8),
-                              LinearProgressIndicator(value: credits / 200),
-                            ],
+    return Column(
+      children: [
+        const Gap(8),
+        Card(
+          margin: const EdgeInsets.only(left: 16, right: 16, top: 8),
+          child: socialCredits
+              .when(
+                data:
+                    (credits) => Stack(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              credits < 100
+                                  ? 'socialCreditsLevelPoor'.tr()
+                                  : credits < 150
+                                  ? 'socialCreditsLevelNormal'.tr()
+                                  : credits < 200
+                                  ? 'socialCreditsLevelGood'.tr()
+                                  : 'socialCreditsLevelExcellent'.tr(),
+                            ).tr().bold().fontSize(20),
+                            Text(
+                              '${credits.toStringAsFixed(2)} pts',
+                            ).fontSize(14),
+                            const Gap(8),
+                            LinearProgressIndicator(value: credits / 200),
+                          ],
+                        ),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: IconButton(
+                            onPressed: () {},
+                            icon: const Icon(Symbols.info),
+                            tooltip: 'socialCreditsDescription'.tr(),
                           ),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: const Icon(Symbols.info),
-                              tooltip: 'socialCreditsDescription'.tr(),
-                            ),
-                          ),
-                        ],
+                        ),
+                      ],
+                    ),
+                error: (_, _) => Text('Error loading credits'),
+                loading: () => const LinearProgressIndicator(),
+              )
+              .padding(horizontal: 20, vertical: 16),
+        ),
+        Expanded(
+          child: PagingHelperView(
+            provider: socialCreditHistoryNotifierProvider,
+            futureRefreshable: socialCreditHistoryNotifierProvider.future,
+            notifierRefreshable: socialCreditHistoryNotifierProvider.notifier,
+            contentBuilder:
+                (data, widgetCount, endItemView) => ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: widgetCount,
+                  itemBuilder: (context, index) {
+                    if (index == widgetCount - 1) {
+                      return endItemView;
+                    }
+                    final record = data.items[index];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 24,
                       ),
-                  error: (_, _) => Text('Error loading credits'),
-                  loading: () => const LinearProgressIndicator(),
-                )
-                .padding(horizontal: 20, vertical: 16),
-          ),
-          Expanded(
-            child: PagingHelperView(
-              provider: socialCreditHistoryNotifierProvider,
-              futureRefreshable: socialCreditHistoryNotifierProvider.future,
-              notifierRefreshable: socialCreditHistoryNotifierProvider.notifier,
-              contentBuilder:
-                  (data, widgetCount, endItemView) => ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: widgetCount,
-                    itemBuilder: (context, index) {
-                      if (index == widgetCount - 1) {
-                        return endItemView;
-                      }
-                      final record = data.items[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                        title: Text(record.reason),
-                        subtitle: Text(
-                          DateFormat.yMMMd().format(record.createdAt),
+                      title: Text(record.reason),
+                      subtitle: Text(
+                        DateFormat.yMMMd().format(record.createdAt),
+                      ),
+                      trailing: Text(
+                        record.delta > 0
+                            ? '+${record.delta}'
+                            : '${record.delta}',
+                        style: TextStyle(
+                          color: record.delta > 0 ? Colors.green : Colors.red,
                         ),
-                        trailing: Text(
-                          record.delta > 0
-                              ? '+${record.delta}'
-                              : '${record.delta}',
-                          style: TextStyle(
-                            color: record.delta > 0 ? Colors.green : Colors.red,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-            ),
+                      ),
+                    );
+                  },
+                ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

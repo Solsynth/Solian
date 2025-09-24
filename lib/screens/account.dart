@@ -267,16 +267,6 @@ class AccountScreen extends HookConsumerWidget {
             ),
             ListTile(
               minTileHeight: 48,
-              leading: const Icon(Symbols.star),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('credits').tr(),
-              onTap: () {
-                context.pushNamed('socialCredits');
-              },
-            ),
-            ListTile(
-              minTileHeight: 48,
               title: Text('abuseReport').tr(),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               leading: const Icon(Symbols.gavel),

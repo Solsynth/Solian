@@ -4,12 +4,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
+import 'package:island/screens/account/credits.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
@@ -89,7 +89,7 @@ class LevelingScreen extends HookConsumerWidget {
     }
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: AppScaffold(
         appBar: AppBar(
           title: Text('levelingProgress'.tr()),
@@ -98,6 +98,15 @@ class LevelingScreen extends HookConsumerWidget {
               Tab(
                 child: Text(
                   'leveling'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor!,
+                  ),
+                ),
+              ),
+              Tab(
+                child: Text(
+                  'socialCredits'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor!,
@@ -119,6 +128,7 @@ class LevelingScreen extends HookConsumerWidget {
         body: TabBarView(
           children: [
             _buildLevelingTab(context, ref, user.value!),
+            const SocialCreditsTab(),
             _buildStellarProgramTab(context, ref),
           ],
         ),
@@ -164,10 +174,33 @@ class LevelingScreen extends HookConsumerWidget {
             ),
             const SliverGap(16),
 
-            // Stairs visualization with fixed height and horizontal scroll
-            SliverToBoxAdapter(child: _buildLevelStairs(context, currentLevel)),
-            const SliverGap(24),
-
+            SliverToBoxAdapter(
+              child: Card(
+                margin: EdgeInsets.zero,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    LinearProgressIndicator(
+                      value: currentLevel / 120,
+                      minHeight: 10,
+                      stopIndicatorRadius: 0,
+                      trackGap: 0,
+                      color: Theme.of(context).colorScheme.primary,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    const Gap(8),
+                    Text(
+                      '${'levelingProgressLevel'.tr(args: [currentLevel.toString()])} / 120',
+                      textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ).padding(horizontal: 16, top: 16, bottom: 12),
+              ),
+            ),
+            const SliverGap(16),
             // Leveling History
             SliverToBoxAdapter(
               child: Text(
@@ -248,126 +281,6 @@ class LevelingScreen extends HookConsumerWidget {
               _buildMembershipSection(context, ref, stellarSubscription),
               const Gap(16),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLevelStairs(BuildContext context, int currentLevel) {
-    const totalLevels = 14;
-    const stairHeight = 20.0;
-    const stairWidth = 50.0;
-    const containerHeight = 280.0;
-
-    return Container(
-      height: containerHeight,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: SizedBox(
-          width: (totalLevels * (stairWidth + 8)) + 40,
-          height: containerHeight,
-          child: CustomPaint(
-            painter: LevelStairsPainter(
-              currentLevel: currentLevel,
-              totalLevels: totalLevels,
-              primaryColor: Theme.of(context).colorScheme.primary,
-              surfaceColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-              onSurfaceColor: Theme.of(context).colorScheme.onSurface,
-              stairHeight: stairHeight,
-              stairWidth: stairWidth,
-            ),
-            child: Stack(
-              children: List.generate(totalLevels, (index) {
-                final level = index + 1;
-                final isCompleted = level <= currentLevel;
-                final isCurrent = level == currentLevel;
-
-                // Calculate position from bottom
-                final bottomPosition = 0.0;
-                final leftPosition = 20.0 + (index * (stairWidth + 8));
-
-                // Make higher levels progressively taller
-                final progressiveHeight =
-                    40.0 + (index * 15.0); // Base height + progressive increase
-
-                return Positioned(
-                  left: leftPosition,
-                  bottom: bottomPosition,
-                  child: Container(
-                    width: stairWidth,
-                    height: progressiveHeight,
-                    decoration: BoxDecoration(
-                      color:
-                          isCompleted
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHigh,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(6),
-                        topRight: Radius.circular(6),
-                      ),
-                      border:
-                          isCurrent
-                              ? Border.all(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 2,
-                              )
-                              : null,
-                      boxShadow:
-                          isCurrent
-                              ? [
-                                BoxShadow(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withOpacity(0.3),
-                                  blurRadius: 6,
-                                  spreadRadius: 1,
-                                ),
-                              ]
-                              : null,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Column(
-                        children: [
-                          Text(
-                            level.toString(),
-                            style: GoogleFonts.robotoMono(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  isCompleted
-                                      ? Theme.of(context).colorScheme.onPrimary
-                                      : Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          if (isCurrent) ...[
-                            const Gap(4),
-                            Container(
-                              width: 4,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
           ),
         ),
       ),

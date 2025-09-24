@@ -45,6 +45,8 @@ class LevelingProgressCard extends StatelessWidget {
             child: LinearProgressIndicator(
               minHeight: 4,
               value: progress / 100,
+              stopIndicatorRadius: 0,
+              trackGap: 0,
               color: Theme.of(context).colorScheme.primary,
               backgroundColor:
                   Theme.of(context).colorScheme.surfaceContainerHigh,
