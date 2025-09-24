@@ -395,7 +395,12 @@ final rpcServerStateProvider =
             final label = data['args']['activity']['details'] ?? 'Unknown';
             final appId = socket.clientId;
             try {
-              await setRemoteActivityStatus(ref, label, appId);
+              await setRemoteActivityStatus(
+                ref,
+                label,
+                appId,
+                data['args']['activity'],
+              );
             } catch (e) {
               developer.log(
                 'Failed to set remote activity status: $e',
@@ -435,6 +440,7 @@ Future<void> setRemoteActivityStatus(
   Ref ref,
   String label,
   String appId,
+  Map<String, dynamic> meta,
 ) async {
   final apiClient = ref.read(apiClientProvider);
   await apiClient.post(
@@ -445,6 +451,7 @@ Future<void> setRemoteActivityStatus(
       'is_automated': true,
       'label': label,
       'app_identifier': appId,
+      'meta': meta,
     },
   );
 }
