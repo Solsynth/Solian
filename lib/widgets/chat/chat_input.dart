@@ -1,7 +1,5 @@
 import "dart:async";
-import "dart:io";
 import "package:easy_localization/easy_localization.dart";
-import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
@@ -56,15 +54,23 @@ class ChatInput extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final inputFocusNode = useFocusNode();
 
-    final enterToSend = ref.watch(appSettingsNotifierProvider).enterToSend;
-
-    final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
-
     void send() {
       onSend.call();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         inputFocusNode.requestFocus();
       });
+    }
+
+    void insertNewLine() {
+      final text = messageController.text;
+      final selection = messageController.selection;
+      final start = selection.start >= 0 ? selection.start : text.length;
+      final end = selection.end >= 0 ? selection.end : text.length;
+      final newText = text.replaceRange(start, end, '\n');
+      messageController.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: start + 1),
+      );
     }
 
     Future<void> handlePaste() async {
@@ -80,32 +86,34 @@ class ChatInput extends HookConsumerWidget {
       ]);
     }
 
-    void handleKeyPress(
-      BuildContext context,
-      WidgetRef ref,
-      RawKeyEvent event,
-    ) {
-      if (event is! RawKeyDownEvent) return;
+    inputFocusNode.onKeyEvent = (node, event) {
+      if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
       final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
-      final isModifierPressed = event.isMetaPressed || event.isControlPressed;
+      final isModifierPressed =
+          HardwareKeyboard.instance.isMetaPressed ||
+          HardwareKeyboard.instance.isControlPressed;
 
       if (isPaste && isModifierPressed) {
         handlePaste();
-        return;
+        return KeyEventResult.handled;
       }
 
       final enterToSend = ref.read(appSettingsNotifierProvider).enterToSend;
       final isEnter = event.logicalKey == LogicalKeyboardKey.enter;
 
       if (isEnter) {
-        if (enterToSend && !isModifierPressed) {
+        if (isModifierPressed) {
+          insertNewLine();
+          return KeyEventResult.handled;
+        } else if (enterToSend) {
           send();
-        } else if (!enterToSend && isModifierPressed) {
-          send();
+          return KeyEventResult.handled;
         }
       }
-    }
+
+      return KeyEventResult.ignored;
+    };
 
     return Material(
       elevation: 8,
@@ -260,59 +268,36 @@ class ChatInput extends HookConsumerWidget {
                   ],
                 ),
                 Expanded(
-                  child: RawKeyboardListener(
-                    focusNode: FocusNode(),
-                    onKey: (event) => handleKeyPress(context, ref, event),
-                    child: TextField(
-                      focusNode: inputFocusNode,
-                      controller: messageController,
-                      onSubmitted:
-                          (enterToSend && isMobile)
-                              ? (_) {
-                                send();
-                              }
-                              : null,
-                      keyboardType:
-                          (enterToSend && isMobile)
-                              ? TextInputType.text
-                              : TextInputType.multiline,
-                      textInputAction: TextInputAction.send,
-                      inputFormatters: [
-                        if (enterToSend && !isMobile)
-                          TextInputFormatter.withFunction((oldValue, newValue) {
-                            if (newValue.text.endsWith('\n')) {
-                              return oldValue;
-                            }
-                            return newValue;
-                          }),
-                      ],
-                      decoration: InputDecoration(
-                        hintText:
-                            (chatRoom.type == 1 && chatRoom.name == null)
-                                ? 'chatDirectMessageHint'.tr(
-                                  args: [
-                                    chatRoom.members!
-                                        .map((e) => e.account.nick)
-                                        .join(', '),
-                                  ],
-                                )
-                                : 'chatMessageHint'.tr(args: [chatRoom.name!]),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        counterText:
-                            messageController.text.length > 1024
-                                ? '${messageController.text.length}/4096'
-                                : null,
+                  child: TextField(
+                    focusNode: inputFocusNode,
+                    controller: messageController,
+                    keyboardType: TextInputType.multiline,
+                    decoration: InputDecoration(
+                      hintText:
+                          (chatRoom.type == 1 && chatRoom.name == null)
+                              ? 'chatDirectMessageHint'.tr(
+                                args: [
+                                  chatRoom.members!
+                                      .map((e) => e.account.nick)
+                                      .join(', '),
+                                ],
+                              )
+                              : 'chatMessageHint'.tr(args: [chatRoom.name!]),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
                       ),
-                      maxLines: 3,
-                      minLines: 1,
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      counterText:
+                          messageController.text.length > 1024
+                              ? '${messageController.text.length}/4096'
+                              : null,
                     ),
+                    maxLines: 3,
+                    minLines: 1,
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                 ),
                 IconButton(
