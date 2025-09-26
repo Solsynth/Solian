@@ -1,6 +1,4 @@
 PODS:
-  - bitsdojo_window_macos (0.0.1):
-    - FlutterMacOS
   - connectivity_plus (0.0.1):
     - FlutterMacOS
   - croppy (0.0.1):
@@ -202,6 +200,8 @@ PODS:
   - record_macos (1.1.0):
     - FlutterMacOS
   - SAMKeychain (1.5.3)
+  - screen_retriever_macos (0.0.1):
+    - FlutterMacOS
   - share_plus (0.0.1):
     - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
@@ -248,9 +248,10 @@ PODS:
   - wakelock_plus (0.0.1):
     - FlutterMacOS
   - WebRTC-SDK (137.7151.04)
+  - window_manager (0.5.0):
+    - FlutterMacOS
 
 DEPENDENCIES:
-  - bitsdojo_window_macos (from `Flutter/ephemeral/.symlinks/plugins/bitsdojo_window_macos/macos`)
   - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
   - croppy (from `Flutter/ephemeral/.symlinks/plugins/croppy/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
@@ -279,6 +280,7 @@ DEPENDENCIES:
   - pasteboard (from `Flutter/ephemeral/.symlinks/plugins/pasteboard/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - record_macos (from `Flutter/ephemeral/.symlinks/plugins/record_macos/macos`)
+  - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sign_in_with_apple (from `Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos`)
@@ -289,6 +291,7 @@ DEPENDENCIES:
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - volume_controller (from `Flutter/ephemeral/.symlinks/plugins/volume_controller/macos`)
   - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
+  - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
 
 SPEC REPOS:
   trunk:
@@ -314,8 +317,6 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
-  bitsdojo_window_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/bitsdojo_window_macos/macos
   connectivity_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos
   croppy:
@@ -372,6 +373,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   record_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/record_macos/macos
+  screen_retriever_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
   share_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
   shared_preferences_foundation:
@@ -392,9 +395,10 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/volume_controller/macos
   wakelock_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
+  window_manager:
+    :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
-  bitsdojo_window_macos: 7959fb0ca65a3ccda30095c181ecb856fae48ea9
   connectivity_plus: 4adf20a405e25b42b9c9f87feff8f4b6fde18a4e
   croppy: d9bfc8c02f3cd1851f669a421df298a474b78f43
   device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
@@ -441,6 +445,7 @@ SPEC CHECKSUMS:
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   record_macos: 43194b6c06ca6f8fa132e2acea72b202b92a0f5b
   SAMKeychain: 483e1c9f32984d50ca961e26818a534283b4cd5c
+  screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   sign_in_with_apple: 6673c03c9e3643f6c8d33601943fbfa9ae99f94e
@@ -453,6 +458,7 @@ SPEC CHECKSUMS:
   volume_controller: 5c068e6d085c80dadd33fc2c918d2114b775b3dd
   wakelock_plus: 917609be14d812ddd9e9528876538b2263aaa03b
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
+  window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
 PODFILE CHECKSUM: 346bfb2deb41d4a6ebd6f6799f92188bde2d246f
 

@@ -6,7 +6,6 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <bitsdojo_window_windows/bitsdojo_window_plugin.h>
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
 #include <dart_ipc/dart_ipc_plugin_c_api.h>
 #include <file_saver/file_saver_plugin.h>
@@ -26,17 +25,17 @@
 #include <media_kit_video/media_kit_video_plugin_c_api.h>
 #include <pasteboard/pasteboard_plugin.h>
 #include <record_windows/record_windows_plugin_c_api.h>
+#include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
 #include <share_plus/share_plus_windows_plugin_c_api.h>
 #include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <super_native_extensions/super_native_extensions_plugin_c_api.h>
 #include <tray_manager/tray_manager_plugin.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <volume_controller/volume_controller_plugin_c_api.h>
+#include <window_manager/window_manager_plugin.h>
 #include <windows_notification/windows_notification_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  BitsdojoWindowPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("BitsdojoWindowPlugin"));
   ConnectivityPlusWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ConnectivityPlusWindowsPlugin"));
   DartIpcPluginCApiRegisterWithRegistrar(
@@ -75,6 +74,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("PasteboardPlugin"));
   RecordWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("RecordWindowsPluginCApi"));
+  ScreenRetrieverWindowsPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("ScreenRetrieverWindowsPluginCApi"));
   SharePlusWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("SharePlusWindowsPluginCApi"));
   Sqlite3FlutterLibsPluginRegisterWithRegistrar(
@@ -87,6 +88,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
   VolumeControllerPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("VolumeControllerPluginCApi"));
+  WindowManagerPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("WindowManagerPlugin"));
   WindowsNotificationPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("WindowsNotificationPluginCApi"));
 }

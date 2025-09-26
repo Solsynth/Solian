@@ -8,7 +8,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -17,7 +16,7 @@ import 'package:island/firebase_options.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/theme.dart';
-import 'package:bitsdojo_window/bitsdojo_window.dart';
+
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
@@ -30,6 +29,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:window_manager/window_manager.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -89,31 +89,39 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
 
   if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
-    doWhenWindowReady(() {
-      const defaultSize = Size(360, 640);
+    await windowManager.ensureInitialized();
 
-      // Get saved window size from preferences
-      final savedSizeString = prefs.getString(kAppWindowSize);
-      Size initialSize = defaultSize;
+    const defaultSize = Size(360, 640);
 
-      if (savedSizeString != null) {
-        try {
-          final parts = savedSizeString.split(',');
-          if (parts.length == 2) {
-            final width = double.parse(parts[0]);
-            final height = double.parse(parts[1]);
-            initialSize = Size(width, height);
-          }
-        } catch (e) {
-          log("[SplashScreen] Failed to parse saved window size: $e");
-          initialSize = defaultSize;
+    // Get saved window size from preferences
+    final savedSizeString = prefs.getString(kAppWindowSize);
+    Size initialSize = defaultSize;
+
+    if (savedSizeString != null) {
+      try {
+        final parts = savedSizeString.split(',');
+        if (parts.length == 2) {
+          final width = double.parse(parts[0]);
+          final height = double.parse(parts[1]);
+          initialSize = Size(width, height);
         }
+      } catch (e) {
+        log("[SplashScreen] Failed to parse saved window size: $e");
+        initialSize = defaultSize;
       }
+    }
 
-      appWindow.minSize = defaultSize;
-      appWindow.size = initialSize;
-      appWindow.alignment = Alignment.center;
-      appWindow.show();
+    WindowOptions windowOptions = WindowOptions(
+      size: initialSize,
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.setMinimumSize(defaultSize);
+      await windowManager.show();
+      await windowManager.focus();
       log(
         "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}",
       );

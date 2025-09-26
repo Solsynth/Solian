@@ -1,8 +1,7 @@
 import 'dart:io';
-
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tray_manager/tray_manager.dart';
+import 'package:window_manager/window_manager.dart';
 
 class TrayService {
   TrayService._();
@@ -48,15 +47,10 @@ class TrayService {
   void handleAction(MenuItem item) {
     switch (item.key) {
       case 'show_window':
-        () async {
-        appWindow.show();
-        appWindow.restore();
-        await Future.delayed(const Duration(milliseconds: 32));
-        appWindow.show();
-        }();
+        windowManager.show();
         break;
       case 'exit_app':
-        appWindow.close();
+        windowManager.destroy();
         break;
     }
   }

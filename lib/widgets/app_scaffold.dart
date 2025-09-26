@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:ui';
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ import 'package:island/services/responsive.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:window_manager/window_manager.dart';
 
 class AppScrollBehavior extends MaterialScrollBehavior {
   @override
@@ -36,11 +36,12 @@ class WindowScaffold extends HookConsumerWidget {
       if (!kIsWeb &&
           (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         void saveWindowSize() {
-          final size = appWindow.size;
-          final settingsNotifier = ref.read(
-            appSettingsNotifierProvider.notifier,
-          );
-          settingsNotifier.setWindowSize(size);
+          windowManager.getBounds().then((bounds) {
+            final settingsNotifier = ref.read(
+              appSettingsNotifierProvider.notifier,
+            );
+            settingsNotifier.setWindowSize(bounds.size);
+          });
         }
 
         // Save window size when app is about to close
@@ -61,13 +62,6 @@ class WindowScaffold extends HookConsumerWidget {
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-      final windowButtonColor = WindowButtonColors(
-        iconNormal: Theme.of(context).colorScheme.primary,
-        mouseOver: Theme.of(context).colorScheme.primaryContainer,
-        mouseDown: Theme.of(context).colorScheme.onPrimaryContainer,
-        iconMouseOver: Theme.of(context).colorScheme.primary,
-        iconMouseDown: Theme.of(context).colorScheme.primary,
-      );
 
       return Material(
         child: Stack(
@@ -75,44 +69,66 @@ class WindowScaffold extends HookConsumerWidget {
           children: [
             Column(
               children: [
-                WindowTitleBarBox(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Theme.of(context).dividerColor,
-                          width: 1 / devicePixelRatio,
-                        ),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Theme.of(context).dividerColor,
+                        width: 1 / devicePixelRatio,
                       ),
                     ),
-                    child: MoveWindow(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment:
-                            Platform.isMacOS
-                                ? MainAxisAlignment.center
-                                : MainAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Solar Network',
-                              textAlign:
-                                  Platform.isMacOS
-                                      ? TextAlign.center
-                                      : TextAlign.start,
-                            ).padding(horizontal: 12, vertical: 5),
+                  ),
+                  child: DragToMoveArea(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment:
+                          Platform.isMacOS
+                              ? MainAxisAlignment.center
+                              : MainAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Solar Network',
+                            textAlign:
+                                Platform.isMacOS
+                                    ? TextAlign.center
+                                    : TextAlign.start,
+                          ).padding(horizontal: 12, vertical: 5),
+                        ),
+                        if (!Platform.isMacOS)
+                          IconButton(
+                            icon: Icon(Symbols.minimize),
+                            onPressed: () => windowManager.minimize(),
+                            iconSize: 16,
+                            padding: EdgeInsets.all(8),
+                            constraints: BoxConstraints(),
+                            color: Theme.of(context).iconTheme.color,
                           ),
-                          if (!Platform.isMacOS)
-                            MinimizeWindowButton(colors: windowButtonColor),
-                          if (!Platform.isMacOS)
-                            MaximizeWindowButton(colors: windowButtonColor),
-                          if (!Platform.isMacOS)
-                            CloseWindowButton(
-                              colors: windowButtonColor,
-                              onPressed: () => appWindow.hide(),
-                            ),
-                        ],
-                      ),
+                        if (!Platform.isMacOS)
+                          IconButton(
+                            icon: Icon(Symbols.maximize),
+                            onPressed: () async {
+                              if (await windowManager.isMaximized()) {
+                                windowManager.restore();
+                              } else {
+                                windowManager.maximize();
+                              }
+                            },
+                            iconSize: 16,
+                            padding: EdgeInsets.all(8),
+                            constraints: BoxConstraints(),
+                            color: Theme.of(context).iconTheme.color,
+                          ),
+                        if (!Platform.isMacOS)
+                          IconButton(
+                            icon: Icon(Symbols.close),
+                            onPressed: () => windowManager.close(),
+                            iconSize: 16,
+                            padding: EdgeInsets.all(8),
+                            constraints: BoxConstraints(),
+                            color: Theme.of(context).iconTheme.color,
+                          ),
+                      ],
                     ),
                   ),
                 ),

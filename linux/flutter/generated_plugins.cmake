@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  bitsdojo_window_linux
   file_saver
   file_selector_linux
   flutter_platform_alert
@@ -17,11 +16,13 @@ list(APPEND FLUTTER_PLUGIN_LIST
   media_kit_video
   pasteboard
   record_linux
+  screen_retriever_linux
   sqlite3_flutter_libs
   super_native_extensions
   tray_manager
   url_launcher_linux
   volume_controller
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
