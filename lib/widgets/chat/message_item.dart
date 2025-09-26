@@ -538,7 +538,7 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
             isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
           Text(
-            DateFormat('HH:mm').format(message.createdAt),
+            DateFormat('HH:mm').format(message.createdAt.toLocal()),
             style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 12),
           ).padding(top: isMultiline ? 2 : 0),
           AccountPfcGestureDetector(
