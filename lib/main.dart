@@ -117,11 +117,14 @@ void main() async {
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
+      windowButtonVisibility: true,
     );
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.setMinimumSize(defaultSize);
       await windowManager.show();
       await windowManager.focus();
+      final opacity = prefs.getDouble(kAppWindowOpacity) ?? 1.0;
+      await windowManager.setOpacity(opacity);
       log(
         "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}",
       );
@@ -243,6 +246,7 @@ class IslandApp extends HookConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
+      color: Colors.transparent,
       theme: theme?.light,
       darkTheme: theme?.dark,
       themeMode: ThemeMode.system,

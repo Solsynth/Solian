@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/pods/theme.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:window_manager/window_manager.dart';
 
 part 'config.freezed.dart';
 part 'config.g.dart';
@@ -24,6 +25,7 @@ const kAppDataSavingMode = 'app_data_saving_mode';
 const kAppSoundEffects = 'app_sound_effects';
 const kAppAprilFoolFeatures = 'app_april_fool_features';
 const kAppWindowSize = 'app_window_size';
+const kAppWindowOpacity = 'app_window_opacity';
 const kAppEnterToSend = 'app_enter_to_send';
 const kAppDefaultPoolId = 'app_default_pool_id';
 const kAppMessageDisplayStyle = 'app_message_display_style';
@@ -67,6 +69,7 @@ sealed class AppSettings with _$AppSettings {
     required String? customFonts,
     required int? appColorScheme, // The color stored via the int type
     required Size? windowSize, // The window size for desktop platforms
+    required double windowOpacity, // The window opacity for desktop platforms
     required String? defaultPoolId,
     required String messageDisplayStyle,
   }) = _AppSettings;
@@ -88,6 +91,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       customFonts: prefs.getString(kAppCustomFonts),
       appColorScheme: prefs.getInt(kAppColorSchemeStoreKey),
       windowSize: _getWindowSizeFromPrefs(prefs),
+      windowOpacity: prefs.getDouble(kAppWindowOpacity) ?? 1.0,
       defaultPoolId: prefs.getString(kAppDefaultPoolId),
       messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
     );
@@ -195,6 +199,13 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setString(kAppMessageDisplayStyle, value);
     state = state.copyWith(messageDisplayStyle: value);
+  }
+
+  void setWindowOpacity(double value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setDouble(kAppWindowOpacity, value);
+    state = state.copyWith(windowOpacity: value);
+    Future(() => windowManager.setOpacity(value));
   }
 }
 

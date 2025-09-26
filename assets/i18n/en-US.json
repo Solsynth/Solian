@@ -1036,6 +1036,7 @@
     "authDeviceChallenges": "Device Usage",
     "authDeviceHint": "Swipe left to edit label, swipe right to logout device.",
     "settingsMessageDisplayStyle": "Message Display Style",
+    "settingsWindowOpacity": "Window Opacity",
     "auto": "Auto",
     "manual": "Manual",
     "iframeCode": "Iframe Code",

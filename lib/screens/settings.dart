@@ -579,8 +579,33 @@ class SettingsScreen extends HookConsumerWidget {
     ];
 
     // Desktop-specific settings
-    // But nothing for now
-    final desktopSettings = !isDesktop ? <Widget>[] : <Widget>[];
+    final desktopSettings =
+        !isDesktop
+            ? <Widget>[]
+            : [
+              ListTile(
+                minLeadingWidth: 48,
+                title: Text('settingsWindowOpacity').tr(),
+                contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                leading: const Icon(Symbols.opacity),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Slider(
+                    value: settings.windowOpacity,
+                    min: 0.1,
+                    max: 1.0,
+                    year2023: true,
+                    padding: EdgeInsets.only(right: 24),
+                    label: '${(settings.windowOpacity * 100).round()}%',
+                    onChanged: (value) {
+                      ref
+                          .read(appSettingsNotifierProvider.notifier)
+                          .setWindowOpacity(value);
+                    },
+                  ),
+                ),
+              ),
+            ];
 
     // Create a responsive layout based on screen width
     Widget buildSettingsList() {
