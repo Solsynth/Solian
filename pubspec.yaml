@@ -53,7 +53,7 @@ dependencies:
   flutter_highlight: ^0.7.0
   uuid: ^4.5.1
   url_launcher: ^6.3.2
-  google_fonts: ^6.3.1
+  google_fonts: ^6.3.2
   gap: ^3.0.1
   cached_network_image: ^3.4.1
   web: ^1.1.1
