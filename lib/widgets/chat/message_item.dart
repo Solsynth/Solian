@@ -11,7 +11,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/database/message.dart';
 import 'package:island/models/embed.dart';
-import 'package:island/pods/messages_notifier.dart';
+import 'package:island/pods/chat/messages_notifier.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/screens/chat/room.dart';

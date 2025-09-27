@@ -10,13 +10,14 @@ import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
 import "package:island/pods/config.dart";
 import "package:island/pods/database.dart";
+import "package:island/pods/lifecycle.dart";
 import "package:island/pods/network.dart";
 import "package:island/services/file.dart";
 import "package:island/widgets/alert.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
 import "package:island/screens/chat/chat.dart";
-import "package:island/pods/chat_rooms.dart";
+import "package:island/pods/chat/chat_rooms.dart";
 
 part 'messages_notifier.g.dart';
 
@@ -66,13 +67,15 @@ class MessagesNotifier extends _$MessagesNotifier {
     // Only setup sync and lifecycle listeners if user is a member
     if (identity != null) {
       ref.listen(appLifecycleStateProvider, (_, next) {
-        if (next.hasValue && next.value == AppLifecycleState.resumed) {
-          developer.log(
-            'App resumed, syncing messages',
-            name: 'MessagesNotifier',
-          );
-          syncMessages();
-        }
+        next.whenData((state) {
+          if (state == AppLifecycleState.resumed) {
+            developer.log(
+              'App resumed, syncing messages',
+              name: 'MessagesNotifier',
+            );
+            syncMessages();
+          }
+        });
       });
     }
 

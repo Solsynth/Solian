@@ -2,10 +2,6 @@ import "dart:async";
 import "package:flutter/material.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 
-final isSyncingProvider = StateProvider.autoDispose<bool>((ref) => false);
-
-final flashingMessagesProvider = StateProvider<Set<String>>((ref) => {});
-
 final appLifecycleStateProvider = StreamProvider<AppLifecycleState>((ref) {
   final controller = StreamController<AppLifecycleState>();
 

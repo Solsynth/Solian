@@ -31,6 +31,8 @@ class WindowScaffold extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMaximized = useState(false);
+
     // Add window resize listener for desktop platforms
     useEffect(() {
       if (!kIsWeb &&
@@ -49,11 +51,16 @@ class WindowScaffold extends HookConsumerWidget {
           _WindowSizeObserver(saveWindowSize),
         );
 
+        final maximizeListener = _WindowMaximizeListener(isMaximized);
+        windowManager.addListener(maximizeListener);
+        windowManager.isMaximized().then((max) => isMaximized.value = max);
+
         return () {
           // Cleanup observer when widget is disposed
           WidgetsBinding.instance.removeObserver(
             _WindowSizeObserver(saveWindowSize),
           );
+          windowManager.removeListener(maximizeListener);
         };
       }
       return null;
@@ -87,47 +94,61 @@ class WindowScaffold extends HookConsumerWidget {
                               : MainAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: Text(
-                            'Solar Network',
-                            textAlign:
-                                Platform.isMacOS
-                                    ? TextAlign.center
-                                    : TextAlign.start,
-                          ).padding(horizontal: 12, vertical: 5),
+                          child: Platform.isMacOS
+                              ? Text(
+                                  'Solar Network',
+                                  textAlign: TextAlign.center,
+                                ).padding(horizontal: 12, vertical: 5)
+                              : Row(
+                                  children: [
+                                    Image.asset(
+                                      Theme.of(context).brightness == Brightness.dark
+                                          ? 'assets/icons/icon-dark.png'
+                                          : 'assets/icons/icon.png',
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Solar Network',
+                                      textAlign: TextAlign.start,
+                                    ),
+                                  ],
+                                ).padding(horizontal: 12, vertical: 5),
                         ),
                         if (!Platform.isMacOS)
-                          IconButton(
-                            icon: Icon(Symbols.minimize),
-                            onPressed: () => windowManager.minimize(),
-                            iconSize: 16,
-                            padding: EdgeInsets.all(8),
-                            constraints: BoxConstraints(),
-                            color: Theme.of(context).iconTheme.color,
-                          ),
-                        if (!Platform.isMacOS)
-                          IconButton(
-                            icon: Icon(Symbols.maximize),
-                            onPressed: () async {
-                              if (await windowManager.isMaximized()) {
-                                windowManager.restore();
-                              } else {
-                                windowManager.maximize();
-                              }
-                            },
-                            iconSize: 16,
-                            padding: EdgeInsets.all(8),
-                            constraints: BoxConstraints(),
-                            color: Theme.of(context).iconTheme.color,
-                          ),
-                        if (!Platform.isMacOS)
-                          IconButton(
-                            icon: Icon(Symbols.close),
-                            onPressed: () => windowManager.close(),
-                            iconSize: 16,
-                            padding: EdgeInsets.all(8),
-                            constraints: BoxConstraints(),
-                            color: Theme.of(context).iconTheme.color,
-                          ),
+                          ...([
+                            IconButton(
+                              icon: Icon(Symbols.minimize),
+                              onPressed: () => windowManager.minimize(),
+                              iconSize: 16,
+                              padding: EdgeInsets.all(8),
+                              constraints: BoxConstraints(),
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                            IconButton(
+                              icon: Icon(isMaximized.value ? Symbols.fullscreen_exit : Symbols.fullscreen),
+                              onPressed: () async {
+                                if (await windowManager.isMaximized()) {
+                                  windowManager.restore();
+                                } else {
+                                  windowManager.maximize();
+                                }
+                              },
+                              iconSize: 16,
+                              padding: EdgeInsets.all(8),
+                              constraints: BoxConstraints(),
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                            IconButton(
+                              icon: Icon(Symbols.close),
+                              onPressed: () => windowManager.hide(),
+                              iconSize: 16,
+                              padding: EdgeInsets.all(8),
+                              constraints: BoxConstraints(),
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                          ]),
                       ],
                     ),
                   ),
@@ -176,6 +197,21 @@ class _WindowSizeObserver extends WidgetsBindingObserver {
 
   @override
   int get hashCode => onSaveWindowSize.hashCode;
+}
+
+class _WindowMaximizeListener with WindowListener {
+  final ValueNotifier<bool> isMaximized;
+  _WindowMaximizeListener(this.isMaximized);
+
+  @override
+  void onWindowMaximize() {
+    isMaximized.value = true;
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    isMaximized.value = false;
+  }
 }
 
 final rootScaffoldKey = GlobalKey<ScaffoldState>();
