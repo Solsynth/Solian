@@ -131,7 +131,6 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final messages = ref.watch(messagesNotifierProvider(id));
     final messagesNotifier = ref.read(messagesNotifierProvider(id).notifier);
-    final chatSubscribe = ref.watch(chatSubscribeNotifierProvider(id));
     final chatSubscribeNotifier = ref.read(
       chatSubscribeNotifierProvider(id).notifier,
     );
@@ -613,77 +612,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                   (room) => Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 150),
-                        switchInCurve: Curves.fastEaseInToSlowEaseOut,
-                        switchOutCurve: Curves.fastEaseInToSlowEaseOut,
-                        transitionBuilder: (
-                          Widget child,
-                          Animation<double> animation,
-                        ) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, -0.3),
-                              end: Offset.zero,
-                            ).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeOutCubic,
-                              ),
-                            ),
-                            child: SizeTransition(
-                              sizeFactor: animation,
-                              axisAlignment: -1.0,
-                              child: FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              ),
-                            ),
-                          );
-                        },
-                        child:
-                            chatSubscribe.isNotEmpty
-                                ? Container(
-                                  key: const ValueKey('typing-indicator'),
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 4,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Symbols.more_horiz,
-                                        size: 16,
-                                      ).padding(horizontal: 8),
-                                      const Gap(8),
-                                      Expanded(
-                                        child: Text(
-                                          'typingHint'.plural(
-                                            chatSubscribe.length,
-                                            args: [
-                                              chatSubscribe
-                                                  .map(
-                                                    (x) =>
-                                                        x.nick ??
-                                                        x.account.nick,
-                                                  )
-                                                  .join(', '),
-                                            ],
-                                          ),
-                                          style:
-                                              Theme.of(
-                                                context,
-                                              ).textTheme.bodySmall,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                : const SizedBox.shrink(
-                                  key: ValueKey('typing-indicator-none'),
-                                ),
-                      ),
                       ChatInput(
                         messageController: messageController,
                         chatRoom: room!,
@@ -748,6 +676,30 @@ class ChatRoomScreen extends HookConsumerWidget {
             top: 0,
             child: CallOverlayBar().padding(horizontal: 8, top: 12),
           ),
+          if (isSyncing)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    Text('Syncing...', style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
