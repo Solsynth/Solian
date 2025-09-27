@@ -17,7 +17,7 @@ mixin _$AppSettings {
  bool get autoTranslate; bool get dataSavingMode; bool get soundEffects; bool get aprilFoolFeatures; bool get enterToSend; bool get appBarTransparent; bool get showBackgroundImage; String? get customFonts; int? get appColorScheme;// The color stored via the int type
  Size? get windowSize;// The window size for desktop platforms
  double get windowOpacity;// The window opacity for desktop platforms
- String? get defaultPoolId; String get messageDisplayStyle;
+ String? get defaultPoolId; String get messageDisplayStyle; String? get themeMode;
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AppSettingsCopyWith<AppSettings> get copyWith => _$AppSettingsCopyWithImpl<AppS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.autoTranslate, autoTranslate) || other.autoTranslate == autoTranslate)&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.aprilFoolFeatures, aprilFoolFeatures) || other.aprilFoolFeatures == aprilFoolFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,autoTranslate,dataSavingMode,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,windowSize,windowOpacity,defaultPoolId,messageDisplayStyle);
+int get hashCode => Object.hash(runtimeType,autoTranslate,dataSavingMode,soundEffects,aprilFoolFeatures,enterToSend,appBarTransparent,showBackgroundImage,customFonts,appColorScheme,windowSize,windowOpacity,defaultPoolId,messageDisplayStyle,themeMode);
 
 @override
 String toString() {
-  return 'AppSettings(autoTranslate: $autoTranslate, dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, windowSize: $windowSize, windowOpacity: $windowOpacity, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle)';
+  return 'AppSettings(autoTranslate: $autoTranslate, dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, aprilFoolFeatures: $aprilFoolFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, customFonts: $customFonts, appColorScheme: $appColorScheme, windowSize: $windowSize, windowOpacity: $windowOpacity, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, themeMode: $themeMode)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AppSettingsCopyWith<$Res>  {
   factory $AppSettingsCopyWith(AppSettings value, $Res Function(AppSettings) _then) = _$AppSettingsCopyWithImpl;
 @useResult
 $Res call({
- bool autoTranslate, bool dataSavingMode, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, Size? windowSize, double windowOpacity, String? defaultPoolId, String messageDisplayStyle
+ bool autoTranslate, bool dataSavingMode, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, Size? windowSize, double windowOpacity, String? defaultPoolId, String messageDisplayStyle, String? themeMode
 });
 
 
@@ -63,9 +63,7 @@ class _$AppSettingsCopyWithImpl<$Res>
   final AppSettings _self;
   final $Res Function(AppSettings) _then;
 
-/// Create a copy of AppSettings
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? autoTranslate = null,Object? dataSavingMode = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? autoTranslate = null,Object? dataSavingMode = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = null,}) {
   return _then(_self.copyWith(
 autoTranslate: null == autoTranslate ? _self.autoTranslate : autoTranslate // ignore: cast_nullable_to_non_nullable
 as bool,dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
@@ -215,7 +213,7 @@ return $default(_that.autoTranslate,_that.dataSavingMode,_that.soundEffects,_tha
 
 
 class _AppSettings implements AppSettings {
-  const _AppSettings({required this.autoTranslate, required this.dataSavingMode, required this.soundEffects, required this.aprilFoolFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.customFonts, required this.appColorScheme, required this.windowSize, required this.windowOpacity, required this.defaultPoolId, required this.messageDisplayStyle});
+  const _AppSettings({required this.autoTranslate, required this.dataSavingMode, required this.soundEffects, required this.aprilFoolFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.customFonts, required this.appColorScheme, required this.windowSize, required this.windowOpacity, required this.defaultPoolId, required this.messageDisplayStyle, required this.themeMode});
   
 
 @override final  bool autoTranslate;
@@ -234,6 +232,7 @@ class _AppSettings implements AppSettings {
 // The window opacity for desktop platforms
 @override final  String? defaultPoolId;
 @override final  String messageDisplayStyle;
+@override final  String? themeMode;
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -265,7 +264,7 @@ abstract mixin class _$AppSettingsCopyWith<$Res> implements $AppSettingsCopyWith
   factory _$AppSettingsCopyWith(_AppSettings value, $Res Function(_AppSettings) _then) = __$AppSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- bool autoTranslate, bool dataSavingMode, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, Size? windowSize, double windowOpacity, String? defaultPoolId, String messageDisplayStyle
+ bool autoTranslate, bool dataSavingMode, bool soundEffects, bool aprilFoolFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, String? customFonts, int? appColorScheme, Size? windowSize, double windowOpacity, String? defaultPoolId, String messageDisplayStyle, String? themeMode
 });
 
 
@@ -282,7 +281,7 @@ class __$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? autoTranslate = null,Object? dataSavingMode = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? autoTranslate = null,Object? dataSavingMode = null,Object? soundEffects = null,Object? aprilFoolFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? themeMode = null,}) {
   return _then(_AppSettings(
 autoTranslate: null == autoTranslate ? _self.autoTranslate : autoTranslate // ignore: cast_nullable_to_non_nullable
 as bool,dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
@@ -297,6 +296,7 @@ as int?,windowSize: freezed == windowSize ? _self.windowSize : windowSize // ign
 as Size?,windowOpacity: null == windowOpacity ? _self.windowOpacity : windowOpacity // ignore: cast_nullable_to_non_nullable
 as double,defaultPoolId: freezed == defaultPoolId ? _self.defaultPoolId : defaultPoolId // ignore: cast_nullable_to_non_nullable
 as String?,messageDisplayStyle: null == messageDisplayStyle ? _self.messageDisplayStyle : messageDisplayStyle // ignore: cast_nullable_to_non_nullable
+as String,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

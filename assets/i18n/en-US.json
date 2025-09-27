@@ -391,6 +391,10 @@
         "other": "{} are typing..."
     },
     "settingsAppearance": "Appearance",
+    "settingsThemeMode": "Theme Mode",
+    "settingsThemeModeSystem": "System",
+    "settingsThemeModeLight": "Light",
+    "settingsThemeModeDark": "Dark",
     "settingsServer": "Server",
     "settingsBehavior": "Behavior",
     "settingsDesktop": "Desktop",

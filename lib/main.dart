@@ -176,6 +176,21 @@ class IslandApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(themeProvider);
+    final settings = ref.watch(appSettingsNotifierProvider);
+
+    // Convert string theme mode to ThemeMode enum
+    ThemeMode getThemeMode() {
+      final themeMode = settings.themeMode ?? 'system';
+      switch (themeMode) {
+        case 'light':
+          return ThemeMode.light;
+        case 'dark':
+          return ThemeMode.dark;
+        case 'system':
+        default:
+          return ThemeMode.system;
+      }
+    }
 
     void handleMessage(RemoteMessage notification) {
       if (notification.data['meta']?['action_uri'] != null) {
@@ -249,7 +264,7 @@ class IslandApp extends HookConsumerWidget {
       color: Colors.transparent,
       theme: theme?.light,
       darkTheme: theme?.dark,
-      themeMode: ThemeMode.system,
+      themeMode: getThemeMode(),
       routerConfig: router,
       supportedLocales: context.supportedLocales,
       scrollBehavior: AppScrollBehavior(),
