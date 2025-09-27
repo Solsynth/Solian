@@ -26,15 +26,20 @@ class AttachmentUploadConfig {
 
 class AttachmentUploaderSheet extends StatefulWidget {
   final WidgetRef ref;
-  final ComposeState state;
+  final ComposeState? state;
+  final List<UniversalFile>? attachments;
   final int index;
 
   const AttachmentUploaderSheet({
     super.key,
     required this.ref,
-    required this.state,
+    this.state,
+    this.attachments,
     required this.index,
-  });
+  }) : assert(
+         state != null || attachments != null,
+         'Either state or attachments must be provided',
+       );
 
   @override
   State<AttachmentUploaderSheet> createState() =>
@@ -46,7 +51,9 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final attachment = widget.state.attachments.value[widget.index];
+    final attachment =
+        widget.attachments?[widget.index] ??
+        widget.state!.attachments.value[widget.index];
 
     return SheetScaffold(
       titleText: 'uploadAttachment'.tr(),
@@ -111,19 +118,18 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
 
                           // Check accepted types
                           final acceptTypes =
-                              selectedPool.policyConfig?['accept_types']
-                                  as List?;
+                              (selectedPool.policyConfig?['accept_types']
+                                      as List?)
+                                  ?.cast<String>();
                           final mimeType =
                               attachment.data.mimeType ??
                               ComposeLogic.getMimeTypeFromFileType(
                                 attachment.type,
                               );
-                          final typeAccepted =
-                              acceptTypes == null ||
-                              acceptTypes.isEmpty ||
-                              acceptTypes.any(
-                                (type) => mimeType.startsWith(type),
-                              );
+                          final typeAccepted = _isMimeTypeAccepted(
+                            mimeType,
+                            acceptTypes,
+                          );
 
                           final hasIssues = fileSizeExceeded || !typeAccepted;
 
@@ -279,7 +285,9 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
   }
 
   Future<AttachmentUploadConfig?> _getUploadConfig() async {
-    final attachment = widget.state.attachments.value[widget.index];
+    final attachment =
+        widget.attachments?[widget.index] ??
+        widget.state!.attachments.value[widget.index];
     final fileSize = await _getFileSize(attachment);
 
     if (fileSize == null) return null;
@@ -292,14 +300,12 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
     final maxFileSize = selectedPool.policyConfig?['max_file_size'] as int?;
     final fileSizeExceeded = maxFileSize != null && fileSize > maxFileSize;
 
-    final acceptTypes = selectedPool.policyConfig?['accept_types'] as List?;
+    final acceptTypes =
+        (selectedPool.policyConfig?['accept_types'] as List?)?.cast<String>();
     final mimeType =
         attachment.data.mimeType ??
         ComposeLogic.getMimeTypeFromFileType(attachment.type);
-    final typeAccepted =
-        acceptTypes == null ||
-        acceptTypes.isEmpty ||
-        acceptTypes.any((type) => mimeType.startsWith(type));
+    final typeAccepted = _isMimeTypeAccepted(mimeType, acceptTypes);
 
     final hasConstraints = fileSizeExceeded || !typeAccepted;
 
@@ -359,5 +365,17 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
     final costMultiplier = pool.billingConfig?['cost_multiplier'] ?? 1.0;
     final quotaCost = ((fileSize / 1024 / 1024) * costMultiplier).round();
     return _formatNumber(quotaCost);
+  }
+
+  bool _isMimeTypeAccepted(String mimeType, List<String>? acceptTypes) {
+    if (acceptTypes == null || acceptTypes.isEmpty) return true;
+    return acceptTypes.any((type) {
+      if (type.endsWith('/*')) {
+        final mainType = type.substring(0, type.length - 2);
+        return mimeType.startsWith('$mainType/');
+      } else {
+        return mimeType == type;
+      }
+    });
   }
 }
