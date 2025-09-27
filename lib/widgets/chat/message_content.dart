@@ -56,7 +56,7 @@ class MessageContent extends StatelessWidget {
       case 'messages.update.links':
         return Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
               Symbols.edit,
@@ -64,27 +64,29 @@ class MessageContent extends StatelessWidget {
               color: Theme.of(
                 context,
               ).colorScheme.onSurfaceVariant.withOpacity(0.6),
-            ),
+            ).padding(top: 2),
             const Gap(4),
             if (item.meta['previous_content'] is String)
-              PrettyDiffText(
-                oldText: item.meta['previous_content'],
-                newText: item.content ?? 'Edited a message',
-                defaultTextStyle: Theme.of(
-                  context,
-                ).textTheme.bodyMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                addedTextStyle: TextStyle(
-                  backgroundColor: Theme.of(
+              Flexible(
+                child: PrettyDiffText(
+                  oldText: item.meta['previous_content'],
+                  newText: item.content ?? 'Edited a message',
+                  defaultTextStyle: Theme.of(
                     context,
-                  ).colorScheme.primaryFixedDim.withOpacity(0.4),
-                ),
-                deletedTextStyle: TextStyle(
-                  decoration: TextDecoration.lineThrough,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  ).textTheme.bodyMedium!.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  addedTextStyle: TextStyle(
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryFixedDim.withOpacity(0.4),
+                  ),
+                  deletedTextStyle: TextStyle(
+                    decoration: TextDecoration.lineThrough,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  ),
                 ),
               )
             else
@@ -104,10 +106,12 @@ class MessageContent extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MarkdownTextContent(
-              content: item.content ?? '*${item.type} has no content*',
-              isSelectable: true,
-              linesMargin: EdgeInsets.zero,
+            Flexible(
+              child: MarkdownTextContent(
+                content: item.content ?? '*${item.type} has no content*',
+                isSelectable: true,
+                linesMargin: EdgeInsets.zero,
+              ),
             ),
             if (translatedText?.isNotEmpty ?? false)
               ...([

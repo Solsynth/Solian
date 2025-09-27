@@ -541,7 +541,10 @@ class ChatRoomScreen extends HookConsumerWidget {
     Widget chatMessageListWidget(List<LocalChatMessage> messageList) =>
         SuperListView.builder(
           listController: listController,
-          padding: EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.only(
+            top: 16,
+            bottom: 96 + MediaQuery.of(context).padding.bottom,
+          ),
           controller: scrollController,
           reverse: true, // Show newest messages at the bottom
           itemCount: messageList.length,
@@ -735,157 +738,160 @@ class ChatRoomScreen extends HookConsumerWidget {
       ),
       body: Stack(
         children: [
-          Column(
-            children: [
-              Expanded(
-                child: messages.when(
-                  data:
-                      (messageList) =>
-                          messageList.isEmpty
-                              ? Center(child: Text('No messages yet'.tr()))
-                              : chatMessageListWidget(messageList),
-                  loading:
-                      () => const Center(child: CircularProgressIndicator()),
-                  error:
-                      (error, _) => ResponseErrorWidget(
-                        error: error,
-                        onRetry: () => messagesNotifier.loadInitial(),
-                      ),
-                ),
-              ),
-              chatRoom.when(
-                data:
-                    (room) => Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 150),
-                          switchInCurve: Curves.fastEaseInToSlowEaseOut,
-                          switchOutCurve: Curves.fastEaseInToSlowEaseOut,
-                          transitionBuilder: (
-                            Widget child,
-                            Animation<double> animation,
-                          ) {
-                            return SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, -0.3),
-                                end: Offset.zero,
-                              ).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeOutCubic,
-                                ),
+          // Messages
+          Positioned.fill(
+            child: messages.when(
+              data:
+                  (messageList) =>
+                      messageList.isEmpty
+                          ? Center(child: Text('No messages yet'.tr()))
+                          : chatMessageListWidget(messageList),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error:
+                  (error, _) => ResponseErrorWidget(
+                    error: error,
+                    onRetry: () => messagesNotifier.loadInitial(),
+                  ),
+            ),
+          ),
+          // Input
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: chatRoom.when(
+              data:
+                  (room) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 150),
+                        switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                        switchOutCurve: Curves.fastEaseInToSlowEaseOut,
+                        transitionBuilder: (
+                          Widget child,
+                          Animation<double> animation,
+                        ) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, -0.3),
+                              end: Offset.zero,
+                            ).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeOutCubic,
                               ),
-                              child: SizeTransition(
-                                sizeFactor: animation,
-                                axisAlignment: -1.0,
-                                child: FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                ),
+                            ),
+                            child: SizeTransition(
+                              sizeFactor: animation,
+                              axisAlignment: -1.0,
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
                               ),
-                            );
-                          },
-                          child:
-                              typingStatuses.value.isNotEmpty
-                                  ? Container(
-                                    key: const ValueKey('typing-indicator'),
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 4,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Symbols.more_horiz,
-                                          size: 16,
-                                        ).padding(horizontal: 8),
-                                        const Gap(8),
-                                        Expanded(
-                                          child: Text(
-                                            'typingHint'.plural(
-                                              typingStatuses.value.length,
-                                              args: [
-                                                typingStatuses.value
-                                                    .map(
-                                                      (x) =>
-                                                          x.nick ??
-                                                          x.account.nick,
-                                                    )
-                                                    .join(', '),
-                                              ],
-                                            ),
-                                            style:
-                                                Theme.of(
-                                                  context,
-                                                ).textTheme.bodySmall,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                  : const SizedBox.shrink(
-                                    key: ValueKey('typing-indicator-none'),
+                            ),
+                          );
+                        },
+                        child:
+                            typingStatuses.value.isNotEmpty
+                                ? Container(
+                                  key: const ValueKey('typing-indicator'),
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 4,
                                   ),
-                        ),
-                        ChatInput(
-                          messageController: messageController,
-                          chatRoom: room!,
-                          onSend: sendMessage,
-                          onClear: () {
-                            if (messageEditingTo.value != null) {
-                              attachments.value.clear();
-                              messageController.clear();
-                            }
-                            messageEditingTo.value = null;
-                            messageReplyingTo.value = null;
-                            messageForwardingTo.value = null;
-                          },
-                          messageEditingTo: messageEditingTo.value,
-                          messageReplyingTo: messageReplyingTo.value,
-                          messageForwardingTo: messageForwardingTo.value,
-                          onPickFile: (bool isPhoto) {
-                            if (isPhoto) {
-                              pickPhotoMedia();
-                            } else {
-                              pickVideoMedia();
-                            }
-                          },
-                          attachments: attachments.value,
-                          onUploadAttachment: uploadAttachment,
-                          onDeleteAttachment: (index) async {
-                            final attachment = attachments.value[index];
-                            if (attachment.isOnCloud) {
-                              final client = ref.watch(apiClientProvider);
-                              await client.delete(
-                                '/drive/files/${attachment.data.id}',
-                              );
-                            }
-                            final clone = List.of(attachments.value);
-                            clone.removeAt(index);
-                            attachments.value = clone;
-                          },
-                          onMoveAttachment: (idx, delta) {
-                            if (idx + delta < 0 ||
-                                idx + delta >= attachments.value.length) {
-                              return;
-                            }
-                            final clone = List.of(attachments.value);
-                            clone.insert(idx + delta, clone.removeAt(idx));
-                            attachments.value = clone;
-                          },
-                          onAttachmentsChanged: (newAttachments) {
-                            attachments.value = newAttachments;
-                          },
-                          attachmentProgress: attachmentProgress.value,
-                        ),
-                      ],
-                    ),
-                error: (_, _) => const SizedBox.shrink(),
-                loading: () => const SizedBox.shrink(),
-              ),
-            ],
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Symbols.more_horiz,
+                                        size: 16,
+                                      ).padding(horizontal: 8),
+                                      const Gap(8),
+                                      Expanded(
+                                        child: Text(
+                                          'typingHint'.plural(
+                                            typingStatuses.value.length,
+                                            args: [
+                                              typingStatuses.value
+                                                  .map(
+                                                    (x) =>
+                                                        x.nick ??
+                                                        x.account.nick,
+                                                  )
+                                                  .join(', '),
+                                            ],
+                                          ),
+                                          style:
+                                              Theme.of(
+                                                context,
+                                              ).textTheme.bodySmall,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                : const SizedBox.shrink(
+                                  key: ValueKey('typing-indicator-none'),
+                                ),
+                      ),
+                      ChatInput(
+                        messageController: messageController,
+                        chatRoom: room!,
+                        onSend: sendMessage,
+                        onClear: () {
+                          if (messageEditingTo.value != null) {
+                            attachments.value.clear();
+                            messageController.clear();
+                          }
+                          messageEditingTo.value = null;
+                          messageReplyingTo.value = null;
+                          messageForwardingTo.value = null;
+                        },
+                        messageEditingTo: messageEditingTo.value,
+                        messageReplyingTo: messageReplyingTo.value,
+                        messageForwardingTo: messageForwardingTo.value,
+                        onPickFile: (bool isPhoto) {
+                          if (isPhoto) {
+                            pickPhotoMedia();
+                          } else {
+                            pickVideoMedia();
+                          }
+                        },
+                        attachments: attachments.value,
+                        onUploadAttachment: uploadAttachment,
+                        onDeleteAttachment: (index) async {
+                          final attachment = attachments.value[index];
+                          if (attachment.isOnCloud) {
+                            final client = ref.watch(apiClientProvider);
+                            await client.delete(
+                              '/drive/files/${attachment.data.id}',
+                            );
+                          }
+                          final clone = List.of(attachments.value);
+                          clone.removeAt(index);
+                          attachments.value = clone;
+                        },
+                        onMoveAttachment: (idx, delta) {
+                          if (idx + delta < 0 ||
+                              idx + delta >= attachments.value.length) {
+                            return;
+                          }
+                          final clone = List.of(attachments.value);
+                          clone.insert(idx + delta, clone.removeAt(idx));
+                          attachments.value = clone;
+                        },
+                        onAttachmentsChanged: (newAttachments) {
+                          attachments.value = newAttachments;
+                        },
+                        attachmentProgress: attachmentProgress.value,
+                      ),
+                      Gap(MediaQuery.of(context).padding.bottom),
+                    ],
+                  ),
+              error: (_, _) => const SizedBox.shrink(),
+              loading: () => const SizedBox.shrink(),
+            ),
           ),
           Positioned(
             left: 0,
