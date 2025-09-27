@@ -1,7 +1,6 @@
 import "dart:async";
 import "dart:convert";
 import "package:flutter/material.dart";
-import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/models/chat.dart";
 import "package:island/pods/lifecycle.dart";
 import "package:island/pods/chat/messages_notifier.dart";

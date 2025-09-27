@@ -211,21 +211,11 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                               icon: Symbols.system_update,
                               title: 'Check for updates',
                               onTap: () async {
-                                // Fetch latest release and show the unified sheet
                                 final svc = UpdateService();
-                                // Reuse service fetch + compare to decide content
                                 showLoadingModal(context);
-                                final release = await svc.fetchLatestRelease();
+                                svc.checkForUpdates(context);
                                 if (!context.mounted) return;
                                 hideLoadingModal(context);
-                                if (release != null) {
-                                  await svc.showUpdateSheet(context, release);
-                                } else {
-                                  showInfoAlert(
-                                    'Currently cannot get update from the GitHub.',
-                                    'Unable to check for updates',
-                                  );
-                                }
                               },
                             ),
                             _buildListTile(

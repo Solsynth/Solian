@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/message.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
+import 'package:island/services/update_service.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/network_status_sheet.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -65,69 +68,97 @@ class DebugSheet extends HookConsumerWidget {
     return SheetScaffold(
       titleText: 'Debug',
       heightFactor: 0.6,
-      child: Column(
-        children: [
-          ListTile(
-            minTileHeight: 48,
-            leading: const Icon(Symbols.wifi),
-            trailing: const Icon(Symbols.chevron_right),
-            title: Text('Connection Status'),
-            contentPadding: EdgeInsets.symmetric(horizontal: 24),
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder:
-                    (context) => NetworkStatusSheet(
-                      onReconnect: () => wsNotifier.connect(),
-                    ),
-              );
-            },
-          ),
-          const Divider(height: 1),
-          ListTile(
-            minTileHeight: 48,
-            leading: const Icon(Symbols.copy_all),
-            trailing: const Icon(Symbols.chevron_right),
-            contentPadding: EdgeInsets.symmetric(horizontal: 24),
-            title: Text('Copy access token'),
-            onTap: () async {
-              final tk = ref.watch(tokenProvider);
-              Clipboard.setData(ClipboardData(text: tk!.token));
-            },
-          ),
-          ListTile(
-            minTileHeight: 48,
-            leading: const Icon(Symbols.edit),
-            trailing: const Icon(Symbols.chevron_right),
-            contentPadding: EdgeInsets.symmetric(horizontal: 24),
-            title: Text('Set access token'),
-            onTap: () async {
-              await _showSetTokenDialog(context, ref);
-            },
-          ),
-          const Divider(height: 1),
-          ListTile(
-            minTileHeight: 48,
-            leading: const Icon(Symbols.delete),
-            trailing: const Icon(Symbols.chevron_right),
-            contentPadding: EdgeInsets.symmetric(horizontal: 24),
-            title: Text('Reset database'),
-            onTap: () async {
-              resetDatabase(ref);
-            },
-          ),
-          ListTile(
-            minTileHeight: 48,
-            leading: const Icon(Symbols.clear),
-            trailing: const Icon(Symbols.chevron_right),
-            contentPadding: EdgeInsets.symmetric(horizontal: 24),
-            title: Text('Clear cache'),
-            onTap: () async {
-              DefaultCacheManager().emptyCache();
-            },
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const Gap(4),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.update),
+              trailing: const Icon(Symbols.chevron_right),
+              title: Text('Force Update'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              onTap: () async {
+                // Fetch latest release and show the unified sheet
+                final svc = UpdateService();
+                // Reuse service fetch + compare to decide content
+                showLoadingModal(context);
+                final release = await svc.fetchLatestRelease();
+                if (!context.mounted) return;
+                hideLoadingModal(context);
+                if (release != null) {
+                  await svc.showUpdateSheet(context, release);
+                } else {
+                  showInfoAlert(
+                    'Currently cannot get update from the GitHub.',
+                    'Unable to check for updates',
+                  );
+                }
+              }
+            ),
+            const Divider(height: 8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.wifi),
+              trailing: const Icon(Symbols.chevron_right),
+              title: Text('Connection Status'),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder:
+                      (context) => NetworkStatusSheet(
+                        onReconnect: () => wsNotifier.connect(),
+                      ),
+                );
+              },
+            ),
+            const Divider(height: 8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.copy_all),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('Copy access token'),
+              onTap: () async {
+                final tk = ref.watch(tokenProvider);
+                Clipboard.setData(ClipboardData(text: tk!.token));
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.edit),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('Set access token'),
+              onTap: () async {
+                await _showSetTokenDialog(context, ref);
+              },
+            ),
+            const Divider(height: 8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.delete),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('Reset database'),
+              onTap: () async {
+                resetDatabase(ref);
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.clear),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('Clear cache'),
+              onTap: () async {
+                DefaultCacheManager().emptyCache();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
