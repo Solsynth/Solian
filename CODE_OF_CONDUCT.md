@@ -14,13 +14,13 @@ The backend of the Solar Network is written in Go and is a microservices app. Th
 
 ## Commit Messages
 
-We're using the gitmoji to clarify the reason and changes of the commit. To learn more about gitmoji, visit https://gitmoji.dev
+We're using the gitmoji to clarify the reason and changes of the commit. To learn more about gitmoji, visit <https://gitmoji.dev>
 
 All the commit message should follow `:[gitmoji]: <commit message>` syntax
 
 ## Translations & Localization
 
-We're not accepting translation and localization improvements, or fixes on the GitHub or Solsynth Git Repository. If you want to contribute to those, please head to our Crowdin project: https://crowdin.com/project/solian
+We're not accepting translation and localization improvements, or fixes on the GitHub or Solsynth Git Repository. If you want to contribute to those, please head to our Crowdin project: <https://crowdin.com/project/solian>
 
 ## New Features
 
@@ -28,9 +28,14 @@ To contribute new features, please create an issue or mention the feature you wa
 
 ## Bug Reports / Ask for help
 
-Read the error message, check for the update (including pre-releases), and wiki before creating an issue. At the same time, be respectful and don't argue with our developers and contributors in the development chat or GitHub issue. Otherwise your issue may got deleted and your Solar Network Account may got a strike. 
+Read the error message, check for the update (including pre-releases), and wiki before creating an issue. At the same time, be respectful and don't argue with our developers and contributors in the development chat or GitHub issue. Otherwise your issue may got deleted and your Solar Network Account may got a strike.
+
+## Styles of Code
+
+Before you create a Pull Request, make sure your code has pass the `flutter analyze` check, if there is any notes, fix as much as possible, if there is no way to fix, do ignore.
+
+When the code contains comments, use English. We do not any other language of comments existing in the codebase. It might confuse future contributors, cause the code hard to understand and maintaiance.
 
 -----------
 
 We appreciate every single commit you contributed. Let's work together and create a better Solar Network!
-
