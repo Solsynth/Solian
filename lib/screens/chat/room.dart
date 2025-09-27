@@ -34,8 +34,6 @@ import "package:island/widgets/chat/call_button.dart";
 import "package:island/widgets/chat/chat_input.dart";
 import "package:island/widgets/chat/public_room_preview.dart";
 
-final flashingMessagesProvider = StateProvider<Set<String>>((ref) => {});
-
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;
   const ChatRoomScreen({super.key, required this.id});
@@ -404,7 +402,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           listController: listController,
           padding: EdgeInsets.only(
             top: 16,
-            bottom: 96 + MediaQuery.of(context).padding.bottom,
+            bottom: 88 + MediaQuery.of(context).padding.bottom,
           ),
           controller: scrollController,
           reverse: true, // Show newest messages at the bottom
