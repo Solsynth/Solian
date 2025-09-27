@@ -326,8 +326,7 @@ class ChatRoomScreen extends HookConsumerWidget {
               ? room.members!.map((e) => e.account.nick).join(', ')
               : room.name!,
         ).fontSize(19),
-        if (hasOnlineCount)
-          onlineIndicator().padding(left: 6),
+        if (hasOnlineCount) onlineIndicator().padding(left: 4, top: 6),
       ],
     );
 
