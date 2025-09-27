@@ -92,6 +92,48 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
+      // Theme mode settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsThemeMode').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.dark_mode),
+        trailing: DropdownButtonHideUnderline(
+          child: DropdownButton2<String>(
+            isExpanded: true,
+            items: [
+              DropdownMenuItem<String>(
+                value: 'system',
+                child: Text('settingsThemeModeSystem').tr().fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'light',
+                child: Text('settingsThemeModeLight').tr().fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'dark',
+                child: Text('settingsThemeModeDark').tr().fontSize(14),
+              ),
+            ],
+            value: settings.themeMode,
+            onChanged: (String? value) {
+              if (value != null) {
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setThemeMode(value);
+                showSnackBar('settingsApplied'.tr());
+              }
+            },
+            buttonStyleData: const ButtonStyleData(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+              height: 40,
+              width: 140,
+            ),
+            menuItemStyleData: const MenuItemStyleData(height: 40),
+          ),
+        ),
+      ),
+
       // Custom fonts settings
       ListTile(
         isThreeLine: true,
