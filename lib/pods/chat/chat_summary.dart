@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/models/chat.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
+import 'package:island/pods/chat/chat_subscribe.dart';
 
 part 'chat_summary.g.dart';
 
@@ -55,10 +56,12 @@ class ChatSummary extends _$ChatSummary {
     state.whenData((summaries) {
       final summary = summaries[chatId];
       if (summary != null) {
+        final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
+        final increment = (chatId != currentSubscribed) ? 1 : 0;
         state = AsyncData({
           ...summaries,
           chatId: SnChatSummary(
-            unreadCount: summary.unreadCount + 1,
+            unreadCount: summary.unreadCount + increment,
             lastMessage: message,
           ),
         });

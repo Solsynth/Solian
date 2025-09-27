@@ -26,6 +26,7 @@ import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
@@ -281,9 +282,15 @@ class IslandApp extends HookConsumerWidget {
           key: globalOverlay,
           initialEntries: [
             OverlayEntry(
-              builder:
-                  (_) =>
-                      WindowScaffold(child: child ?? const SizedBox.shrink()),
+              builder: (_) {
+                return TalkerWrapper(
+                  talker: talker,
+                  options: const TalkerWrapperOptions(enableErrorAlerts: true),
+                  child: WindowScaffold(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
+                );
+              },
             ),
           ],
         );

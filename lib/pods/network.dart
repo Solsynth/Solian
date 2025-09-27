@@ -102,9 +102,10 @@ final apiClientProvider = Provider<Dio>((ref) {
     TalkerDioLogger(
       talker: talker,
       settings: const TalkerDioLoggerSettings(
-        printRequestHeaders: true,
-        printResponseHeaders: true,
-        printResponseMessage: true,
+        printRequestHeaders: false,
+        printResponseHeaders: false,
+        printResponseMessage: false,
+        printRequestData: false,
       ),
     ),
   ]);

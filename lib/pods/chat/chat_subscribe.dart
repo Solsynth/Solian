@@ -1,6 +1,7 @@
 import "dart:async";
 import "dart:convert";
 import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:island/models/chat.dart";
 import "package:island/pods/lifecycle.dart";
 import "package:island/pods/chat/messages_notifier.dart";
@@ -10,6 +11,8 @@ import "package:island/widgets/chat/call_button.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 
 part 'chat_subscribe.g.dart';
+
+final currentSubscribedChatIdProvider = StateProvider<String?>((ref) => null);
 
 @riverpod
 class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
@@ -53,6 +56,10 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
           endpoint: 'sphere',
         ),
       ),
+    );
+
+    Future.microtask(
+      () => ref.read(currentSubscribedChatIdProvider.notifier).state = roomId,
     );
 
     // Send initial read receipt
@@ -123,6 +130,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
 
     // Cleanup on dispose
     ref.onDispose(() {
+      ref.read(currentSubscribedChatIdProvider.notifier).state = null;
       wsState.sendMessage(
         jsonEncode(
           WebSocketPacket(
