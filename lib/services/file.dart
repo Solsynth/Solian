@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui';
 import 'package:croppy/croppy.dart';
 import 'package:cross_file/cross_file.dart';
@@ -9,7 +8,6 @@ import 'package:flutter/widgets.dart';
 import 'package:island/models/file.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:native_exif/native_exif.dart';
-import 'package:path_provider/path_provider.dart';
 
 enum FileUploadMode { generic, mediaSafe }
 
@@ -21,8 +19,7 @@ Future<XFile?> cropImage(
 }) async {
   final result = await showMaterialImageCropper(
     context,
-    imageProvider:
-        kIsWeb ? NetworkImage(image.path) : FileImage(File(image.path)),
+    imageProvider: MemoryImage(await image.readAsBytes()),
     showLoadingIndicatorOnSubmit: true,
     allowedAspectRatios: allowedAspectRatios,
   );
@@ -64,7 +61,10 @@ Completer<SnCloudFile?> putFileToCloud({
       fileData.isOnDevice &&
       fileData.type == UniversalFileType.image) {
     final data = fileData.data;
-    if (data is XFile && !kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+    if (data is XFile &&
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.android)) {
       Exif.fromPath(data.path)
           .then((exif) async {
             final gpsAttributes = {
@@ -184,67 +184,24 @@ Completer<SnCloudFile?> _processUpload(
 
   final uploader = FileUploader(dio);
 
-  // Get File object
-  File fileObj;
-  if (file.path.isNotEmpty) {
-    fileObj = File(file.path);
-    // Call progress start
-    onProgress?.call(0.0, Duration.zero);
-    uploader
-        .uploadFile(
-          file: fileObj,
-          fileName: actualFilename,
-          contentType: actualMimetype,
-          poolId: poolId,
-        )
-        .then((result) {
-          // Call progress end
-          onProgress?.call(1.0, Duration.zero);
-          completer.complete(result);
-        })
-        .catchError((e) {
-          completer.completeError(e);
-          throw e;
-        });
-  } else {
-    // Write to temp file
-    getTemporaryDirectory()
-        .then((tempDir) {
-          final tempFile = File('${tempDir.path}/temp_upload_$actualFilename');
-          file
-              .readAsBytes()
-              .then((bytes) => tempFile.writeAsBytes(bytes))
-              .then((_) {
-                fileObj = tempFile;
-                // Call progress start
-                onProgress?.call(0.0, Duration.zero);
-                uploader
-                    .uploadFile(
-                      file: fileObj,
-                      fileName: actualFilename,
-                      contentType: actualMimetype,
-                      poolId: poolId,
-                    )
-                    .then((result) {
-                      // Call progress end
-                      onProgress?.call(1.0, Duration.zero);
-                      completer.complete(result);
-                    })
-                    .catchError((e) {
-                      completer.completeError(e);
-                      throw e;
-                    });
-              })
-              .catchError((e) {
-                completer.completeError(e);
-                throw e;
-              });
-        })
-        .catchError((e) {
-          completer.completeError(e);
-          throw e;
-        });
-  }
+  // Call progress start
+  onProgress?.call(0.0, Duration.zero);
+  uploader
+      .uploadFile(
+        file: file,
+        fileName: actualFilename,
+        contentType: actualMimetype,
+        poolId: poolId,
+      )
+      .then((result) {
+        // Call progress end
+        onProgress?.call(1.0, Duration.zero);
+        completer.complete(result);
+      })
+      .catchError((e) {
+        completer.completeError(e);
+        throw e;
+      });
 
   return completer;
 }

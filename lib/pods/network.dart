@@ -106,6 +106,7 @@ final apiClientProvider = Provider<Dio>((ref) {
         printResponseHeaders: false,
         printResponseMessage: false,
         printRequestData: false,
+        printResponseData: false,
       ),
     ),
   ]);

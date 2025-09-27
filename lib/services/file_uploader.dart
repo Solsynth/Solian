@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,7 +14,7 @@ class FileUploader {
   FileUploader(this._dio);
 
   /// Calculates the MD5 hash of a file.
-  Future<String> _calculateFileHash(File file) async {
+  Future<String> _calculateFileHash(XFile file) async {
     final bytes = await file.readAsBytes();
     final digest = md5.convert(bytes);
     return digest.toString();
@@ -22,7 +22,7 @@ class FileUploader {
 
   /// Creates an upload task for the given file.
   Future<Map<String, dynamic>> createUploadTask({
-    required File file,
+    required XFile file,
     required String fileName,
     required String contentType,
     String? poolId,
@@ -80,7 +80,7 @@ class FileUploader {
 
   /// Uploads a file in chunks using the multi-part API.
   Future<SnCloudFile> uploadFile({
-    required File file,
+    required XFile file,
     required String fileName,
     required String contentType,
     String? poolId,

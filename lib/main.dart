@@ -147,7 +147,17 @@ void main() async {
 
   runApp(
     ProviderScope(
-      observers: [TalkerRiverpodObserver(talker: talker)],
+      observers: [
+        TalkerRiverpodObserver(
+          talker: talker,
+          settings: TalkerRiverpodLoggerSettings(
+            printProviderAdded: false,
+            printProviderDisposed: false,
+            printProviderUpdated: false,
+            printStateFullData: false,
+          ),
+        ),
+      ],
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: Directionality(
         textDirection: TextDirection.ltr,
