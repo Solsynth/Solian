@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:gap/gap.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/talker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -92,10 +91,10 @@ class PollEditor extends Notifier<PollEditorState> {
         questions: poll.questions,
       );
     } on DioException catch (e) {
-      log('Failed to load poll $id: ${e.message}');
+      talker.error('Failed to load poll $id: ${e.message}');
       // Keep state with id set; UI may handle error display.
     } catch (e) {
-      log('Unexpected error loading poll $id: $e');
+      talker.error('Unexpected error loading poll $id: $e');
     } finally {
       if (context.mounted) hideLoadingModal(context);
     }

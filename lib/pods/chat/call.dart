@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -10,6 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/models/chat.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:island/talker.dart';
 
 part 'call.g.dart';
 part 'call.freezed.dart';
@@ -212,7 +212,7 @@ class CallNotifier extends _$CallNotifier {
 
   Future<void> joinRoom(String roomId) async {
     if (_roomId == roomId && _room != null) {
-      log('[Call] Call skipped. Already has data');
+      talker.info('[Call] Call skipped. Already has data');
       return;
     } else if (_room != null) {
       if (!_room!.isDisposed &&

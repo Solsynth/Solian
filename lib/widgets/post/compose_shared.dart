@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:mime/mime.dart';
 import 'package:dio/dio.dart';
@@ -23,8 +25,7 @@ import 'package:island/widgets/post/compose_recorder.dart';
 import 'package:island/pods/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:textfield_tags/textfield_tags.dart';
-import 'dart:async';
-import 'dart:developer';
+import 'package:island/talker.dart';
 
 class ComposeState {
   final TextEditingController titleController;
@@ -203,7 +204,7 @@ class ComposeLogic {
               state.attachments.value = clone;
             }
           } catch (err) {
-            log('[ComposeLogic] Failed to upload attachment: $err');
+            talker.error('[ComposeLogic] Failed to upload attachment: $err');
             // Continue with other attachments even if one fails
           }
         }
@@ -263,7 +264,7 @@ class ComposeLogic {
 
       await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
     } catch (e) {
-      log('[ComposeLogic] Failed to save draft, error: $e');
+      talker.error('[ComposeLogic] Failed to save draft, error: $e');
     }
   }
 
@@ -336,7 +337,9 @@ class ComposeLogic {
 
       await ref.read(composeStorageNotifierProvider.notifier).saveDraft(draft);
     } catch (e) {
-      log('[ComposeLogic] Failed to save draft without upload, error: $e');
+      talker.error(
+        '[ComposeLogic] Failed to save draft without upload, error: $e',
+      );
     }
   }
 
@@ -352,7 +355,7 @@ class ComposeLogic {
         showSnackBar('draftSaved'.tr());
       }
     } catch (e) {
-      log('[ComposeLogic] Failed to save draft manually, error: $e');
+      talker.error('[ComposeLogic] Failed to save draft manually, error: $e');
       if (context.mounted) {
         showSnackBar('draftSaveFailed'.tr());
       }

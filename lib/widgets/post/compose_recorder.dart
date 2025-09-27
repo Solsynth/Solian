@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -9,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/services/time.dart';
+import 'package:island/talker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -66,7 +65,7 @@ class ComposeRecorder extends HookConsumerWidget {
     useEffect(() {
       return () {
         // Called when widget is unmounted
-        log('[Recorder] Clean up!');
+        talker.info('[Recorder] Clean up!');
         originalAmplitude?.cancel();
         amplitudeStream.close();
         record.dispose();

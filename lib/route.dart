@@ -64,7 +64,9 @@ import 'package:island/screens/account/event_calendar.dart';
 import 'package:island/screens/discovery/realms.dart';
 import 'package:island/screens/reports/report_detail.dart';
 import 'package:island/screens/reports/report_list.dart';
+import 'package:island/talker.dart';
 import 'package:island/widgets/post/post_shuffle.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 // Shell route keys for nested navigation
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -96,6 +98,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     observers: [
       if (_supportsAnalytics)
         FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+      TalkerRouteObserver(talker),
     ],
     routes: [
       ShellRoute(
@@ -131,6 +134,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               final id = state.pathParameters['id']!;
               return CallScreen(roomId: id);
             },
+          ),
+          GoRoute(
+            name: 'logs',
+            path: '/logs',
+            builder: (context, state) => TalkerScreen(talker: talker),
           ),
           GoRoute(
             name: 'accountCalendar',

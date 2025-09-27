@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -13,6 +11,7 @@ import 'package:island/main.dart';
 import 'package:island/route.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/websocket.dart';
+import 'package:island/talker.dart';
 import 'package:island/widgets/app_notification.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -96,7 +95,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
       final notification = SnNotification.fromJson(pkt.data!);
       if (_appLifecycleState == AppLifecycleState.resumed) {
         // App is focused, show in-app notification
-        log(
+        talker.info(
           '[Notification] Showing in-app notification: ${notification.title}',
         );
         showTopSnackBar(
@@ -142,7 +141,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
       } else {
         // App is in background, show system notification (only on supported platforms)
         if (!kIsWeb && !Platform.isIOS) {
-          log(
+          talker.info(
             '[Notification] Showing system notification: ${notification.title}',
           );
 
@@ -167,7 +166,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             payload: notification.meta['action_uri'] as String?,
           );
         } else {
-          log(
+          talker.info(
             '[Notification] Skipping system notification for unsupported platform: ${notification.title}',
           );
         }
@@ -206,7 +205,7 @@ Future<void> subscribePushNotification(
         _putTokenToRemote(apiClient, fcmToken, 1);
       })
       .onError((err) {
-        log("Failed to get firebase cloud messaging push token: $err");
+        talker.error("Failed to get firebase cloud messaging push token: $err");
       });
 
   if (deviceToken != null) {

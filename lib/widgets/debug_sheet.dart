@@ -12,6 +12,8 @@ import 'package:island/widgets/content/network_status_sheet.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/pods/config.dart';
+import 'package:talker_flutter/talker_flutter.dart';
+import 'package:island/talker.dart';
 
 Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
   final TextEditingController controller = TextEditingController();
@@ -111,6 +113,21 @@ class DebugSheet extends HookConsumerWidget {
                       (context) => NetworkStatusSheet(
                         onReconnect: () => wsNotifier.connect(),
                       ),
+                );
+              },
+            ),
+            const Divider(height: 8),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.bug_report),
+              trailing: const Icon(Symbols.chevron_right),
+              title: Text('Logs'),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => TalkerScreen(talker: talker),
+                  ),
                 );
               },
             ),

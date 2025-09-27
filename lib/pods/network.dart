@@ -10,6 +10,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:island/models/auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:talker_dio_logger/talker_dio_logger.dart';
+import 'package:island/talker.dart';
 
 import 'config.dart';
 
@@ -75,7 +77,7 @@ final apiClientProvider = Provider<Dio>((ref) {
     ),
   );
 
-  dio.interceptors.add(
+  dio.interceptors.addAll([
     InterceptorsWrapper(
       onRequest: (
         RequestOptions options,
@@ -97,7 +99,15 @@ final apiClientProvider = Provider<Dio>((ref) {
         return handler.next(options);
       },
     ),
-  );
+    TalkerDioLogger(
+      talker: talker,
+      settings: const TalkerDioLoggerSettings(
+        printRequestHeaders: true,
+        printResponseHeaders: true,
+        printResponseMessage: true,
+      ),
+    ),
+  ]);
 
   return dio;
 });

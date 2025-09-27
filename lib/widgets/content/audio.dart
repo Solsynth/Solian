@@ -1,11 +1,10 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
+import 'package:island/talker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -57,7 +56,7 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
     String? uri;
     final inCacheInfo = await DefaultCacheManager().getFileFromCache(url);
     if (inCacheInfo == null) {
-      log('[MediaPlayer] Miss cache: $url');
+      talker.info('[MediaPlayer] Miss cache: $url');
       final token = ref.watch(tokenProvider)?.token;
       DefaultCacheManager().downloadFile(
         url,
@@ -66,7 +65,7 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
       uri = url;
     } else {
       uri = inCacheInfo.file.path;
-      log('[MediaPlayer] Hit cache: $url');
+      talker.info('[MediaPlayer] Hit cache: $url');
     }
 
     _player!.open(Media(uri), play: widget.autoplay);

@@ -1,11 +1,9 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_platform_alert/flutter_platform_alert.dart';
+import 'package:island/talker.dart';
 
 String _parseRemoteError(DioException err) {
-  log('${err.requestOptions.method} ${err.requestOptions.uri} ${err.message}');
   String? message;
   if (err.response?.data is String) {
     message = err.response?.data;
@@ -30,7 +28,7 @@ String _parseRemoteError(DioException err) {
 
 void showErrorAlert(dynamic err) async {
   if (err is Error) {
-    log('${err.stackTrace}');
+    talker.error('Something went wrong...', err, err.stackTrace);
   }
   final text = switch (err) {
     String _ => err,

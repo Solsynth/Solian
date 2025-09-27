@@ -1,5 +1,4 @@
 import "dart:async";
-import "dart:developer" as developer;
 import "package:dio/dio.dart";
 import "package:drift/drift.dart" show Variable;
 import "package:easy_localization/easy_localization.dart";
@@ -13,6 +12,7 @@ import "package:island/pods/database.dart";
 import "package:island/pods/lifecycle.dart";
 import "package:island/pods/network.dart";
 import "package:island/services/file.dart";
+import "package:island/talker.dart";
 import "package:island/widgets/alert.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
@@ -60,10 +60,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       _identity = identity;
     }
 
-    developer.log(
-      'MessagesNotifier built for room $roomId',
-      name: 'MessagesNotifier',
-    );
+    talker.log('MessagesNotifier built for room $roomId');
 
     // Only setup sync and lifecycle listeners if user is a member
     if (identity != null) {
@@ -71,24 +68,15 @@ class MessagesNotifier extends _$MessagesNotifier {
         next.whenData((state) {
           if (state == AppLifecycleState.paused) {
             _lastPauseTime = DateTime.now();
-            developer.log(
-              'App paused, recording time',
-              name: 'MessagesNotifier',
-            );
+            talker.log('App paused, recording time');
           } else if (state == AppLifecycleState.resumed) {
             if (_lastPauseTime != null) {
               final diff = DateTime.now().difference(_lastPauseTime!);
               if (diff > const Duration(minutes: 1)) {
-                developer.log(
-                  'App resumed after >1 min, syncing messages',
-                  name: 'MessagesNotifier',
-                );
+                talker.log('App resumed after >1 min, syncing messages');
                 syncMessages();
               } else {
-                developer.log(
-                  'App resumed within 1 min, skipping sync',
-                  name: 'MessagesNotifier',
-                );
+                talker.log('App resumed within 1 min, skipping sync');
               }
             }
           }
@@ -109,10 +97,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     int offset = 0,
     int take = 20,
   }) async {
-    developer.log(
-      'Getting cached messages from offset $offset, take $take',
-      name: 'MessagesNotifier',
-    );
+    talker.log('Getting cached messages from offset $offset, take $take');
     final List<LocalChatMessage> dbMessages;
     if (_searchQuery != null && _searchQuery!.isNotEmpty) {
       dbMessages = await _database.searchMessages(
@@ -174,10 +159,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     int offset = 0,
     int take = 20,
   }) async {
-    developer.log(
-      'Fetching messages from API, offset $offset, take $take',
-      name: 'MessagesNotifier',
-    );
+    talker.log('Fetching messages from API, offset $offset, take $take');
     if (_totalCount == null) {
       final response = await _apiClient.get(
         '/sphere/chat/$_roomId/messages',
@@ -221,15 +203,12 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> syncMessages() async {
     if (_isSyncing) {
-      developer.log(
-        'Sync already in progress, skipping.',
-        name: 'MessagesNotifier',
-      );
+      talker.log('Sync already in progress, skipping.');
       return;
     }
     _isSyncing = true;
 
-    developer.log('Starting message sync', name: 'MessagesNotifier');
+    talker.log('Starting message sync');
     Future.microtask(() => ref.read(isSyncingProvider.notifier).state = true);
     try {
       final dbMessages = await _database.getMessagesForRoom(
@@ -243,10 +222,7 @@ class MessagesNotifier extends _$MessagesNotifier {
               : _database.companionToMessage(dbMessages.first);
 
       if (lastMessage == null) {
-        developer.log(
-          'No local messages, fetching from network',
-          name: 'MessagesNotifier',
-        );
+        talker.log('No local messages, fetching from network');
         final newMessages = await _fetchAndCacheMessages(
           offset: 0,
           take: _pageSize,
@@ -264,10 +240,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       final response = MessageSyncResponse.fromJson(resp.data);
-      developer.log(
-        'Sync response: ${response.messages.length} changes',
-        name: 'MessagesNotifier',
-      );
+      talker.log('Sync response: ${response.messages.length} changes');
       for (final message in response.messages) {
         switch (message.type) {
           case "messages.update":
@@ -282,15 +255,14 @@ class MessagesNotifier extends _$MessagesNotifier {
         await receiveMessage(message);
       }
     } catch (err, stackTrace) {
-      developer.log(
+      talker.log(
         'Error syncing messages',
-        name: 'MessagesNotifier',
-        error: err,
+        exception: err,
         stackTrace: stackTrace,
       );
       showErrorAlert(err);
     } finally {
-      developer.log('Finished message sync', name: 'MessagesNotifier');
+      talker.log('Finished message sync');
       Future.microtask(
         () => ref.read(isSyncingProvider.notifier).state = false,
       );
@@ -340,7 +312,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> loadInitial() async {
-    developer.log('Loading initial messages', name: 'MessagesNotifier');
+    talker.log('Loading initial messages');
     if (_searchQuery == null || _searchQuery!.isEmpty) {
       syncMessages();
     }
@@ -354,7 +326,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> loadMore() async {
     if (!_hasMore || state is AsyncLoading) return;
-    developer.log('Loading more messages', name: 'MessagesNotifier');
+    talker.log('Loading more messages');
 
     try {
       final currentMessages = state.value ?? [];
@@ -370,10 +342,10 @@ class MessagesNotifier extends _$MessagesNotifier {
         _sortMessages([...currentMessages, ...newMessages]),
       );
     } catch (err, stackTrace) {
-      developer.log(
+      talker.log(
         'Error loading more messages',
-        name: 'MessagesNotifier',
-        error: err,
+
+        exception: err,
         stackTrace: stackTrace,
       );
       showErrorAlert(err);
@@ -389,10 +361,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     Function(String, Map<int, double>)? onProgress,
   }) async {
     final nonce = const Uuid().v4();
-    developer.log(
-      'Sending message with nonce $nonce',
-      name: 'MessagesNotifier',
-    );
+    talker.log('Sending message with nonce $nonce');
     final baseUrl = ref.read(serverUrlProvider);
     final token = await getToken(ref.watch(tokenProvider));
     if (token == null) throw ArgumentError('Access token is null');
@@ -496,15 +465,12 @@ class MessagesNotifier extends _$MessagesNotifier {
             }).toList();
         state = AsyncValue.data(newMessages);
       }
-      developer.log(
-        'Message with nonce $nonce sent successfully',
-        name: 'MessagesNotifier',
-      );
+      talker.log('Message with nonce $nonce sent successfully');
     } catch (e, stackTrace) {
-      developer.log(
+      talker.log(
         'Failed to send message with nonce $nonce',
-        name: 'MessagesNotifier',
-        error: e,
+
+        exception: e,
         stackTrace: stackTrace,
       );
       localMessage.status = MessageStatus.failed;
@@ -526,10 +492,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> retryMessage(String pendingMessageId) async {
-    developer.log(
-      'Retrying message $pendingMessageId',
-      name: 'MessagesNotifier',
-    );
+    talker.log('Retrying message $pendingMessageId');
     final message = await fetchMessageById(pendingMessageId);
     if (message == null) {
       throw Exception('Message not found');
@@ -573,10 +536,10 @@ class MessagesNotifier extends _$MessagesNotifier {
           }).toList();
       state = AsyncValue.data(newMessages);
     } catch (e, stackTrace) {
-      developer.log(
+      talker.log(
         'Failed to retry message $pendingMessageId',
-        name: 'MessagesNotifier',
-        error: e,
+
+        exception: e,
         stackTrace: stackTrace,
       );
       message.status = MessageStatus.failed;
@@ -599,10 +562,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> receiveMessage(SnChatMessage remoteMessage) async {
     if (remoteMessage.chatRoomId != _roomId) return;
-    developer.log(
-      'Received new message ${remoteMessage.id}',
-      name: 'MessagesNotifier',
-    );
+    talker.log('Received new message ${remoteMessage.id}');
 
     final localMessage = LocalChatMessage.fromRemoteMessage(
       remoteMessage,
@@ -647,10 +607,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {
     if (remoteMessage.chatRoomId != _roomId) return;
-    developer.log(
-      'Received message update ${remoteMessage.id}',
-      name: 'MessagesNotifier',
-    );
+    talker.log('Received message update ${remoteMessage.id}');
 
     final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
     final updatedMessage = LocalChatMessage.fromRemoteMessage(
@@ -673,10 +630,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> receiveMessageDeletion(String messageId) async {
-    developer.log(
-      'Received message deletion $messageId',
-      name: 'MessagesNotifier',
-    );
+    talker.log('Received message deletion $messageId');
     _pendingMessages.remove(messageId);
 
     final currentMessages = state.value ?? [];
@@ -713,15 +667,15 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> deleteMessage(String messageId) async {
-    developer.log('Deleting message $messageId', name: 'MessagesNotifier');
+    talker.log('Deleting message $messageId');
     try {
       await _apiClient.delete('/sphere/chat/$_roomId/messages/$messageId');
       await receiveMessageDeletion(messageId);
     } catch (err, stackTrace) {
-      developer.log(
+      talker.log(
         'Error deleting message $messageId',
-        name: 'MessagesNotifier',
-        error: err,
+
+        exception: err,
         stackTrace: stackTrace,
       );
       showErrorAlert(err);
@@ -743,10 +697,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
-    developer.log(
-      'Fetching message by id $messageId',
-      name: 'MessagesNotifier',
-    );
+    talker.log('Fetching message by id $messageId');
     try {
       final localMessage =
           await (_database.select(_database.chatMessages)
@@ -773,24 +724,18 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<int> jumpToMessage(String messageId) async {
-    developer.log(
-      'Starting jump to message $messageId',
-      name: 'MessagesNotifier',
-    );
+    talker.log('Starting jump to message $messageId');
     if (_isJumping) {
-      developer.log(
-        'Jump already in progress, skipping',
-        name: 'MessagesNotifier',
-      );
+      talker.log('Jump already in progress, skipping');
       return -1;
     }
     _isJumping = true;
 
     try {
-      developer.log('Fetching message $messageId', name: 'MessagesNotifier');
+      talker.log('Fetching message $messageId');
       final message = await fetchMessageById(messageId);
       if (message == null) {
-        developer.log('Message $messageId not found', name: 'MessagesNotifier');
+        talker.log('Message $messageId not found');
         showSnackBar('messageNotFound'.tr());
         return -1;
       }
@@ -801,16 +746,14 @@ class MessagesNotifier extends _$MessagesNotifier {
         (m) => m.id == messageId,
       );
       if (existingIndex >= 0) {
-        developer.log(
+        talker.log(
           'Message $messageId already in current state at index $existingIndex, jumping directly',
-          name: 'MessagesNotifier',
         );
         return existingIndex;
       }
 
-      developer.log(
+      talker.log(
         'Message $messageId not in current state, loading messages around it',
-        name: 'MessagesNotifier',
       );
 
       // Count messages newer than this one
@@ -828,10 +771,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       // Load messages around this position
       final offset =
           (newerCount - _pageSize ~/ 2).clamp(0, double.infinity).toInt();
-      developer.log(
-        'Loading messages with offset $offset, take $_pageSize',
-        name: 'MessagesNotifier',
-      );
+      talker.log('Loading messages with offset $offset, take $_pageSize');
       final loadedMessages = await _getCachedMessages(
         offset: offset,
         take: _pageSize,
@@ -841,9 +781,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       final currentIds = currentMessages.map((m) => m.id).toSet();
       final newMessages =
           loadedMessages.where((m) => !currentIds.contains(m.id)).toList();
-      developer.log(
+      talker.log(
         'Loaded ${loadedMessages.length} messages, ${newMessages.length} are new',
-        name: 'MessagesNotifier',
       );
 
       if (newMessages.isNotEmpty) {
@@ -858,19 +797,15 @@ class MessagesNotifier extends _$MessagesNotifier {
         }
         _sortMessages(uniqueMessages);
         state = AsyncValue.data(uniqueMessages);
-        developer.log(
+        talker.log(
           'Updated state with ${uniqueMessages.length} total messages',
-          name: 'MessagesNotifier',
         );
       }
 
       final finalIndex = (state.value ?? []).indexWhere(
         (m) => m.id == messageId,
       );
-      developer.log(
-        'Final index for message $messageId is $finalIndex',
-        name: 'MessagesNotifier',
-      );
+      talker.log('Final index for message $messageId is $finalIndex');
       return finalIndex;
     } finally {
       _isJumping = false;
