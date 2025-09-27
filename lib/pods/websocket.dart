@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -8,6 +7,7 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:island/talker.dart';
 
 part 'websocket.freezed.dart';
 part 'websocket.g.dart';
@@ -64,7 +64,7 @@ class WebSocketService {
 
     final url = '$baseUrl/ws'.replaceFirst('http', 'ws');
 
-    log('[WebSocket] Trying connecting to $url');
+    talker.info('[WebSocket] Trying connecting to $url');
     try {
       if (kIsWeb) {
         _channel = WebSocketChannel.connect(Uri.parse('$url?tk=$token'));
@@ -88,24 +88,24 @@ class WebSocketService {
             return;
           }
           _streamController.sink.add(packet);
-          log(
+          talker.info(
             "[WebSocket] Received packet: ${packet.type} ${packet.errorMessage}",
           );
           if (packet.type == 'pong' && _heartbeatAt != null) {
             var now = DateTime.now();
             heartbeatDelay = now.difference(_heartbeatAt!);
-            log(
+            talker.info(
               "[WebSocket] Server respond last heartbeat for ${heartbeatDelay!.inMilliseconds} ms",
             );
           }
         },
         onDone: () {
-          log('[WebSocket] Connection closed, attempting to reconnect...');
+          talker.info('[WebSocket] Connection closed, attempting to reconnect...');
           _scheduleReconnect();
           _statusStreamController.sink.add(WebSocketState.disconnected());
         },
         onError: (error) {
-          log('[WebSocket] Error occurred: $error, attempting to reconnect...');
+          talker.error('[WebSocket] Error occurred: $error, attempting to reconnect...');
           _scheduleReconnect();
           _statusStreamController.sink.add(
             WebSocketState.error(error.toString()),
@@ -113,7 +113,7 @@ class WebSocketService {
         },
       );
     } catch (err) {
-      log('[WebSocket] Failed to connect: $err');
+      talker.error('[WebSocket] Failed to connect: $err');
       _scheduleReconnect();
     }
   }
@@ -135,7 +135,7 @@ class WebSocketService {
 
   void _beatTheHeart() {
     _heartbeatAt = DateTime.now();
-    log('[WebSocket] We\'re beating the heart! $_heartbeatAt');
+    talker.info('[WebSocket] We\'re beating the heart! $_heartbeatAt');
     sendMessage(jsonEncode(WebSocketPacket(type: 'ping', data: null)));
   }
 

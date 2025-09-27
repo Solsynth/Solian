@@ -1,6 +1,4 @@
-import 'dart:developer';
 import 'dart:io';
-
 import 'package:croppy/croppy.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:firebase_core/firebase_core.dart';
@@ -12,11 +10,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker_android/image_picker_android.dart';
+import 'package:island/talker.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/theme.dart';
-
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
@@ -28,19 +26,20 @@ import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  log('Handling a background message: ${message.messageId}');
+  talker.info('Handling a background message: ${message.messageId}');
 }
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-    log(
+    talker.info(
       "[SplashScreen] Keeping the flash screen to loading other resources...",
     );
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
@@ -73,17 +72,17 @@ void main() async {
       }
     }
 
-    log("[SplashScreen] Firebase is ready!");
+    talker.info("[SplashScreen] Firebase is ready!");
   } catch (err) {
     showErrorAlert(err);
   }
 
   try {
-    log("[SplashScreen] Loading timezone database...");
+    talker.info("[SplashScreen] Loading timezone database...");
     await initializeTzdb();
-    log("[SplashScreen] Time zone database was loaded!");
+    talker.info("[SplashScreen] Time zone database was loaded!");
   } catch (err) {
-    log("[SplashScreen] Failed to load timezone database... $err");
+    talker.error("[SplashScreen] Failed to load timezone database... $err");
   }
 
   final prefs = await SharedPreferences.getInstance();
@@ -106,7 +105,7 @@ void main() async {
           initialSize = Size(width, height);
         }
       } catch (e) {
-        log("[SplashScreen] Failed to parse saved window size: $e");
+        talker.error("[SplashScreen] Failed to parse saved window size: $e");
         initialSize = defaultSize;
       }
     }
@@ -125,7 +124,7 @@ void main() async {
       await windowManager.focus();
       final opacity = prefs.getDouble(kAppWindowOpacity) ?? 1.0;
       await windowManager.setOpacity(opacity);
-      log(
+      talker.info(
         "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}",
       );
     });
@@ -137,16 +136,17 @@ void main() async {
     if (imagePickerImplementation is ImagePickerAndroid) {
       imagePickerImplementation.useAndroidPhotoPicker = true;
     }
-    log("[SplashScreen] Android image picker is ready!");
+    talker.info("[SplashScreen] Android image picker is ready!");
   }
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     FlutterNativeSplash.remove();
-    log("[SplashScreen] Now hiding the splash screen...");
+    talker.info("[SplashScreen] Now hiding the splash screen...");
   }
 
   runApp(
     ProviderScope(
+      observers: [TalkerRiverpodObserver(talker: talker)],
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: Directionality(
         textDirection: TextDirection.ltr,
@@ -227,7 +227,9 @@ class IslandApp extends HookConsumerWidget {
       final onMessageSubscription = FirebaseMessaging.onMessage.listen((
         message,
       ) {
-        log('Foreground message received: ${message.messageId}');
+        talker.info(
+          '[Notification] foreground message received: ${message.messageId}',
+        );
         handleMessage(message);
       });
 
@@ -241,7 +243,7 @@ class IslandApp extends HookConsumerWidget {
       // Load userinfo
       final userNotifier = ref.read(userInfoProvider.notifier);
       ref.listen(websocketStateProvider, (_, state) {
-        log('[WebSocket] $state');
+        talker.info('[WebSocket] $state');
       });
       Future(() {
         userNotifier.fetchUser().then((_) {

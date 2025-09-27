@@ -7,7 +7,7 @@ part of 'chat_online_count.dart';
 // **************************************************************************
 
 String _$chatOnlineCountNotifierHash() =>
-    r'254ed141ffd99585d898203b3d2b86c4d18db80d';
+    r'19af8fd0e9f62c65e12a68215406776085235fa3';
 
 /// Copied from Dart SDK
 class _SystemHash {

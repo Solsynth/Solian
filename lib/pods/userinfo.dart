@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io' show Platform;
 
 import 'package:dio/dio.dart';
@@ -12,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/talker.dart';
 
 class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
   final Ref _ref;
@@ -21,7 +21,7 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
   Future<void> fetchUser() async {
     final token = _ref.watch(tokenProvider);
     if (token == null) {
-      log('[UserInfo] No token found, not going to fetch...');
+      talker.info('[UserInfo] No token found, not going to fetch...');
       return;
     }
     try {
@@ -75,11 +75,10 @@ class UserInfoNotifier extends StateNotifier<AsyncValue<SnAccount?>> {
           }
         });
       }
-      log(
+      talker.error(
         "[UserInfo] Failed to fetch user info...",
-        name: 'UserInfoNotifier',
-        error: error,
-        stackTrace: stackTrace,
+        error,
+        stackTrace,
       );
       state = AsyncValue.data(null);
     }

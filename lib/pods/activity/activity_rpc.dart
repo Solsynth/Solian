@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/talker.dart';
 import 'package:island/widgets/account/status.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -69,13 +69,13 @@ class ActivityRpcServer {
 
     // Start WebSocket server
     while (port <= portRange[1]) {
-      developer.log('Trying port $port', name: kRpcLogPrefix);
+      talker.log('[$kRpcLogPrefix] Trying port $port');
       try {
         _httpServer = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
-        developer.log('Listening on $port', name: kRpcLogPrefix);
+        talker.log('[$kRpcLogPrefix] Listening on $port');
 
         shelf_io.serveRequests(_httpServer!, (Request request) async {
-          developer.log('New request', name: kRpcLogPrefix);
+          talker.log('[$kRpcLogPrefix] New request');
           if (request.headers['upgrade']?.toLowerCase() == 'websocket') {
             final handler = webSocketHandler((WebSocketChannel channel, _) {
               _wsSockets.add(channel);
@@ -83,19 +83,16 @@ class ActivityRpcServer {
             });
             return handler(request);
           }
-          developer.log(
-            'New request disposed due to not websocket',
-            name: kRpcLogPrefix,
-          );
+          talker.log('New request disposed due to not websocket');
           return Response.notFound('Not a WebSocket request');
         });
         wsSuccess = true;
         break;
       } catch (e) {
         if (e is SocketException && e.osError?.errorCode == 98) {
-          developer.log('$port in use!', name: kRpcLogPrefix);
+          talker.log('[$kRpcLogPrefix] $port in use!');
         } else {
-          developer.log('HTTP error: $e', name: kRpcLogPrefix);
+          talker.log('[$kRpcLogPrefix] HTTP error: $e');
         }
         port++;
         await Future.delayed(Duration(milliseconds: 100)); // Add delay
@@ -121,13 +118,10 @@ class ActivityRpcServer {
 
         await _ipcServer!.start();
       } catch (e) {
-        developer.log('IPC server error: $e', name: kRpcIpcLogPrefix);
+        talker.log('[$kRpcLogPrefix] IPC server error: $e');
       }
     } else {
-      developer.log(
-        'IPC server disabled on macOS or web in production mode',
-        name: kRpcIpcLogPrefix,
-      );
+      talker.log('IPC server disabled on macOS or web in production mode');
     }
   }
 
@@ -138,7 +132,7 @@ class ActivityRpcServer {
       try {
         await socket.sink.close();
       } catch (e) {
-        developer.log('Error closing WebSocket: $e', name: kRpcLogPrefix);
+        talker.log('[$kRpcLogPrefix] Error closing WebSocket: $e');
       }
     }
     _wsSockets.clear();
@@ -147,7 +141,7 @@ class ActivityRpcServer {
     // Stop IPC server
     await _ipcServer?.stop();
 
-    developer.log('Servers stopped', name: kRpcLogPrefix);
+    talker.log('[$kRpcLogPrefix] Servers stopped');
   }
 
   // Handle new WebSocket connection
@@ -159,10 +153,7 @@ class ActivityRpcServer {
     final clientId = params['client_id'] ?? '';
     final origin = request.headers['origin'] ?? '';
 
-    developer.log(
-      'New WS connection! origin: $origin, params: $params',
-      name: kRpcLogPrefix,
-    );
+    talker.log('New WS connection! origin: $origin, params: $params');
 
     if (origin.isNotEmpty &&
         ![
@@ -170,22 +161,19 @@ class ActivityRpcServer {
           'https://ptb.discord.com',
           'https://canary.discord.com',
         ].contains(origin)) {
-      developer.log('Disallowed origin: $origin', name: kRpcLogPrefix);
+      talker.log('[$kRpcLogPrefix] Disallowed origin: $origin');
       socket.sink.close();
       return;
     }
 
     if (encoding != 'json') {
-      developer.log(
-        'Unsupported encoding requested: $encoding',
-        name: kRpcLogPrefix,
-      );
+      talker.log('Unsupported encoding requested: $encoding');
       socket.sink.close();
       return;
     }
 
     if (ver != 1) {
-      developer.log('Unsupported version requested: $ver', name: kRpcLogPrefix);
+      talker.log('[$kRpcLogPrefix] Unsupported version requested: $ver');
       socket.sink.close();
       return;
     }
@@ -195,10 +183,10 @@ class ActivityRpcServer {
     socket.stream.listen(
       (data) => _onWsMessage(socketWithMeta, data),
       onError: (e) {
-        developer.log('WS socket error: $e', name: kRpcLogPrefix);
+        talker.log('[$kRpcLogPrefix] WS socket error: $e');
       },
       onDone: () {
-        developer.log('WS socket closed', name: kRpcLogPrefix);
+        talker.log('[$kRpcLogPrefix] WS socket closed');
         handlers['close']?.call(socketWithMeta);
         _wsSockets.remove(socket);
       },
@@ -210,25 +198,19 @@ class ActivityRpcServer {
   // Handle incoming WebSocket message
   Future<void> _onWsMessage(_WsSocketWrapper socket, dynamic data) async {
     if (data is! String) {
-      developer.log(
-        'Invalid WebSocket message: not a string',
-        name: kRpcLogPrefix,
-      );
+      talker.log('Invalid WebSocket message: not a string');
       return;
     }
     try {
       final jsonData = await compute(jsonDecode, data);
       if (jsonData is! Map<String, dynamic>) {
-        developer.log(
-          'Invalid WebSocket message: not a JSON object',
-          name: kRpcLogPrefix,
-        );
+        talker.log('Invalid WebSocket message: not a JSON object');
         return;
       }
-      developer.log('WS message: $jsonData', name: kRpcLogPrefix);
+      talker.log('[$kRpcLogPrefix] WS message: $jsonData');
       handlers['message']?.call(socket, jsonData);
     } catch (e) {
-      developer.log('WS message parse error: $e', name: kRpcLogPrefix);
+      talker.log('[$kRpcLogPrefix] WS message parse error: $e');
     }
   }
 
@@ -236,12 +218,12 @@ class ActivityRpcServer {
   void _handleIpcPacket(IpcSocketWrapper socket, IpcPacket packet) {
     switch (packet.type) {
       case IpcTypes.ping:
-        developer.log('IPC ping received', name: kRpcIpcLogPrefix);
+        talker.log('[$kRpcLogPrefix] IPC ping received');
         socket.sendPong(packet.data);
         break;
 
       case IpcTypes.pong:
-        developer.log('IPC pong received', name: kRpcIpcLogPrefix);
+        talker.log('[$kRpcLogPrefix] IPC pong received');
         break;
 
       case IpcTypes.handshake:
@@ -256,7 +238,7 @@ class ActivityRpcServer {
         if (!socket.handshook) {
           throw Exception('Need to handshake first');
         }
-        developer.log('IPC frame: ${packet.data}', name: kRpcIpcLogPrefix);
+        talker.log('[$kRpcLogPrefix] IPC frame: ${packet.data}');
         handlers['message']?.call(socket, packet.data);
         break;
 
@@ -271,22 +253,19 @@ class ActivityRpcServer {
 
   // Handle IPC handshake
   void _onIpcHandshake(IpcSocketWrapper socket, Map<String, dynamic> params) {
-    developer.log('IPC handshake: $params', name: kRpcIpcLogPrefix);
+    talker.log('[$kRpcLogPrefix] IPC handshake: $params');
 
     final ver = int.tryParse(params['v']?.toString() ?? '1') ?? 1;
     final clientId = params['client_id']?.toString() ?? '';
 
     if (ver != 1) {
-      developer.log(
-        'IPC unsupported version requested: $ver',
-        name: kRpcIpcLogPrefix,
-      );
+      talker.log('IPC unsupported version requested: $ver');
       socket.closeWithCode(IpcErrorCodes.invalidVersion);
       return;
     }
 
     if (clientId.isEmpty) {
-      developer.log('IPC client ID required', name: kRpcIpcLogPrefix);
+      talker.log('[$kRpcLogPrefix] IPC client ID required');
       socket.closeWithCode(IpcErrorCodes.invalidClientId);
       return;
     }
@@ -306,7 +285,7 @@ class _WsSocketWrapper {
   _WsSocketWrapper(this.channel, this.clientId, this.encoding);
 
   void send(Map<String, dynamic> msg) {
-    developer.log('WS sending: $msg', name: kRpcLogPrefix);
+    talker.log('[$kRpcLogPrefix] WS sending: $msg');
     channel.sink.add(jsonEncode(msg));
   }
 }
@@ -398,12 +377,7 @@ final rpcServerStateProvider =
             final appId = socket.clientId;
             final meta = data['args']['activity'];
             try {
-              await setRemoteActivityStatus(
-                ref,
-                label,
-                appId,
-                meta,
-              );
+              await setRemoteActivityStatus(ref, label, appId, meta);
               final now = DateTime.now();
               final status = SnAccountStatus(
                 id: 'local_$appId',
@@ -422,10 +396,7 @@ final rpcServerStateProvider =
               );
               ref.read(currentAccountStatusProvider.notifier).setStatus(status);
             } catch (e) {
-              developer.log(
-                'Failed to set remote activity status: $e',
-                name: kRpcLogPrefix,
-              );
+              talker.log('Failed to set remote activity status: $e');
             }
             socket.send({
               'cmd': 'SET_ACTIVITY',
@@ -442,10 +413,7 @@ final rpcServerStateProvider =
             await unsetRemoteActivityStatus(ref, appId);
             ref.read(currentAccountStatusProvider.notifier).clearStatus();
           } catch (e) {
-            developer.log(
-              'Failed to unset remote activity status: $e',
-              name: kRpcLogPrefix,
-            );
+            talker.log('Failed to unset remote activity status: $e');
           }
         },
       });

@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,17 +9,17 @@ import 'package:island/main.dart';
 import 'package:island/route.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/websocket.dart';
+import 'package:island/talker.dart';
 import 'package:island/widgets/app_notification.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:windows_notification/windows_notification.dart'
-    as windows_notification;
+import 'package:windows_notification/windows_notification.dart' as winty;
 import 'package:windows_notification/notification_message.dart';
 
 import 'package:dio/dio.dart';
 
 // Windows notification instance
-windows_notification.WindowsNotification? windowsNotification;
+winty.WindowsNotification? windowsNotification;
 
 AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
 
@@ -31,7 +29,7 @@ void _onAppLifecycleChanged(AppLifecycleState state) {
 
 Future<void> initializeLocalNotifications() async {
   // Initialize Windows notification for Windows platform
-  windowsNotification = windows_notification.WindowsNotification(
+  windowsNotification = winty.WindowsNotification(
     applicationId: 'dev.solsynth.solian',
   );
 
@@ -61,7 +59,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
       final notification = SnNotification.fromJson(pkt.data!);
       if (_appLifecycleState == AppLifecycleState.resumed) {
         // App is focused, show in-app notification
-        log(
+        talker.info(
           '[Notification] Showing in-app notification: ${notification.title}',
         );
         showTopSnackBar(
@@ -99,7 +97,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         );
       } else {
         // App is in background, show Windows system notification
-        log(
+        talker.info(
           '[Notification] Showing Windows system notification: ${notification.title}',
         );
 
@@ -150,7 +148,7 @@ Future<void> subscribePushNotification(
         _putTokenToRemote(apiClient, fcmToken, 1);
       })
       .onError((err) {
-        log("Failed to get firebase cloud messaging push token: $err");
+        talker.error("Failed to get firebase cloud messaging push token: $err");
       });
 
   if (deviceToken != null) {

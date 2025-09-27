@@ -7,7 +7,7 @@ part of 'chat_subscribe.dart';
 // **************************************************************************
 
 String _$chatSubscribeNotifierHash() =>
-    r'10a6b2c687149ebb419e4c96349d8bab1f183ec6';
+    r'df65ecf15d0e97d7e6850ac57b4e681606e77179';
 
 /// Copied from Dart SDK
 class _SystemHash {
