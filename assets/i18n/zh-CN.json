@@ -391,6 +391,10 @@
         "other": "{} 正在输入……"
     },
     "settingsAppearance": "外观",
+    "settingsThemeMode": "主题模式",
+    "settingsThemeModeSystem": "跟随系统",
+    "settingsThemeModeLight": "浅色",
+    "settingsThemeModeDark": "深色",
     "settingsServer": "服务器",
     "settingsBehavior": "行为",
     "settingsDesktop": "桌面",

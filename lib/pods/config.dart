@@ -29,6 +29,7 @@ const kAppWindowOpacity = 'app_window_opacity';
 const kAppEnterToSend = 'app_enter_to_send';
 const kAppDefaultPoolId = 'app_default_pool_id';
 const kAppMessageDisplayStyle = 'app_message_display_style';
+const kAppThemeMode = 'app_theme_mode';
 const kFeaturedPostsCollapsedId =
     'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
 
@@ -72,6 +73,7 @@ sealed class AppSettings with _$AppSettings {
     required double windowOpacity, // The window opacity for desktop platforms
     required String? defaultPoolId,
     required String messageDisplayStyle,
+    required String? themeMode,
   }) = _AppSettings;
 }
 
@@ -94,6 +96,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       windowOpacity: prefs.getDouble(kAppWindowOpacity) ?? 1.0,
       defaultPoolId: prefs.getString(kAppDefaultPoolId),
       messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
+      themeMode: prefs.getString(kAppThemeMode) ?? 'system',
     );
   }
 
@@ -206,6 +209,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     prefs.setDouble(kAppWindowOpacity, value);
     state = state.copyWith(windowOpacity: value);
     Future(() => windowManager.setOpacity(value));
+  }
+
+  void setThemeMode(String value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppThemeMode, value);
+    state = state.copyWith(themeMode: value);
   }
 }
 
