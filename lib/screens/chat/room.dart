@@ -280,6 +280,8 @@ class ChatRoomScreen extends HookConsumerWidget {
         if (message.chatRoomId != chatRoom.value?.id) return;
         switch (pkt.type) {
           case 'messages.new':
+          case 'messages.update':
+          case 'messages.delete':
             if (message.type.startsWith('call')) {
               // Handle the ongoing call.
               ref.invalidate(ongoingCallProvider(message.chatRoomId));
@@ -287,14 +289,6 @@ class ChatRoomScreen extends HookConsumerWidget {
             messagesNotifier.receiveMessage(message);
             // Send read receipt for new message
             sendReadReceipt();
-          case 'messages.update':
-            messagesNotifier.receiveMessageUpdate(message).then((_) {
-              messagesNotifier.receiveMessage(message);
-            });
-          case 'messages.delete':
-            messagesNotifier.receiveMessageDeletion(message.id).then((_) {
-              messagesNotifier.receiveMessage(message);
-            });
         }
       }
 

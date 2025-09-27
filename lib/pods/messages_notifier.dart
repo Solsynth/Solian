@@ -613,6 +613,16 @@ class MessagesNotifier extends _$MessagesNotifier {
         _sortMessages([localMessage, ...currentMessages]),
       );
     }
+
+    switch (remoteMessage.type) {
+      case "messages.delete":
+        await receiveMessageDeletion(
+          remoteMessage.meta['message_id'] ?? remoteMessage.id,
+        );
+      case "messages.update":
+      case "messages.update.links":
+        await receiveMessageUpdate(remoteMessage);
+    }
   }
 
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {
@@ -622,8 +632,12 @@ class MessagesNotifier extends _$MessagesNotifier {
       name: 'MessagesNotifier',
     );
 
+    final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
     final updatedMessage = LocalChatMessage.fromRemoteMessage(
-      remoteMessage,
+      remoteMessage.copyWith(
+        id: targetId,
+        meta: Map.of(remoteMessage.meta)..remove('message_id'),
+      ),
       MessageStatus.sent,
     );
     await _database.updateMessage(_database.messageToCompanion(updatedMessage));

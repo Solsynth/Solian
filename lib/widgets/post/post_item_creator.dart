@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -80,9 +81,8 @@ class PostItemCreator extends HookConsumerWidget {
               title: 'copyLink'.tr(),
               image: MenuImage.icon(Symbols.link),
               callback: () {
-                context.pushNamed(
-                  'postDetail',
-                  pathParameters: {'id': item.id},
+                Clipboard.setData(
+                  ClipboardData(text: 'https://solian.app/posts/${item.id}'),
                 );
               },
             ),
@@ -95,7 +95,7 @@ class PostItemCreator extends HookConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: () {
             if (isOpenable) {
-              context.goNamed('postDetail', pathParameters: {'id': item.id});
+              context.pushNamed('postDetail', pathParameters: {'id': item.id});
             }
           },
           child: Column(
