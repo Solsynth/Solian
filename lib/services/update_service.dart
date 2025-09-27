@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_update/azhon_app_update.dart';
@@ -596,7 +597,7 @@ class _UpdateSheetState extends State<_UpdateSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SheetScaffold(
-      titleText: 'Update available',
+      titleText: 'updateAvailable'.tr(),
       child: Padding(
         padding: EdgeInsets.only(
           bottom: 16 + MediaQuery.of(context).padding.bottom,
@@ -624,14 +625,14 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                 child: MarkdownTextContent(
                   content:
                       widget.release.body.isEmpty
-                          ? 'No changelog provided.'
+                          ? 'noChangelogProvided'.tr()
                           : widget.release.body,
                 ),
               ),
             ),
             if (!kIsWeb && Platform.isAndroid)
               SwitchListTile(
-                title: const Text('Use secondary source for download'),
+                title: Text('useSecondarySourceForDownload'.tr()),
                 value: _useProxy,
                 onChanged: (value) {
                   setState(() {
@@ -654,7 +655,7 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                             _installUpdate(widget.androidUpdateUrl!);
                           },
                           icon: const Icon(Symbols.update),
-                          label: const Text('Install update'),
+                          label: Text('installUpdate'.tr()),
                         ),
                       ),
                     if (!kIsWeb &&
@@ -673,14 +674,14 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                             );
                           },
                           icon: const Icon(Symbols.update),
-                          label: const Text('Install update'),
+                          label: Text('installUpdate'.tr()),
                         ),
                       ),
                     Expanded(
                       child: FilledButton.icon(
                         onPressed: widget.onOpen,
                         icon: const Icon(Icons.open_in_new),
-                        label: const Text('Open release page'),
+                        label: Text('openReleasePage'.tr()),
                       ),
                     ),
                   ],

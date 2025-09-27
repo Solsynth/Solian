@@ -9,6 +9,7 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/database/message.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
+import "package:island/pods/chat/chat_rooms.dart";
 import "package:island/pods/chat/chat_subscribe.dart";
 import "package:island/pods/config.dart";
 import "package:island/pods/chat/messages_notifier.dart";
@@ -33,8 +34,6 @@ import "package:island/widgets/chat/call_button.dart";
 import "package:island/widgets/chat/chat_input.dart";
 import "package:island/widgets/chat/public_room_preview.dart";
 
-final isSyncingProvider = StateProvider.autoDispose<bool>((ref) => false);
-
 final flashingMessagesProvider = StateProvider<Set<String>>((ref) => {});
 
 class ChatRoomScreen extends HookConsumerWidget {
@@ -47,6 +46,8 @@ class ChatRoomScreen extends HookConsumerWidget {
     final chatIdentity = ref.watch(chatroomIdentityProvider(id));
     final isSyncing = ref.watch(isSyncingProvider);
     final onlineCount = ref.watch(chatOnlineCountNotifierProvider(id));
+
+    final hasOnlineCount = onlineCount.hasValue;
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
@@ -231,6 +232,32 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final compactHeader = isWideScreen(context);
 
+    Widget onlineIndicator() => Row(
+      spacing: 8,
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: (onlineCount as AsyncData).value > 1 ? Colors.green : null,
+            border:
+                (onlineCount as AsyncData).value <= 1
+                    ? Border.all(color: Colors.grey)
+                    : null,
+          ),
+        ),
+        Text(
+          '${(onlineCount as AsyncData).value} online',
+          style: Theme.of(context).textTheme.bodySmall!.copyWith(
+            color: Theme.of(context).appBarTheme.foregroundColor!,
+          ),
+        ),
+      ],
+    );
+
     Widget comfortHeaderWidget(SnChatRoom? room) => Column(
       spacing: 4,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -264,16 +291,18 @@ class ChatRoomScreen extends HookConsumerWidget {
               ? room.members!.map((e) => e.account.nick).join(', ')
               : room.name!,
         ).fontSize(15),
+        if (hasOnlineCount) onlineIndicator(),
       ],
     );
 
     Widget compactHeaderWidget(SnChatRoom? room) => Row(
       spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         SizedBox(
-          height: 26,
-          width: 26,
+          height: 28,
+          width: 28,
           child:
               (room!.type == 1 && room.picture?.id == null)
                   ? SplitAvatarWidget(
@@ -299,6 +328,8 @@ class ChatRoomScreen extends HookConsumerWidget {
               ? room.members!.map((e) => e.account.nick).join(', ')
               : room.name!,
         ).fontSize(19),
+        if (hasOnlineCount)
+          onlineIndicator().padding(left: 6),
       ],
     );
 
@@ -488,7 +519,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       appBar: AppBar(
         leading: !compactHeader ? const Center(child: PageBackButton()) : null,
         automaticallyImplyLeading: false,
-        toolbarHeight: compactHeader ? null : 64,
+        toolbarHeight: compactHeader ? null : 80,
         title: chatRoom.when(
           data:
               (room) =>
@@ -556,33 +587,6 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           const Gap(8),
         ],
-        bottom: () {
-          final hasProgress = isSyncing;
-          final hasOnlineCount = onlineCount.hasValue;
-          if (!hasProgress && !hasOnlineCount) return null;
-          return PreferredSize(
-            preferredSize: Size.fromHeight(
-              (hasProgress ? 2 : 0) + (hasOnlineCount ? 24 : 0),
-            ),
-            child: Column(
-              children: [
-                if (hasProgress)
-                  const LinearProgressIndicator(
-                    borderRadius: BorderRadius.zero,
-                  ),
-                if (hasOnlineCount)
-                  Container(
-                    height: 24,
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${(onlineCount as AsyncData).value} online',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-              ],
-            ),
-          );
-        }(),
       ),
       body: Stack(
         children: [
@@ -678,12 +682,14 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           if (isSyncing)
             Positioned(
-              top: 16,
+              top: 8,
               right: 16,
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8),
+                  color: Theme.of(
+                    context,
+                  ).scaffoldBackgroundColor.withOpacity(0.8),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -695,7 +701,10 @@ class ChatRoomScreen extends HookConsumerWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                     const SizedBox(width: 8),
-                    Text('Syncing...', style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      'Syncing...',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),

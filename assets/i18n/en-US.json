@@ -1080,5 +1080,10 @@
     "deleteRecycledFiles": "Delete Recycled Files",
     "recycledFilesDeleted": "Recycled files deleted successfully",
     "failedToDeleteRecycledFiles": "Failed to delete recycled files",
-    "upload": "Upload"
+    "upload": "Upload",
+    "updateAvailable": "Update available",
+    "noChangelogProvided": "No changelog provided.",
+    "useSecondarySourceForDownload": "Use secondary source for download",
+    "installUpdate": "Install update",
+    "openReleasePage": "Open release page"
 }
