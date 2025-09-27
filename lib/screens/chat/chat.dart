@@ -178,6 +178,102 @@ Future<List<SnChatRoom>> chatroomsJoined(Ref ref) async {
       .toList();
 }
 
+class ChatListBodyWidget extends HookConsumerWidget {
+  final bool isFloating;
+  final TabController tabController;
+  final ValueNotifier<int> selectedTab;
+
+  const ChatListBodyWidget({
+    super.key,
+    this.isFloating = false,
+    required this.tabController,
+    required this.selectedTab,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chats = ref.watch(chatroomsJoinedProvider);
+    final callState = ref.watch(callNotifierProvider);
+
+    Widget bodyWidget = Column(
+      children: [
+        Consumer(
+          builder: (context, ref, _) {
+            final summaryState = ref.watch(chatSummaryProvider);
+            return summaryState.maybeWhen(
+              loading:
+                  () => const LinearProgressIndicator(
+                    minHeight: 2,
+                    borderRadius: BorderRadius.zero,
+                  ),
+              orElse: () => const SizedBox.shrink(),
+            );
+          },
+        ),
+        Expanded(
+          child: chats.when(
+            data:
+                (items) => RefreshIndicator(
+                  onRefresh:
+                      () => Future.sync(() {
+                        ref.invalidate(chatroomsJoinedProvider);
+                      }),
+                  child: ListView.builder(
+                    padding: getTabbedPadding(
+                      context,
+                      bottom: callState.isConnected ? 96 : null,
+                    ),
+                    itemCount:
+                        items
+                            .where(
+                              (item) =>
+                                  selectedTab.value == 0 ||
+                                  (selectedTab.value == 1 && item.type == 1) ||
+                                  (selectedTab.value == 2 && item.type != 1),
+                            )
+                            .length,
+                    itemBuilder: (context, index) {
+                      final filteredItems =
+                          items
+                              .where(
+                                (item) =>
+                                    selectedTab.value == 0 ||
+                                    (selectedTab.value == 1 &&
+                                        item.type == 1) ||
+                                    (selectedTab.value == 2 && item.type != 1),
+                              )
+                              .toList();
+                      final item = filteredItems[index];
+                      return ChatRoomListTile(
+                        room: item,
+                        isDirect: item.type == 1,
+                        onTap: () {
+                          context.pushNamed(
+                            'chatRoom',
+                            pathParameters: {'id': item.id},
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error:
+                (error, stack) => ResponseErrorWidget(
+                  error: error,
+                  onRetry: () {
+                    ref.invalidate(chatroomsJoinedProvider);
+                  },
+                ),
+          ),
+        ),
+      ],
+    );
+
+    return isFloating ? Card(child: bodyWidget) : bodyWidget;
+  }
+}
+
 class ChatShellScreen extends HookConsumerWidget {
   final Widget child;
   const ChatShellScreen({super.key, required this.child});
@@ -191,9 +287,23 @@ class ChatShellScreen extends HookConsumerWidget {
         isRoot: true,
         child: Row(
           children: [
-            Flexible(flex: 2, child: ChatListScreen(isAside: true)),
-            const VerticalDivider(width: 1),
-            Flexible(flex: 4, child: child),
+            Flexible(
+              flex: 2,
+              child: ChatListScreen(
+                isAside: true,
+                isFloating: true,
+              ).padding(left: 16, vertical: 16),
+            ),
+            const Gap(8),
+            Flexible(
+              flex: 4,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(8),
+                ),
+                child: child,
+              ).padding(top: 16),
+            ),
           ],
         ),
       );
@@ -205,23 +315,22 @@ class ChatShellScreen extends HookConsumerWidget {
 
 class ChatListScreen extends HookConsumerWidget {
   final bool isAside;
-  const ChatListScreen({super.key, this.isAside = false});
+  final bool isFloating;
+  const ChatListScreen({
+    super.key,
+    this.isAside = false,
+    this.isFloating = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
-    if (isWide && !isAside) {
-      return const EmptyPageHolder();
-    }
 
-    final chats = ref.watch(chatroomsJoinedProvider);
     final chatInvites = ref.watch(chatroomInvitesProvider);
     final tabController = useTabController(initialLength: 3);
     final selectedTab = useState(
       0,
     ); // 0 for All, 1 for Direct Messages, 2 for Group Chats
-
-    final callState = ref.watch(callNotifierProvider);
 
     useEffect(() {
       tabController.addListener(() {
@@ -248,6 +357,76 @@ class ChatListScreen extends HookConsumerWidget {
       } catch (err) {
         showErrorAlert(err);
       }
+    }
+
+    if (isAside) {
+      return Card(
+        margin: EdgeInsets.zero,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TabBar(
+                      dividerColor: Colors.transparent,
+                      controller: tabController,
+                      tabAlignment: TabAlignment.start,
+                      isScrollable: true,
+                      tabs: [
+                        const Tab(icon: Icon(Symbols.chat)),
+                        const Tab(icon: Icon(Symbols.person)),
+                        const Tab(icon: Icon(Symbols.group)),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      icon: Badge(
+                        label: Text(
+                          chatInvites.when(
+                            data: (invites) => invites.length.toString(),
+                            error: (_, _) => '0',
+                            loading: () => '0',
+                          ),
+                        ),
+                        isLabelVisible: chatInvites.when(
+                          data: (invites) => invites.isNotEmpty,
+                          error: (_, _) => false,
+                          loading: () => false,
+                        ),
+                        child: const Icon(Symbols.email),
+                      ),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          useRootNavigator: true,
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (context) => const _ChatInvitesSheet(),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ).padding(horizontal: 8),
+              const Divider(height: 1),
+              Expanded(
+                child: ChatListBodyWidget(
+                  isFloating: false,
+                  tabController: tabController,
+                  selectedTab: selectedTab,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (isWide && !isAside) {
+      return const EmptyPageHolder();
     }
 
     return AppScaffold(
@@ -353,81 +532,10 @@ class ChatListScreen extends HookConsumerWidget {
         child: const Icon(Symbols.add),
       ),
       floatingActionButtonLocation: TabbedFabLocation(context),
-      body: Column(
-        children: [
-          Consumer(
-            builder: (context, ref, _) {
-              final summaryState = ref.watch(chatSummaryProvider);
-              return summaryState.maybeWhen(
-                loading:
-                    () => const LinearProgressIndicator(
-                      minHeight: 2,
-                      borderRadius: BorderRadius.zero,
-                    ),
-                orElse: () => const SizedBox.shrink(),
-              );
-            },
-          ),
-          Expanded(
-            child: chats.when(
-              data:
-                  (items) => RefreshIndicator(
-                    onRefresh:
-                        () => Future.sync(() {
-                          ref.invalidate(chatroomsJoinedProvider);
-                        }),
-                    child: ListView.builder(
-                      padding: getTabbedPadding(
-                        context,
-                        bottom: callState.isConnected ? 96 : null,
-                      ),
-                      itemCount:
-                          items
-                              .where(
-                                (item) =>
-                                    selectedTab.value == 0 ||
-                                    (selectedTab.value == 1 &&
-                                        item.type == 1) ||
-                                    (selectedTab.value == 2 && item.type != 1),
-                              )
-                              .length,
-                      itemBuilder: (context, index) {
-                        final filteredItems =
-                            items
-                                .where(
-                                  (item) =>
-                                      selectedTab.value == 0 ||
-                                      (selectedTab.value == 1 &&
-                                          item.type == 1) ||
-                                      (selectedTab.value == 2 &&
-                                          item.type != 1),
-                                )
-                                .toList();
-                        final item = filteredItems[index];
-                        return ChatRoomListTile(
-                          room: item,
-                          isDirect: item.type == 1,
-                          onTap: () {
-                            context.pushNamed(
-                              'chatRoom',
-                              pathParameters: {'id': item.id},
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error:
-                  (error, stack) => ResponseErrorWidget(
-                    error: error,
-                    onRetry: () {
-                      ref.invalidate(chatroomsJoinedProvider);
-                    },
-                  ),
-            ),
-          ),
-        ],
+      body: ChatListBodyWidget(
+        isFloating: false,
+        tabController: tabController,
+        selectedTab: selectedTab,
       ),
     );
   }

@@ -402,7 +402,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           listController: listController,
           padding: EdgeInsets.only(
             top: 16,
-            bottom: 88 + MediaQuery.of(context).padding.bottom,
+            bottom: 80 + MediaQuery.of(context).padding.bottom,
           ),
           controller: scrollController,
           reverse: true, // Show newest messages at the bottom

@@ -40,6 +40,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _hasMore = true;
   bool _isSyncing = false;
   bool _isJumping = false;
+  DateTime? _lastPauseTime;
 
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
@@ -68,12 +69,28 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (identity != null) {
       ref.listen(appLifecycleStateProvider, (_, next) {
         next.whenData((state) {
-          if (state == AppLifecycleState.resumed) {
+          if (state == AppLifecycleState.paused) {
+            _lastPauseTime = DateTime.now();
             developer.log(
-              'App resumed, syncing messages',
+              'App paused, recording time',
               name: 'MessagesNotifier',
             );
-            syncMessages();
+          } else if (state == AppLifecycleState.resumed) {
+            if (_lastPauseTime != null) {
+              final diff = DateTime.now().difference(_lastPauseTime!);
+              if (diff > const Duration(minutes: 1)) {
+                developer.log(
+                  'App resumed after >1 min, syncing messages',
+                  name: 'MessagesNotifier',
+                );
+                syncMessages();
+              } else {
+                developer.log(
+                  'App resumed within 1 min, skipping sync',
+                  name: 'MessagesNotifier',
+                );
+              }
+            }
           }
         });
       });

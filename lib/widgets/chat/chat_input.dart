@@ -9,6 +9,7 @@ import "package:image_picker/image_picker.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
 import "package:island/pods/config.dart";
+import "package:island/services/responsive.dart";
 import "package:island/widgets/content/attachment_preview.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:pasteboard/pasteboard.dart";
@@ -117,8 +118,16 @@ class ChatInput extends HookConsumerWidget {
       return KeyEventResult.ignored;
     };
 
+    final double leftMargin = isWideScreen(context) ? 8 : 16;
+    final double rightMargin = isWideScreen(context) ? leftMargin + 8 : 16;
+    const double bottomMargin = 16;
+
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(
+        left: leftMargin,
+        right: rightMargin,
+        bottom: bottomMargin,
+      ),
       child: Material(
         elevation: 2,
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -131,10 +140,7 @@ class ChatInput extends HookConsumerWidget {
                 duration: const Duration(milliseconds: 150),
                 switchInCurve: Curves.fastEaseInToSlowEaseOut,
                 switchOutCurve: Curves.fastEaseInToSlowEaseOut,
-                transitionBuilder: (
-                  Widget child,
-                  Animation<double> animation,
-                ) {
+                transitionBuilder: (Widget child, Animation<double> animation) {
                   return SlideTransition(
                     position: Tween<Offset>(
                       begin: const Offset(0, -0.3),
@@ -148,10 +154,7 @@ class ChatInput extends HookConsumerWidget {
                     child: SizeTransition(
                       sizeFactor: animation,
                       axisAlignment: -1.0,
-                      child: FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      ),
+                      child: FadeTransition(opacity: animation, child: child),
                     ),
                   );
                 },
@@ -177,18 +180,11 @@ class ChatInput extends HookConsumerWidget {
                                     chatSubscribe.length,
                                     args: [
                                       chatSubscribe
-                                          .map(
-                                            (x) =>
-                                                x.nick ??
-                                                x.account.nick,
-                                          )
+                                          .map((x) => x.nick ?? x.account.nick)
                                           .join(', '),
                                     ],
                                   ),
-                                  style:
-                                      Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
+                                  style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ),
                             ],
@@ -224,7 +220,7 @@ class ChatInput extends HookConsumerWidget {
                     },
                     separatorBuilder: (_, _) => const Gap(8),
                   ),
-                ).padding(top: 12),
+                ).padding(vertical: 12),
               if (messageReplyingTo != null ||
                   messageForwardingTo != null ||
                   messageEditingTo != null)
