@@ -233,8 +233,208 @@ class UpdateService {
     return 'https://fs.solsynth.dev/d/official/solian/build-output-windows-installer.zip';
   }
 
+  /// Performs automatic Windows update: download, extract, and install
+  Future<void> performAutomaticWindowsUpdate(
+    BuildContext context,
+    String url,
+  ) async {
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _WindowsUpdateDialog(
+        updateUrl: url,
+        onComplete: () {
+          // Close the update sheet
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
+  /// Fetch the latest release info from GitHub.
+  /// Public so other screens (e.g., About) can manually trigger update checks.
+  Future<GithubReleaseInfo?> fetchLatestRelease() async {
+    final apiEndpoint =
+        useProxy
+            ? '$_proxyBaseUrl${Uri.encodeComponent(_releasesLatestApi)}'
+            : _releasesLatestApi;
+
+    log(
+      '[Update] Fetching latest release from GitHub API: $apiEndpoint (Proxy: $useProxy)',
+    );
+    final resp = await _dio.get(apiEndpoint);
+    if (resp.statusCode != 200) {
+      log(
+        '[Update] Failed to fetch latest release. Status code: ${resp.statusCode}',
+      );
+      return null;
+    }
+    final data = resp.data as Map<String, dynamic>;
+    log('[Update] Successfully fetched release data.');
+
+    final tagName = (data['tag_name'] ?? '').toString();
+    final name = (data['name'] ?? tagName).toString();
+    final body = (data['body'] ?? '').toString();
+    final htmlUrl = (data['html_url'] ?? '').toString();
+    final createdAtStr = (data['created_at'] ?? '').toString();
+    final createdAt = DateTime.tryParse(createdAtStr) ?? DateTime.now();
+    final assetsData =
+        (data['assets'] as List<dynamic>?)
+            ?.map((e) => GithubReleaseAsset.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
+    if (tagName.isEmpty || htmlUrl.isEmpty) {
+      log(
+        '[Update] Missing tag_name or html_url in release data. TagName: "$tagName", HtmlUrl: "$htmlUrl"',
+      );
+      return null;
+    }
+
+    log('[Update] Returning GithubReleaseInfo for tag: $tagName');
+    return GithubReleaseInfo(
+      tagName: tagName,
+      name: name,
+      body: body,
+      htmlUrl: htmlUrl,
+      createdAt: createdAt,
+      assets: assetsData,
+    );
+  }
+}
+
+class _WindowsUpdateDialog extends StatefulWidget {
+  const _WindowsUpdateDialog({
+    required this.updateUrl,
+    required this.onComplete,
+  });
+
+  final String updateUrl;
+  final VoidCallback onComplete;
+
+  @override
+  State<_WindowsUpdateDialog> createState() => _WindowsUpdateDialogState();
+}
+
+class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
+  final ValueNotifier<double?> progressNotifier = ValueNotifier<double?>(null);
+  final ValueNotifier<String> messageNotifier = ValueNotifier<String>('Downloading installer...');
+
+  @override
+  void initState() {
+    super.initState();
+    _startUpdate();
+  }
+
+  Future<void> _startUpdate() async {
+    try {
+      // Step 1: Download
+      final zipPath = await _downloadWindowsInstaller(
+        widget.updateUrl,
+        onProgress: (received, total) {
+          if (total == -1) {
+            progressNotifier.value = null;
+          } else {
+            progressNotifier.value = received / total;
+          }
+        },
+      );
+      if (zipPath == null) {
+        _showError('Failed to download installer');
+        return;
+      }
+
+      // Step 2: Extract
+      messageNotifier.value = 'Extracting installer...';
+      progressNotifier.value = null; // Indeterminate for extraction
+
+      final extractDir = await _extractWindowsInstaller(zipPath);
+      if (extractDir == null) {
+        _showError('Failed to extract installer');
+        return;
+      }
+
+      // Step 3: Run installer
+      messageNotifier.value = 'Running installer...';
+
+      final success = await _runWindowsInstaller(extractDir);
+      if (!mounted) return;
+
+      if (success) {
+        messageNotifier.value = 'Update Complete';
+        progressNotifier.value = 1.0;
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          Navigator.of(context).pop();
+          widget.onComplete();
+        }
+      } else {
+        _showError('Failed to run installer');
+      }
+
+      // Cleanup
+      try {
+        await File(zipPath).delete();
+        await Directory(extractDir).delete(recursive: true);
+      } catch (e) {
+        log('[Update] Error cleaning up temporary files: $e');
+      }
+    } catch (e) {
+      _showError('Update failed: $e');
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Failed'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Installing Update'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ValueListenableBuilder<double?>(
+            valueListenable: progressNotifier,
+            builder: (context, progress, child) {
+              return LinearProgressIndicator(value: progress);
+            },
+          ),
+          const SizedBox(height: 16),
+          ValueListenableBuilder<String>(
+            valueListenable: messageNotifier,
+            builder: (context, message, child) {
+              return Text(message);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Downloads the Windows installer ZIP file
-  Future<String?> _downloadWindowsInstaller(String url) async {
+  Future<String?> _downloadWindowsInstaller(
+    String url, {
+    void Function(int received, int total)? onProgress,
+  }) async {
     try {
       log('[Update] Starting Windows installer download from: $url');
 
@@ -243,7 +443,7 @@ class UpdateService {
           'solian-installer-${DateTime.now().millisecondsSinceEpoch}.zip';
       final filePath = path.join(tempDir.path, fileName);
 
-      final response = await _dio.download(
+      final response = await Dio().download(
         url,
         filePath,
         onReceiveProgress: (received, total) {
@@ -252,6 +452,7 @@ class UpdateService {
               '[Update] Download progress: ${(received / total * 100).toStringAsFixed(1)}%',
             );
           }
+          onProgress?.call(received, total);
         },
       );
 
@@ -311,12 +512,19 @@ class UpdateService {
     try {
       log('[Update] Running Windows installer from: $extractDir');
 
-      final setupExePath = path.join(extractDir, 'setup.exe');
+      final dir = Directory(extractDir);
+      final exeFiles = dir
+          .listSync()
+          .where((f) => f is File && f.path.endsWith('.exe'))
+          .toList();
 
-      if (!await File(setupExePath).exists()) {
-        log('[Update] setup.exe not found in extracted directory');
+      if (exeFiles.isEmpty) {
+        log('[Update] No .exe file found in extracted directory');
         return false;
       }
+
+      final setupExePath = exeFiles.first.path;
+      log('[Update] Found installer executable: $setupExePath');
 
       final shell = Shell();
       final results = await shell.run(setupExePath);
@@ -337,202 +545,6 @@ class UpdateService {
       log('[Update] Error running Windows installer: $e');
       return false;
     }
-  }
-
-  /// Performs automatic Windows update: download, extract, and install
-  Future<void> _performAutomaticWindowsUpdate(
-    BuildContext context,
-    String url,
-  ) async {
-    if (!context.mounted) return;
-
-    // Show progress dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => const AlertDialog(
-            title: Text('Installing Update'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Downloading installer...'),
-              ],
-            ),
-          ),
-    );
-
-    try {
-      // Step 1: Download
-      if (!context.mounted) return;
-      Navigator.of(context).pop(); // Close progress dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder:
-            (context) => const AlertDialog(
-              title: Text('Installing Update'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Extracting installer...'),
-                ],
-              ),
-            ),
-      );
-
-      final zipPath = await _downloadWindowsInstaller(url);
-      if (zipPath == null) {
-        if (!context.mounted) return;
-        Navigator.of(context).pop();
-        _showErrorDialog(context, 'Failed to download installer');
-        return;
-      }
-
-      // Step 2: Extract
-      if (!context.mounted) return;
-      Navigator.of(context).pop(); // Close progress dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder:
-            (context) => const AlertDialog(
-              title: Text('Installing Update'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Running installer...'),
-                ],
-              ),
-            ),
-      );
-
-      final extractDir = await _extractWindowsInstaller(zipPath);
-      if (extractDir == null) {
-        if (!context.mounted) return;
-        Navigator.of(context).pop();
-        _showErrorDialog(context, 'Failed to extract installer');
-        return;
-      }
-
-      // Step 3: Run installer
-      if (!context.mounted) return;
-      Navigator.of(context).pop(); // Close progress dialog
-
-      final success = await _runWindowsInstaller(extractDir);
-      if (!context.mounted) return;
-
-      if (success) {
-        showDialog(
-          context: context,
-          builder:
-              (context) => AlertDialog(
-                title: const Text('Update Complete'),
-                content: const Text(
-                  'The application has been updated successfully. Please restart the application.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      // Close the update sheet
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('OK'),
-                  ),
-                ],
-              ),
-        );
-      } else {
-        _showErrorDialog(context, 'Failed to run installer');
-      }
-
-      // Cleanup
-      try {
-        await File(zipPath).delete();
-        await Directory(extractDir).delete(recursive: true);
-      } catch (e) {
-        log('[Update] Error cleaning up temporary files: $e');
-      }
-    } catch (e) {
-      if (!context.mounted) return;
-      Navigator.of(context).pop(); // Close any open dialogs
-      _showErrorDialog(context, 'Update failed: $e');
-    }
-  }
-
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Update Failed'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  /// Fetch the latest release info from GitHub.
-  /// Public so other screens (e.g., About) can manually trigger update checks.
-  Future<GithubReleaseInfo?> fetchLatestRelease() async {
-    final apiEndpoint =
-        useProxy
-            ? '$_proxyBaseUrl${Uri.encodeComponent(_releasesLatestApi)}'
-            : _releasesLatestApi;
-
-    log(
-      '[Update] Fetching latest release from GitHub API: $apiEndpoint (Proxy: $useProxy)',
-    );
-    final resp = await _dio.get(apiEndpoint);
-    if (resp.statusCode != 200) {
-      log(
-        '[Update] Failed to fetch latest release. Status code: ${resp.statusCode}',
-      );
-      return null;
-    }
-    final data = resp.data as Map<String, dynamic>;
-    log('[Update] Successfully fetched release data.');
-
-    final tagName = (data['tag_name'] ?? '').toString();
-    final name = (data['name'] ?? tagName).toString();
-    final body = (data['body'] ?? '').toString();
-    final htmlUrl = (data['html_url'] ?? '').toString();
-    final createdAtStr = (data['created_at'] ?? '').toString();
-    final createdAt = DateTime.tryParse(createdAtStr) ?? DateTime.now();
-    final assetsData =
-        (data['assets'] as List<dynamic>?)
-            ?.map((e) => GithubReleaseAsset.fromJson(e as Map<String, dynamic>))
-            .toList() ??
-        [];
-
-    if (tagName.isEmpty || htmlUrl.isEmpty) {
-      log(
-        '[Update] Missing tag_name or html_url in release data. TagName: "$tagName", HtmlUrl: "$htmlUrl"',
-      );
-      return null;
-    }
-
-    log('[Update] Returning GithubReleaseInfo for tag: $tagName');
-    return GithubReleaseInfo(
-      tagName: tagName,
-      name: name,
-      body: body,
-      htmlUrl: htmlUrl,
-      createdAt: createdAt,
-      assets: assetsData,
-    );
   }
 }
 
@@ -655,7 +667,7 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                             final updateService = UpdateService(
                               useProxy: widget.useProxy,
                             );
-                            updateService._performAutomaticWindowsUpdate(
+                            updateService.performAutomaticWindowsUpdate(
                               context,
                               widget.windowsUpdateUrl!,
                             );
