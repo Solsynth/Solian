@@ -6,7 +6,7 @@ import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/database/message.dart";
 import "package:island/models/chat.dart";
-import "package:island/pods/messages_notifier.dart";
+import "package:island/pods/chat/messages_notifier.dart";
 import "package:island/pods/network.dart";
 import "package:island/services/responsive.dart";
 import "package:island/widgets/alert.dart";

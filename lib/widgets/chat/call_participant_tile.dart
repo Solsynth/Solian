@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pods/call.dart';
+import 'package:island/pods/chat/call.dart';
 import 'package:island/screens/account/profile.dart';
 import 'package:island/widgets/chat/call_participant_card.dart';
 import 'package:island/widgets/content/cloud_files.dart';

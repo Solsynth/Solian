@@ -1,5 +1,4 @@
 import "dart:async";
-import "dart:convert";
 import "package:easy_localization/easy_localization.dart";
 import "package:file_picker/file_picker.dart";
 import "package:flutter/material.dart";
@@ -10,10 +9,11 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/database/message.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
+import "package:island/pods/chat/chat_subscribe.dart";
 import "package:island/pods/config.dart";
-import "package:island/pods/messages_notifier.dart";
+import "package:island/pods/chat/messages_notifier.dart";
 import "package:island/pods/network.dart";
-import "package:island/pods/websocket.dart";
+import "package:island/pods/chat/chat_online_count.dart";
 import "package:island/services/file.dart";
 import "package:island/screens/chat/chat.dart";
 import "package:island/services/responsive.dart";
@@ -37,33 +37,6 @@ final isSyncingProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 final flashingMessagesProvider = StateProvider<Set<String>>((ref) => {});
 
-final appLifecycleStateProvider = StreamProvider<AppLifecycleState>((ref) {
-  final controller = StreamController<AppLifecycleState>();
-
-  final observer = _AppLifecycleObserver((state) {
-    if (controller.isClosed) return;
-    controller.add(state);
-  });
-  WidgetsBinding.instance.addObserver(observer);
-
-  ref.onDispose(() {
-    WidgetsBinding.instance.removeObserver(observer);
-    controller.close();
-  });
-
-  return controller.stream;
-});
-
-class _AppLifecycleObserver extends WidgetsBindingObserver {
-  final ValueChanged<AppLifecycleState> onChange;
-  _AppLifecycleObserver(this.onChange);
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    onChange(state);
-  }
-}
-
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;
   const ChatRoomScreen({super.key, required this.id});
@@ -73,6 +46,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final chatRoom = ref.watch(chatroomProvider(id));
     final chatIdentity = ref.watch(chatroomIdentityProvider(id));
     final isSyncing = ref.watch(isSyncingProvider);
+    final onlineCount = ref.watch(chatOnlineCountNotifierProvider(id));
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
@@ -157,7 +131,10 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final messages = ref.watch(messagesNotifierProvider(id));
     final messagesNotifier = ref.read(messagesNotifierProvider(id).notifier);
-    final ws = ref.watch(websocketProvider);
+    final chatSubscribe = ref.watch(chatSubscribeNotifierProvider(id));
+    final chatSubscribeNotifier = ref.read(
+      chatSubscribeNotifierProvider(id).notifier,
+    );
 
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
@@ -167,65 +144,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messageEditingTo = useState<SnChatMessage?>(null);
     final attachments = useState<List<UniversalFile>>([]);
     final attachmentProgress = useState<Map<String, Map<int, double>>>({});
-
-    // Function to send read receipt
-    void sendReadReceipt() async {
-      // Send websocket packet
-      final wsState = ref.read(websocketStateProvider.notifier);
-      wsState.sendMessage(
-        jsonEncode(
-          WebSocketPacket(
-            type: 'messages.read',
-            data: {'chat_room_id': id},
-            endpoint: 'DysonNetwork.Sphere',
-          ),
-        ),
-      );
-    }
-
-    // Members who are typing
-    final typingStatuses = useState<List<SnChatMember>>([]);
-    final typingDebouncer = useState<Timer?>(null);
-
-    void sendTypingStatus() {
-      // Don't send if we're already in a cooldown period
-      if (typingDebouncer.value != null) return;
-
-      // Send typing status immediately
-      final wsState = ref.read(websocketStateProvider.notifier);
-      wsState.sendMessage(
-        jsonEncode(
-          WebSocketPacket(
-            type: 'messages.typing',
-            data: {'chat_room_id': id},
-            endpoint: 'DysonNetwork.Sphere',
-          ),
-        ),
-      );
-
-      typingDebouncer.value = Timer(const Duration(milliseconds: 850), () {
-        typingDebouncer.value = null;
-      });
-    }
-
-    // Add timer to remove typing status after inactivity
-    useEffect(() {
-      final removeTypingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-        if (typingStatuses.value.isNotEmpty) {
-          // Remove typing statuses older than 5 seconds
-          final now = DateTime.now();
-          typingStatuses.value =
-              typingStatuses.value.where((member) {
-                final lastTyped =
-                    member.lastTyped ??
-                    DateTime.now().subtract(const Duration(milliseconds: 1350));
-                return now.difference(lastTyped).inSeconds < 5;
-              }).toList();
-        }
-      });
-
-      return () => removeTypingTimer.cancel();
-    }, []);
 
     var isLoading = false;
 
@@ -245,79 +163,6 @@ class ChatRoomScreen extends HookConsumerWidget {
       scrollController.addListener(onScroll);
       return () => scrollController.removeListener(onScroll);
     }, [scrollController]);
-
-    // Add websocket listener for new messages
-    useEffect(() {
-      void onMessage(WebSocketPacket pkt) {
-        if (!pkt.type.startsWith('messages')) return;
-        if (['messages.read'].contains(pkt.type)) return;
-
-        if (pkt.type == 'messages.typing' && pkt.data?['sender'] != null) {
-          if (pkt.data?['room_id'] != chatRoom.value?.id) return;
-          if (pkt.data?['sender_id'] == chatIdentity.value?.id) return;
-
-          final sender = SnChatMember.fromJson(
-            pkt.data?['sender'],
-          ).copyWith(lastTyped: DateTime.now());
-
-          // Check if the sender is already in the typing list
-          final existingIndex = typingStatuses.value.indexWhere(
-            (member) => member.id == sender.id,
-          );
-          if (existingIndex >= 0) {
-            // Update the existing entry with new timestamp
-            final updatedList = [...typingStatuses.value];
-            updatedList[existingIndex] = sender;
-            typingStatuses.value = updatedList;
-          } else {
-            // Add new typing status
-            typingStatuses.value = [...typingStatuses.value, sender];
-          }
-          return;
-        }
-
-        final message = SnChatMessage.fromJson(pkt.data!);
-        if (message.chatRoomId != chatRoom.value?.id) return;
-        switch (pkt.type) {
-          case 'messages.new':
-          case 'messages.update':
-          case 'messages.delete':
-            if (message.type.startsWith('call')) {
-              // Handle the ongoing call.
-              ref.invalidate(ongoingCallProvider(message.chatRoomId));
-            }
-            messagesNotifier.receiveMessage(message);
-            // Send read receipt for new message
-            sendReadReceipt();
-        }
-      }
-
-      sendReadReceipt();
-      final subscription = ws.dataStream.listen(onMessage);
-      return () => subscription.cancel();
-    }, [ws, chatRoom]);
-
-    useEffect(() {
-      final wsState = ref.read(websocketStateProvider.notifier);
-      wsState.sendMessage(
-        jsonEncode(
-          WebSocketPacket(
-            type: 'messages.subscribe',
-            data: {'chat_room_id': id},
-          ),
-        ),
-      );
-      return () {
-        wsState.sendMessage(
-          jsonEncode(
-            WebSocketPacket(
-              type: 'messages.unsubscribe',
-              data: {'chat_room_id': id},
-            ),
-          ),
-        );
-      };
-    }, [id]);
 
     Future<void> pickPhotoMedia() async {
       final result = await FilePicker.platform.pickFiles(
@@ -352,21 +197,19 @@ class ChatRoomScreen extends HookConsumerWidget {
     void sendMessage() {
       if (messageController.text.trim().isNotEmpty ||
           attachments.value.isNotEmpty) {
-        messagesNotifier
-            .sendMessage(
-              messageController.text.trim(),
-              attachments.value,
-              editingTo: messageEditingTo.value,
-              forwardingTo: messageForwardingTo.value,
-              replyingTo: messageReplyingTo.value,
-              onProgress: (messageId, progress) {
-                attachmentProgress.value = {
-                  ...attachmentProgress.value,
-                  messageId: progress,
-                };
-              },
-            )
-            .then((_) => sendReadReceipt());
+        messagesNotifier.sendMessage(
+          messageController.text.trim(),
+          attachments.value,
+          editingTo: messageEditingTo.value,
+          forwardingTo: messageForwardingTo.value,
+          replyingTo: messageReplyingTo.value,
+          onProgress: (messageId, progress) {
+            attachmentProgress.value = {
+              ...attachmentProgress.value,
+              messageId: progress,
+            };
+          },
+        );
         messageController.clear();
         messageEditingTo.value = null;
         messageReplyingTo.value = null;
@@ -379,7 +222,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     useEffect(() {
       void onTextChange() {
         if (messageController.text.isNotEmpty) {
-          sendTypingStatus();
+          chatSubscribeNotifier.sendTypingStatus();
         }
       }
 
@@ -714,15 +557,33 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           const Gap(8),
         ],
-        bottom:
-            isSyncing
-                ? const PreferredSize(
-                  preferredSize: Size.fromHeight(2),
-                  child: LinearProgressIndicator(
+        bottom: () {
+          final hasProgress = isSyncing;
+          final hasOnlineCount = onlineCount.hasValue;
+          if (!hasProgress && !hasOnlineCount) return null;
+          return PreferredSize(
+            preferredSize: Size.fromHeight(
+              (hasProgress ? 2 : 0) + (hasOnlineCount ? 24 : 0),
+            ),
+            child: Column(
+              children: [
+                if (hasProgress)
+                  const LinearProgressIndicator(
                     borderRadius: BorderRadius.zero,
                   ),
-                )
-                : null,
+                if (hasOnlineCount)
+                  Container(
+                    height: 24,
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${(onlineCount as AsyncData).value} online',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }(),
       ),
       body: Stack(
         children: [
@@ -781,7 +642,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                           );
                         },
                         child:
-                            typingStatuses.value.isNotEmpty
+                            chatSubscribe.isNotEmpty
                                 ? Container(
                                   key: const ValueKey('typing-indicator'),
                                   width: double.infinity,
@@ -799,9 +660,9 @@ class ChatRoomScreen extends HookConsumerWidget {
                                       Expanded(
                                         child: Text(
                                           'typingHint'.plural(
-                                            typingStatuses.value.length,
+                                            chatSubscribe.length,
                                             args: [
-                                              typingStatuses.value
+                                              chatSubscribe
                                                   .map(
                                                     (x) =>
                                                         x.nick ??

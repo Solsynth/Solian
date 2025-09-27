@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pods/call.dart';
+import 'package:island/pods/chat/call.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/chat/call_participant_tile.dart';

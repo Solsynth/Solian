@@ -5,7 +5,7 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pods/call.dart';
+import 'package:island/pods/chat/call.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/call_button.dart';
 import 'package:island/widgets/chat/call_overlay.dart';

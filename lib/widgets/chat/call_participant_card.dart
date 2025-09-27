@@ -5,7 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/pods/call.dart';
+import 'package:island/pods/chat/call.dart';
 import 'package:island/widgets/account/account_nameplate.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';

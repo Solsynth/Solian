@@ -17,7 +17,7 @@ import "package:island/widgets/chat/message_item.dart";
 import "package:island/widgets/response.dart";
 import "package:island/pods/network.dart";
 import "package:island/services/responsive.dart";
-import "package:island/pods/messages_notifier.dart";
+import "package:island/pods/chat/messages_notifier.dart";
 
 class PublicRoomPreview extends HookConsumerWidget {
   final String id;
