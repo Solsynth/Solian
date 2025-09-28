@@ -102,72 +102,75 @@ class PostFeaturedList extends HookConsumerWidget {
         margin: EdgeInsets.zero,
         child: Column(
           children: [
-            Row(
-              spacing: 8,
-              children: [
-                const Icon(Symbols.highlight),
-                const Text('highlightPost').tr(),
-                Spacer(),
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints(),
-                  onPressed: () {
-                    pageViewController.animateToPage(
-                      pageViewCurrent.value - 1,
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  icon: const Icon(Symbols.arrow_left),
-                ),
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints(),
-                  onPressed: () {
-                    pageViewController.animateToPage(
-                      pageViewCurrent.value + 1,
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  icon: const Icon(Symbols.arrow_right),
-                ),
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints(),
-                  onPressed: () {
-                    isCollapsed.value = !isCollapsed.value;
-                    debugPrint(
-                      'PostFeaturedList: Manual toggle. isCollapsed set to ${isCollapsed.value}',
-                    );
-                    if (isCollapsed.value &&
-                        featuredPostsAsync.hasValue &&
-                        featuredPostsAsync.value!.isNotEmpty) {
-                      prefs.setString(
-                        kFeaturedPostsCollapsedId,
-                        featuredPostsAsync.value!.first.id,
+            SizedBox(
+              height: 48,
+              child: Row(
+                spacing: 8,
+                children: [
+                  const Icon(Symbols.highlight),
+                  const Text('highlightPost').tr(),
+                  Spacer(),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      pageViewController.animateToPage(
+                        pageViewCurrent.value - 1,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
                       );
-                      debugPrint(
-                        'PostFeaturedList: Stored collapsed ID: ${featuredPostsAsync.value!.first.id}',
-                      );
-                    } else {
-                      prefs.remove(kFeaturedPostsCollapsedId);
-                      debugPrint(
-                        'PostFeaturedList: Removed stored collapsed ID.',
-                      );
-                    }
-                  },
-                  icon: Icon(
-                    isCollapsed.value
-                        ? Symbols.expand_more
-                        : Symbols.expand_less,
+                    },
+                    icon: const Icon(Symbols.arrow_left),
                   ),
-                ),
-              ],
-            ).padding(horizontal: 16, vertical: 8),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      pageViewController.animateToPage(
+                        pageViewCurrent.value + 1,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    icon: const Icon(Symbols.arrow_right),
+                  ),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      isCollapsed.value = !isCollapsed.value;
+                      debugPrint(
+                        'PostFeaturedList: Manual toggle. isCollapsed set to ${isCollapsed.value}',
+                      );
+                      if (isCollapsed.value &&
+                          featuredPostsAsync.hasValue &&
+                          featuredPostsAsync.value!.isNotEmpty) {
+                        prefs.setString(
+                          kFeaturedPostsCollapsedId,
+                          featuredPostsAsync.value!.first.id,
+                        );
+                        debugPrint(
+                          'PostFeaturedList: Stored collapsed ID: ${featuredPostsAsync.value!.first.id}',
+                        );
+                      } else {
+                        prefs.remove(kFeaturedPostsCollapsedId);
+                        debugPrint(
+                          'PostFeaturedList: Removed stored collapsed ID.',
+                        );
+                      }
+                    },
+                    icon: Icon(
+                      isCollapsed.value
+                          ? Symbols.expand_more
+                          : Symbols.expand_less,
+                    ),
+                  ),
+                ],
+              ).padding(horizontal: 16, vertical: 8),
+            ),
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,

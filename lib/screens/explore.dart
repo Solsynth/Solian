@@ -20,6 +20,7 @@ import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/compose_card.dart';
+import 'package:island/widgets/post/compose_dialog.dart';
 import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -43,6 +44,7 @@ Widget notificationIndicatorWidget(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
     ),
+    minTileHeight: 48,
     leading: const Icon(Symbols.notifications),
     title: Row(
       children: [
@@ -109,7 +111,7 @@ class ExploreScreen extends HookConsumerWidget {
     final isWide = isWideScreen(context);
 
     final filterBar = Card(
-      margin: EdgeInsets.zero,
+      margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       child: Row(
         children: [
           Expanded(
@@ -122,28 +124,19 @@ class ExploreScreen extends HookConsumerWidget {
                 Tab(
                   icon: Tooltip(
                     message: 'explore'.tr(),
-                    child: Icon(
-                      Symbols.explore,
-                      color: Theme.of(context).appBarTheme.foregroundColor!,
-                    ),
+                    child: Icon(Symbols.explore),
                   ),
                 ),
                 Tab(
                   icon: Tooltip(
                     message: 'exploreFilterSubscriptions'.tr(),
-                    child: Icon(
-                      Symbols.subscriptions,
-                      color: Theme.of(context).appBarTheme.foregroundColor!,
-                    ),
+                    child: Icon(Symbols.subscriptions),
                   ),
                 ),
                 Tab(
                   icon: Tooltip(
                     message: 'exploreFilterFriends'.tr(),
-                    child: Icon(
-                      Symbols.people,
-                      color: Theme.of(context).appBarTheme.foregroundColor!,
-                    ),
+                    child: Icon(Symbols.people),
                   ),
                 ),
               ],
@@ -153,10 +146,7 @@ class ExploreScreen extends HookConsumerWidget {
             onPressed: () {
               context.pushNamed('articles');
             },
-            icon: Icon(
-              Symbols.auto_stories,
-              color: Theme.of(context).appBarTheme.foregroundColor!,
-            ),
+            icon: Icon(Symbols.auto_stories),
             tooltip: 'webArticlesStand'.tr(),
           ),
           PopupMenuButton(
@@ -211,10 +201,7 @@ class ExploreScreen extends HookConsumerWidget {
                     },
                   ),
                 ],
-            icon: Icon(
-              Symbols.action_key,
-              color: Theme.of(context).appBarTheme.foregroundColor!,
-            ),
+            icon: Icon(Symbols.action_key),
             tooltip: 'search'.tr(),
           ),
         ],
@@ -227,23 +214,19 @@ class ExploreScreen extends HookConsumerWidget {
           isWide
               ? null
               : InkWell(
-                onLongPress: () {
-                  context
-                      .pushNamed('postCompose', queryParameters: {'type': '1'})
-                      .then((value) {
-                        if (value != null) {
-                          activitiesNotifier.forceRefresh();
-                        }
-                      });
+                onLongPress: () async {
+                  final result = await PostComposeDialog.show(context);
+                  if (result != null) {
+                    activitiesNotifier.forceRefresh();
+                  }
                 },
                 child: FloatingActionButton(
                   heroTag: Key("explore-page-fab"),
-                  onPressed: () {
-                    context.pushNamed('postCompose').then((value) {
-                      if (value != null) {
-                        activitiesNotifier.forceRefresh();
-                      }
-                    });
+                  onPressed: () async {
+                    final result = await PostComposeDialog.show(context);
+                    if (result != null) {
+                      activitiesNotifier.forceRefresh();
+                    }
                   },
                   child: const Icon(Symbols.edit),
                 ),

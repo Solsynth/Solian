@@ -155,6 +155,7 @@ class PostComposeCard extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
+        useRootNavigator: true,
         builder: (context) => ComposeSettingsSheet(state: state),
       );
     }
@@ -278,6 +279,7 @@ class PostComposeCard extends HookConsumerWidget {
               final config = await showModalBottomSheet<AttachmentUploadConfig>(
                 context: context,
                 isScrollControlled: true,
+                useRootNavigator: true,
                 builder:
                     (context) => AttachmentUploaderSheet(
                       ref: ref,
@@ -325,6 +327,7 @@ class PostComposeCard extends HookConsumerWidget {
                         await showModalBottomSheet<AttachmentUploadConfig>(
                           context: context,
                           isScrollControlled: true,
+                          useRootNavigator: true,
                           builder:
                               (context) => AttachmentUploaderSheet(
                                 ref: ref,
@@ -370,6 +373,7 @@ class PostComposeCard extends HookConsumerWidget {
           children: [
             // Header with actions
             Container(
+              height: 65,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 border: Border(
@@ -393,7 +397,7 @@ class PostComposeCard extends HookConsumerWidget {
                     tooltip: 'postSettings'.tr(),
                     visualDensity: const VisualDensity(
                       horizontal: -4,
-                      vertical: -4,
+                      vertical: -2,
                     ),
                   ),
                   IconButton(
@@ -418,7 +422,7 @@ class PostComposeCard extends HookConsumerWidget {
                             : 'postPublish'.tr(),
                     visualDensity: const VisualDensity(
                       horizontal: -4,
-                      vertical: -4,
+                      vertical: -2,
                     ),
                   ),
                   if (onCancel != null)
@@ -428,7 +432,7 @@ class PostComposeCard extends HookConsumerWidget {
                       tooltip: 'cancel'.tr(),
                       visualDensity: const VisualDensity(
                         horizontal: -4,
-                        vertical: -4,
+                        vertical: -2,
                       ),
                     ),
                 ],
@@ -473,6 +477,7 @@ class PostComposeCard extends HookConsumerWidget {
                           onTap: () {
                             showModalBottomSheet(
                               isScrollControlled: true,
+                              useRootNavigator: true,
                               context: context,
                               builder: (context) => const PublisherModal(),
                             ).then((value) {
@@ -570,12 +575,19 @@ class PostComposeCard extends HookConsumerWidget {
             ),
 
             // Bottom toolbar
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(8),
-                bottomRight: Radius.circular(8),
+            SizedBox(
+              height: 65,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
+                ),
+                child: ComposeToolbar(
+                  state: state,
+                  originalPost: originalPost,
+                  isCompact: true,
+                ),
               ),
-              child: ComposeToolbar(state: state, originalPost: originalPost),
             ),
           ],
         ),
@@ -721,6 +733,7 @@ class PostComposeCard extends HookConsumerWidget {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
+          useRootNavigator: true,
           backgroundColor: Colors.transparent,
           builder:
               (context) => DraggableScrollableSheet(
