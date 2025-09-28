@@ -24,6 +24,7 @@ import 'package:island/widgets/post/post_shared.dart';
 import 'package:island/widgets/post/embed_view_renderer.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
+import 'package:island/widgets/post/compose_dialog.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
 import 'package:screenshot/screenshot.dart';
@@ -174,14 +175,14 @@ class PostActionableItem extends HookConsumerWidget {
               MenuAction(
                 title: 'edit'.tr(),
                 image: MenuImage.icon(Symbols.edit),
-                callback: () {
-                  context
-                      .pushNamed('postEdit', pathParameters: {'id': item.id})
-                      .then((value) {
-                        if (value != null) {
-                          onRefresh?.call();
-                        }
-                      });
+                callback: () async {
+                  final result = await PostComposeDialog.show(
+                    context,
+                    originalPost: item,
+                  );
+                  if (result != null) {
+                    onRefresh?.call();
+                  }
                 },
               ),
             if (isAuthor)
@@ -221,21 +222,27 @@ class PostActionableItem extends HookConsumerWidget {
             MenuAction(
               title: 'reply'.tr(),
               image: MenuImage.icon(Symbols.reply),
-              callback: () {
-                context.pushNamed(
-                  'postCompose',
-                  extra: PostComposeInitialState(replyingTo: item),
+              callback: () async {
+                final result = await PostComposeDialog.show(
+                  context,
+                  initialState: PostComposeInitialState(replyingTo: item),
                 );
+                if (result != null) {
+                  onRefresh?.call();
+                }
               },
             ),
             MenuAction(
               title: 'forward'.tr(),
               image: MenuImage.icon(Symbols.forward),
-              callback: () {
-                context.pushNamed(
-                  'postCompose',
-                  extra: PostComposeInitialState(forwardingTo: item),
+              callback: () async {
+                final result = await PostComposeDialog.show(
+                  context,
+                  initialState: PostComposeInitialState(forwardingTo: item),
                 );
+                if (result != null) {
+                  onRefresh?.call();
+                }
               },
             ),
             if (isAuthor && item.pinMode == null)
