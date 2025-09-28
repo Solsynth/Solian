@@ -13,12 +13,13 @@ import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/widgets/account/fortune_graph.dart';
+
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/post/compose_card.dart';
 import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -222,29 +223,32 @@ class ExploreScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      floatingActionButton: InkWell(
-        onLongPress: () {
-          context.pushNamed('postCompose', queryParameters: {'type': '1'}).then(
-            (value) {
-              if (value != null) {
-                activitiesNotifier.forceRefresh();
-              }
-            },
-          );
-        },
-        child: FloatingActionButton(
-          heroTag: Key("explore-page-fab"),
-          onPressed: () {
-            context.pushNamed('postCompose').then((value) {
-              if (value != null) {
-                activitiesNotifier.forceRefresh();
-              }
-            });
-          },
-          child: const Icon(Symbols.edit),
-        ),
-      ),
-      floatingActionButtonLocation: TabbedFabLocation(context),
+      floatingActionButton:
+          isWide
+              ? null
+              : InkWell(
+                onLongPress: () {
+                  context
+                      .pushNamed('postCompose', queryParameters: {'type': '1'})
+                      .then((value) {
+                        if (value != null) {
+                          activitiesNotifier.forceRefresh();
+                        }
+                      });
+                },
+                child: FloatingActionButton(
+                  heroTag: Key("explore-page-fab"),
+                  onPressed: () {
+                    context.pushNamed('postCompose').then((value) {
+                      if (value != null) {
+                        activitiesNotifier.forceRefresh();
+                      }
+                    });
+                  },
+                  child: const Icon(Symbols.edit),
+                ),
+              ),
+      floatingActionButtonLocation: isWide ? null : TabbedFabLocation(context),
       body:
           isWide
               ? _buildWideBody(
@@ -345,12 +349,9 @@ class ExploreScreen extends HookConsumerWidget {
                         margin: EdgeInsets.zero,
                       ),
                     PostFeaturedList(),
-                    FortuneGraphWidget(
-                      margin: EdgeInsets.zero,
-                      events: events as AsyncValue<List<SnEventCalendarEntry>>,
-                      constrainWidth: true,
-                      onPointSelected: (DateTime day) {
-                        selectedDay.value = day;
+                    PostComposeCard(
+                      onSubmit: (post) {
+                        activitiesNotifier.forceRefresh();
                       },
                     ),
                   ],
