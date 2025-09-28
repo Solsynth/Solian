@@ -68,41 +68,33 @@ class WindowScaffold extends HookConsumerWidget {
 
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-
       return Material(
+        color: Theme.of(context).colorScheme.surfaceContainer,
         child: Stack(
           fit: StackFit.expand,
           children: [
             Column(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Theme.of(context).dividerColor,
-                        width: 1 / devicePixelRatio,
-                      ),
-                    ),
-                  ),
-                  child: DragToMoveArea(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment:
-                          Platform.isMacOS
-                              ? MainAxisAlignment.center
-                              : MainAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Platform.isMacOS
-                              ? Text(
+                DragToMoveArea(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment:
+                        Platform.isMacOS
+                            ? MainAxisAlignment.center
+                            : MainAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child:
+                            Platform.isMacOS
+                                ? Text(
                                   'Solar Network',
                                   textAlign: TextAlign.center,
                                 ).padding(horizontal: 12, vertical: 5)
-                              : Row(
+                                : Row(
                                   children: [
                                     Image.asset(
-                                      Theme.of(context).brightness == Brightness.dark
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
                                           ? 'assets/icons/icon-dark.png'
                                           : 'assets/icons/icon.png',
                                       width: 20,
@@ -115,42 +107,45 @@ class WindowScaffold extends HookConsumerWidget {
                                     ),
                                   ],
                                 ).padding(horizontal: 12, vertical: 5),
-                        ),
-                        if (!Platform.isMacOS)
-                          ...([
-                            IconButton(
-                              icon: Icon(Symbols.minimize),
-                              onPressed: () => windowManager.minimize(),
-                              iconSize: 16,
-                              padding: EdgeInsets.all(8),
-                              constraints: BoxConstraints(),
-                              color: Theme.of(context).iconTheme.color,
+                      ),
+                      if (!Platform.isMacOS)
+                        ...([
+                          IconButton(
+                            icon: Icon(Symbols.minimize),
+                            onPressed: () => windowManager.minimize(),
+                            iconSize: 16,
+                            padding: EdgeInsets.all(8),
+                            constraints: BoxConstraints(),
+                            color: Theme.of(context).iconTheme.color,
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              isMaximized.value
+                                  ? Symbols.fullscreen_exit
+                                  : Symbols.fullscreen,
                             ),
-                            IconButton(
-                              icon: Icon(isMaximized.value ? Symbols.fullscreen_exit : Symbols.fullscreen),
-                              onPressed: () async {
-                                if (await windowManager.isMaximized()) {
-                                  windowManager.restore();
-                                } else {
-                                  windowManager.maximize();
-                                }
-                              },
-                              iconSize: 16,
-                              padding: EdgeInsets.all(8),
-                              constraints: BoxConstraints(),
-                              color: Theme.of(context).iconTheme.color,
-                            ),
-                            IconButton(
-                              icon: Icon(Symbols.close),
-                              onPressed: () => windowManager.hide(),
-                              iconSize: 16,
-                              padding: EdgeInsets.all(8),
-                              constraints: BoxConstraints(),
-                              color: Theme.of(context).iconTheme.color,
-                            ),
-                          ]),
-                      ],
-                    ),
+                            onPressed: () async {
+                              if (await windowManager.isMaximized()) {
+                                windowManager.restore();
+                              } else {
+                                windowManager.maximize();
+                              }
+                            },
+                            iconSize: 16,
+                            padding: EdgeInsets.all(8),
+                            constraints: BoxConstraints(),
+                            color: Theme.of(context).iconTheme.color,
+                          ),
+                          IconButton(
+                            icon: Icon(Symbols.close),
+                            onPressed: () => windowManager.hide(),
+                            iconSize: 16,
+                            padding: EdgeInsets.all(8),
+                            constraints: BoxConstraints(),
+                            color: Theme.of(context).iconTheme.color,
+                          ),
+                        ]),
+                    ],
                   ),
                 ),
                 Expanded(child: child),
