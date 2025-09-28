@@ -88,7 +88,9 @@ class TabsScreen extends HookConsumerWidget {
             ),
             Expanded(
               child: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(16)),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                ),
                 child: child ?? const SizedBox.shrink(),
               ),
             ),
@@ -103,7 +105,10 @@ class TabsScreen extends HookConsumerWidget {
         children: [
           Positioned.fill(
             child: ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(16)),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
               child: child ?? const SizedBox.shrink(),
             ),
           ),
