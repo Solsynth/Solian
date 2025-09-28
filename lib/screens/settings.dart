@@ -23,6 +23,17 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/file_pool.dart';
 
+// 语言代码到语言名称的映射
+const Map<String, String> languageNames = {
+  'en-US': 'English (US)',
+  'es-ES': 'Español (España)',
+  'ja-JP': '日本語',
+  'ko-KR': '한국어',
+  'zh-CN': '简体中文',
+  'zh-OG': '中文 (其他)',
+  'zh-TW': '繁體中文',
+};
+
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -62,10 +73,12 @@ class SettingsScreen extends HookConsumerWidget {
                 idx,
                 ele,
               ) {
+                final localeKey = '${ele.languageCode}-${ele.countryCode}';
+                final displayName = languageNames[localeKey] ?? localeKey;
                 return DropdownMenuItem<Locale?>(
                   value: ele,
                   child: Text(
-                    '${ele.languageCode}-${ele.countryCode}',
+                    displayName,
                   ).fontSize(14),
                 );
               }),
