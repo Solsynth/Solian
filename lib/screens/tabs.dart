@@ -68,68 +68,84 @@ class TabsScreen extends HookConsumerWidget {
     final currentIndex = getCurrentIndex();
 
     if (isWideScreen(context)) {
-      return Row(
-        children: [
-          NavigationRail(
-            destinations:
-                destinations
-                    .map(
-                      (e) => NavigationRailDestination(
-                        icon: e.icon,
-                        label: Text(e.label),
-                      ),
-                    )
-                    .toList(),
-            selectedIndex: currentIndex,
-            onDestinationSelected: onDestinationSelected,
-          ),
-          const VerticalDivider(width: 1),
-          Expanded(child: child ?? const SizedBox.shrink()),
-        ],
+      return Container(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        child: Row(
+          children: [
+            NavigationRail(
+              backgroundColor: Colors.transparent,
+              destinations:
+                  destinations
+                      .map(
+                        (e) => NavigationRailDestination(
+                          icon: e.icon,
+                          label: Text(e.label),
+                        ),
+                      )
+                      .toList(),
+              selectedIndex: currentIndex,
+              onDestinationSelected: onDestinationSelected,
+            ),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(16)),
+                child: child ?? const SizedBox.shrink(),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
-    return Stack(
-      children: [
-        Positioned.fill(child: child ?? const SizedBox.shrink()),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: ConditionalBottomNav(
+    return Container(
+      color: Theme.of(context).colorScheme.surfaceContainer,
+      child: Stack(
+        children: [
+          Positioned.fill(
             child: ClipRRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surface.withOpacity(0.8),
-                  ),
-                  child: MediaQuery.removePadding(
-                    context: context,
-                    removeTop: true,
-                    child: NavigationBar(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      overlayColor: const WidgetStatePropertyAll(
-                        Colors.transparent,
+              borderRadius: const BorderRadius.all(Radius.circular(16)),
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: ConditionalBottomNav(
+              child: ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surface.withOpacity(0.8),
+                    ),
+                    child: MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      child: NavigationBar(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        overlayColor: const WidgetStatePropertyAll(
+                          Colors.transparent,
+                        ),
+                        surfaceTintColor: Colors.transparent,
+                        height: 56,
+                        labelBehavior:
+                            NavigationDestinationLabelBehavior.alwaysHide,
+                        selectedIndex: currentIndex,
+                        onDestinationSelected: onDestinationSelected,
+                        destinations: destinations,
                       ),
-                      surfaceTintColor: Colors.transparent,
-                      height: 56,
-                      labelBehavior:
-                          NavigationDestinationLabelBehavior.alwaysHide,
-                      selectedIndex: currentIndex,
-                      onDestinationSelected: onDestinationSelected,
-                      destinations: destinations,
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

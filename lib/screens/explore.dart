@@ -51,7 +51,6 @@ Widget notificationIndicatorWidget(
       ],
     ),
     trailing: const Icon(Symbols.chevron_right),
-    minTileHeight: 40,
     contentPadding: EdgeInsets.only(left: 16, right: 15),
     onTap: () {
       GoRouter.of(context).pushNamed('notifications');
@@ -99,10 +98,6 @@ class ExploreScreen extends HookConsumerWidget {
     final events = ref.watch(eventCalendarProvider(query.value));
 
     final selectedDay = useState(now);
-    // Function to handle day selection for synchronizing between widgets
-    void onDaySelected(DateTime day) {
-      selectedDay.value = day;
-    }
 
     final user = ref.watch(userInfoProvider);
 
@@ -110,137 +105,123 @@ class ExploreScreen extends HookConsumerWidget {
       notificationUnreadCountNotifierProvider,
     );
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: AppBar(
-        toolbarHeight: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Row(
-                children: [
-                  Expanded(
-                    child: TabBar(
-                      controller: tabController,
-                      tabAlignment: TabAlignment.start,
-                      isScrollable: true,
-                      dividerColor: Colors.transparent,
-                      tabs: [
-                        Tab(
-                          icon: Tooltip(
-                            message: 'explore'.tr(),
-                            child: Icon(
-                              Symbols.explore,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).appBarTheme.foregroundColor!,
-                            ),
-                          ),
-                        ),
-                        Tab(
-                          icon: Tooltip(
-                            message: 'exploreFilterSubscriptions'.tr(),
-                            child: Icon(
-                              Symbols.subscriptions,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).appBarTheme.foregroundColor!,
-                            ),
-                          ),
-                        ),
-                        Tab(
-                          icon: Tooltip(
-                            message: 'exploreFilterFriends'.tr(),
-                            child: Icon(
-                              Symbols.people,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).appBarTheme.foregroundColor!,
-                            ),
-                          ),
-                        ),
+    final isWide = isWideScreen(context);
+
+    final filterBar = Card(
+      margin: EdgeInsets.zero,
+      child: Row(
+        children: [
+          Expanded(
+            child: TabBar(
+              controller: tabController,
+              tabAlignment: TabAlignment.start,
+              isScrollable: true,
+              dividerColor: Colors.transparent,
+              tabs: [
+                Tab(
+                  icon: Tooltip(
+                    message: 'explore'.tr(),
+                    child: Icon(
+                      Symbols.explore,
+                      color: Theme.of(context).appBarTheme.foregroundColor!,
+                    ),
+                  ),
+                ),
+                Tab(
+                  icon: Tooltip(
+                    message: 'exploreFilterSubscriptions'.tr(),
+                    child: Icon(
+                      Symbols.subscriptions,
+                      color: Theme.of(context).appBarTheme.foregroundColor!,
+                    ),
+                  ),
+                ),
+                Tab(
+                  icon: Tooltip(
+                    message: 'exploreFilterFriends'.tr(),
+                    child: Icon(
+                      Symbols.people,
+                      color: Theme.of(context).appBarTheme.foregroundColor!,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              context.pushNamed('articles');
+            },
+            icon: Icon(
+              Symbols.auto_stories,
+              color: Theme.of(context).appBarTheme.foregroundColor!,
+            ),
+            tooltip: 'webArticlesStand'.tr(),
+          ),
+          PopupMenuButton(
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.category),
+                        const Gap(12),
+                        Text('categories').tr(),
                       ],
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      context.pushNamed('articles');
+                    onTap: () {
+                      context.pushNamed('postCategories');
                     },
-                    icon: Icon(
-                      Symbols.auto_stories,
-                      color: Theme.of(context).appBarTheme.foregroundColor!,
-                    ),
-                    tooltip: 'webArticlesStand'.tr(),
                   ),
-                  PopupMenuButton(
-                    itemBuilder:
-                        (context) => [
-                          PopupMenuItem(
-                            child: Row(
-                              children: [
-                                const Icon(Symbols.category),
-                                const Gap(12),
-                                Text('categories').tr(),
-                              ],
-                            ),
-                            onTap: () {
-                              context.pushNamed('postCategories');
-                            },
-                          ),
-                          PopupMenuItem(
-                            child: Row(
-                              children: [
-                                const Icon(Symbols.label),
-                                const Gap(12),
-                                Text('tags').tr(),
-                              ],
-                            ),
-                            onTap: () {
-                              context.pushNamed('postTags');
-                            },
-                          ),
-                          PopupMenuItem(
-                            child: Row(
-                              children: [
-                                const Icon(Symbols.shuffle),
-                                const Gap(12),
-                                Text('postShuffle').tr(),
-                              ],
-                            ),
-                            onTap: () {
-                              context.pushNamed('postShuffle');
-                            },
-                          ),
-                          PopupMenuItem(
-                            child: Row(
-                              children: [
-                                const Icon(Symbols.search),
-                                const Gap(12),
-                                Text('search').tr(),
-                              ],
-                            ),
-                            onTap: () {
-                              context.pushNamed('postSearch');
-                            },
-                          ),
-                        ],
-                    icon: Icon(
-                      Symbols.action_key,
-                      color: Theme.of(context).appBarTheme.foregroundColor!,
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.label),
+                        const Gap(12),
+                        Text('tags').tr(),
+                      ],
                     ),
-                    tooltip: 'search'.tr(),
+                    onTap: () {
+                      context.pushNamed('postTags');
+                    },
+                  ),
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.shuffle),
+                        const Gap(12),
+                        Text('postShuffle').tr(),
+                      ],
+                    ),
+                    onTap: () {
+                      context.pushNamed('postShuffle');
+                    },
+                  ),
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.search),
+                        const Gap(12),
+                        Text('search').tr(),
+                      ],
+                    ),
+                    onTap: () {
+                      context.pushNamed('postSearch');
+                    },
                   ),
                 ],
-              )
-              .padding(horizontal: 8)
-              .border(
-                bottom: 1 / MediaQuery.of(context).devicePixelRatio,
-                color: Theme.of(context).dividerColor,
-              ),
-        ),
-      ),
+            icon: Icon(
+              Symbols.action_key,
+              color: Theme.of(context).appBarTheme.foregroundColor!,
+            ),
+            tooltip: 'search'.tr(),
+          ),
+        ],
+      ).padding(horizontal: 8),
+    );
+
+    return AppScaffold(
+      isNoBackground: false,
       floatingActionButton: InkWell(
         onLongPress: () {
           context.pushNamed('postCompose', queryParameters: {'type': '1'}).then(
@@ -264,97 +245,20 @@ class ExploreScreen extends HookConsumerWidget {
         ),
       ),
       floatingActionButtonLocation: TabbedFabLocation(context),
-      body: Builder(
-        builder: (context) {
-          final isWide = isWideScreen(context);
-
-          final bodyView = _buildActivityList(
-            context,
-            ref,
-            currentFilter.value,
-          );
-
-          if (isWide) {
-            return Row(
-              children: [
-                Flexible(flex: 3, child: bodyView.padding(left: 8)),
-                if (user.value != null)
-                  Flexible(
-                    flex: 2,
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            CheckInWidget(
-                              margin: EdgeInsets.only(
-                                left: 8,
-                                right: 12,
-                                top: 16,
-                              ),
-                              onChecked: () {
-                                ref.invalidate(
-                                  eventCalendarProvider(query.value),
-                                );
-                              },
-                            ),
-                            if (notificationCount.value != null &&
-                                notificationCount.value! > 0)
-                              notificationIndicatorWidget(
-                                context,
-                                count: notificationCount.value ?? 0,
-                                margin: EdgeInsets.only(
-                                  left: 8,
-                                  right: 12,
-                                  top: 8,
-                                ),
-                              ),
-                            PostFeaturedList().padding(
-                              left: 8,
-                              right: 12,
-                              top: 8,
-                            ),
-                            FortuneGraphWidget(
-                              margin: EdgeInsets.only(
-                                left: 8,
-                                right: 12,
-                                top: 8,
-                              ),
-                              events: events,
-                              constrainWidth: true,
-                              onPointSelected: onDaySelected,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  Flexible(
-                    flex: 2,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome to\nthe Solar Network',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ).bold(),
-                        const Gap(2),
-                        Text(
-                          'Login to explore more!',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    ).padding(horizontal: 36, vertical: 16),
-                  ),
-              ],
-            );
-          }
-
-          return bodyView;
-        },
-      ),
+      body:
+          isWide
+              ? _buildWideBody(
+                context,
+                ref,
+                filterBar,
+                user,
+                notificationCount,
+                query,
+                events,
+                selectedDay,
+                currentFilter.value,
+              )
+              : _buildNarrowBody(context, ref, filterBar, currentFilter.value),
     );
   }
 
@@ -369,23 +273,171 @@ class ExploreScreen extends HookConsumerWidget {
 
     final isWide = isWideScreen(context);
 
-    return ExtendedRefreshIndicator(
-      onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
-      child: PagingHelperView(
-        provider: activityListNotifierProvider(filter),
-        futureRefreshable: activityListNotifierProvider(filter).future,
-        notifierRefreshable: activityListNotifierProvider(filter).notifier,
-        contentBuilder:
-            (data, widgetCount, endItemView) => Center(
-              child: _ActivityListView(
-                data: data,
-                widgetCount: widgetCount,
-                endItemView: endItemView,
-                activitiesNotifier: activitiesNotifier,
-                contentOnly: isWide || filter != null,
+    return PagingHelperSliverView(
+      provider: activityListNotifierProvider(filter),
+      futureRefreshable: activityListNotifierProvider(filter).future,
+      notifierRefreshable: activityListNotifierProvider(filter).notifier,
+      contentBuilder:
+          (data, widgetCount, endItemView) => _ActivityListView(
+            data: data,
+            widgetCount: widgetCount,
+            endItemView: endItemView,
+            activitiesNotifier: activitiesNotifier,
+            isWide: isWide,
+          ),
+    );
+  }
+
+  Widget _buildWideBody(
+    BuildContext context,
+    WidgetRef ref,
+    Widget filterBar,
+    AsyncValue<dynamic> user,
+    AsyncValue<int?> notificationCount,
+    ValueNotifier<EventCalendarQuery> query,
+    AsyncValue<List<dynamic>> events,
+    ValueNotifier<DateTime> selectedDay,
+    String? currentFilter,
+  ) {
+    final bodyView = _buildActivityList(context, ref, currentFilter);
+
+    final activitiesNotifier = ref.watch(
+      activityListNotifierProvider(currentFilter).notifier,
+    );
+
+    return Row(
+      spacing: 12,
+      children: [
+        Flexible(
+          flex: 3,
+          child: ExtendedRefreshIndicator(
+            onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
+            child: CustomScrollView(
+              slivers: [
+                const SliverGap(12),
+                SliverToBoxAdapter(child: filterBar),
+                const SliverGap(8),
+                bodyView,
+              ],
+            ),
+          ),
+        ),
+        if (user.value != null)
+          Flexible(
+            flex: 2,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: SingleChildScrollView(
+                child: Column(
+                  spacing: 8,
+                  children: [
+                    CheckInWidget(
+                      margin: EdgeInsets.only(top: 12),
+                      onChecked: () {
+                        ref.invalidate(eventCalendarProvider(query.value));
+                      },
+                    ),
+                    if (notificationCount.value != null &&
+                        notificationCount.value! > 0)
+                      notificationIndicatorWidget(
+                        context,
+                        count: notificationCount.value ?? 0,
+                        margin: EdgeInsets.zero,
+                      ),
+                    PostFeaturedList(),
+                    FortuneGraphWidget(
+                      margin: EdgeInsets.zero,
+                      events: events as AsyncValue<List<SnEventCalendarEntry>>,
+                      constrainWidth: true,
+                      onPointSelected: (DateTime day) {
+                        selectedDay.value = day;
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-      ),
+          )
+        else
+          Flexible(
+            flex: 2,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome to\nthe Solar Network',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ).bold(),
+                const Gap(2),
+                Text(
+                  'Login to explore more!',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ).padding(horizontal: 36, vertical: 16),
+          ),
+      ],
+    ).padding(horizontal: 12);
+  }
+
+  Widget _buildNarrowBody(
+    BuildContext context,
+    WidgetRef ref,
+    Widget filterBar,
+    String? currentFilter,
+  ) {
+    final user = ref.watch(userInfoProvider);
+    final notificationCount = ref.watch(
+      notificationUnreadCountNotifierProvider,
+    );
+
+    final activitiesNotifier = ref.watch(
+      activityListNotifierProvider(currentFilter).notifier,
+    );
+
+    final bodyView = _buildActivityList(context, ref, currentFilter);
+
+    return Column(
+      spacing: 8,
+      children: [
+        filterBar.padding(horizontal: 8, top: 8),
+        Expanded(
+          child: ExtendedRefreshIndicator(
+            onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              child: CustomScrollView(
+                slivers: [
+                  if (user.value != null)
+                    SliverToBoxAdapter(
+                      child: CheckInWidget(
+                        margin: const EdgeInsets.only(bottom: 8),
+                      ),
+                    ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: PostFeaturedList(),
+                    ),
+                  ),
+                  if (notificationCount.value != null &&
+                      notificationCount.value! > 0)
+                    SliverToBoxAdapter(
+                      child: notificationIndicatorWidget(
+                        context,
+                        count: notificationCount.value ?? 0,
+                        margin: const EdgeInsets.only(bottom: 8),
+                      ),
+                    ),
+                  bodyView,
+                  SliverGap(getTabbedPadding(context).bottom),
+                ],
+              ),
+            ).padding(horizontal: 8),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -464,7 +516,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
     };
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -505,92 +557,60 @@ class _ActivityListView extends HookConsumerWidget {
   final CursorPagingData<SnActivity> data;
   final int widgetCount;
   final Widget endItemView;
-  final bool contentOnly;
   final ActivityListNotifier activitiesNotifier;
+  final bool isWide;
 
   const _ActivityListView({
     required this.data,
     required this.widgetCount,
     required this.endItemView,
     required this.activitiesNotifier,
-    this.contentOnly = false,
+    required this.isWide,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userInfoProvider);
+    return SliverList.separated(
+      itemCount: widgetCount,
+      separatorBuilder: (_, _) => const Gap(8),
+      itemBuilder: (context, index) {
+        if (index == widgetCount - 1) {
+          return endItemView;
+        }
 
-    final notificationCount = ref.watch(
-      notificationUnreadCountNotifierProvider,
-    );
+        final item = data.items[index];
+        if (item.data == null) {
+          return const SizedBox.shrink();
+        }
+        Widget itemWidget;
 
-    return CustomScrollView(
-      slivers: [
-        SliverGap(12),
-        if (user.value != null && !contentOnly)
-          SliverToBoxAdapter(
-            child: CheckInWidget(
-              margin: EdgeInsets.only(left: 8, right: 8, bottom: 4),
-            ),
-          ),
-        if (!contentOnly)
-          SliverToBoxAdapter(
-            child: PostFeaturedList().padding(horizontal: 8, bottom: 4, top: 4),
-          ),
-        if (!contentOnly && (notificationCount.value ?? 0) > 0)
-          SliverToBoxAdapter(
-            child: notificationIndicatorWidget(
-              context,
-              count: notificationCount.value ?? 0,
-              margin: EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
-            ),
-          ),
-        SliverList.builder(
-          itemCount: widgetCount,
-          itemBuilder: (context, index) {
-            if (index == widgetCount - 1) {
-              return endItemView;
-            }
-
-            final item = data.items[index];
-            if (item.data == null) {
-              return const SizedBox.shrink();
-            }
-            Widget itemWidget;
-
-            switch (item.type) {
-              case 'posts.new':
-              case 'posts.new.replies':
-                itemWidget = PostActionableItem(
-                  borderRadius: 8,
-                  item: SnPost.fromJson(item.data!),
-                  onRefresh: () {
-                    activitiesNotifier.forceRefresh();
-                  },
-                  onUpdate: (post) {
-                    activitiesNotifier.updateOne(
-                      index,
-                      item.copyWith(data: post.toJson()),
-                    );
-                  },
+        switch (item.type) {
+          case 'posts.new':
+          case 'posts.new.replies':
+            itemWidget = PostActionableItem(
+              borderRadius: 8,
+              item: SnPost.fromJson(item.data!),
+              onRefresh: () {
+                activitiesNotifier.forceRefresh();
+              },
+              onUpdate: (post) {
+                activitiesNotifier.updateOne(
+                  index,
+                  item.copyWith(data: post.toJson()),
                 );
-                itemWidget = Card(
-                  margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: itemWidget,
-                );
-                break;
-              case 'discovery':
-                itemWidget = _DiscoveryActivityItem(data: item.data!);
-                break;
-              default:
-                itemWidget = const Placeholder();
-            }
+              },
+            );
+            itemWidget = Card(margin: EdgeInsets.zero, child: itemWidget);
+            break;
+          case 'discovery':
+            itemWidget = _DiscoveryActivityItem(data: item.data!);
+            break;
+          default:
+            itemWidget = const Placeholder();
+        }
 
-            return itemWidget;
-          },
-        ),
-        SliverGap(getTabbedPadding(context).bottom),
-      ],
+        return itemWidget;
+      },
     );
   }
 }
