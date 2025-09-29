@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/publishers.dart';
@@ -31,7 +32,7 @@ class PostComposeCard extends HookConsumerWidget {
   final Function(SnPost)? onSubmit;
   final Function(ComposeState)? onStateChanged;
 
-  const PostComposeCard({
+  PostComposeCard({
     super.key,
     this.originalPost,
     this.initialState,
@@ -42,12 +43,17 @@ class PostComposeCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final submitted = useState(false);
+
     final repliedPost = initialState?.replyingTo ?? originalPost?.repliedPost;
     final forwardedPost =
         initialState?.forwardingTo ?? originalPost?.forwardedPost;
 
     final theme = Theme.of(context);
     final publishers = ref.watch(publishersManagedProvider);
+
+    // Capture the notifier to avoid using ref after dispose
+    final notifier = ref.read(composeStorageNotifierProvider.notifier);
 
     // Create compose state
     final state = useMemoized(
@@ -110,7 +116,38 @@ class PostComposeCard extends HookConsumerWidget {
 
     // Dispose state when widget is disposed
     useEffect(() {
-      return () => ComposeLogic.dispose(state);
+      return () {
+        if (!submitted.value &&
+            originalPost == null &&
+            state.currentPublisher.value != null) {
+          final hasContent =
+              state.titleController.text.trim().isNotEmpty ||
+              state.descriptionController.text.trim().isNotEmpty ||
+              state.contentController.text.trim().isNotEmpty;
+          final hasAttachments = state.attachments.value.isNotEmpty;
+          if (hasContent || hasAttachments) {
+            final draft = SnPost(
+              id: state.draftId,
+              title: state.titleController.text,
+              description: state.descriptionController.text,
+              content: state.contentController.text,
+              visibility: state.visibility.value,
+              type: state.postType,
+              attachments:
+                  state.attachments.value
+                      .where((e) => e.isOnCloud)
+                      .map((e) => e.data as SnCloudFile)
+                      .toList(),
+              publisher: state.currentPublisher.value!,
+              updatedAt: DateTime.now(),
+            );
+            notifier
+                .saveDraft(draft)
+                .catchError((e) => debugPrint('Failed to save draft: $e'));
+          }
+        }
+        ComposeLogic.dispose(state);
+      };
     }, []);
 
     // Reset form to clean state for new composition
@@ -234,6 +271,9 @@ class PostComposeCard extends HookConsumerWidget {
 
         // Create the post object from the response for the callback
         final post = SnPost.fromJson(response.data);
+
+        // Mark as submitted
+        submitted.value = true;
 
         // Delete draft after successful submission
         await ref

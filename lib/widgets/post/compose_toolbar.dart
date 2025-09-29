@@ -55,6 +55,7 @@ class ComposeToolbar extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
+        useRootNavigator: true,
         builder: (context) => ComposeEmbedSheet(state: state),
       );
     }
@@ -63,6 +64,7 @@ class ComposeToolbar extends HookConsumerWidget {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
+        useRootNavigator: true,
         builder:
             (context) => DraftManagerSheet(
               onDraftSelected: (draftId) {

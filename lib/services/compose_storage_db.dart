@@ -32,7 +32,6 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
 
   Future<void> saveDraft(SnPost draft) async {
     final updatedDraft = draft.copyWith(updatedAt: DateTime.now());
-    state = {...state, updatedDraft.id: updatedDraft};
 
     try {
       final database = ref.read(databaseProvider);
@@ -48,11 +47,11 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
           postData: Value(jsonEncode(updatedDraft.toJson())),
         ),
       );
+      // Update state after successful database operation, delayed to avoid widget building issues
+      Future(() {
+        state = {...state, updatedDraft.id: updatedDraft};
+      });
     } catch (e) {
-      // Revert state on error
-      final newState = Map<String, SnPost>.from(state);
-      newState.remove(updatedDraft.id);
-      state = newState;
       rethrow;
     }
   }
