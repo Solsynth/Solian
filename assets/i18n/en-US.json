@@ -1085,5 +1085,7 @@
     "noChangelogProvided": "No changelog provided.",
     "useSecondarySourceForDownload": "Use secondary source for download",
     "installUpdate": "Install update",
-    "openReleasePage": "Open release page"
+    "openReleasePage": "Open release page",
+    "postCompose": "Compose Post",
+    "postPublish": "Publish Post"
 }

@@ -13,12 +13,14 @@ import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/widgets/account/fortune_graph.dart';
+
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
+import 'package:island/widgets/post/compose_card.dart';
+import 'package:island/widgets/post/compose_dialog.dart';
 import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -42,6 +44,7 @@ Widget notificationIndicatorWidget(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
     ),
+    minTileHeight: 48,
     leading: const Icon(Symbols.notifications),
     title: Row(
       children: [
@@ -108,7 +111,7 @@ class ExploreScreen extends HookConsumerWidget {
     final isWide = isWideScreen(context);
 
     final filterBar = Card(
-      margin: EdgeInsets.zero,
+      margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       child: Row(
         children: [
           Expanded(
@@ -121,28 +124,19 @@ class ExploreScreen extends HookConsumerWidget {
                 Tab(
                   icon: Tooltip(
                     message: 'explore'.tr(),
-                    child: Icon(
-                      Symbols.explore,
-                      color: Theme.of(context).appBarTheme.foregroundColor!,
-                    ),
+                    child: Icon(Symbols.explore),
                   ),
                 ),
                 Tab(
                   icon: Tooltip(
                     message: 'exploreFilterSubscriptions'.tr(),
-                    child: Icon(
-                      Symbols.subscriptions,
-                      color: Theme.of(context).appBarTheme.foregroundColor!,
-                    ),
+                    child: Icon(Symbols.subscriptions),
                   ),
                 ),
                 Tab(
                   icon: Tooltip(
                     message: 'exploreFilterFriends'.tr(),
-                    child: Icon(
-                      Symbols.people,
-                      color: Theme.of(context).appBarTheme.foregroundColor!,
-                    ),
+                    child: Icon(Symbols.people),
                   ),
                 ),
               ],
@@ -152,10 +146,7 @@ class ExploreScreen extends HookConsumerWidget {
             onPressed: () {
               context.pushNamed('articles');
             },
-            icon: Icon(
-              Symbols.auto_stories,
-              color: Theme.of(context).appBarTheme.foregroundColor!,
-            ),
+            icon: Icon(Symbols.auto_stories),
             tooltip: 'webArticlesStand'.tr(),
           ),
           PopupMenuButton(
@@ -210,10 +201,7 @@ class ExploreScreen extends HookConsumerWidget {
                     },
                   ),
                 ],
-            icon: Icon(
-              Symbols.action_key,
-              color: Theme.of(context).appBarTheme.foregroundColor!,
-            ),
+            icon: Icon(Symbols.action_key),
             tooltip: 'search'.tr(),
           ),
         ],
@@ -222,29 +210,28 @@ class ExploreScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      floatingActionButton: InkWell(
-        onLongPress: () {
-          context.pushNamed('postCompose', queryParameters: {'type': '1'}).then(
-            (value) {
-              if (value != null) {
-                activitiesNotifier.forceRefresh();
-              }
-            },
-          );
-        },
-        child: FloatingActionButton(
-          heroTag: Key("explore-page-fab"),
-          onPressed: () {
-            context.pushNamed('postCompose').then((value) {
-              if (value != null) {
-                activitiesNotifier.forceRefresh();
-              }
-            });
-          },
-          child: const Icon(Symbols.edit),
-        ),
-      ),
-      floatingActionButtonLocation: TabbedFabLocation(context),
+      floatingActionButton:
+          isWide
+              ? null
+              : InkWell(
+                onLongPress: () async {
+                  final result = await PostComposeDialog.show(context);
+                  if (result != null) {
+                    activitiesNotifier.forceRefresh();
+                  }
+                },
+                child: FloatingActionButton(
+                  heroTag: Key("explore-page-fab"),
+                  onPressed: () async {
+                    final result = await PostComposeDialog.show(context);
+                    if (result != null) {
+                      activitiesNotifier.forceRefresh();
+                    }
+                  },
+                  child: const Icon(Symbols.edit),
+                ),
+              ),
+      floatingActionButtonLocation: isWide ? null : TabbedFabLocation(context),
       body:
           isWide
               ? _buildWideBody(
@@ -345,12 +332,9 @@ class ExploreScreen extends HookConsumerWidget {
                         margin: EdgeInsets.zero,
                       ),
                     PostFeaturedList(),
-                    FortuneGraphWidget(
-                      margin: EdgeInsets.zero,
-                      events: events as AsyncValue<List<SnEventCalendarEntry>>,
-                      constrainWidth: true,
-                      onPointSelected: (DateTime day) {
-                        selectedDay.value = day;
+                    PostComposeCard(
+                      onSubmit: (post) {
+                        activitiesNotifier.forceRefresh();
                       },
                     ),
                   ],
