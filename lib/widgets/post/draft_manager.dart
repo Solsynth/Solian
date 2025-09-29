@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/services/compose_storage_db.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -118,25 +119,9 @@ class DraftManagerSheet extends HookConsumerWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () async {
-                        final confirmed = await showDialog<bool>(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: Text('clearAllDrafts'.tr()),
-                                content: Text('clearAllDraftsConfirm'.tr()),
-                                actions: [
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(false),
-                                    child: Text('cancel'.tr()),
-                                  ),
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(true),
-                                    child: Text('confirm'.tr()),
-                                  ),
-                                ],
-                              ),
+                        final confirmed = await showConfirmAlert(
+                          'clearAllDraftsConfirm'.tr(),
+                          'clearAllDrafts'.tr(),
                         );
 
                         if (confirmed == true) {
