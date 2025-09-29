@@ -26,6 +26,27 @@ import 'package:island/pods/file_pool.dart';
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
 
+  String _getLanguageDisplayName(Locale locale) {
+    switch ('${locale.languageCode}-${locale.countryCode}') {
+      case 'en-US':
+        return 'English (US)';
+      case 'es-ES':
+        return 'Español (España)';
+      case 'ja-JP':
+        return '日本語 (日本)';
+      case 'ko-KR':
+        return '한국어 (대한민국)';
+      case 'zh-CN':
+        return '简体中文';
+      case 'zh-OG':
+        return '文言文 (华夏)';
+      case 'zh-TW':
+        return '繁體中文 (台灣)';
+      default:
+        return '${locale.languageCode}-${locale.countryCode}';
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
@@ -64,9 +85,7 @@ class SettingsScreen extends HookConsumerWidget {
               ) {
                 return DropdownMenuItem<Locale?>(
                   value: ele,
-                  child: Text(
-                    '${ele.languageCode}-${ele.countryCode}',
-                  ).fontSize(14),
+                  child: Text(_getLanguageDisplayName(ele)).fontSize(14),
                 );
               }),
               DropdownMenuItem<Locale?>(
