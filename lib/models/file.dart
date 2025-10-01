@@ -14,6 +14,7 @@ sealed class UniversalFile with _$UniversalFile {
     required dynamic data,
     required UniversalFileType type,
     @Default(false) bool isLink,
+    String? displayName,
   }) = _UniversalFile;
 
   factory UniversalFile.fromJson(Map<String, dynamic> json) =>
@@ -31,6 +32,7 @@ sealed class UniversalFile with _$UniversalFile {
         'video' => UniversalFileType.video,
         _ => UniversalFileType.file,
       },
+      displayName: attachment.name,
     );
   }
 }

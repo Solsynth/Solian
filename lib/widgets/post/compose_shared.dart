@@ -14,9 +14,8 @@ import 'package:island/models/post.dart';
 import 'package:island/models/post_category.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/models/realm.dart';
-import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/services/file.dart';
+import 'package:island/services/file_uploader.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_link_attachments.dart';
@@ -177,25 +176,14 @@ class ComposeLogic {
 
     try {
       // Upload any local attachments first
-      final baseUrl = ref.watch(serverUrlProvider);
-      final token = await getToken(ref.watch(tokenProvider));
-      if (token == null) throw ArgumentError('Token is null');
-
       for (int i = 0; i < state.attachments.value.length; i++) {
         final attachment = state.attachments.value[i];
         if (attachment.data is! SnCloudFile) {
           try {
             final cloudFile =
-                await putFileToCloud(
+                await FileUploader.createCloudFile(
+                  client: ref.read(apiClientProvider),
                   fileData: attachment,
-                  atk: token,
-                  baseUrl: baseUrl,
-                  filename:
-                      attachment.data.name ??
-                      (state.postType == 1 ? 'Article media' : 'Post media'),
-                  mimetype:
-                      attachment.data.mimeType ??
-                      ComposeLogic.getMimeTypeFromFileType(attachment.type),
                 ).future;
             if (cloudFile != null) {
               // Update attachments list with cloud file
@@ -509,14 +497,10 @@ class ComposeLogic {
     WidgetRef ref,
     ComposeState state,
     int index, {
-    String? poolId, // For Unit Test
+    String? poolId,
   }) async {
     final attachment = state.attachments.value[index];
     if (attachment.isOnCloud) return;
-
-    final baseUrl = ref.watch(serverUrlProvider);
-    final token = await getToken(ref.watch(tokenProvider));
-    if (token == null) throw ArgumentError('Token is null');
 
     try {
       state.attachmentProgress.value = {
@@ -530,19 +514,10 @@ class ComposeLogic {
       final selectedPoolId = resolveDefaultPoolId(ref, pools);
 
       cloudFile =
-          await putFileToCloud(
+          await FileUploader.createCloudFile(
+            client: ref.read(apiClientProvider),
             fileData: attachment,
-            atk: token,
-            baseUrl: baseUrl,
-            poolId: selectedPoolId,
-            filename:
-                attachment.data.name ??
-                (attachment.type == UniversalFileType.file
-                    ? 'General file'
-                    : 'Post media'),
-            mimetype:
-                attachment.data.mimeType ??
-                getMimeTypeFromFileType(attachment.type),
+            poolId: poolId ?? selectedPoolId,
             mode:
                 attachment.type == UniversalFileType.file
                     ? FileUploadMode.generic
@@ -563,7 +538,7 @@ class ComposeLogic {
       clone[index] = UniversalFile(data: cloudFile, type: attachment.type);
       state.attachments.value = clone;
     } catch (err) {
-      showErrorAlert(err.toString());
+      showErrorAlert(err);
     } finally {
       state.attachmentProgress.value = {...state.attachmentProgress.value}
         ..remove(index);

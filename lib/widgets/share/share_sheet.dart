@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -10,11 +12,7 @@ import 'package:island/screens/posts/compose.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/link_preview.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/pods/config.dart';
-import 'package:island/services/file.dart';
 import 'package:mime/mime.dart';
-
-import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:island/models/chat.dart';
 import 'package:island/screens/chat/chat.dart';
@@ -192,7 +190,6 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
     setState(() => _isLoading = true);
     try {
       final apiClient = ref.read(apiClientProvider);
-      final serverUrl = ref.read(serverUrlProvider);
 
       String content = _messageController.text.trim();
       List<String> attachmentIds = [];
@@ -216,11 +213,6 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
         case ShareContentType.file:
           // Upload files to cloud storage
           if (widget.content.files?.isNotEmpty == true) {
-            final token = ref.watch(tokenProvider)?.token;
-            if (token == null) {
-              throw Exception('Authentication required');
-            }
-
             final universalFiles =
                 widget.content.files!.map((file) {
                   UniversalFileType fileType;
@@ -247,19 +239,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
             for (var idx = 0; idx < universalFiles.length; idx++) {
               final file = universalFiles[idx];
               final cloudFile =
-                  await putFileToCloud(
+                  await FileUploader.createCloudFile(
+                    client: apiClient,
                     fileData: file,
-                    atk: token,
-                    baseUrl: serverUrl,
-                    filename: file.data.name ?? 'Shared file',
-                    mimetype:
-                        file.data.mimeType ??
-                        switch (file.type) {
-                          UniversalFileType.image => 'image/unknown',
-                          UniversalFileType.video => 'video/unknown',
-                          UniversalFileType.audio => 'audio/unknown',
-                          UniversalFileType.file => 'application/octet-stream',
-                        },
                     onProgress: (progress, _) {
                       if (mounted) {
                         setState(() {

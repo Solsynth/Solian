@@ -11,11 +11,10 @@ import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
 import "package:island/pods/chat/chat_rooms.dart";
 import "package:island/pods/chat/chat_subscribe.dart";
-import "package:island/pods/config.dart";
 import "package:island/pods/chat/messages_notifier.dart";
 import "package:island/pods/network.dart";
 import "package:island/pods/chat/chat_online_count.dart";
-import "package:island/services/file.dart";
+import "package:island/services/file_uploader.dart";
 import "package:island/screens/chat/chat.dart";
 import "package:island/services/responsive.dart";
 import "package:island/widgets/alert.dart";
@@ -24,7 +23,6 @@ import "package:island/widgets/attachment_uploader.dart";
 import "package:island/widgets/chat/call_overlay.dart";
 import "package:island/widgets/chat/message_item.dart";
 import "package:island/widgets/content/cloud_files.dart";
-import "package:island/widgets/post/compose_shared.dart";
 import "package:island/widgets/response.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:styled_widget/styled_widget.dart";
@@ -348,10 +346,6 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
       if (config == null) return;
 
-      final baseUrl = ref.watch(serverUrlProvider);
-      final token = await getToken(ref.watch(tokenProvider));
-      if (token == null) throw ArgumentError('Token is null');
-
       try {
         // Use 'chat-upload' as temporary key for progress
         attachmentProgress.value = {
@@ -360,15 +354,10 @@ class ChatRoomScreen extends HookConsumerWidget {
         };
 
         final cloudFile =
-            await putFileToCloud(
+            await FileUploader.createCloudFile(
+              client: ref.read(apiClientProvider),
               fileData: attachment,
-              atk: token,
-              baseUrl: baseUrl,
               poolId: config.poolId,
-              filename: attachment.data.name ?? 'Chat media',
-              mimetype:
-                  attachment.data.mimeType ??
-                  ComposeLogic.getMimeTypeFromFileType(attachment.type),
               mode:
                   attachment.type == UniversalFileType.file
                       ? FileUploadMode.generic

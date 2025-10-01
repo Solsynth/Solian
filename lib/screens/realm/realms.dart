@@ -9,9 +9,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/realm.dart';
-import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
+import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -204,19 +204,13 @@ class EditRealmScreen extends HookConsumerWidget {
       showLoadingModal(context);
       submitting.value = true;
       try {
-        final baseUrl = ref.watch(serverUrlProvider);
-        final token = await getToken(ref.watch(tokenProvider));
-        if (token == null) throw ArgumentError('Access token is null');
         final cloudFile =
-            await putFileToCloud(
+            await FileUploader.createCloudFile(
+              client: ref.read(apiClientProvider),
               fileData: UniversalFile(
                 data: result,
                 type: UniversalFileType.image,
               ),
-              atk: token,
-              baseUrl: baseUrl,
-              filename: result.name,
-              mimetype: result.mimeType ?? 'image/jpeg',
             ).future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');

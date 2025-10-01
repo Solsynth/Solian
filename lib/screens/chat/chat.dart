@@ -13,10 +13,10 @@ import 'package:island/models/file.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/chat/call.dart';
 import 'package:island/pods/chat/chat_summary.dart';
-import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/file.dart';
+import 'package:island/services/file_uploader.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
@@ -644,19 +644,13 @@ class EditChatScreen extends HookConsumerWidget {
 
       submitting.value = true;
       try {
-        final baseUrl = ref.watch(serverUrlProvider);
-        final token = await getToken(ref.watch(tokenProvider));
-        if (token == null) throw ArgumentError('Token is null');
         final cloudFile =
-            await putFileToCloud(
+            await FileUploader.createCloudFile(
+              client: ref.read(apiClientProvider),
               fileData: UniversalFile(
                 data: result,
                 type: UniversalFileType.image,
               ),
-              atk: token,
-              baseUrl: baseUrl,
-              filename: result.name,
-              mimetype: result.mimeType ?? 'image/jpeg',
             ).future;
         if (cloudFile == null) {
           throw ArgumentError('Failed to upload the file...');

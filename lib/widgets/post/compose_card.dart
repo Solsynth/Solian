@@ -32,7 +32,7 @@ class PostComposeCard extends HookConsumerWidget {
   final Function(SnPost)? onSubmit;
   final Function(ComposeState)? onStateChanged;
 
-  PostComposeCard({
+  const PostComposeCard({
     super.key,
     this.originalPost,
     this.initialState,

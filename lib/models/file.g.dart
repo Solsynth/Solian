@@ -11,6 +11,7 @@ _UniversalFile _$UniversalFileFromJson(Map<String, dynamic> json) =>
       data: json['data'],
       type: $enumDecode(_$UniversalFileTypeEnumMap, json['type']),
       isLink: json['is_link'] as bool? ?? false,
+      displayName: json['display_name'] as String?,
     );
 
 Map<String, dynamic> _$UniversalFileToJson(_UniversalFile instance) =>
@@ -18,6 +19,7 @@ Map<String, dynamic> _$UniversalFileToJson(_UniversalFile instance) =>
       'data': instance.data,
       'type': _$UniversalFileTypeEnumMap[instance.type]!,
       'is_link': instance.isLink,
+      'display_name': instance.displayName,
     };
 
 const _$UniversalFileTypeEnumMap = {

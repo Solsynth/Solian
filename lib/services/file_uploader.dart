@@ -1,17 +1,19 @@
 import 'dart:async';
 import 'dart:typed_data';
-
 import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
+import 'package:mime/mime.dart';
+import 'package:native_exif/native_exif.dart';
 
 class FileUploader {
-  final Dio _dio;
+  final Dio _client;
 
-  FileUploader(this._dio);
+  FileUploader(this._client);
 
   /// Calculates the MD5 hash of a file.
   Future<String> _calculateFileHash(XFile file) async {
@@ -34,7 +36,7 @@ class FileUploader {
     final hash = await _calculateFileHash(file);
     final fileSize = await file.length();
 
-    final response = await _dio.post(
+    final response = await _client.post(
       '/drive/files/upload/create',
       data: {
         'hash': hash,
@@ -65,7 +67,7 @@ class FileUploader {
       ),
     });
 
-    await _dio.post(
+    await _client.post(
       '/drive/files/upload/chunk/$taskId/$chunkIndex',
       data: formData,
     );
@@ -73,7 +75,7 @@ class FileUploader {
 
   /// Completes the upload and returns the CloudFile object.
   Future<SnCloudFile> completeUpload(String taskId) async {
-    final response = await _dio.post('/drive/files/upload/complete/$taskId');
+    final response = await _client.post('/drive/files/upload/complete/$taskId');
 
     return SnCloudFile.fromJson(response.data);
   }
@@ -146,7 +148,154 @@ class FileUploader {
     // Step 3: Complete upload
     return await completeUpload(taskId);
   }
+
+  static Completer<SnCloudFile?> createCloudFile({
+    required UniversalFile fileData,
+    required Dio client,
+    String? poolId,
+    FileUploadMode? mode,
+    Function(double progress, Duration estimate)? onProgress,
+  }) {
+    final completer = Completer<SnCloudFile?>();
+
+    final effectiveMode =
+        mode ??
+        (fileData.type == UniversalFileType.file
+            ? FileUploadMode.generic
+            : FileUploadMode.mediaSafe);
+
+    if (effectiveMode == FileUploadMode.mediaSafe &&
+        fileData.isOnDevice &&
+        fileData.type == UniversalFileType.image) {
+      final data = fileData.data;
+      if (data is XFile &&
+          !kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.android)) {
+        Exif.fromPath(data.path)
+            .then((exif) async {
+              final gpsAttributes = {
+                'GPSLatitude': '',
+                'GPSLatitudeRef': '',
+                'GPSLongitude': '',
+                'GPSLongitudeRef': '',
+                'GPSAltitude': '',
+                'GPSAltitudeRef': '',
+                'GPSTimeStamp': '',
+                'GPSProcessingMethod': '',
+                'GPSDateStamp': '',
+              };
+              await exif.writeAttributes(gpsAttributes);
+            })
+            .then(
+              (_) => _processUpload(
+                fileData,
+                client,
+                poolId,
+                onProgress,
+                completer,
+              ),
+            )
+            .catchError((e) {
+              debugPrint('Error removing GPS EXIF data: $e');
+              return _processUpload(
+                fileData,
+                client,
+                poolId,
+                onProgress,
+                completer,
+              );
+            });
+
+        return completer;
+      }
+    }
+
+    _processUpload(fileData, client, poolId, onProgress, completer);
+    return completer;
+  }
+
+  // Helper method to process the upload
+  static Completer<SnCloudFile?> _processUpload(
+    UniversalFile fileData,
+    Dio client,
+    String? poolId,
+    Function(double progress, Duration estimate)? onProgress,
+    Completer<SnCloudFile?> completer,
+  ) {
+    String actualMimetype = getMimeType(fileData);
+    late XFile file;
+    String actualFilename = fileData.displayName ?? 'randomly_file';
+    Uint8List? byteData;
+
+    // Handle the data based on what's in the UniversalFile
+    final data = fileData.data;
+
+    if (data is XFile) {
+      file = data;
+      actualFilename = fileData.displayName ?? data.name;
+    } else if (data is List<int> || data is Uint8List) {
+      byteData = data is List<int> ? Uint8List.fromList(data) : data;
+      actualFilename = fileData.displayName ?? 'uploaded_file';
+      file = XFile.fromData(byteData!, mimeType: actualMimetype);
+    } else if (data is SnCloudFile) {
+      // If the file is already on the cloud, just return it
+      completer.complete(data);
+      return completer;
+    } else {
+      completer.completeError(
+        ArgumentError(
+          'Invalid fileData type. Expected data to be XFile, List<int>, Uint8List, or SnCloudFile.',
+        ),
+      );
+      return completer;
+    }
+
+    final uploader = FileUploader(client);
+
+    // Call progress start
+    onProgress?.call(0.0, Duration.zero);
+    uploader
+        .uploadFile(
+          file: file,
+          fileName: actualFilename,
+          contentType: actualMimetype,
+          poolId: poolId,
+        )
+        .then((result) {
+          // Call progress end
+          onProgress?.call(1.0, Duration.zero);
+          completer.complete(result);
+        })
+        .catchError((e) {
+          completer.completeError(e);
+          throw e;
+        });
+
+    return completer;
+  }
+
+  /// Gets the MIME type of a UniversalFile.
+  static String getMimeType(UniversalFile file) {
+    final data = file.data;
+    if (data is XFile) {
+      final mime = data.mimeType;
+      if (mime != null && mime.isNotEmpty) return mime;
+      final filename = file.displayName ?? data.name;
+      final detected = lookupMimeType(filename);
+      if (detected != null) return detected;
+      throw Exception('Cannot detect mime type for file: $filename');
+    } else if (data is List<int> || data is Uint8List) {
+      return 'application/octet-stream';
+    } else if (data is SnCloudFile) {
+      return data.mimeType ?? 'application/octet-stream';
+    } else {
+      throw ArgumentError('Invalid file data type');
+    }
+  }
 }
+
+enum FileUploadMode { generic, mediaSafe }
 
 // Riverpod provider for the FileUploader service
 final fileUploaderProvider = Provider<FileUploader>((ref) {

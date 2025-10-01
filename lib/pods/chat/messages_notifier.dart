@@ -7,11 +7,10 @@ import "package:island/database/drift_db.dart";
 import "package:island/database/message.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
-import "package:island/pods/config.dart";
 import "package:island/pods/database.dart";
 import "package:island/pods/lifecycle.dart";
 import "package:island/pods/network.dart";
-import "package:island/services/file.dart";
+import "package:island/services/file_uploader.dart";
 import "package:island/talker.dart";
 import "package:island/widgets/alert.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
@@ -362,9 +361,6 @@ class MessagesNotifier extends _$MessagesNotifier {
   }) async {
     final nonce = const Uuid().v4();
     talker.log('Sending message with nonce $nonce');
-    final baseUrl = ref.read(serverUrlProvider);
-    final token = await getToken(ref.watch(tokenProvider));
-    if (token == null) throw ArgumentError('Access token is null');
 
     final mockMessage = SnChatMessage(
       id: 'pending_$nonce',
@@ -393,19 +389,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       var cloudAttachments = List.empty(growable: true);
       for (var idx = 0; idx < attachments.length; idx++) {
         final cloudFile =
-            await putFileToCloud(
+            await FileUploader.createCloudFile(
               fileData: attachments[idx],
-              atk: token,
-              baseUrl: baseUrl,
-              filename: attachments[idx].data.name ?? 'Post media',
-              mimetype:
-                  attachments[idx].data.mimeType ??
-                  switch (attachments[idx].type) {
-                    UniversalFileType.image => 'image/unknown',
-                    UniversalFileType.video => 'video/unknown',
-                    UniversalFileType.audio => 'audio/unknown',
-                    UniversalFileType.file => 'application/octet-stream',
-                  },
+              client: ref.read(apiClientProvider),
               onProgress: (progress, _) {
                 _fileUploadProgress[localMessage.id]?[idx] = progress;
                 onProgress?.call(

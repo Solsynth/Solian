@@ -6,9 +6,8 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/models/file.dart';
-import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/services/file.dart';
+import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/attachment_preview.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -42,10 +41,6 @@ class CloudFilePicker extends HookConsumerWidget {
     Future<void> startUpload() async {
       if (files.value.isEmpty) return;
 
-      final baseUrl = ref.read(serverUrlProvider);
-      final token = await getToken(ref.watch(tokenProvider));
-      if (token == null) throw Exception("Unauthorized");
-
       List<SnCloudFile> result = List.empty(growable: true);
 
       uploadProgress.value = 0;
@@ -55,19 +50,9 @@ class CloudFilePicker extends HookConsumerWidget {
           uploadPosition.value = idx;
           final file = files.value[idx];
           final cloudFile =
-              await putFileToCloud(
+              await FileUploader.createCloudFile(
                 fileData: file,
-                atk: token,
-                baseUrl: baseUrl,
-                filename: file.data.name ?? 'Post media',
-                mimetype:
-                    file.data.mimeType ??
-                    switch (file.type) {
-                      UniversalFileType.image => 'image/unknown',
-                      UniversalFileType.video => 'video/unknown',
-                      UniversalFileType.audio => 'audio/unknown',
-                      UniversalFileType.file => 'application/octet-stream',
-                    },
+                client: ref.read(apiClientProvider),
                 onProgress: (progress, _) {
                   uploadProgress.value = progress;
                 },

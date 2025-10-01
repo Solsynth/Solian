@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
+import 'package:island/services/file_uploader.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -107,13 +108,23 @@ class AttachmentPreview extends HookConsumerWidget {
   static final GlobalKey<SensitiveMarksSelectorState> _sensitiveSelectorKey =
       GlobalKey<SensitiveMarksSelectorState>();
 
-  Future<void> _showRenameDialog(BuildContext context, WidgetRef ref) async {
-    final nameController = TextEditingController(text: item.data.name);
+  String _getDisplayName() {
+    return item.displayName ??
+        (item.data is XFile
+            ? (item.data as XFile).name
+            : item.isOnCloud
+            ? item.data.name
+            : '');
+  }
+
+  Future<void> _showRenameSheet(BuildContext context, WidgetRef ref) async {
+    final nameController = TextEditingController(text: _getDisplayName());
     String? errorMessage;
 
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       builder:
           (context) => SheetScaffold(
             heightFactor: 0.6,
@@ -152,22 +163,32 @@ class AttachmentPreview extends HookConsumerWidget {
                           return;
                         }
 
-                        try {
-                          showLoadingModal(context);
-                          final apiClient = ref.watch(apiClientProvider);
-                          await apiClient.patch(
-                            '/drive/files/${item.data.id}/name',
-                            data: jsonEncode(newName),
-                          );
-                          final newData = item.data;
-                          newData.name = newName;
-                          final updatedFile = item.copyWith(data: newData);
-                          onUpdate?.call(item.copyWith(data: updatedFile));
+                        if (item.isOnCloud) {
+                          try {
+                            showLoadingModal(context);
+                            final apiClient = ref.watch(apiClientProvider);
+                            await apiClient.patch(
+                              '/drive/files/${item.data.id}/name',
+                              data: jsonEncode(newName),
+                            );
+                            final newData = item.data;
+                            newData.name = newName;
+                            onUpdate?.call(
+                              item.copyWith(
+                                data: newData,
+                                displayName: newName,
+                              ),
+                            );
+                            if (context.mounted) Navigator.pop(context);
+                          } catch (err) {
+                            showErrorAlert(err);
+                          } finally {
+                            if (context.mounted) hideLoadingModal(context);
+                          }
+                        } else {
+                          // Local file rename
+                          onUpdate?.call(item.copyWith(displayName: newName));
                           if (context.mounted) Navigator.pop(context);
-                        } catch (err) {
-                          showErrorAlert(err);
-                        } finally {
-                          if (context.mounted) hideLoadingModal(context);
                         }
                       },
                       child: Text('rename'.tr()),
@@ -292,6 +313,8 @@ class AttachmentPreview extends HookConsumerWidget {
                         _ => Symbols.insert_drive_file,
                       };
 
+                      final mimeType = FileUploader.getMimeType(item);
+
                       if (item.isOnCloud) {
                         return CloudFileWidget(item: item.data);
                       } else if (item.data is XFile) {
@@ -321,7 +344,12 @@ class AttachmentPreview extends HookConsumerWidget {
                               children: [
                                 Icon(fallbackIcon),
                                 const Gap(6),
-                                Text(file.name, textAlign: TextAlign.center),
+                                Text(
+                                  _getDisplayName(),
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(mimeType, style: TextStyle(fontSize: 10)),
+                                const Gap(1),
                                 FutureBuilder(
                                   future: file.length(),
                                   builder: (context, snapshot) {
@@ -347,6 +375,8 @@ class AttachmentPreview extends HookConsumerWidget {
                               children: [
                                 Icon(fallbackIcon),
                                 const Gap(6),
+                                Text(mimeType, style: TextStyle(fontSize: 10)),
+                                const Gap(1),
                                 Text(
                                   formatFileSize(item.data.length),
                                 ).fontSize(11),
@@ -542,12 +572,20 @@ class AttachmentPreview extends HookConsumerWidget {
                     onUpdate?.call(item.copyWith(data: result));
                   },
                 ),
+              if (item.isOnDevice)
+                MenuAction(
+                  title: 'rename'.tr(),
+                  image: MenuImage.icon(Symbols.edit),
+                  callback: () async {
+                    await _showRenameSheet(context, ref);
+                  },
+                ),
               if (item.isOnCloud)
                 MenuAction(
                   title: 'rename'.tr(),
                   image: MenuImage.icon(Symbols.edit),
                   callback: () async {
-                    await _showRenameDialog(context, ref);
+                    await _showRenameSheet(context, ref);
                   },
                 ),
               if (item.isOnCloud)
