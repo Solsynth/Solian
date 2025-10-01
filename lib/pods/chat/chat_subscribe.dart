@@ -136,6 +136,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
           WebSocketPacket(
             type: 'messages.unsubscribe',
             data: {'chat_room_id': roomId},
+            endpoint: 'sphere',
           ),
         ),
       );

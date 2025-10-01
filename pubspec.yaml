@@ -256,4 +256,6 @@ msix_config:
   identity_name: dev.solian.app
   msix_version: 3.2.0.0
   logo_path: .\assets\icons\icon.png
+  protocol_activation: solian, https
+  app_uri_handler_hosts: solian.app
   capabilities: internetClientServer, location, microphone, webcam
