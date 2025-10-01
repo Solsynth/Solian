@@ -13,6 +13,7 @@ import 'package:island/utils/format.dart';
 import 'package:island/widgets/content/audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:island/widgets/data_saving_gate.dart';
 
@@ -49,72 +50,109 @@ class CloudFileWidget extends HookConsumerWidget {
     var ratio = meta['ratio'] is num ? (meta['ratio'] as num).toDouble() : 1.0;
     if (ratio == 0) ratio = 1.0;
 
-    Widget cloudImage() => UniversalImage(uri: uri, blurHash: blurHash, fit: fit);
+    Widget cloudImage() =>
+        UniversalImage(uri: uri, blurHash: blurHash, fit: fit);
     Widget cloudVideo() => CloudVideoWidget(item: item);
 
     Widget dataPlaceHolder(IconData icon) => _DataSavingPlaceholder(
-          icon: icon,
-          onTap: () {
-            unlocked.value = true;
-          },
-        );
+      icon: icon,
+      onTap: () {
+        unlocked.value = true;
+      },
+    );
+
+    if (item.mimeType == 'application/pdf') {
+      return Stack(
+        children: [
+          SizedBox(height: 600, child: SfPdfViewer.network(uri)),
+          Positioned(
+            top: 8,
+            left: 8,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Symbols.picture_as_pdf, size: 16, color: Colors.white),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'PDF',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     var content = switch (item.mimeType?.split('/').firstOrNull) {
       'image' => AspectRatio(
-          aspectRatio: ratio,
-          child: (useInternalGate && dataSaving && !unlocked.value) ? dataPlaceHolder(Symbols.image) : cloudImage(),
-        ),
+        aspectRatio: ratio,
+        child:
+            (useInternalGate && dataSaving && !unlocked.value)
+                ? dataPlaceHolder(Symbols.image)
+                : cloudImage(),
+      ),
       'video' => AspectRatio(
-          aspectRatio: ratio,
-          child: (useInternalGate && dataSaving && !unlocked.value) ? dataPlaceHolder(Symbols.play_arrow) : cloudVideo(),
-        ),
+        aspectRatio: ratio,
+        child:
+            (useInternalGate && dataSaving && !unlocked.value)
+                ? dataPlaceHolder(Symbols.play_arrow)
+                : cloudVideo(),
+      ),
       'audio' => Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: math.min(360, MediaQuery.of(context).size.width * 0.8),
-            ),
-            child: UniversalAudio(uri: uri, filename: item.name),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: math.min(360, MediaQuery.of(context).size.width * 0.8),
           ),
+          child: UniversalAudio(uri: uri, filename: item.name),
         ),
+      ),
       _ => Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Symbols.insert_drive_file,
-              size: 48,
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Symbols.insert_drive_file,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const Gap(8),
+          Text(
+            item.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            const Gap(8),
-            Text(
-              item.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          ),
+          Text(
+            formatFileSize(item.size),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            Text(
-              formatFileSize(item.size),
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const Gap(8),
-            TextButton.icon(
-              onPressed: () {
-                launchUrlString(
-                  'https://solian.app/files/${item.id}',
-                  mode: LaunchMode.externalApplication,
-                );
-              },
-              icon: const Icon(Symbols.launch),
-              label: Text('openInBrowser').tr(),
-            ),
-          ],
-        ).padding(all: 8),
+          ),
+          const Gap(8),
+          TextButton.icon(
+            onPressed: () {
+              launchUrlString(
+                'https://solian.app/files/${item.id}',
+                mode: LaunchMode.externalApplication,
+              );
+            },
+            icon: const Icon(Symbols.launch),
+            label: Text('openInBrowser').tr(),
+          ),
+        ],
+      ).padding(all: 8),
     };
 
     if (heroTag != null) {
@@ -140,8 +178,11 @@ class _DataSavingPlaceholder extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 36,
-              color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Icon(
+              icon,
+              size: 36,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             const Gap(8),
             Text(
               'dataSavingHint'.tr(),
@@ -154,6 +195,7 @@ class _DataSavingPlaceholder extends StatelessWidget {
     );
   }
 }
+
 class CloudVideoWidget extends HookConsumerWidget {
   final SnCloudFile item;
   const CloudVideoWidget({super.key, required this.item});
@@ -352,35 +394,40 @@ class ProfilePictureWidget extends ConsumerWidget {
     this.fallbackColor,
   });
 
-@override
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
     final String? id = file?.id ?? fileId;
 
-    final fallback = Icon(
-      fallbackIcon ?? Symbols.account_circle,
-      size: radius,
-      color: fallbackColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
-    ).center();
+    final fallback =
+        Icon(
+          fallbackIcon ?? Symbols.account_circle,
+          size: radius,
+          color:
+              fallbackColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
+        ).center();
 
     return ClipRRect(
-      borderRadius: borderRadius == null
-          ? BorderRadius.all(Radius.circular(radius))
-          : BorderRadius.all(Radius.circular(borderRadius!)),
+      borderRadius:
+          borderRadius == null
+              ? BorderRadius.all(Radius.circular(radius))
+              : BorderRadius.all(Radius.circular(borderRadius!)),
       child: Container(
         width: radius * 2,
         height: radius * 2,
         color: Theme.of(context).colorScheme.primaryContainer,
-        child: id == null
-            ? fallback
-            : DataSavingGate(
-                bypass: true,
-                placeholder: fallback,
-                content: () => UniversalImage(
-                  uri: '$serverUrl/drive/files/$id',
-                  fit: BoxFit.cover,
+        child:
+            id == null
+                ? fallback
+                : DataSavingGate(
+                  bypass: true,
+                  placeholder: fallback,
+                  content:
+                      () => UniversalImage(
+                        uri: '$serverUrl/drive/files/$id',
+                        fit: BoxFit.cover,
+                      ),
                 ),
-              ),
       ),
     );
   }

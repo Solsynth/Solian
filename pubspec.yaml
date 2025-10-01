@@ -159,6 +159,7 @@ dependencies:
   talker_dio_logger: ^5.0.1
   talker_riverpod_logger: ^5.0.1
   app_links: ^6.4.1
+  syncfusion_flutter_pdfviewer: ^31.1.21
 
 dev_dependencies:
   flutter_test:

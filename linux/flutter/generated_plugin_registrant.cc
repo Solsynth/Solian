@@ -23,6 +23,7 @@
 #include <screen_retriever_linux/screen_retriever_linux_plugin.h>
 #include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <super_native_extensions/super_native_extensions_plugin.h>
+#include <syncfusion_pdfviewer_linux/syncfusion_pdfviewer_linux_plugin.h>
 #include <tray_manager/tray_manager_plugin.h>
 #include <url_launcher_linux/url_launcher_plugin.h>
 #include <volume_controller/volume_controller_plugin.h>
@@ -80,6 +81,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) super_native_extensions_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "SuperNativeExtensionsPlugin");
   super_native_extensions_plugin_register_with_registrar(super_native_extensions_registrar);
+  g_autoptr(FlPluginRegistrar) syncfusion_pdfviewer_linux_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "SyncfusionPdfviewerLinuxPlugin");
+  syncfusion_pdfviewer_linux_plugin_register_with_registrar(syncfusion_pdfviewer_linux_registrar);
   g_autoptr(FlPluginRegistrar) tray_manager_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "TrayManagerPlugin");
   tray_manager_plugin_register_with_registrar(tray_manager_registrar);

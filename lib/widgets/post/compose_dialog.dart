@@ -13,8 +13,14 @@ import 'package:island/widgets/post/compose_card.dart';
 class PostComposeDialog extends HookConsumerWidget {
   final SnPost? originalPost;
   final PostComposeInitialState? initialState;
+  final bool isBottomSheet;
 
-  const PostComposeDialog({super.key, this.originalPost, this.initialState});
+  const PostComposeDialog({
+    super.key,
+    this.originalPost,
+    this.initialState,
+    this.isBottomSheet = false,
+  });
 
   static Future<SnPost?> show(
     BuildContext context, {
@@ -23,11 +29,14 @@ class PostComposeDialog extends HookConsumerWidget {
   }) {
     return showDialog<SnPost>(
       context: context,
-      useRootNavigator: false,
+      useRootNavigator: true,
       builder:
-          (context) => PostComposeDialog(
-            originalPost: originalPost,
-            initialState: initialState,
+          (context) => Padding(
+            padding: EdgeInsets.all(16),
+            child: PostComposeDialog(
+              originalPost: originalPost,
+              initialState: initialState,
+            ),
           ),
     );
   }
