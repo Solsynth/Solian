@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/main.dart';
+import 'package:island/pods/config.dart';
 import 'package:island/route.dart';
 import 'package:island/models/account.dart';
 import 'package:island/pods/websocket.dart';
@@ -13,6 +14,7 @@ import 'package:island/talker.dart';
 import 'package:island/widgets/app_notification.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:windows_notification/windows_notification.dart' as winty;
 import 'package:windows_notification/notification_message.dart';
 
@@ -30,7 +32,7 @@ void _onAppLifecycleChanged(AppLifecycleState state) {
 Future<void> initializeLocalNotifications() async {
   // Initialize Windows notification for Windows platform
   windowsNotification = winty.WindowsNotification(
-    applicationId: 'dev.solsynth.solian',
+    applicationId: "Solian",
   );
 
   WidgetsBinding.instance.addObserver(
@@ -102,12 +104,46 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         );
 
         if (windowsNotification != null) {
+          final serverUrl = ref.read(serverUrlProvider);
+          final pfp = notification.meta['pfp'] as String?;
+          final img = notification.meta['images'] as List<dynamic>?;
+          final actionUrl = notification.meta['action_uri'] as String?;
+
+          // Download and cache images
+          String? imagePath;
+          String? largeImagePath;
+
+          if (pfp != null) {
+            try {
+              final file = await DefaultCacheManager().getSingleFile(
+                '$serverUrl/drive/files/$pfp',
+              );
+              imagePath = file.path;
+            } catch (e) {
+              talker.error('Failed to download pfp image: $e');
+            }
+          }
+
+          if (img != null && img.isNotEmpty) {
+            try {
+              final file = await DefaultCacheManager().getSingleFile(
+                '$serverUrl/drive/files/${img.firstOrNull}',
+              );
+              largeImagePath = file.path;
+            } catch (e) {
+              talker.error('Failed to download large image: $e');
+            }
+          }
+
           // Use Windows notification for Windows platform
           final notificationMessage = NotificationMessage.fromPluginTemplate(
-            DateTime.now().millisecondsSinceEpoch.toString(), // unique id
+            notification.id, // unique id
             notification.title,
-            notification.content,
-            launch: notification.meta['action_uri'] as String?,
+            [notification.subtitle, notification.content].where((e) => e.isNotEmpty).join('\n'),
+            group: notification.topic,
+            image: imagePath,
+            largeImage: largeImagePath,
+            launch: actionUrl != null ? 'solian://$actionUrl' : null,
           );
           await windowsNotification!.showNotificationPluginTemplate(
             notificationMessage,

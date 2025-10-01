@@ -106,7 +106,7 @@ class CloudFileWidget extends HookConsumerWidget {
             TextButton.icon(
               onPressed: () {
                 launchUrlString(
-                  'https://fs.solian.app/files/${item.id}',
+                  'https://solian.app/files/${item.id}',
                   mode: LaunchMode.externalApplication,
                 );
               },

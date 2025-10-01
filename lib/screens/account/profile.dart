@@ -98,7 +98,7 @@ class _AccountBasicInfo extends StatelessWidget {
             onPressed: () {
               SharePlus.instance.share(
                 ShareParams(
-                  uri: Uri.parse('https://id.solian.app/@${data.name}'),
+                  uri: Uri.parse('https://solian.app/@${data.name}'),
                 ),
               );
             },
