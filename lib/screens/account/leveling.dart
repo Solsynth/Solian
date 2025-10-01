@@ -10,7 +10,6 @@ import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/account/credits.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
 import 'package:island/widgets/account/restore_purchase_sheet.dart';
@@ -259,7 +258,7 @@ class LevelingScreen extends HookConsumerWidget {
                   ),
             ),
 
-            SliverGap(getTabbedPadding(context, vertical: 20).vertical),
+            SliverGap(20),
           ],
         ),
       ),
@@ -270,7 +269,7 @@ class LevelingScreen extends HookConsumerWidget {
     final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
 
     return SingleChildScrollView(
-      padding: getTabbedPadding(context, horizontal: 20, vertical: 20),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

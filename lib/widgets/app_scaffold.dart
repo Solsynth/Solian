@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
+import 'package:island/screens/tabs.dart';
 import 'package:island/services/responsive.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
@@ -292,7 +293,7 @@ class AppScaffold extends HookConsumerWidget {
             endDrawer: endDrawer,
             floatingActionButton: floatingActionButton,
             floatingActionButtonAnimator: floatingActionButtonAnimator,
-            floatingActionButtonLocation: floatingActionButtonLocation,
+            floatingActionButtonLocation: TabbedFabLocation(context),
             onDrawerChanged: onDrawerChanged,
             onEndDrawerChanged: onEndDrawerChanged,
           ),

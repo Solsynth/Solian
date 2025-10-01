@@ -99,57 +99,44 @@ class TabsScreen extends HookConsumerWidget {
       );
     }
 
-    return Container(
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBody: true,
+      body: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+        child: child ?? const SizedBox.shrink(),
+      ),
+      bottomNavigationBar: ConditionalBottomNav(
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
               ),
-              child: child ?? const SizedBox.shrink(),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: ConditionalBottomNav(
-              child: ClipRRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surface.withOpacity(0.8),
-                    ),
-                    child: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: NavigationBar(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        overlayColor: const WidgetStatePropertyAll(
-                          Colors.transparent,
-                        ),
-                        surfaceTintColor: Colors.transparent,
-                        height: 56,
-                        labelBehavior:
-                            NavigationDestinationLabelBehavior.alwaysHide,
-                        selectedIndex: currentIndex,
-                        onDestinationSelected: onDestinationSelected,
-                        destinations: destinations,
-                      ),
-                    ),
+              child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                child: NavigationBar(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  overlayColor: const WidgetStatePropertyAll(
+                    Colors.transparent,
                   ),
+                  surfaceTintColor: Colors.transparent,
+                  height: 56,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+                  selectedIndex: currentIndex,
+                  onDestinationSelected: onDestinationSelected,
+                  destinations: destinations,
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -178,7 +165,6 @@ class TabbedFabLocation extends FloatingActionButtonLocation {
         scaffoldGeometry.floatingActionButtonSize.height -
         scaffoldGeometry.bottomSheetSize.height -
         safeAreaPadding.bottom -
-        (isWideScreen(context) ? 32 : 80) +
         16;
 
     return Offset(fabX, fabY);

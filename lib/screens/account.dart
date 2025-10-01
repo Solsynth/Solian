@@ -66,7 +66,6 @@ class AccountScreen extends HookConsumerWidget {
       isNoBackground: isWide,
       appBar: AppBar(backgroundColor: Colors.transparent, toolbarHeight: 0),
       body: SingleChildScrollView(
-        padding: getTabbedPadding(context),
         child: Column(
           spacing: 4,
           children: <Widget>[

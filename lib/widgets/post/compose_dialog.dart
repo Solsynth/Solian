@@ -5,6 +5,7 @@ import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/services/compose_storage_db.dart';
+import 'package:island/services/responsive.dart';
 import 'package:island/widgets/post/compose_card.dart';
 
 /// A dialog that wraps PostComposeCard for easy use in dialogs.
@@ -36,6 +37,7 @@ class PostComposeDialog extends HookConsumerWidget {
     final drafts = ref.watch(composeStorageNotifierProvider);
     final restoredInitialState = useState<PostComposeInitialState?>(null);
     final prompted = useState(false);
+    final isWide = isWideScreen(context);
 
     useEffect(() {
       if (!prompted.value && originalPost == null && drafts.isNotEmpty) {
@@ -48,9 +50,12 @@ class PostComposeDialog extends HookConsumerWidget {
     }, [drafts, prompted.value]);
 
     return Dialog(
-      insetPadding: const EdgeInsets.all(16),
+      insetPadding: isWide ? const EdgeInsets.all(16) : EdgeInsets.zero,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+        constraints:
+            isWide
+                ? const BoxConstraints(maxWidth: 600)
+                : const BoxConstraints.expand(),
         child: PostComposeCard(
           originalPost: originalPost,
           initialState: restoredInitialState.value ?? initialState,

@@ -4,7 +4,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/account/me/settings_connections.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -50,7 +49,6 @@ class RestorePurchaseSheet extends HookConsumerWidget {
     return SheetScaffold(
       titleText: 'restorePurchase'.tr(),
       child: SingleChildScrollView(
-        padding: getTabbedPadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

@@ -12,13 +12,11 @@ import 'package:island/models/realm.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/file.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/response.dart';
-import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -90,7 +88,6 @@ class RealmListScreen extends HookConsumerWidget {
           });
         },
       ),
-      floatingActionButtonLocation: TabbedFabLocation(context),
       body: ExtendedRefreshIndicator(
         child: realms.when(
           data:
@@ -100,7 +97,7 @@ class RealmListScreen extends HookConsumerWidget {
                     child: ListView.separated(
                       padding: EdgeInsets.only(
                         top: 8,
-                        bottom: getTabbedPadding(context).bottom + 8,
+                        bottom: MediaQuery.of(context).padding.bottom + 8,
                       ),
                       itemCount: value.length,
                       itemBuilder: (context, item) {

@@ -13,7 +13,6 @@ import 'package:island/pods/event_calendar.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
-
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
@@ -21,7 +20,6 @@ import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/compose_card.dart';
 import 'package:island/widgets/post/compose_dialog.dart';
-import 'package:island/screens/tabs.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -231,7 +229,6 @@ class ExploreScreen extends HookConsumerWidget {
                   child: const Icon(Symbols.edit),
                 ),
               ),
-      floatingActionButtonLocation: isWide ? null : TabbedFabLocation(context),
       body:
           isWide
               ? _buildWideBody(
@@ -415,7 +412,6 @@ class ExploreScreen extends HookConsumerWidget {
                       ),
                     ),
                   bodyView,
-                  SliverGap(getTabbedPadding(context).bottom),
                 ],
               ),
             ).padding(horizontal: 8),
