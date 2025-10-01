@@ -100,10 +100,6 @@ Future<ThemeData> createAppTheme(
       opticalSize: 20,
       color: colorScheme.onSurface,
     ),
-    snackBarTheme: SnackBarThemeData(
-      behavior: useM3 ? SnackBarBehavior.floating : SnackBarBehavior.fixed,
-      width: 480,
-    ),
     appBarTheme: AppBarTheme(
       centerTitle: true,
       elevation: hasAppBarTransparent ? 0 : null,

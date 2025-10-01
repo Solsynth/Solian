@@ -15,32 +15,3 @@ bool isWiderScreen(BuildContext context) {
 bool isWidestScreen(BuildContext context) {
   return MediaQuery.of(context).size.width > kWidescreenWidth;
 }
-
-EdgeInsets getTabbedPadding(
-  BuildContext context, {
-  double? horizontal,
-  double? vertical,
-  double? left,
-  double? right,
-  double? top,
-  double? bottom,
-}) {
-  if (isWideScreen(context)) {
-    return EdgeInsets.only(
-      left: left ?? horizontal ?? 0,
-      right: right ?? horizontal ?? 0,
-      top: top ?? vertical ?? 0,
-      bottom: bottom ?? vertical ?? 0,
-    );
-  }
-  final effectiveBottom = bottom ?? vertical;
-  return EdgeInsets.only(
-    left: left ?? horizontal ?? 0,
-    right: right ?? horizontal ?? 0,
-    top: top ?? vertical ?? 0,
-    bottom:
-        effectiveBottom != null
-            ? effectiveBottom + MediaQuery.of(context).padding.bottom + 56
-            : MediaQuery.of(context).padding.bottom + 56,
-  );
-}

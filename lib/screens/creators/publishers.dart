@@ -15,7 +15,6 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/services/file.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -191,7 +190,7 @@ class EditPublisherScreen extends HookConsumerWidget {
         leading: const PageBackButton(),
       ),
       body: SingleChildScrollView(
-        padding: getTabbedPadding(context, bottom: 16),
+        padding: EdgeInsets.only(bottom: 16),
         child: Column(
           children: [
             RealmSelectionDropdown(
