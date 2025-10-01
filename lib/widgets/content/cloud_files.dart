@@ -8,6 +8,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
 import 'package:island/utils/format.dart';
 import 'package:island/widgets/content/audio.dart';
@@ -88,6 +89,36 @@ class CloudFileWidget extends HookConsumerWidget {
             ),
           ),
         ],
+      );
+    }
+
+    if (item.mimeType?.startsWith('text/') == true) {
+      return SizedBox(
+        height: 400,
+        child: FutureBuilder<String>(
+          future: ref
+              .read(apiClientProvider)
+              .get(uri)
+              .then((response) => response.data as String),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text('Error loading text: ${snapshot.error}'),
+              );
+            } else if (snapshot.hasData) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: SelectableText(
+                  snapshot.data!,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+                ),
+              );
+            }
+            return const Center(child: Text('No content'));
+          },
+        ),
       );
     }
 
