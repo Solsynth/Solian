@@ -275,6 +275,7 @@ class ChatInput extends HookConsumerWidget {
                   ),
                 ),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -353,6 +354,7 @@ class ChatInput extends HookConsumerWidget {
                       controller: messageController,
                       keyboardType: TextInputType.multiline,
                       decoration: InputDecoration(
+                        hintMaxLines: 1,
                         hintText:
                             (chatRoom.type == 1 && chatRoom.name == null)
                                 ? 'chatDirectMessageHint'.tr(
@@ -367,7 +369,7 @@ class ChatInput extends HookConsumerWidget {
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
-                          vertical: 4,
+                          vertical: 12,
                         ),
                         counterText:
                             messageController.text.length > 1024

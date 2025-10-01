@@ -120,7 +120,7 @@ class LevelingProgressCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Tooltip(
-                      message: '${progress.toStringAsFixed(1)}%',
+                      message: '${(progress * 100).toStringAsFixed(1)}%',
                       child: LinearProgressIndicator(
                         minHeight: progressHeight,
                         value: progress,
