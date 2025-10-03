@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
@@ -10,9 +12,11 @@ import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/time.dart';
+import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/account/restore_purchase_sheet.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/payment/payment_overlay.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -67,6 +71,239 @@ Future<SnWalletGift> accountGift(Ref ref, String giftId) async {
   return SnWalletGift.fromJson(resp.data);
 }
 
+class PurchaseGiftSheet extends StatefulWidget {
+  const PurchaseGiftSheet({super.key});
+
+  @override
+  State<PurchaseGiftSheet> createState() => _PurchaseGiftSheetState();
+}
+
+class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
+  SnAccount? selectedRecipient;
+  final messageController = TextEditingController();
+
+  @override
+  void dispose() {
+    messageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SheetScaffold(
+      titleText: 'Purchase Gift',
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Recipient Selection Section
+                  Text(
+                    'Select Recipient',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const Gap(8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withOpacity(0.2),
+                      ),
+                    ),
+                    child:
+                        selectedRecipient != null
+                            ? ListTile(
+                              contentPadding: const EdgeInsets.only(
+                                left: 20,
+                                right: 12,
+                              ),
+                              leading: ProfilePictureWidget(
+                                file: selectedRecipient!.profile.picture,
+                              ),
+                              title: Text(
+                                selectedRecipient!.nick,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Selected recipient',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              trailing: IconButton(
+                                onPressed:
+                                    () => setState(
+                                      () => selectedRecipient = null,
+                                    ),
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                tooltip: 'Clear selection',
+                              ),
+                            )
+                            : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.person_add_outlined,
+                                  size: 48,
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                ),
+                                const Gap(8),
+                                Text(
+                                  'No recipient selected',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.copyWith(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const Gap(4),
+                                Text(
+                                  'This will be an open gift',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodySmall?.copyWith(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ).padding(vertical: 32),
+                  ),
+                  const Gap(12),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final recipient = await showModalBottomSheet<SnAccount>(
+                        context: context,
+                        useRootNavigator: true,
+                        isScrollControlled: true,
+                        builder: (context) => const AccountPickerSheet(),
+                      );
+                      if (recipient != null) {
+                        setState(() => selectedRecipient = recipient);
+                      }
+                    },
+                    icon: const Icon(Icons.person_search),
+                    label: Text(
+                      selectedRecipient != null
+                          ? 'Change Recipient'
+                          : 'Select Recipient',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                  ),
+
+                  const Gap(24),
+
+                  // Message Section
+                  Text(
+                    'Add Message',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const Gap(8),
+                  TextField(
+                    controller: messageController,
+                    decoration: InputDecoration(
+                      labelText: 'Personal Message',
+                      hintText: 'Add a personal message for the recipient',
+                      alignLabelWithHint: true,
+                      border: OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    maxLines: 3,
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Action Buttons
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed:
+                        () => Navigator.of(context).pop(<String, dynamic>{
+                          'recipient': null,
+                          'message':
+                              messageController.text.trim().isEmpty
+                                  ? null
+                                  : messageController.text.trim(),
+                        }),
+                    child: Text('Skip Recipient'),
+                  ),
+                ),
+                const Gap(8),
+                Expanded(
+                  child: FilledButton(
+                    onPressed:
+                        () => Navigator.of(context).pop(<String, dynamic>{
+                          'recipient': selectedRecipient,
+                          'message':
+                              messageController.text.trim().isEmpty
+                                  ? null
+                                  : messageController.text.trim(),
+                        }),
+                    child: Text('Purchase Gift'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class StellarProgramTab extends HookConsumerWidget {
   const StellarProgramTab({super.key});
 
@@ -75,7 +312,7 @@ class StellarProgramTab extends HookConsumerWidget {
     final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
 
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -662,6 +899,8 @@ class StellarProgramTab extends HookConsumerWidget {
   }
 
   Widget _buildGiftRedeemSection(BuildContext context, WidgetRef ref) {
+    final codeController = useTextEditingController();
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -680,7 +919,9 @@ class StellarProgramTab extends HookConsumerWidget {
           ),
           const Gap(8),
           TextField(
+            controller: codeController,
             decoration: InputDecoration(
+              isDense: true,
               hintText: 'Enter gift code',
               border: OutlineInputBorder(),
               enabledBorder: OutlineInputBorder(
@@ -695,10 +936,12 @@ class StellarProgramTab extends HookConsumerWidget {
               ),
               suffixIcon: IconButton(
                 icon: Icon(Icons.redeem),
-                onPressed: () => _showRedeemGiftDialog(context, ref),
+                onPressed:
+                    () => _redeemGift(context, ref, codeController.text.trim()),
               ),
             ),
-            onSubmitted: (code) => _redeemGift(context, ref, code),
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            onSubmitted: (code) => _redeemGift(context, ref, code.trim()),
           ),
         ],
       ),
@@ -797,31 +1040,58 @@ class StellarProgramTab extends HookConsumerWidget {
         children: [
           Row(
             children: [
-              Text(
-                'Code: ${gift.giftCode}',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      'Code: ',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Expanded(
+                      child: Text(
+                        gift.giftCode,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  statusText,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Row(
+                  spacing: 6,
+                  children: [
+                    Text(
+                      statusText,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (gift.status == 2 && gift.redeemer != null)
+                      AccountPfcGestureDetector(
+                        uname: gift.redeemer!.name,
+                        child: ProfilePictureWidget(
+                          file: gift.redeemer!.profile.picture,
+                          radius: 8,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
           ),
           const Gap(4),
           Text(
-            'Subscription: ${gift.subscriptionIdentifier}',
+            'Subscription: ${_getMembershipTierName(gift.subscriptionIdentifier)}',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           if (gift.recipient != null && isSent) ...[
@@ -845,21 +1115,40 @@ class StellarProgramTab extends HookConsumerWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
-          if (canCancel) ...[
-            const Gap(8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: OutlinedButton.icon(
-                onPressed: () => _cancelGift(context, ref, gift),
-                icon: const Icon(Icons.cancel, size: 16),
-                label: const Text('Cancel'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                  side: BorderSide(color: Theme.of(context).colorScheme.error),
+          const Gap(8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            spacing: 8,
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: gift.giftCode));
+                  if (context.mounted) {
+                    showSnackBar('Gift code copied to clipboard');
+                  }
+                },
+                icon: const Icon(Icons.copy, size: 16),
+                label: Text('Copy'),
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
                 ),
               ),
-            ),
-          ],
+              if (canCancel) ...[
+                OutlinedButton.icon(
+                  onPressed: () => _cancelGift(context, ref, gift),
+                  icon: const Icon(Icons.cancel, size: 16),
+                  label: const Text('Cancel'),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
@@ -904,101 +1193,16 @@ class StellarProgramTab extends HookConsumerWidget {
     WidgetRef ref,
     String subscriptionId,
   ) async {
-    final messageController = TextEditingController();
-
-    final recipient = await showModalBottomSheet<SnAccount>(
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
       isScrollControlled: true,
       useRootNavigator: true,
       context: context,
-      builder:
-          (context) => SheetScaffold(
-            titleText: 'Select Recipient (Optional)',
-            child: Column(
-              children: [
-                Expanded(child: AccountPickerSheet()),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text('Skip (Open Gift)'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+      builder: (context) => const PurchaseGiftSheet(),
     );
 
-    if (!context.mounted) return;
-
-    final message = await showModalBottomSheet<String>(
-      isScrollControlled: true,
-      useRootNavigator: true,
-      context: context,
-      builder:
-          (context) => SheetScaffold(
-            titleText: 'Add Message (Optional)',
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: messageController,
-                    decoration: InputDecoration(
-                      labelText: 'Message',
-                      hintText: 'Add a personal message',
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                    maxLines: 3,
-                    autofocus: true,
-                  ),
-                  const Gap(16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text('Skip'),
-                        ),
-                      ),
-                      const Gap(8),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed:
-                              () => Navigator.of(context).pop(
-                                messageController.text.trim().isEmpty
-                                    ? null
-                                    : messageController.text.trim(),
-                              ),
-                          child: Text('Add Message'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
-
-    if (context.mounted) {
+    if (result != null && context.mounted) {
+      final recipient = result['recipient'] as SnAccount?;
+      final message = result['message'] as String?;
       await _purchaseGift(context, ref, subscriptionId, recipient?.id, message);
     }
   }
@@ -1056,33 +1260,86 @@ class StellarProgramTab extends HookConsumerWidget {
 
         if (context.mounted) hideLoadingModal(context);
 
-        // Show gift code dialog
+        // Show gift code bottom sheet
         if (context.mounted) {
-          await showDialog(
+          await showModalBottomSheet(
             context: context,
             builder:
-                (context) => AlertDialog(
-                  title: Text('Gift Purchased!'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Gift Code: ${updatedGift.giftCode}'),
-                      const Gap(8),
-                      Text(
-                        'Share this code with the recipient to redeem the gift.',
-                      ),
-                      if (updatedGift.recipientId == null) ...[
-                        const Gap(8),
-                        Text('This is an open gift that anyone can redeem.'),
+                (context) => SheetScaffold(
+                  titleText: 'Gift Purchased!',
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outline.withOpacity(0.2),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  updatedGift.giftCode,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () async {
+                                  await Clipboard.setData(
+                                    ClipboardData(text: updatedGift.giftCode),
+                                  );
+                                  if (context.mounted) {
+                                    showSnackBar(
+                                      'Gift code copied to clipboard',
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.copy),
+                                tooltip: 'Copy gift code',
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Gap(16),
+                        Text(
+                          'Share this code with the recipient to redeem the gift.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        if (updatedGift.recipientId == null) ...[
+                          const Gap(8),
+                          Text(
+                            'This is an open gift that anyone can redeem.',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                        const Gap(24),
+                        FilledButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('OK'),
+                        ),
                       ],
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('OK'),
                     ),
-                  ],
+                  ),
                 ),
           );
         }
@@ -1093,57 +1350,6 @@ class StellarProgramTab extends HookConsumerWidget {
       showErrorAlert(err);
     } finally {
       if (context.mounted) hideLoadingModal(context);
-    }
-  }
-
-  Future<void> _showRedeemGiftDialog(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final codeController = TextEditingController();
-
-    final result = await showDialog<String>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Redeem Gift'),
-            content: TextField(
-              controller: codeController,
-              decoration: InputDecoration(
-                labelText: 'Gift Code',
-                hintText: 'Enter the gift code',
-                border: OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withOpacity(0.2),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed:
-                    () => Navigator.of(context).pop(codeController.text.trim()),
-                child: Text('Redeem'),
-              ),
-            ],
-          ),
-    );
-
-    if (result != null && result.isNotEmpty && context.mounted) {
-      await _redeemGift(context, ref, result);
     }
   }
 
