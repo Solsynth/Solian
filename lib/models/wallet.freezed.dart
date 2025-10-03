@@ -2256,4 +2256,639 @@ $SnWalletSubscriptionCopyWith<$Res>? get subscription {
 }
 }
 
+
+/// @nodoc
+mixin _$SnWalletFund {
+
+ String get id; String get currency; double get totalAmount; int get splitType;// 0: even, 1: random
+ int get status;// 0: created, 1: partially claimed, 2: fully claimed, 3: expired
+ String? get message; String get creatorAccountId; SnAccount? get creatorAccount; DateTime get expiredAt; List<SnWalletFundRecipient> get recipients; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnWalletFund
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnWalletFundCopyWith<SnWalletFund> get copyWith => _$SnWalletFundCopyWithImpl<SnWalletFund>(this as SnWalletFund, _$identity);
+
+  /// Serializes this SnWalletFund to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletFund&&(identical(other.id, id) || other.id == id)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&(identical(other.status, status) || other.status == status)&&(identical(other.message, message) || other.message == message)&&(identical(other.creatorAccountId, creatorAccountId) || other.creatorAccountId == creatorAccountId)&&(identical(other.creatorAccount, creatorAccount) || other.creatorAccount == creatorAccount)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&const DeepCollectionEquality().equals(other.recipients, recipients)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,currency,totalAmount,splitType,status,message,creatorAccountId,creatorAccount,expiredAt,const DeepCollectionEquality().hash(recipients),createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnWalletFund(id: $id, currency: $currency, totalAmount: $totalAmount, splitType: $splitType, status: $status, message: $message, creatorAccountId: $creatorAccountId, creatorAccount: $creatorAccount, expiredAt: $expiredAt, recipients: $recipients, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnWalletFundCopyWith<$Res>  {
+  factory $SnWalletFundCopyWith(SnWalletFund value, $Res Function(SnWalletFund) _then) = _$SnWalletFundCopyWithImpl;
+@useResult
+$Res call({
+ String id, String currency, double totalAmount, int splitType, int status, String? message, String creatorAccountId, SnAccount? creatorAccount, DateTime expiredAt, List<SnWalletFundRecipient> recipients, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+$SnAccountCopyWith<$Res>? get creatorAccount;
+
+}
+/// @nodoc
+class _$SnWalletFundCopyWithImpl<$Res>
+    implements $SnWalletFundCopyWith<$Res> {
+  _$SnWalletFundCopyWithImpl(this._self, this._then);
+
+  final SnWalletFund _self;
+  final $Res Function(SnWalletFund) _then;
+
+/// Create a copy of SnWalletFund
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? currency = null,Object? totalAmount = null,Object? splitType = null,Object? status = null,Object? message = freezed,Object? creatorAccountId = null,Object? creatorAccount = freezed,Object? expiredAt = null,Object? recipients = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
+as String,totalAmount: null == totalAmount ? _self.totalAmount : totalAmount // ignore: cast_nullable_to_non_nullable
+as double,splitType: null == splitType ? _self.splitType : splitType // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as int,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,creatorAccountId: null == creatorAccountId ? _self.creatorAccountId : creatorAccountId // ignore: cast_nullable_to_non_nullable
+as String,creatorAccount: freezed == creatorAccount ? _self.creatorAccount : creatorAccount // ignore: cast_nullable_to_non_nullable
+as SnAccount?,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime,recipients: null == recipients ? _self.recipients : recipients // ignore: cast_nullable_to_non_nullable
+as List<SnWalletFundRecipient>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of SnWalletFund
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get creatorAccount {
+    if (_self.creatorAccount == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.creatorAccount!, (value) {
+    return _then(_self.copyWith(creatorAccount: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnWalletFund].
+extension SnWalletFundPatterns on SnWalletFund {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnWalletFund value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnWalletFund() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnWalletFund value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletFund():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnWalletFund value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletFund() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String currency,  double totalAmount,  int splitType,  int status,  String? message,  String creatorAccountId,  SnAccount? creatorAccount,  DateTime expiredAt,  List<SnWalletFundRecipient> recipients,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnWalletFund() when $default != null:
+return $default(_that.id,_that.currency,_that.totalAmount,_that.splitType,_that.status,_that.message,_that.creatorAccountId,_that.creatorAccount,_that.expiredAt,_that.recipients,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String currency,  double totalAmount,  int splitType,  int status,  String? message,  String creatorAccountId,  SnAccount? creatorAccount,  DateTime expiredAt,  List<SnWalletFundRecipient> recipients,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletFund():
+return $default(_that.id,_that.currency,_that.totalAmount,_that.splitType,_that.status,_that.message,_that.creatorAccountId,_that.creatorAccount,_that.expiredAt,_that.recipients,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String currency,  double totalAmount,  int splitType,  int status,  String? message,  String creatorAccountId,  SnAccount? creatorAccount,  DateTime expiredAt,  List<SnWalletFundRecipient> recipients,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletFund() when $default != null:
+return $default(_that.id,_that.currency,_that.totalAmount,_that.splitType,_that.status,_that.message,_that.creatorAccountId,_that.creatorAccount,_that.expiredAt,_that.recipients,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnWalletFund implements SnWalletFund {
+  const _SnWalletFund({required this.id, required this.currency, required this.totalAmount, required this.splitType, required this.status, required this.message, required this.creatorAccountId, required this.creatorAccount, required this.expiredAt, required final  List<SnWalletFundRecipient> recipients, required this.createdAt, required this.updatedAt, required this.deletedAt}): _recipients = recipients;
+  factory _SnWalletFund.fromJson(Map<String, dynamic> json) => _$SnWalletFundFromJson(json);
+
+@override final  String id;
+@override final  String currency;
+@override final  double totalAmount;
+@override final  int splitType;
+// 0: even, 1: random
+@override final  int status;
+// 0: created, 1: partially claimed, 2: fully claimed, 3: expired
+@override final  String? message;
+@override final  String creatorAccountId;
+@override final  SnAccount? creatorAccount;
+@override final  DateTime expiredAt;
+ final  List<SnWalletFundRecipient> _recipients;
+@override List<SnWalletFundRecipient> get recipients {
+  if (_recipients is EqualUnmodifiableListView) return _recipients;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_recipients);
+}
+
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnWalletFund
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnWalletFundCopyWith<_SnWalletFund> get copyWith => __$SnWalletFundCopyWithImpl<_SnWalletFund>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnWalletFundToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletFund&&(identical(other.id, id) || other.id == id)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&(identical(other.status, status) || other.status == status)&&(identical(other.message, message) || other.message == message)&&(identical(other.creatorAccountId, creatorAccountId) || other.creatorAccountId == creatorAccountId)&&(identical(other.creatorAccount, creatorAccount) || other.creatorAccount == creatorAccount)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&const DeepCollectionEquality().equals(other._recipients, _recipients)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,currency,totalAmount,splitType,status,message,creatorAccountId,creatorAccount,expiredAt,const DeepCollectionEquality().hash(_recipients),createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnWalletFund(id: $id, currency: $currency, totalAmount: $totalAmount, splitType: $splitType, status: $status, message: $message, creatorAccountId: $creatorAccountId, creatorAccount: $creatorAccount, expiredAt: $expiredAt, recipients: $recipients, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnWalletFundCopyWith<$Res> implements $SnWalletFundCopyWith<$Res> {
+  factory _$SnWalletFundCopyWith(_SnWalletFund value, $Res Function(_SnWalletFund) _then) = __$SnWalletFundCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String currency, double totalAmount, int splitType, int status, String? message, String creatorAccountId, SnAccount? creatorAccount, DateTime expiredAt, List<SnWalletFundRecipient> recipients, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+@override $SnAccountCopyWith<$Res>? get creatorAccount;
+
+}
+/// @nodoc
+class __$SnWalletFundCopyWithImpl<$Res>
+    implements _$SnWalletFundCopyWith<$Res> {
+  __$SnWalletFundCopyWithImpl(this._self, this._then);
+
+  final _SnWalletFund _self;
+  final $Res Function(_SnWalletFund) _then;
+
+/// Create a copy of SnWalletFund
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? currency = null,Object? totalAmount = null,Object? splitType = null,Object? status = null,Object? message = freezed,Object? creatorAccountId = null,Object? creatorAccount = freezed,Object? expiredAt = null,Object? recipients = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnWalletFund(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
+as String,totalAmount: null == totalAmount ? _self.totalAmount : totalAmount // ignore: cast_nullable_to_non_nullable
+as double,splitType: null == splitType ? _self.splitType : splitType // ignore: cast_nullable_to_non_nullable
+as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as int,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,creatorAccountId: null == creatorAccountId ? _self.creatorAccountId : creatorAccountId // ignore: cast_nullable_to_non_nullable
+as String,creatorAccount: freezed == creatorAccount ? _self.creatorAccount : creatorAccount // ignore: cast_nullable_to_non_nullable
+as SnAccount?,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime,recipients: null == recipients ? _self._recipients : recipients // ignore: cast_nullable_to_non_nullable
+as List<SnWalletFundRecipient>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of SnWalletFund
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get creatorAccount {
+    if (_self.creatorAccount == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.creatorAccount!, (value) {
+    return _then(_self.copyWith(creatorAccount: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$SnWalletFundRecipient {
+
+ String get id; String get fundId; String get recipientAccountId; SnAccount? get recipientAccount; double get amount; bool get isReceived; DateTime? get receivedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnWalletFundRecipient
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnWalletFundRecipientCopyWith<SnWalletFundRecipient> get copyWith => _$SnWalletFundRecipientCopyWithImpl<SnWalletFundRecipient>(this as SnWalletFundRecipient, _$identity);
+
+  /// Serializes this SnWalletFundRecipient to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletFundRecipient&&(identical(other.id, id) || other.id == id)&&(identical(other.fundId, fundId) || other.fundId == fundId)&&(identical(other.recipientAccountId, recipientAccountId) || other.recipientAccountId == recipientAccountId)&&(identical(other.recipientAccount, recipientAccount) || other.recipientAccount == recipientAccount)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.isReceived, isReceived) || other.isReceived == isReceived)&&(identical(other.receivedAt, receivedAt) || other.receivedAt == receivedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,fundId,recipientAccountId,recipientAccount,amount,isReceived,receivedAt,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnWalletFundRecipient(id: $id, fundId: $fundId, recipientAccountId: $recipientAccountId, recipientAccount: $recipientAccount, amount: $amount, isReceived: $isReceived, receivedAt: $receivedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnWalletFundRecipientCopyWith<$Res>  {
+  factory $SnWalletFundRecipientCopyWith(SnWalletFundRecipient value, $Res Function(SnWalletFundRecipient) _then) = _$SnWalletFundRecipientCopyWithImpl;
+@useResult
+$Res call({
+ String id, String fundId, String recipientAccountId, SnAccount? recipientAccount, double amount, bool isReceived, DateTime? receivedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+$SnAccountCopyWith<$Res>? get recipientAccount;
+
+}
+/// @nodoc
+class _$SnWalletFundRecipientCopyWithImpl<$Res>
+    implements $SnWalletFundRecipientCopyWith<$Res> {
+  _$SnWalletFundRecipientCopyWithImpl(this._self, this._then);
+
+  final SnWalletFundRecipient _self;
+  final $Res Function(SnWalletFundRecipient) _then;
+
+/// Create a copy of SnWalletFundRecipient
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fundId = null,Object? recipientAccountId = null,Object? recipientAccount = freezed,Object? amount = null,Object? isReceived = null,Object? receivedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,fundId: null == fundId ? _self.fundId : fundId // ignore: cast_nullable_to_non_nullable
+as String,recipientAccountId: null == recipientAccountId ? _self.recipientAccountId : recipientAccountId // ignore: cast_nullable_to_non_nullable
+as String,recipientAccount: freezed == recipientAccount ? _self.recipientAccount : recipientAccount // ignore: cast_nullable_to_non_nullable
+as SnAccount?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as double,isReceived: null == isReceived ? _self.isReceived : isReceived // ignore: cast_nullable_to_non_nullable
+as bool,receivedAt: freezed == receivedAt ? _self.receivedAt : receivedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of SnWalletFundRecipient
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get recipientAccount {
+    if (_self.recipientAccount == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.recipientAccount!, (value) {
+    return _then(_self.copyWith(recipientAccount: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnWalletFundRecipient].
+extension SnWalletFundRecipientPatterns on SnWalletFundRecipient {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnWalletFundRecipient value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnWalletFundRecipient() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnWalletFundRecipient value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletFundRecipient():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnWalletFundRecipient value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletFundRecipient() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fundId,  String recipientAccountId,  SnAccount? recipientAccount,  double amount,  bool isReceived,  DateTime? receivedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnWalletFundRecipient() when $default != null:
+return $default(_that.id,_that.fundId,_that.recipientAccountId,_that.recipientAccount,_that.amount,_that.isReceived,_that.receivedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fundId,  String recipientAccountId,  SnAccount? recipientAccount,  double amount,  bool isReceived,  DateTime? receivedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletFundRecipient():
+return $default(_that.id,_that.fundId,_that.recipientAccountId,_that.recipientAccount,_that.amount,_that.isReceived,_that.receivedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fundId,  String recipientAccountId,  SnAccount? recipientAccount,  double amount,  bool isReceived,  DateTime? receivedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletFundRecipient() when $default != null:
+return $default(_that.id,_that.fundId,_that.recipientAccountId,_that.recipientAccount,_that.amount,_that.isReceived,_that.receivedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnWalletFundRecipient implements SnWalletFundRecipient {
+  const _SnWalletFundRecipient({required this.id, required this.fundId, required this.recipientAccountId, required this.recipientAccount, required this.amount, required this.isReceived, required this.receivedAt, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  factory _SnWalletFundRecipient.fromJson(Map<String, dynamic> json) => _$SnWalletFundRecipientFromJson(json);
+
+@override final  String id;
+@override final  String fundId;
+@override final  String recipientAccountId;
+@override final  SnAccount? recipientAccount;
+@override final  double amount;
+@override final  bool isReceived;
+@override final  DateTime? receivedAt;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnWalletFundRecipient
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnWalletFundRecipientCopyWith<_SnWalletFundRecipient> get copyWith => __$SnWalletFundRecipientCopyWithImpl<_SnWalletFundRecipient>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnWalletFundRecipientToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletFundRecipient&&(identical(other.id, id) || other.id == id)&&(identical(other.fundId, fundId) || other.fundId == fundId)&&(identical(other.recipientAccountId, recipientAccountId) || other.recipientAccountId == recipientAccountId)&&(identical(other.recipientAccount, recipientAccount) || other.recipientAccount == recipientAccount)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.isReceived, isReceived) || other.isReceived == isReceived)&&(identical(other.receivedAt, receivedAt) || other.receivedAt == receivedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,fundId,recipientAccountId,recipientAccount,amount,isReceived,receivedAt,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnWalletFundRecipient(id: $id, fundId: $fundId, recipientAccountId: $recipientAccountId, recipientAccount: $recipientAccount, amount: $amount, isReceived: $isReceived, receivedAt: $receivedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnWalletFundRecipientCopyWith<$Res> implements $SnWalletFundRecipientCopyWith<$Res> {
+  factory _$SnWalletFundRecipientCopyWith(_SnWalletFundRecipient value, $Res Function(_SnWalletFundRecipient) _then) = __$SnWalletFundRecipientCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String fundId, String recipientAccountId, SnAccount? recipientAccount, double amount, bool isReceived, DateTime? receivedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+@override $SnAccountCopyWith<$Res>? get recipientAccount;
+
+}
+/// @nodoc
+class __$SnWalletFundRecipientCopyWithImpl<$Res>
+    implements _$SnWalletFundRecipientCopyWith<$Res> {
+  __$SnWalletFundRecipientCopyWithImpl(this._self, this._then);
+
+  final _SnWalletFundRecipient _self;
+  final $Res Function(_SnWalletFundRecipient) _then;
+
+/// Create a copy of SnWalletFundRecipient
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fundId = null,Object? recipientAccountId = null,Object? recipientAccount = freezed,Object? amount = null,Object? isReceived = null,Object? receivedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnWalletFundRecipient(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,fundId: null == fundId ? _self.fundId : fundId // ignore: cast_nullable_to_non_nullable
+as String,recipientAccountId: null == recipientAccountId ? _self.recipientAccountId : recipientAccountId // ignore: cast_nullable_to_non_nullable
+as String,recipientAccount: freezed == recipientAccount ? _self.recipientAccount : recipientAccount // ignore: cast_nullable_to_non_nullable
+as SnAccount?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as double,isReceived: null == isReceived ? _self.isReceived : isReceived // ignore: cast_nullable_to_non_nullable
+as bool,receivedAt: freezed == receivedAt ? _self.receivedAt : receivedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of SnWalletFundRecipient
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get recipientAccount {
+    if (_self.recipientAccount == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.recipientAccount!, (value) {
+    return _then(_self.copyWith(recipientAccount: value));
+  });
+}
+}
+
 // dart format on

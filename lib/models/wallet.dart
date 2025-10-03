@@ -151,3 +151,45 @@ sealed class SnWalletGift with _$SnWalletGift {
   factory SnWalletGift.fromJson(Map<String, dynamic> json) =>
       _$SnWalletGiftFromJson(json);
 }
+
+@freezed
+sealed class SnWalletFund with _$SnWalletFund {
+  const factory SnWalletFund({
+    required String id,
+    required String currency,
+    required double totalAmount,
+    required int splitType, // 0: even, 1: random
+    required int
+    status, // 0: created, 1: partially claimed, 2: fully claimed, 3: expired
+    required String? message,
+    required String creatorAccountId,
+    required SnAccount? creatorAccount,
+    required DateTime expiredAt,
+    required List<SnWalletFundRecipient> recipients,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnWalletFund;
+
+  factory SnWalletFund.fromJson(Map<String, dynamic> json) =>
+      _$SnWalletFundFromJson(json);
+}
+
+@freezed
+sealed class SnWalletFundRecipient with _$SnWalletFundRecipient {
+  const factory SnWalletFundRecipient({
+    required String id,
+    required String fundId,
+    required String recipientAccountId,
+    required SnAccount? recipientAccount,
+    required double amount,
+    required bool isReceived,
+    required DateTime? receivedAt,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnWalletFundRecipient;
+
+  factory SnWalletFundRecipient.fromJson(Map<String, dynamic> json) =>
+      _$SnWalletFundRecipientFromJson(json);
+}

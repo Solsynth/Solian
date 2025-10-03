@@ -27,7 +27,7 @@ final accountStellarSubscriptionProvider =
 // ignore: unused_element
 typedef AccountStellarSubscriptionRef =
     AutoDisposeFutureProviderRef<SnWalletSubscription?>;
-String _$accountSentGiftsHash() => r'32a282ec863023c749d81423704787943110a188';
+String _$accountSentGiftsHash() => r'36fdf4e2be3805e8501cca1657d8be27aa891ef4';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -187,7 +187,7 @@ class _AccountSentGiftsProviderElement
 }
 
 String _$accountReceivedGiftsHash() =>
-    r'7c0dfcc109f6f50ec326dd64c2d944aaccd9f775';
+    r'15f6f7e27aa0277b67b02dd72875ba3efd147dfd';
 
 /// See also [accountReceivedGifts].
 @ProviderFor(accountReceivedGifts)
@@ -328,7 +328,7 @@ class _AccountReceivedGiftsProviderElement
   int get take => (origin as AccountReceivedGiftsProvider).take;
 }
 
-String _$accountGiftHash() => r'7169d355f78e4fe3bf6b3ff444350faa46a0d216';
+String _$accountGiftHash() => r'598c5071fff3cc1dd7eb867df48d69fef04543db';
 
 /// See also [accountGift].
 @ProviderFor(accountGift)

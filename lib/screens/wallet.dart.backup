@@ -19,7 +19,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 
 part 'wallet.g.dart';
 
@@ -441,105 +440,6 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
     );
   }
 
-  Future<String?> _showPinVerificationDialog(BuildContext context) async {
-    String enteredPin = '';
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      useSafeArea: true,
-      builder:
-          (context) => Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: SheetScaffold(
-                titleText: 'enterPinToConfirm'.tr(),
-                heightFactor: 0.5,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'enterPinToConfirm'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w500),
-                              textAlign: TextAlign.center,
-                            ),
-                            const Gap(24),
-                            OtpTextField(
-                              numberOfFields: 6,
-                              borderColor:
-                                  Theme.of(context).colorScheme.outline,
-                              focusedBorderColor:
-                                  Theme.of(context).colorScheme.primary,
-                              showFieldAsBox: true,
-                              obscureText: true,
-                              keyboardType: TextInputType.number,
-                              fieldWidth: 48,
-                              fieldHeight: 56,
-                              borderRadius: BorderRadius.circular(8),
-                              borderWidth: 1,
-                              textStyle: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                              onSubmit: (pin) {
-                                enteredPin = pin;
-                                Navigator.of(context).pop(pin);
-                              },
-                              onCodeChanged: (String code) {
-                                enteredPin = code;
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Gap(24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Text('cancel'.tr()),
-                            ),
-                          ),
-                          if (enteredPin.length == 6) ...[
-                            const Gap(12),
-                            Expanded(
-                              child: FilledButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop(enteredPin);
-                                },
-                                child: Text('confirm'.tr()),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-    );
-
-    return enteredPin.isNotEmpty ? enteredPin : null;
-  }
-
   Future<void> _createFund() async {
     final amount = double.tryParse(amountController.text);
 
@@ -562,17 +462,9 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
           messageController.text.trim().isEmpty
               ? null
               : messageController.text.trim(),
-      'pin_code': '', // Will be filled by PIN verification
     };
 
-    // Ask for PIN confirmation before creating fund
-    final enteredPin = await _showPinVerificationDialog(context);
-    if (enteredPin == null || enteredPin.isEmpty) return;
-
-    // Add PIN to the fund data
-    data['pin_code'] = enteredPin;
-
-    if (mounted) Navigator.of(context).pop(data);
+    Navigator.of(context).pop(data);
   }
 }
 
@@ -655,7 +547,7 @@ Future<SnWalletFund> walletFund(Ref ref, String fundId) async {
 @riverpod
 Future<Map<String, dynamic>> walletFundStats(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/id/wallets/stats');
+  final resp = await client.get('/id/wallets/funds/stats');
   return resp.data as Map<String, dynamic>;
 }
 
@@ -958,7 +850,7 @@ class WalletScreen extends HookConsumerWidget {
           itemBuilder: (context, index) {
             final fund = fundList[index];
             final claimedCount =
-                fund.recipients.where((r) => r.isReceived).length;
+                fund.recipients.where((r) => r.status == 1).length;
             final totalRecipients = fund.recipients.length;
 
             return Card(

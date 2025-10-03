@@ -295,3 +295,88 @@ Map<String, dynamic> _$SnWalletGiftToJson(_SnWalletGift instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_SnWalletFund _$SnWalletFundFromJson(
+  Map<String, dynamic> json,
+) => _SnWalletFund(
+  id: json['id'] as String,
+  currency: json['currency'] as String,
+  totalAmount: (json['total_amount'] as num).toDouble(),
+  splitType: (json['split_type'] as num).toInt(),
+  status: (json['status'] as num).toInt(),
+  message: json['message'] as String?,
+  creatorAccountId: json['creator_account_id'] as String,
+  creatorAccount:
+      json['creator_account'] == null
+          ? null
+          : SnAccount.fromJson(json['creator_account'] as Map<String, dynamic>),
+  expiredAt: DateTime.parse(json['expired_at'] as String),
+  recipients:
+      (json['recipients'] as List<dynamic>)
+          .map((e) => SnWalletFundRecipient.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt:
+      json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+);
+
+Map<String, dynamic> _$SnWalletFundToJson(_SnWalletFund instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'currency': instance.currency,
+      'total_amount': instance.totalAmount,
+      'split_type': instance.splitType,
+      'status': instance.status,
+      'message': instance.message,
+      'creator_account_id': instance.creatorAccountId,
+      'creator_account': instance.creatorAccount?.toJson(),
+      'expired_at': instance.expiredAt.toIso8601String(),
+      'recipients': instance.recipients.map((e) => e.toJson()).toList(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };
+
+_SnWalletFundRecipient _$SnWalletFundRecipientFromJson(
+  Map<String, dynamic> json,
+) => _SnWalletFundRecipient(
+  id: json['id'] as String,
+  fundId: json['fund_id'] as String,
+  recipientAccountId: json['recipient_account_id'] as String,
+  recipientAccount:
+      json['recipient_account'] == null
+          ? null
+          : SnAccount.fromJson(
+            json['recipient_account'] as Map<String, dynamic>,
+          ),
+  amount: (json['amount'] as num).toDouble(),
+  isReceived: json['is_received'] as bool,
+  receivedAt:
+      json['received_at'] == null
+          ? null
+          : DateTime.parse(json['received_at'] as String),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt:
+      json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+);
+
+Map<String, dynamic> _$SnWalletFundRecipientToJson(
+  _SnWalletFundRecipient instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'fund_id': instance.fundId,
+  'recipient_account_id': instance.recipientAccountId,
+  'recipient_account': instance.recipientAccount?.toJson(),
+  'amount': instance.amount,
+  'is_received': instance.isReceived,
+  'received_at': instance.receivedAt?.toIso8601String(),
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
+};

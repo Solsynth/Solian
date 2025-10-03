@@ -6,7 +6,7 @@ part of 'captcha.config.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$captchaUrlHash() => r'd46bc43032cef504547cd528a40c23cf76f27cc8';
+String _$captchaUrlHash() => r'5d59de4f26a0544bf4fbd5209943f0b111959ce6';
 
 /// See also [captchaUrl].
 @ProviderFor(captchaUrl)
