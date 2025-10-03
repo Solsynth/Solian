@@ -1087,5 +1087,10 @@
     "installUpdate": "Install update",
     "openReleasePage": "Open release page",
     "postCompose": "Compose Post",
-    "postPublish": "Publish Post"
+    "postPublish": "Publish Post",
+    "purchaseGift": "Purchase Gift",
+    "selectRecipient": "Select Recipient",
+    "changeRecipient": "Change Recipient",
+    "addMessage": "Add Message",
+    "skipRecipient": "Skip Recipient"
 }

@@ -91,7 +91,7 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
   @override
   Widget build(BuildContext context) {
     return SheetScaffold(
-      titleText: 'Purchase Gift',
+      titleText: 'purchaseGift'.tr(),
       child: Column(
         children: [
           Expanded(
@@ -102,7 +102,7 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                 children: [
                   // Recipient Selection Section
                   Text(
-                    'Select Recipient',
+                    'selectRecipient'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -214,8 +214,8 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                     icon: const Icon(Icons.person_search),
                     label: Text(
                       selectedRecipient != null
-                          ? 'Change Recipient'
-                          : 'Select Recipient',
+                          ? 'changeRecipient'.tr()
+                          : 'selectRecipient'.tr(),
                     ),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
@@ -226,7 +226,7 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
 
                   // Message Section
                   Text(
-                    'Add Message',
+                    'addMessage'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -278,7 +278,7 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                                   ? null
                                   : messageController.text.trim(),
                         }),
-                    child: Text('Skip Recipient'),
+                    child: Text('skipRecipient'.tr()),
                   ),
                 ),
                 const Gap(8),
@@ -292,7 +292,7 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                                   ? null
                                   : messageController.text.trim(),
                         }),
-                    child: Text('Purchase Gift'),
+                    child: Text('purchaseGift'.tr()),
                   ),
                 ),
               ],
