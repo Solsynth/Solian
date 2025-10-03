@@ -138,7 +138,7 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                                 ),
                               ),
                               subtitle: Text(
-                                'Selected recipient',
+                                'selectedRecipient'.tr(),
                                 style: Theme.of(
                                   context,
                                 ).textTheme.bodySmall?.copyWith(
@@ -173,7 +173,7 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                                 ),
                                 const Gap(8),
                                 Text(
-                                  'No recipient selected',
+                                  'noRecipientSelected'.tr(),
                                   style: Theme.of(
                                     context,
                                   ).textTheme.bodyMedium?.copyWith(
@@ -185,7 +185,7 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                                 ),
                                 const Gap(4),
                                 Text(
-                                  'This will be an open gift',
+                                  'thisWillBeAnOpenGift'.tr(),
                                   style: Theme.of(
                                     context,
                                   ).textTheme.bodySmall?.copyWith(
@@ -237,8 +237,8 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                   TextField(
                     controller: messageController,
                     decoration: InputDecoration(
-                      labelText: 'Personal Message',
-                      hintText: 'Add a personal message for the recipient',
+                      labelText: 'personalMessage'.tr(),
+                      hintText: 'addPersonalMessageForRecipient'.tr(),
                       alignLabelWithHint: true,
                       border: OutlineInputBorder(),
                       enabledBorder: OutlineInputBorder(
@@ -759,7 +759,7 @@ class StellarProgramTab extends HookConsumerWidget {
               ),
               const Gap(8),
               Text(
-                'Gift Subscriptions',
+                'giftSubscriptions'.tr(),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
@@ -768,7 +768,7 @@ class StellarProgramTab extends HookConsumerWidget {
 
           // Purchase Gift Section
           Text(
-            'Purchase a Gift',
+            'purchaseAGift'.tr(),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const Gap(8),
@@ -777,7 +777,7 @@ class StellarProgramTab extends HookConsumerWidget {
 
           // Redeem Gift Section
           Text(
-            'Redeem a Gift',
+            'redeemAGift'.tr(),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const Gap(8),
@@ -786,7 +786,7 @@ class StellarProgramTab extends HookConsumerWidget {
 
           // Gift History
           Text(
-            'Gift History',
+            'giftHistory'.tr(),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const Gap(8),
@@ -800,20 +800,20 @@ class StellarProgramTab extends HookConsumerWidget {
     final tiers = [
       {
         'id': 'solian.stellar.primary',
-        'name': 'Stellar Gift',
-        'price': 'Same as membership',
+        'name': 'stellarGift'.tr(),
+        'price': 'sameAsMembership'.tr(),
         'color': Colors.blue,
       },
       {
         'id': 'solian.stellar.nova',
-        'name': 'Nova Gift',
-        'price': 'Same as membership',
+        'name': 'novaGift'.tr(),
+        'price': 'sameAsMembership'.tr(),
         'color': Color.fromRGBO(57, 197, 187, 1),
       },
       {
         'id': 'solian.stellar.supernova',
-        'name': 'Supernova Gift',
-        'price': 'Same as membership',
+        'name': 'supernovaGift'.tr(),
+        'price': 'sameAsMembership'.tr(),
         'color': Colors.orange,
       },
     ];
@@ -914,7 +914,7 @@ class StellarProgramTab extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Enter gift code to redeem',
+            'enterGiftCodeToRedeem'.tr(),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const Gap(8),
@@ -922,7 +922,7 @@ class StellarProgramTab extends HookConsumerWidget {
             controller: codeController,
             decoration: InputDecoration(
               isDense: true,
-              hintText: 'Enter gift code',
+              hintText: 'enterGiftCode'.tr(),
               border: OutlineInputBorder(),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
@@ -960,7 +960,7 @@ class StellarProgramTab extends HookConsumerWidget {
           child: OutlinedButton(
             onPressed:
                 () => _showGiftHistorySheet(context, ref, sentGifts, true),
-            child: Text('Sent Gifts'),
+            child: Text('sentGifts'.tr()),
           ),
         ),
         const Gap(8),
@@ -968,7 +968,7 @@ class StellarProgramTab extends HookConsumerWidget {
           child: OutlinedButton(
             onPressed:
                 () => _showGiftHistorySheet(context, ref, receivedGifts, false),
-            child: Text('Received Gifts'),
+            child: Text('receivedGifts'.tr()),
           ),
         ),
       ],
@@ -987,7 +987,7 @@ class StellarProgramTab extends HookConsumerWidget {
       context: context,
       builder:
           (context) => SheetScaffold(
-            titleText: isSent ? 'Sent Gifts' : 'Received Gifts',
+            titleText: isSent ? 'sentGifts'.tr() : 'receivedGifts'.tr(),
             child: giftsAsync.when(
               data:
                   (gifts) =>
@@ -995,10 +995,13 @@ class StellarProgramTab extends HookConsumerWidget {
                           ? Padding(
                             padding: const EdgeInsets.all(16),
                             child: Text(
-                              isSent ? 'No sent gifts' : 'No received gifts',
+                              isSent
+                                  ? 'noSentGifts'.tr()
+                                  : 'noReceivedGifts'.tr(),
                             ),
                           )
                           : ListView.builder(
+                            padding: const EdgeInsets.only(top: 16),
                             itemCount: gifts.length,
                             itemBuilder:
                                 (context, index) => _buildGiftItem(
@@ -1044,7 +1047,7 @@ class StellarProgramTab extends HookConsumerWidget {
                 child: Row(
                   children: [
                     Text(
-                      'Code: ',
+                      'codeLabel'.tr(),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     Expanded(
@@ -1091,27 +1094,27 @@ class StellarProgramTab extends HookConsumerWidget {
           ),
           const Gap(4),
           Text(
-            'Subscription: ${_getMembershipTierName(gift.subscriptionIdentifier)}',
+            '${'subscriptionLabel'.tr()} ${_getMembershipTierName(gift.subscriptionIdentifier)}',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           if (gift.recipient != null && isSent) ...[
             const Gap(4),
             Text(
-              'To: ${gift.recipient!.name}',
+              '${'toLabel'.tr()} ${gift.recipient!.name}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
           if (gift.gifter != null && !isSent) ...[
             const Gap(4),
             Text(
-              'From: ${gift.gifter!.name}',
+              '${'fromLabel'.tr()} ${gift.gifter!.name}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
           if (gift.message != null && gift.message!.isNotEmpty) ...[
             const Gap(4),
             Text(
-              'Message: ${gift.message}',
+              '${'messageLabel'.tr()} ${gift.message}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -1124,11 +1127,11 @@ class StellarProgramTab extends HookConsumerWidget {
                 onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: gift.giftCode));
                   if (context.mounted) {
-                    showSnackBar('Gift code copied to clipboard');
+                    showSnackBar('giftCodeCopiedToClipboard'.tr());
                   }
                 },
                 icon: const Icon(Icons.copy, size: 16),
-                label: Text('Copy'),
+                label: Text('copy'.tr()),
                 style: FilledButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                 ),
@@ -1137,7 +1140,7 @@ class StellarProgramTab extends HookConsumerWidget {
                 OutlinedButton.icon(
                   onPressed: () => _cancelGift(context, ref, gift),
                   icon: const Icon(Icons.cancel, size: 16),
-                  label: const Text('Cancel'),
+                  label: Text('cancel'.tr()),
                   style: OutlinedButton.styleFrom(
                     visualDensity: VisualDensity.compact,
                     foregroundColor: Theme.of(context).colorScheme.error,
@@ -1157,17 +1160,17 @@ class StellarProgramTab extends HookConsumerWidget {
   String _getGiftStatusText(int status) {
     switch (status) {
       case 0:
-        return 'Created';
+        return 'giftStatusCreated'.tr();
       case 1:
-        return 'Sent';
+        return 'giftStatusSent'.tr();
       case 2:
-        return 'Redeemed';
+        return 'giftStatusRedeemed'.tr();
       case 3:
-        return 'Cancelled';
+        return 'giftStatusCancelled'.tr();
       case 4:
-        return 'Expired';
+        return 'giftStatusExpired'.tr();
       default:
-        return 'Unknown';
+        return 'giftStatusUnknown'.tr();
     }
   }
 
@@ -1266,7 +1269,7 @@ class StellarProgramTab extends HookConsumerWidget {
             context: context,
             builder:
                 (context) => SheetScaffold(
-                  titleText: 'Gift Purchased!',
+                  titleText: 'giftPurchased'.tr(),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -1303,25 +1306,25 @@ class StellarProgramTab extends HookConsumerWidget {
                                   );
                                   if (context.mounted) {
                                     showSnackBar(
-                                      'Gift code copied to clipboard',
+                                      'giftCodeCopiedToClipboard'.tr(),
                                     );
                                   }
                                 },
                                 icon: const Icon(Icons.copy),
-                                tooltip: 'Copy gift code',
+                                tooltip: 'copyGiftCode'.tr(),
                               ),
                             ],
                           ),
                         ),
                         const Gap(16),
                         Text(
-                          'Share this code with the recipient to redeem the gift.',
+                          'shareCodeWithRecipient'.tr(),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         if (updatedGift.recipientId == null) ...[
                           const Gap(8),
                           Text(
-                            'This is an open gift that anyone can redeem.',
+                            'openGiftAnyoneCanRedeem'.tr(),
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
@@ -1335,7 +1338,7 @@ class StellarProgramTab extends HookConsumerWidget {
                         const Gap(24),
                         FilledButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Text('OK'),
+                          child: Text('ok'.tr()),
                         ),
                       ],
                     ),
@@ -1386,14 +1389,12 @@ class StellarProgramTab extends HookConsumerWidget {
           context: context,
           builder:
               (context) => AlertDialog(
-                title: Text('Gift Redeemed!'),
-                content: Text(
-                  'You have successfully redeemed the gift. Your new subscription is now active.',
-                ),
+                title: Text('giftRedeemed'.tr()),
+                content: Text('giftRedeemedSuccessfully'.tr()),
                 actions: [
                   FilledButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text('OK'),
+                    child: Text('ok'.tr()),
                   ),
                 ],
               ),
@@ -1415,8 +1416,8 @@ class StellarProgramTab extends HookConsumerWidget {
     SnWalletGift gift,
   ) async {
     final confirm = await showConfirmAlert(
-      'Cancel Gift',
-      'Are you sure you want to cancel this gift? This action cannot be undone.',
+      'cancelGift'.tr(),
+      'cancelGiftConfirm'.tr(),
     );
     if (!confirm || !context.mounted) return;
 
@@ -1427,7 +1428,7 @@ class StellarProgramTab extends HookConsumerWidget {
       ref.invalidate(accountSentGiftsProvider);
       if (context.mounted) {
         hideLoadingModal(context);
-        showSnackBar('Gift cancelled successfully');
+        showSnackBar('giftCancelledSuccessfully'.tr());
       }
     } catch (err) {
       if (context.mounted) hideLoadingModal(context);
