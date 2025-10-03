@@ -47,7 +47,6 @@ class NotificationService: UNNotificationServiceExtension {
     private func processNotification(request: UNNotificationRequest, content: UNMutableNotificationContent) throws {
         switch content.userInfo["type"] as? String {
         case "messages.new":
-            content.categoryIdentifier = "REPLYABLE_MESSAGE"
             try handleMessagingNotification(request: request, content: content)
         default:
             try handleDefaultNotification(content: content)
@@ -89,7 +88,12 @@ class NotificationService: UNNotificationServiceExtension {
             let intent = self.createMessageIntent(with: sender, meta: metaCopy, body: content.body)
             self.donateInteraction(for: intent)
             let updatedContent = try? request.content.updating(from: intent)
-            self.contentHandler?(updatedContent ?? content)
+            if let updatedContent = updatedContent {
+                updatedContent.categoryIdentifier = "CHAT_MESSAGE"
+                self.contentHandler?(updatedContent)
+            } else {
+                self.contentHandler?(content)
+            }
         })
     }
     

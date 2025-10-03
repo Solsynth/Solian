@@ -12,7 +12,7 @@ import UIKit
         UNUserNotificationCenter.current().delegate = notifyDelegate
         
         let replyableMessageCategory = UNNotificationCategory(
-            identifier: "REPLYABLE_MESSAGE",
+            identifier: "CHAT_MESSAGE",
             actions: [
                 UNTextInputNotificationAction(
                     identifier: "reply_action",
