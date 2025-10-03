@@ -1,10 +1,12 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/pods/network.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'captcha.config.g.dart';
 
 @riverpod
 Future<String> captchaUrl(Ref ref) async {
-  const baseUrl = "https://solian.app";
+  final apiClient = ref.watch(apiClientProvider);
+  final baseUrl = await apiClient.get('/config/site');
   return '$baseUrl/auth/captcha';
 }

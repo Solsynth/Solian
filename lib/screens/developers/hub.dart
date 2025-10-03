@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/developer.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/screens/creators/publishers.dart';
+import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';

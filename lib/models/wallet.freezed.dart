@@ -1852,4 +1852,408 @@ as DateTime?,
 
 }
 
+
+/// @nodoc
+mixin _$SnWalletGift {
+
+ String get id; String get giftCode; String get subscriptionIdentifier; String? get recipientId; SnAccount? get recipient; String get gifterId; SnAccount? get gifter; String? get redeemerId; SnAccount? get redeemer; String? get message; int get status; DateTime? get redeemedAt; DateTime? get expiredAt; String? get subscriptionId; SnWalletSubscription? get subscription; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnWalletGiftCopyWith<SnWalletGift> get copyWith => _$SnWalletGiftCopyWithImpl<SnWalletGift>(this as SnWalletGift, _$identity);
+
+  /// Serializes this SnWalletGift to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletGift&&(identical(other.id, id) || other.id == id)&&(identical(other.giftCode, giftCode) || other.giftCode == giftCode)&&(identical(other.subscriptionIdentifier, subscriptionIdentifier) || other.subscriptionIdentifier == subscriptionIdentifier)&&(identical(other.recipientId, recipientId) || other.recipientId == recipientId)&&(identical(other.recipient, recipient) || other.recipient == recipient)&&(identical(other.gifterId, gifterId) || other.gifterId == gifterId)&&(identical(other.gifter, gifter) || other.gifter == gifter)&&(identical(other.redeemerId, redeemerId) || other.redeemerId == redeemerId)&&(identical(other.redeemer, redeemer) || other.redeemer == redeemer)&&(identical(other.message, message) || other.message == message)&&(identical(other.status, status) || other.status == status)&&(identical(other.redeemedAt, redeemedAt) || other.redeemedAt == redeemedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.subscriptionId, subscriptionId) || other.subscriptionId == subscriptionId)&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,giftCode,subscriptionIdentifier,recipientId,recipient,gifterId,gifter,redeemerId,redeemer,message,status,redeemedAt,expiredAt,subscriptionId,subscription,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnWalletGift(id: $id, giftCode: $giftCode, subscriptionIdentifier: $subscriptionIdentifier, recipientId: $recipientId, recipient: $recipient, gifterId: $gifterId, gifter: $gifter, redeemerId: $redeemerId, redeemer: $redeemer, message: $message, status: $status, redeemedAt: $redeemedAt, expiredAt: $expiredAt, subscriptionId: $subscriptionId, subscription: $subscription, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnWalletGiftCopyWith<$Res>  {
+  factory $SnWalletGiftCopyWith(SnWalletGift value, $Res Function(SnWalletGift) _then) = _$SnWalletGiftCopyWithImpl;
+@useResult
+$Res call({
+ String id, String giftCode, String subscriptionIdentifier, String? recipientId, SnAccount? recipient, String gifterId, SnAccount? gifter, String? redeemerId, SnAccount? redeemer, String? message, int status, DateTime? redeemedAt, DateTime? expiredAt, String? subscriptionId, SnWalletSubscription? subscription, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+$SnAccountCopyWith<$Res>? get recipient;$SnAccountCopyWith<$Res>? get gifter;$SnAccountCopyWith<$Res>? get redeemer;$SnWalletSubscriptionCopyWith<$Res>? get subscription;
+
+}
+/// @nodoc
+class _$SnWalletGiftCopyWithImpl<$Res>
+    implements $SnWalletGiftCopyWith<$Res> {
+  _$SnWalletGiftCopyWithImpl(this._self, this._then);
+
+  final SnWalletGift _self;
+  final $Res Function(SnWalletGift) _then;
+
+/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? giftCode = null,Object? subscriptionIdentifier = null,Object? recipientId = freezed,Object? recipient = freezed,Object? gifterId = null,Object? gifter = freezed,Object? redeemerId = freezed,Object? redeemer = freezed,Object? message = freezed,Object? status = null,Object? redeemedAt = freezed,Object? expiredAt = freezed,Object? subscriptionId = freezed,Object? subscription = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,giftCode: null == giftCode ? _self.giftCode : giftCode // ignore: cast_nullable_to_non_nullable
+as String,subscriptionIdentifier: null == subscriptionIdentifier ? _self.subscriptionIdentifier : subscriptionIdentifier // ignore: cast_nullable_to_non_nullable
+as String,recipientId: freezed == recipientId ? _self.recipientId : recipientId // ignore: cast_nullable_to_non_nullable
+as String?,recipient: freezed == recipient ? _self.recipient : recipient // ignore: cast_nullable_to_non_nullable
+as SnAccount?,gifterId: null == gifterId ? _self.gifterId : gifterId // ignore: cast_nullable_to_non_nullable
+as String,gifter: freezed == gifter ? _self.gifter : gifter // ignore: cast_nullable_to_non_nullable
+as SnAccount?,redeemerId: freezed == redeemerId ? _self.redeemerId : redeemerId // ignore: cast_nullable_to_non_nullable
+as String?,redeemer: freezed == redeemer ? _self.redeemer : redeemer // ignore: cast_nullable_to_non_nullable
+as SnAccount?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as int,redeemedAt: freezed == redeemedAt ? _self.redeemedAt : redeemedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,subscriptionId: freezed == subscriptionId ? _self.subscriptionId : subscriptionId // ignore: cast_nullable_to_non_nullable
+as String?,subscription: freezed == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
+as SnWalletSubscription?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get recipient {
+    if (_self.recipient == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.recipient!, (value) {
+    return _then(_self.copyWith(recipient: value));
+  });
+}/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get gifter {
+    if (_self.gifter == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.gifter!, (value) {
+    return _then(_self.copyWith(gifter: value));
+  });
+}/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get redeemer {
+    if (_self.redeemer == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.redeemer!, (value) {
+    return _then(_self.copyWith(redeemer: value));
+  });
+}/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnWalletSubscriptionCopyWith<$Res>? get subscription {
+    if (_self.subscription == null) {
+    return null;
+  }
+
+  return $SnWalletSubscriptionCopyWith<$Res>(_self.subscription!, (value) {
+    return _then(_self.copyWith(subscription: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnWalletGift].
+extension SnWalletGiftPatterns on SnWalletGift {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnWalletGift value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnWalletGift() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnWalletGift value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletGift():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnWalletGift value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletGift() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String giftCode,  String subscriptionIdentifier,  String? recipientId,  SnAccount? recipient,  String gifterId,  SnAccount? gifter,  String? redeemerId,  SnAccount? redeemer,  String? message,  int status,  DateTime? redeemedAt,  DateTime? expiredAt,  String? subscriptionId,  SnWalletSubscription? subscription,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnWalletGift() when $default != null:
+return $default(_that.id,_that.giftCode,_that.subscriptionIdentifier,_that.recipientId,_that.recipient,_that.gifterId,_that.gifter,_that.redeemerId,_that.redeemer,_that.message,_that.status,_that.redeemedAt,_that.expiredAt,_that.subscriptionId,_that.subscription,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String giftCode,  String subscriptionIdentifier,  String? recipientId,  SnAccount? recipient,  String gifterId,  SnAccount? gifter,  String? redeemerId,  SnAccount? redeemer,  String? message,  int status,  DateTime? redeemedAt,  DateTime? expiredAt,  String? subscriptionId,  SnWalletSubscription? subscription,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletGift():
+return $default(_that.id,_that.giftCode,_that.subscriptionIdentifier,_that.recipientId,_that.recipient,_that.gifterId,_that.gifter,_that.redeemerId,_that.redeemer,_that.message,_that.status,_that.redeemedAt,_that.expiredAt,_that.subscriptionId,_that.subscription,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String giftCode,  String subscriptionIdentifier,  String? recipientId,  SnAccount? recipient,  String gifterId,  SnAccount? gifter,  String? redeemerId,  SnAccount? redeemer,  String? message,  int status,  DateTime? redeemedAt,  DateTime? expiredAt,  String? subscriptionId,  SnWalletSubscription? subscription,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletGift() when $default != null:
+return $default(_that.id,_that.giftCode,_that.subscriptionIdentifier,_that.recipientId,_that.recipient,_that.gifterId,_that.gifter,_that.redeemerId,_that.redeemer,_that.message,_that.status,_that.redeemedAt,_that.expiredAt,_that.subscriptionId,_that.subscription,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnWalletGift implements SnWalletGift {
+  const _SnWalletGift({required this.id, required this.giftCode, required this.subscriptionIdentifier, required this.recipientId, required this.recipient, required this.gifterId, required this.gifter, required this.redeemerId, required this.redeemer, required this.message, required this.status, required this.redeemedAt, required this.expiredAt, required this.subscriptionId, required this.subscription, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  factory _SnWalletGift.fromJson(Map<String, dynamic> json) => _$SnWalletGiftFromJson(json);
+
+@override final  String id;
+@override final  String giftCode;
+@override final  String subscriptionIdentifier;
+@override final  String? recipientId;
+@override final  SnAccount? recipient;
+@override final  String gifterId;
+@override final  SnAccount? gifter;
+@override final  String? redeemerId;
+@override final  SnAccount? redeemer;
+@override final  String? message;
+@override final  int status;
+@override final  DateTime? redeemedAt;
+@override final  DateTime? expiredAt;
+@override final  String? subscriptionId;
+@override final  SnWalletSubscription? subscription;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnWalletGiftCopyWith<_SnWalletGift> get copyWith => __$SnWalletGiftCopyWithImpl<_SnWalletGift>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnWalletGiftToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletGift&&(identical(other.id, id) || other.id == id)&&(identical(other.giftCode, giftCode) || other.giftCode == giftCode)&&(identical(other.subscriptionIdentifier, subscriptionIdentifier) || other.subscriptionIdentifier == subscriptionIdentifier)&&(identical(other.recipientId, recipientId) || other.recipientId == recipientId)&&(identical(other.recipient, recipient) || other.recipient == recipient)&&(identical(other.gifterId, gifterId) || other.gifterId == gifterId)&&(identical(other.gifter, gifter) || other.gifter == gifter)&&(identical(other.redeemerId, redeemerId) || other.redeemerId == redeemerId)&&(identical(other.redeemer, redeemer) || other.redeemer == redeemer)&&(identical(other.message, message) || other.message == message)&&(identical(other.status, status) || other.status == status)&&(identical(other.redeemedAt, redeemedAt) || other.redeemedAt == redeemedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.subscriptionId, subscriptionId) || other.subscriptionId == subscriptionId)&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,giftCode,subscriptionIdentifier,recipientId,recipient,gifterId,gifter,redeemerId,redeemer,message,status,redeemedAt,expiredAt,subscriptionId,subscription,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnWalletGift(id: $id, giftCode: $giftCode, subscriptionIdentifier: $subscriptionIdentifier, recipientId: $recipientId, recipient: $recipient, gifterId: $gifterId, gifter: $gifter, redeemerId: $redeemerId, redeemer: $redeemer, message: $message, status: $status, redeemedAt: $redeemedAt, expiredAt: $expiredAt, subscriptionId: $subscriptionId, subscription: $subscription, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnWalletGiftCopyWith<$Res> implements $SnWalletGiftCopyWith<$Res> {
+  factory _$SnWalletGiftCopyWith(_SnWalletGift value, $Res Function(_SnWalletGift) _then) = __$SnWalletGiftCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String giftCode, String subscriptionIdentifier, String? recipientId, SnAccount? recipient, String gifterId, SnAccount? gifter, String? redeemerId, SnAccount? redeemer, String? message, int status, DateTime? redeemedAt, DateTime? expiredAt, String? subscriptionId, SnWalletSubscription? subscription, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+@override $SnAccountCopyWith<$Res>? get recipient;@override $SnAccountCopyWith<$Res>? get gifter;@override $SnAccountCopyWith<$Res>? get redeemer;@override $SnWalletSubscriptionCopyWith<$Res>? get subscription;
+
+}
+/// @nodoc
+class __$SnWalletGiftCopyWithImpl<$Res>
+    implements _$SnWalletGiftCopyWith<$Res> {
+  __$SnWalletGiftCopyWithImpl(this._self, this._then);
+
+  final _SnWalletGift _self;
+  final $Res Function(_SnWalletGift) _then;
+
+/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? giftCode = null,Object? subscriptionIdentifier = null,Object? recipientId = freezed,Object? recipient = freezed,Object? gifterId = null,Object? gifter = freezed,Object? redeemerId = freezed,Object? redeemer = freezed,Object? message = freezed,Object? status = null,Object? redeemedAt = freezed,Object? expiredAt = freezed,Object? subscriptionId = freezed,Object? subscription = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnWalletGift(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,giftCode: null == giftCode ? _self.giftCode : giftCode // ignore: cast_nullable_to_non_nullable
+as String,subscriptionIdentifier: null == subscriptionIdentifier ? _self.subscriptionIdentifier : subscriptionIdentifier // ignore: cast_nullable_to_non_nullable
+as String,recipientId: freezed == recipientId ? _self.recipientId : recipientId // ignore: cast_nullable_to_non_nullable
+as String?,recipient: freezed == recipient ? _self.recipient : recipient // ignore: cast_nullable_to_non_nullable
+as SnAccount?,gifterId: null == gifterId ? _self.gifterId : gifterId // ignore: cast_nullable_to_non_nullable
+as String,gifter: freezed == gifter ? _self.gifter : gifter // ignore: cast_nullable_to_non_nullable
+as SnAccount?,redeemerId: freezed == redeemerId ? _self.redeemerId : redeemerId // ignore: cast_nullable_to_non_nullable
+as String?,redeemer: freezed == redeemer ? _self.redeemer : redeemer // ignore: cast_nullable_to_non_nullable
+as SnAccount?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as int,redeemedAt: freezed == redeemedAt ? _self.redeemedAt : redeemedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,subscriptionId: freezed == subscriptionId ? _self.subscriptionId : subscriptionId // ignore: cast_nullable_to_non_nullable
+as String?,subscription: freezed == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
+as SnWalletSubscription?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get recipient {
+    if (_self.recipient == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.recipient!, (value) {
+    return _then(_self.copyWith(recipient: value));
+  });
+}/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get gifter {
+    if (_self.gifter == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.gifter!, (value) {
+    return _then(_self.copyWith(gifter: value));
+  });
+}/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get redeemer {
+    if (_self.redeemer == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.redeemer!, (value) {
+    return _then(_self.copyWith(redeemer: value));
+  });
+}/// Create a copy of SnWalletGift
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnWalletSubscriptionCopyWith<$Res>? get subscription {
+    if (_self.subscription == null) {
+    return null;
+  }
+
+  return $SnWalletSubscriptionCopyWith<$Res>(_self.subscription!, (value) {
+    return _then(_self.copyWith(subscription: value));
+  });
+}
+}
+
 // dart format on

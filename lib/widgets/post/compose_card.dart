@@ -3,11 +3,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
+import 'package:island/models/publisher.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/screens/creators/publishers.dart';
+import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/services/responsive.dart';
@@ -31,6 +33,7 @@ class PostComposeCard extends HookConsumerWidget {
   final VoidCallback? onCancel;
   final Function(SnPost)? onSubmit;
   final Function(ComposeState)? onStateChanged;
+  final bool isInDialog;
 
   const PostComposeCard({
     super.key,
@@ -39,6 +42,7 @@ class PostComposeCard extends HookConsumerWidget {
     this.onCancel,
     this.onSubmit,
     this.onStateChanged,
+    this.isInDialog = false,
   });
 
   @override
@@ -441,7 +445,11 @@ class PostComposeCard extends HookConsumerWidget {
                     ),
                   ),
                   IconButton(
-                    onPressed: state.submitting.value ? null : performSubmit,
+                    onPressed:
+                        (state.submitting.value ||
+                                state.currentPublisher.value == null)
+                            ? null
+                            : performSubmit,
                     icon:
                         state.submitting.value
                             ? SizedBox(
@@ -515,16 +523,31 @@ class PostComposeCard extends HookConsumerWidget {
                                     : null,
                           ),
                           onTap: () {
-                            showModalBottomSheet(
-                              isScrollControlled: true,
-                              useRootNavigator: true,
-                              context: context,
-                              builder: (context) => const PublisherModal(),
-                            ).then((value) {
-                              if (value != null) {
-                                state.currentPublisher.value = value;
+                            if (state.currentPublisher.value == null) {
+                              // No publisher loaded, guide user to create one
+                              if (isInDialog) {
+                                Navigator.of(context).pop();
                               }
-                            });
+                              context.pushNamed('creatorNew').then((value) {
+                                if (value != null) {
+                                  state.currentPublisher.value =
+                                      value as SnPublisher;
+                                  ref.invalidate(publishersManagedProvider);
+                                }
+                              });
+                            } else {
+                              // Show modal to select from existing publishers
+                              showModalBottomSheet(
+                                isScrollControlled: true,
+                                useRootNavigator: true,
+                                context: context,
+                                builder: (context) => const PublisherModal(),
+                              ).then((value) {
+                                if (value != null) {
+                                  state.currentPublisher.value = value;
+                                }
+                              });
+                            }
                           },
                         ).padding(top: 8),
 
@@ -533,8 +556,43 @@ class PostComposeCard extends HookConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if (state.currentPublisher.value == null)
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        theme.colorScheme.surfaceContainerHigh,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Symbols.info,
+                                        size: 16,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const Gap(8),
+                                      Expanded(
+                                        child: Text(
+                                          'Tap the avatar to create a publisher and start composing.',
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color:
+                                                    theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               TextField(
                                 controller: state.titleController,
+                                enabled: state.currentPublisher.value != null,
                                 decoration: InputDecoration(
                                   hintText: 'postTitle'.tr(),
                                   border: InputBorder.none,
@@ -552,6 +610,7 @@ class PostComposeCard extends HookConsumerWidget {
                               ),
                               TextField(
                                 controller: state.descriptionController,
+                                enabled: state.currentPublisher.value != null,
                                 decoration: InputDecoration(
                                   hintText: 'postDescription'.tr(),
                                   border: InputBorder.none,
@@ -573,6 +632,7 @@ class PostComposeCard extends HookConsumerWidget {
                               ),
                               TextField(
                                 controller: state.contentController,
+                                enabled: state.currentPublisher.value != null,
                                 style: theme.textTheme.bodyMedium,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,

@@ -228,3 +228,70 @@ Map<String, dynamic> _$SnWalletOrderToJson(_SnWalletOrder instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_SnWalletGift _$SnWalletGiftFromJson(Map<String, dynamic> json) =>
+    _SnWalletGift(
+      id: json['id'] as String,
+      giftCode: json['gift_code'] as String,
+      subscriptionIdentifier: json['subscription_identifier'] as String,
+      recipientId: json['recipient_id'] as String?,
+      recipient:
+          json['recipient'] == null
+              ? null
+              : SnAccount.fromJson(json['recipient'] as Map<String, dynamic>),
+      gifterId: json['gifter_id'] as String,
+      gifter:
+          json['gifter'] == null
+              ? null
+              : SnAccount.fromJson(json['gifter'] as Map<String, dynamic>),
+      redeemerId: json['redeemer_id'] as String?,
+      redeemer:
+          json['redeemer'] == null
+              ? null
+              : SnAccount.fromJson(json['redeemer'] as Map<String, dynamic>),
+      message: json['message'] as String?,
+      status: (json['status'] as num).toInt(),
+      redeemedAt:
+          json['redeemed_at'] == null
+              ? null
+              : DateTime.parse(json['redeemed_at'] as String),
+      expiredAt:
+          json['expired_at'] == null
+              ? null
+              : DateTime.parse(json['expired_at'] as String),
+      subscriptionId: json['subscription_id'] as String?,
+      subscription:
+          json['subscription'] == null
+              ? null
+              : SnWalletSubscription.fromJson(
+                json['subscription'] as Map<String, dynamic>,
+              ),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnWalletGiftToJson(_SnWalletGift instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'gift_code': instance.giftCode,
+      'subscription_identifier': instance.subscriptionIdentifier,
+      'recipient_id': instance.recipientId,
+      'recipient': instance.recipient?.toJson(),
+      'gifter_id': instance.gifterId,
+      'gifter': instance.gifter?.toJson(),
+      'redeemer_id': instance.redeemerId,
+      'redeemer': instance.redeemer?.toJson(),
+      'message': instance.message,
+      'status': instance.status,
+      'redeemed_at': instance.redeemedAt?.toIso8601String(),
+      'expired_at': instance.expiredAt?.toIso8601String(),
+      'subscription_id': instance.subscriptionId,
+      'subscription': instance.subscription?.toJson(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };

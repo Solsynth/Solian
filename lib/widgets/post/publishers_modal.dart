@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/screens/creators/publishers.dart';
+import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -43,13 +43,15 @@ class PublisherModal extends HookConsumerWidget {
                                     const Gap(12),
                                     ElevatedButton(
                                       onPressed: () {
-                                        context.pushNamed('creatorNew').then((value) {
-                                              if (value != null) {
-                                                ref.invalidate(
-                                                  publishersManagedProvider,
-                                                );
-                                              }
-                                            });
+                                        context.pushNamed('creatorNew').then((
+                                          value,
+                                        ) {
+                                          if (value != null) {
+                                            ref.invalidate(
+                                              publishersManagedProvider,
+                                            );
+                                          }
+                                        });
                                       },
                                       child: Text('createPublisher').tr(),
                                     ),

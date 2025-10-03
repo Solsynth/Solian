@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/screens/creators/publishers.dart';
+import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';

@@ -18,12 +18,11 @@ import 'package:island/services/file_uploader.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/realm/realm_selection_dropdown.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-part 'publishers.g.dart';
+part 'publishers_form.g.dart';
 
 @riverpod
 Future<List<SnPublisher>> publishersManaged(Ref ref) async {
@@ -187,19 +186,6 @@ class EditPublisherScreen extends HookConsumerWidget {
         padding: EdgeInsets.only(bottom: 16),
         child: Column(
           children: [
-            RealmSelectionDropdown(
-              value: currentRealm.value,
-              realms: joinedRealms.when(
-                data: (realms) => realms,
-                loading: () => [],
-                error: (_, _) => [],
-              ),
-              onChanged: (SnRealm? value) {
-                currentRealm.value = value;
-              },
-              isLoading: joinedRealms.isLoading,
-              error: joinedRealms.error?.toString(),
-            ),
             AspectRatio(
               aspectRatio: 16 / 7,
               child: Stack(
@@ -272,6 +258,32 @@ class EditPublisherScreen extends HookConsumerWidget {
                       maxLines: null,
                       onTapOutside:
                           (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    ),
+                    DropdownButtonFormField<SnRealm>(
+                      value: currentRealm.value,
+                      decoration: InputDecoration(labelText: 'realm'.tr()),
+                      items: [
+                        DropdownMenuItem<SnRealm>(
+                          value: null,
+                          child: Text('individual'.tr()),
+                        ),
+                        ...joinedRealms.maybeWhen(
+                          data:
+                              (realms) => realms.map(
+                                (realm) => DropdownMenuItem(
+                                  value: realm,
+                                  child: Text(realm.name),
+                                ),
+                              ),
+                          orElse: () => [],
+                        ),
+                      ],
+                      onChanged:
+                          joinedRealms.isLoading
+                              ? null
+                              : (SnRealm? value) {
+                                currentRealm.value = value;
+                              },
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

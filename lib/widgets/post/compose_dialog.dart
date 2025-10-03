@@ -70,6 +70,7 @@ class PostComposeDialog extends HookConsumerWidget {
           initialState: restoredInitialState.value ?? initialState,
           onCancel: () => Navigator.of(context).pop(),
           onSubmit: (post) => Navigator.of(context).pop(post),
+          isInDialog: true,
         ),
       ),
     );

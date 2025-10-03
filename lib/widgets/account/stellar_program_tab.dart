@@ -5,12 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/account.dart';
 import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/services/time.dart';
+import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/account/restore_purchase_sheet.dart';
 import 'package:island/widgets/alert.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/payment/payment_overlay.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -31,6 +34,39 @@ Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
   }
 }
 
+@riverpod
+Future<List<SnWalletGift>> accountSentGifts(
+  Ref ref, {
+  int offset = 0,
+  int take = 20,
+}) async {
+  final client = ref.watch(apiClientProvider);
+  final resp = await client.get(
+    '/id/subscriptions/gifts/sent?offset=$offset&take=$take',
+  );
+  return (resp.data as List).map((e) => SnWalletGift.fromJson(e)).toList();
+}
+
+@riverpod
+Future<List<SnWalletGift>> accountReceivedGifts(
+  Ref ref, {
+  int offset = 0,
+  int take = 20,
+}) async {
+  final client = ref.watch(apiClientProvider);
+  final resp = await client.get(
+    '/id/subscriptions/gifts/received?offset=$offset&take=$take',
+  );
+  return (resp.data as List).map((e) => SnWalletGift.fromJson(e)).toList();
+}
+
+@riverpod
+Future<SnWalletGift> accountGift(Ref ref, String giftId) async {
+  final client = ref.watch(apiClientProvider);
+  final resp = await client.get('/id/subscriptions/gifts/$giftId');
+  return SnWalletGift.fromJson(resp.data);
+}
+
 class StellarProgramTab extends HookConsumerWidget {
   const StellarProgramTab({super.key});
 
@@ -44,6 +80,8 @@ class StellarProgramTab extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildMembershipSection(context, ref, stellarSubscription),
+          const Gap(16),
+          _buildGiftingSection(context, ref),
           const Gap(16),
         ],
       ),
@@ -464,6 +502,730 @@ class StellarProgramTab extends HookConsumerWidget {
       showErrorAlert(err);
     } finally {
       if (context.mounted) hideLoadingModal(context);
+    }
+  }
+
+  Widget _buildGiftingSection(BuildContext context, WidgetRef ref) {
+    final sentGifts = ref.watch(accountSentGiftsProvider());
+    final receivedGifts = ref.watch(accountReceivedGiftsProvider());
+
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.card_giftcard,
+                color: Theme.of(context).colorScheme.primary,
+                size: 24,
+              ),
+              const Gap(8),
+              Text(
+                'Gift Subscriptions',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const Gap(12),
+
+          // Purchase Gift Section
+          Text(
+            'Purchase a Gift',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const Gap(8),
+          _buildGiftPurchaseOptions(context, ref),
+          const Gap(16),
+
+          // Redeem Gift Section
+          Text(
+            'Redeem a Gift',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const Gap(8),
+          _buildGiftRedeemSection(context, ref),
+          const Gap(16),
+
+          // Gift History
+          Text(
+            'Gift History',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const Gap(8),
+          _buildGiftHistory(context, ref, sentGifts, receivedGifts),
+        ],
+      ).padding(all: 16),
+    );
+  }
+
+  Widget _buildGiftPurchaseOptions(BuildContext context, WidgetRef ref) {
+    final tiers = [
+      {
+        'id': 'solian.stellar.primary',
+        'name': 'Stellar Gift',
+        'price': 'Same as membership',
+        'color': Colors.blue,
+      },
+      {
+        'id': 'solian.stellar.nova',
+        'name': 'Nova Gift',
+        'price': 'Same as membership',
+        'color': Color.fromRGBO(57, 197, 187, 1),
+      },
+      {
+        'id': 'solian.stellar.supernova',
+        'name': 'Supernova Gift',
+        'price': 'Same as membership',
+        'color': Colors.orange,
+      },
+    ];
+
+    return Column(
+      children:
+          tiers.map((tier) {
+            final tierColor = tier['color'] as Color;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap:
+                      () => _showPurchaseGiftDialog(
+                        context,
+                        ref,
+                        tier['id'] as String,
+                      ),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: tierColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const Gap(12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                tier['name'] as String,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                tier['price'] as String,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+    );
+  }
+
+  Widget _buildGiftRedeemSection(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Enter gift code to redeem',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const Gap(8),
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Enter gift code',
+              border: OutlineInputBorder(),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(Icons.redeem),
+                onPressed: () => _showRedeemGiftDialog(context, ref),
+              ),
+            ),
+            onSubmitted: (code) => _redeemGift(context, ref, code),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGiftHistory(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<SnWalletGift>> sentGifts,
+    AsyncValue<List<SnWalletGift>> receivedGifts,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed:
+                () => _showGiftHistorySheet(context, ref, sentGifts, true),
+            child: Text('Sent Gifts'),
+          ),
+        ),
+        const Gap(8),
+        Expanded(
+          child: OutlinedButton(
+            onPressed:
+                () => _showGiftHistorySheet(context, ref, receivedGifts, false),
+            child: Text('Received Gifts'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showGiftHistorySheet(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<SnWalletGift>> giftsAsync,
+    bool isSent,
+  ) async {
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      useRootNavigator: true,
+      context: context,
+      builder:
+          (context) => SheetScaffold(
+            titleText: isSent ? 'Sent Gifts' : 'Received Gifts',
+            child: giftsAsync.when(
+              data:
+                  (gifts) =>
+                      gifts.isEmpty
+                          ? Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              isSent ? 'No sent gifts' : 'No received gifts',
+                            ),
+                          )
+                          : ListView.builder(
+                            itemCount: gifts.length,
+                            itemBuilder:
+                                (context, index) => _buildGiftItem(
+                                  context,
+                                  ref,
+                                  gifts[index],
+                                  isSent,
+                                ),
+                          ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+            ),
+          ),
+    );
+  }
+
+  Widget _buildGiftItem(
+    BuildContext context,
+    WidgetRef ref,
+    SnWalletGift gift,
+    bool isSent,
+  ) {
+    final statusText = _getGiftStatusText(gift.status);
+    final statusColor = _getGiftStatusColor(context, gift.status);
+    final canCancel = isSent && (gift.status == 0 || gift.status == 1);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Code: ${gift.giftCode}',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  statusText,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Gap(4),
+          Text(
+            'Subscription: ${gift.subscriptionIdentifier}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (gift.recipient != null && isSent) ...[
+            const Gap(4),
+            Text(
+              'To: ${gift.recipient!.name}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+          if (gift.gifter != null && !isSent) ...[
+            const Gap(4),
+            Text(
+              'From: ${gift.gifter!.name}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+          if (gift.message != null && gift.message!.isNotEmpty) ...[
+            const Gap(4),
+            Text(
+              'Message: ${gift.message}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+          if (canCancel) ...[
+            const Gap(8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                onPressed: () => _cancelGift(context, ref, gift),
+                icon: const Icon(Icons.cancel, size: 16),
+                label: const Text('Cancel'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                  side: BorderSide(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _getGiftStatusText(int status) {
+    switch (status) {
+      case 0:
+        return 'Created';
+      case 1:
+        return 'Sent';
+      case 2:
+        return 'Redeemed';
+      case 3:
+        return 'Cancelled';
+      case 4:
+        return 'Expired';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  Color _getGiftStatusColor(BuildContext context, int status) {
+    switch (status) {
+      case 0:
+        return Colors.grey;
+      case 1:
+        return Colors.blue;
+      case 2:
+        return Colors.green;
+      case 3:
+        return Colors.red;
+      case 4:
+        return Colors.orange;
+      default:
+        return Theme.of(context).colorScheme.primary;
+    }
+  }
+
+  Future<void> _showPurchaseGiftDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String subscriptionId,
+  ) async {
+    final messageController = TextEditingController();
+
+    final recipient = await showModalBottomSheet<SnAccount>(
+      isScrollControlled: true,
+      useRootNavigator: true,
+      context: context,
+      builder:
+          (context) => SheetScaffold(
+            titleText: 'Select Recipient (Optional)',
+            child: Column(
+              children: [
+                Expanded(child: AccountPickerSheet()),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('Skip (Open Gift)'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
+
+    if (!context.mounted) return;
+
+    final message = await showModalBottomSheet<String>(
+      isScrollControlled: true,
+      useRootNavigator: true,
+      context: context,
+      builder:
+          (context) => SheetScaffold(
+            titleText: 'Add Message (Optional)',
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: messageController,
+                    decoration: InputDecoration(
+                      labelText: 'Message',
+                      hintText: 'Add a personal message',
+                      border: OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    maxLines: 3,
+                    autofocus: true,
+                  ),
+                  const Gap(16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('Skip'),
+                        ),
+                      ),
+                      const Gap(8),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed:
+                              () => Navigator.of(context).pop(
+                                messageController.text.trim().isEmpty
+                                    ? null
+                                    : messageController.text.trim(),
+                              ),
+                          child: Text('Add Message'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
+
+    if (context.mounted) {
+      await _purchaseGift(context, ref, subscriptionId, recipient?.id, message);
+    }
+  }
+
+  Future<void> _purchaseGift(
+    BuildContext context,
+    WidgetRef ref,
+    String subscriptionId,
+    String? recipientId,
+    String? message,
+  ) async {
+    final client = ref.watch(apiClientProvider);
+    try {
+      showLoadingModal(context);
+      final resp = await client.post(
+        '/id/subscriptions/gifts/purchase',
+        data: {
+          'subscription_identifier': subscriptionId,
+          if (recipientId != null) 'recipient_id': recipientId,
+          'payment_method': 'solian.wallet',
+          'payment_details': {'currency': 'golds'},
+          if (message != null) 'message': message,
+          'gift_duration_days': 30,
+          'subscription_duration_days': 30,
+        },
+        options: Options(headers: {'X-Noop': true}),
+      );
+      final gift = SnWalletGift.fromJson(resp.data);
+      if (gift.status == 1) return; // Already paid
+
+      final orderResp = await client.post(
+        '/id/subscriptions/gifts/${gift.id}/order',
+      );
+      final order = SnWalletOrder.fromJson(orderResp.data);
+
+      if (context.mounted) hideLoadingModal(context);
+
+      // Show payment overlay to complete the payment
+      if (!context.mounted) return;
+      final paidOrder = await PaymentOverlay.show(
+        context: context,
+        order: order,
+        enableBiometric: true,
+      );
+
+      if (context.mounted) showLoadingModal(context);
+
+      if (paidOrder != null) {
+        // Wait for server to handle order
+        await Future.delayed(const Duration(seconds: 1));
+
+        // Get the updated gift
+        final giftResp = await client.get('/id/subscriptions/gifts/${gift.id}');
+        final updatedGift = SnWalletGift.fromJson(giftResp.data);
+
+        if (context.mounted) hideLoadingModal(context);
+
+        // Show gift code dialog
+        if (context.mounted) {
+          await showDialog(
+            context: context,
+            builder:
+                (context) => AlertDialog(
+                  title: Text('Gift Purchased!'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Gift Code: ${updatedGift.giftCode}'),
+                      const Gap(8),
+                      Text(
+                        'Share this code with the recipient to redeem the gift.',
+                      ),
+                      if (updatedGift.recipientId == null) ...[
+                        const Gap(8),
+                        Text('This is an open gift that anyone can redeem.'),
+                      ],
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('OK'),
+                    ),
+                  ],
+                ),
+          );
+        }
+      }
+
+      ref.invalidate(accountSentGiftsProvider);
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
+  }
+
+  Future<void> _showRedeemGiftDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final codeController = TextEditingController();
+
+    final result = await showDialog<String>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Redeem Gift'),
+            content: TextField(
+              controller: codeController,
+              decoration: InputDecoration(
+                labelText: 'Gift Code',
+                hintText: 'Enter the gift code',
+                border: OutlineInputBorder(),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed:
+                    () => Navigator.of(context).pop(codeController.text.trim()),
+                child: Text('Redeem'),
+              ),
+            ],
+          ),
+    );
+
+    if (result != null && result.isNotEmpty && context.mounted) {
+      await _redeemGift(context, ref, result);
+    }
+  }
+
+  Future<void> _redeemGift(
+    BuildContext context,
+    WidgetRef ref,
+    String giftCode,
+  ) async {
+    final client = ref.watch(apiClientProvider);
+    try {
+      showLoadingModal(context);
+
+      // First check if gift can be redeemed
+      final checkResp = await client.get(
+        '/id/subscriptions/gifts/check/$giftCode',
+      );
+      final checkData = checkResp.data as Map<String, dynamic>;
+
+      if (!checkData['can_redeem']) {
+        if (context.mounted) hideLoadingModal(context);
+        showErrorAlert(checkData['error'] ?? 'Gift cannot be redeemed');
+        return;
+      }
+
+      // Redeem the gift
+      await client.post(
+        '/id/subscriptions/gifts/redeem',
+        data: {'gift_code': giftCode},
+      );
+
+      if (context.mounted) {
+        hideLoadingModal(context);
+        await showDialog(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: Text('Gift Redeemed!'),
+                content: Text(
+                  'You have successfully redeemed the gift. Your new subscription is now active.',
+                ),
+                actions: [
+                  FilledButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('OK'),
+                  ),
+                ],
+              ),
+        );
+      }
+
+      ref.invalidate(accountReceivedGiftsProvider);
+      ref.invalidate(accountStellarSubscriptionProvider);
+      ref.read(userInfoProvider.notifier).fetchUser();
+    } catch (err) {
+      if (context.mounted) hideLoadingModal(context);
+      showErrorAlert(err);
+    }
+  }
+
+  Future<void> _cancelGift(
+    BuildContext context,
+    WidgetRef ref,
+    SnWalletGift gift,
+  ) async {
+    final confirm = await showConfirmAlert(
+      'Cancel Gift',
+      'Are you sure you want to cancel this gift? This action cannot be undone.',
+    );
+    if (!confirm || !context.mounted) return;
+
+    final client = ref.watch(apiClientProvider);
+    try {
+      showLoadingModal(context);
+      await client.post('/id/subscriptions/gifts/${gift.id}/cancel');
+      ref.invalidate(accountSentGiftsProvider);
+      if (context.mounted) {
+        hideLoadingModal(context);
+        showSnackBar('Gift cancelled successfully');
+      }
+    } catch (err) {
+      if (context.mounted) hideLoadingModal(context);
+      showErrorAlert(err);
     }
   }
 }
