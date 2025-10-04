@@ -285,37 +285,6 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                                     ),
                                   );
                                 }),
-                                if (selectedRecipients.length < 10)
-                                  OutlinedButton.icon(
-                                    onPressed: () async {
-                                      final recipient =
-                                          await showModalBottomSheet<SnAccount>(
-                                            context: context,
-                                            useRootNavigator: true,
-                                            isScrollControlled: true,
-                                            builder:
-                                                (context) =>
-                                                    const AccountPickerSheet(),
-                                          );
-                                      if (recipient != null &&
-                                          !selectedRecipients.contains(
-                                            recipient,
-                                          )) {
-                                        setState(
-                                          () =>
-                                              selectedRecipients.add(recipient),
-                                        );
-                                      }
-                                    },
-                                    icon: const Icon(Icons.person_add),
-                                    label: Text('addRecipient'.tr()),
-                                    style: OutlinedButton.styleFrom(
-                                      minimumSize: const Size(
-                                        double.infinity,
-                                        48,
-                                      ),
-                                    ),
-                                  ).padding(all: 16),
                               ],
                             )
                             : Column(
@@ -470,7 +439,7 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                 bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
               child: SheetScaffold(
-                titleText: 'enterPinToConfirm'.tr(),
+                titleText: 'enterPin'.tr(),
                 heightFactor: 0.5,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -481,7 +450,7 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'enterPinToConfirm'.tr(),
+                              'enterPinToConfirmPayment'.tr(),
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w500),
                               textAlign: TextAlign.center,
@@ -862,6 +831,29 @@ class WalletScreen extends HookConsumerWidget {
       return 'walletCurrency${isShort ? 'Short' : ''}${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}';
     }
 
+    List<SnWalletPocket> _getAllCurrencies(List<SnWalletPocket> pockets) {
+      final allCurrencies = <String>{};
+      allCurrencies.addAll(kCurrencyIconData.keys);
+      allCurrencies.addAll(pockets.map((p) => p.currency));
+
+      return allCurrencies.map((currency) {
+        final existingPocket = pockets.firstWhere(
+          (p) => p.currency == currency,
+          orElse:
+              () => SnWalletPocket(
+                id: '',
+                currency: currency,
+                amount: 0.0,
+                walletId: '',
+                createdAt: DateTime.now(),
+                updatedAt: DateTime.now(),
+                deletedAt: null,
+              ),
+        );
+        return existingPocket;
+      }).toList();
+    }
+
     return AppScaffold(
       appBar: AppBar(
         title: Text('wallet').tr(),
@@ -908,7 +900,7 @@ class WalletScreen extends HookConsumerWidget {
                           margin: EdgeInsets.zero,
                           child: Column(
                             children: [
-                              ...data.pockets.map(
+                              ..._getAllCurrencies(data.pockets).map(
                                 (pocket) => ListTile(
                                   leading: Icon(
                                     kCurrencyIconData[pocket.currency] ??
@@ -931,6 +923,8 @@ class WalletScreen extends HookConsumerWidget {
                       ],
                     ).padding(horizontal: 12, top: 12),
                   ),
+
+                  SliverGap(8),
 
                   // Tab Bar
                   SliverToBoxAdapter(

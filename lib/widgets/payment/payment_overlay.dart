@@ -385,7 +385,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     return Column(
       children: [
         Text(
-          'enterPinToConfirm'.tr(),
+          'enterPinToConfirmPayment'.tr(),
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
