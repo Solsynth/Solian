@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -17,6 +19,7 @@ const kAppbarTransparentStoreKey = 'app_bar_transparent';
 const kAppBackgroundStoreKey = 'app_has_background';
 const kAppShowBackgroundImage = 'app_show_background_image';
 const kAppColorSchemeStoreKey = 'app_color_scheme';
+const kAppCustomColorsStoreKey = 'app_custom_colors';
 const kAppNotifyWithHaptic = 'app_notify_with_haptic';
 const kAppCustomFonts = 'app_custom_fonts';
 const kAppAutoTranslate = 'app_auto_translate';
@@ -59,6 +62,21 @@ final serverUrlProvider = Provider<String>((ref) {
 });
 
 @freezed
+sealed class ThemeColors with _$ThemeColors {
+  factory ThemeColors({
+    int? primary,
+    int? secondary,
+    int? tertiary,
+    int? surface,
+    int? background,
+    int? error,
+  }) = _ThemeColors;
+
+  factory ThemeColors.fromJson(Map<String, dynamic> json) =>
+      _$ThemeColorsFromJson(json);
+}
+
+@freezed
 sealed class AppSettings with _$AppSettings {
   const factory AppSettings({
     required bool autoTranslate,
@@ -70,6 +88,7 @@ sealed class AppSettings with _$AppSettings {
     required bool showBackgroundImage,
     required String? customFonts,
     required int? appColorScheme, // The color stored via the int type
+    required ThemeColors? customColors,
     required Size? windowSize, // The window size for desktop platforms
     required double windowOpacity, // The window opacity for desktop platforms
     required double cardTransparency, // The card background opacity
@@ -95,6 +114,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       showBackgroundImage: prefs.getBool(kAppShowBackgroundImage) ?? true,
       customFonts: prefs.getString(kAppCustomFonts),
       appColorScheme: prefs.getInt(kAppColorSchemeStoreKey),
+      customColors: _getThemeColorsFromPrefs(prefs),
       windowSize: _getWindowSizeFromPrefs(prefs),
       windowOpacity: prefs.getDouble(kAppWindowOpacity) ?? 1.0,
       cardTransparency: prefs.getDouble(kAppCardTransparent) ?? 1.0,
@@ -120,6 +140,18 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       // Invalid format, return null
     }
     return null;
+  }
+
+  ThemeColors? _getThemeColorsFromPrefs(SharedPreferences prefs) {
+    final jsonString = prefs.getString(kAppCustomColorsStoreKey);
+    if (jsonString == null) return null;
+
+    try {
+      final json = jsonDecode(jsonString);
+      return ThemeColors.fromJson(json);
+    } catch (e) {
+      return null;
+    }
   }
 
   void setDefaultPoolId(String? value) {
@@ -229,6 +261,17 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kMaterialYouToggleStoreKey, value);
     state = state.copyWith(useMaterial3: value);
+  }
+
+  void setCustomColors(ThemeColors? value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (value != null) {
+      final json = jsonEncode(value.toJson());
+      prefs.setString(kAppCustomColorsStoreKey, json);
+    } else {
+      prefs.remove(kAppCustomColorsStoreKey);
+    }
+    state = state.copyWith(customColors: value);
   }
 }
 

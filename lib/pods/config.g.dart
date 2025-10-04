@@ -3,11 +3,34 @@
 part of 'config.dart';
 
 // **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_ThemeColors _$ThemeColorsFromJson(Map<String, dynamic> json) => _ThemeColors(
+  primary: (json['primary'] as num?)?.toInt(),
+  secondary: (json['secondary'] as num?)?.toInt(),
+  tertiary: (json['tertiary'] as num?)?.toInt(),
+  surface: (json['surface'] as num?)?.toInt(),
+  background: (json['background'] as num?)?.toInt(),
+  error: (json['error'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$ThemeColorsToJson(_ThemeColors instance) =>
+    <String, dynamic>{
+      'primary': instance.primary,
+      'secondary': instance.secondary,
+      'tertiary': instance.tertiary,
+      'surface': instance.surface,
+      'background': instance.background,
+      'error': instance.error,
+    };
+
+// **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
 String _$appSettingsNotifierHash() =>
-    r'514c771a398f4647a22b2d51ae0152bff713833f';
+    r'3ba2cdce76f3c4fed84f4108341c88a0a971bf3a';
 
 /// See also [AppSettingsNotifier].
 @ProviderFor(AppSettingsNotifier)

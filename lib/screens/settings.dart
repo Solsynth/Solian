@@ -234,68 +234,191 @@ class SettingsScreen extends HookConsumerWidget {
       ),
 
       // Color scheme settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsColorScheme').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.palette),
-        trailing: GestureDetector(
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                Color selectedColor =
-                    settings.appColorScheme != null
-                        ? Color(settings.appColorScheme!)
-                        : Colors.indigo;
+      Theme(
+        data: Theme.of(
+          context,
+        ).copyWith(listTileTheme: ListTileThemeData(minLeadingWidth: 48)),
+        child: ExpansionTile(
+          title: Text('settingsColorScheme').tr(),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 24),
+          leading: const Icon(Symbols.palette),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Seed color picker
+            ListTile(
+              title: Text('Seed Color').tr(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              trailing: GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      Color selectedColor =
+                          settings.appColorScheme != null
+                              ? Color(settings.appColorScheme!)
+                              : Colors.indigo;
 
-                return AlertDialog(
-                  title: Text('settingsColorScheme').tr(),
-                  content: SingleChildScrollView(
-                    child: ColorPicker(
-                      paletteType: PaletteType.rgbWithBlue,
-                      enableAlpha: false,
-                      pickerColor: selectedColor,
-                      onColorChanged: (color) {
-                        selectedColor = color;
-                      },
+                      return AlertDialog(
+                        title: Text('Seed Color').tr(),
+                        content: SingleChildScrollView(
+                          child: ColorPicker(
+                            paletteType: PaletteType.hsv,
+                            enableAlpha: true,
+                            showLabel: true,
+                            hexInputBar: true,
+                            pickerColor: selectedColor,
+                            onColorChanged: (color) {
+                              selectedColor = color;
+                            },
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text('cancel').tr(),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              ref
+                                  .read(appSettingsNotifierProvider.notifier)
+                                  .setAppColorScheme(selectedColor.value);
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('confirm').tr(),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  margin: EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+                  decoration: BoxDecoration(
+                    color:
+                        settings.appColorScheme != null
+                            ? Color(settings.appColorScheme!)
+                            : Colors.indigo,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withOpacity(0.5),
+                      width: 2,
                     ),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('cancel').tr(),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        ref
-                            .read(appSettingsNotifierProvider.notifier)
-                            .setAppColorScheme(selectedColor.value);
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('confirm').tr(),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-          child: Container(
-            width: 24,
-            height: 24,
-            margin: EdgeInsets.symmetric(horizontal: 2, vertical: 8),
-            decoration: BoxDecoration(
-              color:
-                  settings.appColorScheme != null
-                      ? Color(settings.appColorScheme!)
-                      : Colors.indigo,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                width: 2,
+                ),
               ),
             ),
-          ),
+            // Custom colors section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child:
+                  Text(
+                    'Custom Colors',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ).bold(),
+            ),
+            // Primary color
+            _ColorPickerTile(
+              title: 'Primary',
+              color:
+                  settings.customColors?.primary != null
+                      ? Color(settings.customColors!.primary!)
+                      : null,
+              onColorChanged: (color) {
+                final current = settings.customColors ?? ThemeColors();
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setCustomColors(current.copyWith(primary: color?.value));
+              },
+            ),
+            // Secondary
+            _ColorPickerTile(
+              title: 'Secondary',
+              color:
+                  settings.customColors?.secondary != null
+                      ? Color(settings.customColors!.secondary!)
+                      : null,
+              onColorChanged: (color) {
+                final current = settings.customColors ?? ThemeColors();
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setCustomColors(current.copyWith(secondary: color?.value));
+              },
+            ),
+            // Tertiary
+            _ColorPickerTile(
+              title: 'Tertiary',
+              color:
+                  settings.customColors?.tertiary != null
+                      ? Color(settings.customColors!.tertiary!)
+                      : null,
+              onColorChanged: (color) {
+                final current = settings.customColors ?? ThemeColors();
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setCustomColors(current.copyWith(tertiary: color?.value));
+              },
+            ),
+            // Surface
+            _ColorPickerTile(
+              title: 'Surface',
+              color:
+                  settings.customColors?.surface != null
+                      ? Color(settings.customColors!.surface!)
+                      : null,
+              onColorChanged: (color) {
+                final current = settings.customColors ?? ThemeColors();
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setCustomColors(current.copyWith(surface: color?.value));
+              },
+            ),
+            // Background
+            _ColorPickerTile(
+              title: 'Background',
+              color:
+                  settings.customColors?.background != null
+                      ? Color(settings.customColors!.background!)
+                      : null,
+              onColorChanged: (color) {
+                final current = settings.customColors ?? ThemeColors();
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setCustomColors(
+                      current.copyWith(background: color?.value),
+                    );
+              },
+            ),
+            // Error
+            _ColorPickerTile(
+              title: 'Error',
+              color:
+                  settings.customColors?.error != null
+                      ? Color(settings.customColors!.error!)
+                      : null,
+              onColorChanged: (color) {
+                final current = settings.customColors ?? ThemeColors();
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setCustomColors(current.copyWith(error: color?.value));
+              },
+            ),
+            // Reset custom colors
+            ListTile(
+              title: Text('Reset Custom Colors').tr(),
+              trailing: const Icon(Symbols.restart_alt).padding(right: 2),
+              contentPadding: EdgeInsets.symmetric(horizontal: 20),
+              onTap: () {
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setCustomColors(null);
+                showSnackBar('settingsApplied'.tr());
+              },
+            ),
+          ],
         ),
       ),
 
@@ -808,6 +931,86 @@ class _SettingsSection extends StatelessWidget {
         ...children,
         const SizedBox(height: 16),
       ],
+    );
+  }
+}
+
+// Helper widget for color picker tiles
+class _ColorPickerTile extends StatelessWidget {
+  final String title;
+  final Color? color;
+  final ValueChanged<Color?> onColorChanged;
+
+  const _ColorPickerTile({
+    required this.title,
+    required this.color,
+    required this.onColorChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      trailing: GestureDetector(
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              Color selectedColor = color ?? Colors.transparent;
+
+              return AlertDialog(
+                title: Text(title),
+                content: SingleChildScrollView(
+                  child: ColorPicker(
+                    paletteType: PaletteType.hsv,
+                    enableAlpha: true,
+                    showLabel: true,
+                    hexInputBar: true,
+                    pickerColor: selectedColor,
+                    onColorChanged: (newColor) {
+                      selectedColor = newColor;
+                    },
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('cancel').tr(),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      onColorChanged(selectedColor);
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('confirm').tr(),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      onColorChanged(null);
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Reset').tr(),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        child: Container(
+          width: 24,
+          height: 24,
+          margin: EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+          decoration: BoxDecoration(
+            color: color ?? Colors.transparent,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+              width: 2,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

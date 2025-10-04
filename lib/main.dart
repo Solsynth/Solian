@@ -279,8 +279,8 @@ class IslandApp extends HookConsumerWidget {
 
     return MaterialApp.router(
       color: Colors.transparent,
-      theme: theme?.light,
-      darkTheme: theme?.dark,
+      theme: theme.light,
+      darkTheme: theme.dark,
       themeMode: getThemeMode(),
       routerConfig: router,
       supportedLocales: context.supportedLocales,

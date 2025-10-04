@@ -31,10 +31,31 @@ ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
           ? Color(settings.appColorScheme!)
           : Colors.indigo;
 
-  final colorScheme = ColorScheme.fromSeed(
+  var colorScheme = ColorScheme.fromSeed(
     seedColor: seedColor,
     brightness: brightness,
   );
+
+  final customColors = settings.customColors;
+  if (customColors != null) {
+    colorScheme = colorScheme.copyWith(
+      primary:
+          customColors.primary != null ? Color(customColors.primary!) : null,
+      secondary:
+          customColors.secondary != null
+              ? Color(customColors.secondary!)
+              : null,
+      tertiary:
+          customColors.tertiary != null ? Color(customColors.tertiary!) : null,
+      surface:
+          customColors.surface != null ? Color(customColors.surface!) : null,
+      background:
+          customColors.background != null
+              ? Color(customColors.background!)
+              : null,
+      error: customColors.error != null ? Color(customColors.error!) : null,
+    );
+  }
 
   final hasAppBarTransparent = settings.appBarTransparent;
   final useM3 = settings.useMaterial3;
