@@ -188,7 +188,7 @@ Add these keys to your localization files:
   "description": "Description",
   "pinCode": "PIN Code",
   "biometric": "Biometric",
-  "enterPinToConfirm": "Enter your 6-digit PIN to confirm payment",
+  "enterPinToConfirmPayment": "Enter your 6-digit PIN to confirm payment",
   "clearPin": "Clear PIN",
   "useBiometricToConfirm": "Use biometric authentication to confirm payment",
   "touchSensorToAuthenticate": "Touch the sensor to authenticate",
