@@ -1176,5 +1176,14 @@
     "noRecipientsSelected": "No recipients selected",
     "selectRecipientsToSendFund": "Select recipients to send the fund to",
     "addRecipient": "Add Recipient",
-    "addMoreRecipients": "Add More Recipients"
+    "addMoreRecipients": "Add More Recipients",
+    "transactionDetails": "Transaction Details",
+    "remarks": "Remarks",
+    "payer": "Payer",
+    "payee": "Payee",
+    "transactionType": "Transaction Type",
+    "transfer": "Transfer",
+    "payment": "Payment",
+    "systemWallet": "System Wallet",
+    "date": "Date"
 }

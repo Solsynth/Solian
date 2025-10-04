@@ -189,7 +189,7 @@ class AccountProfileCard extends HookConsumerWidget {
 }
 
 class AccountPfcGestureDetector extends StatelessWidget {
-  final String uname;
+  final String? uname;
   final Widget child;
   const AccountPfcGestureDetector({
     super.key,
@@ -202,7 +202,13 @@ class AccountPfcGestureDetector extends StatelessWidget {
     return GestureDetector(
       child: child,
       onTapDown: (details) {
-        showAccountProfileCard(context, uname, offset: details.localPosition);
+        if (uname != null) {
+          showAccountProfileCard(
+            context,
+            uname!,
+            offset: details.localPosition,
+          );
+        }
       },
     );
   }

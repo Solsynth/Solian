@@ -1075,5 +1075,6 @@
     "deleteRecycledFiles": "删除被回收的文件",
     "recycledFilesDeleted": "被回收文件成功删除",
     "failedToDeleteRecycledFiles": "删除被回收文件失败",
-    "upload": "上传"
+    "upload": "上传",
+    "systemWallet": "中央统筹"
 }

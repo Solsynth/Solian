@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -659,6 +660,173 @@ Future<SnWalletFund> walletFund(Ref ref, String fundId) async {
   return SnWalletFund.fromJson(resp.data);
 }
 
+class TransactionDetailSheet extends StatelessWidget {
+  final SnTransaction transaction;
+
+  const TransactionDetailSheet({super.key, required this.transaction});
+
+  @override
+  Widget build(BuildContext context) {
+    final isIncome =
+        transaction.payeeWalletId == null ||
+        transaction.payeeWallet?.accountId == null;
+
+    return SheetScaffold(
+      titleText: 'transactionDetails'.tr(),
+      heightFactor: 0.75,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Amount
+            Text(
+              'amount'.tr(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Gap(4),
+            Text(
+              '${transaction.amount.toStringAsFixed(2)} ${transaction.currency}',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isIncome ? Colors.green : Colors.red,
+              ),
+            ),
+            const Gap(16),
+
+            // Remarks
+            if (transaction.remarks != null &&
+                transaction.remarks!.isNotEmpty) ...[
+              Text(
+                'remarks'.tr(),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const Gap(4),
+              Text(
+                transaction.remarks!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const Gap(16),
+            ],
+
+            // Date
+            Text(
+              'date'.tr(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Gap(4),
+            Text(
+              DateFormat.yMd().add_Hm().format(transaction.createdAt),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const Gap(16),
+
+            // Payer
+            Text(
+              'payer'.tr(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Gap(4),
+            AccountPfcGestureDetector(
+              uname: transaction.payerWallet?.account?.name,
+              child: Row(
+                spacing: 8,
+                children: [
+                  if (transaction.payerWallet?.account != null)
+                    ProfilePictureWidget(
+                      file: transaction.payerWallet!.account!.profile.picture,
+                      radius: 12,
+                    ),
+                  Text(
+                    transaction.payerWallet?.account?.nick ??
+                        'systemWallet'.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+            const Gap(16),
+
+            // Payee
+            Text(
+              'payee'.tr(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Gap(4),
+            AccountPfcGestureDetector(
+              uname: transaction.payeeWallet?.account?.name,
+              child: Row(
+                spacing: 8,
+                children: [
+                  if (transaction.payeeWallet?.account != null)
+                    ProfilePictureWidget(
+                      file: transaction.payeeWallet!.account!.profile.picture,
+                      radius: 12,
+                    ),
+                  Text(
+                    transaction.payeeWallet?.account?.nick ??
+                        'systemWallet'.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+            const Gap(16),
+
+            // Transaction Type
+            Text(
+              'transactionType'.tr(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Gap(4),
+            Text(
+              _getTransactionTypeText(transaction.type),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getTransactionTypeText(int type) {
+    // Assuming types: 0: transfer, 1: payment, etc. Adjust based on actual types
+    switch (type) {
+      case 0:
+        return 'transfer'.tr();
+      case 1:
+        return 'payment'.tr();
+      default:
+        return 'unknown'.tr();
+    }
+  }
+}
+
 class WalletScreen extends HookConsumerWidget {
   const WalletScreen({super.key});
 
@@ -802,27 +970,41 @@ class WalletScreen extends HookConsumerWidget {
                               final isIncome =
                                   transaction.payeeWalletId == wallet.value?.id;
 
-                              return ListTile(
-                                key: ValueKey(transaction.id),
-                                leading: Icon(
-                                  isIncome
-                                      ? Symbols.payment_arrow_down
-                                      : Symbols.paid,
-                                ),
-                                title: Text(
-                                  transaction.remarks ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Text(
-                                  DateFormat.yMd().add_Hm().format(
-                                    transaction.createdAt,
+                              return InkWell(
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    useRootNavigator: true,
+                                    isScrollControlled: true,
+                                    builder:
+                                        (context) => TransactionDetailSheet(
+                                          transaction: transaction,
+                                        ),
+                                  );
+                                },
+                                child: ListTile(
+                                  key: ValueKey(transaction.id),
+                                  leading: Icon(
+                                    isIncome
+                                        ? Symbols.payment_arrow_down
+                                        : Symbols.paid,
                                   ),
-                                ),
-                                trailing: Text(
-                                  '${isIncome ? '+' : '-'}${transaction.amount.toStringAsFixed(2)} ${transaction.currency}',
-                                  style: TextStyle(
-                                    color: isIncome ? Colors.green : Colors.red,
+                                  title: Text(
+                                    transaction.remarks ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  subtitle: Text(
+                                    DateFormat.yMd().add_Hm().format(
+                                      transaction.createdAt,
+                                    ),
+                                  ),
+                                  trailing: Text(
+                                    '${isIncome ? '+' : '-'}${transaction.amount.toStringAsFixed(2)} ${transaction.currency}',
+                                    style: TextStyle(
+                                      color:
+                                          isIncome ? Colors.green : Colors.red,
+                                    ),
                                   ),
                                 ),
                               );
