@@ -7,7 +7,7 @@ part of 'config.dart';
 // **************************************************************************
 
 String _$appSettingsNotifierHash() =>
-    r'c3042f77067b5f36102f17277e174a756121ac74';
+    r'514c771a398f4647a22b2d51ae0152bff713833f';
 
 /// See also [AppSettingsNotifier].
 @ProviderFor(AppSettingsNotifier)

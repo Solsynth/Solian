@@ -325,6 +325,7 @@
     "settingsAprilFoolFeatures": "April Fool Features",
     "settingsEnterToSend": "Enter to Send",
     "settingsTransparentAppBar": "Transparent App Bar",
+    "settingsCardBackgroundOpacity": "Card Background Opacity",
     "settingsCustomFonts": "Custom Fonts",
     "settingsCustomFontsHint": "Custom fonts will be used for all text in the app. Make sure it is installed on your device.",
     "settingsColorScheme": "Color Scheme",

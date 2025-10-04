@@ -299,6 +299,30 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
+      // Card background opacity settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsCardBackgroundOpacity').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.opacity),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Slider(
+            value: settings.cardTransparency,
+            min: 0.0,
+            max: 1.0,
+            year2023: true,
+            padding: EdgeInsets.only(right: 24),
+            label: '${(settings.cardTransparency * 100).round()}%',
+            onChanged: (value) {
+              ref
+                  .read(appSettingsNotifierProvider.notifier)
+                  .setAppTransparentBackground(value);
+            },
+          ),
+        ),
+      ),
+
       // Background image settings (only for non-web platforms)
       if (!kIsWeb && docBasepath.value != null)
         ListTile(

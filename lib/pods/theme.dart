@@ -1,37 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:island/pods/config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeSet?>((ref) {
-  return ThemeNotifier();
-});
+part 'theme.g.dart';
 
-class ThemeNotifier extends StateNotifier<ThemeSet?> {
-  ThemeNotifier() : super(null) {
-    _loadTheme();
-  }
-
-  Future<void> _loadTheme() async {
-    final theme = await createAppThemeSet();
-    state = theme;
-  }
-
-  void reloadTheme({
-    Color? seedColorOverride,
-    bool? useMaterial3,
-    String? customFonts,
-  }) async {
-    final theme = await createAppThemeSet(
-      seedColorOverride: seedColorOverride,
-      useMaterial3: useMaterial3,
-      customFonts: customFonts,
-    );
-    state = theme;
-  }
+@riverpod
+ThemeSet theme(Ref ref) {
+  final settings = ref.watch(appSettingsNotifierProvider);
+  return createAppThemeSet(settings);
 }
-
-const kMaterialYouToggleStoreKey = 'app_theme_material_you';
 
 class ThemeSet {
   ThemeData light;
@@ -40,52 +18,29 @@ class ThemeSet {
   ThemeSet({required this.light, required this.dark});
 }
 
-Future<ThemeSet> createAppThemeSet({
-  Color? seedColorOverride,
-  bool? useMaterial3,
-  String? customFonts,
-}) async {
+ThemeSet createAppThemeSet(AppSettings settings) {
   return ThemeSet(
-    light: await createAppTheme(
-      Brightness.light,
-      useMaterial3: useMaterial3,
-      customFonts: customFonts,
-    ),
-    dark: await createAppTheme(
-      Brightness.dark,
-      useMaterial3: useMaterial3,
-      customFonts: customFonts,
-    ),
+    light: createAppTheme(Brightness.light, settings),
+    dark: createAppTheme(Brightness.dark, settings),
   );
 }
 
-Future<ThemeData> createAppTheme(
-  Brightness brightness, {
-  Color? seedColorOverride,
-  bool? useMaterial3,
-  String? customFonts,
-}) async {
-  final prefs = await SharedPreferences.getInstance();
-
-  final seedColorString = prefs.getInt(kAppColorSchemeStoreKey);
+ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
   final seedColor =
-      seedColorString != null ? Color(seedColorString) : Colors.indigo;
+      settings.appColorScheme != null
+          ? Color(settings.appColorScheme!)
+          : Colors.indigo;
 
   final colorScheme = ColorScheme.fromSeed(
-    seedColor: seedColorOverride ?? seedColor,
+    seedColor: seedColor,
     brightness: brightness,
   );
 
-  final hasAppBarTransparent =
-      prefs.getBool(kAppbarTransparentStoreKey) ?? false;
-  final useM3 =
-      useMaterial3 ?? (prefs.getBool(kMaterialYouToggleStoreKey) ?? true);
+  final hasAppBarTransparent = settings.appBarTransparent;
+  final useM3 = settings.useMaterial3;
 
   final inUseFonts =
-      (customFonts ?? prefs.getString(kAppCustomFonts))
-          ?.split(',')
-          .map((ele) => ele.trim())
-          .toList() ??
+      settings.customFonts?.split(',').map((ele) => ele.trim()).toList() ??
       ['Nunito'];
 
   return ThemeData(
@@ -107,6 +62,11 @@ Future<ThemeData> createAppTheme(
           hasAppBarTransparent ? Colors.transparent : colorScheme.primary,
       foregroundColor:
           hasAppBarTransparent ? colorScheme.onSurface : colorScheme.onPrimary,
+    ),
+    cardTheme: CardThemeData(
+      color: colorScheme.surfaceContainer.withOpacity(
+        settings.cardTransparency,
+      ),
     ),
     pageTransitionsTheme: PageTransitionsTheme(
       builders: {
