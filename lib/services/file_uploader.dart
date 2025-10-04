@@ -282,8 +282,17 @@ class FileUploader {
       final mime = data.mimeType;
       if (mime != null && mime.isNotEmpty) return mime;
       final filename = file.displayName ?? data.name;
-      final detected = lookupMimeType(filename);
-      if (detected != null) return detected;
+      if (filename.isNotEmpty) {
+        final detected = lookupMimeType(filename);
+        if (detected != null) return detected;
+      } else {
+        return switch (file.type) {
+          UniversalFileType.image => 'image/unknown',
+          UniversalFileType.audio => 'audio/unknown',
+          UniversalFileType.video => 'video/unknown',
+          _ => 'application/unknown',
+        };
+      }
       throw Exception('Cannot detect mime type for file: $filename');
     } else if (data is List<int> || data is Uint8List) {
       return 'application/octet-stream';
