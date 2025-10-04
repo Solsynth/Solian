@@ -368,6 +368,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                         ),
                   ),
                   GoRoute(
+                    name: 'developerBotNew',
+                    path: 'bots/new',
+                    builder:
+                        (context, state) => NewBotScreen(
+                          publisherName: state.pathParameters['name']!,
+                          projectId: state.pathParameters['projectId']!,
+                        ),
+                  ),
+                  GoRoute(
                     name: 'developerBotDetail',
                     path: 'bots/:botId',
                     builder:
@@ -375,15 +384,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                           publisherName: state.pathParameters['name']!,
                           projectId: state.pathParameters['projectId']!,
                           botId: state.pathParameters['botId']!,
-                        ),
-                  ),
-                  GoRoute(
-                    name: 'developerBotNew',
-                    path: 'bots/new',
-                    builder:
-                        (context, state) => NewBotScreen(
-                          publisherName: state.pathParameters['name']!,
-                          projectId: state.pathParameters['projectId']!,
                         ),
                   ),
                   GoRoute(
