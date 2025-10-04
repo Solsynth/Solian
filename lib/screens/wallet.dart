@@ -553,6 +553,451 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
   }
 }
 
+class CreateTransferSheet extends StatefulWidget {
+  const CreateTransferSheet({super.key});
+
+  @override
+  State<CreateTransferSheet> createState() => _CreateTransferSheetState();
+}
+
+class _CreateTransferSheetState extends State<CreateTransferSheet> {
+  final amountController = TextEditingController();
+  final remarkController = TextEditingController();
+  String selectedCurrency = 'golds';
+  SnAccount? selectedPayee;
+
+  @override
+  void dispose() {
+    amountController.dispose();
+    remarkController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SheetScaffold(
+      titleText: 'createTransfer'.tr(),
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Amount Section
+                  Text(
+                    'transferAmount'.tr(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const Gap(8),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}'),
+                      ),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: 'enterAmount'.tr(),
+                      hintText: '0.00',
+                      prefixIcon: Icon(kCurrencyIconData[selectedCurrency]),
+                      border: OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+
+                  const Gap(16),
+
+                  // Currency Selection
+                  Text(
+                    'selectCurrency'.tr(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const Gap(8),
+                  DropdownButtonFormField<String>(
+                    value: selectedCurrency,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    items:
+                        kCurrencyIconData.keys.map((currency) {
+                          return DropdownMenuItem(
+                            value: currency,
+                            child: Row(
+                              children: [
+                                Icon(kCurrencyIconData[currency]),
+                                const Gap(8),
+                                Text(
+                                  'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
+                                      .tr(),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => selectedCurrency = value);
+                      }
+                    },
+                  ),
+
+                  const Gap(16),
+
+                  // Payee Selection Section
+                  Text(
+                    'selectPayee'.tr(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const Gap(8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withOpacity(0.2),
+                      ),
+                    ),
+                    child:
+                        selectedPayee != null
+                            ? ListTile(
+                              contentPadding: const EdgeInsets.only(
+                                left: 20,
+                                right: 12,
+                              ),
+                              leading: ProfilePictureWidget(
+                                file: selectedPayee!.profile.picture,
+                              ),
+                              title: Text(
+                                selectedPayee!.nick,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'selectedPayee'.tr(),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              trailing: IconButton(
+                                onPressed:
+                                    () => setState(() => selectedPayee = null),
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                tooltip: 'Remove payee',
+                              ),
+                            )
+                            : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.person_add_outlined,
+                                  size: 48,
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                ),
+                                const Gap(8),
+                                Text(
+                                  'noPayeeSelected'.tr(),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.copyWith(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const Gap(4),
+                                Text(
+                                  'selectPayeeToTransfer'.tr(),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodySmall?.copyWith(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ).padding(vertical: 32),
+                  ),
+                  const Gap(12),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final payee = await showModalBottomSheet<SnAccount>(
+                        context: context,
+                        useRootNavigator: true,
+                        isScrollControlled: true,
+                        builder: (context) => const AccountPickerSheet(),
+                      );
+                      if (payee != null) {
+                        setState(() => selectedPayee = payee);
+                      }
+                    },
+                    icon: const Icon(Icons.person_search),
+                    label: Text('selectPayee'.tr()),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                  ),
+
+                  const Gap(16),
+
+                  // Remark Section
+                  Text(
+                    'addRemark'.tr(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const Gap(8),
+                  TextField(
+                    controller: remarkController,
+                    decoration: InputDecoration(
+                      labelText: 'transferRemark'.tr(),
+                      hintText: 'addRemarkForTransfer'.tr(),
+                      alignLabelWithHint: true,
+                      border: OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    maxLines: 3,
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Action Buttons
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('cancel'.tr()),
+                  ),
+                ),
+                const Gap(8),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: _createTransfer,
+                    child: Text('createTransfer'.tr()),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _showPinVerificationDialog(BuildContext context) async {
+    String enteredPin = '';
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder:
+          (context) => Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SheetScaffold(
+                titleText: 'enterPin'.tr(),
+                heightFactor: 0.5,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'enterPinToConfirmTransfer'.tr(),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w500),
+                              textAlign: TextAlign.center,
+                            ),
+                            const Gap(24),
+                            OtpTextField(
+                              numberOfFields: 6,
+                              borderColor:
+                                  Theme.of(context).colorScheme.outline,
+                              focusedBorderColor:
+                                  Theme.of(context).colorScheme.primary,
+                              showFieldAsBox: true,
+                              obscureText: true,
+                              keyboardType: TextInputType.number,
+                              fieldWidth: 48,
+                              fieldHeight: 56,
+                              borderRadius: BorderRadius.circular(8),
+                              borderWidth: 1,
+                              textStyle: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                              onSubmit: (pin) {
+                                enteredPin = pin;
+                                Navigator.of(context).pop(pin);
+                              },
+                              onCodeChanged: (String code) {
+                                enteredPin = code;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Gap(24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text('cancel'.tr()),
+                            ),
+                          ),
+                          if (enteredPin.length == 6) ...[
+                            const Gap(12),
+                            Expanded(
+                              child: FilledButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(enteredPin);
+                                },
+                                child: Text('confirm'.tr()),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+    );
+
+    return enteredPin.isNotEmpty ? enteredPin : null;
+  }
+
+  Future<void> _createTransfer() async {
+    final amount = double.tryParse(amountController.text);
+
+    if (amount == null || amount <= 0) {
+      showErrorAlert('invalidAmount'.tr());
+      return;
+    }
+
+    if (selectedPayee == null) {
+      showErrorAlert('noPayeeSelected'.tr());
+      return;
+    }
+
+    final data = {
+      'amount': amount,
+      'currency': selectedCurrency,
+      'payee_account_id': selectedPayee!.id,
+      'remark':
+          remarkController.text.trim().isEmpty
+              ? null
+              : remarkController.text.trim(),
+    };
+
+    // Ask for PIN confirmation before creating transfer
+    final enteredPin = await _showPinVerificationDialog(context);
+    if (enteredPin == null || enteredPin.isEmpty) return;
+
+    // Add PIN to the transfer data
+    data['pin_code'] = enteredPin;
+
+    if (mounted) Navigator.of(context).pop(data);
+  }
+}
+
 const Map<String, IconData> kCurrencyIconData = {
   'points': Symbols.toll,
   'golds': Symbols.attach_money,
@@ -803,6 +1248,16 @@ class WalletScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final wallet = ref.watch(walletCurrentProvider);
     final tabController = useTabController(initialLength: 2);
+    final currentTabIndex = useState(0);
+
+    useEffect(() {
+      void listener() {
+        currentTabIndex.value = tabController.index;
+      }
+
+      tabController.addListener(listener);
+      return () => tabController.removeListener(listener);
+    }, [tabController]);
 
     Future<void> createWallet() async {
       final client = ref.read(apiClientProvider);
@@ -827,11 +1282,24 @@ class WalletScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> createTransfer() async {
+      final result = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        builder: (context) => const CreateTransferSheet(),
+      );
+
+      if (result != null && context.mounted) {
+        await _handleTransferCreation(context, ref, result);
+      }
+    }
+
     String getCurrencyTranslationKey(String currency, {bool isShort = false}) {
       return 'walletCurrency${isShort ? 'Short' : ''}${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}';
     }
 
-    List<SnWalletPocket> _getAllCurrencies(List<SnWalletPocket> pockets) {
+    List<SnWalletPocket> getAllCurrencies(List<SnWalletPocket> pockets) {
       final allCurrencies = <String>{};
       allCurrencies.addAll(kCurrencyIconData.keys);
       allCurrencies.addAll(pockets.map((p) => p.currency));
@@ -859,9 +1327,16 @@ class WalletScreen extends HookConsumerWidget {
         title: Text('wallet').tr(),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.add),
-            onPressed: createFund,
-            tooltip: 'createFund'.tr(),
+            icon: Icon(
+              currentTabIndex.value == 1
+                  ? Symbols.money_bag
+                  : Symbols.swap_horiz,
+            ),
+            onPressed: currentTabIndex.value == 1 ? createFund : createTransfer,
+            tooltip:
+                currentTabIndex.value == 1
+                    ? 'createFund'.tr()
+                    : 'createTransfer'.tr(),
           ),
           const Gap(8),
         ],
@@ -900,7 +1375,7 @@ class WalletScreen extends HookConsumerWidget {
                           margin: EdgeInsets.zero,
                           child: Column(
                             children: [
-                              ..._getAllCurrencies(data.pockets).map(
+                              ...getAllCurrencies(data.pockets).map(
                                 (pocket) => ListTile(
                                   leading: Icon(
                                     kCurrencyIconData[pocket.currency] ??
@@ -1062,7 +1537,7 @@ class WalletScreen extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Symbols.celebration,
+                  Symbols.money_bag,
                   size: 48,
                   color: Theme.of(context).colorScheme.outline,
                 ),
@@ -1103,7 +1578,7 @@ class WalletScreen extends HookConsumerWidget {
                     Row(
                       children: [
                         Icon(
-                          Symbols.celebration,
+                          Symbols.money_bag,
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         const Gap(8),
@@ -1317,6 +1792,31 @@ class WalletScreen extends HookConsumerWidget {
         if (context.mounted) {
           showSnackBar('fundCreatedSuccessfully'.tr());
         }
+      }
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
+  }
+
+  Future<void> _handleTransferCreation(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> transferData,
+  ) async {
+    final client = ref.read(apiClientProvider);
+    try {
+      showLoadingModal(context);
+      await client.post('/id/wallets/transfer', data: transferData);
+
+      if (context.mounted) hideLoadingModal(context);
+
+      // Invalidate providers to refresh data
+      ref.invalidate(transactionListNotifierProvider);
+      ref.invalidate(walletCurrentProvider);
+      if (context.mounted) {
+        showSnackBar('transferCreatedSuccessfully'.tr());
       }
     } catch (err) {
       showErrorAlert(err);

@@ -1186,5 +1186,16 @@
     "transfer": "Transfer",
     "payment": "Payment",
     "systemWallet": "System Wallet",
-    "date": "Date"
+    "date": "Date",
+    "createTransfer": "Create Transfer",
+    "transferAmount": "Transfer Amount",
+    "selectPayee": "Select Payee",
+    "selectedPayee": "Selected Payee",
+    "noPayeeSelected": "No payee selected",
+    "selectPayeeToTransfer": "Select payee to transfer to",
+    "addRemark": "Add Remark",
+    "transferRemark": "Transfer Remark",
+    "addRemarkForTransfer": "Add remark for transfer",
+    "enterPinToConfirmTransfer": "Enter your 6-digit PIN to confirm transfer",
+    "transferCreatedSuccessfully": "Transfer created successfully!"
 }
