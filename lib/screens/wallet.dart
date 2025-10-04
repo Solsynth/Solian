@@ -37,6 +37,13 @@ Future<SnWallet?> walletCurrent(Ref ref) async {
   }
 }
 
+@riverpod
+Future<SnWalletStats> walletStats(Ref ref) async {
+  final client = ref.watch(apiClientProvider);
+  final resp = await client.get('/id/wallets/stats');
+  return SnWalletStats.fromJson(resp.data);
+}
+
 class CreateFundSheet extends StatefulWidget {
   const CreateFundSheet({super.key});
 
@@ -652,21 +659,13 @@ Future<SnWalletFund> walletFund(Ref ref, String fundId) async {
   return SnWalletFund.fromJson(resp.data);
 }
 
-@riverpod
-Future<Map<String, dynamic>> walletFundStats(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/id/wallets/stats');
-  return resp.data as Map<String, dynamic>;
-}
-
 class WalletScreen extends HookConsumerWidget {
   const WalletScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wallet = ref.watch(walletCurrentProvider);
-    final tabController = useTabController(initialLength: 3);
-    final fundStats = ref.watch(walletFundStatsProvider);
+    final tabController = useTabController(initialLength: 2);
 
     Future<void> createWallet() async {
       final client = ref.read(apiClientProvider);
@@ -726,120 +725,73 @@ class WalletScreen extends HookConsumerWidget {
             ).center();
           }
 
-          return Column(
-            children: [
-              // Wallet Overview
-              Column(
-                spacing: 8,
-                children: [
-                  // Pockets
-                  ...data.pockets.map(
-                    (pocket) => Card(
-                      margin: EdgeInsets.zero,
-                      child: ListTile(
-                        leading: Icon(
-                          kCurrencyIconData[pocket.currency] ??
-                              Symbols.universal_currency_alt,
+          return NestedScrollView(
+            headerSliverBuilder:
+                (context, innerBoxIsScrolled) => [
+                  // Wallet Overview
+                  SliverToBoxAdapter(
+                    child: Column(
+                      spacing: 8,
+                      children: [
+                        // Wallet Stats
+                        _buildCompactStatsWidget(context, ref),
+                        // Pockets
+                        Card(
+                          margin: EdgeInsets.zero,
+                          child: Column(
+                            children: [
+                              ...data.pockets.map(
+                                (pocket) => ListTile(
+                                  leading: Icon(
+                                    kCurrencyIconData[pocket.currency] ??
+                                        Symbols.universal_currency_alt,
+                                  ),
+                                  title:
+                                      Text(
+                                        getCurrencyTranslationKey(
+                                          pocket.currency,
+                                        ),
+                                      ).tr(),
+                                  subtitle: Text(
+                                    '${pocket.amount.toStringAsFixed(2)} ${getCurrencyTranslationKey(pocket.currency, isShort: true).tr()}',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        title:
-                            Text(
-                              getCurrencyTranslationKey(pocket.currency),
-                            ).tr(),
-                        subtitle: Text(
-                          '${pocket.amount.toStringAsFixed(2)} ${getCurrencyTranslationKey(pocket.currency, isShort: true).tr()}',
-                        ),
-                      ),
+                      ],
+                    ).padding(horizontal: 12, top: 12),
+                  ),
+
+                  // Tab Bar
+                  SliverToBoxAdapter(
+                    child: TabBar(
+                      controller: tabController,
+                      tabs: [
+                        Tab(text: 'transactions'.tr()),
+                        Tab(text: 'myFunds'.tr()),
+                      ],
                     ),
                   ),
-
-                  // Fund Stats
-                  fundStats.when(
-                    data:
-                        (stats) => Card(
-                          margin: EdgeInsets.zero,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Symbols.celebration,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                    ),
-                                    const Gap(8),
-                                    Text(
-                                      'fundOverview'.tr(),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Gap(8),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        context,
-                                        'totalFundsSent'.tr(),
-                                        '${stats['total_sent'] ?? 0}',
-                                        Icons.send,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        context,
-                                        'totalFundsReceived'.tr(),
-                                        '${stats['total_received'] ?? 0}',
-                                        Icons.call_received,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    loading:
-                        () => const Card(
-                          margin: EdgeInsets.zero,
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(child: CircularProgressIndicator()),
-                          ),
-                        ),
-                    error: (error, stack) => const SizedBox.shrink(),
-                  ),
                 ],
-              ).padding(horizontal: 16, vertical: 16),
-
-              // Tab Bar
-              TabBar(
-                controller: tabController,
-                tabs: [
-                  Tab(text: 'transactions'.tr()),
-                  Tab(text: 'myFunds'.tr()),
-                ],
-              ),
-
-              // Tab Content
-              Expanded(
-                child: TabBarView(
-                  controller: tabController,
-                  children: [
-                    // Transactions Tab
-                    PagingHelperView(
+            body: TabBarView(
+              controller: tabController,
+              children: [
+                // Transactions Tab
+                CustomScrollView(
+                  slivers: [
+                    PagingHelperSliverView(
                       provider: transactionListNotifierProvider,
                       futureRefreshable: transactionListNotifierProvider.future,
                       notifierRefreshable:
                           transactionListNotifierProvider.notifier,
                       contentBuilder:
-                          (data, widgetCount, endItemView) => ListView.builder(
-                            padding: EdgeInsets.zero,
+                          (
+                            data,
+                            widgetCount,
+                            endItemView,
+                          ) => SliverList.builder(
                             itemCount: widgetCount,
                             itemBuilder: (context, index) {
                               if (index == widgetCount - 1) {
@@ -854,10 +806,14 @@ class WalletScreen extends HookConsumerWidget {
                                 key: ValueKey(transaction.id),
                                 leading: Icon(
                                   isIncome
-                                      ? Symbols.arrow_upward
-                                      : Symbols.arrow_downward,
+                                      ? Symbols.payment_arrow_down
+                                      : Symbols.paid,
                                 ),
-                                title: Text(transaction.remarks ?? ''),
+                                title: Text(
+                                  transaction.remarks ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                                 subtitle: Text(
                                   DateFormat.yMd().add_Hm().format(
                                     transaction.createdAt,
@@ -873,13 +829,13 @@ class WalletScreen extends HookConsumerWidget {
                             },
                           ),
                     ),
-
-                    // My Funds Tab
-                    _buildFundsList(context, ref),
                   ],
                 ),
-              ),
-            ],
+
+                // My Funds Tab
+                _buildFundsList(context, ref),
+              ],
+            ),
           );
         },
         error:
@@ -1040,6 +996,112 @@ class WalletScreen extends HookConsumerWidget {
     );
   }
 
+  Widget _buildCompactStatsWidget(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(walletStatsProvider);
+
+    return stats.when(
+      data: (statsData) {
+        return Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'walletStats'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${DateFormat.yMd().format(statsData.periodBegin)} - ${DateFormat.yMd().format(statsData.periodEnd)}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatItem(
+                        context,
+                        'totalTransactions'.tr(),
+                        statsData.totalTransactions.toString(),
+                        Symbols.swap_horiz,
+                      ),
+                    ),
+                    const Gap(16),
+                    Expanded(
+                      child: _buildStatItem(
+                        context,
+                        'totalOrders'.tr(),
+                        statsData.totalOrders.toString(),
+                        Symbols.receipt_long,
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatItem(
+                        context,
+                        'totalIncome'.tr(),
+                        statsData.totalIncome.toStringAsFixed(2),
+                        Symbols.arrow_upward,
+                      ),
+                    ),
+                    const Gap(16),
+                    Expanded(
+                      child: _buildStatItem(
+                        context,
+                        'totalOutgoing'.tr(),
+                        statsData.totalOutgoing.toStringAsFixed(2),
+                        Symbols.arrow_downward,
+                      ),
+                    ),
+                    const Gap(16),
+                    Expanded(
+                      child: _buildStatItem(
+                        context,
+                        'netBalance'.tr(),
+                        statsData.sum.toStringAsFixed(2),
+                        Symbols.account_balance,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading:
+          () => Card(
+            margin: EdgeInsets.zero,
+            child: const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ),
+      error:
+          (error, stack) => Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(child: Text('Error loading stats')),
+            ),
+          ),
+    );
+  }
+
   Future<void> _handleFundCreation(
     BuildContext context,
     WidgetRef ref,
@@ -1075,7 +1137,6 @@ class WalletScreen extends HookConsumerWidget {
         // Wait for server to handle order
         await Future.delayed(const Duration(seconds: 1));
         ref.invalidate(walletFundsProvider);
-        ref.invalidate(walletFundStatsProvider);
         ref.invalidate(walletCurrentProvider);
         if (context.mounted) {
           showSnackBar('fundCreatedSuccessfully'.tr());

@@ -318,6 +318,299 @@ $SnAccountCopyWith<$Res>? get account {
 
 
 /// @nodoc
+mixin _$SnWalletStats {
+
+ DateTime get periodBegin; DateTime get periodEnd; int get totalTransactions; int get totalOrders; double get totalIncome; double get totalOutgoing; double get sum; Map<String, double> get incomeCategories; Map<String, double> get outgoingCategories;
+/// Create a copy of SnWalletStats
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnWalletStatsCopyWith<SnWalletStats> get copyWith => _$SnWalletStatsCopyWithImpl<SnWalletStats>(this as SnWalletStats, _$identity);
+
+  /// Serializes this SnWalletStats to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletStats&&(identical(other.periodBegin, periodBegin) || other.periodBegin == periodBegin)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.totalTransactions, totalTransactions) || other.totalTransactions == totalTransactions)&&(identical(other.totalOrders, totalOrders) || other.totalOrders == totalOrders)&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome)&&(identical(other.totalOutgoing, totalOutgoing) || other.totalOutgoing == totalOutgoing)&&(identical(other.sum, sum) || other.sum == sum)&&const DeepCollectionEquality().equals(other.incomeCategories, incomeCategories)&&const DeepCollectionEquality().equals(other.outgoingCategories, outgoingCategories));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,periodBegin,periodEnd,totalTransactions,totalOrders,totalIncome,totalOutgoing,sum,const DeepCollectionEquality().hash(incomeCategories),const DeepCollectionEquality().hash(outgoingCategories));
+
+@override
+String toString() {
+  return 'SnWalletStats(periodBegin: $periodBegin, periodEnd: $periodEnd, totalTransactions: $totalTransactions, totalOrders: $totalOrders, totalIncome: $totalIncome, totalOutgoing: $totalOutgoing, sum: $sum, incomeCategories: $incomeCategories, outgoingCategories: $outgoingCategories)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnWalletStatsCopyWith<$Res>  {
+  factory $SnWalletStatsCopyWith(SnWalletStats value, $Res Function(SnWalletStats) _then) = _$SnWalletStatsCopyWithImpl;
+@useResult
+$Res call({
+ DateTime periodBegin, DateTime periodEnd, int totalTransactions, int totalOrders, double totalIncome, double totalOutgoing, double sum, Map<String, double> incomeCategories, Map<String, double> outgoingCategories
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnWalletStatsCopyWithImpl<$Res>
+    implements $SnWalletStatsCopyWith<$Res> {
+  _$SnWalletStatsCopyWithImpl(this._self, this._then);
+
+  final SnWalletStats _self;
+  final $Res Function(SnWalletStats) _then;
+
+/// Create a copy of SnWalletStats
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? periodBegin = null,Object? periodEnd = null,Object? totalTransactions = null,Object? totalOrders = null,Object? totalIncome = null,Object? totalOutgoing = null,Object? sum = null,Object? incomeCategories = null,Object? outgoingCategories = null,}) {
+  return _then(_self.copyWith(
+periodBegin: null == periodBegin ? _self.periodBegin : periodBegin // ignore: cast_nullable_to_non_nullable
+as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
+as DateTime,totalTransactions: null == totalTransactions ? _self.totalTransactions : totalTransactions // ignore: cast_nullable_to_non_nullable
+as int,totalOrders: null == totalOrders ? _self.totalOrders : totalOrders // ignore: cast_nullable_to_non_nullable
+as int,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
+as double,totalOutgoing: null == totalOutgoing ? _self.totalOutgoing : totalOutgoing // ignore: cast_nullable_to_non_nullable
+as double,sum: null == sum ? _self.sum : sum // ignore: cast_nullable_to_non_nullable
+as double,incomeCategories: null == incomeCategories ? _self.incomeCategories : incomeCategories // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,outgoingCategories: null == outgoingCategories ? _self.outgoingCategories : outgoingCategories // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnWalletStats].
+extension SnWalletStatsPatterns on SnWalletStats {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnWalletStats value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnWalletStats() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnWalletStats value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletStats():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnWalletStats value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletStats() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime periodBegin,  DateTime periodEnd,  int totalTransactions,  int totalOrders,  double totalIncome,  double totalOutgoing,  double sum,  Map<String, double> incomeCategories,  Map<String, double> outgoingCategories)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnWalletStats() when $default != null:
+return $default(_that.periodBegin,_that.periodEnd,_that.totalTransactions,_that.totalOrders,_that.totalIncome,_that.totalOutgoing,_that.sum,_that.incomeCategories,_that.outgoingCategories);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime periodBegin,  DateTime periodEnd,  int totalTransactions,  int totalOrders,  double totalIncome,  double totalOutgoing,  double sum,  Map<String, double> incomeCategories,  Map<String, double> outgoingCategories)  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletStats():
+return $default(_that.periodBegin,_that.periodEnd,_that.totalTransactions,_that.totalOrders,_that.totalIncome,_that.totalOutgoing,_that.sum,_that.incomeCategories,_that.outgoingCategories);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime periodBegin,  DateTime periodEnd,  int totalTransactions,  int totalOrders,  double totalIncome,  double totalOutgoing,  double sum,  Map<String, double> incomeCategories,  Map<String, double> outgoingCategories)?  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletStats() when $default != null:
+return $default(_that.periodBegin,_that.periodEnd,_that.totalTransactions,_that.totalOrders,_that.totalIncome,_that.totalOutgoing,_that.sum,_that.incomeCategories,_that.outgoingCategories);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnWalletStats implements SnWalletStats {
+  const _SnWalletStats({required this.periodBegin, required this.periodEnd, required this.totalTransactions, required this.totalOrders, required this.totalIncome, required this.totalOutgoing, required this.sum, final  Map<String, double> incomeCategories = const {}, final  Map<String, double> outgoingCategories = const {}}): _incomeCategories = incomeCategories,_outgoingCategories = outgoingCategories;
+  factory _SnWalletStats.fromJson(Map<String, dynamic> json) => _$SnWalletStatsFromJson(json);
+
+@override final  DateTime periodBegin;
+@override final  DateTime periodEnd;
+@override final  int totalTransactions;
+@override final  int totalOrders;
+@override final  double totalIncome;
+@override final  double totalOutgoing;
+@override final  double sum;
+ final  Map<String, double> _incomeCategories;
+@override@JsonKey() Map<String, double> get incomeCategories {
+  if (_incomeCategories is EqualUnmodifiableMapView) return _incomeCategories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_incomeCategories);
+}
+
+ final  Map<String, double> _outgoingCategories;
+@override@JsonKey() Map<String, double> get outgoingCategories {
+  if (_outgoingCategories is EqualUnmodifiableMapView) return _outgoingCategories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_outgoingCategories);
+}
+
+
+/// Create a copy of SnWalletStats
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnWalletStatsCopyWith<_SnWalletStats> get copyWith => __$SnWalletStatsCopyWithImpl<_SnWalletStats>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnWalletStatsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletStats&&(identical(other.periodBegin, periodBegin) || other.periodBegin == periodBegin)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.totalTransactions, totalTransactions) || other.totalTransactions == totalTransactions)&&(identical(other.totalOrders, totalOrders) || other.totalOrders == totalOrders)&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome)&&(identical(other.totalOutgoing, totalOutgoing) || other.totalOutgoing == totalOutgoing)&&(identical(other.sum, sum) || other.sum == sum)&&const DeepCollectionEquality().equals(other._incomeCategories, _incomeCategories)&&const DeepCollectionEquality().equals(other._outgoingCategories, _outgoingCategories));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,periodBegin,periodEnd,totalTransactions,totalOrders,totalIncome,totalOutgoing,sum,const DeepCollectionEquality().hash(_incomeCategories),const DeepCollectionEquality().hash(_outgoingCategories));
+
+@override
+String toString() {
+  return 'SnWalletStats(periodBegin: $periodBegin, periodEnd: $periodEnd, totalTransactions: $totalTransactions, totalOrders: $totalOrders, totalIncome: $totalIncome, totalOutgoing: $totalOutgoing, sum: $sum, incomeCategories: $incomeCategories, outgoingCategories: $outgoingCategories)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnWalletStatsCopyWith<$Res> implements $SnWalletStatsCopyWith<$Res> {
+  factory _$SnWalletStatsCopyWith(_SnWalletStats value, $Res Function(_SnWalletStats) _then) = __$SnWalletStatsCopyWithImpl;
+@override @useResult
+$Res call({
+ DateTime periodBegin, DateTime periodEnd, int totalTransactions, int totalOrders, double totalIncome, double totalOutgoing, double sum, Map<String, double> incomeCategories, Map<String, double> outgoingCategories
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnWalletStatsCopyWithImpl<$Res>
+    implements _$SnWalletStatsCopyWith<$Res> {
+  __$SnWalletStatsCopyWithImpl(this._self, this._then);
+
+  final _SnWalletStats _self;
+  final $Res Function(_SnWalletStats) _then;
+
+/// Create a copy of SnWalletStats
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? periodBegin = null,Object? periodEnd = null,Object? totalTransactions = null,Object? totalOrders = null,Object? totalIncome = null,Object? totalOutgoing = null,Object? sum = null,Object? incomeCategories = null,Object? outgoingCategories = null,}) {
+  return _then(_SnWalletStats(
+periodBegin: null == periodBegin ? _self.periodBegin : periodBegin // ignore: cast_nullable_to_non_nullable
+as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
+as DateTime,totalTransactions: null == totalTransactions ? _self.totalTransactions : totalTransactions // ignore: cast_nullable_to_non_nullable
+as int,totalOrders: null == totalOrders ? _self.totalOrders : totalOrders // ignore: cast_nullable_to_non_nullable
+as int,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
+as double,totalOutgoing: null == totalOutgoing ? _self.totalOutgoing : totalOutgoing // ignore: cast_nullable_to_non_nullable
+as double,sum: null == sum ? _self.sum : sum // ignore: cast_nullable_to_non_nullable
+as double,incomeCategories: null == incomeCategories ? _self._incomeCategories : incomeCategories // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,outgoingCategories: null == outgoingCategories ? _self._outgoingCategories : outgoingCategories // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnWalletPocket {
 
  String get id; String get currency; double get amount; String get walletId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
