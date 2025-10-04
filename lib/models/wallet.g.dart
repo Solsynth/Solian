@@ -35,6 +35,40 @@ Map<String, dynamic> _$SnWalletToJson(_SnWallet instance) => <String, dynamic>{
   'deleted_at': instance.deletedAt?.toIso8601String(),
 };
 
+_SnWalletStats _$SnWalletStatsFromJson(Map<String, dynamic> json) =>
+    _SnWalletStats(
+      periodBegin: DateTime.parse(json['period_begin'] as String),
+      periodEnd: DateTime.parse(json['period_end'] as String),
+      totalTransactions: (json['total_transactions'] as num).toInt(),
+      totalOrders: (json['total_orders'] as num).toInt(),
+      totalIncome: (json['total_income'] as num).toDouble(),
+      totalOutgoing: (json['total_outgoing'] as num).toDouble(),
+      sum: (json['sum'] as num).toDouble(),
+      incomeCategories:
+          (json['income_categories'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, (e as num).toDouble()),
+          ) ??
+          const {},
+      outgoingCategories:
+          (json['outgoing_categories'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, (e as num).toDouble()),
+          ) ??
+          const {},
+    );
+
+Map<String, dynamic> _$SnWalletStatsToJson(_SnWalletStats instance) =>
+    <String, dynamic>{
+      'period_begin': instance.periodBegin.toIso8601String(),
+      'period_end': instance.periodEnd.toIso8601String(),
+      'total_transactions': instance.totalTransactions,
+      'total_orders': instance.totalOrders,
+      'total_income': instance.totalIncome,
+      'total_outgoing': instance.totalOutgoing,
+      'sum': instance.sum,
+      'income_categories': instance.incomeCategories,
+      'outgoing_categories': instance.outgoingCategories,
+    };
+
 _SnWalletPocket _$SnWalletPocketFromJson(Map<String, dynamic> json) =>
     _SnWalletPocket(
       id: json['id'] as String,

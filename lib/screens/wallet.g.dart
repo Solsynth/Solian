@@ -24,6 +24,22 @@ final walletCurrentProvider = AutoDisposeFutureProvider<SnWallet?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef WalletCurrentRef = AutoDisposeFutureProviderRef<SnWallet?>;
+String _$walletStatsHash() => r'23d692a922c2388135be6a46afa73c018762eb57';
+
+/// See also [walletStats].
+@ProviderFor(walletStats)
+final walletStatsProvider = AutoDisposeFutureProvider<SnWalletStats>.internal(
+  walletStats,
+  name: r'walletStatsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$walletStatsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef WalletStatsRef = AutoDisposeFutureProviderRef<SnWalletStats>;
 String _$walletFundsHash() => r'7ceb415f64fcadab2b10461e27b95bf92352c707';
 
 /// Copied from Dart SDK
@@ -443,25 +459,6 @@ class _WalletFundProviderElement
   String get fundId => (origin as WalletFundProvider).fundId;
 }
 
-String _$walletFundStatsHash() => r'fac8761cf7828fa151e8cc9115416265148bd00e';
-
-/// See also [walletFundStats].
-@ProviderFor(walletFundStats)
-final walletFundStatsProvider =
-    AutoDisposeFutureProvider<Map<String, dynamic>>.internal(
-      walletFundStats,
-      name: r'walletFundStatsProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$walletFundStatsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef WalletFundStatsRef = AutoDisposeFutureProviderRef<Map<String, dynamic>>;
 String _$transactionListNotifierHash() =>
     r'7b777cd44f3351f68f7bd1dd76bfe8b388381bdb';
 

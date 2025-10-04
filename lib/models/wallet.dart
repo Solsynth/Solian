@@ -21,6 +21,24 @@ sealed class SnWallet with _$SnWallet {
 }
 
 @freezed
+sealed class SnWalletStats with _$SnWalletStats {
+  const factory SnWalletStats({
+    required DateTime periodBegin,
+    required DateTime periodEnd,
+    required int totalTransactions,
+    required int totalOrders,
+    required double totalIncome,
+    required double totalOutgoing,
+    required double sum,
+    @Default({}) Map<String, double> incomeCategories,
+    @Default({}) Map<String, double> outgoingCategories,
+  }) = _SnWalletStats;
+
+  factory SnWalletStats.fromJson(Map<String, dynamic> json) =>
+      _$SnWalletStatsFromJson(json);
+}
+
+@freezed
 sealed class SnWalletPocket with _$SnWalletPocket {
   const factory SnWalletPocket({
     required String id,
