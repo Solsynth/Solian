@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:image/image.dart' as img;
+import 'package:island/talker.dart';
 import 'package:material_color_utilities/material_color_utilities.dart' as mcu;
 
 class ColorExtractionService {
@@ -14,11 +15,11 @@ class ColorExtractionService {
         final Map<int, int> colorToCount = {};
         for (int y = 0; y < image.height; y++) {
           for (int x = 0; x < image.width; x++) {
-            final pixel = image.getPixel(x, y) as int;
-            final r = (pixel >> 24) & 0xff;
-            final g = (pixel >> 16) & 0xff;
-            final b = (pixel >> 8) & 0xff;
-            final a = pixel & 0xff;
+            final pixel = image.getPixel(x, y);
+            final r = pixel.r.toInt();
+            final g = pixel.g.toInt();
+            final b = pixel.b.toInt();
+            final a = pixel.a.toInt();
             if (a == 0) continue;
             final argb = (a << 24) | (r << 16) | (g << 8) | b;
             colorToCount[argb] = (colorToCount[argb] ?? 0) + 1;
@@ -41,8 +42,8 @@ class ColorExtractionService {
       } else {
         return [];
       }
-    } catch (e) {
-      debugPrint('Error getting colors from image: $e');
+    } catch (e, stackTrace) {
+      talker.error('Error getting colors from image...', e, stackTrace);
       return [];
     }
   }
