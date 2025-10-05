@@ -295,7 +295,7 @@ as String?,
 /// @nodoc
 mixin _$CallParticipantLive implements DiagnosticableTreeMixin {
 
- CallParticipant get participant; Participant get remoteParticipant;
+ CallParticipant get participant; lk.Participant get remoteParticipant;
 /// Create a copy of CallParticipantLive
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -332,7 +332,7 @@ abstract mixin class $CallParticipantLiveCopyWith<$Res>  {
   factory $CallParticipantLiveCopyWith(CallParticipantLive value, $Res Function(CallParticipantLive) _then) = _$CallParticipantLiveCopyWithImpl;
 @useResult
 $Res call({
- CallParticipant participant, Participant remoteParticipant
+ CallParticipant participant, lk.Participant remoteParticipant
 });
 
 
@@ -353,7 +353,7 @@ class _$CallParticipantLiveCopyWithImpl<$Res>
   return _then(_self.copyWith(
 participant: null == participant ? _self.participant : participant // ignore: cast_nullable_to_non_nullable
 as CallParticipant,remoteParticipant: null == remoteParticipant ? _self.remoteParticipant : remoteParticipant // ignore: cast_nullable_to_non_nullable
-as Participant,
+as lk.Participant,
   ));
 }
 /// Create a copy of CallParticipantLive
@@ -444,7 +444,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CallParticipant participant,  Participant remoteParticipant)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CallParticipant participant,  lk.Participant remoteParticipant)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CallParticipantLive() when $default != null:
 return $default(_that.participant,_that.remoteParticipant);case _:
@@ -465,7 +465,7 @@ return $default(_that.participant,_that.remoteParticipant);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CallParticipant participant,  Participant remoteParticipant)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CallParticipant participant,  lk.Participant remoteParticipant)  $default,) {final _that = this;
 switch (_that) {
 case _CallParticipantLive():
 return $default(_that.participant,_that.remoteParticipant);}
@@ -482,7 +482,7 @@ return $default(_that.participant,_that.remoteParticipant);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CallParticipant participant,  Participant remoteParticipant)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CallParticipant participant,  lk.Participant remoteParticipant)?  $default,) {final _that = this;
 switch (_that) {
 case _CallParticipantLive() when $default != null:
 return $default(_that.participant,_that.remoteParticipant);case _:
@@ -501,7 +501,7 @@ class _CallParticipantLive extends CallParticipantLive with DiagnosticableTreeMi
   
 
 @override final  CallParticipant participant;
-@override final  Participant remoteParticipant;
+@override final  lk.Participant remoteParticipant;
 
 /// Create a copy of CallParticipantLive
 /// with the given fields replaced by the non-null parameter values.
@@ -539,7 +539,7 @@ abstract mixin class _$CallParticipantLiveCopyWith<$Res> implements $CallPartici
   factory _$CallParticipantLiveCopyWith(_CallParticipantLive value, $Res Function(_CallParticipantLive) _then) = __$CallParticipantLiveCopyWithImpl;
 @override @useResult
 $Res call({
- CallParticipant participant, Participant remoteParticipant
+ CallParticipant participant, lk.Participant remoteParticipant
 });
 
 
@@ -560,7 +560,7 @@ class __$CallParticipantLiveCopyWithImpl<$Res>
   return _then(_CallParticipantLive(
 participant: null == participant ? _self.participant : participant // ignore: cast_nullable_to_non_nullable
 as CallParticipant,remoteParticipant: null == remoteParticipant ? _self.remoteParticipant : remoteParticipant // ignore: cast_nullable_to_non_nullable
-as Participant,
+as lk.Participant,
   ));
 }
 

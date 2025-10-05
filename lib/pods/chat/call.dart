@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/chat/call_button.dart';
-import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/pods/network.dart';
@@ -41,7 +43,7 @@ sealed class CallParticipantLive with _$CallParticipantLive {
 
   const factory CallParticipantLive({
     required CallParticipant participant,
-    required Participant remoteParticipant,
+    required lk.Participant remoteParticipant,
   }) = _CallParticipantLive;
 
   bool get isSpeaking => remoteParticipant.isSpeaking;
@@ -57,21 +59,21 @@ sealed class CallParticipantLive with _$CallParticipantLive {
 
 @Riverpod(keepAlive: true)
 class CallNotifier extends _$CallNotifier {
-  Room? _room;
-  LocalParticipant? _localParticipant;
+  lk.Room? _room;
+  lk.LocalParticipant? _localParticipant;
   List<CallParticipantLive> _participants = [];
   final Map<String, CallParticipant> _participantInfoByIdentity = {};
-  EventsListener? _roomListener;
+  lk.EventsListener? _roomListener;
 
   List<CallParticipantLive> get participants =>
       List.unmodifiable(_participants);
-  LocalParticipant? get localParticipant => _localParticipant;
+  lk.LocalParticipant? get localParticipant => _localParticipant;
 
   Map<String, double> participantsVolumes = {};
 
   Timer? _durationTimer;
 
-  Room? get room => _room;
+  lk.Room? get room => _room;
 
   @override
   CallState build() {
@@ -91,10 +93,10 @@ class CallNotifier extends _$CallNotifier {
     _roomListener = _room!.createListener();
     _room!.addListener(_onRoomChange);
     _roomListener!
-      ..on<ParticipantConnectedEvent>((e) {
+      ..on<lk.ParticipantConnectedEvent>((e) {
         _refreshLiveParticipants();
       })
-      ..on<RoomDisconnectedEvent>((e) {
+      ..on<lk.RoomDisconnectedEvent>((e) {
         _participants = [];
         state = state.copyWith();
       });
@@ -188,7 +190,7 @@ class CallNotifier extends _$CallNotifier {
     // Add remote participants
     _participants.addAll(
       participants.map((p) {
-        RemoteParticipant? remote;
+        lk.RemoteParticipant? remote;
         for (final r in remotes) {
           if (r.identity == p.identity) {
             remote = r;
@@ -216,7 +218,7 @@ class CallNotifier extends _$CallNotifier {
       return;
     } else if (_room != null) {
       if (!_room!.isDisposed &&
-          _room!.connectionState != ConnectionState.disconnected) {
+          _room!.connectionState != lk.ConnectionState.disconnected) {
         throw Exception('Call already connected');
       }
     }
@@ -256,15 +258,15 @@ class CallNotifier extends _$CallNotifier {
         });
 
         // Connect to LiveKit
-        _room = Room();
+        _room = lk.Room();
 
         await _room!.connect(
           endpoint,
           token,
-          connectOptions: ConnectOptions(autoSubscribe: true),
-          roomOptions: RoomOptions(adaptiveStream: true, dynacast: true),
-          fastConnectOptions: FastConnectOptions(
-            microphone: TrackOption(enabled: true),
+          connectOptions: lk.ConnectOptions(autoSubscribe: true),
+          roomOptions: lk.RoomOptions(adaptiveStream: true, dynacast: true),
+          fastConnectOptions: lk.FastConnectOptions(
+            microphone: lk.TrackOption(enabled: true),
           ),
         );
         _localParticipant = _room!.localParticipant;
@@ -273,14 +275,14 @@ class CallNotifier extends _$CallNotifier {
         _updateLiveParticipants(participants);
 
         if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-          Hardware.instance.setSpeakerphoneOn(true);
+          lk.Hardware.instance.setSpeakerphoneOn(true);
         }
 
         // Listen for connection updates
         _room!.addListener(() {
           final wasConnected = state.isConnected;
           final isNowConnected =
-              _room!.connectionState == ConnectionState.connected;
+              _room!.connectionState == lk.ConnectionState.connected;
           state = state.copyWith(
             isConnected: isNowConnected,
             isMicrophoneEnabled: _localParticipant!.isMicrophoneEnabled(),
@@ -334,18 +336,43 @@ class CallNotifier extends _$CallNotifier {
     }
   }
 
-  Future<void> toggleScreenShare() async {
+  Future<void> toggleScreenShare(BuildContext context) async {
     if (_localParticipant != null) {
       final target = !_localParticipant!.isScreenShareEnabled();
       state = state.copyWith(isScreenSharing: target);
-      await _localParticipant!.setScreenShareEnabled(target);
+
+      if (target && lk.lkPlatformIsDesktop()) {
+        try {
+          final source = await showDialog<DesktopCapturerSource>(
+            context: context,
+            builder: (context) => lk.ScreenSelectDialog(),
+          );
+          if (source == null) {
+            return;
+          }
+          var track = await lk.LocalVideoTrack.createScreenShareTrack(
+            lk.ScreenShareCaptureOptions(
+              sourceId: source.id,
+              maxFrameRate: 30.0,
+              captureScreenAudio: true,
+            ),
+          );
+          await _localParticipant!.publishVideoTrack(track);
+        } catch (err) {
+          showErrorAlert(err);
+        }
+        return;
+      } else {
+        await _localParticipant!.setScreenShareEnabled(target);
+      }
+
       state = state.copyWith();
     }
   }
 
   Future<void> toggleSpeakerphone() async {
     state = state.copyWith(isSpeakerphone: !state.isSpeakerphone);
-    await Hardware.instance.setSpeakerphoneOn(state.isSpeakerphone);
+    await lk.Hardware.instance.setSpeakerphoneOn(state.isSpeakerphone);
     state = state.copyWith();
   }
 

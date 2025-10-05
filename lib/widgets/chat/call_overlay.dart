@@ -42,7 +42,7 @@ class CallControlsBar extends HookConsumerWidget {
                 callState.isScreenSharing
                     ? Icons.stop_screen_share
                     : Icons.screen_share,
-            onPressed: () => callNotifier.toggleScreenShare(),
+            onPressed: () => callNotifier.toggleScreenShare(context),
             backgroundColor: const Color(0xFF424242),
           ),
           _buildCircularButtonWithDropdown(
@@ -383,7 +383,7 @@ class CallOverlayBar extends HookConsumerWidget {
                     : Icons.screen_share,
               ),
               onPressed: () {
-                callNotifier.toggleScreenShare();
+                callNotifier.toggleScreenShare(context);
               },
               style: actionButtonStyle,
             ),
