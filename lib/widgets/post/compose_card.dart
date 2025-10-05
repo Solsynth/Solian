@@ -409,6 +409,7 @@ class PostComposeCard extends HookConsumerWidget {
 
     return Card(
       margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Container(
         constraints: const BoxConstraints(maxHeight: 400),
         child: Column(
