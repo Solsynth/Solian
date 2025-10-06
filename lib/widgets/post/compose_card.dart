@@ -13,6 +13,7 @@ import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/post/compose_attachments.dart';
 import 'package:island/widgets/post/compose_form_fields.dart';
 import 'package:island/widgets/post/compose_info_banner.dart';
@@ -261,45 +262,12 @@ class PostComposeCard extends HookConsumerWidget {
                   context: context,
                   isScrollControlled: true,
                   useRootNavigator: true,
-                  backgroundColor: Colors.transparent,
                   builder:
-                      (context) => DraggableScrollableSheet(
-                        initialChildSize: 0.7,
-                        maxChildSize: 0.9,
-                        minChildSize: 0.5,
-                        builder:
-                            (context, scrollController) => Container(
-                              decoration: BoxDecoration(
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(16),
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 4,
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Theme.of(context).colorScheme.outline,
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: SingleChildScrollView(
-                                      controller: scrollController,
-                                      padding: const EdgeInsets.all(16),
-                                      child: PostItem(item: post),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                      (context) => SheetScaffold(
+                        titleText: 'Post Preview',
+                        child: SingleChildScrollView(
+                          child: PostItem(item: post),
+                        ),
                       ),
                 );
               },
