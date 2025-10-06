@@ -312,7 +312,7 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
     : super(ServerState(status: 'Server not started'));
 
   Future<void> start() async {
-    if (!Platform.isAndroid && !Platform.isIOS && !kIsWeb) {
+    if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
       try {
         await server.start();
         state = state.copyWith(status: 'Server running');

@@ -9,12 +9,17 @@ AppDatabase constructDb() {
 DatabaseConnection connectOnWeb() {
   return DatabaseConnection.delayed(
     Future(() async {
-      final result = await WasmDatabase.open(
-        databaseName: 'solar_network_data',
-        sqlite3Uri: Uri.parse('sqlite3.wasm'),
-        driftWorkerUri: Uri.parse('drift_worker.dart.js'),
-      );
-      return result.resolvedExecutor;
+      try {
+        final result = await WasmDatabase.open(
+          databaseName: 'solar_network_data',
+          sqlite3Uri: Uri.parse('sqlite3.wasm'),
+          driftWorkerUri: Uri.parse('drift_worker.dart.js'),
+        );
+        return result.resolvedExecutor;
+      } catch (e) {
+        print('Failed to open WASM database: $e');
+        rethrow;
+      }
     }),
   );
 }
