@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/compose_shared.dart';
@@ -29,6 +30,7 @@ class ComposeFormFields extends StatelessWidget {
         // Publisher profile picture
         if (showPublisherAvatar)
           GestureDetector(
+            onTap: onPublisherTap,
             child: ProfilePictureWidget(
               fileId: state.currentPublisher.value?.picture?.id,
               radius: 20,
@@ -37,7 +39,6 @@ class ComposeFormFields extends StatelessWidget {
                       ? Icons.question_mark
                       : null,
             ),
-            onTap: onPublisherTap,
           ),
 
         // Post content form
@@ -79,7 +80,7 @@ class ComposeFormFields extends StatelessWidget {
                 controller: state.titleController,
                 enabled: enabled && state.currentPublisher.value != null,
                 decoration: InputDecoration(
-                  hintText: 'postTitle',
+                  hintText: 'postTitle'.tr(),
                   border: InputBorder.none,
                   isCollapsed: true,
                   contentPadding: const EdgeInsets.symmetric(
@@ -97,7 +98,7 @@ class ComposeFormFields extends StatelessWidget {
                 controller: state.descriptionController,
                 enabled: enabled && state.currentPublisher.value != null,
                 decoration: InputDecoration(
-                  hintText: 'postDescription',
+                  hintText: 'postDescription'.tr(),
                   border: InputBorder.none,
                   isCollapsed: true,
                   contentPadding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
@@ -116,7 +117,7 @@ class ComposeFormFields extends StatelessWidget {
                 style: theme.textTheme.bodyMedium,
                 decoration: InputDecoration(
                   border: InputBorder.none,
-                  hintText: 'postContent',
+                  hintText: 'postContent'.tr(),
                   isCollapsed: true,
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 8,
