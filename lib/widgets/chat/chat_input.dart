@@ -77,16 +77,32 @@ class ChatInput extends HookConsumerWidget {
     }
 
     Future<void> handlePaste() async {
-      final clipboard = await Pasteboard.image;
-      if (clipboard == null) return;
+      final image = await Pasteboard.image;
+      if (image != null) {
+        onAttachmentsChanged([
+          ...attachments,
+          UniversalFile(
+            data: XFile.fromData(image, mimeType: "image/jpeg"),
+            type: UniversalFileType.image,
+          ),
+        ]);
+        return;
+      }
 
-      onAttachmentsChanged([
-        ...attachments,
-        UniversalFile(
-          data: XFile.fromData(clipboard, mimeType: "image/jpeg"),
-          type: UniversalFileType.image,
-        ),
-      ]);
+      final textData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (textData != null && textData.text != null) {
+        final text = messageController.text;
+        final selection = messageController.selection;
+        final start = selection.start >= 0 ? selection.start : text.length;
+        final end = selection.end >= 0 ? selection.end : text.length;
+        final newText = text.replaceRange(start, end, textData.text!);
+        messageController.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(
+            offset: start + textData.text!.length,
+          ),
+        );
+      }
     }
 
     inputFocusNode.onKeyEvent = (node, event) {
