@@ -166,7 +166,10 @@ class PostComposeCard extends HookConsumerWidget {
       );
     }
 
-    final maxHeight = math.min(640.0, MediaQuery.of(context).size.height * 0.8);
+    final maxHeight = math.min(
+      640.0,
+      MediaQuery.of(context).size.height * (isInDialog ? 0.8 : 0.72),
+    );
 
     return Card(
       margin: EdgeInsets.zero,

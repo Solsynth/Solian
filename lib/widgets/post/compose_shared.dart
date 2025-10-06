@@ -91,7 +91,17 @@ class ComposeLogic {
   }) {
     final id = draftId ?? DateTime.now().millisecondsSinceEpoch.toString();
     final tagsController = StringTagController();
-    originalPost?.tags.forEach((x) => tagsController.addTag(x.slug));
+
+    // Initialize tags from original post
+    if (originalPost != null) {
+      for (var tag in originalPost.tags) {
+        tagsController.addTag(tag.slug);
+      }
+    }
+
+    // Initialize categories from original post
+    final categories = originalPost?.categories ?? <SnPostCategory>[];
+
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
         originalPost?.attachments
@@ -120,9 +130,7 @@ class ComposeLogic {
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(originalPost?.publisher),
       tagsController: tagsController,
-      categories: ValueNotifier<List<SnPostCategory>>(
-        originalPost?.categories ?? [],
-      ),
+      categories: ValueNotifier<List<SnPostCategory>>(categories),
       realm: ValueNotifier(originalPost?.realm),
       embedView: ValueNotifier<SnPostEmbedView?>(originalPost?.embedView),
       draftId: id,
@@ -134,13 +142,10 @@ class ComposeLogic {
 
   static ComposeState createStateFromDraft(SnPost draft, {int postType = 0}) {
     final tagsController = StringTagController();
-    final categoriesController = StringTagController();
     for (var x in draft.tags) {
       tagsController.addTag(x.slug);
     }
-    for (var x in draft.categories) {
-      categoriesController.addTag(x.slug);
-    }
+
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
         draft.attachments.map((e) => UniversalFile.fromAttachment(e)).toList(),
@@ -154,8 +159,8 @@ class ComposeLogic {
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
       tagsController: tagsController,
-      categories: ValueNotifier<List<SnPostCategory>>([]),
-      realm: ValueNotifier(null),
+      categories: ValueNotifier<List<SnPostCategory>>(draft.categories),
+      realm: ValueNotifier(draft.realm),
       embedView: ValueNotifier<SnPostEmbedView?>(draft.embedView),
       draftId: draft.id,
       postType: postType,

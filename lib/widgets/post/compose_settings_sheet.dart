@@ -22,10 +22,17 @@ part 'compose_settings_sheet.g.dart';
 Future<List<SnPostCategory>> postCategories(Ref ref) async {
   final apiClient = ref.watch(apiClientProvider);
   final resp = await apiClient.get('/sphere/posts/categories');
-  return resp.data
-      .map((e) => SnPostCategory.fromJson(e))
-      .cast<SnPostCategory>()
-      .toList();
+  final categories =
+      resp.data
+          .map((e) => SnPostCategory.fromJson(e))
+          .cast<SnPostCategory>()
+          .toList();
+  // Remove duplicates based on id
+  final uniqueCategories = <String, SnPostCategory>{};
+  for (final category in categories) {
+    uniqueCategories[category.id] = category;
+  }
+  return uniqueCategories.values.toList();
 }
 
 /// A reusable widget for tag input fields with chip display

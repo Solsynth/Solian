@@ -6,7 +6,7 @@ part of 'compose_settings_sheet.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$postCategoriesHash() => r'24337fe806d088b6468a350f62d5a5d40232a73c';
+String _$postCategoriesHash() => r'8799c10eb91cf8c8c7ea72eff3475e1eaa7b9a2b';
 
 /// See also [postCategories].
 @ProviderFor(postCategories)
