@@ -57,14 +57,14 @@ class ComposeInfoBanner extends StatelessWidget {
               context,
               effectiveRepliedPost,
               Symbols.reply,
-              'postReplyingTo',
+              'postReplyingTo'.tr(),
             ),
           if (effectiveForwardedPost != null)
             _buildReferenceBanner(
               context,
               effectiveForwardedPost,
               Symbols.forward,
-              'postForwardingTo',
+              'postForwardingTo'.tr(),
             ),
         ],
       );
@@ -76,7 +76,7 @@ class ComposeInfoBanner extends StatelessWidget {
         context,
         effectiveRepliedPost,
         Symbols.reply,
-        'postReplyingTo',
+        'postReplyingTo'.tr(),
       );
     }
 
@@ -86,7 +86,7 @@ class ComposeInfoBanner extends StatelessWidget {
         context,
         effectiveForwardedPost,
         Symbols.forward,
-        'postForwardingTo',
+        'postForwardingTo'.tr(),
       );
     }
 
