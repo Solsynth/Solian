@@ -7,21 +7,20 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
-
 import 'package:island/screens/creators/publishers_form.dart';
+import 'package:island/screens/posts/post_detail.dart';
+import 'package:island/services/compose_storage_db.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/attachment_uploader.dart';
-import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/widgets/content/attachment_preview.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/post/compose_form_fields.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:island/widgets/post/compose_settings_sheet.dart';
-import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/post/compose_toolbar.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
-
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -233,64 +232,20 @@ class ArticleComposeScreen extends HookConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
-                controller: state.titleController,
-                decoration: InputDecoration(
-                  hintText: 'postTitle'.tr(),
-                  border: InputBorder.none,
-                  isCollapsed: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 8,
-                    horizontal: 8,
-                  ),
-                ),
-                style: theme.textTheme.titleMedium,
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
-              ),
-              TextField(
-                controller: state.descriptionController,
-                decoration: InputDecoration(
-                  hintText: 'postDescription'.tr(),
-                  border: InputBorder.none,
-                  isCollapsed: true,
-                  contentPadding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
-                ),
-                style: theme.textTheme.bodyMedium,
-                minLines: 1,
-                maxLines: 3,
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
-              ),
-              Expanded(
-                child: KeyboardListener(
-                  focusNode: FocusNode(),
-                  onKeyEvent:
-                      (event) => ComposeLogic.handleKeyPress(
-                        event,
-                        state,
-                        ref,
-                        context,
-                        originalPost: originalPost,
-                      ),
-                  child: TextField(
-                    controller: state.contentController,
-                    style: theme.textTheme.bodyMedium,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'postContent'.tr(),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 8,
-                      ),
-                    ),
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                  ),
-                ),
+              ComposeFormFields(
+                state: state,
+                showPublisherAvatar: false,
+                onPublisherTap: () {
+                  showModalBottomSheet(
+                    isScrollControlled: true,
+                    context: context,
+                    builder: (context) => const PublisherModal(),
+                  ).then((value) {
+                    if (value != null) {
+                      state.currentPublisher.value = value;
+                    }
+                  });
+                },
               ),
 
               // Attachments preview

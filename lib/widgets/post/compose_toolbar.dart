@@ -96,45 +96,86 @@ class ComposeToolbar extends HookConsumerWidget {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        IconButton(
-                          onPressed: pickPhotoMedia,
-                          tooltip: 'addPhoto'.tr(),
-                          icon: const Icon(Symbols.add_a_photo),
-                          color: colorScheme.primary,
-                          visualDensity: const VisualDensity(
-                            horizontal: -4,
-                            vertical: -2,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: pickVideoMedia,
-                          tooltip: 'addVideo'.tr(),
-                          icon: const Icon(Symbols.videocam),
-                          color: colorScheme.primary,
-                          visualDensity: const VisualDensity(
-                            horizontal: -4,
-                            vertical: -2,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: addAudio,
-                          tooltip: 'addAudio'.tr(),
-                          icon: const Icon(Symbols.mic),
-                          color: colorScheme.primary,
-                          visualDensity: const VisualDensity(
-                            horizontal: -4,
-                            vertical: -2,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: pickGeneralFile,
-                          tooltip: 'uploadFile'.tr(),
-                          icon: const Icon(Symbols.file_upload),
-                          color: colorScheme.primary,
-                          visualDensity: const VisualDensity(
-                            horizontal: -4,
-                            vertical: -2,
-                          ),
+                        MenuAnchor(
+                          builder:
+                              (context, controller, child) => IconButton(
+                                onPressed: () {
+                                  if (controller.isOpen) {
+                                    controller.close();
+                                  } else {
+                                    controller.open();
+                                  }
+                                },
+                                tooltip: 'uploadFile'.tr(),
+                                icon: const Icon(Symbols.file_upload),
+                                color: colorScheme.primary,
+                                visualDensity: const VisualDensity(
+                                  horizontal: -4,
+                                  vertical: -2,
+                                ),
+                              ),
+                          menuChildren: [
+                            MenuItemButton(
+                              onPressed: () {
+                                pickPhotoMedia();
+                              },
+                              style: ButtonStyle(
+                                padding: WidgetStatePropertyAll(
+                                  EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                              leadingIcon: const Icon(Symbols.add_a_photo),
+                              child: Text('addPhoto'.tr()),
+                            ),
+                            MenuItemButton(
+                              onPressed: () {
+                                pickVideoMedia();
+                              },
+                              leadingIcon: const Icon(Symbols.videocam),
+                              style: ButtonStyle(
+                                padding: WidgetStatePropertyAll(
+                                  EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                              child: Text('addVideo'.tr()),
+                            ),
+                            MenuItemButton(
+                              onPressed: () {
+                                addAudio();
+                              },
+                              leadingIcon: const Icon(Symbols.mic),
+                              style: ButtonStyle(
+                                padding: WidgetStatePropertyAll(
+                                  EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                              child: Text('addAudio'.tr()),
+                            ),
+                            MenuItemButton(
+                              onPressed: () {
+                                pickGeneralFile();
+                              },
+                              leadingIcon: const Icon(Symbols.file_upload),
+                              style: ButtonStyle(
+                                padding: WidgetStatePropertyAll(
+                                  EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                              child: Text('uploadFile'.tr()),
+                            ),
+                          ],
                         ),
                         IconButton(
                           onPressed: linkAttachment,
@@ -249,29 +290,62 @@ class ComposeToolbar extends HookConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      IconButton(
-                        onPressed: pickPhotoMedia,
-                        tooltip: 'addPhoto'.tr(),
-                        icon: const Icon(Symbols.add_a_photo),
-                        color: colorScheme.primary,
-                      ),
-                      IconButton(
-                        onPressed: pickVideoMedia,
-                        tooltip: 'addVideo'.tr(),
-                        icon: const Icon(Symbols.videocam),
-                        color: colorScheme.primary,
-                      ),
-                      IconButton(
-                        onPressed: addAudio,
-                        tooltip: 'addAudio'.tr(),
-                        icon: const Icon(Symbols.mic),
-                        color: colorScheme.primary,
-                      ),
-                      IconButton(
-                        onPressed: pickGeneralFile,
-                        tooltip: 'uploadFile'.tr(),
-                        icon: const Icon(Symbols.file_upload),
-                        color: colorScheme.primary,
+                      MenuAnchor(
+                        builder:
+                            (context, controller, child) => IconButton(
+                              onPressed: () {
+                                if (controller.isOpen) {
+                                  controller.close();
+                                } else {
+                                  controller.open();
+                                }
+                              },
+                              tooltip: 'uploadFile'.tr(),
+                              icon: const Icon(Symbols.file_upload),
+                              color: colorScheme.primary,
+                            ),
+                        menuChildren: [
+                          MenuItemButton(
+                            onPressed: () {
+                              pickPhotoMedia();
+                            },
+                            leadingIcon: const Icon(Symbols.add_a_photo),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text('addPhoto'.tr()),
+                            ),
+                          ),
+                          MenuItemButton(
+                            onPressed: () {
+                              pickVideoMedia();
+                            },
+                            leadingIcon: const Icon(Symbols.videocam),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text('addVideo'.tr()),
+                            ),
+                          ),
+                          MenuItemButton(
+                            onPressed: () {
+                              addAudio();
+                            },
+                            leadingIcon: const Icon(Symbols.mic),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text('addAudio'.tr()),
+                            ),
+                          ),
+                          MenuItemButton(
+                            onPressed: () {
+                              pickGeneralFile();
+                            },
+                            leadingIcon: const Icon(Symbols.file_upload),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text('uploadFile'.tr()),
+                            ),
+                          ),
+                        ],
                       ),
                       IconButton(
                         onPressed: linkAttachment,
