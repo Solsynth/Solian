@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -164,11 +166,13 @@ class PostComposeCard extends HookConsumerWidget {
       );
     }
 
+    final maxHeight = math.min(640.0, MediaQuery.of(context).size.height * 0.8);
+
     return Card(
       margin: EdgeInsets.zero,
       color: Theme.of(context).colorScheme.surfaceContainer,
       child: Container(
-        constraints: const BoxConstraints(maxHeight: 400),
+        constraints: BoxConstraints(maxHeight: maxHeight),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,11 +190,10 @@ class PostComposeCard extends HookConsumerWidget {
               ),
               child: Row(
                 children: [
+                  const Gap(4),
                   Text(
-                    originalPost != null
-                        ? 'postEditing'.tr()
-                        : 'postCompose'.tr(),
-                    style: theme.textTheme.titleMedium,
+                    'postCompose'.tr(),
+                    style: theme.textTheme.titleMedium!.copyWith(fontSize: 18),
                   ),
                   const Spacer(),
                   IconButton(

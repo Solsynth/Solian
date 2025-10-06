@@ -43,7 +43,7 @@ class ComposeInfoBanner extends StatelessWidget {
                 ),
                 const Gap(8),
                 Text(
-                  'postEditing',
+                  'postEditing'.tr(),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
