@@ -160,53 +160,85 @@ class MessageItem extends HookConsumerWidget {
             ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8)
             : Colors.transparent;
 
-    return InkWell(
-      mouseCursor: MouseCursor.defer,
-      focusColor: Colors.transparent,
-      onLongPress: showActionMenu,
-      onSecondaryTap: showActionMenu,
-      onTap: () {
-        // Jump to related message
-        if (['messages.update', 'messages.delete'].contains(message.type) &&
-            message.meta['message_id'] is String &&
-            message.meta['message_id'] != null) {
-          onJump(message.meta['message_id']);
-        }
-      },
-      child: AnimatedContainer(
-        curve: Curves.easeInOut,
-        duration: const Duration(milliseconds: kFlashDuration),
-        decoration: BoxDecoration(color: flashColor),
-        child: switch (settings.messageDisplayStyle) {
-          'compact' => MessageItemDisplayIRC(
-            message: message,
-            isCurrentUser: isCurrentUser,
-            progress: progress,
-            showAvatar: showAvatar,
-            onJump: onJump,
-            translatedText: translatedText.value,
-            translating: translating.value,
+    final isHovered = useState(false);
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        InkWell(
+          mouseCursor: MouseCursor.defer,
+          focusColor: Colors.transparent,
+          onLongPress: showActionMenu,
+          onSecondaryTap: showActionMenu,
+          onTap: () {
+            // Jump to related message
+            if (['messages.update', 'messages.delete'].contains(message.type) &&
+                message.meta['message_id'] is String &&
+                message.meta['message_id'] != null) {
+              onJump(message.meta['message_id']);
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            child: MouseRegion(
+              onEnter: (_) => isHovered.value = true,
+              onExit: (_) => isHovered.value = false,
+              child: AnimatedContainer(
+                curve: Curves.easeInOut,
+                duration: const Duration(milliseconds: kFlashDuration),
+                decoration: BoxDecoration(color: flashColor),
+                child: switch (settings.messageDisplayStyle) {
+                  'compact' => MessageItemDisplayIRC(
+                    message: message,
+                    isCurrentUser: isCurrentUser,
+                    progress: progress,
+                    showAvatar: showAvatar,
+                    onJump: onJump,
+                    translatedText: translatedText.value,
+                    translating: translating.value,
+                  ),
+                  'column' => MessageItemDisplayDiscord(
+                    message: message,
+                    isCurrentUser: isCurrentUser,
+                    progress: progress,
+                    showAvatar: showAvatar,
+                    onJump: onJump,
+                    translatedText: translatedText.value,
+                    translating: translating.value,
+                  ),
+                  _ => MessageItemDisplayBubble(
+                    message: message,
+                    isCurrentUser: isCurrentUser,
+                    progress: progress,
+                    showAvatar: showAvatar,
+                    onJump: onJump,
+                    translatedText: translatedText.value,
+                    translating: translating.value,
+                  ),
+                },
+              ),
+            ),
           ),
-          'column' => MessageItemDisplayDiscord(
-            message: message,
-            isCurrentUser: isCurrentUser,
-            progress: progress,
-            showAvatar: showAvatar,
-            onJump: onJump,
-            translatedText: translatedText.value,
-            translating: translating.value,
+        ),
+        if (isHovered.value && !isMobile)
+          Positioned(
+            top: -15,
+            right: 15,
+            child: MouseRegion(
+              onEnter: (_) => isHovered.value = true,
+              onExit: (_) => isHovered.value = false,
+              child: MessageHoverActionMenu(
+                isCurrentUser: isCurrentUser,
+                onAction: onAction,
+                translatableLanguage: translatableLanguage,
+                translating: translating.value,
+                translatedText: translatedText.value,
+                translate: translate,
+                remoteMessage: remoteMessage,
+              ),
+            ),
           ),
-          _ => MessageItemDisplayBubble(
-            message: message,
-            isCurrentUser: isCurrentUser,
-            progress: progress,
-            showAvatar: showAvatar,
-            onJump: onJump,
-            translatedText: translatedText.value,
-            translating: translating.value,
-          ),
-        },
-      ),
+      ],
     );
   }
 }
@@ -312,6 +344,88 @@ class MessageActionSheet extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MessageHoverActionMenu extends StatelessWidget {
+  final bool isCurrentUser;
+  final Function(String action)? onAction;
+  final bool translatableLanguage;
+  final bool translating;
+  final String? translatedText;
+  final VoidCallback translate;
+  final dynamic remoteMessage;
+
+  const MessageHoverActionMenu({
+    super.key,
+    required this.isCurrentUser,
+    required this.onAction,
+    required this.translatableLanguage,
+    required this.translating,
+    required this.translatedText,
+    required this.translate,
+    required this.remoteMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isCurrentUser)
+            IconButton(
+              icon: Icon(Symbols.edit, size: 16),
+              onPressed: () => onAction?.call(MessageItemAction.edit),
+              tooltip: 'edit'.tr(),
+              padding: const EdgeInsets.all(8),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
+          if (isCurrentUser)
+            IconButton(
+              icon: Icon(Symbols.delete, size: 16),
+              onPressed: () => onAction?.call(MessageItemAction.delete),
+              tooltip: 'delete'.tr(),
+              padding: const EdgeInsets.all(8),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
+          IconButton(
+            icon: Icon(Symbols.reply, size: 16),
+            onPressed: () => onAction?.call(MessageItemAction.reply),
+            tooltip: 'reply'.tr(),
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+          IconButton(
+            icon: Icon(Symbols.forward, size: 16),
+            onPressed: () => onAction?.call(MessageItemAction.forward),
+            tooltip: 'forward'.tr(),
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+          if (translatableLanguage)
+            IconButton(
+              icon: Icon(Symbols.translate, size: 16),
+              onPressed: translate,
+              tooltip:
+                  translatedText == null ? 'translate'.tr() : 'translated'.tr(),
+              padding: const EdgeInsets.all(8),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
+        ],
       ),
     );
   }
