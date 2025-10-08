@@ -383,6 +383,54 @@ class MessageHoverActionMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // General actions (available for all users)
+    final generalActions = [
+      if (!isCurrentUser) // Hide reply for message author
+        IconButton(
+          icon: Icon(Symbols.reply, size: 16),
+          onPressed: () => onAction?.call(MessageItemAction.reply),
+          tooltip: 'reply'.tr(),
+          padding: const EdgeInsets.all(8),
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+      IconButton(
+        icon: Icon(Symbols.forward, size: 16),
+        onPressed: () => onAction?.call(MessageItemAction.forward),
+        tooltip: 'forward'.tr(),
+        padding: const EdgeInsets.all(8),
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      ),
+      if (translatableLanguage)
+        IconButton(
+          icon: Icon(Symbols.translate, size: 16),
+          onPressed: translate,
+          tooltip:
+              translatedText == null ? 'translate'.tr() : 'translated'.tr(),
+          padding: const EdgeInsets.all(8),
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+    ];
+
+    // Author-only actions (edit/delete)
+    final authorActions = [
+      if (isCurrentUser)
+        IconButton(
+          icon: Icon(Symbols.edit, size: 16),
+          onPressed: () => onAction?.call(MessageItemAction.edit),
+          tooltip: 'edit'.tr(),
+          padding: const EdgeInsets.all(8),
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+      if (isCurrentUser)
+        IconButton(
+          icon: Icon(Symbols.delete, size: 16, color: Colors.red),
+          onPressed: () => _handleDelete(context),
+          tooltip: 'delete'.tr(),
+          padding: const EdgeInsets.all(8),
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+    ];
+
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -398,45 +446,18 @@ class MessageHoverActionMenu extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isCurrentUser)
-            IconButton(
-              icon: Icon(Symbols.edit, size: 16),
-              onPressed: () => onAction?.call(MessageItemAction.edit),
-              tooltip: 'edit'.tr(),
-              padding: const EdgeInsets.all(8),
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          // General actions (left side)
+          ...generalActions,
+          // Separator (only if both general and author actions exist)
+          if (generalActions.isNotEmpty && authorActions.isNotEmpty)
+            Container(
+              width: 1,
+              height: 24,
+              color: Theme.of(context).colorScheme.outlineVariant,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
             ),
-          if (isCurrentUser)
-            IconButton(
-              icon: Icon(Symbols.delete, size: 16),
-              onPressed: () => _handleDelete(context),
-              tooltip: 'delete'.tr(),
-              padding: const EdgeInsets.all(8),
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            ),
-          IconButton(
-            icon: Icon(Symbols.reply, size: 16),
-            onPressed: () => onAction?.call(MessageItemAction.reply),
-            tooltip: 'reply'.tr(),
-            padding: const EdgeInsets.all(8),
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-          IconButton(
-            icon: Icon(Symbols.forward, size: 16),
-            onPressed: () => onAction?.call(MessageItemAction.forward),
-            tooltip: 'forward'.tr(),
-            padding: const EdgeInsets.all(8),
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-          if (translatableLanguage)
-            IconButton(
-              icon: Icon(Symbols.translate, size: 16),
-              onPressed: translate,
-              tooltip:
-                  translatedText == null ? 'translate'.tr() : 'translated'.tr(),
-              padding: const EdgeInsets.all(8),
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            ),
+          // Author actions (right side)
+          ...authorActions,
         ],
       ),
     );
