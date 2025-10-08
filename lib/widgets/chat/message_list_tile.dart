@@ -26,6 +26,7 @@ class MessageListTile extends StatelessWidget {
     final sender = remoteMessage.sender;
 
     return ListTile(
+      isThreeLine: true,
       leading: CircleAvatar(
         radius: 20,
         backgroundColor: Colors.transparent,
@@ -42,6 +43,7 @@ class MessageListTile extends StatelessWidget {
             createdAt: message.createdAt,
             textColor: Theme.of(context).colorScheme.onSurfaceVariant,
             showAvatar: false,
+            isCompact: true,
           ),
           const SizedBox(height: 4),
           MessageContent(item: remoteMessage),
