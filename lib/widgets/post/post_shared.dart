@@ -1,30 +1,26 @@
-import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/embed.dart';
-import 'package:island/models/poll.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/services/responsive.dart';
 import 'package:island/services/time.dart';
-import 'package:island/utils/mapping.dart';
 import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/content/embed/link.dart';
+import 'package:island/widgets/content/embed/embed_list.dart';
 import 'package:island/widgets/content/markdown.dart';
-import 'package:island/widgets/poll/poll_submit.dart';
 import 'package:island/widgets/post/post_replies_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'post_shared.g.dart';
+
+const kMessageEnableEmbedTypes = ['text', 'messages.new'];
 
 @riverpod
 Future<SnPost?> postFeaturedReply(Ref ref, String id) async {
@@ -874,44 +870,12 @@ class PostBody extends ConsumerWidget {
             ],
           ).padding(horizontal: renderingPadding.horizontal + 4, top: 4),
         if (item.meta?['embeds'] != null)
-          ...((item.meta!['embeds'] as List<dynamic>)
-              .map((embedData) => convertMapKeysToSnakeCase(embedData))
-              .map(
-                (embedData) => switch (embedData['type']) {
-                  'link' => EmbedLinkWidget(
-                    link: SnScrappedLink.fromJson(embedData),
-                    maxWidth: math.min(
-                      MediaQuery.of(context).size.width,
-                      kWideScreenWidth,
-                    ),
-                    margin: EdgeInsets.only(
-                      top: 4,
-                      bottom: 4,
-                      left: renderingPadding.horizontal,
-                      right: renderingPadding.horizontal,
-                    ),
-                  ),
-                  'poll' => Card(
-                    margin: EdgeInsets.symmetric(
-                      horizontal: renderingPadding.horizontal,
-                      vertical: 8,
-                    ),
-                    child:
-                        embedData['poll'] == null
-                            ? const Text('Poll was not loaded...')
-                            : PollSubmit(
-                              initialAnswers:
-                                  embedData['poll']?['user_answer']?['answer'],
-                              stats: embedData['poll']?['stats'],
-                              poll: SnPollWithStats.fromJson(embedData['poll']),
-                              onSubmit: (_) {},
-                              isReadonly: !isInteractive,
-                              isInitiallyExpanded: isFullPost,
-                            ).padding(horizontal: 16, vertical: 12),
-                  ),
-                  _ => Text('Unable show embed: ${embedData['type']}'),
-                },
-              )),
+          EmbedListWidget(
+            embeds: item.meta!['embeds'] as List<dynamic>,
+            isInteractive: isInteractive,
+            isFullPost: isFullPost,
+            renderingPadding: renderingPadding,
+          ),
       ],
     );
   }

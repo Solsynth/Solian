@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -10,12 +9,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/database/message.dart';
-import 'package:island/models/embed.dart';
 import 'package:island/pods/chat/chat_rooms.dart';
 import 'package:island/pods/chat/messages_notifier.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/pods/config.dart';
-import 'package:island/utils/mapping.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/message_content.dart';
@@ -24,7 +21,8 @@ import 'package:island/widgets/chat/message_sender_info.dart';
 import 'package:island/widgets/content/alert.native.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/content/embed/link.dart';
+import 'package:island/widgets/content/embed/embed_list.dart';
+import 'package:island/widgets/post/post_shared.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/content/sheet.dart';
@@ -420,28 +418,16 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                               );
                             },
                           ),
-                        if (remoteMessage.meta['embeds'] != null)
-                          ...((remoteMessage.meta['embeds'] as List<dynamic>)
-                              .map((embed) => convertMapKeysToSnakeCase(embed))
-                              .where((embed) => embed['type'] == 'link')
-                              .map((embed) => SnScrappedLink.fromJson(embed))
-                              .map(
-                                (link) => LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return EmbedLinkWidget(
-                                      link: link,
-                                      maxWidth: math.min(
-                                        constraints.maxWidth,
-                                        480,
-                                      ),
-                                      margin: const EdgeInsets.symmetric(
-                                        vertical: 4,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              )
-                              .toList()),
+                        if (remoteMessage.meta['embeds'] != null &&
+                            kMessageEnableEmbedTypes.contains(message.type))
+                          EmbedListWidget(
+                            embeds:
+                                remoteMessage.meta['embeds'] as List<dynamic>,
+                            isInteractive: true,
+                            isFullPost: false,
+                            renderingPadding: EdgeInsets.zero,
+                            maxWidth: 480,
+                          ),
                         if (progress != null && progress!.isNotEmpty)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -591,23 +577,15 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                       );
                     },
                   ),
-                if (remoteMessage.meta['embeds'] != null)
-                  ...((remoteMessage.meta['embeds'] as List<dynamic>)
-                      .map((embed) => convertMapKeysToSnakeCase(embed))
-                      .where((embed) => embed['type'] == 'link')
-                      .map((embed) => SnScrappedLink.fromJson(embed))
-                      .map(
-                        (link) => LayoutBuilder(
-                          builder: (context, constraints) {
-                            return EmbedLinkWidget(
-                              link: link,
-                              maxWidth: math.min(constraints.maxWidth, 480),
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                            );
-                          },
-                        ),
-                      )
-                      .toList()),
+                if (remoteMessage.meta['embeds'] != null &&
+                    kMessageEnableEmbedTypes.contains(message.type))
+                  EmbedListWidget(
+                    embeds: remoteMessage.meta['embeds'] as List<dynamic>,
+                    isInteractive: true,
+                    isFullPost: false,
+                    renderingPadding: EdgeInsets.zero,
+                    maxWidth: 480,
+                  ),
                 if (progress != null && progress!.isNotEmpty)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -737,28 +715,15 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                             );
                           },
                         ),
-                      if (remoteMessage.meta['embeds'] != null)
-                        ...((remoteMessage.meta['embeds'] as List<dynamic>)
-                            .map((embed) => convertMapKeysToSnakeCase(embed))
-                            .where((embed) => embed['type'] == 'link')
-                            .map((embed) => SnScrappedLink.fromJson(embed))
-                            .map(
-                              (link) => LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return EmbedLinkWidget(
-                                    link: link,
-                                    maxWidth: math.min(
-                                      constraints.maxWidth,
-                                      480,
-                                    ),
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 4,
-                                    ),
-                                  );
-                                },
-                              ),
-                            )
-                            .toList()),
+                      if (remoteMessage.meta['embeds'] != null &&
+                          kMessageEnableEmbedTypes.contains(message.type))
+                        EmbedListWidget(
+                          embeds: remoteMessage.meta['embeds'] as List<dynamic>,
+                          isInteractive: true,
+                          isFullPost: false,
+                          renderingPadding: EdgeInsets.zero,
+                          maxWidth: 480,
+                        ),
                       if (progress != null && progress!.isNotEmpty)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -841,25 +806,15 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                           );
                         },
                       ),
-                    if (remoteMessage.meta['embeds'] != null)
-                      ...((remoteMessage.meta['embeds'] as List<dynamic>)
-                          .map((embed) => convertMapKeysToSnakeCase(embed))
-                          .where((embed) => embed['type'] == 'link')
-                          .map((embed) => SnScrappedLink.fromJson(embed))
-                          .map(
-                            (link) => LayoutBuilder(
-                              builder: (context, constraints) {
-                                return EmbedLinkWidget(
-                                  link: link,
-                                  maxWidth: math.min(constraints.maxWidth, 480),
-                                  margin: const EdgeInsets.symmetric(
-                                    vertical: 4,
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                          .toList()),
+                    if (remoteMessage.meta['embeds'] != null &&
+                        kMessageEnableEmbedTypes.contains(message.type))
+                      EmbedListWidget(
+                        embeds: remoteMessage.meta['embeds'] as List<dynamic>,
+                        isInteractive: true,
+                        isFullPost: false,
+                        renderingPadding: EdgeInsets.zero,
+                        maxWidth: 480,
+                      ),
                     if (progress != null && progress!.isNotEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
