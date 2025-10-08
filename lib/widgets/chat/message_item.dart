@@ -179,7 +179,7 @@ class MessageItem extends HookConsumerWidget {
               onJump(message.meta['message_id']);
             }
           },
-          child: Container(
+          child: SizedBox(
             width: double.infinity,
             child: MouseRegion(
               onEnter: (_) => isHovered.value = true,
@@ -244,7 +244,7 @@ class MessageItem extends HookConsumerWidget {
   }
 }
 
-class MessageActionSheet extends StatelessWidget {
+class MessageActionSheet extends StatefulWidget {
   final bool isCurrentUser;
   final Function(String action)? onAction;
   final bool translatableLanguage;
@@ -267,82 +267,215 @@ class MessageActionSheet extends StatelessWidget {
   });
 
   @override
+  State<MessageActionSheet> createState() => _MessageActionSheetState();
+}
+
+class _MessageActionSheetState extends State<MessageActionSheet> {
+  bool _isExpanded = false;
+  static const int _maxPreviewLines = 3;
+
+  String get _displayContent {
+    return widget.translatedText ?? widget.remoteMessage.content ?? '';
+  }
+
+  bool get _shouldShowExpandButton {
+    // Simple check: show expand button if content is not empty
+    // The actual line limiting is handled by maxLines in SelectableText
+    return (widget.translatedText ?? widget.remoteMessage.content ?? '')
+        .isNotEmpty;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SheetScaffold(
       titleText: 'messageActions'.tr(),
       child: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Gap(4),
-            if (isCurrentUser)
-              ListTile(
+            // Message content preview section
+            if (widget.remoteMessage.content?.isNotEmpty ?? false) ...[
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        Icon(
+                          Symbols.article,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const Gap(6),
+                        Text(
+                          'messageContent'.tr(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (_shouldShowExpandButton)
+                          IconButton(
+                            icon: Icon(
+                              _isExpanded
+                                  ? Symbols.expand_less
+                                  : Symbols.expand_more,
+                              size: 16,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isExpanded = !_isExpanded;
+                              });
+                            },
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 24,
+                              minHeight: 24,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const Gap(8),
+                    // Selectable content
+                    SelectableText(
+                      _displayContent,
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.4,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      minLines: 1,
+                      maxLines: _isExpanded ? null : _maxPreviewLines,
+                      textAlign: TextAlign.start,
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(4),
+            ],
+
+            const Gap(8),
+
+            // Action buttons
+            if (widget.isCurrentUser)
+              _ActionListTile(
                 leading: Icon(Symbols.edit),
                 title: Text('edit'.tr()),
-                minTileHeight: 48,
                 onTap: () {
-                  onAction!.call(MessageItemAction.edit);
+                  widget.onAction!.call(MessageItemAction.edit);
                   Navigator.pop(context);
                 },
               ),
-            if (isCurrentUser)
-              ListTile(
+            if (widget.isCurrentUser)
+              _ActionListTile(
                 leading: Icon(Symbols.delete),
                 title: Text('delete'.tr()),
-                minTileHeight: 48,
                 onTap: () {
-                  onAction!.call(MessageItemAction.delete);
+                  widget.onAction!.call(MessageItemAction.delete);
                   Navigator.pop(context);
                 },
               ),
-            if (isCurrentUser) const Divider(height: 8),
-            ListTile(
+            if (widget.isCurrentUser) const Divider(height: 8),
+
+            _ActionListTile(
               leading: Icon(Symbols.reply),
               title: Text('reply'.tr()),
-              minTileHeight: 48,
               onTap: () {
-                onAction!.call(MessageItemAction.reply);
+                widget.onAction!.call(MessageItemAction.reply);
                 Navigator.pop(context);
               },
             ),
-            ListTile(
+            _ActionListTile(
               leading: Icon(Symbols.forward),
               title: Text('forward'.tr()),
-              minTileHeight: 48,
               onTap: () {
-                onAction!.call(MessageItemAction.forward);
+                widget.onAction!.call(MessageItemAction.forward);
                 Navigator.pop(context);
               },
             ),
-            if (translatableLanguage) const Divider(height: 8),
-            if (translatableLanguage)
-              ListTile(
+
+            if (widget.translatableLanguage) const Divider(height: 8),
+            if (widget.translatableLanguage)
+              _ActionListTile(
                 leading: Icon(Symbols.translate),
-                minTileHeight: 48,
                 title: Text(
-                  translatedText == null
+                  widget.translatedText == null
                       ? 'translate'.tr()
-                      : translating
+                      : widget.translating
                       ? 'translating'.tr()
                       : 'translated'.tr(),
                 ),
                 onTap: () {
-                  translate();
+                  widget.translate();
                   Navigator.pop(context);
                 },
               ),
-            if (isMobile) const Divider(height: 8),
-            if (isMobile)
-              ListTile(
+
+            if (widget.isMobile) const Divider(height: 8),
+            if (widget.isMobile)
+              _ActionListTile(
                 leading: Icon(Symbols.copy_all),
                 title: Text('copyMessage'.tr()),
-                minTileHeight: 48,
                 onTap: () {
                   Clipboard.setData(
-                    ClipboardData(text: remoteMessage.content ?? ''),
+                    ClipboardData(text: widget.remoteMessage.content ?? ''),
                   );
                   Navigator.pop(context);
                 },
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionListTile extends StatelessWidget {
+  final Widget leading;
+  final Widget title;
+  final VoidCallback onTap;
+
+  const _ActionListTile({
+    required this.leading,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            SizedBox(width: 24, height: 24, child: leading),
+            const Gap(12),
+            Expanded(child: title),
+            Icon(
+              Symbols.chevron_right,
+              size: 16,
+              color: Theme.of(context).colorScheme.outline,
+            ),
           ],
         ),
       ),

@@ -1058,6 +1058,7 @@
     "iframeCodeHint": "<iframe src=\"...\" width=\"...\" height=\"...\">",
     "parseIframe": "Parse Iframe",
     "messageActions": "Message Actions",
+    "messageContent": "Message Content",
     "viewEmbedLoadHint": "Tap to load",
     "levelingStage1": "Novice",
     "levelingStage2": "Apprentice",
