@@ -39,6 +39,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _hasMore = true;
   bool _isSyncing = false;
   bool _isJumping = false;
+  bool _isUpdatingState = false;
   DateTime? _lastPauseTime;
 
   @override
@@ -90,6 +91,28 @@ class MessagesNotifier extends _$MessagesNotifier {
   List<LocalChatMessage> _sortMessages(List<LocalChatMessage> messages) {
     messages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return messages;
+  }
+
+  Future<void> _updateStateSafely(List<LocalChatMessage> messages) async {
+    if (_isUpdatingState) {
+      talker.log('State update already in progress, skipping');
+      return;
+    }
+    _isUpdatingState = true;
+    try {
+      // Ensure messages are properly sorted and deduplicated
+      final sortedMessages = _sortMessages(messages);
+      final uniqueMessages = <LocalChatMessage>[];
+      final seenIds = <String>{};
+      for (final message in sortedMessages) {
+        if (seenIds.add(message.id)) {
+          uniqueMessages.add(message);
+        }
+      }
+      state = AsyncValue.data(uniqueMessages);
+    } finally {
+      _isUpdatingState = false;
+    }
   }
 
   Future<List<LocalChatMessage>> _getCachedMessages({
@@ -668,11 +691,37 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-  void searchMessages(String query, {bool? withLinks, bool? withAttachments}) {
+  Future<void> searchMessages(
+    String query, {
+    bool? withLinks,
+    bool? withAttachments,
+  }) async {
     _searchQuery = query.trim();
     _withLinks = withLinks;
     _withAttachments = withAttachments;
-    loadInitial();
+
+    if (_searchQuery!.isEmpty) {
+      state = AsyncValue.data([]);
+      return;
+    }
+
+    talker.log('Searching messages with query: $_searchQuery');
+    state = const AsyncValue.loading();
+
+    try {
+      final messages = await _getCachedMessages(
+        offset: 0,
+        take: 50,
+      ); // Limit initial search results
+      state = AsyncValue.data(messages);
+    } catch (e, stackTrace) {
+      talker.log(
+        'Error searching messages',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+      state = AsyncValue.error(e, stackTrace);
+    }
   }
 
   void clearSearch() {
@@ -716,6 +765,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       return -1;
     }
     _isJumping = true;
+
+    // Clear flashing messages when starting a new jump
+    ref.read(flashingMessagesProvider.notifier).state = {};
 
     try {
       talker.log('Fetching message $messageId');
@@ -772,7 +824,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       if (newMessages.isNotEmpty) {
-        // Merge with current messages
+        // Merge with current messages more safely
         final allMessages = [...currentMessages, ...newMessages];
         final uniqueMessages = <LocalChatMessage>[];
         final seenIds = <String>{};
@@ -781,8 +833,7 @@ class MessagesNotifier extends _$MessagesNotifier {
             uniqueMessages.add(message);
           }
         }
-        _sortMessages(uniqueMessages);
-        state = AsyncValue.data(uniqueMessages);
+        await _updateStateSafely(uniqueMessages);
         talker.log(
           'Updated state with ${uniqueMessages.length} total messages',
         );

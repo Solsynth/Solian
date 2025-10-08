@@ -4,16 +4,21 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/chat/messages_notifier.dart';
+import 'package:island/pods/chat/chat_rooms.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/message_list_tile.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
+import 'dart:async';
 
 // Class to represent the result when popping from search messages
 class SearchMessagesResult {
   final String messageId;
   const SearchMessagesResult(this.messageId);
 }
+
+// Search states for better UX
+enum SearchState { idle, searching, results, noResults, error }
 
 class SearchMessagesScreen extends HookConsumerWidget {
   final String roomId;
@@ -25,118 +30,316 @@ class SearchMessagesScreen extends HookConsumerWidget {
     final searchController = useTextEditingController();
     final withLinks = useState(false);
     final withAttachments = useState(false);
+    final searchState = useState(SearchState.idle);
+    final searchResultCount = useState<int?>(null);
+
+    // Debounce timer for search optimization
+    final debounceTimer = useRef<Timer?>(null);
 
     final messagesNotifier = ref.read(
       messagesNotifierProvider(roomId).notifier,
     );
     final messages = ref.watch(messagesNotifierProvider(roomId));
 
+    // Optimized search function with debouncing
+    void performSearch(String query) {
+      if (query.trim().isEmpty) {
+        searchState.value = SearchState.idle;
+        searchResultCount.value = null;
+        messagesNotifier.clearSearch();
+        return;
+      }
+
+      searchState.value = SearchState.searching;
+
+      // Cancel previous search if still active
+      debounceTimer.value?.cancel();
+
+      // Debounce search to avoid excessive API calls
+      debounceTimer.value = Timer(const Duration(milliseconds: 300), () {
+        messagesNotifier.searchMessages(
+          query.trim(),
+          withLinks: withLinks.value,
+          withAttachments: withAttachments.value,
+        );
+      });
+    }
+
+    // Update search state based on messages state
+    useEffect(() {
+      messages.when(
+        data: (messageList) {
+          if (searchState.value == SearchState.searching) {
+            searchState.value =
+                messageList.isEmpty
+                    ? SearchState.noResults
+                    : SearchState.results;
+            searchResultCount.value = messageList.length;
+          }
+        },
+        loading: () {
+          if (searchController.text.trim().isNotEmpty) {
+            searchState.value = SearchState.searching;
+          }
+        },
+        error: (error, stack) {
+          searchState.value = SearchState.error;
+        },
+      );
+      return null;
+    }, [messages]);
+
     useEffect(() {
       // Clear search when screen is disposed
       return () {
+        debounceTimer.value?.cancel();
         messagesNotifier.clearSearch();
+        // Clear flashing messages when leaving search
+        ref.read(flashingMessagesProvider.notifier).state = {};
       };
     }, []);
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('searchMessages').tr()),
+      appBar: AppBar(
+        title: const Text('searchMessages').tr(),
+        bottom:
+            searchState.value == SearchState.searching
+                ? const PreferredSize(
+                  preferredSize: Size.fromHeight(2),
+                  child: LinearProgressIndicator(),
+                )
+                : null,
+      ),
       body: Column(
         children: [
-          Column(
-            children: [
-              TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  hintText: 'searchMessagesHint'.tr(),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 12,
-                    bottom: 16,
-                  ),
-                  suffix: IconButton(
-                    iconSize: 18,
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      searchController.clear();
-                      messagesNotifier.clearSearch();
-                    },
-                  ),
-                ),
-                onChanged: (query) {
-                  messagesNotifier.searchMessages(
-                    query,
-                    withLinks: withLinks.value,
-                    withAttachments: withAttachments.value,
-                  );
-                },
+          // Search input section
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(8),
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: CheckboxListTile(
-                      secondary: const Icon(Symbols.link),
-                      title: const Text('searchLinks').tr(),
-                      value: withLinks.value,
-                      onChanged: (bool? value) {
-                        withLinks.value = value!;
-                        messagesNotifier.searchMessages(
-                          searchController.text,
-                          withLinks: withLinks.value,
-                          withAttachments: withAttachments.value,
-                        );
-                      },
+            ),
+            child: Column(
+              children: [
+                TextField(
+                  controller: searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'searchMessagesHint'.tr(),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 12,
+                      bottom: 16,
                     ),
-                  ),
-                  Expanded(
-                    child: CheckboxListTile(
-                      secondary: const Icon(Symbols.file_copy),
-                      title: const Text('searchAttachments').tr(),
-                      value: withAttachments.value,
-                      onChanged: (bool? value) {
-                        withAttachments.value = value!;
-                        messagesNotifier.searchMessages(
-                          searchController.text,
-                          withLinks: withLinks.value,
-                          withAttachments: withAttachments.value,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: messages.when(
-              data:
-                  (messageList) =>
-                      messageList.isEmpty
-                          ? Center(child: Text('noMessagesFound'.tr()))
-                          : SuperListView.builder(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            reverse: false, // Show newest messages at the top
-                            itemCount: messageList.length,
-                            itemBuilder: (context, index) {
-                              final message = messageList[index];
-                              return MessageListTile(
-                                message: message,
-                                onJump: (messageId) {
-                                  // Return the search result and pop back to room detail
-                                  context.pop(SearchMessagesResult(messageId));
-                                },
-                              );
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (searchController.text.isNotEmpty)
+                          IconButton(
+                            iconSize: 18,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              searchController.clear();
+                              performSearch('');
                             },
                           ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error:
-                  (error, _) => Center(
-                    child: Text('errorGeneric'.tr(args: [error.toString()])),
+                        if (searchResultCount.value != null &&
+                            searchState.value == SearchState.results)
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${searchResultCount.value}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
+                  onChanged: performSearch,
+                ),
+                // Search filters
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: FilterChip(
+                          avatar: const Icon(Symbols.link, size: 16),
+                          label: const Text('searchLinks').tr(),
+                          selected: withLinks.value,
+                          onSelected: (bool? value) {
+                            withLinks.value = value!;
+                            performSearch(searchController.text);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: FilterChip(
+                          avatar: const Icon(Symbols.file_copy, size: 16),
+                          label: const Text('searchAttachments').tr(),
+                          selected: withAttachments.value,
+                          onSelected: (bool? value) {
+                            withAttachments.value = value!;
+                            performSearch(searchController.text);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+
+          // Search results section
+          Expanded(
+            child: messages.when(
+              data: (messageList) {
+                switch (searchState.value) {
+                  case SearchState.idle:
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search,
+                            size: 64,
+                            color: Theme.of(context).disabledColor,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'searchMessagesHint'.tr(),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyLarge?.copyWith(
+                              color: Theme.of(context).disabledColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+
+                  case SearchState.noResults:
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: Theme.of(context).disabledColor,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'noMessagesFound'.tr(),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyLarge?.copyWith(
+                              color: Theme.of(context).disabledColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'tryDifferentKeywords'.tr(),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).disabledColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+
+                  case SearchState.results:
+                    return SuperListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      reverse: false, // Show newest messages at the top
+                      itemCount: messageList.length,
+                      itemBuilder: (context, index) {
+                        final message = messageList[index];
+                        return MessageListTile(
+                          message: message,
+                          onJump: (messageId) {
+                            // Return the search result and pop back to room detail
+                            context.pop(SearchMessagesResult(messageId));
+                          },
+                        );
+                      },
+                    );
+
+                  default:
+                    return const SizedBox.shrink();
+                }
+              },
+              loading: () {
+                if (searchState.value == SearchState.searching) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Searching...'),
+                      ],
+                    ),
+                  );
+                }
+                return const Center(child: CircularProgressIndicator());
+              },
+              error: (error, _) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'searchError'.tr(),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () => performSearch(searchController.text),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('retry').tr(),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],

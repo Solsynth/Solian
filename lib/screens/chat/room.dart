@@ -385,121 +385,121 @@ class ChatRoomScreen extends HookConsumerWidget {
       }
     }
 
-    Widget chatMessageListWidget(List<LocalChatMessage> messageList) =>
-        SuperListView.builder(
-          listController: listController,
-          padding: EdgeInsets.only(
-            top: 16,
-            bottom: 80 + MediaQuery.of(context).padding.bottom,
-          ),
-          controller: scrollController,
-          reverse: true, // Show newest messages at the bottom
-          itemCount: messageList.length,
-          findChildIndexCallback: (key) {
-            final valueKey = key as ValueKey;
-            final messageId = (valueKey.value as String).substring(
-              messageKeyPrefix.length,
-            );
-            return messageList.indexWhere((m) => m.id == messageId);
-          },
-          extentEstimation: (_, _) => 40,
-          itemBuilder: (context, index) {
-            final message = messageList[index];
-            final nextMessage =
-                index < messageList.length - 1 ? messageList[index + 1] : null;
-            final isLastInGroup =
-                nextMessage == null ||
-                nextMessage.senderId != message.senderId ||
-                nextMessage.createdAt
-                        .difference(message.createdAt)
-                        .inMinutes
-                        .abs() >
-                    3;
+    Widget chatMessageListWidget(
+      List<LocalChatMessage> messageList,
+    ) => SuperListView.builder(
+      listController: listController,
+      padding: EdgeInsets.only(
+        top: 16,
+        bottom: 80 + MediaQuery.of(context).padding.bottom,
+      ),
+      controller: scrollController,
+      reverse: true, // Show newest messages at the bottom
+      itemCount: messageList.length,
+      findChildIndexCallback: (key) {
+        if (key is! ValueKey<String>) return null;
+        final messageId = key.value.substring(messageKeyPrefix.length);
+        final index = messageList.indexWhere((m) => m.id == messageId);
+        // Return null for invalid indices to let SuperListView handle it properly
+        return index >= 0 ? index : null;
+      },
+      extentEstimation: (_, _) => 40,
+      itemBuilder: (context, index) {
+        final message = messageList[index];
+        final nextMessage =
+            index < messageList.length - 1 ? messageList[index + 1] : null;
+        final isLastInGroup =
+            nextMessage == null ||
+            nextMessage.senderId != message.senderId ||
+            nextMessage.createdAt
+                    .difference(message.createdAt)
+                    .inMinutes
+                    .abs() >
+                3;
 
-            final key = ValueKey('$messageKeyPrefix${message.id}');
+        final key = ValueKey('$messageKeyPrefix${message.id}');
 
-            return chatIdentity.when(
-              skipError: true,
-              data:
-                  (identity) => MessageItem(
-                    key: key,
-                    message: message,
-                    isCurrentUser: identity?.id == message.senderId,
-                    onAction: (action) {
-                      switch (action) {
-                        case MessageItemAction.delete:
-                          messagesNotifier.deleteMessage(message.id);
-                        case MessageItemAction.edit:
-                          messageEditingTo.value = message.toRemoteMessage();
-                          messageController.text =
-                              messageEditingTo.value?.content ?? '';
-                          attachments.value =
-                              messageEditingTo.value!.attachments
-                                  .map((e) => UniversalFile.fromAttachment(e))
-                                  .toList();
-                        case MessageItemAction.forward:
-                          messageForwardingTo.value = message.toRemoteMessage();
-                        case MessageItemAction.reply:
-                          messageReplyingTo.value = message.toRemoteMessage();
-                      }
-                    },
-                    onJump: (messageId) {
-                      final messageIndex = messageList.indexWhere(
-                        (m) => m.id == messageId,
-                      );
-                      if (messageIndex == -1) {
-                        messagesNotifier.jumpToMessage(messageId).then((index) {
-                          if (index != -1) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              listController.animateToItem(
-                                index: index,
-                                scrollController: scrollController,
-                                alignment: 0.5,
-                                duration:
-                                    (estimatedDistance) =>
-                                        Duration(milliseconds: 250),
-                                curve: (estimatedDistance) => Curves.easeInOut,
-                              );
-                            });
-                            ref
-                                .read(flashingMessagesProvider.notifier)
-                                .update((set) => set.union({messageId}));
-                          }
+        return chatIdentity.when(
+          skipError: true,
+          data:
+              (identity) => MessageItem(
+                key: key,
+                message: message,
+                isCurrentUser: identity?.id == message.senderId,
+                onAction: (action) {
+                  switch (action) {
+                    case MessageItemAction.delete:
+                      messagesNotifier.deleteMessage(message.id);
+                    case MessageItemAction.edit:
+                      messageEditingTo.value = message.toRemoteMessage();
+                      messageController.text =
+                          messageEditingTo.value?.content ?? '';
+                      attachments.value =
+                          messageEditingTo.value!.attachments
+                              .map((e) => UniversalFile.fromAttachment(e))
+                              .toList();
+                    case MessageItemAction.forward:
+                      messageForwardingTo.value = message.toRemoteMessage();
+                    case MessageItemAction.reply:
+                      messageReplyingTo.value = message.toRemoteMessage();
+                  }
+                },
+                onJump: (messageId) {
+                  final messageIndex = messageList.indexWhere(
+                    (m) => m.id == messageId,
+                  );
+                  if (messageIndex == -1) {
+                    messagesNotifier.jumpToMessage(messageId).then((index) {
+                      if (index != -1) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          listController.animateToItem(
+                            index: index,
+                            scrollController: scrollController,
+                            alignment: 0.5,
+                            duration:
+                                (estimatedDistance) =>
+                                    Duration(milliseconds: 250),
+                            curve: (estimatedDistance) => Curves.easeInOut,
+                          );
                         });
-                        return;
+                        ref
+                            .read(flashingMessagesProvider.notifier)
+                            .update((set) => set.union({messageId}));
                       }
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        listController.animateToItem(
-                          index: messageIndex,
-                          scrollController: scrollController,
-                          alignment: 0.5,
-                          duration:
-                              (estimatedDistance) =>
-                                  Duration(milliseconds: 250),
-                          curve: (estimatedDistance) => Curves.easeInOut,
-                        );
-                      });
-                      ref
-                          .read(flashingMessagesProvider.notifier)
-                          .update((set) => set.union({messageId}));
-                    },
-                    progress: attachmentProgress.value[message.id],
-                    showAvatar: isLastInGroup,
-                  ),
-              loading:
-                  () => MessageItem(
-                    key: key,
-                    message: message,
-                    isCurrentUser: false,
-                    onAction: null,
-                    progress: null,
-                    showAvatar: false,
-                    onJump: (_) {},
-                  ),
-              error: (_, _) => SizedBox.shrink(key: key),
-            );
-          },
+                    });
+                    return;
+                  }
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    listController.animateToItem(
+                      index: messageIndex,
+                      scrollController: scrollController,
+                      alignment: 0.5,
+                      duration:
+                          (estimatedDistance) => Duration(milliseconds: 250),
+                      curve: (estimatedDistance) => Curves.easeInOut,
+                    );
+                  });
+                  ref
+                      .read(flashingMessagesProvider.notifier)
+                      .update((set) => set.union({messageId}));
+                },
+                progress: attachmentProgress.value[message.id],
+                showAvatar: isLastInGroup,
+              ),
+          loading:
+              () => MessageItem(
+                key: key,
+                message: message,
+                isCurrentUser: false,
+                onAction: null,
+                progress: null,
+                showAvatar: false,
+                onJump: (_) {},
+              ),
+          error: (_, _) => SizedBox.shrink(key: key),
         );
+      },
+    );
 
     return AppScaffold(
       appBar: AppBar(
