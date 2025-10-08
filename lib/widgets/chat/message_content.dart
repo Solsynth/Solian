@@ -113,10 +113,13 @@ class MessageContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Flexible(
-              child: MarkdownTextContent(
-                content: item.content ?? '*${item.type} has no content*',
-                isSelectable: true,
-                linesMargin: EdgeInsets.zero,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.text,
+                child: MarkdownTextContent(
+                  content: item.content ?? '*${item.type} has no content*',
+                  isSelectable: true,
+                  linesMargin: EdgeInsets.zero,
+                ),
               ),
             ),
             if (translatedText?.isNotEmpty ?? false)
@@ -137,10 +140,13 @@ class MessageContent extends StatelessWidget {
                     ],
                   ).padding(vertical: 4),
                 ),
-                MarkdownTextContent(
-                  content: translatedText!,
-                  isSelectable: true,
-                  linesMargin: EdgeInsets.zero,
+                MouseRegion(
+                  cursor: SystemMouseCursors.text,
+                  child: MarkdownTextContent(
+                    content: translatedText!,
+                    isSelectable: true,
+                    linesMargin: EdgeInsets.zero,
+                  ),
                 ),
               ]),
           ],
