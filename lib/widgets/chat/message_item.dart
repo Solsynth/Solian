@@ -298,7 +298,10 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
             if (widget.remoteMessage.content?.isNotEmpty ?? false) ...[
               Container(
                 margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,
@@ -335,6 +338,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                         const Spacer(),
                         if (_shouldShowExpandButton)
                           IconButton(
+                            visualDensity: VisualDensity.compact,
                             icon: Icon(
                               _isExpanded
                                   ? Symbols.expand_less
