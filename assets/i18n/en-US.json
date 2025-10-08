@@ -48,6 +48,8 @@
     "deletePublisherHint": "Are you sure to delete this publisher? This will also deleted all the post and collections under this publisher.",
     "deletePost": "Delete Post",
     "deletePostHint": "Are you sure to delete this post?",
+    "deleteMessage": "Delete Message",
+    "deleteMessageConfirmation": "Are you sure you want to delete this message?",
     "copyLink": "Copy Link",
     "postCreateAccountTitle": "Thanks for joining!",
     "postCreateAccountNext": "What's next?",

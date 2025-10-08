@@ -26,6 +26,7 @@ import 'package:island/widgets/post/post_shared.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/alert.dart';
 
 class MessageItemAction {
   static const String edit = "edit";
@@ -369,6 +370,17 @@ class MessageHoverActionMenu extends StatelessWidget {
     required this.remoteMessage,
   });
 
+  Future<void> _handleDelete(BuildContext context) async {
+    final confirmed = await showConfirmAlert(
+      'deleteMessageConfirmation'.tr(),
+      'deleteMessage'.tr(),
+    );
+
+    if (confirmed) {
+      onAction?.call(MessageItemAction.delete);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -397,7 +409,7 @@ class MessageHoverActionMenu extends StatelessWidget {
           if (isCurrentUser)
             IconButton(
               icon: Icon(Symbols.delete, size: 16),
-              onPressed: () => onAction?.call(MessageItemAction.delete),
+              onPressed: () => _handleDelete(context),
               tooltip: 'delete'.tr(),
               padding: const EdgeInsets.all(8),
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
