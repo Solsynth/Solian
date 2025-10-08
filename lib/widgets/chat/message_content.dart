@@ -59,18 +59,24 @@ class MessageContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              Symbols.edit,
+              item.type == 'messages.update.links'
+                  ? Symbols.link
+                  : Symbols.edit,
               size: 16,
               color: Theme.of(
                 context,
               ).colorScheme.onSurfaceVariant.withOpacity(0.6),
-            ).padding(top: 2),
+            ),
             const Gap(4),
             if (item.meta['previous_content'] is String)
               Flexible(
                 child: PrettyDiffText(
                   oldText: item.meta['previous_content'],
-                  newText: item.content ?? 'Edited a message',
+                  newText:
+                      item.content ??
+                      (item.type == 'messages.update.links'
+                          ? 'messageUpdateLinks'.tr()
+                          : 'messageUpdateEdited'.tr()),
                   defaultTextStyle: Theme.of(
                     context,
                   ).textTheme.bodyMedium!.copyWith(

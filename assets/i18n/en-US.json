@@ -312,6 +312,8 @@
     "settingsBackgroundImageClear": "Clear Background Image",
     "settingsBackgroundGenerateColor": "Generate color scheme from Bacground Image",
     "messageNone": "No content to display",
+    "messageUpdateLinks": "Server generated links previews",
+    "messageUpdateEdited": "Edited a message",
     "unreadMessages": {
         "one": "{} unread message",
         "other": "{} unread messages"
@@ -1199,5 +1201,6 @@
     "addRemarkForTransfer": "Add remark for transfer",
     "enterPinToConfirmTransfer": "Enter your 6-digit PIN to confirm transfer",
     "transferCreatedSuccessfully": "Transfer created successfully!",
-    "postUpdate": "Update"
+    "postUpdate": "Update",
+    "fileMetadata": "File Metadata"
 }
