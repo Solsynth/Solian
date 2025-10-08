@@ -161,6 +161,8 @@ class MessageItem extends HookConsumerWidget {
             : Colors.transparent;
 
     return InkWell(
+      mouseCursor: MouseCursor.defer,
+      focusColor: Colors.transparent,
       onLongPress: showActionMenu,
       onSecondaryTap: showActionMenu,
       onTap: () {
