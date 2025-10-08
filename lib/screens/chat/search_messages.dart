@@ -94,9 +94,18 @@ class SearchMessagesScreen extends HookConsumerWidget {
       return () {
         debounceTimer.value?.cancel();
         messagesNotifier.clearSearch();
-        // Clear flashing messages when leaving search
-        ref.read(flashingMessagesProvider.notifier).state = {};
+        // Note: Don't access ref here as widget may be disposed
+        // Flashing messages will be cleared by the next screen or jump operation
       };
+    }, []);
+
+    // Clear flashing messages when screen initializes (safer than in dispose)
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Clear flashing messages when entering search screen
+        ref.read(flashingMessagesProvider.notifier).state = {};
+      });
+      return null;
     }, []);
 
     return AppScaffold(
