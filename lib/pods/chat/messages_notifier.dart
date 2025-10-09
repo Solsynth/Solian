@@ -124,6 +124,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }) async {
     talker.log('Getting cached messages from offset $offset, take $take');
     final List<LocalChatMessage> dbMessages;
+
     if (searchQuery != null && searchQuery.isNotEmpty) {
       dbMessages = await _database.searchMessages(
         _roomId,
@@ -145,6 +146,13 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (withLinks == true) {
       filteredMessages =
           filteredMessages.where((msg) => _hasLink(msg)).toList();
+    }
+
+    if (withAttachments == true) {
+      filteredMessages =
+          filteredMessages
+              .where((msg) => msg.toRemoteMessage().attachments.isNotEmpty)
+              .toList();
     }
 
     final dbLocalMessages = filteredMessages;
@@ -778,18 +786,23 @@ class MessagesNotifier extends _$MessagesNotifier {
     bool? withAttachments,
   }) async {
     final trimmedQuery = query.trim();
+    final hasFilters = [withLinks, withAttachments].any((e) => e == true);
 
-    if (trimmedQuery.isEmpty) {
+    if (trimmedQuery.isEmpty && !hasFilters) {
       return [];
     }
 
-    talker.log('Getting search results for query: $trimmedQuery');
+    talker.log(
+      'Getting search results for query: $trimmedQuery, filters: links=$withLinks, attachments=$withAttachments',
+    );
 
     try {
+      // When filtering without query, get more messages to ensure we find all matches
+      final take = (trimmedQuery.isEmpty && hasFilters) ? 1000 : 50;
       final messages = await _getCachedMessages(
         offset: 0,
-        take: 50,
-        searchQuery: trimmedQuery,
+        take: take,
+        searchQuery: trimmedQuery.isNotEmpty ? trimmedQuery : null,
         withLinks: withLinks,
         withAttachments: withAttachments,
       ); // Limit initial search results

@@ -130,7 +130,10 @@ class SearchMessagesScreen extends HookConsumerWidget {
 
     // Optimized search function with debouncing
     void performSearch(String query) async {
-      if (query.trim().isEmpty) {
+      final trimmedQuery = query.trim();
+      final hasFilters = withLinks.value || withAttachments.value;
+
+      if (trimmedQuery.isEmpty && !hasFilters) {
         searchState.value = SearchState.idle;
         searchResultCount.value = null;
         searchResults.value = const AsyncValue.data([]);
