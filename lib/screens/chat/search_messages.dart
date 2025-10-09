@@ -82,6 +82,9 @@ class _SearchFilters extends StatelessWidget {
               withLinks.value = value!;
               performSearch(searchController.text);
             },
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
           ),
           const SizedBox(width: 8),
           FilterChip(
@@ -92,6 +95,9 @@ class _SearchFilters extends StatelessWidget {
               withAttachments.value = value!;
               performSearch(searchController.text);
             },
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
           ),
         ],
       );
@@ -193,169 +199,178 @@ class SearchMessagesScreen extends HookConsumerWidget {
         children: [
           // Search input section
           Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(8),
-              ),
-            ),
-            child:
-                isLarge
-                    ? Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: searchController,
-                            autofocus: true,
-                            decoration: InputDecoration(
-                              hintText: 'searchMessagesHint'.tr(),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: const EdgeInsets.only(
-                                left: 16,
-                                right: 16,
-                                top: 12,
-                                bottom: 16,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Material(
+              elevation: 2,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(32),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                child:
+                    isLarge
+                        ? Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: searchController,
+                                autofocus: true,
+                                decoration: InputDecoration(
+                                  hintText: 'searchMessagesHint'.tr(),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  suffixIcon: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (searchResultCount.value != null &&
+                                          searchState.value ==
+                                              SearchState.results)
+                                        Container(
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                                .withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${searchResultCount.value}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color:
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
+                                            ),
+                                          ),
+                                        ),
+                                      if (searchController.text.isNotEmpty)
+                                        IconButton(
+                                          iconSize: 18,
+                                          visualDensity: VisualDensity.compact,
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            searchController.clear();
+                                            performSearch('');
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                onChanged: performSearch,
                               ),
-                              suffixIcon: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (searchResultCount.value != null &&
-                                      searchState.value == SearchState.results)
-                                    Container(
-                                      margin: const EdgeInsets.only(right: 8),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        '${searchResultCount.value}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 16),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: _SearchFilters(
+                                withLinks: withLinks,
+                                withAttachments: withAttachments,
+                                performSearch: performSearch,
+                                searchController: searchController,
+                                isLarge: isLarge,
+                              ),
+                            ),
+                          ],
+                        )
+                        : Column(
+                          children: [
+                            TextField(
+                              controller: searchController,
+                              autofocus: true,
+                              decoration: InputDecoration(
+                                hintText: 'searchMessagesHint'.tr(),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                suffixIcon: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (searchResultCount.value != null &&
+                                        searchState.value ==
+                                            SearchState.results)
+                                      Container(
+                                        margin: const EdgeInsets.only(right: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${searchResultCount.value}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  if (searchController.text.isNotEmpty)
-                                    IconButton(
-                                      iconSize: 18,
-                                      visualDensity: VisualDensity.compact,
-                                      icon: const Icon(Icons.clear),
-                                      onPressed: () {
-                                        searchController.clear();
-                                        performSearch('');
-                                      },
-                                    ),
+                                    if (searchController.text.isNotEmpty)
+                                      IconButton(
+                                        iconSize: 18,
+                                        visualDensity: VisualDensity.compact,
+                                        icon: const Icon(Icons.clear),
+                                        onPressed: () {
+                                          searchController.clear();
+                                          performSearch('');
+                                        },
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              onChanged: performSearch,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 8,
+                                right: 8,
+                                top: 8,
+                                bottom: 8,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  _SearchFilters(
+                                    withLinks: withLinks,
+                                    withAttachments: withAttachments,
+                                    performSearch: performSearch,
+                                    searchController: searchController,
+                                    isLarge: false,
+                                  ),
                                 ],
                               ),
                             ),
-                            onChanged: performSearch,
-                          ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: 8,
-                              right: 12,
-                            ),
-                            child: _SearchFilters(
-                              withLinks: withLinks,
-                              withAttachments: withAttachments,
-                              performSearch: performSearch,
-                              searchController: searchController,
-                              isLarge: isLarge,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                    : Column(
-                      children: [
-                        TextField(
-                          controller: searchController,
-                          autofocus: true,
-                          decoration: InputDecoration(
-                            hintText: 'searchMessagesHint'.tr(),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: const EdgeInsets.only(
-                              left: 16,
-                              right: 16,
-                              top: 12,
-                              bottom: 16,
-                            ),
-                            suffixIcon: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (searchResultCount.value != null &&
-                                    searchState.value == SearchState.results)
-                                  Container(
-                                    margin: const EdgeInsets.only(right: 8),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      '${searchResultCount.value}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                      ),
-                                    ),
-                                  ),
-                                if (searchController.text.isNotEmpty)
-                                  IconButton(
-                                    iconSize: 18,
-                                    visualDensity: VisualDensity.compact,
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () {
-                                      searchController.clear();
-                                      performSearch('');
-                                    },
-                                  ),
-                              ],
-                            ),
-                          ),
-                          onChanged: performSearch,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            bottom: 8,
-                          ),
-                          child: _SearchFilters(
-                            withLinks: withLinks,
-                            withAttachments: withAttachments,
-                            performSearch: performSearch,
-                            searchController: searchController,
-                            isLarge: false,
-                          ),
-                        ),
-                      ],
-                    ),
+              ),
+            ),
           ),
 
           // Search results section
