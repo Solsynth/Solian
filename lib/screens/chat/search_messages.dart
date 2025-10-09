@@ -9,6 +9,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/message_list_tile.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
+import 'package:island/services/responsive.dart';
 import 'dart:async';
 
 // Class to represent the result when popping from search messages
@@ -19,6 +20,84 @@ class SearchMessagesResult {
 
 // Search states for better UX
 enum SearchState { idle, searching, results, noResults, error }
+
+class _SearchFilters extends StatelessWidget {
+  final ValueNotifier<bool> withLinks;
+  final ValueNotifier<bool> withAttachments;
+  final void Function(String) performSearch;
+  final TextEditingController searchController;
+  final bool isLarge;
+
+  const _SearchFilters({
+    required this.withLinks,
+    required this.withAttachments,
+    required this.performSearch,
+    required this.searchController,
+    required this.isLarge,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLarge) {
+      return Row(
+        children: [
+          IconButton(
+            icon: Icon(
+              Symbols.link,
+              color:
+                  withLinks.value
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).iconTheme.color,
+            ),
+            onPressed: () {
+              withLinks.value = !withLinks.value;
+              performSearch(searchController.text);
+            },
+            tooltip: 'searchLinks'.tr(),
+          ),
+          IconButton(
+            icon: Icon(
+              Symbols.file_copy,
+              color:
+                  withAttachments.value
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).iconTheme.color,
+            ),
+            onPressed: () {
+              withAttachments.value = !withAttachments.value;
+              performSearch(searchController.text);
+            },
+            tooltip: 'searchAttachments'.tr(),
+          ),
+        ],
+      );
+    } else {
+      return Row(
+        children: [
+          FilterChip(
+            avatar: const Icon(Symbols.link, size: 16),
+            label: const Text('searchLinks').tr(),
+            selected: withLinks.value,
+            onSelected: (bool? value) {
+              withLinks.value = value!;
+              performSearch(searchController.text);
+            },
+          ),
+          const SizedBox(width: 8),
+          FilterChip(
+            avatar: const Icon(Symbols.file_copy, size: 16),
+            label: const Text('searchAttachments').tr(),
+            selected: withAttachments.value,
+            onSelected: (bool? value) {
+              withAttachments.value = value!;
+              performSearch(searchController.text);
+            },
+          ),
+        ],
+      );
+    }
+  }
+}
 
 class SearchMessagesScreen extends HookConsumerWidget {
   final String roomId;
@@ -97,6 +176,8 @@ class SearchMessagesScreen extends HookConsumerWidget {
       return null;
     }, []);
 
+    final isLarge = isWideScreen(context);
+
     return AppScaffold(
       appBar: AppBar(
         title: const Text('searchMessages').tr(),
@@ -118,102 +199,164 @@ class SearchMessagesScreen extends HookConsumerWidget {
                 bottom: Radius.circular(8),
               ),
             ),
-            child: Column(
-              children: [
-                TextField(
-                  controller: searchController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'searchMessagesHint'.tr(),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      top: 12,
-                      bottom: 16,
-                    ),
-                    prefixIcon: const Icon(Icons.search, size: 20),
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
+            child:
+                isLarge
+                    ? Row(
                       children: [
-                        if (searchController.text.isNotEmpty)
-                          IconButton(
-                            iconSize: 18,
-                            visualDensity: VisualDensity.compact,
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              searchController.clear();
-                              performSearch('');
-                            },
-                          ),
-                        if (searchResultCount.value != null &&
-                            searchState.value == SearchState.results)
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '${searchResultCount.value}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
+                        Expanded(
+                          child: TextField(
+                            controller: searchController,
+                            autofocus: true,
+                            decoration: InputDecoration(
+                              hintText: 'searchMessagesHint'.tr(),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                top: 12,
+                                bottom: 16,
+                              ),
+                              suffixIcon: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (searchResultCount.value != null &&
+                                      searchState.value == SearchState.results)
+                                    Container(
+                                      margin: const EdgeInsets.only(right: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '${searchResultCount.value}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
+                                        ),
+                                      ),
+                                    ),
+                                  if (searchController.text.isNotEmpty)
+                                    IconButton(
+                                      iconSize: 18,
+                                      visualDensity: VisualDensity.compact,
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        searchController.clear();
+                                        performSearch('');
+                                      },
+                                    ),
+                                ],
                               ),
                             ),
+                            onChanged: performSearch,
                           ),
+                        ),
+                        const SizedBox(width: 16),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: 8,
+                              right: 12,
+                            ),
+                            child: _SearchFilters(
+                              withLinks: withLinks,
+                              withAttachments: withAttachments,
+                              performSearch: performSearch,
+                              searchController: searchController,
+                              isLarge: isLarge,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                    : Column(
+                      children: [
+                        TextField(
+                          controller: searchController,
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            hintText: 'searchMessagesHint'.tr(),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 12,
+                              bottom: 16,
+                            ),
+                            suffixIcon: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (searchResultCount.value != null &&
+                                    searchState.value == SearchState.results)
+                                  Container(
+                                    margin: const EdgeInsets.only(right: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '${searchResultCount.value}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                if (searchController.text.isNotEmpty)
+                                  IconButton(
+                                    iconSize: 18,
+                                    visualDensity: VisualDensity.compact,
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      searchController.clear();
+                                      performSearch('');
+                                    },
+                                  ),
+                              ],
+                            ),
+                          ),
+                          onChanged: performSearch,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            bottom: 8,
+                          ),
+                          child: _SearchFilters(
+                            withLinks: withLinks,
+                            withAttachments: withAttachments,
+                            performSearch: performSearch,
+                            searchController: searchController,
+                            isLarge: false,
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  onChanged: performSearch,
-                ),
-                // Search filters
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    bottom: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: FilterChip(
-                          avatar: const Icon(Symbols.link, size: 16),
-                          label: const Text('searchLinks').tr(),
-                          selected: withLinks.value,
-                          onSelected: (bool? value) {
-                            withLinks.value = value!;
-                            performSearch(searchController.text);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: FilterChip(
-                          avatar: const Icon(Symbols.file_copy, size: 16),
-                          label: const Text('searchAttachments').tr(),
-                          selected: withAttachments.value,
-                          onSelected: (bool? value) {
-                            withAttachments.value = value!;
-                            performSearch(searchController.text);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
           ),
-          const Divider(height: 1),
 
           // Search results section
           Expanded(
