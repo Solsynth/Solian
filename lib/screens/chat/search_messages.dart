@@ -32,6 +32,9 @@ class SearchMessagesScreen extends HookConsumerWidget {
     final withAttachments = useState(false);
     final searchState = useState(SearchState.idle);
     final searchResultCount = useState<int?>(null);
+    final searchResults = useState<AsyncValue<List<dynamic>>>(
+      const AsyncValue.data([]),
+    );
 
     // Debounce timer for search optimization
     final debounceTimer = useRef<Timer?>(null);
@@ -39,61 +42,47 @@ class SearchMessagesScreen extends HookConsumerWidget {
     final messagesNotifier = ref.read(
       messagesNotifierProvider(roomId).notifier,
     );
-    final messages = ref.watch(messagesNotifierProvider(roomId));
 
     // Optimized search function with debouncing
-    void performSearch(String query) {
+    void performSearch(String query) async {
       if (query.trim().isEmpty) {
         searchState.value = SearchState.idle;
         searchResultCount.value = null;
-        messagesNotifier.clearSearch();
+        searchResults.value = const AsyncValue.data([]);
         return;
       }
 
       searchState.value = SearchState.searching;
+      searchResults.value = const AsyncValue.loading();
 
       // Cancel previous search if still active
       debounceTimer.value?.cancel();
 
       // Debounce search to avoid excessive API calls
-      debounceTimer.value = Timer(const Duration(milliseconds: 300), () {
-        messagesNotifier.searchMessages(
-          query.trim(),
-          withLinks: withLinks.value,
-          withAttachments: withAttachments.value,
-        );
+      debounceTimer.value = Timer(const Duration(milliseconds: 300), () async {
+        try {
+          final results = await messagesNotifier.getSearchResults(
+            query.trim(),
+            withLinks: withLinks.value,
+            withAttachments: withAttachments.value,
+          );
+          searchResults.value = AsyncValue.data(results);
+          searchState.value =
+              results.isEmpty ? SearchState.noResults : SearchState.results;
+          searchResultCount.value = results.length;
+        } catch (error, stackTrace) {
+          searchResults.value = AsyncValue.error(error, stackTrace);
+          searchState.value = SearchState.error;
+        }
       });
     }
 
-    // Update search state based on messages state
-    useEffect(() {
-      messages.when(
-        data: (messageList) {
-          if (searchState.value == SearchState.searching) {
-            searchState.value =
-                messageList.isEmpty
-                    ? SearchState.noResults
-                    : SearchState.results;
-            searchResultCount.value = messageList.length;
-          }
-        },
-        loading: () {
-          if (searchController.text.trim().isNotEmpty) {
-            searchState.value = SearchState.searching;
-          }
-        },
-        error: (error, stack) {
-          searchState.value = SearchState.error;
-        },
-      );
-      return null;
-    }, [messages]);
+    // Search state is now managed locally in performSearch
 
     useEffect(() {
       // Clear search when screen is disposed
       return () {
         debounceTimer.value?.cancel();
-        messagesNotifier.clearSearch();
         // Note: Don't access ref here as widget may be disposed
         // Flashing messages will be cleared by the next screen or jump operation
       };
@@ -228,7 +217,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
 
           // Search results section
           Expanded(
-            child: messages.when(
+            child: searchResults.value.when(
               data: (messageList) {
                 switch (searchState.value) {
                   case SearchState.idle:

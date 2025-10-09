@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:island/models/embed.dart';
 import 'package:island/models/poll.dart';
 import 'package:island/services/responsive.dart';

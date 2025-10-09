@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/talker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/widgets/post/post_item.dart';
@@ -44,32 +45,22 @@ class PostFeaturedList extends HookConsumerWidget {
 
     // Log isCollapsed state changes
     useEffect(() {
-      debugPrint(
-        'PostFeaturedList: isCollapsed changed to ${isCollapsed.value}',
-      );
+      talker.info('isCollapsed changed to ${isCollapsed.value}');
       return null;
     }, [isCollapsed]);
 
     useEffect(() {
       if (featuredPostsAsync.hasValue && featuredPostsAsync.value!.isNotEmpty) {
         final currentFirstPostId = featuredPostsAsync.value!.first.id;
-        debugPrint(
-          'PostFeaturedList: Current first post ID: $currentFirstPostId',
-        );
-        debugPrint(
-          'PostFeaturedList: Previous first post ID: ${previousFirstPostId.value}',
-        );
-        debugPrint(
-          'PostFeaturedList: Stored collapsed ID: ${storedCollapsedId.value}',
-        );
+        talker.info('Current first post ID: $currentFirstPostId');
+        talker.info('Previous first post ID: ${previousFirstPostId.value}');
+        talker.info('Stored collapsed ID: ${storedCollapsedId.value}');
 
         if (previousFirstPostId.value == null) {
           // Initial load
           previousFirstPostId.value = currentFirstPostId;
           isCollapsed.value = (storedCollapsedId.value == currentFirstPostId);
-          debugPrint(
-            'PostFeaturedList: Initial load. isCollapsed set to ${isCollapsed.value}',
-          );
+          talker.info('Initial load. isCollapsed set to ${isCollapsed.value}');
         } else if (previousFirstPostId.value != currentFirstPostId) {
           // First post changed, expand by default
           previousFirstPostId.value = currentFirstPostId;
@@ -77,20 +68,14 @@ class PostFeaturedList extends HookConsumerWidget {
           prefs.remove(
             kFeaturedPostsCollapsedId,
           ); // Clear stored ID if post changes
-          debugPrint(
-            'PostFeaturedList: First post changed. isCollapsed set to false.',
-          );
+          talker.info('First post changed. isCollapsed set to false.');
         } else {
           // Same first post, maintain current collapse state
           // No change needed for isCollapsed.value unless manually toggled
-          debugPrint(
-            'PostFeaturedList: Same first post. Maintaining current collapse state.',
-          );
+          talker.info('Same first post. Maintaining current collapse state.');
         }
       } else {
-        debugPrint(
-          'PostFeaturedList: featuredPostsAsync has no value or is empty.',
-        );
+        talker.info('featuredPostsAsync has no value or is empty.');
       }
       return null;
     }, [featuredPostsAsync]);
@@ -142,8 +127,8 @@ class PostFeaturedList extends HookConsumerWidget {
                     constraints: const BoxConstraints(),
                     onPressed: () {
                       isCollapsed.value = !isCollapsed.value;
-                      debugPrint(
-                        'PostFeaturedList: Manual toggle. isCollapsed set to ${isCollapsed.value}',
+                      talker.info(
+                        'Manual toggle. isCollapsed set to ${isCollapsed.value}',
                       );
                       if (isCollapsed.value &&
                           featuredPostsAsync.hasValue &&
@@ -152,14 +137,12 @@ class PostFeaturedList extends HookConsumerWidget {
                           kFeaturedPostsCollapsedId,
                           featuredPostsAsync.value!.first.id,
                         );
-                        debugPrint(
-                          'PostFeaturedList: Stored collapsed ID: ${featuredPostsAsync.value!.first.id}',
+                        talker.info(
+                          'Stored collapsed ID: ${featuredPostsAsync.value!.first.id}',
                         );
                       } else {
                         prefs.remove(kFeaturedPostsCollapsedId);
-                        debugPrint(
-                          'PostFeaturedList: Removed stored collapsed ID.',
-                        );
+                        talker.info('Removed stored collapsed ID.');
                       }
                     },
                     icon: Icon(

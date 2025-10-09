@@ -118,14 +118,17 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<List<LocalChatMessage>> _getCachedMessages({
     int offset = 0,
     int take = 20,
+    String? searchQuery,
+    bool? withLinks,
+    bool? withAttachments,
   }) async {
     talker.log('Getting cached messages from offset $offset, take $take');
     final List<LocalChatMessage> dbMessages;
-    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
+    if (searchQuery != null && searchQuery.isNotEmpty) {
       dbMessages = await _database.searchMessages(
         _roomId,
-        _searchQuery ?? '',
-        withAttachments: _withAttachments,
+        searchQuery,
+        withAttachments: withAttachments,
       );
     } else {
       final chatMessagesFromDb = await _database.getMessagesForRoom(
@@ -139,7 +142,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     List<LocalChatMessage> filteredMessages = dbMessages;
 
-    if (_withLinks == true) {
+    if (withLinks == true) {
       filteredMessages =
           filteredMessages.where((msg) => _hasLink(msg)).toList();
     }
@@ -163,6 +166,51 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       final allMessages = [...pendingForRoom, ...uniqueMessages];
       _sortMessages(allMessages); // Use the helper function
+
+      final finalUniqueMessages = <LocalChatMessage>[];
+      final finalSeenIds = <String>{};
+      for (final message in allMessages) {
+        if (finalSeenIds.add(message.id)) {
+          finalUniqueMessages.add(message);
+        }
+      }
+      return finalUniqueMessages;
+    }
+
+    return uniqueMessages;
+  }
+
+  /// Get all messages without search filters for jump operations
+  Future<List<LocalChatMessage>> _getAllMessagesForJump({
+    int offset = 0,
+    int take = 20,
+  }) async {
+    talker.log('Getting all messages for jump from offset $offset, take $take');
+    final chatMessagesFromDb = await _database.getMessagesForRoom(
+      _roomId,
+      offset: offset,
+      limit: take,
+    );
+    final dbMessages =
+        chatMessagesFromDb.map(_database.companionToMessage).toList();
+
+    // Always ensure unique messages to prevent duplicate keys
+    final uniqueMessages = <LocalChatMessage>[];
+    final seenIds = <String>{};
+    for (final message in dbMessages) {
+      if (seenIds.add(message.id)) {
+        uniqueMessages.add(message);
+      }
+    }
+
+    if (offset == 0) {
+      final pendingForRoom =
+          _pendingMessages.values
+              .where((msg) => msg.roomId == _roomId)
+              .toList();
+
+      final allMessages = [...pendingForRoom, ...uniqueMessages];
+      _sortMessages(allMessages);
 
       final finalUniqueMessages = <LocalChatMessage>[];
       final finalSeenIds = <String>{};
@@ -309,6 +357,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       final localMessages = await _getCachedMessages(
         offset: offset,
         take: take,
+        searchQuery: _searchQuery,
+        withLinks: _withLinks,
+        withAttachments: _withAttachments,
       );
 
       if (localMessages.isNotEmpty) {
@@ -324,6 +375,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       final localMessages = await _getCachedMessages(
         offset: offset,
         take: take,
+        searchQuery: _searchQuery,
+        withLinks: _withLinks,
+        withAttachments: _withAttachments,
       );
 
       if (localMessages.isNotEmpty) {
@@ -339,7 +393,13 @@ class MessagesNotifier extends _$MessagesNotifier {
       syncMessages();
     }
 
-    final messages = await _getCachedMessages(offset: 0, take: _pageSize);
+    final messages = await _getCachedMessages(
+      offset: 0,
+      take: _pageSize,
+      searchQuery: _searchQuery,
+      withLinks: _withLinks,
+      withAttachments: _withAttachments,
+    );
 
     _hasMore = messages.length == _pageSize;
 
@@ -571,6 +631,13 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> receiveMessage(SnChatMessage remoteMessage) async {
     if (remoteMessage.chatRoomId != _roomId) return;
+
+    // Block message receiving during jumps to prevent list resets
+    if (_isJumping) {
+      talker.log('Blocking message receive during jump operation');
+      return;
+    }
+
     talker.log('Received new message ${remoteMessage.id}');
 
     final localMessage = LocalChatMessage.fromRemoteMessage(
@@ -616,6 +683,13 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {
     if (remoteMessage.chatRoomId != _roomId) return;
+
+    // Block message updates during jumps to prevent list resets
+    if (_isJumping) {
+      talker.log('Blocking message update during jump operation');
+      return;
+    }
+
     talker.log('Received message update ${remoteMessage.id}');
 
     final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
@@ -639,6 +713,12 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> receiveMessageDeletion(String messageId) async {
+    // Block message deletions during jumps to prevent list resets
+    if (_isJumping) {
+      talker.log('Blocking message deletion during jump operation');
+      return;
+    }
+
     talker.log('Received message deletion $messageId');
     _pendingMessages.remove(messageId);
 
@@ -691,6 +771,39 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  /// Get search results without updating shared state
+  Future<List<LocalChatMessage>> getSearchResults(
+    String query, {
+    bool? withLinks,
+    bool? withAttachments,
+  }) async {
+    final trimmedQuery = query.trim();
+
+    if (trimmedQuery.isEmpty) {
+      return [];
+    }
+
+    talker.log('Getting search results for query: $trimmedQuery');
+
+    try {
+      final messages = await _getCachedMessages(
+        offset: 0,
+        take: 50,
+        searchQuery: trimmedQuery,
+        withLinks: withLinks,
+        withAttachments: withAttachments,
+      ); // Limit initial search results
+      return messages;
+    } catch (e, stackTrace) {
+      talker.log(
+        'Error getting search results',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   Future<void> searchMessages(
     String query, {
     bool? withLinks,
@@ -712,6 +825,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       final messages = await _getCachedMessages(
         offset: 0,
         take: 50,
+        searchQuery: _searchQuery,
+        withLinks: _withLinks,
+        withAttachments: _withAttachments,
       ); // Limit initial search results
       state = AsyncValue.data(messages);
     } catch (e, stackTrace) {
@@ -791,10 +907,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
 
       talker.log(
-        'Message $messageId not in current state, loading messages around it',
+        'Message $messageId not in current state, calculating position and loading messages around it',
       );
 
-      // Count messages newer than this one
+      // Count messages newer than the target message to calculate optimal offset
+      // Use full message list (not filtered by search) for accurate position calculation
       final query = _database.customSelect(
         'SELECT COUNT(*) as count FROM chat_messages WHERE room_id = ? AND created_at > ?',
         variables: [
@@ -806,13 +923,17 @@ class MessagesNotifier extends _$MessagesNotifier {
       final result = await query.getSingle();
       final newerCount = result.read<int>('count');
 
-      // Load messages around this position
+      // Calculate offset to position target message in the middle of the loaded chunk
+      const chunkSize = 100; // Load 100 messages around the target
       final offset =
-          (newerCount - _pageSize ~/ 2).clamp(0, double.infinity).toInt();
-      talker.log('Loading messages with offset $offset, take $_pageSize');
-      final loadedMessages = await _getCachedMessages(
+          (newerCount - chunkSize ~/ 2).clamp(0, double.infinity).toInt();
+      talker.log(
+        'Calculated offset $offset for target message (newer: $newerCount, chunk: $chunkSize)',
+      );
+      // Use full message list (not filtered by search) for jump operations
+      final loadedMessages = await _getAllMessagesForJump(
         offset: offset,
-        take: _pageSize,
+        take: chunkSize,
       );
 
       // Check if loaded messages are already in current state
@@ -839,10 +960,31 @@ class MessagesNotifier extends _$MessagesNotifier {
         );
       }
 
+      // Wait a bit for the UI to rebuild with new messages
+      await Future.delayed(const Duration(milliseconds: 100));
+
       final finalIndex = (state.value ?? []).indexWhere(
         (m) => m.id == messageId,
       );
       talker.log('Final index for message $messageId is $finalIndex');
+
+      // Verify the message is actually in the list before returning
+      if (finalIndex == -1) {
+        talker.log(
+          'Message $messageId still not found after loading, trying direct fetch',
+        );
+        // Try to fetch and add the specific message if it's still not found
+        final directMessage = await fetchMessageById(messageId);
+        if (directMessage != null) {
+          final currentList = state.value ?? [];
+          final updatedList = [...currentList, directMessage];
+          await _updateStateSafely(updatedList);
+          final newIndex = updatedList.indexWhere((m) => m.id == messageId);
+          talker.log('Added message directly, new index: $newIndex');
+          return newIndex;
+        }
+      }
+
       return finalIndex;
     } finally {
       _isJumping = false;

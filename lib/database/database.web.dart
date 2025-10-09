@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift/wasm.dart';
 import 'package:island/database/drift_db.dart';
+import 'package:island/talker.dart';
 
 AppDatabase constructDb() {
   return AppDatabase(connectOnWeb());
@@ -16,8 +17,8 @@ DatabaseConnection connectOnWeb() {
           driftWorkerUri: Uri.parse('drift_worker.dart.js'),
         );
         return result.resolvedExecutor;
-      } catch (e) {
-        print('Failed to open WASM database: $e');
+      } catch (e, stackTrace) {
+        talker.error('Failed to open WASM database...', e, stackTrace);
         rethrow;
       }
     }),

@@ -14,6 +14,7 @@ import "package:island/pods/chat/chat_subscribe.dart";
 import "package:island/pods/chat/messages_notifier.dart";
 import "package:island/pods/network.dart";
 import "package:island/pods/chat/chat_online_count.dart";
+import "package:island/screens/chat/search_messages.dart";
 import "package:island/services/file_uploader.dart";
 import "package:island/screens/chat/chat.dart";
 import "package:island/services/responsive.dart";
@@ -142,6 +143,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final attachmentProgress = useState<Map<String, Map<int, double>>>({});
 
     var isLoading = false;
+    var isScrollingToMessage = false; // Flag to prevent scroll conflicts
 
     final listController = useMemoized(() => ListController(), []);
 
@@ -330,6 +332,94 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     const messageKeyPrefix = 'message-';
 
+    // Helper function for scroll animation
+    void performScrollAnimation({
+      required int index,
+      required ListController listController,
+      required ScrollController scrollController,
+      required String messageId,
+      required WidgetRef ref,
+    }) {
+      // Update flashing message first
+      ref
+          .read(flashingMessagesProvider.notifier)
+          .update((set) => set.union({messageId}));
+
+      // Use multiple post-frame callbacks to ensure stability
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            listController.animateToItem(
+              index: index,
+              scrollController: scrollController,
+              alignment: 0.5,
+              duration:
+                  (estimatedDistance) => Duration(
+                    milliseconds:
+                        (estimatedDistance * 0.5).clamp(200, 800).toInt(),
+                  ),
+              curve: (estimatedDistance) => Curves.easeOutCubic,
+            );
+
+            // Reset the scroll flag after animation completes
+            Future.delayed(const Duration(milliseconds: 800), () {
+              isScrollingToMessage = false;
+            });
+          } catch (e) {
+            // If animation fails, reset the flag
+            isScrollingToMessage = false;
+          }
+        });
+      });
+    }
+
+    // Robust scroll-to-message function to prevent jumping back
+    void scrollToMessage({
+      required String messageId,
+      required List<LocalChatMessage> messageList,
+      required MessagesNotifier messagesNotifier,
+      required ListController listController,
+      required ScrollController scrollController,
+      required WidgetRef ref,
+    }) {
+      // Prevent concurrent scroll operations
+      if (isScrollingToMessage) return;
+      isScrollingToMessage = true;
+
+      final messageIndex = messageList.indexWhere((m) => m.id == messageId);
+
+      if (messageIndex == -1) {
+        // Message not in current list, need to load it first
+        messagesNotifier.jumpToMessage(messageId).then((index) {
+          if (index != -1) {
+            // Wait for UI to rebuild before animating
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              performScrollAnimation(
+                index: index,
+                listController: listController,
+                scrollController: scrollController,
+                messageId: messageId,
+                ref: ref,
+              );
+            });
+          } else {
+            isScrollingToMessage = false;
+          }
+        });
+      } else {
+        // Message is already in list, scroll directly with slight delay
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          performScrollAnimation(
+            index: messageIndex,
+            listController: listController,
+            scrollController: scrollController,
+            messageId: messageId,
+            ref: ref,
+          );
+        });
+      }
+    }
+
     Future<void> uploadAttachment(int index) async {
       final attachment = attachments.value[index];
       if (attachment.isOnCloud) return;
@@ -445,43 +535,14 @@ class ChatRoomScreen extends HookConsumerWidget {
                   }
                 },
                 onJump: (messageId) {
-                  final messageIndex = messageList.indexWhere(
-                    (m) => m.id == messageId,
+                  scrollToMessage(
+                    messageId: messageId,
+                    messageList: messageList,
+                    messagesNotifier: messagesNotifier,
+                    listController: listController,
+                    scrollController: scrollController,
+                    ref: ref,
                   );
-                  if (messageIndex == -1) {
-                    messagesNotifier.jumpToMessage(messageId).then((index) {
-                      if (index != -1) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          listController.animateToItem(
-                            index: index,
-                            scrollController: scrollController,
-                            alignment: 0.5,
-                            duration:
-                                (estimatedDistance) =>
-                                    Duration(milliseconds: 250),
-                            curve: (estimatedDistance) => Curves.easeInOut,
-                          );
-                        });
-                        ref
-                            .read(flashingMessagesProvider.notifier)
-                            .update((set) => set.union({messageId}));
-                      }
-                    });
-                    return;
-                  }
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    listController.animateToItem(
-                      index: messageIndex,
-                      scrollController: scrollController,
-                      alignment: 0.5,
-                      duration:
-                          (estimatedDistance) => Duration(milliseconds: 250),
-                      curve: (estimatedDistance) => Curves.easeInOut,
-                    );
-                  });
-                  ref
-                      .read(flashingMessagesProvider.notifier)
-                      .update((set) => set.union({messageId}));
                 },
                 progress: attachmentProgress.value[message.id],
                 showAvatar: isLastInGroup,
@@ -528,46 +589,40 @@ class ChatRoomScreen extends HookConsumerWidget {
                 'chatDetail',
                 pathParameters: {'id': id},
               );
-              if (result is String && messages.valueOrNull != null) {
-                // Jump to the message that was selected in search
-                final messageList = messages.valueOrNull!;
-                final messageIndex = messageList.indexWhere(
-                  (m) => m.id == result,
-                );
-                if (messageIndex == -1) {
-                  messagesNotifier.jumpToMessage(result).then((index) {
-                    if (index != -1) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (result is SearchMessagesResult &&
+                  messages.valueOrNull != null) {
+                final messageId = result.messageId;
+
+                // Jump to the message and trigger flash effect
+                messagesNotifier.jumpToMessage(messageId).then((index) {
+                  if (index != -1 && context.mounted) {
+                    // Update flashing message
+                    ref
+                        .read(flashingMessagesProvider.notifier)
+                        .update((set) => set.union({messageId}));
+
+                    // Scroll to the message with animation
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      try {
                         listController.animateToItem(
                           index: index,
                           scrollController: scrollController,
                           alignment: 0.5,
                           duration:
-                              (estimatedDistance) =>
-                                  Duration(milliseconds: 250),
-                          curve: (estimatedDistance) => Curves.easeInOut,
+                              (estimatedDistance) => Duration(
+                                milliseconds:
+                                    (estimatedDistance * 0.5)
+                                        .clamp(200, 800)
+                                        .toInt(),
+                              ),
+                          curve: (estimatedDistance) => Curves.easeOutCubic,
                         );
-                      });
-                      ref
-                          .read(flashingMessagesProvider.notifier)
-                          .update((set) => set.union({result}));
-                    }
-                  });
-                } else {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    listController.animateToItem(
-                      index: messageIndex,
-                      scrollController: scrollController,
-                      alignment: 0.5,
-                      duration:
-                          (estimatedDistance) => Duration(milliseconds: 250),
-                      curve: (estimatedDistance) => Curves.easeInOut,
-                    );
-                  });
-                  ref
-                      .read(flashingMessagesProvider.notifier)
-                      .update((set) => set.union({result}));
-                }
+                      } catch (e) {
+                        // If animation fails, just update flashing state
+                      }
+                    });
+                  }
+                });
               }
             },
           ),

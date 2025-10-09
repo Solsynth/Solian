@@ -410,7 +410,7 @@ class ChatDetailScreen extends HookConsumerWidget {
                                     if (result is SearchMessagesResult) {
                                       // Navigate back to room screen with message to jump to
                                       if (context.mounted) {
-                                        context.pop(result.messageId);
+                                        context.pop(result);
                                       }
                                     }
                                   },
