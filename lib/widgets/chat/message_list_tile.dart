@@ -46,7 +46,7 @@ class MessageListTile extends StatelessWidget {
             isCompact: true,
           ),
           const SizedBox(height: 4),
-          MessageContent(item: remoteMessage),
+          MessageContent(item: remoteMessage, isSelectable: false),
         ],
       ),
       subtitle: Column(

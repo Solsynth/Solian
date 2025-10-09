@@ -13,8 +13,14 @@ import 'package:styled_widget/styled_widget.dart';
 class MessageContent extends StatelessWidget {
   final SnChatMessage item;
   final String? translatedText;
+  final bool isSelectable;
 
-  const MessageContent({super.key, required this.item, this.translatedText});
+  const MessageContent({
+    super.key,
+    required this.item,
+    this.translatedText,
+    this.isSelectable = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +123,7 @@ class MessageContent extends StatelessWidget {
                 cursor: SystemMouseCursors.text,
                 child: MarkdownTextContent(
                   content: item.content ?? '*${item.type} has no content*',
-                  isSelectable: true,
+                  isSelectable: isSelectable,
                   linesMargin: EdgeInsets.zero,
                 ),
               ),
@@ -144,7 +150,7 @@ class MessageContent extends StatelessWidget {
                   cursor: SystemMouseCursors.text,
                   child: MarkdownTextContent(
                     content: translatedText!,
-                    isSelectable: true,
+                    isSelectable: isSelectable,
                     linesMargin: EdgeInsets.zero,
                   ),
                 ),
