@@ -9,16 +9,18 @@ import 'package:island/widgets/post/compose_shared.dart';
 /// Utility class for common compose submit logic.
 class ComposeSubmitUtils {
   /// Performs the submit action for posts.
-  static Future<void> performSubmit(
+  static Future<SnPost> performSubmit(
     WidgetRef ref,
     ComposeState state,
     BuildContext context, {
     SnPost? originalPost,
     SnPost? repliedPost,
     SnPost? forwardedPost,
-    required VoidCallback onSuccess,
+    required Function(SnPost) onSuccess,
   }) async {
-    if (state.submitting.value) return;
+    if (state.submitting.value) {
+      throw Exception('Already submitting');
+    }
 
     // Don't submit empty posts (no content and no attachments)
     final hasContent =
@@ -34,7 +36,7 @@ class ComposeSubmitUtils {
           context,
         ).showSnackBar(SnackBar(content: Text('postContentEmpty')));
       }
-      return; // Don't submit empty posts
+      throw Exception('Post content is empty'); // Don't submit empty posts
     }
 
     try {
@@ -82,15 +84,20 @@ class ComposeSubmitUtils {
       };
 
       // Send request
-      client.request(
+      final response = await client.request(
         endpoint,
         queryParameters: {'pub': state.currentPublisher.value?.name},
         data: payload,
         options: Options(method: isNewPost ? 'POST' : 'PATCH'),
       );
 
+      // Parse the response into a SnPost
+      final post = SnPost.fromJson(response.data);
+
       // Call the success callback with the created/updated post
-      onSuccess();
+      onSuccess(post);
+
+      return post;
     } catch (err) {
       // Show error message if context is mounted
       if (context.mounted) {

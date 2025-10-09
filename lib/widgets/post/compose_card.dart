@@ -152,7 +152,7 @@ class PostComposeCard extends HookConsumerWidget {
         originalPost: originalPost,
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
-        onSuccess: () {
+        onSuccess: (SnPost createdPost) {
           // Mark as submitted
           submitted.value = true;
 
@@ -163,6 +163,9 @@ class PostComposeCard extends HookConsumerWidget {
 
           // Reset the form for new composition
           ComposeStateUtils.resetForm(state);
+
+          // Call the widget's onSubmit callback to trigger activity list refresh
+          onSubmit?.call(createdPost);
         },
       );
     }
