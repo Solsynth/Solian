@@ -586,6 +586,8 @@ class ChatRoomScreen extends HookConsumerWidget {
                       messageForwardingTo.value = message.toRemoteMessage();
                     case MessageItemAction.reply:
                       messageReplyingTo.value = message.toRemoteMessage();
+                    case MessageItemAction.resend:
+                      messagesNotifier.retryMessage(message.id);
                   }
                 },
                 onJump: (messageId) {

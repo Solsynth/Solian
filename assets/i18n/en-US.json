@@ -1208,5 +1208,6 @@
     "enterPinToConfirmTransfer": "Enter your 6-digit PIN to confirm transfer",
     "transferCreatedSuccessfully": "Transfer created successfully!",
     "postUpdate": "Update",
-    "fileMetadata": "File Metadata"
+    "fileMetadata": "File Metadata",
+    "resend": "Resend"
 }
