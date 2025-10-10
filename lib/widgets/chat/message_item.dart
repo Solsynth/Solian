@@ -18,7 +18,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/message_content.dart';
 import 'package:island/widgets/chat/message_indicators.dart';
 import 'package:island/widgets/chat/message_sender_info.dart';
-import 'package:island/widgets/content/alert.native.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_file_collection.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/embed/embed_list.dart';
@@ -26,7 +26,6 @@ import 'package:island/widgets/post/post_shared.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/widgets/content/sheet.dart';
-import 'package:island/widgets/alert.dart';
 
 class MessageItemAction {
   static const String edit = "edit";
