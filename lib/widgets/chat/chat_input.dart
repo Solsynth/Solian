@@ -11,6 +11,7 @@ import "package:island/models/file.dart";
 import "package:island/pods/config.dart";
 import "package:island/services/responsive.dart";
 import "package:island/widgets/content/attachment_preview.dart";
+import "package:island/widgets/shared/upload_menu.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:pasteboard/pasteboard.dart";
 import "package:styled_widget/styled_widget.dart";
@@ -24,6 +25,9 @@ class ChatInput extends HookConsumerWidget {
   final VoidCallback onSend;
   final VoidCallback onClear;
   final Function(bool isPhoto) onPickFile;
+  final VoidCallback onPickAudio;
+  final VoidCallback onPickGeneralFile;
+  final VoidCallback? onLinkAttachment;
   final SnChatMessage? messageReplyingTo;
   final SnChatMessage? messageForwardingTo;
   final SnChatMessage? messageEditingTo;
@@ -41,6 +45,9 @@ class ChatInput extends HookConsumerWidget {
     required this.onSend,
     required this.onClear,
     required this.onPickFile,
+    required this.onPickAudio,
+    required this.onPickGeneralFile,
+    this.onLinkAttachment,
     required this.messageReplyingTo,
     required this.messageForwardingTo,
     required this.messageEditingTo,
@@ -336,31 +343,32 @@ class ChatInput extends HookConsumerWidget {
                           );
                         },
                       ),
-                      PopupMenuButton(
-                        icon: const Icon(Symbols.photo_library),
-                        itemBuilder:
-                            (context) => [
-                              PopupMenuItem(
-                                onTap: () => onPickFile(true),
-                                child: Row(
-                                  spacing: 12,
-                                  children: [
-                                    const Icon(Symbols.photo),
-                                    Text('addPhoto').tr(),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem(
-                                onTap: () => onPickFile(false),
-                                child: Row(
-                                  spacing: 12,
-                                  children: [
-                                    const Icon(Symbols.video_call),
-                                    Text('addVideo').tr(),
-                                  ],
-                                ),
-                              ),
-                            ],
+                      UploadMenu(
+                        items: [
+                          MenuItemData(
+                            Symbols.add_a_photo,
+                            'addPhoto',
+                            () => onPickFile(true),
+                          ),
+                          MenuItemData(
+                            Symbols.videocam,
+                            'addVideo',
+                            () => onPickFile(false),
+                          ),
+                          MenuItemData(Symbols.mic, 'addAudio', onPickAudio),
+                          MenuItemData(
+                            Symbols.file_upload,
+                            'uploadFile',
+                            onPickGeneralFile,
+                          ),
+                          if (onLinkAttachment != null)
+                            MenuItemData(
+                              Symbols.attach_file,
+                              'linkAttachment',
+                              onLinkAttachment!,
+                            ),
+                        ],
+                        iconColor: Colors.white,
                       ),
                     ],
                   ),

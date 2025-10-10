@@ -31,6 +31,7 @@ import "package:super_sliver_list/super_sliver_list.dart";
 import "package:material_symbols_icons/symbols.dart";
 import "package:island/widgets/chat/call_button.dart";
 import "package:island/widgets/chat/chat_input.dart";
+import "package:island/widgets/chat/chat_link_attachments.dart";
 import "package:island/widgets/chat/public_room_preview.dart";
 
 class ChatRoomScreen extends HookConsumerWidget {
@@ -188,6 +189,59 @@ class ChatRoomScreen extends HookConsumerWidget {
         ...attachments.value,
         ...result.files.map(
           (e) => UniversalFile(data: e.xFile, type: UniversalFileType.video),
+        ),
+      ];
+    }
+
+    Future<void> pickAudioMedia() async {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.audio,
+        allowMultiple: true,
+        allowCompression: false,
+      );
+      if (result == null || result.count == 0) return;
+      attachments.value = [
+        ...attachments.value,
+        ...result.files.map(
+          (e) => UniversalFile(data: e.xFile, type: UniversalFileType.audio),
+        ),
+      ];
+    }
+
+    Future<void> pickGeneralFile() async {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        allowCompression: false,
+      );
+      if (result == null || result.count == 0) return;
+      attachments.value = [
+        ...attachments.value,
+        ...result.files.map(
+          (e) => UniversalFile(data: e.xFile, type: UniversalFileType.file),
+        ),
+      ];
+    }
+
+    void linkAttachment() async {
+      final cloudFile = await showModalBottomSheet<SnCloudFile?>(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        builder: (context) => const ChatLinkAttachment(),
+      );
+      if (cloudFile == null) return;
+
+      attachments.value = [
+        ...attachments.value,
+        UniversalFile(
+          data: cloudFile,
+          type: switch (cloudFile.mimeType?.split('/').firstOrNull) {
+            'image' => UniversalFileType.image,
+            'video' => UniversalFileType.video,
+            'audio' => UniversalFileType.audio,
+            _ => UniversalFileType.file,
+          },
+          isLink: true,
         ),
       ];
     }
@@ -680,11 +734,14 @@ class ChatRoomScreen extends HookConsumerWidget {
                             pickVideoMedia();
                           }
                         },
+                        onPickAudio: pickAudioMedia,
+                        onPickGeneralFile: pickGeneralFile,
+                        onLinkAttachment: linkAttachment,
                         attachments: attachments.value,
                         onUploadAttachment: uploadAttachment,
                         onDeleteAttachment: (index) async {
                           final attachment = attachments.value[index];
-                          if (attachment.isOnCloud) {
+                          if (attachment.isOnCloud && !attachment.isLink) {
                             final client = ref.watch(apiClientProvider);
                             await client.delete(
                               '/drive/files/${attachment.data.id}',
