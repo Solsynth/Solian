@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -86,14 +87,15 @@ class PostComposeDialog extends HookConsumerWidget {
 
       final restore = await showDialog<bool>(
         context: ref.context,
+        useRootNavigator: true,
         builder:
             (context) => AlertDialog(
-              title: const Text('Restore Draft'),
+              title: Text('restoreDraftTitle'.tr()),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('A draft was found. Do you want to restore it?'),
+                  Text('restoreDraftMessage'.tr()),
                   const SizedBox(height: 16),
                   _buildCompactDraftPreview(context, latestDraft),
                 ],
@@ -101,11 +103,11 @@ class PostComposeDialog extends HookConsumerWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('No'),
+                  child: Text('no'.tr()),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Yes'),
+                  child: Text('yes'.tr()),
                 ),
               ],
             ),
@@ -151,7 +153,7 @@ class PostComposeDialog extends HookConsumerWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Draft',
+                'draft'.tr(),
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                 ),

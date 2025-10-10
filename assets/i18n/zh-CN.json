@@ -1076,5 +1076,10 @@
     "recycledFilesDeleted": "被回收文件成功删除",
     "failedToDeleteRecycledFiles": "删除被回收文件失败",
     "upload": "上传",
-    "systemWallet": "中央统筹"
+    "systemWallet": "中央统筹",
+    "postCompose": "撰写帖子",
+    "postPublish": "发布帖子",
+    "restoreDraftTitle": "恢复草稿",
+    "restoreDraftMessage": "发现了一个草稿。你想要恢复它吗？",
+    "draft": "草稿"
 }
