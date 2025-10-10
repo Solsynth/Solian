@@ -765,13 +765,34 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> deleteMessage(String messageId) async {
     talker.log('Deleting message $messageId');
+
+    // Fetch message to check its status before attempting server delete
+    final message = await fetchMessageById(messageId);
+    if (message == null) {
+      talker.log('Message $messageId not found for deletion');
+      return;
+    }
+
+    // Skip server delete for failed messages (never successfully sent)
+    if (message.status == MessageStatus.failed) {
+      talker.log('Skipping server delete for failed message $messageId');
+      // For failed messages, remove them completely from the active list
+      _pendingMessages.remove(messageId);
+      await _database.deleteMessage(messageId);
+
+      final currentMessages = state.value ?? [];
+      final newMessages =
+          currentMessages.where((m) => m.id != messageId).toList();
+      state = AsyncValue.data(newMessages);
+      return;
+    }
+
     try {
       await _apiClient.delete('/sphere/chat/$_roomId/messages/$messageId');
       await receiveMessageDeletion(messageId);
     } catch (err, stackTrace) {
       talker.log(
         'Error deleting message $messageId',
-
         exception: err,
         stackTrace: stackTrace,
       );
