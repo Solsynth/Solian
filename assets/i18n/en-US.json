@@ -1213,5 +1213,7 @@
     "postUpdate": "Update",
     "fileMetadata": "File Metadata",
     "resend": "Resend",
-    "fileInfoTitle": "File Information"
+    "fileInfoTitle": "File Information",
+    "download": "Download",
+    "info": "Info"
 }

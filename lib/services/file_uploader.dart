@@ -9,6 +9,7 @@ import 'package:island/models/file.dart';
 import 'package:island/pods/network.dart';
 import 'package:mime/mime.dart';
 import 'package:native_exif/native_exif.dart';
+import 'package:path/path.dart' show extension;
 
 class FileUploader {
   final Dio _client;
@@ -276,7 +277,7 @@ class FileUploader {
   }
 
   /// Gets the MIME type of a UniversalFile.
-  static String getMimeType(UniversalFile file) {
+  static String getMimeType(UniversalFile file, {bool useFallback = true}) {
     final data = file.data;
     if (data is XFile) {
       final mime = data.mimeType;
@@ -292,6 +293,11 @@ class FileUploader {
           UniversalFileType.video => 'video/unknown',
           _ => 'application/unknown',
         };
+      }
+      if (useFallback) {
+        final ext = extension(data.path).substring(1);
+        if (ext.isNotEmpty) return 'application/$ext';
+        return 'application/unknown';
       }
       throw Exception('Cannot detect mime type for file: $filename');
     } else if (data is List<int> || data is Uint8List) {

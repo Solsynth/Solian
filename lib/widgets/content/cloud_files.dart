@@ -20,7 +20,6 @@ import 'package:path/path.dart' show extension;
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import 'package:island/widgets/data_saving_gate.dart';
 import 'package:island/widgets/content/file_info_sheet.dart';
 
@@ -69,32 +68,139 @@ class CloudFileWidget extends HookConsumerWidget {
     );
 
     if (item.mimeType == 'application/pdf') {
-      return Stack(
-        children: [
-          SizedBox(height: 600, child: SfPdfViewer.network(uri)),
-          Positioned(
-            top: 8,
-            left: 8,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Symbols.picture_as_pdf, size: 16, color: Colors.white),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'PDF',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ],
+      final pdfViewer = useMemoized(() => SfPdfViewer.network(uri), [uri]);
+
+      Future<void> downloadFile() async {
+        try {
+          showSnackBar('Downloading file...');
+
+          final client = ref.read(apiClientProvider);
+          final tempDir = await getTemporaryDirectory();
+          var extName = extension(item.name).trim();
+          if (extName.isEmpty) {
+            extName = item.mimeType?.split('/').lastOrNull ?? 'pdf';
+          }
+          final filePath = '${tempDir.path}/${item.id}.$extName';
+
+          await client.download(
+            '/drive/files/${item.id}',
+            filePath,
+            queryParameters: {'original': true},
+          );
+
+          await FileSaver.instance.saveFile(
+            name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
+            file: File(filePath),
+          );
+          showSnackBar('File saved to downloads');
+        } catch (e) {
+          showErrorAlert(e);
+        }
+      }
+
+      return Container(
+        height: 400,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Stack(
+          children: [
+            pdfViewer,
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 7,
+                  children: [
+                    Icon(
+                      Symbols.picture_as_pdf,
+                      size: 16,
+                      color: Colors.white,
+                    ).padding(top: 2),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          formatFileSize(item.size),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ).padding(vertical: 4, horizontal: 8),
               ),
             ),
-          ),
-        ],
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 4,
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Symbols.download,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      onPressed: downloadFile,
+                      padding: EdgeInsets.all(4),
+                      constraints: const BoxConstraints(),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Symbols.info,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          useRootNavigator: true,
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => FileInfoSheet(item: item),
+                        );
+                      },
+                      padding: EdgeInsets.all(4),
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -140,7 +246,7 @@ class CloudFileWidget extends HookConsumerWidget {
         decoration: BoxDecoration(
           border: Border.all(
             color: Theme.of(context).colorScheme.outline,
-            width: 1 / MediaQuery.devicePixelRatioOf(context),
+            width: 1,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -287,45 +393,99 @@ class CloudFileWidget extends HookConsumerWidget {
           child: UniversalAudio(uri: uri, filename: item.name),
         ),
       ),
-      _ => Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Symbols.insert_drive_file,
-            size: 48,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const Gap(8),
-          Text(
-            item.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Text(
-            formatFileSize(item.size),
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const Gap(8),
-          TextButton.icon(
-            onPressed: () {
-              launchUrlString(
-                'https://solian.app/files/${item.id}',
-                mode: LaunchMode.externalApplication,
+      _ => Builder(
+        builder: (context) {
+          Future<void> downloadFile() async {
+            try {
+              showSnackBar('Downloading file...');
+
+              final client = ref.read(apiClientProvider);
+              final tempDir = await getTemporaryDirectory();
+              var extName = extension(item.name).trim();
+              if (extName.isEmpty) {
+                extName = item.mimeType?.split('/').lastOrNull ?? 'bin';
+              }
+              final filePath = '${tempDir.path}/${item.id}.$extName';
+
+              await client.download(
+                '/drive/files/${item.id}',
+                filePath,
+                queryParameters: {'original': true},
               );
-            },
-            icon: const Icon(Symbols.launch),
-            label: Text('openInBrowser').tr(),
-          ),
-        ],
-      ).padding(all: 8),
+
+              await FileSaver.instance.saveFile(
+                name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
+                file: File(filePath),
+              );
+              showSnackBar('File saved to downloads');
+            } catch (e) {
+              showErrorAlert(e);
+            }
+          }
+
+          return Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Symbols.insert_drive_file,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const Gap(8),
+                Text(
+                  item.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  formatFileSize(item.size),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const Gap(8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton.icon(
+                      onPressed: downloadFile,
+                      icon: const Icon(Symbols.download),
+                      label: Text('download').tr(),
+                    ),
+                    const Gap(8),
+                    TextButton.icon(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          useRootNavigator: true,
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => FileInfoSheet(item: item),
+                        );
+                      },
+                      icon: const Icon(Symbols.info),
+                      label: Text('info').tr(),
+                    ),
+                  ],
+                ),
+              ],
+            ).padding(all: 8),
+          );
+        },
+      ),
     };
 
     if (heroTag != null) {

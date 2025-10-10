@@ -9,6 +9,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class FileInfoSheet extends StatelessWidget {
   final SnCloudFile item;
@@ -140,6 +141,18 @@ class FileInfoSheet extends StatelessWidget {
                   },
                 ),
               ),
+            ListTile(
+              leading: const Icon(Symbols.launch),
+              title: Text('openInBrowser').tr(),
+              subtitle: Text('https://solian.app/files/${item.id}'),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              onTap: () {
+                launchUrlString(
+                  'https://solian.app/files/${item.id}',
+                  mode: LaunchMode.externalApplication,
+                );
+              },
+            ),
             if (exifData.isNotEmpty) ...[
               const Divider(height: 1),
               Theme(
