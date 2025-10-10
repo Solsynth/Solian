@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -11,12 +13,16 @@ import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
 import 'package:island/utils/format.dart';
+import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:path/path.dart' show extension;
+import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:island/widgets/data_saving_gate.dart';
+import 'package:island/widgets/content/file_info_sheet.dart';
 
 import 'image.dart';
 import 'video.dart';
@@ -93,31 +99,167 @@ class CloudFileWidget extends HookConsumerWidget {
     }
 
     if (item.mimeType?.startsWith('text/') == true) {
-      return SizedBox(
+      final textFuture = useMemoized(
+        () => ref
+            .read(apiClientProvider)
+            .get(uri)
+            .then((response) => response.data as String),
+        [uri],
+      );
+
+      Future<void> downloadFile() async {
+        try {
+          showSnackBar('Downloading file...');
+
+          final client = ref.read(apiClientProvider);
+          final tempDir = await getTemporaryDirectory();
+          var extName = extension(item.name).trim();
+          if (extName.isEmpty) {
+            extName = item.mimeType?.split('/').lastOrNull ?? 'txt';
+          }
+          final filePath = '${tempDir.path}/${item.id}.$extName';
+
+          await client.download(
+            '/drive/files/${item.id}',
+            filePath,
+            queryParameters: {'original': true},
+          );
+
+          await FileSaver.instance.saveFile(
+            name: item.name.isEmpty ? '${item.id}.$extName' : item.name,
+            file: File(filePath),
+          );
+          showSnackBar('File saved to downloads');
+        } catch (e) {
+          showErrorAlert(e);
+        }
+      }
+
+      return Container(
         height: 400,
-        child: FutureBuilder<String>(
-          future: ref
-              .read(apiClientProvider)
-              .get(uri)
-              .then((response) => response.data as String),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Text('Error loading text: ${snapshot.error}'),
-              );
-            } else if (snapshot.hasData) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: SelectableText(
-                  snapshot.data!,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline,
+            width: 1 / MediaQuery.devicePixelRatioOf(context),
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Stack(
+          children: [
+            FutureBuilder<String>(
+              future: textFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error loading text: ${snapshot.error}'),
+                  );
+                } else if (snapshot.hasData) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 20 + 48, 20, 20),
+                    child: SelectableText(
+                      snapshot.data!,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 14,
+                      ),
+                    ),
+                  );
+                }
+                return const Center(child: Text('No content'));
+              },
+            ),
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              );
-            }
-            return const Center(child: Text('No content'));
-          },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 7,
+                  children: [
+                    Icon(
+                      Symbols.file_present,
+                      size: 16,
+                      color: Colors.white,
+                    ).padding(top: 2),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          formatFileSize(item.size),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ).padding(vertical: 4, horizontal: 8),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 4,
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Symbols.download,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      onPressed: downloadFile,
+                      padding: EdgeInsets.all(4),
+                      constraints: const BoxConstraints(),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Symbols.info,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          useRootNavigator: true,
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => FileInfoSheet(item: item),
+                        );
+                      },
+                      padding: EdgeInsets.all(4),
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }

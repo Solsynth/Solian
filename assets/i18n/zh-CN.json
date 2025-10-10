@@ -1060,7 +1060,7 @@
     "selectPool": "选择储存池",
     "choosePool": "选择一个储存池",
     "errorLoadingPools": "加载池时出错",
-    "quotaCostInfo": "此上传将消耗{} 配额点",
+    "quotaCostInfo": "此上传将消耗 {} 配额点",
     "uploadConstraints": "上传限制",
     "fileSizeExceeded": "文件大小超过了 {} 的最大限制",
     "fileTypeNotAccepted": "此储存池不接受该文件类型",

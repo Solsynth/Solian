@@ -368,7 +368,7 @@ class ChatInput extends HookConsumerWidget {
                               onLinkAttachment!,
                             ),
                         ],
-                        iconColor: Colors.white,
+                        iconColor: Theme.of(context).colorScheme.onSurface,
                       ),
                     ],
                   ),

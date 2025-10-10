@@ -39,7 +39,7 @@ class MessageIndicators extends StatelessWidget {
           context,
           status!,
           textColor.withOpacity(0.7),
-        ).padding(bottom: 4),
+        ).padding(bottom: 2),
       );
     }
 
@@ -72,7 +72,7 @@ class MessageIndicators extends StatelessWidget {
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation(textColor),
           ),
-        );
+        ).padding(bottom: 2);
       case MessageStatus.sent:
         // Sent status is hidden
         return const SizedBox.shrink();

@@ -1212,5 +1212,6 @@
     "transferCreatedSuccessfully": "Transfer created successfully!",
     "postUpdate": "Update",
     "fileMetadata": "File Metadata",
-    "resend": "Resend"
+    "resend": "Resend",
+    "fileInfoTitle": "File Information"
 }
