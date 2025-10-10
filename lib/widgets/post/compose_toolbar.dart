@@ -6,6 +6,7 @@ import 'package:island/services/compose_storage_db.dart';
 import 'package:island/widgets/post/compose_embed_sheet.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 import 'package:island/widgets/post/draft_manager.dart';
+import 'package:island/widgets/shared/upload_menu.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -80,6 +81,13 @@ class ComposeToolbar extends HookConsumerWidget {
       );
     }
 
+    final uploadMenuItems = [
+      MenuItemData(Symbols.add_a_photo, 'addPhoto', pickPhotoMedia),
+      MenuItemData(Symbols.videocam, 'addVideo', pickVideoMedia),
+      MenuItemData(Symbols.mic, 'addAudio', addAudio),
+      MenuItemData(Symbols.file_upload, 'uploadFile', pickGeneralFile),
+    ];
+
     final colorScheme = Theme.of(context).colorScheme;
 
     if (isCompact) {
@@ -96,86 +104,9 @@ class ComposeToolbar extends HookConsumerWidget {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        MenuAnchor(
-                          builder:
-                              (context, controller, child) => IconButton(
-                                onPressed: () {
-                                  if (controller.isOpen) {
-                                    controller.close();
-                                  } else {
-                                    controller.open();
-                                  }
-                                },
-                                tooltip: 'uploadFile'.tr(),
-                                icon: const Icon(Symbols.file_upload),
-                                color: colorScheme.primary,
-                                visualDensity: const VisualDensity(
-                                  horizontal: -4,
-                                  vertical: -2,
-                                ),
-                              ),
-                          menuChildren: [
-                            MenuItemButton(
-                              onPressed: () {
-                                pickPhotoMedia();
-                              },
-                              style: ButtonStyle(
-                                padding: WidgetStatePropertyAll(
-                                  EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                ),
-                              ),
-                              leadingIcon: const Icon(Symbols.add_a_photo),
-                              child: Text('addPhoto'.tr()),
-                            ),
-                            MenuItemButton(
-                              onPressed: () {
-                                pickVideoMedia();
-                              },
-                              leadingIcon: const Icon(Symbols.videocam),
-                              style: ButtonStyle(
-                                padding: WidgetStatePropertyAll(
-                                  EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                ),
-                              ),
-                              child: Text('addVideo'.tr()),
-                            ),
-                            MenuItemButton(
-                              onPressed: () {
-                                addAudio();
-                              },
-                              leadingIcon: const Icon(Symbols.mic),
-                              style: ButtonStyle(
-                                padding: WidgetStatePropertyAll(
-                                  EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                ),
-                              ),
-                              child: Text('addAudio'.tr()),
-                            ),
-                            MenuItemButton(
-                              onPressed: () {
-                                pickGeneralFile();
-                              },
-                              leadingIcon: const Icon(Symbols.file_upload),
-                              style: ButtonStyle(
-                                padding: WidgetStatePropertyAll(
-                                  EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                ),
-                              ),
-                              child: Text('uploadFile'.tr()),
-                            ),
-                          ],
+                        UploadMenu(
+                          items: uploadMenuItems,
+                          isCompact: isCompact,
                         ),
                         IconButton(
                           onPressed: linkAttachment,
@@ -290,63 +221,7 @@ class ComposeToolbar extends HookConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      MenuAnchor(
-                        builder:
-                            (context, controller, child) => IconButton(
-                              onPressed: () {
-                                if (controller.isOpen) {
-                                  controller.close();
-                                } else {
-                                  controller.open();
-                                }
-                              },
-                              tooltip: 'uploadFile'.tr(),
-                              icon: const Icon(Symbols.file_upload),
-                              color: colorScheme.primary,
-                            ),
-                        menuChildren: [
-                          MenuItemButton(
-                            onPressed: () {
-                              pickPhotoMedia();
-                            },
-                            leadingIcon: const Icon(Symbols.add_a_photo),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text('addPhoto'.tr()),
-                            ),
-                          ),
-                          MenuItemButton(
-                            onPressed: () {
-                              pickVideoMedia();
-                            },
-                            leadingIcon: const Icon(Symbols.videocam),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text('addVideo'.tr()),
-                            ),
-                          ),
-                          MenuItemButton(
-                            onPressed: () {
-                              addAudio();
-                            },
-                            leadingIcon: const Icon(Symbols.mic),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text('addAudio'.tr()),
-                            ),
-                          ),
-                          MenuItemButton(
-                            onPressed: () {
-                              pickGeneralFile();
-                            },
-                            leadingIcon: const Icon(Symbols.file_upload),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text('uploadFile'.tr()),
-                            ),
-                          ),
-                        ],
-                      ),
+                      UploadMenu(items: uploadMenuItems, isCompact: isCompact),
                       IconButton(
                         onPressed: linkAttachment,
                         icon: const Icon(Symbols.attach_file),
