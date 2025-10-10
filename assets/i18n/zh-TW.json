@@ -1075,5 +1075,7 @@
     "deleteRecycledFiles": "刪除已回收檔案",
     "recycledFilesDeleted": "已回收檔案刪除成功",
     "failedToDeleteRecycledFiles": "已回收檔案刪除失敗",
-    "upload": "上傳"
+    "upload": "上傳",
+    "postCompose": "撰寫帖子",
+    "postPublish": "發佈帖子"
 }
