@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -714,45 +715,12 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                             renderingPadding: EdgeInsets.zero,
                             maxWidth: 480,
                           ),
-                        if (progress != null && progress!.isNotEmpty)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            spacing: 8,
-                            children: [
-                              if ((remoteMessage.content?.isNotEmpty ?? false))
-                                const Gap(0),
-                              for (var entry in progress!.entries)
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'fileUploadingProgress'.tr(
-                                        args: [
-                                          (entry.key + 1).toString(),
-                                          entry.value.toStringAsFixed(1),
-                                        ],
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: textColor.withOpacity(0.8),
-                                      ),
-                                    ),
-                                    const Gap(4),
-                                    LinearProgressIndicator(
-                                      value: entry.value / 100,
-                                      backgroundColor:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.surfaceVariant,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Theme.of(context).colorScheme.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              const Gap(0),
-                            ],
-                          ),
+                        FileUploadProgressWidget(
+                          progress: progress,
+                          textColor: textColor,
+                          hasContent:
+                              remoteMessage.content?.isNotEmpty ?? false,
+                        ),
                       ],
                     ),
                   ),
@@ -833,81 +801,64 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
           ),
           const Gap(8),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                if (remoteMessage.repliedMessageId != null)
-                  MessageQuoteWidget(
-                    message: message,
-                    textColor: textColor,
-                    isReply: true,
-                  ).padding(vertical: 4),
-                if (remoteMessage.forwardedMessageId != null)
-                  MessageQuoteWidget(
-                    message: message,
-                    textColor: textColor,
-                    isReply: false,
-                  ).padding(vertical: 4),
-                if (MessageContent.hasContent(remoteMessage))
-                  MessageContent(
-                    item: remoteMessage,
-                    translatedText: translatedText,
-                  ),
-                if (remoteMessage.attachments.isNotEmpty)
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      return CloudFileList(
-                        files: remoteMessage.attachments,
-                        maxWidth: constraints.maxWidth,
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                      );
-                    },
-                  ),
-                if (remoteMessage.meta['embeds'] != null &&
-                    kMessageEnableEmbedTypes.contains(message.type))
-                  EmbedListWidget(
-                    embeds: remoteMessage.meta['embeds'] as List<dynamic>,
-                    isInteractive: true,
-                    isFullPost: false,
-                    renderingPadding: EdgeInsets.zero,
-                    maxWidth: 480,
-                  ),
-                if (progress != null && progress!.isNotEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 8,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if ((remoteMessage.content?.isNotEmpty ?? false))
-                        const SizedBox.shrink(),
-                      for (var entry in progress!.entries)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'fileUploadingProgress'.tr(
-                                args: [
-                                  (entry.key + 1).toString(),
-                                  entry.value.toStringAsFixed(1),
-                                ],
-                              ),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: textColor.withOpacity(0.8),
-                              ),
-                            ),
-                            const Gap(4),
-                            LinearProgressIndicator(
-                              value: entry.value / 100,
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.surfaceVariant,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ],
+                      if (remoteMessage.repliedMessageId != null)
+                        MessageQuoteWidget(
+                          message: message,
+                          textColor: textColor,
+                          isReply: true,
+                        ).padding(vertical: 4),
+                      if (remoteMessage.forwardedMessageId != null)
+                        MessageQuoteWidget(
+                          message: message,
+                          textColor: textColor,
+                          isReply: false,
+                        ).padding(vertical: 4),
+                      if (MessageContent.hasContent(remoteMessage))
+                        MessageContent(
+                          item: remoteMessage,
+                          translatedText: translatedText,
                         ),
+                      if (remoteMessage.attachments.isNotEmpty)
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            return CloudFileList(
+                              files: remoteMessage.attachments,
+                              maxWidth: constraints.maxWidth,
+                              padding: EdgeInsets.symmetric(vertical: 4),
+                            );
+                          },
+                        ),
+                      if (remoteMessage.meta['embeds'] != null &&
+                          kMessageEnableEmbedTypes.contains(message.type))
+                        EmbedListWidget(
+                          embeds: remoteMessage.meta['embeds'] as List<dynamic>,
+                          isInteractive: true,
+                          isFullPost: false,
+                          renderingPadding: EdgeInsets.zero,
+                          maxWidth: 480,
+                        ),
+                      FileUploadProgressWidget(
+                        progress: progress,
+                        textColor: textColor,
+                        hasContent: remoteMessage.content?.isNotEmpty ?? false,
+                      ),
                     ],
                   ),
+                ),
+                MessageIndicators(
+                  editedAt: remoteMessage.editedAt,
+                  status: message.status,
+                  isCurrentUser: isCurrentUser,
+                  textColor: textColor,
+                ),
               ],
             ),
           ),
@@ -971,175 +922,133 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                       ),
                     ],
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      if (remoteMessage.repliedMessageId != null)
-                        MessageQuoteWidget(
-                          message: message,
-                          textColor: textColor,
-                          isReply: true,
-                        ).padding(vertical: 4),
-                      if (remoteMessage.forwardedMessageId != null)
-                        MessageQuoteWidget(
-                          message: message,
-                          textColor: textColor,
-                          isReply: false,
-                        ).padding(vertical: 4),
-                      if (MessageContent.hasContent(remoteMessage))
-                        MessageContent(
-                          item: remoteMessage,
-                          translatedText: translatedText,
-                        ),
-                      if (remoteMessage.attachments.isNotEmpty)
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            return CloudFileList(
-                              files: remoteMessage.attachments,
-                              maxWidth: constraints.maxWidth,
-                              padding: EdgeInsets.symmetric(vertical: 4),
-                            );
-                          },
-                        ),
-                      if (remoteMessage.meta['embeds'] != null &&
-                          kMessageEnableEmbedTypes.contains(message.type))
-                        EmbedListWidget(
-                          embeds: remoteMessage.meta['embeds'] as List<dynamic>,
-                          isInteractive: true,
-                          isFullPost: false,
-                          renderingPadding: EdgeInsets.zero,
-                          maxWidth: 480,
-                        ),
-                      if (progress != null && progress!.isNotEmpty)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          spacing: 8,
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if ((remoteMessage.content?.isNotEmpty ?? false))
-                              const SizedBox.shrink(),
-                            for (var entry in progress!.entries)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'fileUploadingProgress'.tr(
-                                      args: [
-                                        (entry.key + 1).toString(),
-                                        entry.value.toStringAsFixed(1),
-                                      ],
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: textColor.withOpacity(0.8),
-                                    ),
-                                  ),
-                                  const Gap(4),
-                                  LinearProgressIndicator(
-                                    value: entry.value / 100,
-                                    backgroundColor:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceVariant,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                ],
+                            if (remoteMessage.repliedMessageId != null)
+                              MessageQuoteWidget(
+                                message: message,
+                                textColor: textColor,
+                                isReply: true,
+                              ).padding(vertical: 4),
+                            if (remoteMessage.forwardedMessageId != null)
+                              MessageQuoteWidget(
+                                message: message,
+                                textColor: textColor,
+                                isReply: false,
+                              ).padding(vertical: 4),
+                            if (MessageContent.hasContent(remoteMessage))
+                              MessageContent(
+                                item: remoteMessage,
+                                translatedText: translatedText,
                               ),
+                            if (remoteMessage.attachments.isNotEmpty)
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return CloudFileList(
+                                    files: remoteMessage.attachments,
+                                    maxWidth: constraints.maxWidth,
+                                    padding: EdgeInsets.symmetric(vertical: 4),
+                                  );
+                                },
+                              ),
+                            if (remoteMessage.meta['embeds'] != null &&
+                                kMessageEnableEmbedTypes.contains(message.type))
+                              EmbedListWidget(
+                                embeds:
+                                    remoteMessage.meta['embeds']
+                                        as List<dynamic>,
+                                isInteractive: true,
+                                isFullPost: false,
+                                renderingPadding: EdgeInsets.zero,
+                                maxWidth: 480,
+                              ),
+                            FileUploadProgressWidget(
+                              progress: progress,
+                              textColor: textColor,
+                              hasContent:
+                                  remoteMessage.content?.isNotEmpty ?? false,
+                            ),
                           ],
                         ),
+                      ),
+                      MessageIndicators(
+                        editedAt: remoteMessage.editedAt,
+                        status: message.status,
+                        isCurrentUser: isCurrentUser,
+                        textColor: textColor,
+                      ),
                     ],
                   ).padding(left: kAvatarRadius * 2 + 8),
                 ],
               )
               : Padding(
                 padding: EdgeInsets.only(left: kAvatarRadius * 2 + 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    if (showAvatar)
-                      MessageSenderInfo(
-                        sender: sender,
-                        createdAt: message.createdAt,
-                        textColor: textColor,
-                        showAvatar: false,
-                        isCompact: true,
-                      ),
-                    if (remoteMessage.repliedMessageId != null)
-                      MessageQuoteWidget(
-                        message: message,
-                        textColor: textColor,
-                        isReply: true,
-                      ).padding(vertical: 4),
-                    if (remoteMessage.forwardedMessageId != null)
-                      MessageQuoteWidget(
-                        message: message,
-                        textColor: textColor,
-                        isReply: false,
-                      ).padding(vertical: 4),
-                    if (MessageContent.hasContent(remoteMessage))
-                      MessageContent(
-                        item: remoteMessage,
-                        translatedText: translatedText,
-                      ),
-                    if (remoteMessage.attachments.isNotEmpty)
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          return CloudFileList(
-                            files: remoteMessage.attachments,
-                            maxWidth: constraints.maxWidth,
-                            padding: EdgeInsets.symmetric(vertical: 4),
-                          );
-                        },
-                      ),
-                    if (remoteMessage.meta['embeds'] != null &&
-                        kMessageEnableEmbedTypes.contains(message.type))
-                      EmbedListWidget(
-                        embeds: remoteMessage.meta['embeds'] as List<dynamic>,
-                        isInteractive: true,
-                        isFullPost: false,
-                        renderingPadding: EdgeInsets.zero,
-                        maxWidth: 480,
-                      ),
-                    if (progress != null && progress!.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        spacing: 8,
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if ((remoteMessage.content?.isNotEmpty ?? false))
-                            const Gap(0),
-                          for (var entry in progress!.entries)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'fileUploadingProgress'.tr(
-                                    args: [
-                                      (entry.key + 1).toString(),
-                                      entry.value.toStringAsFixed(1),
-                                    ],
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: textColor.withOpacity(0.8),
-                                  ),
-                                ),
-                                const Gap(4),
-                                LinearProgressIndicator(
-                                  value: entry.value / 100,
-                                  backgroundColor:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceVariant,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-                              ],
+                          if (remoteMessage.repliedMessageId != null)
+                            MessageQuoteWidget(
+                              message: message,
+                              textColor: textColor,
+                              isReply: true,
+                            ).padding(vertical: 4),
+                          if (remoteMessage.forwardedMessageId != null)
+                            MessageQuoteWidget(
+                              message: message,
+                              textColor: textColor,
+                              isReply: false,
+                            ).padding(vertical: 4),
+                          if (MessageContent.hasContent(remoteMessage))
+                            MessageContent(
+                              item: remoteMessage,
+                              translatedText: translatedText,
                             ),
-                          const Gap(0),
+                          if (remoteMessage.attachments.isNotEmpty)
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                return CloudFileList(
+                                  files: remoteMessage.attachments,
+                                  maxWidth: constraints.maxWidth,
+                                  padding: EdgeInsets.symmetric(vertical: 4),
+                                );
+                              },
+                            ),
+                          if (remoteMessage.meta['embeds'] != null &&
+                              kMessageEnableEmbedTypes.contains(message.type))
+                            EmbedListWidget(
+                              embeds:
+                                  remoteMessage.meta['embeds'] as List<dynamic>,
+                              isInteractive: true,
+                              isFullPost: false,
+                              renderingPadding: EdgeInsets.zero,
+                              maxWidth: 480,
+                            ),
+                          FileUploadProgressWidget(
+                            progress: progress,
+                            textColor: textColor,
+                            hasContent:
+                                remoteMessage.content?.isNotEmpty ?? false,
+                          ),
                         ],
                       ),
+                    ),
+                    MessageIndicators(
+                      editedAt: remoteMessage.editedAt,
+                      status: message.status,
+                      isCurrentUser: isCurrentUser,
+                      textColor: textColor,
+                    ),
                   ],
                 ),
               ),
@@ -1246,6 +1155,60 @@ class MessageQuoteWidget extends HookConsumerWidget {
           return SizedBox.shrink();
         }
       },
+    );
+  }
+}
+
+class FileUploadProgressWidget extends StatelessWidget {
+  final Map<int, double>? progress;
+  final Color textColor;
+  final bool hasContent;
+
+  const FileUploadProgressWidget({
+    super.key,
+    required this.progress,
+    required this.textColor,
+    required this.hasContent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (progress == null || progress!.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 8,
+      children: [
+        if (hasContent) const Gap(0),
+        for (var entry in progress!.entries)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'fileUploadingProgress'.tr(
+                  args: [
+                    (entry.key + 1).toString(),
+                    entry.value.toStringAsFixed(1),
+                  ],
+                ),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: textColor.withOpacity(0.8),
+                ),
+              ),
+              const Gap(4),
+              LinearProgressIndicator(
+                value: entry.value,
+                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).colorScheme.primary,
+                ),
+                trackGap: 0,
+              ),
+            ],
+          ),
+        const Gap(0),
+      ],
     );
   }
 }

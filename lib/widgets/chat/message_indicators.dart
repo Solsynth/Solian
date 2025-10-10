@@ -9,6 +9,7 @@ class MessageIndicators extends StatelessWidget {
   final MessageStatus? status;
   final bool isCurrentUser;
   final Color textColor;
+  final EdgeInsets padding;
 
   const MessageIndicators({
     super.key,
@@ -16,26 +17,43 @@ class MessageIndicators extends StatelessWidget {
     this.status,
     required this.isCurrentUser,
     required this.textColor,
+    this.padding = const EdgeInsets.only(left: 6),
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      spacing: 4,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (editedAt != null)
-          Text(
-            'edited'.tr().toLowerCase(),
-            style: TextStyle(fontSize: 11, color: textColor.withOpacity(0.7)),
-          ),
-        if (isCurrentUser && status != null)
-          _buildStatusIcon(
-            context,
-            status!,
-            textColor.withOpacity(0.7),
-          ).padding(bottom: 3),
-      ],
+    final children = <Widget>[];
+
+    if (editedAt != null) {
+      children.add(
+        Text(
+          'edited'.tr().toLowerCase(),
+          style: TextStyle(fontSize: 11, color: textColor.withOpacity(0.7)),
+        ),
+      );
+    }
+
+    if (isCurrentUser && status != null && status != MessageStatus.sent) {
+      children.add(
+        _buildStatusIcon(
+          context,
+          status!,
+          textColor.withOpacity(0.7),
+        ).padding(bottom: 4),
+      );
+    }
+
+    if (children.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: padding,
+      child: Row(
+        spacing: 4,
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
     );
   }
 
@@ -46,9 +64,18 @@ class MessageIndicators extends StatelessWidget {
   ) {
     switch (status) {
       case MessageStatus.pending:
-        return Icon(Icons.access_time, size: 12, color: textColor);
+        return SizedBox(
+          width: 10,
+          height: 10,
+          child: CircularProgressIndicator(
+            padding: EdgeInsets.zero,
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation(textColor),
+          ),
+        );
       case MessageStatus.sent:
-        return Icon(Icons.check, size: 12, color: textColor);
+        // Sent status is hidden
+        return const SizedBox.shrink();
       case MessageStatus.failed:
         return Consumer(
           builder:

@@ -52,7 +52,7 @@ class UploadMenu extends StatelessWidget {
                   leadingIcon: Icon(item.icon),
                   style: ButtonStyle(
                     padding: WidgetStatePropertyAll(
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      EdgeInsets.only(left: 12, right: 16, top: 20, bottom: 20),
                     ),
                   ),
                   child: Text(item.textKey.tr()),
