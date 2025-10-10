@@ -34,6 +34,7 @@ class MessageItemAction {
   static const String delete = "delete";
   static const String reply = "reply";
   static const String forward = "forward";
+  static const String resend = "resend";
 }
 
 class MessageItem extends HookConsumerWidget {
@@ -117,6 +118,7 @@ class MessageItem extends HookConsumerWidget {
               translate: translate,
               isMobile: isMobile,
               remoteMessage: remoteMessage,
+              message: message,
             ),
       );
     }
@@ -254,6 +256,7 @@ class MessageActionSheet extends StatefulWidget {
   final VoidCallback translate;
   final bool isMobile;
   final dynamic remoteMessage;
+  final LocalChatMessage message;
 
   const MessageActionSheet({
     super.key,
@@ -265,6 +268,7 @@ class MessageActionSheet extends StatefulWidget {
     required this.translate,
     required this.isMobile,
     required this.remoteMessage,
+    required this.message,
   });
 
   @override
@@ -387,6 +391,16 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                 title: Text('edit'.tr()),
                 onTap: () {
                   widget.onAction!.call(MessageItemAction.edit);
+                  Navigator.pop(context);
+                },
+              ),
+            if (widget.isCurrentUser &&
+                widget.message.status == MessageStatus.failed)
+              _ActionListTile(
+                leading: Icon(Symbols.refresh),
+                title: Text('resend'.tr()),
+                onTap: () {
+                  widget.onAction!.call(MessageItemAction.resend);
                   Navigator.pop(context);
                 },
               ),
@@ -1188,7 +1202,7 @@ class FileUploadProgressWidget extends StatelessWidget {
                 'fileUploadingProgress'.tr(
                   args: [
                     (entry.key + 1).toString(),
-                    entry.value.toStringAsFixed(1),
+                    (entry.value * 100).toStringAsFixed(1),
                   ],
                 ),
                 style: TextStyle(
