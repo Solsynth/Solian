@@ -62,16 +62,8 @@ class MessageItem extends HookConsumerWidget {
 
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
-    final messageLanguage =
-        remoteMessage.content != null
-            ? ref.watch(detectStringLanguageProvider(remoteMessage.content!))
-            : null;
-
     final currentLanguage = context.locale.toString();
-    final translatableLanguage =
-        messageLanguage != null
-            ? messageLanguage.substring(0, 2) != currentLanguage.substring(0, 2)
-            : false;
+    final translatableLanguage = remoteMessage.content?.isNotEmpty ?? false;
 
     final translating = useState(false);
     final translatedText = useState<String?>(null);
