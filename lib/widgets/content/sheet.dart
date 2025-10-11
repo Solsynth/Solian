@@ -30,6 +30,8 @@ class SheetScaffold extends StatelessWidget {
             fontWeight: FontWeight.w600,
             letterSpacing: -0.5,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         );
 
     return Container(
@@ -43,7 +45,7 @@ class SheetScaffold extends StatelessWidget {
             padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
             child: Row(
               children: [
-                titleWidget,
+                Expanded(child: titleWidget),
                 const Spacer(),
                 ...actions,
                 IconButton(

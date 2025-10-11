@@ -43,7 +43,6 @@ import 'package:island/screens/chat/search_messages.dart';
 import 'package:island/screens/creators/hub.dart';
 import 'package:island/screens/creators/posts/post_manage_list.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
-import 'package:island/screens/creators/stickers/pack_detail.dart';
 import 'package:island/screens/stickers/sticker_marketplace.dart';
 import 'package:island/screens/stickers/pack_detail.dart';
 import 'package:island/screens/discovery/feeds/feed_marketplace.dart';
@@ -230,49 +229,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return StickersScreen(pubName: name);
-                },
-              ),
-              GoRoute(
-                name: 'creatorStickerPackNew',
-                path: ':name/stickers/new',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  return NewStickerPacksScreen(pubName: name);
-                },
-              ),
-              GoRoute(
-                name: 'creatorStickerPackEdit',
-                path: ':name/stickers/:packId/edit',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  final packId = state.pathParameters['packId']!;
-                  return EditStickerPacksScreen(pubName: name, packId: packId);
-                },
-              ),
-              GoRoute(
-                name: 'creatorStickerPackDetail',
-                path: ':name/stickers/:packId',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  final packId = state.pathParameters['packId']!;
-                  return StickerPackDetailScreen(pubName: name, id: packId);
-                },
-              ),
-              GoRoute(
-                name: 'creatorStickerNew',
-                path: ':name/stickers/:packId/new',
-                builder: (context, state) {
-                  final packId = state.pathParameters['packId']!;
-                  return NewStickersScreen(packId: packId);
-                },
-              ),
-              GoRoute(
-                name: 'creatorStickerEdit',
-                path: ':name/stickers/:packId/:id/edit',
-                builder: (context, state) {
-                  final packId = state.pathParameters['packId']!;
-                  final id = state.pathParameters['id']!;
-                  return EditStickersScreen(id: id, packId: packId);
                 },
               ),
               GoRoute(
