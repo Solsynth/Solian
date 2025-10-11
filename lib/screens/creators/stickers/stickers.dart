@@ -23,6 +23,7 @@ class StickersScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         title: const Text('stickers').tr(),
         actions: [
@@ -196,6 +197,7 @@ class EditStickerPacksScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         title:
             Text(packId == null ? 'createStickerPack' : 'editStickerPack').tr(),

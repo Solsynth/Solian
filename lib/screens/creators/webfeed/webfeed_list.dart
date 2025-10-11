@@ -17,6 +17,7 @@ class WebFeedListScreen extends ConsumerWidget {
     final feedsAsync = ref.watch(webFeedListProvider(pubName));
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(title: const Text('Web Feeds')),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Symbols.add),

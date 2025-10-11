@@ -102,42 +102,167 @@ class PublisherMemberListNotifier extends _$PublisherMemberListNotifier
   }
 }
 
-class CreatorHubShellScreen extends StatelessWidget {
-  final Widget child;
-  const CreatorHubShellScreen({super.key, required this.child});
+class PublisherSelector extends StatelessWidget {
+  final SnPublisher? currentPublisher;
+  final List<DropdownMenuItem<SnPublisher>> publishersMenu;
+  final ValueChanged<SnPublisher?>? onChanged;
+  final bool isReadOnly;
+
+  const PublisherSelector({
+    required this.currentPublisher,
+    required this.publishersMenu,
+    this.onChanged,
+    this.isReadOnly = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isWide = isWideScreen(context);
-    if (isWide) {
-      return AppBackground(
-        isRoot: true,
-        child: Row(
-          children: [
-            Flexible(flex: 2, child: const CreatorHubScreen(isAside: true)),
-            const VerticalDivider(width: 1),
-            Flexible(flex: 3, child: child),
-          ],
-        ),
-      );
+    if (isReadOnly || currentPublisher == null) {
+      return ProfilePictureWidget(
+        radius: 16,
+        fileId: currentPublisher?.picture?.id,
+      ).center().padding(right: 8);
     }
-    return AppBackground(isRoot: true, child: child);
+
+    return DropdownButtonHideUnderline(
+      child: DropdownButton2<SnPublisher>(
+        value: currentPublisher,
+        hint: CircleAvatar(
+          radius: 16,
+          child: Icon(
+            Symbols.person,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSecondaryContainer.withOpacity(0.9),
+            fill: 1,
+          ),
+        ).center().padding(right: 8),
+        items: publishersMenu,
+        onChanged: onChanged,
+        selectedItemBuilder: (context) {
+          return publishersMenu
+              .map(
+                (e) => ProfilePictureWidget(
+                  radius: 16,
+                  fileId: e.value?.picture?.id,
+                ).center().padding(right: 8),
+              )
+              .toList();
+        },
+        buttonStyleData: ButtonStyleData(
+          height: 40,
+          padding: const EdgeInsets.only(left: 14, right: 8),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+        ),
+        dropdownStyleData: DropdownStyleData(
+          width: 320,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
+        ),
+        menuItemStyleData: const MenuItemStyleData(
+          height: 64,
+          padding: EdgeInsets.only(left: 14, right: 14),
+        ),
+        iconStyleData: IconStyleData(
+          icon: Icon(Icons.arrow_drop_down),
+          iconSize: 19,
+          iconEnabledColor: Theme.of(context).appBarTheme.foregroundColor!,
+          iconDisabledColor: Theme.of(context).appBarTheme.foregroundColor!,
+        ),
+      ),
+    );
+  }
+}
+
+class _PublisherUnselectedWidget extends HookConsumerWidget {
+  final ValueChanged<SnPublisher> onPublisherSelected;
+
+  const _PublisherUnselectedWidget({required this.onPublisherSelected});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final publishers = ref.watch(publishersManagedProvider);
+    final publisherInvites = ref.watch(publisherInvitesProvider);
+
+    final hasPublishers = publishers.value?.isNotEmpty ?? false;
+
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          if (!hasPublishers) ...[
+            const Icon(
+              Symbols.info,
+              fill: 1,
+              size: 32,
+            ).padding(bottom: 6, top: 24),
+            Text(
+              'creatorHubUnselectedHint',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ).tr(),
+            const Gap(24),
+          ],
+          if (hasPublishers)
+            ...(publishers.value?.map(
+                  (publisher) => ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    ),
+                    leading: ProfilePictureWidget(file: publisher.picture),
+                    title: Text(publisher.nick),
+                    subtitle: Text('@${publisher.name}'),
+                    onTap: () => onPublisherSelected(publisher),
+                  ),
+                ) ??
+                []),
+          const Divider(height: 1),
+          ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+            ),
+            leading: const CircleAvatar(child: Icon(Symbols.mail)),
+            title: Text('publisherCollabInvitation').tr(),
+            subtitle: Text(
+              'publisherCollabInvitationCount',
+            ).plural(publisherInvites.value?.length ?? 0),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => const _PublisherInviteSheet(),
+              );
+            },
+          ),
+          ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+            ),
+            leading: const CircleAvatar(child: Icon(Symbols.add)),
+            title: Text('createPublisher').tr(),
+            subtitle: Text('createPublisherHint').tr(),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () {
+              context.pushNamed('creatorNew').then((value) {
+                if (value != null) {
+                  ref.invalidate(publishersManagedProvider);
+                }
+              });
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
 
 class CreatorHubScreen extends HookConsumerWidget {
-  final bool isAside;
-  const CreatorHubScreen({super.key, this.isAside = false});
+  const CreatorHubScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = isWideScreen(context);
-    if (isWide && !isAside) {
-      return Container(color: Theme.of(context).colorScheme.surface);
-    }
-
     final publishers = ref.watch(publishersManagedProvider);
-    final publisherInvites = ref.watch(publisherInvitesProvider);
     final currentPublisher = useState<SnPublisher?>(
       publishers.value?.firstOrNull,
     );
@@ -207,299 +332,251 @@ class CreatorHubScreen extends HookConsumerWidget {
       publisherFeaturesProvider(currentPublisher.value?.name),
     );
 
+    Widget buildNavigationWidget(bool isWide) {
+      final leftItems = [
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: Text('stickers').tr(),
+          trailing: Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.ar_stickers),
+          onTap: () {
+            context.pushNamed(
+              'creatorStickers',
+              pathParameters: {'name': currentPublisher.value!.name},
+            );
+          },
+        ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: Text('posts').tr(),
+          trailing: Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.sticky_note_2),
+          onTap: () {
+            context.pushNamed(
+              'creatorPosts',
+              pathParameters: {'name': currentPublisher.value!.name},
+            );
+          },
+        ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: Text('polls').tr(),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.poll),
+          onTap: () {
+            context.pushNamed(
+              'creatorPolls',
+              pathParameters: {'name': currentPublisher.value!.name},
+            );
+          },
+        ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: Text('publisherMembers').tr(),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.group),
+          onTap: () {
+            showModalBottomSheet(
+              isScrollControlled: true,
+              context: context,
+              builder:
+                  (context) => _PublisherMemberListSheet(
+                    publisherUname: currentPublisher.value!.name,
+                  ),
+            );
+          },
+        ),
+      ];
+
+      final rightItems = [
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: const Text('webFeeds').tr(),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.rss_feed),
+          onTap: () {
+            context.push('/creators/${currentPublisher.value!.name}/feeds');
+          },
+        ),
+        ExpansionTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          title: Text('publisherFeatures').tr(),
+          leading: const Icon(Symbols.flag),
+          tilePadding: const EdgeInsets.only(left: 16, right: 24),
+          minTileHeight: 48,
+          children: [
+            ...publisherFeatures.when(
+              data: (data) {
+                return data.entries.map((entry) {
+                  final keyPrefix =
+                      'publisherFeature${entry.key.capitalizeEachWord()}';
+                  return ListTile(
+                    minTileHeight: 48,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    leading: Icon(
+                      Symbols.circle,
+                      color: entry.value ? Colors.green : Colors.red,
+                      fill: 1,
+                      size: 16,
+                    ).padding(left: 2, top: 4),
+                    title: Text(keyPrefix).tr(),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${keyPrefix}Description').tr(),
+                        if (!entry.value) Text('${keyPrefix}Hint').tr().bold(),
+                      ],
+                    ),
+                    isThreeLine: true,
+                  );
+                }).toList();
+              },
+              error: (_, _) => [],
+              loading: () => [],
+            ),
+          ],
+        ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: Text('editPublisher').tr(),
+          trailing: Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.edit),
+          onTap: updatePublisher,
+        ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: Text('deletePublisher').tr(),
+          trailing: Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.delete),
+          onTap: deletePublisher,
+        ),
+      ];
+
+      if (isWide) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
+          children: [
+            Expanded(
+              child: Card(
+                margin: EdgeInsets.zero,
+                child: Column(children: leftItems),
+              ),
+            ),
+            Expanded(
+              child: Card(
+                margin: EdgeInsets.zero,
+                child: Column(children: rightItems),
+              ),
+            ),
+          ],
+        ).padding(horizontal: 12);
+      } else {
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [...leftItems, const Divider(height: 8), ...rightItems],
+          ),
+        );
+      }
+    }
+
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
-        leading: !isWide ? const PageBackButton() : null,
+        leading: const PageBackButton(),
         title: Text('creatorHub').tr(),
         actions: [
-          DropdownButtonHideUnderline(
-            child: DropdownButton2<SnPublisher>(
-              alignment: Alignment.centerRight,
-              value: currentPublisher.value,
-              hint: CircleAvatar(
-                radius: 16,
-                child: Icon(
-                  Symbols.person,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSecondaryContainer.withOpacity(0.9),
-                  fill: 1,
-                ),
-              ).center().padding(right: 8),
-              items: [...publishersMenu],
+          if (!isWideScreen(context))
+            PublisherSelector(
+              currentPublisher: currentPublisher.value,
+              publishersMenu: publishersMenu,
               onChanged: (value) {
                 currentPublisher.value = value;
               },
-              selectedItemBuilder: (context) {
-                return [
-                  ...publishersMenu.map(
-                    (e) => ProfilePictureWidget(
-                      radius: 16,
-                      fileId: e.value?.picture?.id,
-                    ).center().padding(right: 8),
-                  ),
-                ];
-              },
-              buttonStyleData: ButtonStyleData(
-                height: 40,
-                padding: const EdgeInsets.only(left: 14, right: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              dropdownStyleData: DropdownStyleData(
-                width: 320,
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              menuItemStyleData: const MenuItemStyleData(
-                height: 64,
-                padding: EdgeInsets.only(left: 14, right: 14),
-              ),
-              iconStyleData: IconStyleData(
-                icon: Icon(Icons.arrow_drop_down),
-                iconSize: 19,
-                iconEnabledColor:
-                    Theme.of(context).appBarTheme.foregroundColor!,
-                iconDisabledColor:
-                    Theme.of(context).appBarTheme.foregroundColor!,
-              ),
             ),
-          ),
           const Gap(8),
         ],
       ),
-      body: publisherStats.when(
-        data:
-            (stats) => SingleChildScrollView(
-              child:
-                  currentPublisher.value == null
-                      ? Column(
-                        children: [
-                          const Gap(24),
-                          const Icon(Symbols.info, size: 32).padding(bottom: 4),
-                          Text(
-                            'creatorHubUnselectedHint',
-                            textAlign: TextAlign.center,
-                          ).tr(),
-                          const Gap(24),
-                          const Divider(height: 1),
-                          ...(publishers.value?.map(
-                                (publisher) => ListTile(
-                                  leading: ProfilePictureWidget(
-                                    file: publisher.picture,
-                                  ),
-                                  title: Text(publisher.nick),
-                                  subtitle: Text('@${publisher.name}'),
-                                  onTap: () {
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = isWideScreen(context);
+          final maxWidth = isWide ? 800.0 : double.infinity;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: publisherStats.when(
+                data:
+                    (stats) => SingleChildScrollView(
+                      child:
+                          currentPublisher.value == null
+                              ? ConstrainedBox(
+                                constraints: BoxConstraints(maxWidth: 640),
+                                child: _PublisherUnselectedWidget(
+                                  onPublisherSelected: (publisher) {
                                     currentPublisher.value = publisher;
                                   },
                                 ),
-                              ) ??
-                              []),
-                          ListTile(
-                            leading: const CircleAvatar(
-                              child: Icon(Symbols.mail),
-                            ),
-                            title: Text('publisherCollabInvitation').tr(),
-                            subtitle: Text(
-                              'publisherCollabInvitationCount',
-                            ).plural(publisherInvites.value?.length ?? 0),
-                            trailing: const Icon(Symbols.chevron_right),
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                builder: (_) => const _PublisherInviteSheet(),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            leading: const CircleAvatar(
-                              child: Icon(Symbols.add),
-                            ),
-                            title: Text('createPublisher').tr(),
-                            subtitle: Text('createPublisherHint').tr(),
-                            trailing: const Icon(Symbols.chevron_right),
-                            onTap: () {
-                              context.pushNamed('creatorNew').then((value) {
-                                if (value != null) {
-                                  ref.invalidate(publishersManagedProvider);
-                                }
-                              });
-                            },
-                          ),
-                        ],
-                      )
-                      : Column(
-                        children: [
-                          if (stats != null)
-                            _PublisherStatsWidget(
-                              stats: stats,
-                            ).padding(vertical: 12, horizontal: 12),
-                          ListTile(
-                            minTileHeight: 48,
-                            title: Text('stickers').tr(),
-                            trailing: Icon(Symbols.chevron_right),
-                            leading: const Icon(Symbols.ar_stickers),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            onTap: () {
-                              context.pushNamed(
-                                'creatorStickers',
-                                pathParameters: {
-                                  'name': currentPublisher.value!.name,
-                                },
-                              );
-                            },
-                          ),
-                          ListTile(
-                            minTileHeight: 48,
-                            title: Text('posts').tr(),
-                            trailing: Icon(Symbols.chevron_right),
-                            leading: const Icon(Symbols.sticky_note_2),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            onTap: () {
-                              context.pushNamed(
-                                'creatorPosts',
-                                pathParameters: {
-                                  'name': currentPublisher.value!.name,
-                                },
-                              );
-                            },
-                          ),
-                          ListTile(
-                            minTileHeight: 48,
-                            title: Text('polls').tr(),
-                            trailing: const Icon(Symbols.chevron_right),
-                            leading: const Icon(Symbols.poll),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            onTap: () {
-                              context.pushNamed(
-                                'creatorPolls',
-                                pathParameters: {
-                                  'name': currentPublisher.value!.name,
-                                },
-                              );
-                            },
-                          ),
-                          ListTile(
-                            minTileHeight: 48,
-                            title: Text('publisherMembers').tr(),
-                            trailing: const Icon(Symbols.chevron_right),
-                            leading: const Icon(Symbols.group),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            onTap: () {
-                              showModalBottomSheet(
-                                isScrollControlled: true,
-                                context: context,
-                                builder:
-                                    (context) => _PublisherMemberListSheet(
-                                      publisherUname:
-                                          currentPublisher.value!.name,
-                                    ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            minTileHeight: 48,
-                            title: const Text('webFeeds').tr(),
-                            trailing: const Icon(Symbols.chevron_right),
-                            leading: const Icon(Symbols.rss_feed),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            onTap: () {
-                              context.push(
-                                '/creators/${currentPublisher.value!.name}/feeds',
-                              );
-                            },
-                          ),
-                          ExpansionTile(
-                            title: Text('publisherFeatures').tr(),
-                            leading: const Icon(Symbols.flag),
-                            tilePadding: EdgeInsets.symmetric(horizontal: 24),
-                            minTileHeight: 48,
-                            children: [
-                              ...publisherFeatures.when(
-                                data: (data) {
-                                  return data.entries.map((entry) {
-                                    final keyPrefix =
-                                        'publisherFeature${entry.key.capitalizeEachWord()}';
-                                    return ListTile(
-                                      minTileHeight: 48,
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                      ),
-                                      leading: Icon(
-                                        Symbols.circle,
-                                        color:
-                                            entry.value
-                                                ? Colors.green
-                                                : Colors.red,
-                                        fill: 1,
-                                        size: 16,
-                                      ).padding(left: 2, top: 4),
-                                      title: Text(keyPrefix).tr(),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text('${keyPrefix}Description').tr(),
-                                          if (!entry.value)
-                                            Text(
-                                              '${keyPrefix}Hint',
-                                            ).tr().bold(),
-                                        ],
-                                      ),
-                                      isThreeLine: true,
-                                    );
-                                  }).toList();
-                                },
-                                error: (_, _) => [],
-                                loading: () => [],
+                              ).center()
+                              : isWide
+                              ? Column(
+                                spacing: 8,
+                                children: [
+                                  PublisherSelector(
+                                    currentPublisher: currentPublisher.value,
+                                    publishersMenu: publishersMenu,
+                                    onChanged: (value) {
+                                      currentPublisher.value = value;
+                                    },
+                                  ),
+                                  if (stats != null)
+                                    _PublisherStatsWidget(
+                                      stats: stats,
+                                    ).padding(horizontal: 12),
+                                  buildNavigationWidget(true),
+                                ],
+                              )
+                              : Column(
+                                spacing: 12,
+                                children: [
+                                  if (stats != null)
+                                    _PublisherStatsWidget(
+                                      stats: stats,
+                                    ).padding(horizontal: 16),
+                                  buildNavigationWidget(false),
+                                ],
                               ),
-                            ],
-                          ),
-                          Divider(height: 1).padding(vertical: 8),
-                          ListTile(
-                            minTileHeight: 48,
-                            title: Text('editPublisher').tr(),
-                            trailing: Icon(Symbols.chevron_right),
-                            leading: const Icon(Symbols.edit),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            onTap: () {
-                              updatePublisher();
-                            },
-                          ),
-                          ListTile(
-                            minTileHeight: 48,
-                            title: Text('deletePublisher').tr(),
-                            trailing: Icon(Symbols.chevron_right),
-                            leading: const Icon(Symbols.delete),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            onTap: () {
-                              deletePublisher();
-                            },
-                          ),
-                        ],
-                      ),
+                    ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, _) => const SizedBox.shrink(),
+              ),
             ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => const SizedBox.shrink(),
+          );
+        },
       ),
     );
   }
@@ -576,21 +653,36 @@ class _PublisherStatsWidget extends StatelessWidget {
         height: 100,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                statValue,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const Gap(4),
-              Text(
-                statLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ).tr(),
-            ],
+          child: Tooltip(
+            richMessage: TextSpan(
+              text: statLabel.tr(),
+              style: TextStyle(fontWeight: FontWeight.bold),
+              children: [
+                TextSpan(text: ' '),
+                TextSpan(
+                  text: statValue,
+                  style: TextStyle(fontWeight: FontWeight.normal),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  statValue,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const Gap(4),
+                Text(
+                  statLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ).tr(),
+              ],
+            ),
           ),
         ),
       ),

@@ -416,6 +416,7 @@ class PollEditorScreen extends ConsumerWidget {
     }
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         title: Text(model.id == null ? 'pollCreate'.tr() : 'pollEdit'.tr()),
         actions: [

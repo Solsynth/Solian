@@ -84,6 +84,7 @@ class CreatorPollListScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(title: const Text('Polls')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createPoll(context),

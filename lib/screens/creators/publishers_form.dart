@@ -178,6 +178,7 @@ class EditPublisherScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         title: Text(name == null ? 'createPublisher' : 'editPublisher').tr(),
         leading: const PageBackButton(),

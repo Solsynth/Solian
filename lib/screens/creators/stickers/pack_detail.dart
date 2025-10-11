@@ -68,6 +68,7 @@ class StickerPackDetailScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         title: Text(pack.value?.name ?? 'loading'.tr()),
         actions: [
@@ -396,6 +397,7 @@ class EditStickersScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         title: Text(id == null ? 'createSticker' : 'editSticker').tr(),
       ),

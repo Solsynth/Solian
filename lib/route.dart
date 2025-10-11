@@ -150,19 +150,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               return EventCalanderScreen(name: name);
             },
           ),
-          ShellRoute(
-            builder:
-                (context, state, child) => CreatorHubShellScreen(child: child),
+          GoRoute(
+            name: 'creatorHub',
+            path: '/creators',
+            builder: (context, state) => const CreatorHubScreen(),
             routes: [
-              GoRoute(
-                name: 'creatorHub',
-                path: '/creators',
-                builder: (context, state) => const CreatorHubScreen(),
-              ),
               // Web Feed Routes
               GoRoute(
                 name: 'creatorFeeds',
-                path: '/creators/:name/feeds',
+                path: ':name/feeds',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return WebFeedListScreen(pubName: name);
@@ -191,7 +187,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'creatorPosts',
-                path: '/creators/:name/posts',
+                path: ':name/posts',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return CreatorPostListScreen(pubName: name);
@@ -200,7 +196,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               // Poll list route
               GoRoute(
                 name: 'creatorPolls',
-                path: '/creators/:name/polls',
+                path: ':name/polls',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return CreatorPollListScreen(pubName: name);
@@ -209,7 +205,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               // Poll routes
               GoRoute(
                 name: 'creatorPollNew',
-                path: '/creators/:name/polls/new',
+                path: ':name/polls/new',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   // initialPollId left null for create; initialPublisher prefilled
@@ -218,7 +214,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'creatorPollEdit',
-                path: '/creators/:name/polls/:id/edit',
+                path: ':name/polls/:id/edit',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   final id = state.pathParameters['id']!;
@@ -230,7 +226,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'creatorStickers',
-                path: '/creators/:name/stickers',
+                path: ':name/stickers',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return StickersScreen(pubName: name);
@@ -238,7 +234,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'creatorStickerPackNew',
-                path: '/creators/:name/stickers/new',
+                path: ':name/stickers/new',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return NewStickerPacksScreen(pubName: name);
@@ -246,7 +242,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'creatorStickerPackEdit',
-                path: '/creators/:name/stickers/:packId/edit',
+                path: ':name/stickers/:packId/edit',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   final packId = state.pathParameters['packId']!;
@@ -255,7 +251,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'creatorStickerPackDetail',
-                path: '/creators/:name/stickers/:packId',
+                path: ':name/stickers/:packId',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   final packId = state.pathParameters['packId']!;
@@ -264,7 +260,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'creatorStickerNew',
-                path: '/creators/:name/stickers/:packId/new',
+                path: ':name/stickers/:packId/new',
                 builder: (context, state) {
                   final packId = state.pathParameters['packId']!;
                   return NewStickersScreen(packId: packId);
@@ -272,7 +268,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'creatorStickerEdit',
-                path: '/creators/:name/stickers/:packId/:id/edit',
+                path: ':name/stickers/:packId/:id/edit',
                 builder: (context, state) {
                   final packId = state.pathParameters['packId']!;
                   final id = state.pathParameters['id']!;
@@ -281,12 +277,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'creatorNew',
-                path: '/creators/new',
+                path: 'new',
                 builder: (context, state) => const NewPublisherScreen(),
               ),
               GoRoute(
                 name: 'creatorEdit',
-                path: '/creators/:name/edit',
+                path: ':name/edit',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return EditPublisherScreen(name: name);

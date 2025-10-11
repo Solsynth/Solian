@@ -115,10 +115,12 @@ class WebFeedEditScreen extends HookConsumerWidget {
     return feedAsync.when(
       loading:
           () => const AppScaffold(
+            isNoBackground: false,
             body: Center(child: CircularProgressIndicator()),
           ),
       error:
           (error, stack) => AppScaffold(
+            isNoBackground: false,
             appBar: AppBar(title: const Text('Error')),
             body: Center(child: Text('Error: $error')),
           ),
@@ -186,6 +188,7 @@ class WebFeedEditScreen extends HookConsumerWidget {
     }, [pubName, feedId, ref, context]);
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         title: Text(hasFeedId ? 'Edit Web Feed' : 'New Web Feed'),
         actions: [
