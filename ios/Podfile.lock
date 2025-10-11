@@ -217,7 +217,7 @@ PODS:
     - Flutter
   - irondash_engine_context (0.0.1):
     - Flutter
-  - Kingfisher (8.5.0)
+  - Kingfisher (8.6.0)
   - livekit_client (2.5.0):
     - Flutter
     - flutter_webrtc
@@ -254,9 +254,9 @@ PODS:
   - record_ios (1.1.0):
     - Flutter
   - SAMKeychain (1.5.3)
-  - SDWebImage (5.21.2):
-    - SDWebImage/Core (= 5.21.2)
-  - SDWebImage/Core (5.21.2)
+  - SDWebImage (5.21.3):
+    - SDWebImage/Core (= 5.21.3)
+  - SDWebImage/Core (5.21.3)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -518,7 +518,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
-  Kingfisher: ff0d31a1f07bdff6a1ebb3ba08b8e6e567b6500c
+  Kingfisher: 64278f126a815d0e2d391cdf71311b85882c4de0
   livekit_client: a6f5fa86ac28ccd7ded53626a5379961db311ab4
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
@@ -535,7 +535,7 @@ SPEC CHECKSUMS:
   receive_sharing_intent: 222384f00ffe7e952bbfabaa9e3967cb87e5fe00
   record_ios: f75fa1d57f840012775c0e93a38a7f3ceea1a374
   SAMKeychain: 483e1c9f32984d50ca961e26818a534283b4cd5c
-  SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
+  SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
