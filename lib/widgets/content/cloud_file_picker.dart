@@ -15,7 +15,16 @@ import 'package:styled_widget/styled_widget.dart';
 
 class CloudFilePicker extends HookConsumerWidget {
   final bool allowMultiple;
-  const CloudFilePicker({super.key, this.allowMultiple = false});
+  final Set<UniversalFileType> allowedTypes;
+  const CloudFilePicker({
+    super.key,
+    this.allowMultiple = false,
+    this.allowedTypes = const {
+      UniversalFileType.image,
+      UniversalFileType.video,
+      UniversalFileType.file,
+    },
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,7 +80,7 @@ class CloudFilePicker extends HookConsumerWidget {
 
     void pickFile() async {
       showLoadingModal(context);
-      final result = await FilePickerIO().pickFiles(
+      final result = await FilePicker.platform.pickFiles(
         allowMultiple: allowMultiple,
       );
       if (result == null) {
@@ -80,9 +89,13 @@ class CloudFilePicker extends HookConsumerWidget {
       }
 
       final newFiles =
-          result.files
-              .map((e) => UniversalFile(data: e, type: UniversalFileType.file))
-              .toList();
+          result.files.map((e) {
+            final xfile =
+                e.bytes != null
+                    ? XFile.fromData(e.bytes!, name: e.name)
+                    : XFile(e.path!);
+            return UniversalFile(data: xfile, type: UniversalFileType.file);
+          }).toList();
 
       if (!allowMultiple) {
         files.value = newFiles;
@@ -99,23 +112,23 @@ class CloudFilePicker extends HookConsumerWidget {
 
     void pickImage() async {
       showLoadingModal(context);
-      final result =
-          allowMultiple
-              ? await ref.read(imagePickerProvider).pickMultiImage()
-              : [
-                await ref
-                    .read(imagePickerProvider)
-                    .pickImage(source: ImageSource.gallery),
-              ];
-      if (result.isEmpty) {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: allowMultiple,
+        type: FileType.image,
+      );
+      if (result == null || result.files.isEmpty) {
         if (context.mounted) hideLoadingModal(context);
         return;
       }
 
       final newFiles =
-          result
-              .map((e) => UniversalFile(data: e, type: UniversalFileType.image))
-              .toList();
+          result.files.map((e) {
+            final xfile =
+                e.bytes != null
+                    ? XFile.fromData(e.bytes!, name: e.name)
+                    : XFile(e.path!);
+            return UniversalFile(data: xfile, type: UniversalFileType.image);
+          }).toList();
 
       if (!allowMultiple) {
         files.value = newFiles;
@@ -132,21 +145,26 @@ class CloudFilePicker extends HookConsumerWidget {
 
     void pickVideo() async {
       showLoadingModal(context);
-      final result = await ref
-          .read(imagePickerProvider)
-          .pickVideo(source: ImageSource.gallery);
-      if (result == null) {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: allowMultiple,
+        type: FileType.video,
+      );
+      if (result == null || result.files.isEmpty) {
         if (context.mounted) hideLoadingModal(context);
         return;
       }
 
-      final newFile = UniversalFile(
-        data: result,
-        type: UniversalFileType.video,
-      );
+      final newFiles =
+          result.files.map((e) {
+            final xfile =
+                e.bytes != null
+                    ? XFile.fromData(e.bytes!, name: e.name)
+                    : XFile(e.path!);
+            return UniversalFile(data: xfile, type: UniversalFileType.video);
+          }).toList();
 
       if (!allowMultiple) {
-        files.value = [newFile];
+        files.value = newFiles;
         if (context.mounted) {
           hideLoadingModal(context);
           startUpload();
@@ -154,7 +172,7 @@ class CloudFilePicker extends HookConsumerWidget {
         return;
       }
 
-      files.value = [...files.value, newFile];
+      files.value = [...files.value, ...newFiles];
       if (context.mounted) hideLoadingModal(context);
     }
 
@@ -252,30 +270,33 @@ class CloudFilePicker extends HookConsumerWidget {
                     margin: EdgeInsets.zero,
                     child: Column(
                       children: [
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                        if (allowedTypes.contains(UniversalFileType.image))
+                          ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            leading: const Icon(Symbols.photo),
+                            title: Text('addPhoto'.tr()),
+                            onTap: () => pickImage(),
                           ),
-                          leading: const Icon(Symbols.photo),
-                          title: Text('addPhoto'.tr()),
-                          onTap: () => pickImage(),
-                        ),
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                        if (allowedTypes.contains(UniversalFileType.video))
+                          ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            leading: const Icon(Symbols.video_call),
+                            title: Text('addVideo'.tr()),
+                            onTap: () => pickVideo(),
                           ),
-                          leading: const Icon(Symbols.video_call),
-                          title: Text('addVideo'.tr()),
-                          onTap: () => pickVideo(),
-                        ),
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                        if (allowedTypes.contains(UniversalFileType.file))
+                          ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            leading: const Icon(Symbols.draft),
+                            title: Text('addFile'.tr()),
+                            onTap: () => pickFile(),
                           ),
-                          leading: const Icon(Symbols.draft),
-                          title: Text('addFile'.tr()),
-                          onTap: () => pickFile(),
-                        ),
                       ],
                     ),
                   ),
