@@ -14,7 +14,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 
-part 'picker.g.dart';
+part 'sticker_picker.g.dart';
 
 /// Fetch user-added sticker packs (with stickers) from API:
 /// GET /sphere/stickers/me
@@ -34,7 +34,7 @@ Future<List<SnStickerPack>> myStickerPacks(Ref ref) async {
 /// Sticker Picker popover dialog
 /// - Displays user-owned sticker packs as tabs (chips)
 /// - Shows grid of stickers in selected pack
-/// - On tap, returns placeholder string :{prefix}{slug}: via onPick callback
+/// - On tap, returns placeholder string :{prefix}+{slug}: via onPick callback
 class StickerPicker extends HookConsumerWidget {
   final void Function(String placeholder) onPick;
 
@@ -63,7 +63,7 @@ class StickerPicker extends HookConsumerWidget {
             return _PackSwitcher(
               packs: packs,
               onPick: (pack, sticker) {
-                final placeholder = ':${pack.prefix}${sticker.slug}:';
+                final placeholder = ':${pack.prefix}+${sticker.slug}:';
                 HapticFeedback.selectionClick();
                 onPick(placeholder);
                 if (Navigator.of(context).canPop()) {

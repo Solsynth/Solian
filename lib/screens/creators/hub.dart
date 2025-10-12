@@ -1204,19 +1204,22 @@ class _PublisherHeatmapWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Find min and max dates
-    final dates = heatmap.items.map((e) => e.date).toList();
-    if (dates.isEmpty) return const SizedBox.shrink();
+    // Generate exactly 365 days ending at current date
+    final now = DateTime.now();
 
-    final minDate = dates.reduce((a, b) => a.isBefore(b) ? a : b);
-    final maxDate = dates.reduce((a, b) => a.isAfter(b) ? a : b);
+    // Start from exactly 365 days ago
+    final startDate = now.subtract(const Duration(days: 365));
+    // End at current date
+    final endDate = now;
 
-    // Find monday of the week containing minDate
-    final startMonday = minDate.subtract(Duration(days: minDate.weekday - 1));
-    // Find sunday of the week containing maxDate
-    final endSunday = maxDate.add(Duration(days: 7 - maxDate.weekday));
+    // Find monday of the week containing start date
+    final startMonday = startDate.subtract(
+      Duration(days: startDate.weekday - 1),
+    );
+    // Find sunday of the week containing end date
+    final endSunday = endDate.add(Duration(days: 7 - endDate.weekday));
 
-    // Generate all weeks
+    // Generate weeks to cover exactly 365 days
     final weeks = <DateTime>[];
     var current = startMonday;
     while (current.isBefore(endSunday) || current.isAtSameMomentAs(endSunday)) {
@@ -1224,45 +1227,98 @@ class _PublisherHeatmapWidget extends StatelessWidget {
       current = current.add(const Duration(days: 7));
     }
 
-    // Columns: Mon to Sun
-    const columns = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    // Create data map
-    final dataMap = <String, Map<String, double>>{};
+    // Create data map for all dates in the range
+    final dataMap = <DateTime, double>{};
     for (final week in weeks) {
-      final weekKey =
-          '${week.year}-${week.month.toString().padLeft(2, '0')}-${week.day.toString().padLeft(2, '0')}';
-      dataMap[weekKey] = {};
       for (var i = 0; i < 7; i++) {
         final date = week.add(Duration(days: i));
-        final item = heatmap.items.firstWhere(
-          (e) =>
-              e.date.year == date.year &&
-              e.date.month == date.month &&
-              e.date.day == date.day,
-          orElse: () => SnPublisherHeatmapItem(date: date, count: 0),
+        // Only include dates within our 365-day range
+        if (date.isAfter(startDate.subtract(const Duration(days: 1))) &&
+            date.isBefore(endDate.add(const Duration(days: 1)))) {
+          final item = heatmap.items.firstWhere(
+            (e) =>
+                e.date.year == date.year &&
+                e.date.month == date.month &&
+                e.date.day == date.day,
+            orElse: () => SnPublisherHeatmapItem(date: date, count: 0),
+          );
+          dataMap[date] = item.count.toDouble();
+        }
+      }
+    }
+
+    // Generate month labels for the top
+    final monthLabels = <String>[];
+    final monthPositions = <int>[];
+    final processedMonths =
+        <String>{}; // Track processed months to avoid duplicates
+
+    for (final week in weeks) {
+      final monthKey = '${week.year}-${week.month.toString().padLeft(2, '0')}';
+
+      // Only process each month once
+      if (!processedMonths.contains(monthKey)) {
+        processedMonths.add(monthKey);
+
+        // Find which week this month starts in
+        final firstDayOfMonth = DateTime(week.year, week.month, 1);
+        final monthStartMonday = firstDayOfMonth.subtract(
+          Duration(days: firstDayOfMonth.weekday - 1),
         );
-        dataMap[weekKey]![columns[i]] = item.count.toDouble();
+
+        final monthStartWeekIndex = weeks.indexWhere(
+          (w) =>
+              w.year == monthStartMonday.year &&
+              w.month == monthStartMonday.month &&
+              w.day == monthStartMonday.day,
+        );
+
+        if (monthStartWeekIndex != -1) {
+          monthLabels.add(_getMonthAbbreviation(week.month));
+          monthPositions.add(monthStartWeekIndex);
+        }
       }
     }
 
     final heatmapData = HeatmapData(
-      rows:
+      rows: [
+        'Mon',
+        'Tue',
+        'Wed',
+        'Thu',
+        'Fri',
+        'Sat',
+        'Sun',
+      ], // Days of week vertically
+      columns:
           weeks
               .map(
                 (w) =>
                     '${w.year}-${w.month.toString().padLeft(2, '0')}-${w.day.toString().padLeft(2, '0')}',
               )
-              .toList(),
-      columns: columns,
+              .toList(), // Weeks horizontally
       items: [
-        for (final row in dataMap.entries)
-          for (final col in row.value.entries)
+        for (int day = 0; day < 7; day++) // For each day of week (Mon-Sun)
+          for (final week in weeks) // For each week
             HeatmapItem(
-              value: col.value,
+              value: dataMap[week.add(Duration(days: day))] ?? 0.0,
               unit: heatmap.unit,
-              xAxisLabel: col.key,
-              yAxisLabel: row.key,
+              xAxisLabel:
+                  '${week.year}-${week.month.toString().padLeft(2, '0')}-${week.day.toString().padLeft(2, '0')}',
+              yAxisLabel:
+                  day == 0
+                      ? 'Mon'
+                      : day == 1
+                      ? 'Tue'
+                      : day == 2
+                      ? 'Wed'
+                      : day == 3
+                      ? 'Thu'
+                      : day == 4
+                      ? 'Fri'
+                      : day == 5
+                      ? 'Sat'
+                      : 'Sun',
             ),
       ],
     );
@@ -1275,19 +1331,97 @@ class _PublisherHeatmapWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Activity Heatmap',
+              'activityHeatmap',
               style: Theme.of(context).textTheme.titleMedium,
+            ).tr(),
+            const Gap(8),
+            // Month labels row
+            Row(
+              children: [
+                const SizedBox(width: 30), // Space for day labels
+                ...monthLabels.asMap().entries.map((entry) {
+                  final monthIndex = entry.key;
+                  final month = entry.value;
+
+                  return Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        month,
+                        style: Theme.of(context).textTheme.bodySmall,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+            const Gap(4),
+            Heatmap(
+              heatmapData: heatmapData,
+              rowsVisible: 7,
+              showXAxisLabels: false,
             ),
             const Gap(8),
-            Heatmap(
-              showXAxisLabels: false,
-              showYAxisLabels: false,
-              heatmapData: heatmapData,
-              rowsVisible: 5,
+            // Legend
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  'Less',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const Gap(4),
+                // Color indicators (light to dark green)
+                ...[
+                  Colors.green.withOpacity(0.2),
+                  Colors.green.withOpacity(0.4),
+                  Colors.green.withOpacity(0.6),
+                  Colors.green.withOpacity(0.8),
+                  Colors.green,
+                ].map(
+                  (color) => Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 1),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const Gap(4),
+                Text(
+                  'More',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _getMonthAbbreviation(int month) {
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return monthNames[month - 1];
   }
 }

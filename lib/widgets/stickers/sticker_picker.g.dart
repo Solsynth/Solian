@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'picker.dart';
+part of 'sticker_picker.dart';
 
 // **************************************************************************
 // RiverpodGenerator

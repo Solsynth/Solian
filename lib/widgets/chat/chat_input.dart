@@ -24,7 +24,7 @@ import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:pasteboard/pasteboard.dart";
 import "package:styled_widget/styled_widget.dart";
 import "package:material_symbols_icons/symbols.dart";
-import "package:island/widgets/stickers/picker.dart";
+import "package:island/widgets/stickers/sticker_picker.dart";
 import "package:island/pods/chat/chat_subscribe.dart";
 
 class ChatInput extends HookConsumerWidget {
@@ -524,9 +524,6 @@ class ChatInput extends HookConsumerWidget {
                       hideOnEmpty: true,
                       hideOnLoading: true,
                       debounceDuration: const Duration(milliseconds: 500),
-                      loadingBuilder: (context) => const Text('Loading...'),
-                      errorBuilder: (context, error) => const Text('Error!'),
-                      emptyBuilder: (context) => const Text('No items found!'),
                     ),
                   ),
                   IconButton(

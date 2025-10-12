@@ -1220,5 +1220,6 @@
     "noStickersInPack": "This pack does not contains stickers",
     "noStickerPacks": "No Sticker Packs",
     "refresh": "Refresh",
-    "spoiler": "Spoiler"
+    "spoiler": "Spoiler",
+    "activityHeatmap": "Activity Heatmap"
 }

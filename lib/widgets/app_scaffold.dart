@@ -97,7 +97,7 @@ class WindowScaffold extends HookConsumerWidget {
           LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
         },
         child: Actions(
-          actions: <Type, Action<Intent>>{PopIntent: PopAction(context)},
+          actions: <Type, Action<Intent>>{PopIntent: PopAction(ref)},
           child: Material(
             color: Theme.of(context).colorScheme.surfaceContainer,
             child: Stack(
@@ -206,7 +206,7 @@ class WindowScaffold extends HookConsumerWidget {
         LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
       },
       child: Actions(
-        actions: <Type, Action<Intent>>{PopIntent: PopAction(context)},
+        actions: <Type, Action<Intent>>{PopIntent: PopAction(ref)},
         child: Stack(
           fit: StackFit.expand,
           children: [Positioned.fill(child: child), _WebSocketIndicator()],
@@ -351,14 +351,14 @@ class PopIntent extends Intent {
 }
 
 class PopAction extends Action<PopIntent> {
-  final BuildContext context;
+  final WidgetRef ref;
 
-  PopAction(this.context);
+  PopAction(this.ref);
 
   @override
   void invoke(PopIntent intent) {
-    if (context.canPop()) {
-      context.pop();
+    if (ref.watch(routerProvider).canPop()) {
+      ref.read(routerProvider).pop();
     }
   }
 }
