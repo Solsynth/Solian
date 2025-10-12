@@ -317,6 +317,7 @@ class EditAppScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         title: Text(isNew ? 'createCustomApp'.tr() : 'editCustomApp'.tr()),
       ),
