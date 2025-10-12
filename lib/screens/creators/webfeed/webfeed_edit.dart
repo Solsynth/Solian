@@ -6,25 +6,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/webfeed.dart';
 import 'package:island/pods/webfeed.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-class WebFeedNewScreen extends StatelessWidget {
-  final String pubName;
-  const WebFeedNewScreen({super.key, required this.pubName});
-
-  @override
-  Widget build(BuildContext context) {
-    return WebFeedEditScreen(pubName: pubName, feedId: null);
-  }
-}
-
-class WebFeedEditScreen extends HookConsumerWidget {
+class WebfeedForm extends HookConsumerWidget {
   final String pubName;
   final String? feedId;
 
-  const WebFeedEditScreen({super.key, required this.pubName, this.feedId});
+  const WebfeedForm({super.key, required this.pubName, this.feedId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -113,16 +103,14 @@ class WebFeedEditScreen extends HookConsumerWidget {
     );
 
     return feedAsync.when(
-      loading:
-          () => const AppScaffold(
-            isNoBackground: false,
-            body: Center(child: CircularProgressIndicator()),
-          ),
+      loading: () => const Center(child: CircularProgressIndicator()),
       error:
-          (error, stack) => AppScaffold(
-            isNoBackground: false,
-            appBar: AppBar(title: const Text('Error')),
-            body: Center(child: Text('Error: $error')),
+          (error, _) => ResponseErrorWidget(
+            error: error,
+            onRetry:
+                () => ref.invalidate(
+                  webFeedNotifierProvider((pubName: pubName, feedId: feedId)),
+                ),
           ),
       data: (feed) {
         // Initialize form fields if they're empty and we have a feed
@@ -133,160 +121,142 @@ class WebFeedEditScreen extends HookConsumerWidget {
           isScrapEnabled.value = feed.config.scrapPage;
         }
 
-        return _buildForm(
-          context,
-          formKey: formKey,
-          titleController: titleController,
-          urlController: urlController,
-          descriptionController: descriptionController,
-          isScrapEnabled: isScrapEnabled.value,
-          onScrapEnabledChanged: (value) => isScrapEnabled.value = value,
-          onSave: saveFeed,
-          onDelete: deleteFeed,
-          isLoading: isLoading.value,
-          ref: ref,
-          hasFeedId: feedId != null,
-        );
-      },
-    );
-  }
+        final scrapNow = useCallback(() async {
+          isLoading.value = true;
+          try {
+            await ref
+                .read(
+                  webFeedNotifierProvider((
+                    pubName: pubName,
+                    feedId: feedId!,
+                  )).notifier,
+                )
+                .scrapFeed();
 
-  Widget _buildForm(
-    BuildContext context, {
-    required WidgetRef ref,
-    required GlobalKey<FormState> formKey,
-    required TextEditingController titleController,
-    required TextEditingController urlController,
-    required TextEditingController descriptionController,
-    required bool isScrapEnabled,
-    required ValueChanged<bool> onScrapEnabledChanged,
-    required VoidCallback onSave,
-    required VoidCallback onDelete,
-    required bool isLoading,
-    required bool hasFeedId,
-  }) {
-    final scrapNow = useCallback(() async {
-      showLoadingModal(context);
-      try {
-        await ref
-            .read(
-              webFeedNotifierProvider((
-                pubName: pubName,
-                feedId: feedId!,
-              )).notifier,
-            )
-            .scrapFeed();
+            if (context.mounted) {
+              showSnackBar('Feed scraping successfully.');
+            }
+          } catch (e) {
+            showErrorAlert(e);
+          } finally {
+            isLoading.value = false;
+          }
+        }, [pubName, feedId, ref, context, isLoading]);
 
-        if (context.mounted) {
-          showSnackBar('Feed scraping successfully.');
-        }
-      } catch (e) {
-        showErrorAlert(e);
-      } finally {
-        if (context.mounted) hideLoadingModal(context);
-      }
-    }, [pubName, feedId, ref, context]);
-
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: AppBar(
-        title: Text(hasFeedId ? 'Edit Web Feed' : 'New Web Feed'),
-        actions: [
-          if (hasFeedId)
-            IconButton(
-              icon: const Icon(Symbols.delete_forever),
-              onPressed: isLoading ? null : onDelete,
+        final formFields = Column(
+          children: [
+            TextFormField(
+              controller: titleController,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a title';
+                }
+                return null;
+              },
+              onTapOutside:
+                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
             ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Form(
-        key: formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextFormField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: urlController,
-                decoration: const InputDecoration(
-                  labelText: 'URL',
-                  hintText: 'https://example.com/feed',
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: urlController,
+              decoration: const InputDecoration(
+                labelText: 'URL',
+                hintText: 'https://example.com/feed',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
-                keyboardType: TextInputType.url,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a URL';
-                  }
-                  final uri = Uri.tryParse(value);
-                  if (uri == null || !uri.hasAbsolutePath) {
-                    return 'Please enter a valid URL';
-                  }
-                  return null;
-                },
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  alignLabelWithHint: true,
+              keyboardType: TextInputType.url,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a URL';
+                }
+                final uri = Uri.tryParse(value);
+                if (uri == null || !uri.hasAbsolutePath) {
+                  return 'Please enter a valid URL';
+                }
+                return null;
+              },
+              onTapOutside:
+                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                maxLines: 3,
               ),
-              const SizedBox(height: 24),
-              Card(
-                margin: EdgeInsets.zero,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SwitchListTile(
-                      title: const Text('Scrape web page for content'),
-                      subtitle: const Text(
-                        'When enabled, the system will attempt to extract full content from the web page',
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      value: isScrapEnabled,
-                      onChanged: onScrapEnabledChanged,
+              onTapOutside:
+                  (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 24),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SwitchListTile(
+                    title: const Text('Scrape web page for content'),
+                    subtitle: const Text(
+                      'When enabled, the system will attempt to extract full content from the web page',
                     ),
-                  ],
-                ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    value: isScrapEnabled.value,
+                    onChanged: (value) => isScrapEnabled.value = value,
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-              if (hasFeedId) ...[
-                FilledButton.tonalIcon(
-                  onPressed: isLoading ? null : scrapNow,
-                  icon: const Icon(Symbols.refresh),
-                  label: const Text('Scrape Now'),
-                ).alignment(Alignment.centerRight),
-                const SizedBox(height: 16),
-              ],
-              FilledButton.icon(
-                onPressed: isLoading ? null : onSave,
-                icon: const Icon(Symbols.save),
-                label: Text('saveChanges').tr(),
+            ),
+            const SizedBox(height: 20),
+            if (feedId != null) ...[
+              TextButton.icon(
+                onPressed: isLoading.value ? null : scrapNow,
+                icon: const Icon(Symbols.refresh),
+                label: const Text('Scrape Now'),
               ).alignment(Alignment.centerRight),
+              const SizedBox(height: 16),
             ],
-          ).padding(all: 20),
-        ),
-      ),
+          ],
+        ).padding(all: 20);
+
+        final formWidget = Form(
+          key: formKey,
+          child: SingleChildScrollView(child: formFields),
+        );
+
+        final buttonsRow = Row(
+          children: [
+            if (feedId != null)
+              TextButton.icon(
+                onPressed: isLoading.value ? null : deleteFeed,
+                icon: const Icon(Symbols.delete_forever),
+                label: const Text('Delete Web Feed'),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+              ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: isLoading.value ? null : saveFeed,
+              icon: const Icon(Symbols.save),
+              label: Text('saveChanges').tr(),
+            ),
+          ],
+        ).padding(horizontal: 20, vertical: 12);
+
+        return Column(children: [Expanded(child: formWidget), buttonsRow]);
+      },
     );
   }
 }

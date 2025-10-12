@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:island/pods/webfeed.dart';
+import 'package:island/screens/creators/webfeed/webfeed_edit.dart';
 import 'package:island/widgets/app_scaffold.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:island/widgets/empty_state.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class WebFeedListScreen extends ConsumerWidget {
   final String pubName;
@@ -22,9 +24,14 @@ class WebFeedListScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Symbols.add),
         onPressed: () {
-          context.pushNamed(
-            'creatorFeedNew',
-            pathParameters: {'name': pubName},
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder:
+                (context) => SheetScaffold(
+                  titleText: 'New Web Feed',
+                  child: WebfeedForm(pubName: pubName, feedId: null),
+                ),
           );
         },
       ),
@@ -44,36 +51,47 @@ class WebFeedListScreen extends ConsumerWidget {
               itemCount: feeds.length,
               itemBuilder: (context, index) {
                 final feed = feeds[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
+                return ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 640),
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    child: ListTile(
+                      leading: const Icon(Symbols.rss_feed, size: 32),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      title: Text(
+                        feed.title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        feed.url,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: const Icon(Symbols.chevron_right),
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder:
+                              (context) => SheetScaffold(
+                                titleText: 'Edit Web Feed',
+                                child: WebfeedForm(
+                                  pubName: pubName,
+                                  feedId: feed.id,
+                                ),
+                              ),
+                        );
+                      },
+                    ),
                   ),
-                  child: ListTile(
-                    leading: const Icon(Symbols.rss_feed, size: 32),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    title: Text(
-                      feed.title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      feed.url,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: const Icon(Symbols.chevron_right),
-                    onTap: () {
-                      context.pushNamed(
-                        'creatorFeedEdit',
-                        pathParameters: {'name': pubName, 'feedId': feed.id},
-                      );
-                    },
-                  ),
-                );
+                ).center();
               },
             ),
           );

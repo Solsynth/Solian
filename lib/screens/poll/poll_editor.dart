@@ -434,177 +434,198 @@ class PollEditorScreen extends ConsumerWidget {
       body: Column(
         children: [
           Expanded(
-            child: Form(
-              key: ValueKey(model.id),
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  TextFormField(
-                    initialValue: model.title ?? '',
-                    decoration: InputDecoration(
-                      labelText: 'title'.tr(),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(16)),
-                      ),
-                    ),
-                    textInputAction: TextInputAction.next,
-                    maxLength: 256,
-                    onChanged: notifier.setTitle,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return 'pollTitleRequired'.tr();
-                      }
-                      return null;
-                    },
-                  ),
-                  const Gap(12),
-                  TextFormField(
-                    initialValue: model.description ?? '',
-                    decoration: InputDecoration(
-                      labelText: 'description'.tr(),
-                      alignLabelWithHint: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(16)),
-                      ),
-                    ),
-                    maxLines: 3,
-                    maxLength: 4096,
-                    onChanged: notifier.setDescription,
-                    onTapOutside:
-                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                  ),
-                  const Gap(12),
-                  _EndDatePicker(
-                    value: model.endedAt,
-                    onChanged: notifier.setEndedAt,
-                  ),
-                  const Gap(24),
-                  Row(
-                    children: [
-                      Text(
-                        'questions'.tr(),
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const Spacer(),
-                      MenuAnchor(
-                        builder: (context, controller, child) {
-                          return FilledButton.icon(
-                            onPressed: () {
-                              controller.isOpen
-                                  ? controller.close()
-                                  : controller.open();
-                            },
-                            icon: const Icon(Icons.add),
-                            label: Text('pollAddQuestion'.tr()),
-                          );
-                        },
-                        menuChildren:
-                            SnPollQuestionType.values
-                                .map(
-                                  (t) => MenuItemButton(
-                                    leadingIcon: Icon(_iconForType(t)),
-                                    onPressed: () => notifier.addQuestion(t),
-                                    child: Text(_labelForType(t)),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                    ],
-                  ),
-                  const Gap(8),
-                  if (model.questions.isEmpty)
-                    _EmptyState(
-                      title: 'pollNoQuestionsYet'.tr(),
-                      subtitle: 'pollNoQuestionsHint'.tr(),
-                    )
-                  else
-                    ReorderableListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: model.questions.length,
-                      onReorder: (oldIndex, newIndex) {
-                        // Convert to stepwise moves using provided functions
-                        if (newIndex > oldIndex) newIndex -= 1;
-                        final steps = newIndex - oldIndex;
-                        if (steps == 0) return;
-                        if (steps > 0) {
-                          for (int i = 0; i < steps; i++) {
-                            notifier.moveQuestionDown(oldIndex + i);
-                          }
-                        } else {
-                          for (int i = 0; i > steps; i--) {
-                            notifier.moveQuestionUp(oldIndex + i);
-                          }
-                        }
-                      },
-                      buildDefaultDragHandles: false,
-                      itemBuilder: (context, index) {
-                        final q = model.questions[index];
-                        return Card(
-                          key: ValueKey('q_$index'),
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          clipBehavior: Clip.antiAlias,
-                          child: Column(
-                            children: [
-                              _QuestionHeader(
-                                index: index,
-                                question: q,
-                                onMoveUp:
-                                    index > 0
-                                        ? () => notifier.moveQuestionUp(index)
-                                        : null,
-                                onMoveDown:
-                                    index < model.questions.length - 1
-                                        ? () => notifier.moveQuestionDown(index)
-                                        : null,
-                                onDelete: () => notifier.removeQuestion(index),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 640),
+              child:
+                  Form(
+                    key: ValueKey(model.id),
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        TextFormField(
+                          initialValue: model.title ?? '',
+                          decoration: InputDecoration(
+                            labelText: 'postTitle'.tr(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(16),
                               ),
-                              const Divider(height: 1),
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: _QuestionEditor(
-                                  index: index,
-                                  question: q,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        );
-                      },
+                          textInputAction: TextInputAction.next,
+                          maxLength: 256,
+                          onChanged: notifier.setTitle,
+                          onTapOutside:
+                              (_) =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'pollTitleRequired'.tr();
+                            }
+                            return null;
+                          },
+                        ),
+                        const Gap(12),
+                        TextFormField(
+                          initialValue: model.description ?? '',
+                          decoration: InputDecoration(
+                            labelText: 'description'.tr(),
+                            alignLabelWithHint: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(16),
+                              ),
+                            ),
+                          ),
+                          maxLines: 3,
+                          maxLength: 4096,
+                          onChanged: notifier.setDescription,
+                          onTapOutside:
+                              (_) =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
+                        ),
+                        const Gap(12),
+                        _EndDatePicker(
+                          value: model.endedAt,
+                          onChanged: notifier.setEndedAt,
+                        ),
+                        const Gap(24),
+                        Row(
+                          children: [
+                            Text(
+                              'questions'.tr(),
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const Spacer(),
+                            MenuAnchor(
+                              builder: (context, controller, child) {
+                                return FilledButton.icon(
+                                  onPressed: () {
+                                    controller.isOpen
+                                        ? controller.close()
+                                        : controller.open();
+                                  },
+                                  icon: const Icon(Icons.add),
+                                  label: Text('pollAddQuestion'.tr()),
+                                );
+                              },
+                              menuChildren:
+                                  SnPollQuestionType.values
+                                      .map(
+                                        (t) => MenuItemButton(
+                                          leadingIcon: Icon(_iconForType(t)),
+                                          onPressed:
+                                              () => notifier.addQuestion(t),
+                                          child: Text(_labelForType(t)),
+                                        ),
+                                      )
+                                      .toList(),
+                            ),
+                          ],
+                        ),
+                        const Gap(8),
+                        if (model.questions.isEmpty)
+                          _EmptyState(
+                            title: 'pollNoQuestionsYet'.tr(),
+                            subtitle: 'pollNoQuestionsHint'.tr(),
+                          )
+                        else
+                          ReorderableListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: model.questions.length,
+                            onReorder: (oldIndex, newIndex) {
+                              // Convert to stepwise moves using provided functions
+                              if (newIndex > oldIndex) newIndex -= 1;
+                              final steps = newIndex - oldIndex;
+                              if (steps == 0) return;
+                              if (steps > 0) {
+                                for (int i = 0; i < steps; i++) {
+                                  notifier.moveQuestionDown(oldIndex + i);
+                                }
+                              } else {
+                                for (int i = 0; i > steps; i--) {
+                                  notifier.moveQuestionUp(oldIndex + i);
+                                }
+                              }
+                            },
+                            buildDefaultDragHandles: false,
+                            itemBuilder: (context, index) {
+                              final q = model.questions[index];
+                              return Card(
+                                key: ValueKey('q_$index'),
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                clipBehavior: Clip.antiAlias,
+                                child: Column(
+                                  children: [
+                                    _QuestionHeader(
+                                      index: index,
+                                      question: q,
+                                      onMoveUp:
+                                          index > 0
+                                              ? () =>
+                                                  notifier.moveQuestionUp(index)
+                                              : null,
+                                      onMoveDown:
+                                          index < model.questions.length - 1
+                                              ? () => notifier.moveQuestionDown(
+                                                index,
+                                              )
+                                              : null,
+                                      onDelete:
+                                          () => notifier.removeQuestion(index),
+                                    ),
+                                    const Divider(height: 1),
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: _QuestionEditor(
+                                        index: index,
+                                        question: q,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        const Gap(96),
+                      ],
                     ),
-                  const Gap(96),
-                ],
-              ),
+                  ).center(),
             ),
           ),
           Material(
             elevation: 2,
             color: Theme.of(context).colorScheme.surfaceContainer,
-            child: Row(
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).maybePop();
-                  },
-                  icon: const Icon(Icons.close),
-                  label: Text('cancel'.tr()),
-                ),
-                const Spacer(),
-                FilledButton.icon(
-                  onPressed: () {
-                    _submitPoll(context, ref);
-                  },
-                  icon: const Icon(Icons.cloud_upload_outlined),
-                  label: Text(model.id == null ? 'create'.tr() : 'update'.tr()),
-                ),
-              ],
-            ).padding(
-              horizontal: 24,
-              top: 16,
-              bottom: MediaQuery.of(context).padding.bottom + 16,
-            ),
+            child:
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 640),
+                  child: Row(
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).maybePop();
+                        },
+                        icon: const Icon(Icons.close),
+                        label: Text('cancel'.tr()),
+                      ),
+                      const Spacer(),
+                      FilledButton.icon(
+                        onPressed: () {
+                          _submitPoll(context, ref);
+                        },
+                        icon: const Icon(Icons.cloud_upload_outlined),
+                        label: Text(
+                          model.id == null ? 'create'.tr() : 'update'.tr(),
+                        ),
+                      ),
+                    ],
+                  ).padding(
+                    horizontal: 24,
+                    top: 16,
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                  ),
+                ).center(),
           ),
         ],
       ),

@@ -384,6 +384,21 @@ class CreatorHubScreen extends HookConsumerWidget {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           minTileHeight: 48,
+          title: const Text('webFeeds').tr(),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.rss_feed),
+          onTap: () {
+            context.push('/creators/${currentPublisher.value!.name}/feeds');
+          },
+        ),
+      ];
+
+      final rightItems = [
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
           title: Text('publisherMembers').tr(),
           trailing: const Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.group),
@@ -396,21 +411,6 @@ class CreatorHubScreen extends HookConsumerWidget {
                     publisherUname: currentPublisher.value!.name,
                   ),
             );
-          },
-        ),
-      ];
-
-      final rightItems = [
-        ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
-          title: const Text('webFeeds').tr(),
-          trailing: const Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.rss_feed),
-          onTap: () {
-            context.push('/creators/${currentPublisher.value!.name}/feeds');
           },
         ),
         ExpansionTile(
