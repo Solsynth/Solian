@@ -1250,5 +1250,6 @@
     "addColor": "Add Color",
     "preview": "Preview",
     "availableWithYourPlan": "Available with your plan",
-    "upgradeRequired": "Upgrade required"
+    "upgradeRequired": "Upgrade required",
+    "settingsDisableAnimation": "Disable Animation"
 }

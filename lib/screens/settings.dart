@@ -784,6 +784,22 @@ class SettingsScreen extends HookConsumerWidget {
           },
         ),
       ),
+
+      // Disable animation settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsDisableAnimation').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.animation),
+        trailing: Switch(
+          value: settings.disableAnimation,
+          onChanged: (value) {
+            ref
+                .read(appSettingsNotifierProvider.notifier)
+                .setDisableAnimation(value);
+          },
+        ),
+      ),
     ];
 
     // Desktop-specific settings

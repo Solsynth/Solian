@@ -14,6 +14,7 @@ import "package:island/pods/chat/chat_subscribe.dart";
 import "package:island/pods/chat/messages_notifier.dart";
 import "package:island/pods/network.dart";
 import "package:island/pods/chat/chat_online_count.dart";
+import "package:island/pods/config.dart";
 import "package:island/screens/chat/search_messages.dart";
 import "package:island/services/file_uploader.dart";
 import "package:island/screens/chat/chat.dart";
@@ -44,6 +45,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final chatIdentity = ref.watch(chatroomIdentityProvider(id));
     final isSyncing = ref.watch(isSyncingProvider);
     final onlineCount = ref.watch(chatOnlineCountNotifierProvider(id));
+    final settings = ref.watch(appSettingsNotifierProvider);
 
     final hasOnlineCount = onlineCount.hasValue;
 
@@ -562,77 +564,80 @@ class ChatRoomScreen extends HookConsumerWidget {
                 3;
 
         // Use a stable animation key that doesn't change during message lifecycle
-        final animationKey = ValueKey(
-          'message-anim-${message.nonce ?? message.id}',
+        final animationKey = Key('message-anim-${message.nonce ?? message.id}');
+
+        final messageWidget = chatIdentity.when(
+          skipError: true,
+          data:
+              (identity) => MessageItem(
+                key: Key('$messageKeyPrefix${message.nonce ?? message.id}'),
+                message: message,
+                isCurrentUser: identity?.id == message.senderId,
+                onAction: (action) {
+                  switch (action) {
+                    case MessageItemAction.delete:
+                      messagesNotifier.deleteMessage(message.id);
+                    case MessageItemAction.edit:
+                      messageEditingTo.value = message.toRemoteMessage();
+                      messageController.text =
+                          messageEditingTo.value?.content ?? '';
+                      attachments.value =
+                          messageEditingTo.value!.attachments
+                              .map((e) => UniversalFile.fromAttachment(e))
+                              .toList();
+                    case MessageItemAction.forward:
+                      messageForwardingTo.value = message.toRemoteMessage();
+                    case MessageItemAction.reply:
+                      messageReplyingTo.value = message.toRemoteMessage();
+                    case MessageItemAction.resend:
+                      messagesNotifier.retryMessage(message.id);
+                  }
+                },
+                onJump: (messageId) {
+                  scrollToMessage(
+                    messageId: messageId,
+                    messageList: messageList,
+                    messagesNotifier: messagesNotifier,
+                    listController: listController,
+                    scrollController: scrollController,
+                    ref: ref,
+                  );
+                },
+                progress: attachmentProgress.value[message.id],
+                showAvatar: isLastInGroup,
+              ),
+          loading:
+              () => MessageItem(
+                message: message,
+                isCurrentUser: false,
+                onAction: null,
+                progress: null,
+                showAvatar: false,
+                onJump: (_) {},
+              ),
+          error: (_, _) => const SizedBox.shrink(),
         );
 
-        return TweenAnimationBuilder<double>(
-          key: animationKey,
-          tween: Tween<double>(begin: 0.0, end: 1.0),
-          duration: Duration(
-            milliseconds: 400 + (index % 5) * 50,
-          ), // Staggered delay
-          curve: Curves.easeOutCubic,
-          builder: (context, animationValue, child) {
-            return Transform.translate(
-              offset: Offset(
-                0,
-                20 * (1 - animationValue),
-              ), // Slide up from bottom
-              child: Opacity(opacity: animationValue, child: child),
+        return settings.disableAnimation
+            ? messageWidget
+            : TweenAnimationBuilder<double>(
+              key: animationKey,
+              tween: Tween<double>(begin: 0.0, end: 1.0),
+              duration: Duration(
+                milliseconds: 400 + (index % 5) * 50,
+              ), // Staggered delay
+              curve: Curves.easeOutCubic,
+              builder: (context, animationValue, child) {
+                return Transform.translate(
+                  offset: Offset(
+                    0,
+                    20 * (1 - animationValue),
+                  ), // Slide up from bottom
+                  child: Opacity(opacity: animationValue, child: child),
+                );
+              },
+              child: messageWidget,
             );
-          },
-          child: chatIdentity.when(
-            skipError: true,
-            data:
-                (identity) => MessageItem(
-                  message: message,
-                  isCurrentUser: identity?.id == message.senderId,
-                  onAction: (action) {
-                    switch (action) {
-                      case MessageItemAction.delete:
-                        messagesNotifier.deleteMessage(message.id);
-                      case MessageItemAction.edit:
-                        messageEditingTo.value = message.toRemoteMessage();
-                        messageController.text =
-                            messageEditingTo.value?.content ?? '';
-                        attachments.value =
-                            messageEditingTo.value!.attachments
-                                .map((e) => UniversalFile.fromAttachment(e))
-                                .toList();
-                      case MessageItemAction.forward:
-                        messageForwardingTo.value = message.toRemoteMessage();
-                      case MessageItemAction.reply:
-                        messageReplyingTo.value = message.toRemoteMessage();
-                      case MessageItemAction.resend:
-                        messagesNotifier.retryMessage(message.id);
-                    }
-                  },
-                  onJump: (messageId) {
-                    scrollToMessage(
-                      messageId: messageId,
-                      messageList: messageList,
-                      messagesNotifier: messagesNotifier,
-                      listController: listController,
-                      scrollController: scrollController,
-                      ref: ref,
-                    );
-                  },
-                  progress: attachmentProgress.value[message.id],
-                  showAvatar: isLastInGroup,
-                ),
-            loading:
-                () => MessageItem(
-                  message: message,
-                  isCurrentUser: false,
-                  onAction: null,
-                  progress: null,
-                  showAvatar: false,
-                  onJump: (_) {},
-                ),
-            error: (_, _) => SizedBox.shrink(),
-          ),
-        );
       },
     );
 
