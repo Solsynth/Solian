@@ -545,7 +545,9 @@ class ChatRoomScreen extends HookConsumerWidget {
       findChildIndexCallback: (key) {
         if (key is! ValueKey<String>) return null;
         final messageId = key.value.substring(messageKeyPrefix.length);
-        final index = messageList.indexWhere((m) => m.id == messageId);
+        final index = messageList.indexWhere(
+          (m) => (m.nonce ?? m.id) == messageId,
+        );
         // Return null for invalid indices to let SuperListView handle it properly
         return index >= 0 ? index : null;
       },
@@ -564,13 +566,13 @@ class ChatRoomScreen extends HookConsumerWidget {
                 3;
 
         // Use a stable animation key that doesn't change during message lifecycle
-        final animationKey = Key('message-anim-${message.nonce ?? message.id}');
+        final key = Key('$messageKeyPrefix${message.nonce ?? message.id}');
 
         final messageWidget = chatIdentity.when(
           skipError: true,
           data:
               (identity) => MessageItem(
-                key: Key('$messageKeyPrefix${message.nonce ?? message.id}'),
+                key: settings.disableAnimation ? key : null,
                 message: message,
                 isCurrentUser: identity?.id == message.senderId,
                 onAction: (action) {
@@ -621,7 +623,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         return settings.disableAnimation
             ? messageWidget
             : TweenAnimationBuilder<double>(
-              key: animationKey,
+              key: key,
               tween: Tween<double>(begin: 0.0, end: 1.0),
               duration: Duration(
                 milliseconds: 400 + (index % 5) * 50,
