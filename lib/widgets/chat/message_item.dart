@@ -25,6 +25,7 @@ import 'package:island/widgets/content/embed/embed_list.dart';
 import 'package:island/widgets/post/post_shared.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:swipe_to/swipe_to.dart';
 import 'package:island/widgets/content/sheet.dart';
 
 class MessageItemAction {
@@ -159,57 +160,79 @@ class MessageItem extends HookConsumerWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        InkWell(
-          mouseCursor: MouseCursor.defer,
-          focusColor: Colors.transparent,
-          onLongPress: showActionMenu,
-          onSecondaryTap: showActionMenu,
-          onTap: () {
-            // Jump to related message
-            if (['messages.update', 'messages.delete'].contains(message.type) &&
-                message.meta['message_id'] is String &&
-                message.meta['message_id'] != null) {
-              onJump(message.meta['message_id']);
+        SwipeTo(
+          rightSwipeWidget: Transform.flip(
+            flipX: true,
+            child: Icon(Symbols.menu_open),
+          ).padding(left: 16),
+          leftSwipeWidget: Icon(
+            isCurrentUser ? Symbols.forward : Symbols.reply,
+          ).padding(right: 16),
+          onLeftSwipe: (details) {
+            if (onAction != null) {
+              if (isCurrentUser) {
+                onAction!(MessageItemAction.forward);
+              } else {
+                onAction!(MessageItemAction.reply);
+              }
             }
           },
-          child: SizedBox(
-            width: double.infinity,
-            child: MouseRegion(
-              onEnter: (_) => isHovered.value = true,
-              onExit: (_) => isHovered.value = false,
-              child: AnimatedContainer(
-                curve: Curves.easeInOut,
-                duration: const Duration(milliseconds: kFlashDuration),
-                decoration: BoxDecoration(color: flashColor),
-                child: switch (settings.messageDisplayStyle) {
-                  'compact' => MessageItemDisplayIRC(
-                    message: message,
-                    isCurrentUser: isCurrentUser,
-                    progress: progress,
-                    showAvatar: showAvatar,
-                    onJump: onJump,
-                    translatedText: translatedText.value,
-                    translating: translating.value,
-                  ),
-                  'column' => MessageItemDisplayDiscord(
-                    message: message,
-                    isCurrentUser: isCurrentUser,
-                    progress: progress,
-                    showAvatar: showAvatar,
-                    onJump: onJump,
-                    translatedText: translatedText.value,
-                    translating: translating.value,
-                  ),
-                  _ => MessageItemDisplayBubble(
-                    message: message,
-                    isCurrentUser: isCurrentUser,
-                    progress: progress,
-                    showAvatar: showAvatar,
-                    onJump: onJump,
-                    translatedText: translatedText.value,
-                    translating: translating.value,
-                  ),
-                },
+          onRightSwipe: (details) => showActionMenu(),
+          child: InkWell(
+            mouseCursor: MouseCursor.defer,
+            focusColor: Colors.transparent,
+            onLongPress: showActionMenu,
+            onSecondaryTap: showActionMenu,
+            onTap: () {
+              // Jump to related message
+              if ([
+                    'messages.update',
+                    'messages.delete',
+                  ].contains(message.type) &&
+                  message.meta['message_id'] is String &&
+                  message.meta['message_id'] != null) {
+                onJump(message.meta['message_id']);
+              }
+            },
+            child: SizedBox(
+              width: double.infinity,
+              child: MouseRegion(
+                onEnter: (_) => isHovered.value = true,
+                onExit: (_) => isHovered.value = false,
+                child: AnimatedContainer(
+                  curve: Curves.easeInOut,
+                  duration: const Duration(milliseconds: kFlashDuration),
+                  decoration: BoxDecoration(color: flashColor),
+                  child: switch (settings.messageDisplayStyle) {
+                    'compact' => MessageItemDisplayIRC(
+                      message: message,
+                      isCurrentUser: isCurrentUser,
+                      progress: progress,
+                      showAvatar: showAvatar,
+                      onJump: onJump,
+                      translatedText: translatedText.value,
+                      translating: translating.value,
+                    ),
+                    'column' => MessageItemDisplayDiscord(
+                      message: message,
+                      isCurrentUser: isCurrentUser,
+                      progress: progress,
+                      showAvatar: showAvatar,
+                      onJump: onJump,
+                      translatedText: translatedText.value,
+                      translating: translating.value,
+                    ),
+                    _ => MessageItemDisplayBubble(
+                      message: message,
+                      isCurrentUser: isCurrentUser,
+                      progress: progress,
+                      showAvatar: showAvatar,
+                      onJump: onJump,
+                      translatedText: translatedText.value,
+                      translating: translating.value,
+                    ),
+                  },
+                ),
               ),
             ),
           ),
@@ -314,44 +337,47 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Header
-                    Row(
-                      children: [
-                        Icon(
-                          Symbols.article,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const Gap(6),
-                        Text(
-                          'messageContent'.tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                    SizedBox(
+                      height: 24,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Symbols.article,
+                            size: 16,
                             color: Theme.of(context).colorScheme.primary,
                           ),
-                        ),
-                        const Spacer(),
-                        if (_shouldShowExpandButton)
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            icon: Icon(
-                              _isExpanded
-                                  ? Symbols.expand_less
-                                  : Symbols.expand_more,
-                              size: 16,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isExpanded = !_isExpanded;
-                              });
-                            },
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 24,
-                              minHeight: 24,
+                          const Gap(6),
+                          Text(
+                            'messageContent'.tr(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                      ],
+                          const Spacer(),
+                          if (_shouldShowExpandButton)
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: Icon(
+                                _isExpanded
+                                    ? Symbols.expand_less
+                                    : Symbols.expand_more,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isExpanded = !_isExpanded;
+                                });
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 24,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                     const Gap(8),
                     // Selectable content
@@ -403,7 +429,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                   Navigator.pop(context);
                 },
               ),
-            if (widget.isCurrentUser) const Divider(height: 8),
+            if (widget.isCurrentUser) const Divider(),
 
             _ActionListTile(
               leading: Icon(Symbols.reply),
@@ -422,7 +448,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
               },
             ),
 
-            if (widget.translatableLanguage) const Divider(height: 8),
+            if (widget.translatableLanguage) const Divider(),
             if (widget.translatableLanguage)
               _ActionListTile(
                 leading: Icon(Symbols.translate),
@@ -439,7 +465,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                 },
               ),
 
-            if (widget.isMobile) const Divider(height: 8),
+            if (widget.isMobile) const Divider(),
             if (widget.isMobile)
               _ActionListTile(
                 leading: Icon(Symbols.copy_all),
