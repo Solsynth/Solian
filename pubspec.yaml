@@ -162,6 +162,7 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^31.1.21
   swipe_to: ^1.0.6
   fl_heatmap: ^0.4.5
+  dio_smart_retry: ^7.0.1
 
 dev_dependencies:
   flutter_test:
