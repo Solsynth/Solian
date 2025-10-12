@@ -517,6 +517,25 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                     ],
                   ).padding(left: 16, right: 8),
                 ),
+                // Include current realm if it's not null and not in joined realms
+                if (currentRealm != null &&
+                    !(userRealms.value ?? []).any(
+                      (r) => r.id == currentRealm.id,
+                    ))
+                  DropdownMenuItem<SnRealm?>(
+                    value: currentRealm,
+                    child: Row(
+                      children: [
+                        ProfilePictureWidget(
+                          fileId: currentRealm.picture?.id,
+                          fallbackIcon: Symbols.workspaces,
+                          radius: 16,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(currentRealm.name),
+                      ],
+                    ).padding(left: 16, right: 8),
+                  ),
                 if (userRealms.hasValue)
                   ...(userRealms.value ?? []).map(
                     (realm) => DropdownMenuItem<SnRealm?>(
