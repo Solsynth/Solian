@@ -254,7 +254,7 @@ class AppScaffold extends HookConsumerWidget {
   final FloatingActionButtonAnimator? floatingActionButtonAnimator;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Widget? floatingActionButton;
-  final AppBar? appBar;
+  final PreferredSizeWidget? appBar;
   final DrawerCallback? onDrawerChanged;
   final DrawerCallback? onEndDrawerChanged;
   final bool? isNoBackground;
