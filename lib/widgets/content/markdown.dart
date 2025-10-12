@@ -15,6 +15,7 @@ import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown_latex.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:markdown_widget/markdown_widget.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -61,6 +62,17 @@ class MarkdownTextContent extends HookConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final config =
         isDark ? MarkdownConfig.darkConfig : MarkdownConfig.defaultConfig;
+
+    final onMentionTap = useCallback((String type, String id) {
+      final fullPath = '/$type/$id';
+      context.push(fullPath);
+    }, [context]);
+
+    final mentionGenerator = MentionChipGenerator(
+      backgroundColor: Theme.of(context).colorScheme.secondary,
+      foregroundColor: Theme.of(context).colorScheme.onSecondary,
+      onTap: onMentionTap,
+    );
 
     return MarkdownBlock(
       data: content,
@@ -202,6 +214,7 @@ class MarkdownTextContent extends HookConsumerWidget {
       generator: MarkdownTextContent.buildGenerator(
         isDark: isDark,
         linesMargin: linesMargin,
+        generators: [mentionGenerator],
       ),
     );
   }
@@ -209,9 +222,10 @@ class MarkdownTextContent extends HookConsumerWidget {
   static MarkdownGenerator buildGenerator({
     bool isDark = false,
     EdgeInsets? linesMargin,
+    List<SpanNodeGeneratorWithTag> generators = const [],
   }) {
     return MarkdownGenerator(
-      generators: [latexGenerator],
+      generators: [latexGenerator, ...generators],
       inlineSyntaxList: [
         _MetionInlineSyntax(),
         _StickerInlineSyntax(),
@@ -237,9 +251,12 @@ class _MetionInlineSyntax extends markdown.InlineSyntax {
       "c" => 'chat',
       _ => '',
     };
-    final anchor = markdown.Element.text('a', alias)
-      ..attributes['href'] = Uri.encodeFull('solian://$type/${parts.last}');
-    parser.addNode(anchor);
+    final element =
+        markdown.Element('mention-chip', [markdown.Text(alias)])
+          ..attributes['alias'] = alias
+          ..attributes['type'] = type
+          ..attributes['id'] = parts.last;
+    parser.addNode(element);
 
     return true;
   }
@@ -256,5 +273,124 @@ class _StickerInlineSyntax extends markdown.InlineSyntax {
     parser.addNode(image);
 
     return true;
+  }
+}
+
+class MentionSpanNodeGenerator {
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final void Function(String type, String id) onTap;
+
+  MentionSpanNodeGenerator({
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.onTap,
+  });
+
+  SpanNode? call(
+    String tag,
+    Map<String, String> attributes,
+    List<SpanNode> children,
+  ) {
+    if (tag == 'mention-chip') {
+      return MentionChipSpanNode(
+        attributes: attributes,
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        onTap: onTap,
+      );
+    }
+    return null;
+  }
+}
+
+class MentionChipGenerator extends SpanNodeGeneratorWithTag {
+  MentionChipGenerator({
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required void Function(String type, String id) onTap,
+  }) : super(
+         tag: 'mention-chip',
+         generator: (
+           markdown.Element element,
+           MarkdownConfig config,
+           WidgetVisitor visitor,
+         ) {
+           return MentionChipSpanNode(
+             attributes: element.attributes,
+             backgroundColor: backgroundColor,
+             foregroundColor: foregroundColor,
+             onTap: onTap,
+           );
+         },
+       );
+}
+
+class MentionChipSpanNode extends SpanNode {
+  final Map<String, String> attributes;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final void Function(String type, String id) onTap;
+
+  MentionChipSpanNode({
+    required this.attributes,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.onTap,
+  });
+
+  @override
+  InlineSpan build() {
+    final alias = attributes['alias'] ?? '';
+    final type = attributes['type'] ?? '';
+    final id = attributes['id'] ?? '';
+
+    final parts = alias.substring(1).split('/');
+
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: InkWell(
+        onTap: () => onTap(type, id),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: backgroundColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(32),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: backgroundColor.withOpacity(0.5),
+                  borderRadius: const BorderRadius.all(Radius.circular(32)),
+                ),
+                child: Icon(
+                  switch (parts.first.isEmpty ? 'u' : parts.first) {
+                    'c' => Symbols.forum_rounded,
+                    'r' => Symbols.group_rounded,
+                    'u' => Symbols.person_rounded,
+                    'p' => Symbols.edit_rounded,
+                    _ => Symbols.person_rounded,
+                  },
+                  size: 14,
+                  color: foregroundColor,
+                  fill: 1,
+                ).padding(all: 2),
+              ),
+              Text(
+                parts.last,
+                style: TextStyle(
+                  color: backgroundColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
