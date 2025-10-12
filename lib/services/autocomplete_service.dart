@@ -25,4 +25,16 @@ class AutocompleteService {
     final data = response.data as List<dynamic>;
     return data.map((json) => AutocompleteSuggestion.fromJson(json)).toList();
   }
+
+  Future<List<AutocompleteSuggestion>> getGeneralSuggestions(
+    String content,
+  ) async {
+    final response = await _client.post(
+      '/sphere/autocomplete',
+      data: {'content': content},
+    );
+
+    final data = response.data as List<dynamic>;
+    return data.map((json) => AutocompleteSuggestion.fromJson(json)).toList();
+  }
 }

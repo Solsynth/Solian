@@ -11,6 +11,9 @@ import "package:island/models/account.dart";
 import "package:island/models/autocomplete_response.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
+import "package:island/models/publisher.dart";
+import "package:island/models/realm.dart";
+import "package:island/models/sticker.dart";
 import "package:island/pods/config.dart";
 import "package:island/services/autocomplete_service.dart";
 import "package:island/services/responsive.dart";
@@ -448,12 +451,46 @@ class ChatInput extends HookConsumerWidget {
                             );
                             break;
                           case 'chatroom':
+                            final chatRoom = SnChatRoom.fromJson(
+                              suggestion.data,
+                            );
+                            title = chatRoom.name ?? 'Chat Room';
+                            leading = ProfilePictureWidget(
+                              file: chatRoom.picture,
+                              radius: 18,
+                            );
                             break;
                           case 'realm':
+                            final realm = SnRealm.fromJson(suggestion.data);
+                            title = realm.name;
+                            leading = ProfilePictureWidget(
+                              file: realm.picture,
+                              radius: 18,
+                            );
                             break;
                           case 'publisher':
+                            final publisher = SnPublisher.fromJson(
+                              suggestion.data,
+                            );
+                            title = publisher.name;
+                            leading = ProfilePictureWidget(
+                              file: publisher.picture,
+                              radius: 18,
+                            );
                             break;
                           case 'sticker':
+                            final sticker = SnSticker.fromJson(suggestion.data);
+                            title = sticker.slug;
+                            leading = ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: CloudImageWidget(
+                                  fileId: sticker.imageId,
+                                ),
+                              ),
+                            );
                             break;
                           default:
                         }

@@ -1,11 +1,20 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/models/account.dart';
+import 'package:island/models/autocomplete_response.dart';
+import 'package:island/models/chat.dart';
+import 'package:island/models/publisher.dart';
+import 'package:island/models/realm.dart';
+import 'package:island/models/sticker.dart';
+import 'package:island/services/autocomplete_service.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/post/compose_shared.dart';
 
 /// A reusable widget for the form fields in compose screens.
 /// Includes title, description, and content text fields.
-class ComposeFormFields extends StatelessWidget {
+class ComposeFormFields extends HookConsumerWidget {
   final ComposeState state;
   final bool enabled;
   final bool showPublisherAvatar;
@@ -20,7 +29,7 @@ class ComposeFormFields extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Row(
@@ -111,22 +120,125 @@ class ComposeFormFields extends StatelessWidget {
               ),
 
               // Content field
-              TextField(
+              TypeAheadField<AutocompleteSuggestion>(
                 controller: state.contentController,
-                enabled: enabled && state.currentPublisher.value != null,
-                style: theme.textTheme.bodyMedium,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'postContent'.tr(),
-                  isCollapsed: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 8,
-                    horizontal: 8,
-                  ),
-                ),
-                maxLines: null,
-                onTapOutside:
-                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                builder: (context, controller, focusNode) {
+                  return TextField(
+                    focusNode: focusNode,
+                    controller: controller,
+                    enabled: enabled && state.currentPublisher.value != null,
+                    style: theme.textTheme.bodyMedium,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'postContent'.tr(),
+                      isCollapsed: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 8,
+                      ),
+                    ),
+                    maxLines: null,
+                    onTapOutside:
+                        (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  );
+                },
+                suggestionsCallback: (pattern) async {
+                  // Only trigger on @ or :
+                  final atIndex = pattern.lastIndexOf('@');
+                  final colonIndex = pattern.lastIndexOf(':');
+                  final triggerIndex =
+                      atIndex > colonIndex ? atIndex : colonIndex;
+                  if (triggerIndex == -1) return [];
+                  final service = ref.read(autocompleteServiceProvider);
+                  try {
+                    return await service.getGeneralSuggestions(pattern);
+                  } catch (e) {
+                    return [];
+                  }
+                },
+                itemBuilder: (context, suggestion) {
+                  String title = 'unknown'.tr();
+                  Widget leading = Icon(Icons.help);
+                  switch (suggestion.type) {
+                    case 'user':
+                      final user = SnAccount.fromJson(suggestion.data);
+                      title = user.nick;
+                      leading = ProfilePictureWidget(
+                        file: user.profile.picture,
+                        radius: 18,
+                      );
+                      break;
+                    case 'chatroom':
+                      final chatRoom = SnChatRoom.fromJson(suggestion.data);
+                      title = chatRoom.name ?? 'Chat Room';
+                      leading = ProfilePictureWidget(
+                        file: chatRoom.picture,
+                        radius: 18,
+                      );
+                      break;
+                    case 'realm':
+                      final realm = SnRealm.fromJson(suggestion.data);
+                      title = realm.name;
+                      leading = ProfilePictureWidget(
+                        file: realm.picture,
+                        radius: 18,
+                      );
+                      break;
+                    case 'publisher':
+                      final publisher = SnPublisher.fromJson(suggestion.data);
+                      title = publisher.name;
+                      leading = ProfilePictureWidget(
+                        file: publisher.picture,
+                        radius: 18,
+                      );
+                      break;
+                    case 'sticker':
+                      final sticker = SnSticker.fromJson(suggestion.data);
+                      title = sticker.slug;
+                      leading = ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CloudImageWidget(fileId: sticker.imageId),
+                        ),
+                      );
+                      break;
+                    default:
+                  }
+                  return ListTile(
+                    leading: leading,
+                    title: Text(title),
+                    subtitle: Text(suggestion.keyword),
+                    dense: true,
+                  );
+                },
+                onSelected: (suggestion) {
+                  final text = state.contentController.text;
+                  final atIndex = text.lastIndexOf('@');
+                  final colonIndex = text.lastIndexOf(':');
+                  final triggerIndex =
+                      atIndex > colonIndex ? atIndex : colonIndex;
+                  if (triggerIndex == -1) return;
+                  final newText = text.replaceRange(
+                    triggerIndex,
+                    text.length,
+                    suggestion.keyword,
+                  );
+                  state.contentController.value = TextEditingValue(
+                    text: newText,
+                    selection: TextSelection.collapsed(
+                      offset: triggerIndex + suggestion.keyword.length,
+                    ),
+                  );
+                },
+                direction: VerticalDirection.down,
+                hideOnEmpty: true,
+                hideOnLoading: true,
+                debounceDuration: const Duration(milliseconds: 500),
+                loadingBuilder: (context) => const Text('Loading...'),
+                errorBuilder: (context, error) => const Text('Error!'),
+                emptyBuilder: (context) => const Text('No items found!'),
               ),
             ],
           ),
