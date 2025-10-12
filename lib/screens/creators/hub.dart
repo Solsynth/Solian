@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:fl_heatmap/fl_heatmap.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -8,6 +9,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/models/publisher.dart';
+import 'package:island/models/heatmap.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/services/responsive.dart';
@@ -31,6 +33,14 @@ Future<SnPublisherStats?> publisherStats(Ref ref, String? uname) async {
   final apiClient = ref.watch(apiClientProvider);
   final resp = await apiClient.get('/sphere/publishers/$uname/stats');
   return SnPublisherStats.fromJson(resp.data);
+}
+
+@riverpod
+Future<SnPublisherHeatmap?> publisherHeatmap(Ref ref, String? uname) async {
+  if (uname == null) return null;
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get('/sphere/publishers/$uname/heatmap');
+  return SnPublisherHeatmap.fromJson(resp.data);
 }
 
 @riverpod
@@ -329,6 +339,10 @@ class CreatorHubScreen extends HookConsumerWidget {
       publisherStatsProvider(currentPublisher.value?.name),
     );
 
+    final publisherHeatmap = ref.watch(
+      publisherHeatmapProvider(currentPublisher.value?.name),
+    );
+
     final publisherFeatures = ref.watch(
       publisherFeaturesProvider(currentPublisher.value?.name),
     );
@@ -557,6 +571,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                                   if (stats != null)
                                     _PublisherStatsWidget(
                                       stats: stats,
+                                      heatmap: publisherHeatmap.value,
                                     ).padding(horizontal: 12),
                                   buildNavigationWidget(true),
                                 ],
@@ -567,6 +582,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                                   if (stats != null)
                                     _PublisherStatsWidget(
                                       stats: stats,
+                                      heatmap: publisherHeatmap.value,
                                     ).padding(horizontal: 16),
                                   buildNavigationWidget(false),
                                 ],
@@ -585,7 +601,8 @@ class CreatorHubScreen extends HookConsumerWidget {
 
 class _PublisherStatsWidget extends StatelessWidget {
   final SnPublisherStats stats;
-  const _PublisherStatsWidget({required this.stats});
+  final SnPublisherHeatmap? heatmap;
+  const _PublisherStatsWidget({required this.stats, this.heatmap});
 
   @override
   Widget build(BuildContext context) {
@@ -638,6 +655,7 @@ class _PublisherStatsWidget extends StatelessWidget {
               ),
             ],
           ),
+          if (heatmap != null) _PublisherHeatmapWidget(heatmap: heatmap!),
         ],
       ),
     );
@@ -1175,6 +1193,100 @@ class _PublisherInviteSheet extends HookConsumerWidget {
               error: error,
               onRetry: () => ref.invalidate(publisherInvitesProvider),
             ),
+      ),
+    );
+  }
+}
+
+class _PublisherHeatmapWidget extends StatelessWidget {
+  final SnPublisherHeatmap heatmap;
+  const _PublisherHeatmapWidget({required this.heatmap});
+
+  @override
+  Widget build(BuildContext context) {
+    // Find min and max dates
+    final dates = heatmap.items.map((e) => e.date).toList();
+    if (dates.isEmpty) return const SizedBox.shrink();
+
+    final minDate = dates.reduce((a, b) => a.isBefore(b) ? a : b);
+    final maxDate = dates.reduce((a, b) => a.isAfter(b) ? a : b);
+
+    // Find monday of the week containing minDate
+    final startMonday = minDate.subtract(Duration(days: minDate.weekday - 1));
+    // Find sunday of the week containing maxDate
+    final endSunday = maxDate.add(Duration(days: 7 - maxDate.weekday));
+
+    // Generate all weeks
+    final weeks = <DateTime>[];
+    var current = startMonday;
+    while (current.isBefore(endSunday) || current.isAtSameMomentAs(endSunday)) {
+      weeks.add(current);
+      current = current.add(const Duration(days: 7));
+    }
+
+    // Columns: Mon to Sun
+    const columns = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    // Create data map
+    final dataMap = <String, Map<String, double>>{};
+    for (final week in weeks) {
+      final weekKey =
+          '${week.year}-${week.month.toString().padLeft(2, '0')}-${week.day.toString().padLeft(2, '0')}';
+      dataMap[weekKey] = {};
+      for (var i = 0; i < 7; i++) {
+        final date = week.add(Duration(days: i));
+        final item = heatmap.items.firstWhere(
+          (e) =>
+              e.date.year == date.year &&
+              e.date.month == date.month &&
+              e.date.day == date.day,
+          orElse: () => SnPublisherHeatmapItem(date: date, count: 0),
+        );
+        dataMap[weekKey]![columns[i]] = item.count.toDouble();
+      }
+    }
+
+    final heatmapData = HeatmapData(
+      rows:
+          weeks
+              .map(
+                (w) =>
+                    '${w.year}-${w.month.toString().padLeft(2, '0')}-${w.day.toString().padLeft(2, '0')}',
+              )
+              .toList(),
+      columns: columns,
+      items: [
+        for (final row in dataMap.entries)
+          for (final col in row.value.entries)
+            HeatmapItem(
+              value: col.value,
+              unit: heatmap.unit,
+              xAxisLabel: col.key,
+              yAxisLabel: row.key,
+            ),
+      ],
+    );
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Activity Heatmap',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const Gap(8),
+            Heatmap(
+              showXAxisLabels: false,
+              showYAxisLabels: false,
+              heatmapData: heatmapData,
+              rowsVisible: 5,
+            ),
+          ],
+        ),
       ),
     );
   }
