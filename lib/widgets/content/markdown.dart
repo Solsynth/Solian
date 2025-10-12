@@ -393,6 +393,7 @@ class MentionChipSpanNode extends SpanNode {
       alignment: PlaceholderAlignment.middle,
       child: InkWell(
         onTap: () => onTap(type, id),
+        borderRadius: BorderRadius.circular(32),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(

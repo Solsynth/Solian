@@ -16,7 +16,7 @@ class ComposeSubmitUtils {
     SnPost? originalPost,
     SnPost? repliedPost,
     SnPost? forwardedPost,
-    required Function(SnPost) onSuccess,
+    required Function() onSuccess,
   }) async {
     if (state.submitting.value) {
       throw Exception('Already submitting');
@@ -94,8 +94,8 @@ class ComposeSubmitUtils {
       // Parse the response into a SnPost
       final post = SnPost.fromJson(response.data);
 
-      // Call the success callback with the created/updated post
-      onSuccess(post);
+      // Call the success callback
+      onSuccess();
 
       return post;
     } catch (err) {
