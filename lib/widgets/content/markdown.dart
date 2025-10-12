@@ -530,7 +530,11 @@ class SpoilerSpanNode extends SpanNode {
                   ? Row(
                     spacing: 6,
                     mainAxisSize: MainAxisSize.min,
-                    children: [Icon(Symbols.visibility, size: 18), Text(text)],
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Symbols.visibility, size: 18).padding(top: 1),
+                      Flexible(child: Text(text)),
+                    ],
                   )
                   : Row(
                     spacing: 6,
@@ -541,7 +545,13 @@ class SpoilerSpanNode extends SpanNode {
                         color: foregroundColor,
                         size: 18,
                       ),
-                      Text(text, style: TextStyle(color: foregroundColor)),
+                      Flexible(
+                        child:
+                            Text(
+                              'spoiler',
+                              style: TextStyle(color: foregroundColor),
+                            ).tr(),
+                      ),
                     ],
                   ),
         ),
