@@ -92,108 +92,126 @@ class WindowScaffold extends HookConsumerWidget {
 
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      return Material(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Column(
+      return Shortcuts(
+        shortcuts: <LogicalKeySet, Intent>{
+          LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
+        },
+        child: Actions(
+          actions: <Type, Action<Intent>>{PopIntent: PopAction(context)},
+          child: Material(
+            color: Theme.of(context).colorScheme.surfaceContainer,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                DragToMoveArea(
-                  child:
-                      Platform.isMacOS
-                          ? Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Row(
+                Column(
+                  children: [
+                    DragToMoveArea(
+                      child:
+                          Platform.isMacOS
+                              ? Stack(
+                                alignment: Alignment.center,
                                 children: [
-                                  if (Platform.isMacOS)
-                                    const SizedBox(width: 80),
-                                  ...pageButtonActions,
+                                  Row(
+                                    children: [
+                                      if (Platform.isMacOS)
+                                        const SizedBox(width: 80),
+                                      ...pageButtonActions,
+                                    ],
+                                  ),
+                                  Text(
+                                    'Solar Network',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              )
+                              : Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Image.asset(
+                                          Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? 'assets/icons/icon-dark.png'
+                                              : 'assets/icons/icon.png',
+                                          width: 20,
+                                          height: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Solar Network',
+                                          textAlign: TextAlign.start,
+                                        ),
+                                      ],
+                                    ).padding(horizontal: 12, vertical: 5),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Symbols.minimize),
+                                    onPressed: () => windowManager.minimize(),
+                                    iconSize: 16,
+                                    padding: EdgeInsets.all(8),
+                                    constraints: BoxConstraints(),
+                                    color: Theme.of(context).iconTheme.color,
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      isMaximized.value
+                                          ? Symbols.fullscreen_exit
+                                          : Symbols.fullscreen,
+                                    ),
+                                    onPressed: () async {
+                                      if (await windowManager.isMaximized()) {
+                                        windowManager.restore();
+                                      } else {
+                                        windowManager.maximize();
+                                      }
+                                    },
+                                    iconSize: 16,
+                                    padding: EdgeInsets.all(8),
+                                    constraints: BoxConstraints(),
+                                    color: Theme.of(context).iconTheme.color,
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Symbols.close),
+                                    onPressed: () => windowManager.hide(),
+                                    iconSize: 16,
+                                    padding: EdgeInsets.all(8),
+                                    constraints: BoxConstraints(),
+                                    color: Theme.of(context).iconTheme.color,
+                                  ),
                                 ],
                               ),
-                              Text(
-                                'Solar Network',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          )
-                          : Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Image.asset(
-                                      Theme.of(context).brightness ==
-                                              Brightness.dark
-                                          ? 'assets/icons/icon-dark.png'
-                                          : 'assets/icons/icon.png',
-                                      width: 20,
-                                      height: 20,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Solar Network',
-                                      textAlign: TextAlign.start,
-                                    ),
-                                  ],
-                                ).padding(horizontal: 12, vertical: 5),
-                              ),
-                              IconButton(
-                                icon: Icon(Symbols.minimize),
-                                onPressed: () => windowManager.minimize(),
-                                iconSize: 16,
-                                padding: EdgeInsets.all(8),
-                                constraints: BoxConstraints(),
-                                color: Theme.of(context).iconTheme.color,
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  isMaximized.value
-                                      ? Symbols.fullscreen_exit
-                                      : Symbols.fullscreen,
-                                ),
-                                onPressed: () async {
-                                  if (await windowManager.isMaximized()) {
-                                    windowManager.restore();
-                                  } else {
-                                    windowManager.maximize();
-                                  }
-                                },
-                                iconSize: 16,
-                                padding: EdgeInsets.all(8),
-                                constraints: BoxConstraints(),
-                                color: Theme.of(context).iconTheme.color,
-                              ),
-                              IconButton(
-                                icon: Icon(Symbols.close),
-                                onPressed: () => windowManager.hide(),
-                                iconSize: 16,
-                                padding: EdgeInsets.all(8),
-                                constraints: BoxConstraints(),
-                                color: Theme.of(context).iconTheme.color,
-                              ),
-                            ],
-                          ),
+                    ),
+                    Expanded(child: child),
+                  ],
                 ),
-                Expanded(child: child),
+                _WebSocketIndicator(),
               ],
             ),
-            _WebSocketIndicator(),
-          ],
+          ),
         ),
       );
     }
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [Positioned.fill(child: child), _WebSocketIndicator()],
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{PopIntent: PopAction(context)},
+        child: Stack(
+          fit: StackFit.expand,
+          children: [Positioned.fill(child: child), _WebSocketIndicator()],
+        ),
+      ),
     );
   }
 }
@@ -300,37 +318,29 @@ class AppScaffold extends HookConsumerWidget {
       ],
     );
 
-    return Shortcuts(
-      shortcuts: <LogicalKeySet, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.escape): const PopIntent(),
-      },
-      child: Actions(
-        actions: <Type, Action<Intent>>{PopIntent: PopAction(context)},
-        child: Focus(
-          focusNode: focusNode,
-          child: Scaffold(
-            extendBody: extendBody ?? true,
-            extendBodyBehindAppBar: true,
-            backgroundColor:
-                noBackground
-                    ? Colors.transparent
-                    : Theme.of(context).scaffoldBackgroundColor,
-            body:
-                noBackground
-                    ? content
-                    : AppBackground(isRoot: true, child: content),
-            appBar: appBar,
-            bottomNavigationBar: bottomNavigationBar,
-            bottomSheet: bottomSheet,
-            drawer: drawer,
-            endDrawer: endDrawer,
-            floatingActionButton: floatingActionButton,
-            floatingActionButtonAnimator: floatingActionButtonAnimator,
-            floatingActionButtonLocation: TabbedFabLocation(context),
-            onDrawerChanged: onDrawerChanged,
-            onEndDrawerChanged: onEndDrawerChanged,
-          ),
-        ),
+    return Focus(
+      focusNode: focusNode,
+      child: Scaffold(
+        extendBody: extendBody ?? true,
+        extendBodyBehindAppBar: true,
+        backgroundColor:
+            noBackground
+                ? Colors.transparent
+                : Theme.of(context).scaffoldBackgroundColor,
+        body:
+            noBackground
+                ? content
+                : AppBackground(isRoot: true, child: content),
+        appBar: appBar,
+        bottomNavigationBar: bottomNavigationBar,
+        bottomSheet: bottomSheet,
+        drawer: drawer,
+        endDrawer: endDrawer,
+        floatingActionButton: floatingActionButton,
+        floatingActionButtonAnimator: floatingActionButtonAnimator,
+        floatingActionButtonLocation: TabbedFabLocation(context),
+        onDrawerChanged: onDrawerChanged,
+        onEndDrawerChanged: onEndDrawerChanged,
       ),
     );
   }
