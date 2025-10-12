@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
@@ -14,6 +15,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/widgets/stickers/sticker_picker.dart';
+import 'package:island/pods/config.dart';
 
 part 'post_reaction_sheet.g.dart';
 
@@ -106,63 +109,225 @@ class PostReactionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(
-            top: 16,
-            left: 20,
-            right: 16,
-            bottom: 12,
-          ),
-          child: Row(
-            children: [
-              Text(
-                'reactions'.plural(
-                  reactionsCount.isNotEmpty
-                      ? reactionsCount.values.reduce((a, b) => a + b)
-                      : 0,
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              top: 16,
+              left: 20,
+              right: 16,
+              bottom: 12,
+            ),
+            child: Row(
+              children: [
+                Text(
+                  'reactions'.plural(
+                    reactionsCount.isNotEmpty
+                        ? reactionsCount.values.reduce((a, b) => a + b)
+                        : 0,
+                  ),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
+                  ),
                 ),
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.5,
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Symbols.close),
+                  onPressed: () => Navigator.pop(context),
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
                 ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Symbols.close),
-                onPressed: () => Navigator.pop(context),
-                style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: ListView(
-            children: [
-              _buildReactionSection(
-                context,
-                Symbols.mood,
-                'reactionPositive'.tr(),
-                0,
-              ),
-              _buildReactionSection(
-                context,
-                Symbols.sentiment_neutral,
-                'reactionNeutral'.tr(),
-                1,
-              ),
-              _buildReactionSection(
-                context,
-                Symbols.mood_bad,
-                'reactionNegative'.tr(),
-                2,
-              ),
-            ],
+          const Divider(height: 1),
+          TabBar(tabs: [Tab(text: 'overview'.tr()), Tab(text: 'custom'.tr())]),
+          const Divider(height: 1),
+          Expanded(
+            child: TabBarView(
+              children: [
+                ListView(
+                  children: [
+                    _buildCustomReactionSection(context),
+                    _buildReactionSection(
+                      context,
+                      Symbols.mood,
+                      'reactionPositive'.tr(),
+                      0,
+                    ),
+                    _buildReactionSection(
+                      context,
+                      Symbols.sentiment_neutral,
+                      'reactionNeutral'.tr(),
+                      1,
+                    ),
+                    _buildReactionSection(
+                      context,
+                      Symbols.mood_bad,
+                      'reactionNegative'.tr(),
+                      2,
+                    ),
+                    const Gap(8),
+                  ],
+                ),
+                CustomReactionForm(
+                  postId: postId,
+                  onReact: (s, a) => onReact(s.replaceAll(':', ''), a),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomReactionSection(BuildContext context) {
+    final customReactions =
+        reactionsCount.entries
+            .where((entry) => entry.key.contains('+'))
+            .map((entry) => entry.key)
+            .toList();
+
+    if (customReactions.isEmpty) return const SizedBox.shrink();
+
+    return HookConsumer(
+      builder: (context, ref, child) {
+        final baseUrl = ref.watch(serverUrlProvider);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 8,
+              children: [
+                const Icon(Symbols.emoji_symbols),
+                Text('customReactions'.tr()).fontSize(17).bold(),
+              ],
+            ).padding(horizontal: 24, top: 16, bottom: 6),
+            SizedBox(
+              height: 120,
+              child: GridView.builder(
+                scrollDirection: Axis.horizontal,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 1,
+                  mainAxisExtent: 120,
+                  mainAxisSpacing: 8.0,
+                  crossAxisSpacing: 8.0,
+                  childAspectRatio: 1.0,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: customReactions.length,
+                itemBuilder: (context, index) {
+                  final symbol = customReactions[index];
+                  final count = reactionsCount[symbol] ?? 0;
+                  final stickerUri =
+                      '$baseUrl/sphere/stickers/lookup/$symbol/open';
+
+                  return GestureDetector(
+                    onLongPressStart: (details) {
+                      if (count > 0) {
+                        showReactionDetailsPopup(
+                          context,
+                          symbol,
+                          details.localPosition,
+                          postId,
+                          reactionsCount[symbol] ?? 0,
+                        );
+                      }
+                    },
+                    onSecondaryTapUp: (details) {
+                      if (count > 0) {
+                        showReactionDetailsPopup(
+                          context,
+                          symbol,
+                          details.localPosition,
+                          postId,
+                          reactionsCount[symbol] ?? 0,
+                        );
+                      }
+                    },
+                    child: Badge(
+                      label: Text('x$count'),
+                      isLabelVisible: count > 0,
+                      textColor: Theme.of(context).colorScheme.onPrimary,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      offset: Offset(0, 0),
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerLowest,
+                        child: InkWell(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                          onTap: () {
+                            onReact(
+                              symbol,
+                              1,
+                            ); // Custom reactions use neutral attitude
+                            Navigator.pop(context);
+                          },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(width: double.infinity),
+                              Container(
+                                width: 64,
+                                height: 64,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(
+                                    image: NetworkImage(stickerUri),
+                                    fit: BoxFit.contain,
+                                    colorFilter:
+                                        (reactionsMade[symbol] ?? false)
+                                            ? ColorFilter.mode(
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .primaryContainer
+                                                  .withOpacity(0.7),
+                                              BlendMode.srcATop,
+                                            )
+                                            : null,
+                                  ),
+                                ),
+                              ),
+                              const Gap(8),
+                              Text(
+                                symbol,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white,
+                                  shadows: [
+                                    Shadow(
+                                      blurRadius: 4,
+                                      offset: Offset(0.5, 0.5),
+                                      color: Colors.black,
+                                    ),
+                                  ],
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -402,6 +567,110 @@ class ReactionDetailsPopup extends HookConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class CustomReactionForm extends HookConsumerWidget {
+  final String postId;
+  final Function(String symbol, int attitude) onReact;
+
+  const CustomReactionForm({
+    super.key,
+    required this.postId,
+    required this.onReact,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final attitude = useState<int>(1);
+    final symbol = useState<String>('');
+
+    Future<void> submitCustomReaction() async {
+      if (symbol.value.isEmpty) return;
+      onReact(symbol.value, attitude.value);
+      Navigator.pop(context);
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'customReaction'.tr(),
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const Gap(24),
+          TextField(
+            decoration: InputDecoration(
+              labelText: 'stickerPlaceholder'.tr(),
+              hintText: 'prefix+slug',
+              border: const OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+              ),
+              suffixIcon: InkWell(
+                onTapDown: (details) async {
+                  await showStickerPickerPopover(
+                    context,
+                    details.globalPosition.translate(-300, -280),
+                    alignment: Alignment.topLeft,
+                    onPick: (placeholder) {
+                      // Remove the surrounding : from the placeholder
+                      symbol.value = placeholder.substring(
+                        1,
+                        placeholder.length - 1,
+                      );
+                    },
+                  );
+                },
+                child: const Icon(Symbols.sticky_note_2),
+              ),
+            ),
+            controller: TextEditingController(text: symbol.value),
+            onChanged: (value) => symbol.value = value,
+          ),
+          const Gap(24),
+          Text(
+            'reactionAttitude'.tr(),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const Gap(8),
+          SegmentedButton(
+            segments: [
+              ButtonSegment(
+                value: 0,
+                icon: const Icon(Symbols.sentiment_satisfied),
+                label: Text('attitudePositive'.tr()),
+              ),
+              ButtonSegment(
+                value: 1,
+                icon: const Icon(Symbols.sentiment_stressed),
+                label: Text('attitudeNeutral'.tr()),
+              ),
+              ButtonSegment(
+                value: 2,
+                icon: const Icon(Symbols.sentiment_sad),
+                label: Text('attitudeNegative'.tr()),
+              ),
+            ],
+            selected: {attitude.value},
+            onSelectionChanged: (Set<int> newSelection) {
+              attitude.value = newSelection.first;
+            },
+          ),
+          const Gap(32),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.icon(
+              onPressed: symbol.value.isEmpty ? null : submitCustomReaction,
+              icon: const Icon(Symbols.send),
+              label: Text('addReaction'.tr()),
+            ),
+          ),
+          Gap(MediaQuery.of(context).padding.bottom + 24),
+        ],
       ),
     );
   }

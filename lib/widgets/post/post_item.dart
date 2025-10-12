@@ -17,6 +17,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/content/image.dart';
 import 'package:island/widgets/post/post_item_screenshot.dart';
 import 'package:island/widgets/post/post_award_sheet.dart';
 import 'package:island/widgets/post/post_pin_sheet.dart';
@@ -549,15 +550,39 @@ class PostItem extends HookConsumerWidget {
                                 ).colorScheme.primary.withOpacity(0.75),
                                 textColor:
                                     Theme.of(context).colorScheme.onPrimary,
-                                child: _buildReactionIcon(
-                                  mostReaction,
-                                  32,
-                                ).padding(
-                                  bottom:
-                                      _getReactionImageAvailable(mostReaction)
-                                          ? 2
-                                          : 0,
-                                ),
+                                child:
+                                    mostReaction.contains('+')
+                                        ? HookConsumer(
+                                          builder: (context, ref, child) {
+                                            final baseUrl = ref.watch(
+                                              serverUrlProvider,
+                                            );
+                                            final stickerUri =
+                                                '$baseUrl/sphere/stickers/lookup/$mostReaction/open';
+                                            return SizedBox(
+                                              width: 32,
+                                              height: 32,
+                                              child:
+                                                  UniversalImage(
+                                                    uri: stickerUri,
+                                                    width: 28,
+                                                    height: 28,
+                                                    fit: BoxFit.contain,
+                                                  ).center(),
+                                            );
+                                          },
+                                        )
+                                        : _buildReactionIcon(
+                                          mostReaction,
+                                          32,
+                                        ).padding(
+                                          bottom:
+                                              _getReactionImageAvailable(
+                                                    mostReaction,
+                                                  )
+                                                  ? 2
+                                                  : 0,
+                                        ),
                               ),
                       style: ButtonStyle(
                         backgroundColor: WidgetStatePropertyAll(

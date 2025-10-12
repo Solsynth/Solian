@@ -282,13 +282,14 @@ class _StickersGrid extends StatelessWidget {
 Future<void> showStickerPickerPopover(
   BuildContext context,
   Offset offset, {
+  Alignment? alignment,
   required void Function(String placeholder) onPick,
 }) async {
   // Use flutter_popup_card to present the anchored popup near trigger.
   await showPopupCard<void>(
     context: context,
     offset: offset,
-    alignment: Alignment.topLeft,
+    alignment: alignment ?? Alignment.topLeft,
     dimBackground: true,
     builder:
         (ctx) => SizedBox(

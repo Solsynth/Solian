@@ -116,9 +116,6 @@ class WindowScaffold extends HookConsumerWidget {
                                 children: [
                                   if (isWideScreen(context))
                                     Row(
-                                      key: Key(
-                                        'app-page-action-${router.state.pageKey.value}',
-                                      ),
                                       children: [
                                         const Spacer(),
                                         ...pageActionsButton,

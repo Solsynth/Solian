@@ -135,6 +135,11 @@
     "reactionPositive": "Postive",
     "reactionNegative": "Negative",
     "reactionNeutral": "Neutral",
+    "customReaction": "Custom Reaction",
+    "customReactions": "Custom Reactions",
+    "stickerPlaceholder": "Sticker Placeholder",
+    "reactionAttitude": "Reaction Attitude",
+    "addReaction": "Add Reaction",
     "connectionConnected": "Connected",
     "connectionDisconnected": "Disconnected",
     "connectionReconnecting": "Reconnecting",
@@ -1221,5 +1226,6 @@
     "noStickerPacks": "No Sticker Packs",
     "refresh": "Refresh",
     "spoiler": "Spoiler",
-    "activityHeatmap": "Activity Heatmap"
+    "activityHeatmap": "Activity Heatmap",
+    "custom": "Custom"
 }
