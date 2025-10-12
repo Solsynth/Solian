@@ -120,6 +120,8 @@ class ChatInput extends HookConsumerWidget {
       }
     }
 
+    final settings = ref.watch(appSettingsNotifierProvider);
+
     inputFocusNode.onKeyEvent = (node, event) {
       if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
@@ -133,7 +135,7 @@ class ChatInput extends HookConsumerWidget {
         return KeyEventResult.handled;
       }
 
-      final enterToSend = ref.read(appSettingsNotifierProvider).enterToSend;
+      final enterToSend = settings.enterToSend;
       final isEnter = event.logicalKey == LogicalKeyboardKey.enter;
 
       if (isEnter) {
@@ -528,11 +530,13 @@ class ChatInput extends HookConsumerWidget {
                                     ? '${messageController.text.length}/4096'
                                     : null,
                           ),
-                          maxLines: 3,
+                          maxLines: 5,
                           minLines: 1,
                           onTapOutside:
                               (_) =>
                                   FocusManager.instance.primaryFocus?.unfocus(),
+                          onSubmitted:
+                              settings.enterToSend ? (_) => send() : null,
                         );
                       },
                       suggestionsCallback: (pattern) async {
