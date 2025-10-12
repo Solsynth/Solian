@@ -50,7 +50,11 @@ class PostComposeDialog extends HookConsumerWidget {
     final isWide = isWideScreen(context);
 
     useEffect(() {
-      if (!prompted.value && originalPost == null && drafts.isNotEmpty) {
+      if (!prompted.value &&
+          originalPost == null &&
+          initialState?.replyingTo == null &&
+          initialState?.forwardingTo == null &&
+          drafts.isNotEmpty) {
         prompted.value = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _showRestoreDialog(ref, restoredInitialState);

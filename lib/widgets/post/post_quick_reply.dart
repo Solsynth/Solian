@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/models/publisher.dart';
@@ -11,6 +10,7 @@ import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/post/compose_dialog.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -117,19 +117,16 @@ class PostQuickReply extends HookConsumerWidget {
                   ),
                   const Gap(8),
                   IconButton(
-                    onPressed: () {
+                    onPressed: () async {
                       onLaunch?.call();
-                      GoRouter.of(context)
-                          .pushNamed(
-                            'postCompose',
-                            extra: PostComposeInitialState(
-                              content: contentController.text,
-                              replyingTo: parent,
-                            ),
-                          )
-                          .then((value) {
-                            if (value != null) onPosted?.call();
-                          });
+                      final value = await PostComposeDialog.show(
+                        context,
+                        initialState: PostComposeInitialState(
+                          content: contentController.text,
+                          replyingTo: parent,
+                        ),
+                      );
+                      if (value != null) onPosted?.call();
                     },
                     icon: const Icon(Symbols.launch, size: 20),
                     visualDensity: VisualDensity.compact,
