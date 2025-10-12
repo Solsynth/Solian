@@ -63,6 +63,23 @@ _ProfileLink _$ProfileLinkFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ProfileLinkToJson(_ProfileLink instance) =>
     <String, dynamic>{'name': instance.name, 'url': instance.url};
 
+_UsernameColor _$UsernameColorFromJson(Map<String, dynamic> json) =>
+    _UsernameColor(
+      type: json['type'] as String? ?? 'plain',
+      value: json['value'] as String?,
+      direction: json['direction'] as String?,
+      colors:
+          (json['colors'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    );
+
+Map<String, dynamic> _$UsernameColorToJson(_UsernameColor instance) =>
+    <String, dynamic>{
+      'type': instance.type,
+      'value': instance.value,
+      'direction': instance.direction,
+      'colors': instance.colors,
+    };
+
 _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
     _SnAccountProfile(
       id: json['id'] as String,
@@ -113,6 +130,12 @@ _SnAccountProfile _$SnAccountProfileFromJson(Map<String, dynamic> json) =>
               : SnVerificationMark.fromJson(
                 json['verification'] as Map<String, dynamic>,
               ),
+      usernameColor:
+          json['username_color'] == null
+              ? null
+              : UsernameColor.fromJson(
+                json['username_color'] as Map<String, dynamic>,
+              ),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt:
@@ -144,6 +167,7 @@ Map<String, dynamic> _$SnAccountProfileToJson(_SnAccountProfile instance) =>
       'picture': instance.picture?.toJson(),
       'background': instance.background?.toJson(),
       'verification': instance.verification?.toJson(),
+      'username_color': instance.usernameColor?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),

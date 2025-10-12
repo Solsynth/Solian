@@ -14,6 +14,7 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/services/file.dart';
 import 'package:island/services/file_uploader.dart';
 import 'package:island/services/timezone.dart';
+import 'package:island/widgets/account/account_name.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
@@ -24,6 +25,17 @@ const kServerSupportedLanguages = {'en-US': 'en-us', 'zh-CN': 'zh-hans'};
 const kServerSupportedRegions = ['US', 'JP', 'CN'];
 
 class UpdateProfileScreen extends HookConsumerWidget {
+  bool _isValidHexColor(String color) {
+    if (!color.startsWith('#')) return false;
+    if (color.length != 7) return false; // #RRGGBB format
+    try {
+      int.parse(color.substring(1), radix: 16);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   const UpdateProfileScreen({super.key});
 
   @override
@@ -148,12 +160,39 @@ class UpdateProfileScreen extends HookConsumerWidget {
       text: user.value!.profile.timeZone,
     );
 
+    // Username color state
+    final usernameColorType = useState<String>(
+      user.value!.profile.usernameColor?.type ?? 'plain',
+    );
+    final usernameColorValue = useTextEditingController(
+      text: user.value!.profile.usernameColor?.value,
+    );
+    final usernameColorDirection = useTextEditingController(
+      text: user.value!.profile.usernameColor?.direction,
+    );
+    final usernameColorColors = useState<List<String>>(
+      user.value!.profile.usernameColor?.colors ?? [],
+    );
+
     void updateProfile() async {
       if (!formKeyProfile.currentState!.validate()) return;
 
       submitting.value = true;
       try {
         final client = ref.watch(apiClientProvider);
+        final usernameColorData = {
+          'type': usernameColorType.value,
+          if (usernameColorType.value == 'plain' &&
+              usernameColorValue.text.isNotEmpty)
+            'value': usernameColorValue.text,
+          if (usernameColorType.value == 'gradient') ...{
+            if (usernameColorDirection.text.isNotEmpty)
+              'direction': usernameColorDirection.text,
+            'colors':
+                usernameColorColors.value.where((c) => c.isNotEmpty).toList(),
+          },
+        };
+
         await client.patch(
           '/id/accounts/me/profile',
           data: {
@@ -166,6 +205,7 @@ class UpdateProfileScreen extends HookConsumerWidget {
             'location': locationController.text,
             'time_zone': timeZoneController.text,
             'birthday': birthday.value?.toUtc().toIso8601String(),
+            'username_color': usernameColorData,
             'links':
                 links.value
                     .where((e) => e.name.isNotEmpty && e.url.isNotEmpty)
@@ -592,6 +632,320 @@ class UpdateProfileScreen extends HookConsumerWidget {
                         ],
                       ),
                     ),
+                  ),
+                  Text(
+                    'usernameColor',
+                  ).tr().bold().fontSize(18).padding(top: 16),
+                  Column(
+                    spacing: 16,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Preview section
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color:
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('preview').tr().bold().fontSize(14),
+                            const Gap(8),
+                            // Create a preview account with the current settings
+                            Builder(
+                              builder: (context) {
+                                final previewAccount = user.value!.copyWith(
+                                  profile: user.value!.profile.copyWith(
+                                    usernameColor: UsernameColor(
+                                      type: usernameColorType.value,
+                                      value:
+                                          usernameColorType.value == 'plain' &&
+                                                  usernameColorValue
+                                                      .text
+                                                      .isNotEmpty
+                                              ? usernameColorValue.text
+                                              : null,
+                                      direction:
+                                          usernameColorType.value ==
+                                                      'gradient' &&
+                                                  usernameColorDirection
+                                                      .text
+                                                      .isNotEmpty
+                                              ? usernameColorDirection.text
+                                              : null,
+                                      colors:
+                                          usernameColorType.value == 'gradient'
+                                              ? usernameColorColors.value
+                                                  .where((c) => c.isNotEmpty)
+                                                  .toList()
+                                              : null,
+                                    ),
+                                  ),
+                                );
+
+                                // Check if user can use this color
+                                final tier =
+                                    user.value!.perkSubscription?.identifier;
+                                final canUseColor = switch (tier) {
+                                  'solian.stellar.primary' =>
+                                    usernameColorType.value == 'plain' &&
+                                        (kUsernamePlainColors.containsKey(
+                                              usernameColorValue.text,
+                                            ) ||
+                                            (usernameColorValue.text.startsWith(
+                                                  '#',
+                                                ) &&
+                                                _isValidHexColor(
+                                                  usernameColorValue.text,
+                                                ))),
+                                  'solian.stellar.nova' =>
+                                    usernameColorType.value == 'plain',
+                                  'solian.stellar.supernova' => true,
+                                  _ => false,
+                                };
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AccountName(
+                                      account: previewAccount,
+                                      style: const TextStyle(fontSize: 18),
+                                      ignorePermissions: true,
+                                    ),
+                                    const Gap(4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          canUseColor
+                                              ? Symbols.check_circle
+                                              : Symbols.error,
+                                          size: 16,
+                                          color:
+                                              canUseColor
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                        ),
+                                        const Gap(4),
+                                        Text(
+                                          canUseColor
+                                              ? 'availableWithYourPlan'.tr()
+                                              : 'upgradeRequired'.tr(),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color:
+                                                canUseColor
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      DropdownButtonFormField2<String>(
+                        decoration: InputDecoration(
+                          labelText: 'colorType'.tr(),
+                        ),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'plain',
+                            child: Text('plain'.tr()),
+                          ),
+                          DropdownMenuItem(
+                            value: 'gradient',
+                            child: Text('gradient'.tr()),
+                          ),
+                        ],
+                        value: usernameColorType.value,
+                        onChanged: (value) {
+                          usernameColorType.value = value ?? 'plain';
+                        },
+                        customButton: Row(
+                          children: [
+                            Expanded(child: Text(usernameColorType.value).tr()),
+                            Icon(Symbols.arrow_drop_down),
+                          ],
+                        ),
+                      ),
+                      if (usernameColorType.value == 'plain')
+                        Autocomplete<String>(
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            final options = kUsernamePlainColors.keys.toList();
+                            if (textEditingValue.text == '') {
+                              return options;
+                            }
+                            return options.where(
+                              (option) => option.toLowerCase().contains(
+                                textEditingValue.text.toLowerCase(),
+                              ),
+                            );
+                          },
+                          onSelected: (String selection) {
+                            usernameColorValue.text = selection;
+                          },
+                          fieldViewBuilder: (
+                            context,
+                            controller,
+                            focusNode,
+                            onFieldSubmitted,
+                          ) {
+                            // Initialize the controller with the current value
+                            if (controller.text.isEmpty &&
+                                usernameColorValue.text.isNotEmpty) {
+                              controller.text = usernameColorValue.text;
+                            }
+
+                            return TextFormField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                labelText: 'colorValue'.tr(),
+                                hintText: 'e.g. red or #ff6600',
+                              ),
+                              onChanged: (value) {
+                                usernameColorValue.text = value;
+                              },
+                              onTapOutside:
+                                  (_) =>
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus(),
+                            );
+                          },
+                        ),
+                      if (usernameColorType.value == 'gradient') ...[
+                        DropdownButtonFormField2<String>(
+                          decoration: InputDecoration(
+                            labelText: 'gradientDirection'.tr(),
+                          ),
+                          items: [
+                            DropdownMenuItem(
+                              value: 'to right',
+                              child: Text('gradientDirectionToRight'.tr()),
+                            ),
+                            DropdownMenuItem(
+                              value: 'to left',
+                              child: Text('gradientDirectionToLeft'.tr()),
+                            ),
+                            DropdownMenuItem(
+                              value: 'to bottom',
+                              child: Text('gradientDirectionToBottom'.tr()),
+                            ),
+                            DropdownMenuItem(
+                              value: 'to top',
+                              child: Text('gradientDirectionToTop'.tr()),
+                            ),
+                            DropdownMenuItem(
+                              value: 'to bottom right',
+                              child: Text(
+                                'gradientDirectionToBottomRight'.tr(),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'to bottom left',
+                              child: Text('gradientDirectionToBottomLeft'.tr()),
+                            ),
+                            DropdownMenuItem(
+                              value: 'to top right',
+                              child: Text('gradientDirectionToTopRight'.tr()),
+                            ),
+                            DropdownMenuItem(
+                              value: 'to top left',
+                              child: Text('gradientDirectionToTopLeft'.tr()),
+                            ),
+                          ],
+                          value:
+                              usernameColorDirection.text.isNotEmpty
+                                  ? usernameColorDirection.text
+                                  : 'to right',
+                          onChanged: (value) {
+                            usernameColorDirection.text = value ?? 'to right';
+                          },
+                          customButton: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  usernameColorDirection.text.isNotEmpty
+                                      ? usernameColorDirection.text
+                                      : 'to right',
+                                ),
+                              ),
+                              Icon(Symbols.arrow_drop_down),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          'gradientColors',
+                        ).tr().bold().fontSize(14).padding(top: 8),
+                        Column(
+                          spacing: 8,
+                          children: [
+                            for (
+                              var i = 0;
+                              i < usernameColorColors.value.length;
+                              i++
+                            )
+                              Row(
+                                key: ValueKey(
+                                  usernameColorColors.value[i].hashCode,
+                                ),
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      initialValue:
+                                          usernameColorColors.value[i],
+                                      decoration: InputDecoration(
+                                        labelText: 'color'.tr(),
+                                        hintText: 'e.g. #ff0000',
+                                        isDense: true,
+                                      ),
+                                      onChanged: (value) {
+                                        usernameColorColors.value[i] = value;
+                                      },
+                                      onTapOutside:
+                                          (_) =>
+                                              FocusManager.instance.primaryFocus
+                                                  ?.unfocus(),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Symbols.delete),
+                                    onPressed: () {
+                                      usernameColorColors.value =
+                                          usernameColorColors.value
+                                              .whereIndexed(
+                                                (idx, _) => idx != i,
+                                              )
+                                              .toList();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: FilledButton.icon(
+                                onPressed: () {
+                                  usernameColorColors.value = List.from(
+                                    usernameColorColors.value,
+                                  )..add('');
+                                },
+                                label: Text('addColor').tr(),
+                                icon: const Icon(Symbols.add),
+                              ).padding(top: 8),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
                   Text('links').tr().bold().fontSize(18).padding(top: 16),
                   Column(

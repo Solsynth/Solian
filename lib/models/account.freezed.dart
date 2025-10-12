@@ -623,9 +623,283 @@ as String,
 
 
 /// @nodoc
+mixin _$UsernameColor {
+
+ String get type; String? get value; String? get direction; List<String>? get colors;
+/// Create a copy of UsernameColor
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UsernameColorCopyWith<UsernameColor> get copyWith => _$UsernameColorCopyWithImpl<UsernameColor>(this as UsernameColor, _$identity);
+
+  /// Serializes this UsernameColor to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UsernameColor&&(identical(other.type, type) || other.type == type)&&(identical(other.value, value) || other.value == value)&&(identical(other.direction, direction) || other.direction == direction)&&const DeepCollectionEquality().equals(other.colors, colors));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,value,direction,const DeepCollectionEquality().hash(colors));
+
+@override
+String toString() {
+  return 'UsernameColor(type: $type, value: $value, direction: $direction, colors: $colors)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $UsernameColorCopyWith<$Res>  {
+  factory $UsernameColorCopyWith(UsernameColor value, $Res Function(UsernameColor) _then) = _$UsernameColorCopyWithImpl;
+@useResult
+$Res call({
+ String type, String? value, String? direction, List<String>? colors
+});
+
+
+
+
+}
+/// @nodoc
+class _$UsernameColorCopyWithImpl<$Res>
+    implements $UsernameColorCopyWith<$Res> {
+  _$UsernameColorCopyWithImpl(this._self, this._then);
+
+  final UsernameColor _self;
+  final $Res Function(UsernameColor) _then;
+
+/// Create a copy of UsernameColor
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? value = freezed,Object? direction = freezed,Object? colors = freezed,}) {
+  return _then(_self.copyWith(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,value: freezed == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as String?,direction: freezed == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as String?,colors: freezed == colors ? _self.colors : colors // ignore: cast_nullable_to_non_nullable
+as List<String>?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [UsernameColor].
+extension UsernameColorPatterns on UsernameColor {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _UsernameColor value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _UsernameColor() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _UsernameColor value)  $default,){
+final _that = this;
+switch (_that) {
+case _UsernameColor():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _UsernameColor value)?  $default,){
+final _that = this;
+switch (_that) {
+case _UsernameColor() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String? value,  String? direction,  List<String>? colors)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _UsernameColor() when $default != null:
+return $default(_that.type,_that.value,_that.direction,_that.colors);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String? value,  String? direction,  List<String>? colors)  $default,) {final _that = this;
+switch (_that) {
+case _UsernameColor():
+return $default(_that.type,_that.value,_that.direction,_that.colors);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String? value,  String? direction,  List<String>? colors)?  $default,) {final _that = this;
+switch (_that) {
+case _UsernameColor() when $default != null:
+return $default(_that.type,_that.value,_that.direction,_that.colors);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _UsernameColor implements UsernameColor {
+  const _UsernameColor({this.type = 'plain', this.value, this.direction, final  List<String>? colors}): _colors = colors;
+  factory _UsernameColor.fromJson(Map<String, dynamic> json) => _$UsernameColorFromJson(json);
+
+@override@JsonKey() final  String type;
+@override final  String? value;
+@override final  String? direction;
+ final  List<String>? _colors;
+@override List<String>? get colors {
+  final value = _colors;
+  if (value == null) return null;
+  if (_colors is EqualUnmodifiableListView) return _colors;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+
+/// Create a copy of UsernameColor
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$UsernameColorCopyWith<_UsernameColor> get copyWith => __$UsernameColorCopyWithImpl<_UsernameColor>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$UsernameColorToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UsernameColor&&(identical(other.type, type) || other.type == type)&&(identical(other.value, value) || other.value == value)&&(identical(other.direction, direction) || other.direction == direction)&&const DeepCollectionEquality().equals(other._colors, _colors));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,value,direction,const DeepCollectionEquality().hash(_colors));
+
+@override
+String toString() {
+  return 'UsernameColor(type: $type, value: $value, direction: $direction, colors: $colors)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$UsernameColorCopyWith<$Res> implements $UsernameColorCopyWith<$Res> {
+  factory _$UsernameColorCopyWith(_UsernameColor value, $Res Function(_UsernameColor) _then) = __$UsernameColorCopyWithImpl;
+@override @useResult
+$Res call({
+ String type, String? value, String? direction, List<String>? colors
+});
+
+
+
+
+}
+/// @nodoc
+class __$UsernameColorCopyWithImpl<$Res>
+    implements _$UsernameColorCopyWith<$Res> {
+  __$UsernameColorCopyWithImpl(this._self, this._then);
+
+  final _UsernameColor _self;
+  final $Res Function(_UsernameColor) _then;
+
+/// Create a copy of UsernameColor
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? value = freezed,Object? direction = freezed,Object? colors = freezed,}) {
+  return _then(_UsernameColor(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,value: freezed == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as String?,direction: freezed == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as String?,colors: freezed == colors ? _self._colors : colors // ignore: cast_nullable_to_non_nullable
+as List<String>?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnAccountProfile {
 
- String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday;@ProfileLinkConverter() List<ProfileLink> get links; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get socialCredits; int get socialCreditsLevel; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get firstName; String get middleName; String get lastName; String get bio; String get gender; String get pronouns; String get location; String get timeZone; DateTime? get birthday;@ProfileLinkConverter() List<ProfileLink> get links; DateTime? get lastSeenAt; SnAccountBadge? get activeBadge; int get experience; int get level; double get socialCredits; int get socialCreditsLevel; double get levelingProgress; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; UsernameColor? get usernameColor; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -638,16 +912,16 @@ $SnAccountProfileCopyWith<SnAccountProfile> get copyWith => _$SnAccountProfileCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&const DeepCollectionEquality().equals(other.links, links)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.socialCredits, socialCredits) || other.socialCredits == socialCredits)&&(identical(other.socialCreditsLevel, socialCreditsLevel) || other.socialCreditsLevel == socialCreditsLevel)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&const DeepCollectionEquality().equals(other.links, links)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.socialCredits, socialCredits) || other.socialCredits == socialCredits)&&(identical(other.socialCreditsLevel, socialCreditsLevel) || other.socialCreditsLevel == socialCreditsLevel)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.usernameColor, usernameColor) || other.usernameColor == usernameColor)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,const DeepCollectionEquality().hash(links),lastSeenAt,activeBadge,experience,level,socialCredits,socialCreditsLevel,levelingProgress,picture,background,verification,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,const DeepCollectionEquality().hash(links),lastSeenAt,activeBadge,experience,level,socialCredits,socialCreditsLevel,levelingProgress,picture,background,verification,usernameColor,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, links: $links, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, socialCredits: $socialCredits, socialCreditsLevel: $socialCreditsLevel, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, links: $links, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, socialCredits: $socialCredits, socialCreditsLevel: $socialCreditsLevel, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, usernameColor: $usernameColor, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -658,11 +932,11 @@ abstract mixin class $SnAccountProfileCopyWith<$Res>  {
   factory $SnAccountProfileCopyWith(SnAccountProfile value, $Res Function(SnAccountProfile) _then) = _$SnAccountProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday,@ProfileLinkConverter() List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double socialCredits, int socialCreditsLevel, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday,@ProfileLinkConverter() List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double socialCredits, int socialCreditsLevel, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, UsernameColor? usernameColor, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnAccountBadgeCopyWith<$Res>? get activeBadge;$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;
+$SnAccountBadgeCopyWith<$Res>? get activeBadge;$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;$UsernameColorCopyWith<$Res>? get usernameColor;
 
 }
 /// @nodoc
@@ -675,7 +949,7 @@ class _$SnAccountProfileCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? links = null,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? socialCredits = null,Object? socialCreditsLevel = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? links = null,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? socialCredits = null,Object? socialCreditsLevel = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? usernameColor = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -698,7 +972,8 @@ as int,levelingProgress: null == levelingProgress ? _self.levelingProgress : lev
 as double,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SnVerificationMark?,usernameColor: freezed == usernameColor ? _self.usernameColor : usernameColor // ignore: cast_nullable_to_non_nullable
+as UsernameColor?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -751,6 +1026,18 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 
   return $SnVerificationMarkCopyWith<$Res>(_self.verification!, (value) {
     return _then(_self.copyWith(verification: value));
+  });
+}/// Create a copy of SnAccountProfile
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UsernameColorCopyWith<$Res>? get usernameColor {
+    if (_self.usernameColor == null) {
+    return null;
+  }
+
+  return $UsernameColorCopyWith<$Res>(_self.usernameColor!, (value) {
+    return _then(_self.copyWith(usernameColor: value));
   });
 }
 }
@@ -831,10 +1118,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday, @ProfileLinkConverter()  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double socialCredits,  int socialCreditsLevel,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday, @ProfileLinkConverter()  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double socialCredits,  int socialCreditsLevel,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  UsernameColor? usernameColor,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAccountProfile() when $default != null:
-return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.socialCredits,_that.socialCreditsLevel,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.socialCredits,_that.socialCreditsLevel,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.usernameColor,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -852,10 +1139,10 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday, @ProfileLinkConverter()  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double socialCredits,  int socialCreditsLevel,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday, @ProfileLinkConverter()  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double socialCredits,  int socialCreditsLevel,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  UsernameColor? usernameColor,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountProfile():
-return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.socialCredits,_that.socialCreditsLevel,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.socialCredits,_that.socialCreditsLevel,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.usernameColor,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -869,10 +1156,10 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday, @ProfileLinkConverter()  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double socialCredits,  int socialCreditsLevel,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String firstName,  String middleName,  String lastName,  String bio,  String gender,  String pronouns,  String location,  String timeZone,  DateTime? birthday, @ProfileLinkConverter()  List<ProfileLink> links,  DateTime? lastSeenAt,  SnAccountBadge? activeBadge,  int experience,  int level,  double socialCredits,  int socialCreditsLevel,  double levelingProgress,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  UsernameColor? usernameColor,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountProfile() when $default != null:
-return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.socialCredits,_that.socialCreditsLevel,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.bio,_that.gender,_that.pronouns,_that.location,_that.timeZone,_that.birthday,_that.links,_that.lastSeenAt,_that.activeBadge,_that.experience,_that.level,_that.socialCredits,_that.socialCreditsLevel,_that.levelingProgress,_that.picture,_that.background,_that.verification,_that.usernameColor,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -884,7 +1171,7 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 @JsonSerializable()
 
 class _SnAccountProfile implements SnAccountProfile {
-  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, @ProfileLinkConverter() final  List<ProfileLink> links = const [], this.lastSeenAt, this.activeBadge, required this.experience, required this.level, this.socialCredits = 100, this.socialCreditsLevel = 0, required this.levelingProgress, required this.picture, required this.background, required this.verification, required this.createdAt, required this.updatedAt, required this.deletedAt}): _links = links;
+  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, @ProfileLinkConverter() final  List<ProfileLink> links = const [], this.lastSeenAt, this.activeBadge, required this.experience, required this.level, this.socialCredits = 100, this.socialCreditsLevel = 0, required this.levelingProgress, required this.picture, required this.background, required this.verification, this.usernameColor, required this.createdAt, required this.updatedAt, required this.deletedAt}): _links = links;
   factory _SnAccountProfile.fromJson(Map<String, dynamic> json) => _$SnAccountProfileFromJson(json);
 
 @override final  String id;
@@ -914,6 +1201,7 @@ class _SnAccountProfile implements SnAccountProfile {
 @override final  SnCloudFile? picture;
 @override final  SnCloudFile? background;
 @override final  SnVerificationMark? verification;
+@override final  UsernameColor? usernameColor;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -931,16 +1219,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&const DeepCollectionEquality().equals(other._links, _links)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.socialCredits, socialCredits) || other.socialCredits == socialCredits)&&(identical(other.socialCreditsLevel, socialCreditsLevel) || other.socialCreditsLevel == socialCreditsLevel)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&const DeepCollectionEquality().equals(other._links, _links)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.socialCredits, socialCredits) || other.socialCredits == socialCredits)&&(identical(other.socialCreditsLevel, socialCreditsLevel) || other.socialCreditsLevel == socialCreditsLevel)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.usernameColor, usernameColor) || other.usernameColor == usernameColor)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,const DeepCollectionEquality().hash(_links),lastSeenAt,activeBadge,experience,level,socialCredits,socialCreditsLevel,levelingProgress,picture,background,verification,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,const DeepCollectionEquality().hash(_links),lastSeenAt,activeBadge,experience,level,socialCredits,socialCreditsLevel,levelingProgress,picture,background,verification,usernameColor,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, links: $links, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, socialCredits: $socialCredits, socialCreditsLevel: $socialCreditsLevel, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, links: $links, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, socialCredits: $socialCredits, socialCreditsLevel: $socialCreditsLevel, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, usernameColor: $usernameColor, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -951,11 +1239,11 @@ abstract mixin class _$SnAccountProfileCopyWith<$Res> implements $SnAccountProfi
   factory _$SnAccountProfileCopyWith(_SnAccountProfile value, $Res Function(_SnAccountProfile) _then) = __$SnAccountProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday,@ProfileLinkConverter() List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double socialCredits, int socialCreditsLevel, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String firstName, String middleName, String lastName, String bio, String gender, String pronouns, String location, String timeZone, DateTime? birthday,@ProfileLinkConverter() List<ProfileLink> links, DateTime? lastSeenAt, SnAccountBadge? activeBadge, int experience, int level, double socialCredits, int socialCreditsLevel, double levelingProgress, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, UsernameColor? usernameColor, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnAccountBadgeCopyWith<$Res>? get activeBadge;@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;
+@override $SnAccountBadgeCopyWith<$Res>? get activeBadge;@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;@override $UsernameColorCopyWith<$Res>? get usernameColor;
 
 }
 /// @nodoc
@@ -968,7 +1256,7 @@ class __$SnAccountProfileCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? links = null,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? socialCredits = null,Object? socialCreditsLevel = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? links = null,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? socialCredits = null,Object? socialCreditsLevel = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? usernameColor = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAccountProfile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -991,7 +1279,8 @@ as int,levelingProgress: null == levelingProgress ? _self.levelingProgress : lev
 as double,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SnVerificationMark?,usernameColor: freezed == usernameColor ? _self.usernameColor : usernameColor // ignore: cast_nullable_to_non_nullable
+as UsernameColor?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -1045,6 +1334,18 @@ $SnVerificationMarkCopyWith<$Res>? get verification {
 
   return $SnVerificationMarkCopyWith<$Res>(_self.verification!, (value) {
     return _then(_self.copyWith(verification: value));
+  });
+}/// Create a copy of SnAccountProfile
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UsernameColorCopyWith<$Res>? get usernameColor {
+    if (_self.usernameColor == null) {
+    return null;
+  }
+
+  return $UsernameColorCopyWith<$Res>(_self.usernameColor!, (value) {
+    return _then(_self.copyWith(usernameColor: value));
   });
 }
 }

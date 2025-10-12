@@ -56,6 +56,19 @@ class ProfileLinkConverter
 }
 
 @freezed
+sealed class UsernameColor with _$UsernameColor {
+  const factory UsernameColor({
+    @Default('plain') String type,
+    String? value,
+    String? direction,
+    List<String>? colors,
+  }) = _UsernameColor;
+
+  factory UsernameColor.fromJson(Map<String, dynamic> json) =>
+      _$UsernameColorFromJson(json);
+}
+
+@freezed
 sealed class SnAccountProfile with _$SnAccountProfile {
   const factory SnAccountProfile({
     required String id,
@@ -79,6 +92,7 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     required SnCloudFile? picture,
     required SnCloudFile? background,
     required SnVerificationMark? verification,
+    UsernameColor? usernameColor,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,

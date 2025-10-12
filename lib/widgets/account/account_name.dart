@@ -6,6 +6,25 @@ import 'package:island/models/wallet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 
+const Map<String, Color> kUsernamePlainColors = {
+  'red': Colors.red,
+  'blue': Colors.blue,
+  'green': Colors.green,
+  'yellow': Colors.yellow,
+  'purple': Colors.purple,
+  'orange': Colors.orange,
+  'pink': Colors.pink,
+  'cyan': Colors.cyan,
+  'lime': Colors.lime,
+  'indigo': Colors.indigo,
+  'teal': Colors.teal,
+  'amber': Colors.amber,
+  'brown': Colors.brown,
+  'grey': Colors.grey,
+  'black': Colors.black,
+  'white': Colors.white,
+};
+
 const kVerificationMarkColors = [
   Colors.teal,
   Colors.blue,
@@ -17,12 +36,175 @@ const kVerificationMarkColors = [
 class AccountName extends StatelessWidget {
   final SnAccount account;
   final TextStyle? style;
-  const AccountName({super.key, required this.account, this.style});
+  final bool ignorePermissions;
+  const AccountName({
+    super.key,
+    required this.account,
+    this.style,
+    this.ignorePermissions = false,
+  });
+
+  Alignment _parseGradientDirection(String direction) {
+    switch (direction) {
+      case 'to right':
+        return Alignment.centerLeft;
+      case 'to left':
+        return Alignment.centerRight;
+      case 'to bottom':
+        return Alignment.topCenter;
+      case 'to top':
+        return Alignment.bottomCenter;
+      case 'to bottom right':
+        return Alignment.topLeft;
+      case 'to bottom left':
+        return Alignment.topRight;
+      case 'to top right':
+        return Alignment.bottomLeft;
+      case 'to top left':
+        return Alignment.bottomRight;
+      default:
+        return Alignment.centerLeft;
+    }
+  }
+
+  Alignment _parseGradientEnd(String direction) {
+    switch (direction) {
+      case 'to right':
+        return Alignment.centerRight;
+      case 'to left':
+        return Alignment.centerLeft;
+      case 'to bottom':
+        return Alignment.bottomCenter;
+      case 'to top':
+        return Alignment.topCenter;
+      case 'to bottom right':
+        return Alignment.bottomRight;
+      case 'to bottom left':
+        return Alignment.bottomLeft;
+      case 'to top right':
+        return Alignment.topRight;
+      case 'to top left':
+        return Alignment.topLeft;
+      default:
+        return Alignment.centerRight;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     var nameStyle = (style ?? TextStyle());
-    if (account.perkSubscription != null) {
+
+    // Apply username color based on membership tier and custom settings
+    if (account.profile.usernameColor != null) {
+      final usernameColor = account.profile.usernameColor!;
+      final tier = account.perkSubscription?.identifier;
+
+      // Check tier restrictions
+      final canUseCustomColor =
+          ignorePermissions ||
+          switch (tier) {
+            'solian.stellar.primary' =>
+              usernameColor.type == 'plain' &&
+                  kUsernamePlainColors.containsKey(usernameColor.value),
+            'solian.stellar.nova' => usernameColor.type == 'plain',
+            'solian.stellar.supernova' => true,
+            _ => false,
+          };
+
+      if (canUseCustomColor) {
+        if (usernameColor.type == 'plain') {
+          // Plain color
+          Color? color;
+          if (kUsernamePlainColors.containsKey(usernameColor.value)) {
+            color = kUsernamePlainColors[usernameColor.value];
+          } else if (usernameColor.value != null) {
+            // Try to parse hex color
+            try {
+              color = Color(
+                int.parse(
+                      usernameColor.value!.replaceFirst('#', ''),
+                      radix: 16,
+                    ) +
+                    0xFF000000,
+              );
+            } catch (_) {
+              // Invalid hex, ignore
+            }
+          }
+          if (color != null) {
+            nameStyle = nameStyle.copyWith(color: color);
+          }
+        } else if (usernameColor.type == 'gradient' &&
+            usernameColor.colors != null &&
+            usernameColor.colors!.isNotEmpty) {
+          // Gradient - use ShaderMask for text gradient
+          final colors = <Color>[];
+          for (final colorStr in usernameColor.colors!) {
+            Color? color;
+            if (kUsernamePlainColors.containsKey(colorStr)) {
+              color = kUsernamePlainColors[colorStr];
+            } else {
+              // Try to parse hex color
+              try {
+                color = Color(
+                  int.parse(colorStr.replaceFirst('#', ''), radix: 16) +
+                      0xFF000000,
+                );
+              } catch (_) {
+                // Invalid hex, skip
+                continue;
+              }
+            }
+            if (color != null) {
+              colors.add(color);
+            }
+          }
+
+          if (colors.isNotEmpty) {
+            final gradient = LinearGradient(
+              colors: colors,
+              begin: _parseGradientDirection(
+                usernameColor.direction ?? 'to right',
+              ),
+              end: _parseGradientEnd(usernameColor.direction ?? 'to right'),
+            );
+
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [
+                Flexible(
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => gradient.createShader(bounds),
+                    child: Text(
+                      account.nick,
+                      style: nameStyle.copyWith(color: Colors.white),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                if (account.perkSubscription != null)
+                  StellarMembershipMark(membership: account.perkSubscription!),
+                if (account.profile.verification != null)
+                  VerificationMark(mark: account.profile.verification!),
+                if (account.automatedId != null)
+                  Tooltip(
+                    message: 'accountAutomated'.tr(),
+                    child: Icon(
+                      Symbols.smart_toy,
+                      size: 16,
+                      color: nameStyle.color,
+                      fill: 1,
+                    ),
+                  ),
+              ],
+            );
+          }
+        }
+      }
+    } else if (account.perkSubscription != null) {
+      // Default membership colors if no custom color is set
       nameStyle = nameStyle.copyWith(
         color: (switch (account.perkSubscription!.identifier) {
           'solian.stellar.primary' => Colors.blueAccent,
