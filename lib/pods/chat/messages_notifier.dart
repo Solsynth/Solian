@@ -320,16 +320,6 @@ class MessagesNotifier extends _$MessagesNotifier {
       final response = MessageSyncResponse.fromJson(resp.data);
       talker.log('Sync response: ${response.messages.length} changes');
       for (final message in response.messages) {
-        switch (message.type) {
-          case "messages.update":
-          case "messages.update.links":
-            await receiveMessageUpdate(message);
-            break;
-          case "messages.delete":
-            await receiveMessageDeletion(message.id.toString());
-            break;
-        }
-        // Still need receive the message to show the history actions
         await receiveMessage(message);
       }
     } catch (err, stackTrace) {
@@ -701,12 +691,12 @@ class MessagesNotifier extends _$MessagesNotifier {
     talker.log('Received message update ${remoteMessage.id}');
 
     final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
-    final ogMessage = await fetchMessageById(targetId);
     final updatedMessage = LocalChatMessage.fromRemoteMessage(
       remoteMessage.copyWith(
         id: targetId,
         meta: Map.of(remoteMessage.meta)..remove('message_id'),
-        type: ogMessage?.type ?? 'text',
+        type: 'text',
+        editedAt: remoteMessage.createdAt,
       ),
       MessageStatus.sent,
     );
