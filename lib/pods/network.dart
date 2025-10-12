@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
@@ -108,6 +109,16 @@ final apiClientProvider = Provider<Dio>((ref) {
         printRequestData: false,
         printResponseData: false,
       ),
+    ),
+    RetryInterceptor(
+      dio: dio,
+      retries: 3,
+      retryDelays: const [
+        Duration(seconds: 1),
+        Duration(seconds: 2),
+        Duration(seconds: 3),
+      ],
+      retryEvaluator: (err, _) => err.requestOptions.method == 'GET',
     ),
   ]);
 
