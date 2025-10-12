@@ -1251,5 +1251,6 @@
     "preview": "Preview",
     "availableWithYourPlan": "Available with your plan",
     "upgradeRequired": "Upgrade required",
-    "settingsDisableAnimation": "Disable Animation"
+    "settingsDisableAnimation": "Disable Animation",
+    "addTag": "Add Tag"
 }

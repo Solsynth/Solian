@@ -75,7 +75,7 @@ class ComposeSubmitUtils {
         'type': state.postType,
         if (repliedPost != null) 'replied_post_id': repliedPost.id,
         if (forwardedPost != null) 'forwarded_post_id': forwardedPost.id,
-        'tags': state.tagsController.getTags,
+        'tags': state.tags.value,
         'categories': state.categories.value.map((e) => e.slug).toList(),
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
