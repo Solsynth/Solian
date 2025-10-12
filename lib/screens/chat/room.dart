@@ -535,7 +535,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       listController: listController,
       padding: EdgeInsets.only(
         top: 16,
-        bottom: 80 + MediaQuery.of(context).padding.bottom,
+        bottom: MediaQuery.of(context).padding.bottom + 16,
       ),
       controller: scrollController,
       reverse: true, // Show newest messages at the bottom
@@ -687,91 +687,92 @@ class ChatRoomScreen extends HookConsumerWidget {
       ),
       body: Stack(
         children: [
-          // Messages
+          // Messages and Input in Column
           Positioned.fill(
-            child: messages.when(
-              data:
-                  (messageList) =>
-                      messageList.isEmpty
-                          ? Center(child: Text('No messages yet'.tr()))
-                          : chatMessageListWidget(messageList),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error:
-                  (error, _) => ResponseErrorWidget(
-                    error: error,
-                    onRetry: () => messagesNotifier.loadInitial(),
+            child: Column(
+              children: [
+                Expanded(
+                  child: messages.when(
+                    data:
+                        (messageList) =>
+                            messageList.isEmpty
+                                ? Center(child: Text('No messages yet'.tr()))
+                                : chatMessageListWidget(messageList),
+                    loading:
+                        () => const Center(child: CircularProgressIndicator()),
+                    error:
+                        (error, _) => ResponseErrorWidget(
+                          error: error,
+                          onRetry: () => messagesNotifier.loadInitial(),
+                        ),
                   ),
-            ),
-          ),
-          // Input
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: chatRoom.when(
-              data:
-                  (room) => Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ChatInput(
-                        messageController: messageController,
-                        chatRoom: room!,
-                        onSend: sendMessage,
-                        onClear: () {
-                          if (messageEditingTo.value != null) {
-                            attachments.value.clear();
-                            messageController.clear();
-                          }
-                          messageEditingTo.value = null;
-                          messageReplyingTo.value = null;
-                          messageForwardingTo.value = null;
-                        },
-                        messageEditingTo: messageEditingTo.value,
-                        messageReplyingTo: messageReplyingTo.value,
-                        messageForwardingTo: messageForwardingTo.value,
-                        onPickFile: (bool isPhoto) {
-                          if (isPhoto) {
-                            pickPhotoMedia();
-                          } else {
-                            pickVideoMedia();
-                          }
-                        },
-                        onPickAudio: pickAudioMedia,
-                        onPickGeneralFile: pickGeneralFile,
-                        onLinkAttachment: linkAttachment,
-                        attachments: attachments.value,
-                        onUploadAttachment: uploadAttachment,
-                        onDeleteAttachment: (index) async {
-                          final attachment = attachments.value[index];
-                          if (attachment.isOnCloud && !attachment.isLink) {
-                            final client = ref.watch(apiClientProvider);
-                            await client.delete(
-                              '/drive/files/${attachment.data.id}',
-                            );
-                          }
-                          final clone = List.of(attachments.value);
-                          clone.removeAt(index);
-                          attachments.value = clone;
-                        },
-                        onMoveAttachment: (idx, delta) {
-                          if (idx + delta < 0 ||
-                              idx + delta >= attachments.value.length) {
-                            return;
-                          }
-                          final clone = List.of(attachments.value);
-                          clone.insert(idx + delta, clone.removeAt(idx));
-                          attachments.value = clone;
-                        },
-                        onAttachmentsChanged: (newAttachments) {
-                          attachments.value = newAttachments;
-                        },
-                        attachmentProgress: attachmentProgress.value,
+                ),
+                chatRoom.when(
+                  data:
+                      (room) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ChatInput(
+                            messageController: messageController,
+                            chatRoom: room!,
+                            onSend: sendMessage,
+                            onClear: () {
+                              if (messageEditingTo.value != null) {
+                                attachments.value.clear();
+                                messageController.clear();
+                              }
+                              messageEditingTo.value = null;
+                              messageReplyingTo.value = null;
+                              messageForwardingTo.value = null;
+                            },
+                            messageEditingTo: messageEditingTo.value,
+                            messageReplyingTo: messageReplyingTo.value,
+                            messageForwardingTo: messageForwardingTo.value,
+                            onPickFile: (bool isPhoto) {
+                              if (isPhoto) {
+                                pickPhotoMedia();
+                              } else {
+                                pickVideoMedia();
+                              }
+                            },
+                            onPickAudio: pickAudioMedia,
+                            onPickGeneralFile: pickGeneralFile,
+                            onLinkAttachment: linkAttachment,
+                            attachments: attachments.value,
+                            onUploadAttachment: uploadAttachment,
+                            onDeleteAttachment: (index) async {
+                              final attachment = attachments.value[index];
+                              if (attachment.isOnCloud && !attachment.isLink) {
+                                final client = ref.watch(apiClientProvider);
+                                await client.delete(
+                                  '/drive/files/${attachment.data.id}',
+                                );
+                              }
+                              final clone = List.of(attachments.value);
+                              clone.removeAt(index);
+                              attachments.value = clone;
+                            },
+                            onMoveAttachment: (idx, delta) {
+                              if (idx + delta < 0 ||
+                                  idx + delta >= attachments.value.length) {
+                                return;
+                              }
+                              final clone = List.of(attachments.value);
+                              clone.insert(idx + delta, clone.removeAt(idx));
+                              attachments.value = clone;
+                            },
+                            onAttachmentsChanged: (newAttachments) {
+                              attachments.value = newAttachments;
+                            },
+                            attachmentProgress: attachmentProgress.value,
+                          ),
+                          Gap(MediaQuery.of(context).padding.bottom),
+                        ],
                       ),
-                      Gap(MediaQuery.of(context).padding.bottom),
-                    ],
-                  ),
-              error: (_, _) => const SizedBox.shrink(),
-              loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                  loading: () => const SizedBox.shrink(),
+                ),
+              ],
             ),
           ),
           Positioned(

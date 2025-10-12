@@ -225,86 +225,200 @@ class ChatInput extends HookConsumerWidget {
                           key: ValueKey('typing-indicator-none'),
                         ),
               ),
-              if (attachments.isNotEmpty)
-                SizedBox(
-                  height: 180,
-                  child: ListView.separated(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: attachments.length,
-                    itemBuilder: (context, idx) {
-                      return SizedBox(
-                        width: 180,
-                        child: AttachmentPreview(
-                          isCompact: true,
-                          item: attachments[idx],
-                          progress: attachmentProgress['chat-upload']?[idx],
-                          onRequestUpload: () => onUploadAttachment(idx),
-                          onDelete: () => onDeleteAttachment(idx),
-                          onUpdate: (value) {
-                            attachments[idx] = value;
-                            onAttachmentsChanged(attachments);
-                          },
-                          onMove: (delta) => onMoveAttachment(idx, delta),
-                        ),
-                      );
-                    },
-                    separatorBuilder: (_, _) => const Gap(8),
-                  ),
-                ).padding(vertical: 12),
-              if (messageReplyingTo != null ||
-                  messageForwardingTo != null ||
-                  messageEditingTo != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(32),
-                  ),
-                  margin: const EdgeInsets.only(
-                    left: 8,
-                    right: 8,
-                    top: 8,
-                    bottom: 4,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        messageReplyingTo != null
-                            ? Symbols.reply
-                            : messageForwardingTo != null
-                            ? Symbols.forward
-                            : Symbols.edit,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.primary,
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.1),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(
+                        sizeFactor: animation,
+                        axisAlignment: -1.0,
+                        child: child,
                       ),
-                      const Gap(8),
-                      Expanded(
-                        child: Text(
-                          messageReplyingTo != null
-                              ? 'Replying to ${messageReplyingTo?.sender.account.nick}'
-                              : messageForwardingTo != null
-                              ? 'Forwarding message'
-                              : 'Editing message',
-                          style: Theme.of(context).textTheme.bodySmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                },
+                child:
+                    attachments.isNotEmpty
+                        ? SizedBox(
+                          key: ValueKey('attachments-${attachments.length}'),
+                          height: 180,
+                          child: ListView.separated(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: attachments.length,
+                            itemBuilder: (context, idx) {
+                              return SizedBox(
+                                width: 180,
+                                child: AttachmentPreview(
+                                  isCompact: true,
+                                  item: attachments[idx],
+                                  progress:
+                                      attachmentProgress['chat-upload']?[idx],
+                                  onRequestUpload:
+                                      () => onUploadAttachment(idx),
+                                  onDelete: () => onDeleteAttachment(idx),
+                                  onUpdate: (value) {
+                                    attachments[idx] = value;
+                                    onAttachmentsChanged(attachments);
+                                  },
+                                  onMove:
+                                      (delta) => onMoveAttachment(idx, delta),
+                                ),
+                              );
+                            },
+                            separatorBuilder: (_, _) => const Gap(8),
+                          ),
+                        ).padding(vertical: 12)
+                        : const SizedBox.shrink(
+                          key: ValueKey('no-attachments'),
                         ),
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, -0.2),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(
+                        sizeFactor: animation,
+                        axisAlignment: -1.0,
+                        child: child,
                       ),
-                      SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: InkWell(
-                          onTap: onClear,
-                          child: const Icon(Icons.close, size: 20).center(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
+                child:
+                    (messageReplyingTo != null ||
+                            messageForwardingTo != null ||
+                            messageEditingTo != null)
+                        ? Container(
+                          key: ValueKey(
+                            messageReplyingTo?.id ??
+                                messageForwardingTo?.id ??
+                                messageEditingTo?.id ??
+                                'action',
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outline.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          margin: const EdgeInsets.only(
+                            left: 8,
+                            right: 8,
+                            top: 8,
+                            bottom: 8,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    messageReplyingTo != null
+                                        ? Symbols.reply
+                                        : messageForwardingTo != null
+                                        ? Symbols.forward
+                                        : Symbols.edit,
+                                    size: 18,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                  const Gap(8),
+                                  Expanded(
+                                    child: Text(
+                                      messageReplyingTo != null
+                                          ? 'chatReplyingTo'.tr(
+                                            args: [
+                                              messageReplyingTo
+                                                      ?.sender
+                                                      .account
+                                                      .nick ??
+                                                  'unknown'.tr(),
+                                            ],
+                                          )
+                                          : messageForwardingTo != null
+                                          ? 'chatForwarding'.tr()
+                                          : 'chatEditing'.tr(),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall!.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: IconButton(
+                                      padding: EdgeInsets.zero,
+                                      icon: const Icon(Icons.close, size: 18),
+                                      onPressed: onClear,
+                                      tooltip: 'clear'.tr(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (messageReplyingTo != null ||
+                                  messageForwardingTo != null ||
+                                  messageEditingTo != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 6,
+                                    left: 26,
+                                  ),
+                                  child: Text(
+                                    (messageReplyingTo ??
+                                                messageForwardingTo ??
+                                                messageEditingTo)
+                                            ?.content ??
+                                        'chatNoContent'.tr(),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall!.copyWith(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        )
+                        : const SizedBox.shrink(key: ValueKey('no-action')),
+              ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
