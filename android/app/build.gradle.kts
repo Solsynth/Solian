@@ -25,12 +25,7 @@ android {
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
-
-    kotlinOptions { jvmTarget = JavaVersion.VERSION_17.toString() }
 
     defaultConfig {
         applicationId = "dev.solsynth.solian"
@@ -74,4 +69,18 @@ dependencies {
 
 flutter {
     source = "../.."
+}
+
+
+kotlin {
+  compilerOptions {
+      jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+  }
+  jvmToolchain(21)
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
