@@ -701,10 +701,12 @@ class MessagesNotifier extends _$MessagesNotifier {
     talker.log('Received message update ${remoteMessage.id}');
 
     final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
+    final ogMessage = await fetchMessageById(targetId);
     final updatedMessage = LocalChatMessage.fromRemoteMessage(
       remoteMessage.copyWith(
         id: targetId,
         meta: Map.of(remoteMessage.meta)..remove('message_id'),
+        type: ogMessage?.type ?? 'text',
       ),
       MessageStatus.sent,
     );
