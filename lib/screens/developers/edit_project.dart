@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/dev_project.dart';
 import 'package:island/pods/network.dart';
-import 'package:island/screens/developers/projects.dart';
+import 'package:island/screens/developers/hub.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';

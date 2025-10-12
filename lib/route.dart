@@ -10,13 +10,11 @@ import 'package:island/screens/developers/app_detail.dart';
 import 'package:island/screens/developers/bot_detail.dart';
 import 'package:island/screens/developers/edit_app.dart';
 import 'package:island/screens/developers/edit_bot.dart';
-import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/hub.dart';
+import 'package:island/screens/developers/new_app.dart';
 import 'package:island/screens/developers/new_bot.dart';
-import 'package:island/screens/developers/projects.dart';
 import 'package:island/screens/developers/edit_project.dart';
 import 'package:island/screens/developers/new_project.dart';
-import 'package:island/screens/developers/project_detail.dart';
 import 'package:island/screens/discovery/articles.dart';
 import 'package:island/screens/files/file_list.dart';
 import 'package:island/screens/posts/post_categories_list.dart';
@@ -224,27 +222,18 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          ShellRoute(
+          GoRoute(
+            name: 'developerHub',
+            path: '/developers',
             builder:
-                (context, state, child) =>
-                    DeveloperHubShellScreen(child: child),
+                (context, state) => DeveloperHubScreen(
+                  initialPublisherName: state.uri.queryParameters['publisher'],
+                  initialProjectId: state.uri.queryParameters['project'],
+                ),
             routes: [
               GoRoute(
-                name: 'developerHub',
-                path: '/developers',
-                builder: (context, state) => const DeveloperHubScreen(),
-              ),
-              GoRoute(
-                name: 'developerProjects',
-                path: '/developers/:name/projects',
-                builder:
-                    (context, state) => DevProjectsScreen(
-                      publisherName: state.pathParameters['name']!,
-                    ),
-              ),
-              GoRoute(
                 name: 'developerProjectNew',
-                path: '/developers/:name/projects/new',
+                path: ':name/projects/new',
                 builder:
                     (context, state) => NewProjectScreen(
                       publisherName: state.pathParameters['name']!,
@@ -252,7 +241,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'developerProjectEdit',
-                path: '/developers/:name/projects/:id/edit',
+                path: ':name/projects/:id/edit',
                 builder:
                     (context, state) => EditProjectScreen(
                       publisherName: state.pathParameters['name']!,
@@ -261,12 +250,18 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 name: 'developerProjectDetail',
-                path: '/developers/:name/projects/:projectId',
-                builder:
-                    (context, state) => ProjectDetailScreen(
-                      publisherName: state.pathParameters['name']!,
-                      projectId: state.pathParameters['projectId']!,
-                    ),
+                path: ':name/projects/:projectId',
+                builder: (context, state) {
+                  final name = state.pathParameters['name']!;
+                  final projectId = state.pathParameters['projectId']!;
+                  // Redirect to hub with project selected
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    context.go(
+                      '/developers?publisher=$name&project=$projectId',
+                    );
+                  });
+                  return const SizedBox.shrink(); // Temporary placeholder
+                },
                 routes: [
                   GoRoute(
                     name: 'developerAppNew',

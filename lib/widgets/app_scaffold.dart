@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/route.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/screens/tabs.dart';
@@ -67,6 +68,28 @@ class WindowScaffold extends HookConsumerWidget {
       return null;
     }, []);
 
+    final pageButtonActions = [
+      IconButton(
+        icon: Icon(Symbols.keyboard_arrow_left),
+        onPressed:
+            ref.watch(routerProvider).canPop()
+                ? () => ref.read(routerProvider).pop()
+                : null,
+        iconSize: 16,
+        padding: EdgeInsets.all(8),
+        constraints: BoxConstraints(),
+        color: Theme.of(context).iconTheme.color,
+      ),
+      IconButton(
+        icon: Icon(Symbols.home),
+        onPressed: () => ref.read(routerProvider).go('/'),
+        iconSize: 16,
+        padding: EdgeInsets.all(8),
+        constraints: BoxConstraints(),
+        color: Theme.of(context).iconTheme.color,
+      ),
+    ];
+
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       return Material(
@@ -77,21 +100,34 @@ class WindowScaffold extends HookConsumerWidget {
             Column(
               children: [
                 DragToMoveArea(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment:
-                        Platform.isMacOS
-                            ? MainAxisAlignment.center
-                            : MainAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child:
-                            Platform.isMacOS
-                                ? Text(
-                                  'Solar Network',
-                                  textAlign: TextAlign.center,
-                                ).padding(horizontal: 12, vertical: 5)
-                                : Row(
+                  child:
+                      Platform.isMacOS
+                          ? Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Row(
+                                children: [
+                                  if (Platform.isMacOS)
+                                    const SizedBox(width: 80),
+                                  ...pageButtonActions,
+                                ],
+                              ),
+                              Text(
+                                'Solar Network',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          )
+                          : Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Row(
                                   children: [
                                     Image.asset(
                                       Theme.of(context).brightness ==
@@ -108,46 +144,43 @@ class WindowScaffold extends HookConsumerWidget {
                                     ),
                                   ],
                                 ).padding(horizontal: 12, vertical: 5),
-                      ),
-                      if (!Platform.isMacOS)
-                        ...([
-                          IconButton(
-                            icon: Icon(Symbols.minimize),
-                            onPressed: () => windowManager.minimize(),
-                            iconSize: 16,
-                            padding: EdgeInsets.all(8),
-                            constraints: BoxConstraints(),
-                            color: Theme.of(context).iconTheme.color,
+                              ),
+                              IconButton(
+                                icon: Icon(Symbols.minimize),
+                                onPressed: () => windowManager.minimize(),
+                                iconSize: 16,
+                                padding: EdgeInsets.all(8),
+                                constraints: BoxConstraints(),
+                                color: Theme.of(context).iconTheme.color,
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  isMaximized.value
+                                      ? Symbols.fullscreen_exit
+                                      : Symbols.fullscreen,
+                                ),
+                                onPressed: () async {
+                                  if (await windowManager.isMaximized()) {
+                                    windowManager.restore();
+                                  } else {
+                                    windowManager.maximize();
+                                  }
+                                },
+                                iconSize: 16,
+                                padding: EdgeInsets.all(8),
+                                constraints: BoxConstraints(),
+                                color: Theme.of(context).iconTheme.color,
+                              ),
+                              IconButton(
+                                icon: Icon(Symbols.close),
+                                onPressed: () => windowManager.hide(),
+                                iconSize: 16,
+                                padding: EdgeInsets.all(8),
+                                constraints: BoxConstraints(),
+                                color: Theme.of(context).iconTheme.color,
+                              ),
+                            ],
                           ),
-                          IconButton(
-                            icon: Icon(
-                              isMaximized.value
-                                  ? Symbols.fullscreen_exit
-                                  : Symbols.fullscreen,
-                            ),
-                            onPressed: () async {
-                              if (await windowManager.isMaximized()) {
-                                windowManager.restore();
-                              } else {
-                                windowManager.maximize();
-                              }
-                            },
-                            iconSize: 16,
-                            padding: EdgeInsets.all(8),
-                            constraints: BoxConstraints(),
-                            color: Theme.of(context).iconTheme.color,
-                          ),
-                          IconButton(
-                            icon: Icon(Symbols.close),
-                            onPressed: () => windowManager.hide(),
-                            iconSize: 16,
-                            padding: EdgeInsets.all(8),
-                            constraints: BoxConstraints(),
-                            color: Theme.of(context).iconTheme.color,
-                          ),
-                        ]),
-                    ],
-                  ),
                 ),
                 Expanded(child: child),
               ],
@@ -328,6 +361,11 @@ class PageBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop =
+        !kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
+
+    if (isDesktop) return const SizedBox.shrink();
+
     return IconButton(
       onPressed: () {
         onWillPop?.call();

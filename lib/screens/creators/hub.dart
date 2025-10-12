@@ -109,6 +109,7 @@ class PublisherSelector extends StatelessWidget {
   final bool isReadOnly;
 
   const PublisherSelector({
+    super.key,
     required this.currentPublisher,
     required this.publishersMenu,
     this.onChanged,
