@@ -561,59 +561,77 @@ class ChatRoomScreen extends HookConsumerWidget {
                     .abs() >
                 3;
 
-        final key = ValueKey('$messageKeyPrefix${message.id}');
+        // Use a stable animation key that doesn't change during message lifecycle
+        final animationKey = ValueKey(
+          'message-anim-${message.nonce ?? message.id}',
+        );
 
-        return chatIdentity.when(
-          skipError: true,
-          data:
-              (identity) => MessageItem(
-                key: key,
-                message: message,
-                isCurrentUser: identity?.id == message.senderId,
-                onAction: (action) {
-                  switch (action) {
-                    case MessageItemAction.delete:
-                      messagesNotifier.deleteMessage(message.id);
-                    case MessageItemAction.edit:
-                      messageEditingTo.value = message.toRemoteMessage();
-                      messageController.text =
-                          messageEditingTo.value?.content ?? '';
-                      attachments.value =
-                          messageEditingTo.value!.attachments
-                              .map((e) => UniversalFile.fromAttachment(e))
-                              .toList();
-                    case MessageItemAction.forward:
-                      messageForwardingTo.value = message.toRemoteMessage();
-                    case MessageItemAction.reply:
-                      messageReplyingTo.value = message.toRemoteMessage();
-                    case MessageItemAction.resend:
-                      messagesNotifier.retryMessage(message.id);
-                  }
-                },
-                onJump: (messageId) {
-                  scrollToMessage(
-                    messageId: messageId,
-                    messageList: messageList,
-                    messagesNotifier: messagesNotifier,
-                    listController: listController,
-                    scrollController: scrollController,
-                    ref: ref,
-                  );
-                },
-                progress: attachmentProgress.value[message.id],
-                showAvatar: isLastInGroup,
-              ),
-          loading:
-              () => MessageItem(
-                key: key,
-                message: message,
-                isCurrentUser: false,
-                onAction: null,
-                progress: null,
-                showAvatar: false,
-                onJump: (_) {},
-              ),
-          error: (_, _) => SizedBox.shrink(key: key),
+        return TweenAnimationBuilder<double>(
+          key: animationKey,
+          tween: Tween<double>(begin: 0.0, end: 1.0),
+          duration: Duration(
+            milliseconds: 400 + (index % 5) * 50,
+          ), // Staggered delay
+          curve: Curves.easeOutCubic,
+          builder: (context, animationValue, child) {
+            return Transform.translate(
+              offset: Offset(
+                0,
+                20 * (1 - animationValue),
+              ), // Slide up from bottom
+              child: Opacity(opacity: animationValue, child: child),
+            );
+          },
+          child: chatIdentity.when(
+            skipError: true,
+            data:
+                (identity) => MessageItem(
+                  message: message,
+                  isCurrentUser: identity?.id == message.senderId,
+                  onAction: (action) {
+                    switch (action) {
+                      case MessageItemAction.delete:
+                        messagesNotifier.deleteMessage(message.id);
+                      case MessageItemAction.edit:
+                        messageEditingTo.value = message.toRemoteMessage();
+                        messageController.text =
+                            messageEditingTo.value?.content ?? '';
+                        attachments.value =
+                            messageEditingTo.value!.attachments
+                                .map((e) => UniversalFile.fromAttachment(e))
+                                .toList();
+                      case MessageItemAction.forward:
+                        messageForwardingTo.value = message.toRemoteMessage();
+                      case MessageItemAction.reply:
+                        messageReplyingTo.value = message.toRemoteMessage();
+                      case MessageItemAction.resend:
+                        messagesNotifier.retryMessage(message.id);
+                    }
+                  },
+                  onJump: (messageId) {
+                    scrollToMessage(
+                      messageId: messageId,
+                      messageList: messageList,
+                      messagesNotifier: messagesNotifier,
+                      listController: listController,
+                      scrollController: scrollController,
+                      ref: ref,
+                    );
+                  },
+                  progress: attachmentProgress.value[message.id],
+                  showAvatar: isLastInGroup,
+                ),
+            loading:
+                () => MessageItem(
+                  message: message,
+                  isCurrentUser: false,
+                  onAction: null,
+                  progress: null,
+                  showAvatar: false,
+                  onJump: (_) {},
+                ),
+            error: (_, _) => SizedBox.shrink(),
+          ),
         );
       },
     );
@@ -692,19 +710,43 @@ class ChatRoomScreen extends HookConsumerWidget {
             child: Column(
               children: [
                 Expanded(
-                  child: messages.when(
-                    data:
-                        (messageList) =>
-                            messageList.isEmpty
-                                ? Center(child: Text('No messages yet'.tr()))
-                                : chatMessageListWidget(messageList),
-                    loading:
-                        () => const Center(child: CircularProgressIndicator()),
-                    error:
-                        (error, _) => ResponseErrorWidget(
-                          error: error,
-                          onRetry: () => messagesNotifier.loadInitial(),
-                        ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (
+                      Widget child,
+                      Animation<double> animation,
+                    ) {
+                      return SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.05),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: FadeTransition(opacity: animation, child: child),
+                      );
+                    },
+                    child: messages.when(
+                      data:
+                          (messageList) =>
+                              messageList.isEmpty
+                                  ? Center(
+                                    key: const ValueKey('empty-messages'),
+                                    child: Text('No messages yet'.tr()),
+                                  )
+                                  : chatMessageListWidget(messageList),
+                      loading:
+                          () => const Center(
+                            key: ValueKey('loading-messages'),
+                            child: CircularProgressIndicator(),
+                          ),
+                      error:
+                          (error, _) => ResponseErrorWidget(
+                            key: const ValueKey('error-messages'),
+                            error: error,
+                            onRetry: () => messagesNotifier.loadInitial(),
+                          ),
+                    ),
                   ),
                 ),
                 chatRoom.when(
