@@ -106,10 +106,13 @@ class CreatorPollListScreen extends HookConsumerWidget {
                         return endItemView;
                       }
                       final pollWithStats = data.items[index];
-                      return _CreatorPollItem(
-                        pollWithStats: pollWithStats,
-                        pubName: pubName,
-                      );
+                      return ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 640),
+                        child: _CreatorPollItem(
+                          pollWithStats: pollWithStats,
+                          pubName: pubName,
+                        ),
+                      ).center();
                     },
                   ),
             ),

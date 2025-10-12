@@ -175,7 +175,7 @@ class AccountScreen extends HookConsumerWidget {
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {
-                        context.pushNamed('creatorHub');
+                        context.goNamed('creatorHub');
                       },
                     ),
                   ).height(140),

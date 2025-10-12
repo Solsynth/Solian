@@ -50,7 +50,6 @@ import 'package:island/screens/discovery/feeds/feed_detail.dart';
 import 'package:island/screens/creators/poll/poll_list.dart';
 import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
-import 'package:island/screens/creators/webfeed/webfeed_edit.dart';
 import 'package:island/screens/poll/poll_editor.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/screens/posts/post_detail.dart';
@@ -162,27 +161,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final name = state.pathParameters['name']!;
                   return WebFeedListScreen(pubName: name);
                 },
-                routes: [
-                  GoRoute(
-                    name: 'creatorFeedNew',
-                    path: 'new',
-                    builder: (context, state) {
-                      return WebFeedNewScreen(
-                        pubName: state.pathParameters['name']!,
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    name: 'creatorFeedEdit',
-                    path: ':feedId',
-                    builder: (context, state) {
-                      return WebFeedEditScreen(
-                        pubName: state.pathParameters['name']!,
-                        feedId: state.pathParameters['feedId'],
-                      );
-                    },
-                  ),
-                ],
               ),
               GoRoute(
                 name: 'creatorPosts',
