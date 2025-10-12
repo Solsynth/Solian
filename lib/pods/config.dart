@@ -34,6 +34,7 @@ const kAppDefaultPoolId = 'app_default_pool_id';
 const kAppMessageDisplayStyle = 'app_message_display_style';
 const kAppThemeMode = 'app_theme_mode';
 const kMaterialYouToggleStoreKey = 'app_theme_material_you';
+const kAppDisableAnimation = 'app_disable_animation';
 const kFeaturedPostsCollapsedId =
     'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
 
@@ -96,6 +97,7 @@ sealed class AppSettings with _$AppSettings {
     required String messageDisplayStyle,
     required String? themeMode,
     required bool useMaterial3,
+    required bool disableAnimation,
   }) = _AppSettings;
 }
 
@@ -122,6 +124,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
       themeMode: prefs.getString(kAppThemeMode) ?? 'system',
       useMaterial3: prefs.getBool(kMaterialYouToggleStoreKey) ?? true,
+      disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
     );
   }
 
@@ -272,6 +275,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       prefs.remove(kAppCustomColorsStoreKey);
     }
     state = state.copyWith(customColors: value);
+  }
+
+  void setDisableAnimation(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDisableAnimation, value);
+    state = state.copyWith(disableAnimation: value);
   }
 }
 
