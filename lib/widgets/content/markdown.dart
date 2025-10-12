@@ -74,6 +74,20 @@ class MarkdownTextContent extends HookConsumerWidget {
       onTap: onMentionTap,
     );
 
+    final highlightGenerator = HighlightGenerator(
+      highlightColor: Theme.of(context).colorScheme.primaryContainer,
+    );
+
+    final spoilerRevealed = useState(false);
+
+    final spoilerGenerator = SpoilerGenerator(
+      backgroundColor: Theme.of(context).colorScheme.tertiary,
+      foregroundColor: Theme.of(context).colorScheme.onTertiary,
+      outlineColor: Theme.of(context).colorScheme.outline,
+      revealed: spoilerRevealed.value,
+      onToggle: () => spoilerRevealed.value = !spoilerRevealed.value,
+    );
+
     return MarkdownBlock(
       data: content,
       selectable: isSelectable,
@@ -214,7 +228,7 @@ class MarkdownTextContent extends HookConsumerWidget {
       generator: MarkdownTextContent.buildGenerator(
         isDark: isDark,
         linesMargin: linesMargin,
-        generators: [mentionGenerator],
+        generators: [mentionGenerator, highlightGenerator, spoilerGenerator],
       ),
     );
   }
@@ -222,12 +236,14 @@ class MarkdownTextContent extends HookConsumerWidget {
   static MarkdownGenerator buildGenerator({
     bool isDark = false,
     EdgeInsets? linesMargin,
-    List<SpanNodeGeneratorWithTag> generators = const [],
+    List<dynamic> generators = const [],
   }) {
     return MarkdownGenerator(
       generators: [latexGenerator, ...generators],
       inlineSyntaxList: [
         _MetionInlineSyntax(),
+        _HighlightInlineSyntax(),
+        _SpoilerInlineSyntax(),
         _StickerInlineSyntax(),
         LatexSyntax(isDark),
       ],
@@ -271,6 +287,32 @@ class _StickerInlineSyntax extends markdown.InlineSyntax {
     final image = markdown.Element.text('img', '')
       ..attributes['src'] = Uri.encodeFull('solian://stickers/$placeholder');
     parser.addNode(image);
+
+    return true;
+  }
+}
+
+class _HighlightInlineSyntax extends markdown.InlineSyntax {
+  _HighlightInlineSyntax() : super(r'==([^=]+)==');
+
+  @override
+  bool onMatch(markdown.InlineParser parser, Match match) {
+    final text = match[1]!;
+    final element = markdown.Element('highlight', [markdown.Text(text)]);
+    parser.addNode(element);
+
+    return true;
+  }
+}
+
+class _SpoilerInlineSyntax extends markdown.InlineSyntax {
+  _SpoilerInlineSyntax() : super(r'=!([^!]+)!=');
+
+  @override
+  bool onMatch(markdown.InlineParser parser, Match match) {
+    final text = match[1]!;
+    final element = markdown.Element('spoiler', [markdown.Text(text)]);
+    parser.addNode(element);
 
     return true;
   }
@@ -389,6 +431,118 @@ class MentionChipSpanNode extends SpanNode {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class HighlightGenerator extends SpanNodeGeneratorWithTag {
+  HighlightGenerator({required Color highlightColor})
+    : super(
+        tag: 'highlight',
+        generator: (
+          markdown.Element element,
+          MarkdownConfig config,
+          WidgetVisitor visitor,
+        ) {
+          return HighlightSpanNode(
+            text: element.textContent,
+            highlightColor: highlightColor,
+          );
+        },
+      );
+}
+
+class HighlightSpanNode extends SpanNode {
+  final String text;
+  final Color highlightColor;
+
+  HighlightSpanNode({required this.text, required this.highlightColor});
+
+  @override
+  InlineSpan build() {
+    return TextSpan(
+      text: text,
+      style: TextStyle(backgroundColor: highlightColor),
+    );
+  }
+}
+
+class SpoilerGenerator extends SpanNodeGeneratorWithTag {
+  SpoilerGenerator({
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required Color outlineColor,
+    required bool revealed,
+    required VoidCallback onToggle,
+  }) : super(
+         tag: 'spoiler',
+         generator: (
+           markdown.Element element,
+           MarkdownConfig config,
+           WidgetVisitor visitor,
+         ) {
+           return SpoilerSpanNode(
+             text: element.textContent,
+             backgroundColor: backgroundColor,
+             foregroundColor: foregroundColor,
+             outlineColor: outlineColor,
+             revealed: revealed,
+             onToggle: onToggle,
+           );
+         },
+       );
+}
+
+class SpoilerSpanNode extends SpanNode {
+  final String text;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color outlineColor;
+  final bool revealed;
+  final VoidCallback onToggle;
+
+  SpoilerSpanNode({
+    required this.text,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.outlineColor,
+    required this.revealed,
+    required this.onToggle,
+  });
+
+  @override
+  InlineSpan build() {
+    return WidgetSpan(
+      child: InkWell(
+        onTap: onToggle,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: revealed ? Colors.transparent : backgroundColor,
+            border: revealed ? Border.all(color: outlineColor, width: 1) : null,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child:
+              revealed
+                  ? Row(
+                    spacing: 6,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [Icon(Symbols.visibility, size: 18), Text(text)],
+                  )
+                  : Row(
+                    spacing: 6,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.visibility_off,
+                        color: foregroundColor,
+                        size: 18,
+                      ),
+                      Text(text, style: TextStyle(color: foregroundColor)),
+                    ],
+                  ),
         ),
       ),
     );
