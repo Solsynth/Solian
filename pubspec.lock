@@ -721,6 +721,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  fl_heatmap:
+    dependency: "direct main"
+    description:
+      name: fl_heatmap
+      sha256: "4f6849588d7733909fffc6f4a4c900ea8f54e0fbd50bc935e24357ac2fe1464d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.5"
   flutter:
     dependency: "direct main"
     description: flutter

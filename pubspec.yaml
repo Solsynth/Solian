@@ -161,6 +161,7 @@ dependencies:
   app_links: ^6.4.1
   syncfusion_flutter_pdfviewer: ^31.1.21
   swipe_to: ^1.0.6
+  fl_heatmap: ^0.4.5
 
 dev_dependencies:
   flutter_test:
