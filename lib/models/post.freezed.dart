@@ -1900,4 +1900,309 @@ as DateTime?,
 
 }
 
+
+/// @nodoc
+mixin _$SnPostReaction {
+
+ String get id; String get symbol; int get attitude; String get postId; String get accountId; DateTime get createdAt; DateTime get updatedAt; SnAccount? get account; DateTime? get deletedAt;
+/// Create a copy of SnPostReaction
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPostReactionCopyWith<SnPostReaction> get copyWith => _$SnPostReactionCopyWithImpl<SnPostReaction>(this as SnPostReaction, _$identity);
+
+  /// Serializes this SnPostReaction to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostReaction&&(identical(other.id, id) || other.id == id)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,symbol,attitude,postId,accountId,createdAt,updatedAt,account,deletedAt);
+
+@override
+String toString() {
+  return 'SnPostReaction(id: $id, symbol: $symbol, attitude: $attitude, postId: $postId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPostReactionCopyWith<$Res>  {
+  factory $SnPostReactionCopyWith(SnPostReaction value, $Res Function(SnPostReaction) _then) = _$SnPostReactionCopyWithImpl;
+@useResult
+$Res call({
+ String id, String symbol, int attitude, String postId, String accountId, DateTime createdAt, DateTime updatedAt, SnAccount? account, DateTime? deletedAt
+});
+
+
+$SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class _$SnPostReactionCopyWithImpl<$Res>
+    implements $SnPostReactionCopyWith<$Res> {
+  _$SnPostReactionCopyWithImpl(this._self, this._then);
+
+  final SnPostReaction _self;
+  final $Res Function(SnPostReaction) _then;
+
+/// Create a copy of SnPostReaction
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? symbol = null,Object? attitude = null,Object? postId = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = freezed,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,symbol: null == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
+as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
+as int,postId: null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of SnPostReaction
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnPostReaction].
+extension SnPostReactionPatterns on SnPostReaction {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPostReaction value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPostReaction() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPostReaction value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPostReaction():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPostReaction value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPostReaction() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String symbol,  int attitude,  String postId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  SnAccount? account,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPostReaction() when $default != null:
+return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.accountId,_that.createdAt,_that.updatedAt,_that.account,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String symbol,  int attitude,  String postId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  SnAccount? account,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnPostReaction():
+return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.accountId,_that.createdAt,_that.updatedAt,_that.account,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String symbol,  int attitude,  String postId,  String accountId,  DateTime createdAt,  DateTime updatedAt,  SnAccount? account,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPostReaction() when $default != null:
+return $default(_that.id,_that.symbol,_that.attitude,_that.postId,_that.accountId,_that.createdAt,_that.updatedAt,_that.account,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPostReaction implements SnPostReaction {
+  const _SnPostReaction({required this.id, required this.symbol, required this.attitude, required this.postId, required this.accountId, required this.createdAt, required this.updatedAt, this.account = null, this.deletedAt});
+  factory _SnPostReaction.fromJson(Map<String, dynamic> json) => _$SnPostReactionFromJson(json);
+
+@override final  String id;
+@override final  String symbol;
+@override final  int attitude;
+@override final  String postId;
+@override final  String accountId;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override@JsonKey() final  SnAccount? account;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnPostReaction
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPostReactionCopyWith<_SnPostReaction> get copyWith => __$SnPostReactionCopyWithImpl<_SnPostReaction>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPostReactionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostReaction&&(identical(other.id, id) || other.id == id)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.account, account) || other.account == account)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,symbol,attitude,postId,accountId,createdAt,updatedAt,account,deletedAt);
+
+@override
+String toString() {
+  return 'SnPostReaction(id: $id, symbol: $symbol, attitude: $attitude, postId: $postId, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, account: $account, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPostReactionCopyWith<$Res> implements $SnPostReactionCopyWith<$Res> {
+  factory _$SnPostReactionCopyWith(_SnPostReaction value, $Res Function(_SnPostReaction) _then) = __$SnPostReactionCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String symbol, int attitude, String postId, String accountId, DateTime createdAt, DateTime updatedAt, SnAccount? account, DateTime? deletedAt
+});
+
+
+@override $SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class __$SnPostReactionCopyWithImpl<$Res>
+    implements _$SnPostReactionCopyWith<$Res> {
+  __$SnPostReactionCopyWithImpl(this._self, this._then);
+
+  final _SnPostReaction _self;
+  final $Res Function(_SnPostReaction) _then;
+
+/// Create a copy of SnPostReaction
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? symbol = null,Object? attitude = null,Object? postId = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? account = freezed,Object? deletedAt = freezed,}) {
+  return _then(_SnPostReaction(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,symbol: null == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
+as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
+as int,postId: null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of SnPostReaction
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
 // dart format on

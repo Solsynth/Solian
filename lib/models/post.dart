@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:island/models/account.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post_category.dart';
 import 'package:island/models/post_tag.dart';
@@ -141,4 +142,22 @@ sealed class SnPostAward with _$SnPostAward {
 
   factory SnPostAward.fromJson(Map<String, dynamic> json) =>
       _$SnPostAwardFromJson(json);
+}
+
+@freezed
+sealed class SnPostReaction with _$SnPostReaction {
+  const factory SnPostReaction({
+    required String id,
+    required String symbol,
+    required int attitude,
+    required String postId,
+    required String accountId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    @Default(null) SnAccount? account,
+    DateTime? deletedAt,
+  }) = _SnPostReaction;
+
+  factory SnPostReaction.fromJson(Map<String, dynamic> json) =>
+      _$SnPostReactionFromJson(json);
 }

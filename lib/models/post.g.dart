@@ -230,3 +230,35 @@ Map<String, dynamic> _$SnPostAwardToJson(_SnPostAward instance) =>
       'updated_at': instance.updatedAt?.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_SnPostReaction _$SnPostReactionFromJson(Map<String, dynamic> json) =>
+    _SnPostReaction(
+      id: json['id'] as String,
+      symbol: json['symbol'] as String,
+      attitude: (json['attitude'] as num).toInt(),
+      postId: json['post_id'] as String,
+      accountId: json['account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      account:
+          json['account'] == null
+              ? null
+              : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnPostReactionToJson(_SnPostReaction instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'symbol': instance.symbol,
+      'attitude': instance.attitude,
+      'post_id': instance.postId,
+      'account_id': instance.accountId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'account': instance.account?.toJson(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
+    };

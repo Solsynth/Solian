@@ -579,6 +579,7 @@ class PostItem extends HookConsumerWidget {
                               onReact: (symbol, attitude) {
                                 reactPost(symbol, attitude);
                               },
+                              postId: item.id,
                             );
                           },
                         );
@@ -686,6 +687,7 @@ class PostReactionList extends HookConsumerWidget {
                                 onReact: (symbol, attitude) {
                                   reactPost(symbol, attitude);
                                 },
+                                postId: parentId,
                               );
                             },
                           );

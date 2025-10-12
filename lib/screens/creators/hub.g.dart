@@ -149,7 +149,7 @@ class _PublisherStatsProviderElement
   String? get uname => (origin as PublisherStatsProvider).uname;
 }
 
-String _$publisherHeatmapHash() => r'780dfb05b8610a37cfcd937fd04cf5bbe9b298c9';
+String _$publisherHeatmapHash() => r'5f70c55e14629ec8628445a317888e02fccd9af2';
 
 /// See also [publisherHeatmap].
 @ProviderFor(publisherHeatmap)
