@@ -13,10 +13,7 @@ _SnPublisherHeatmap _$SnPublisherHeatmapFromJson(Map<String, dynamic> json) =>
       periodEnd: DateTime.parse(json['period_end'] as String),
       items:
           (json['items'] as List<dynamic>)
-              .map(
-                (e) =>
-                    SnPublisherHeatmapItem.fromJson(e as Map<String, dynamic>),
-              )
+              .map((e) => SnHeatmapItem.fromJson(e as Map<String, dynamic>))
               .toList(),
     );
 

@@ -156,7 +156,7 @@ String _$publisherHeatmapHash() => r'780dfb05b8610a37cfcd937fd04cf5bbe9b298c9';
 const publisherHeatmapProvider = PublisherHeatmapFamily();
 
 /// See also [publisherHeatmap].
-class PublisherHeatmapFamily extends Family<AsyncValue<SnPublisherHeatmap?>> {
+class PublisherHeatmapFamily extends Family<AsyncValue<SnHeatmap?>> {
   /// See also [publisherHeatmap].
   const PublisherHeatmapFamily();
 
@@ -188,8 +188,7 @@ class PublisherHeatmapFamily extends Family<AsyncValue<SnPublisherHeatmap?>> {
 }
 
 /// See also [publisherHeatmap].
-class PublisherHeatmapProvider
-    extends AutoDisposeFutureProvider<SnPublisherHeatmap?> {
+class PublisherHeatmapProvider extends AutoDisposeFutureProvider<SnHeatmap?> {
   /// See also [publisherHeatmap].
   PublisherHeatmapProvider(String? uname)
     : this._internal(
@@ -220,7 +219,7 @@ class PublisherHeatmapProvider
 
   @override
   Override overrideWith(
-    FutureOr<SnPublisherHeatmap?> Function(PublisherHeatmapRef provider) create,
+    FutureOr<SnHeatmap?> Function(PublisherHeatmapRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -237,7 +236,7 @@ class PublisherHeatmapProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<SnPublisherHeatmap?> createElement() {
+  AutoDisposeFutureProviderElement<SnHeatmap?> createElement() {
     return _PublisherHeatmapProviderElement(this);
   }
 
@@ -257,13 +256,13 @@ class PublisherHeatmapProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin PublisherHeatmapRef on AutoDisposeFutureProviderRef<SnPublisherHeatmap?> {
+mixin PublisherHeatmapRef on AutoDisposeFutureProviderRef<SnHeatmap?> {
   /// The parameter `uname` of this provider.
   String? get uname;
 }
 
 class _PublisherHeatmapProviderElement
-    extends AutoDisposeFutureProviderElement<SnPublisherHeatmap?>
+    extends AutoDisposeFutureProviderElement<SnHeatmap?>
     with PublisherHeatmapRef {
   _PublisherHeatmapProviderElement(super.provider);
 

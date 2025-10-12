@@ -15,12 +15,12 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPublisherHeatmap {
 
- String get unit;@JsonKey(name: 'period_start') DateTime get periodStart;@JsonKey(name: 'period_end') DateTime get periodEnd; List<SnPublisherHeatmapItem> get items;
+ String get unit;@JsonKey(name: 'period_start') DateTime get periodStart;@JsonKey(name: 'period_end') DateTime get periodEnd; List<SnHeatmapItem> get items;
 /// Create a copy of SnPublisherHeatmap
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnPublisherHeatmapCopyWith<SnPublisherHeatmap> get copyWith => _$SnPublisherHeatmapCopyWithImpl<SnPublisherHeatmap>(this as SnPublisherHeatmap, _$identity);
+$SnPublisherHeatmapCopyWith<SnHeatmap> get copyWith => _$SnPublisherHeatmapCopyWithImpl<SnHeatmap>(this as SnHeatmap, _$identity);
 
   /// Serializes this SnPublisherHeatmap to a JSON map.
   Map<String, dynamic> toJson();
@@ -28,7 +28,7 @@ $SnPublisherHeatmapCopyWith<SnPublisherHeatmap> get copyWith => _$SnPublisherHea
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherHeatmap&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&const DeepCollectionEquality().equals(other.items, items));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnHeatmap&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&const DeepCollectionEquality().equals(other.items, items));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,10 +45,10 @@ String toString() {
 
 /// @nodoc
 abstract mixin class $SnPublisherHeatmapCopyWith<$Res>  {
-  factory $SnPublisherHeatmapCopyWith(SnPublisherHeatmap value, $Res Function(SnPublisherHeatmap) _then) = _$SnPublisherHeatmapCopyWithImpl;
+  factory $SnPublisherHeatmapCopyWith(SnHeatmap value, $Res Function(SnHeatmap) _then) = _$SnPublisherHeatmapCopyWithImpl;
 @useResult
 $Res call({
- String unit,@JsonKey(name: 'period_start') DateTime periodStart,@JsonKey(name: 'period_end') DateTime periodEnd, List<SnPublisherHeatmapItem> items
+ String unit,@JsonKey(name: 'period_start') DateTime periodStart,@JsonKey(name: 'period_end') DateTime periodEnd, List<SnHeatmapItem> items
 });
 
 
@@ -60,8 +60,8 @@ class _$SnPublisherHeatmapCopyWithImpl<$Res>
     implements $SnPublisherHeatmapCopyWith<$Res> {
   _$SnPublisherHeatmapCopyWithImpl(this._self, this._then);
 
-  final SnPublisherHeatmap _self;
-  final $Res Function(SnPublisherHeatmap) _then;
+  final SnHeatmap _self;
+  final $Res Function(SnHeatmap) _then;
 
 /// Create a copy of SnPublisherHeatmap
 /// with the given fields replaced by the non-null parameter values.
@@ -71,15 +71,15 @@ unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
 as String,periodStart: null == periodStart ? _self.periodStart : periodStart // ignore: cast_nullable_to_non_nullable
 as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
-as List<SnPublisherHeatmapItem>,
+as List<SnHeatmapItem>,
   ));
 }
 
 }
 
 
-/// Adds pattern-matching-related methods to [SnPublisherHeatmap].
-extension SnPublisherHeatmapPatterns on SnPublisherHeatmap {
+/// Adds pattern-matching-related methods to [SnHeatmap].
+extension SnPublisherHeatmapPatterns on SnHeatmap {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -153,7 +153,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String unit, @JsonKey(name: 'period_start')  DateTime periodStart, @JsonKey(name: 'period_end')  DateTime periodEnd,  List<SnPublisherHeatmapItem> items)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String unit, @JsonKey(name: 'period_start')  DateTime periodStart, @JsonKey(name: 'period_end')  DateTime periodEnd,  List<SnHeatmapItem> items)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPublisherHeatmap() when $default != null:
 return $default(_that.unit,_that.periodStart,_that.periodEnd,_that.items);case _:
@@ -174,7 +174,7 @@ return $default(_that.unit,_that.periodStart,_that.periodEnd,_that.items);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String unit, @JsonKey(name: 'period_start')  DateTime periodStart, @JsonKey(name: 'period_end')  DateTime periodEnd,  List<SnPublisherHeatmapItem> items)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String unit, @JsonKey(name: 'period_start')  DateTime periodStart, @JsonKey(name: 'period_end')  DateTime periodEnd,  List<SnHeatmapItem> items)  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisherHeatmap():
 return $default(_that.unit,_that.periodStart,_that.periodEnd,_that.items);}
@@ -191,7 +191,7 @@ return $default(_that.unit,_that.periodStart,_that.periodEnd,_that.items);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String unit, @JsonKey(name: 'period_start')  DateTime periodStart, @JsonKey(name: 'period_end')  DateTime periodEnd,  List<SnPublisherHeatmapItem> items)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String unit, @JsonKey(name: 'period_start')  DateTime periodStart, @JsonKey(name: 'period_end')  DateTime periodEnd,  List<SnHeatmapItem> items)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisherHeatmap() when $default != null:
 return $default(_that.unit,_that.periodStart,_that.periodEnd,_that.items);case _:
@@ -205,15 +205,15 @@ return $default(_that.unit,_that.periodStart,_that.periodEnd,_that.items);case _
 /// @nodoc
 @JsonSerializable()
 
-class _SnPublisherHeatmap implements SnPublisherHeatmap {
-  const _SnPublisherHeatmap({required this.unit, @JsonKey(name: 'period_start') required this.periodStart, @JsonKey(name: 'period_end') required this.periodEnd, required final  List<SnPublisherHeatmapItem> items}): _items = items;
+class _SnPublisherHeatmap implements SnHeatmap {
+  const _SnPublisherHeatmap({required this.unit, @JsonKey(name: 'period_start') required this.periodStart, @JsonKey(name: 'period_end') required this.periodEnd, required final  List<SnHeatmapItem> items}): _items = items;
   factory _SnPublisherHeatmap.fromJson(Map<String, dynamic> json) => _$SnPublisherHeatmapFromJson(json);
 
 @override final  String unit;
 @override@JsonKey(name: 'period_start') final  DateTime periodStart;
 @override@JsonKey(name: 'period_end') final  DateTime periodEnd;
- final  List<SnPublisherHeatmapItem> _items;
-@override List<SnPublisherHeatmapItem> get items {
+ final  List<SnHeatmapItem> _items;
+@override List<SnHeatmapItem> get items {
   if (_items is EqualUnmodifiableListView) return _items;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_items);
@@ -253,7 +253,7 @@ abstract mixin class _$SnPublisherHeatmapCopyWith<$Res> implements $SnPublisherH
   factory _$SnPublisherHeatmapCopyWith(_SnPublisherHeatmap value, $Res Function(_SnPublisherHeatmap) _then) = __$SnPublisherHeatmapCopyWithImpl;
 @override @useResult
 $Res call({
- String unit,@JsonKey(name: 'period_start') DateTime periodStart,@JsonKey(name: 'period_end') DateTime periodEnd, List<SnPublisherHeatmapItem> items
+ String unit,@JsonKey(name: 'period_start') DateTime periodStart,@JsonKey(name: 'period_end') DateTime periodEnd, List<SnHeatmapItem> items
 });
 
 
@@ -276,7 +276,7 @@ unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
 as String,periodStart: null == periodStart ? _self.periodStart : periodStart // ignore: cast_nullable_to_non_nullable
 as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
-as List<SnPublisherHeatmapItem>,
+as List<SnHeatmapItem>,
   ));
 }
 
@@ -292,7 +292,7 @@ mixin _$SnPublisherHeatmapItem {
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnPublisherHeatmapItemCopyWith<SnPublisherHeatmapItem> get copyWith => _$SnPublisherHeatmapItemCopyWithImpl<SnPublisherHeatmapItem>(this as SnPublisherHeatmapItem, _$identity);
+$SnPublisherHeatmapItemCopyWith<SnHeatmapItem> get copyWith => _$SnPublisherHeatmapItemCopyWithImpl<SnHeatmapItem>(this as SnHeatmapItem, _$identity);
 
   /// Serializes this SnPublisherHeatmapItem to a JSON map.
   Map<String, dynamic> toJson();
@@ -300,7 +300,7 @@ $SnPublisherHeatmapItemCopyWith<SnPublisherHeatmapItem> get copyWith => _$SnPubl
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherHeatmapItem&&(identical(other.date, date) || other.date == date)&&(identical(other.count, count) || other.count == count));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnHeatmapItem&&(identical(other.date, date) || other.date == date)&&(identical(other.count, count) || other.count == count));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -317,7 +317,7 @@ String toString() {
 
 /// @nodoc
 abstract mixin class $SnPublisherHeatmapItemCopyWith<$Res>  {
-  factory $SnPublisherHeatmapItemCopyWith(SnPublisherHeatmapItem value, $Res Function(SnPublisherHeatmapItem) _then) = _$SnPublisherHeatmapItemCopyWithImpl;
+  factory $SnPublisherHeatmapItemCopyWith(SnHeatmapItem value, $Res Function(SnHeatmapItem) _then) = _$SnPublisherHeatmapItemCopyWithImpl;
 @useResult
 $Res call({
  DateTime date, int count
@@ -332,8 +332,8 @@ class _$SnPublisherHeatmapItemCopyWithImpl<$Res>
     implements $SnPublisherHeatmapItemCopyWith<$Res> {
   _$SnPublisherHeatmapItemCopyWithImpl(this._self, this._then);
 
-  final SnPublisherHeatmapItem _self;
-  final $Res Function(SnPublisherHeatmapItem) _then;
+  final SnHeatmapItem _self;
+  final $Res Function(SnHeatmapItem) _then;
 
 /// Create a copy of SnPublisherHeatmapItem
 /// with the given fields replaced by the non-null parameter values.
@@ -348,8 +348,8 @@ as int,
 }
 
 
-/// Adds pattern-matching-related methods to [SnPublisherHeatmapItem].
-extension SnPublisherHeatmapItemPatterns on SnPublisherHeatmapItem {
+/// Adds pattern-matching-related methods to [SnHeatmapItem].
+extension SnPublisherHeatmapItemPatterns on SnHeatmapItem {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -475,7 +475,7 @@ return $default(_that.date,_that.count);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _SnPublisherHeatmapItem implements SnPublisherHeatmapItem {
+class _SnPublisherHeatmapItem implements SnHeatmapItem {
   const _SnPublisherHeatmapItem({required this.date, required this.count});
   factory _SnPublisherHeatmapItem.fromJson(Map<String, dynamic> json) => _$SnPublisherHeatmapItemFromJson(json);
 
