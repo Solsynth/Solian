@@ -21,6 +21,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'image.dart';
 
 class MarkdownTextContent extends HookConsumerWidget {
+  static const String stickerRegex = r':([-\w]*\+[-\w]*):';
+
   final String content;
   final bool isAutoWarp;
   final TextScaler? textScaler;
@@ -47,7 +49,7 @@ class MarkdownTextContent extends HookConsumerWidget {
     final baseUrl = ref.watch(serverUrlProvider);
     final doesEnlargeSticker = useMemoized(() {
       // Check if content only contains one sticker by matching the sticker pattern
-      final stickerPattern = RegExp(r':([-\w]+):');
+      final stickerPattern = RegExp(stickerRegex);
       final matches = stickerPattern.allMatches(content);
 
       // Content should only contain one sticker and nothing else (except whitespace)
@@ -96,16 +98,15 @@ class MarkdownTextContent extends HookConsumerWidget {
               final url = Uri.tryParse(href);
               if (url != null) {
                 if (url.scheme == 'solian') {
-                  if (url.host == 'account') {
-                    context.pushNamed(
-                      'accountProfile',
-                      pathParameters: {'name': url.pathSegments[0]},
-                    );
-                  }
+                  final fullPath = ['/', url.host, url.path].join('');
+                  context.push(fullPath);
                   return;
                 }
                 final whitelistDomains = ['solian.app', 'solsynth.dev'];
-                if (whitelistDomains.contains(url.host)) {
+                if (whitelistDomains.any(
+                  (domain) =>
+                      url.host == domain || url.host.endsWith('.$domain'),
+                )) {
                   launchUrl(url, mode: LaunchMode.externalApplication);
                   return;
                 }
@@ -212,7 +213,7 @@ class MarkdownTextContent extends HookConsumerWidget {
     return MarkdownGenerator(
       generators: [latexGenerator],
       inlineSyntaxList: [
-        _UserNameCardInlineSyntax(),
+        _MetionInlineSyntax(),
         _StickerInlineSyntax(),
         LatexSyntax(isDark),
       ],
@@ -221,16 +222,23 @@ class MarkdownTextContent extends HookConsumerWidget {
   }
 }
 
-class _UserNameCardInlineSyntax extends markdown.InlineSyntax {
-  _UserNameCardInlineSyntax() : super(r'@[a-zA-Z0-9_]+');
+class _MetionInlineSyntax extends markdown.InlineSyntax {
+  _MetionInlineSyntax() : super(r'@[-a-zA-Z0-9_./]+');
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
     final alias = match[0]!;
+    final parts = alias.substring(1).split('/');
+    final typeShortcut = parts.length == 1 ? 'u' : parts.first;
+    final type = switch (typeShortcut) {
+      'u' => 'accounts',
+      'r' => 'realms',
+      'p' => 'publishers',
+      "c" => 'chat',
+      _ => '',
+    };
     final anchor = markdown.Element.text('a', alias)
-      ..attributes['href'] = Uri.encodeFull(
-        'solian://account/${alias.substring(1)}',
-      );
+      ..attributes['href'] = Uri.encodeFull('solian://$type/${parts.last}');
     parser.addNode(anchor);
 
     return true;
@@ -238,7 +246,7 @@ class _UserNameCardInlineSyntax extends markdown.InlineSyntax {
 }
 
 class _StickerInlineSyntax extends markdown.InlineSyntax {
-  _StickerInlineSyntax() : super(r':([-\w]+):');
+  _StickerInlineSyntax() : super(MarkdownTextContent.stickerRegex);
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {

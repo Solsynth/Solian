@@ -633,7 +633,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
               GoRoute(
                 name: 'accountProfile',
-                path: '/account/:name',
+                path: '/accounts/:name',
                 builder: (context, state) {
                   final name = state.pathParameters['name']!;
                   return AccountProfileScreen(name: name);

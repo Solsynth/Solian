@@ -168,7 +168,7 @@ final developersProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DevelopersRef = AutoDisposeFutureProviderRef<List<SnDeveloper>>;
-String _$devProjectsHash() => r'87fdcab47cd7d79ab019a5625617abeb1ffa1f39';
+String _$devProjectsHash() => r'715b395bebda785d38691ffee3b88e50b498c91a';
 
 /// See also [devProjects].
 @ProviderFor(devProjects)

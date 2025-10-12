@@ -1215,5 +1215,9 @@
     "resend": "Resend",
     "fileInfoTitle": "File Information",
     "download": "Download",
-    "info": "Info"
+    "info": "Info",
+    "noStickers": "No Stickers",
+    "noStickersInPack": "This pack does not contains stickers",
+    "noStickerPacks": "No Sticker Packs",
+    "refresh": "Refresh"
 }

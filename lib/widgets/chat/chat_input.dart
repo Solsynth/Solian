@@ -3,14 +3,19 @@ import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
+import "package:flutter_typeahead/flutter_typeahead.dart";
 import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:image_picker/image_picker.dart";
+import "package:island/models/account.dart";
+import "package:island/models/autocomplete_response.dart";
 import "package:island/models/chat.dart";
 import "package:island/models/file.dart";
 import "package:island/pods/config.dart";
+import "package:island/services/autocomplete_service.dart";
 import "package:island/services/responsive.dart";
 import "package:island/widgets/content/attachment_preview.dart";
+import "package:island/widgets/content/cloud_files.dart";
 import "package:island/widgets/shared/upload_menu.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:pasteboard/pasteboard.dart";
@@ -373,37 +378,118 @@ class ChatInput extends HookConsumerWidget {
                     ],
                   ),
                   Expanded(
-                    child: TextField(
-                      focusNode: inputFocusNode,
+                    child: TypeAheadField<AutocompleteSuggestion>(
                       controller: messageController,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration(
-                        hintMaxLines: 1,
-                        hintText:
-                            (chatRoom.type == 1 && chatRoom.name == null)
-                                ? 'chatDirectMessageHint'.tr(
-                                  args: [
-                                    chatRoom.members!
-                                        .map((e) => e.account.nick)
-                                        .join(', '),
-                                  ],
-                                )
-                                : 'chatMessageHint'.tr(args: [chatRoom.name!]),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        counterText:
-                            messageController.text.length > 1024
-                                ? '${messageController.text.length}/4096'
-                                : null,
-                      ),
-                      maxLines: 3,
-                      minLines: 1,
-                      onTapOutside:
-                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                      focusNode: inputFocusNode,
+                      builder: (context, controller, focusNode) {
+                        return TextField(
+                          focusNode: focusNode,
+                          controller: controller,
+                          keyboardType: TextInputType.multiline,
+                          decoration: InputDecoration(
+                            hintMaxLines: 1,
+                            hintText:
+                                (chatRoom.type == 1 && chatRoom.name == null)
+                                    ? 'chatDirectMessageHint'.tr(
+                                      args: [
+                                        chatRoom.members!
+                                            .map((e) => e.account.nick)
+                                            .join(', '),
+                                      ],
+                                    )
+                                    : 'chatMessageHint'.tr(
+                                      args: [chatRoom.name!],
+                                    ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            counterText:
+                                messageController.text.length > 1024
+                                    ? '${messageController.text.length}/4096'
+                                    : null,
+                          ),
+                          maxLines: 3,
+                          minLines: 1,
+                          onTapOutside:
+                              (_) =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
+                        );
+                      },
+                      suggestionsCallback: (pattern) async {
+                        // Only trigger on @ or :
+                        final atIndex = pattern.lastIndexOf('@');
+                        final colonIndex = pattern.lastIndexOf(':');
+                        final triggerIndex =
+                            atIndex > colonIndex ? atIndex : colonIndex;
+                        if (triggerIndex == -1) return [];
+                        final service = ref.read(autocompleteServiceProvider);
+                        try {
+                          return await service.getSuggestions(
+                            chatRoom.id,
+                            pattern,
+                          );
+                        } catch (e) {
+                          return [];
+                        }
+                      },
+                      itemBuilder: (context, suggestion) {
+                        String title = 'unknown'.tr();
+                        Widget leading = Icon(Symbols.help);
+                        switch (suggestion.type) {
+                          case 'user':
+                            final user = SnAccount.fromJson(suggestion.data);
+                            title = user.nick;
+                            leading = ProfilePictureWidget(
+                              file: user.profile.picture,
+                              radius: 18,
+                            );
+                            break;
+                          case 'chatroom':
+                            break;
+                          case 'realm':
+                            break;
+                          case 'publisher':
+                            break;
+                          case 'sticker':
+                            break;
+                          default:
+                        }
+                        return ListTile(
+                          leading: leading,
+                          title: Text(title),
+                          subtitle: Text(suggestion.keyword),
+                          dense: true,
+                        );
+                      },
+                      onSelected: (suggestion) {
+                        final text = messageController.text;
+                        final atIndex = text.lastIndexOf('@');
+                        final colonIndex = text.lastIndexOf(':');
+                        final triggerIndex =
+                            atIndex > colonIndex ? atIndex : colonIndex;
+                        if (triggerIndex == -1) return;
+                        final newText = text.replaceRange(
+                          triggerIndex,
+                          text.length,
+                          suggestion.keyword,
+                        );
+                        messageController.value = TextEditingValue(
+                          text: newText,
+                          selection: TextSelection.collapsed(
+                            offset: triggerIndex + suggestion.keyword.length,
+                          ),
+                        );
+                      },
+                      direction: VerticalDirection.up,
+                      hideOnEmpty: true,
+                      hideOnLoading: true,
+                      debounceDuration: const Duration(milliseconds: 500),
+                      loadingBuilder: (context) => const Text('Loading...'),
+                      errorBuilder: (context, error) => const Text('Error!'),
+                      emptyBuilder: (context) => const Text('No items found!'),
                     ),
                   ),
                   IconButton(
