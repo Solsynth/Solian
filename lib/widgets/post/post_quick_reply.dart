@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
@@ -69,79 +70,86 @@ class PostQuickReply extends HookConsumerWidget {
 
     return publishers.when(
       data:
-          (data) => Row(
-            spacing: 8,
-            children: [
-              GestureDetector(
-                child: ProfilePictureWidget(
-                  fileId: currentPublisher.value?.picture?.id,
-                  radius: 16,
-                ),
-                onTap: () {
-                  showModalBottomSheet(
-                    isScrollControlled: true,
-                    context: context,
-                    builder: (context) => PublisherModal(),
-                  ).then((value) {
-                    if (value is SnPublisher) currentPublisher.value = value;
-                  });
-                },
-              ).padding(right: 4),
-              Expanded(
-                child: TextField(
-                  controller: contentController,
-                  decoration: InputDecoration(
-                    hintText: 'postReplyPlaceholder'.tr(),
-                    border: InputBorder.none,
-                    isDense: true,
-                    isCollapsed: true,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+          (data) => Material(
+            elevation: 2,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    child: ProfilePictureWidget(
+                      fileId: currentPublisher.value?.picture?.id,
+                      radius: 16,
+                    ),
+                    onTap: () {
+                      showModalBottomSheet(
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (context) => PublisherModal(),
+                      ).then((value) {
+                        if (value is SnPublisher) {
+                          currentPublisher.value = value;
+                        }
+                      });
+                    },
+                  ).padding(right: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: contentController,
+                      decoration: InputDecoration(
+                        hintText: 'postReplyPlaceholder'.tr(),
+                        border: InputBorder.none,
+                        isDense: true,
+                        isCollapsed: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 9,
+                        ),
+                      ),
+                      style: TextStyle(fontSize: 14),
+                      maxLines: null,
+                      onTapOutside:
+                          (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                   ),
-                  style: TextStyle(fontSize: 14),
-                  maxLines: null,
-                  onTapOutside:
-                      (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                ),
+                  const Gap(8),
+                  IconButton(
+                    onPressed: () {
+                      onLaunch?.call();
+                      GoRouter.of(context)
+                          .pushNamed(
+                            'postCompose',
+                            extra: PostComposeInitialState(
+                              content: contentController.text,
+                              replyingTo: parent,
+                            ),
+                          )
+                          .then((value) {
+                            if (value != null) onPosted?.call();
+                          });
+                    },
+                    icon: const Icon(Symbols.launch, size: 20),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  IconButton(
+                    icon:
+                        submitting.value
+                            ? SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(strokeWidth: 3),
+                            )
+                            : Icon(Symbols.send, size: 20),
+                    color: Theme.of(context).colorScheme.primary,
+                    onPressed: submitting.value ? null : performAction,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
               ),
-              IconButton(
-                onPressed: () {
-                  onLaunch?.call();
-                  GoRouter.of(context)
-                      .pushNamed(
-                        'postCompose',
-                        extra: PostComposeInitialState(
-                          content: contentController.text,
-                          replyingTo: parent,
-                        ),
-                      )
-                      .then((value) {
-                        if (value != null) onPosted?.call();
-                      });
-                },
-                icon: const Icon(Symbols.launch, size: 20),
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints(),
-              ),
-              IconButton(
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-                icon:
-                    submitting.value
-                        ? SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: CircularProgressIndicator(strokeWidth: 3),
-                        )
-                        : Icon(Symbols.send, size: 20),
-                color: Theme.of(context).colorScheme.primary,
-                onPressed: submitting.value ? null : performAction,
-                constraints: const BoxConstraints(),
-              ),
-            ],
+            ),
           ),
       loading: () => const SizedBox.shrink(),
       error: (e, _) => const SizedBox.shrink(),

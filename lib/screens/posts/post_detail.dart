@@ -490,14 +490,13 @@ class PostDetailScreen extends HookConsumerWidget {
               ),
               if (user.value != null)
                 Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Material(
-                    elevation: 2,
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    child: postState
-                        .when(
+                  bottom: 16 + MediaQuery.of(context).padding.bottom,
+                  left: 16,
+                  right: 16,
+                  child:
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 660),
+                        child: postState.when(
                           data:
                               (post) => PostQuickReply(
                                 parent: post!,
@@ -509,13 +508,8 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                           loading: () => const SizedBox.shrink(),
                           error: (_, _) => const SizedBox.shrink(),
-                        )
-                        .padding(
-                          bottom: MediaQuery.of(context).padding.bottom + 8,
-                          top: 8,
-                          horizontal: 16,
                         ),
-                  ),
+                      ).center(),
                 ),
             ],
           );
