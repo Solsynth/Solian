@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -6,14 +5,24 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/pods/event_calendar.dart';
 import 'package:island/screens/account/profile.dart';
 import 'package:island/widgets/account/account_nameplate.dart';
-import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/account/event_calendar.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-class EventCalanderScreen extends HookConsumerWidget {
+/// A reusable content widget for event calendar that can be used in screens or sheets
+/// This widget manages the calendar state and displays the calendar and fortune graph
+class EventCalendarContent extends HookConsumerWidget {
+  /// Username to fetch calendar for, null means current user ('me')
   final String name;
-  const EventCalanderScreen({super.key, required this.name});
+
+  /// Whether this is being displayed in a sheet (affects layout)
+  final bool isSheet;
+
+  const EventCalendarContent({
+    super.key,
+    required this.name,
+    this.isSheet = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,13 +54,37 @@ class EventCalanderScreen extends HookConsumerWidget {
       selectedDay.value = day;
     }
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: AppBar(
-        leading: const PageBackButton(),
-        title: Text('eventCalander').tr(),
-      ),
-      body: SingleChildScrollView(
+    if (isSheet) {
+      // Sheet layout - simplified, no app bar, scrollable content
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            // Use the reusable EventCalendarWidget
+            EventCalendarWidget(
+              events: events,
+              initialDate: now,
+              showEventDetails: true,
+              onMonthChanged: onMonthChanged,
+              onDaySelected: onDaySelected,
+            ),
+
+            // Add the fortune graph widget
+            const Divider(height: 1),
+            FortuneGraphWidget(
+              events: events,
+              onPointSelected: onDaySelected,
+            ).padding(horizontal: 8, vertical: 4),
+
+            // Show user profile if viewing someone else's calendar
+            if (name != 'me' && user.value != null)
+              AccountNameplate(name: name),
+            Gap(MediaQuery.of(context).padding.bottom + 16),
+          ],
+        ),
+      );
+    } else {
+      // Screen layout - with responsive design
+      return SingleChildScrollView(
         child:
             MediaQuery.of(context).size.width > 480
                 ? ConstrainedBox(
@@ -111,7 +144,7 @@ class EventCalanderScreen extends HookConsumerWidget {
                     Gap(MediaQuery.of(context).padding.bottom + 16),
                   ],
                 ),
-      ),
-    );
+      );
+    }
   }
 }

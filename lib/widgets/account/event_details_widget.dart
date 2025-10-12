@@ -76,10 +76,17 @@ class EventDetailsWidget extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if ((getActivityTitle(status.label, status.meta) ?? status.label).isNotEmpty)
-                            Text(getActivityTitle(status.label, status.meta) ?? status.label),
+                          if ((getActivityTitle(status.label, status.meta) ??
+                                  status.label)
+                              .isNotEmpty)
+                            Text(
+                              getActivityTitle(status.label, status.meta) ??
+                                  status.label,
+                            ),
                           if (getActivitySubtitle(status.meta) != null)
-                            Text(getActivitySubtitle(status.meta)!).fontSize(11).opacity(0.8),
+                            Text(
+                              getActivitySubtitle(status.meta)!,
+                            ).fontSize(11).opacity(0.8),
                           Text(
                             '${status.createdAt.formatSystem()} - ${status.clearedAt?.formatSystem() ?? 'present'.tr()}',
                           ).fontSize(11).opacity(0.8),
@@ -92,7 +99,7 @@ class EventDetailsWidget extends StatelessWidget {
             ],
           ),
         if (event?.checkInResult == null && (event?.statuses.isEmpty ?? true))
-          Text('eventCalanderEmpty').tr(),
+          Text('eventCalandarEmpty').tr(),
       ],
     ).padding(vertical: 24, horizontal: 24);
   }

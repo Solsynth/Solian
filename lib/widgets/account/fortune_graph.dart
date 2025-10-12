@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
+import 'package:island/widgets/account/event_calendar_content.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 /// A widget that displays a graph of fortune levels over time
@@ -24,7 +25,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
   /// Callback when a point is selected
   final void Function(DateTime)? onPointSelected;
 
-  final String? eventCalanderUser;
+  final String? eventCalandarUser;
 
   final EdgeInsets? margin;
 
@@ -35,7 +36,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
     this.maxWidth = double.infinity,
     this.height = 180,
     this.onPointSelected,
-    this.eventCalanderUser,
+    this.eventCalandarUser,
     this.margin,
   });
 
@@ -59,7 +60,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('fortuneGraph').tr().fontSize(18).bold(),
-            if (eventCalanderUser != null)
+            if (eventCalandarUser != null)
               IconButton(
                 icon: const Icon(Icons.calendar_month, size: 20),
                 visualDensity: const VisualDensity(
@@ -69,9 +70,17 @@ class FortuneGraphWidget extends HookConsumerWidget {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () {
-                  context.pushNamed(
-                    'accountCalendar',
-                    pathParameters: {'name': eventCalanderUser!},
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder:
+                        (context) => SheetScaffold(
+                          titleText: 'eventCalendar'.tr(),
+                          child: EventCalendarContent(
+                            name: eventCalandarUser!,
+                            isSheet: true,
+                          ),
+                        ),
                   );
                 },
               ),

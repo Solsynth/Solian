@@ -58,7 +58,6 @@ import 'package:island/screens/settings.dart';
 import 'package:island/screens/realm/realms.dart';
 import 'package:island/screens/realm/realm_form.dart';
 import 'package:island/screens/realm/realm_detail.dart';
-import 'package:island/screens/account/event_calendar.dart';
 import 'package:island/screens/discovery/realms.dart';
 import 'package:island/screens/reports/report_detail.dart';
 import 'package:island/screens/reports/report_list.dart';
@@ -137,14 +136,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'logs',
             path: '/logs',
             builder: (context, state) => TalkerScreen(talker: talker),
-          ),
-          GoRoute(
-            name: 'accountCalendar',
-            path: '/account/:name/calendar',
-            builder: (context, state) {
-              final name = state.pathParameters['name']!;
-              return EventCalanderScreen(name: name);
-            },
           ),
 
           // Web articles

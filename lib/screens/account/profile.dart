@@ -97,9 +97,7 @@ class _AccountBasicInfo extends StatelessWidget {
           IconButton(
             onPressed: () {
               SharePlus.instance.share(
-                ShareParams(
-                  uri: Uri.parse('https://solian.app/@${data.name}'),
-                ),
+                ShareParams(uri: Uri.parse('https://solian.app/@${data.name}')),
               );
             },
             icon: const Icon(Symbols.share),
@@ -879,7 +877,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                               child: Card(
                                 child: FortuneGraphWidget(
                                   events: accountEvents,
-                                  eventCalanderUser: data.name,
+                                  eventCalandarUser: data.name,
                                   margin: EdgeInsets.zero,
                                 ),
                               ),
@@ -1004,7 +1002,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                         child: Card(
                           child: FortuneGraphWidget(
                             events: accountEvents,
-                            eventCalanderUser: data.name,
+                            eventCalandarUser: data.name,
                           ),
                         ).padding(horizontal: 4),
                       ),

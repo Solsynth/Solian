@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
@@ -14,6 +13,8 @@ import 'package:island/pods/userinfo.dart';
 import 'package:island/screens/auth/captcha.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
+import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/account/event_calendar_content.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:slide_countdown/slide_countdown.dart';
@@ -256,9 +257,17 @@ class CheckInWidget extends HookConsumerWidget {
                   if (todayResult.valueOrNull == null) {
                     checkIn();
                   } else {
-                    context.pushNamed(
-                      'accountCalendar',
-                      pathParameters: {'name': 'me'},
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder:
+                          (context) => SheetScaffold(
+                            titleText: 'eventCalendar'.tr(),
+                            child: EventCalendarContent(
+                              name: 'me',
+                              isSheet: true,
+                            ),
+                          ),
                     );
                   }
                 },
