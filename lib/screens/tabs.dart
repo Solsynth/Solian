@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,16 @@ import 'package:island/widgets/navigation/conditional_bottom_nav.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 final currentRouteProvider = StateProvider<String?>((ref) => null);
+
+const kWideScreenRouteStart = 4;
+const kTabRoutes = [
+  '/',
+  '/chat',
+  '/realms',
+  '/account',
+  '/creators',
+  '/developers',
+];
 
 class TabsScreen extends HookConsumerWidget {
   final Widget? child;
@@ -32,6 +43,8 @@ class TabsScreen extends HookConsumerWidget {
       notificationUnreadCountNotifierProvider,
     );
 
+    final wideScreen = isWideScreen(context);
+
     final destinations = [
       NavigationDestination(
         label: 'explore'.tr(),
@@ -50,19 +63,30 @@ class TabsScreen extends HookConsumerWidget {
           child: const Icon(Symbols.account_circle),
         ),
       ),
+      if (wideScreen)
+        NavigationDestination(
+          label: 'creatorHub'.tr(),
+          icon: const Icon(Symbols.draw),
+        ),
+      if (wideScreen)
+        NavigationDestination(
+          label: 'developerHub'.tr(),
+          icon: const Icon(Symbols.code),
+        ),
     ];
 
-    final routes = ['/', '/chat', '/realms', '/account'];
-
     int getCurrentIndex() {
-      if (currentLocation.startsWith('/chat')) return 1;
-      if (currentLocation.startsWith('/realms')) return 2;
-      if (currentLocation.startsWith('/account')) return 3;
-      return 0; // Default to explore
+      if (currentLocation == '/') return 0;
+      final idx = kTabRoutes.indexWhere(
+        (p) => currentLocation.startsWith(p),
+        1,
+      );
+      final value = math.max(idx, 0);
+      return math.min(value, destinations.length - 1);
     }
 
     void onDestinationSelected(int index) {
-      context.go(routes[index]);
+      context.go(kTabRoutes[index]);
     }
 
     final currentIndex = getCurrentIndex();

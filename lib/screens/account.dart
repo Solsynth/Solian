@@ -149,132 +149,124 @@ class AccountScreen extends HookConsumerWidget {
                 context.pushNamed('leveling');
               },
             ).padding(horizontal: 12),
+            if (!isWideScreen(context)) const SizedBox.shrink(),
+            if (!isWideScreen(context))
+              Row(
+                spacing: 8,
+                children: [
+                  Expanded(
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Symbols.draw, size: 28).padding(bottom: 8),
+                            Text(
+                              'creatorHub',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ).tr().fontSize(16).bold(),
+                            Text(
+                              'creatorHubDescription',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ).tr(),
+                          ],
+                        ).padding(horizontal: 16, vertical: 12),
+                        onTap: () {
+                          context.goNamed('creatorHub');
+                        },
+                      ),
+                    ).height(140),
+                  ),
+                  Expanded(
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Symbols.code, size: 28).padding(bottom: 8),
+                            Text(
+                              'developerPortal',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ).tr().fontSize(16).bold(),
+                            Text(
+                              'developerPortalDescription',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ).tr(),
+                          ],
+                        ).padding(horizontal: 16, vertical: 12),
+                        onTap: () {
+                          context.pushNamed('developerHub');
+                        },
+                      ),
+                    ).height(140),
+                  ),
+                ],
+              ).padding(horizontal: 12),
             const SizedBox.shrink(),
-            Row(
-              spacing: 8,
-              children: [
-                Expanded(
-                  child: Card(
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                spacing: 8,
+                children: [
+                  Card(
                     margin: EdgeInsets.zero,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
+                        spacing: 8,
                         children: [
-                          Icon(Symbols.draw, size: 28).padding(bottom: 8),
-                          Text(
-                            'creatorHub',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ).tr().fontSize(16).bold(),
-                          Text(
-                            'creatorHubDescription',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ).tr(),
-                        ],
-                      ).padding(horizontal: 16, vertical: 12),
-                      onTap: () {
-                        context.goNamed('creatorHub');
-                      },
-                    ),
-                  ).height(140),
-                ),
-                Expanded(
-                  child: Card(
-                    margin: EdgeInsets.zero,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Symbols.code, size: 28).padding(bottom: 8),
-                          Text(
-                            'developerPortal',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ).tr().fontSize(16).bold(),
-                          Text(
-                            'developerPortalDescription',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ).tr(),
-                        ],
-                      ).padding(horizontal: 16, vertical: 12),
-                      onTap: () {
-                        context.pushNamed('developerHub');
-                      },
-                    ),
-                  ).height(140),
-                ),
-              ],
-            ).padding(horizontal: 12),
-            const SizedBox.shrink(),
-            Row(
-              spacing: 8,
-              children: [
-                Expanded(
-                  child: Card(
-                    margin: EdgeInsets.zero,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Symbols.settings, size: 28).padding(bottom: 8),
-                          Text('appSettings').tr().fontSize(16).bold(),
+                          Icon(Symbols.settings, size: 20),
+                          Text('appSettings').tr().fontSize(13).bold(),
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {
                         context.pushNamed('settings');
                       },
                     ),
-                  ).height(120),
-                ),
-                Expanded(
-                  child: Card(
+                  ),
+                  Card(
                     margin: EdgeInsets.zero,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
+                        spacing: 8,
                         children: [
-                          Icon(
-                            Symbols.person_edit,
-                            size: 28,
-                          ).padding(bottom: 8),
-                          Text('updateYourProfile').tr().fontSize(16).bold(),
+                          Icon(Symbols.person_edit, size: 20),
+                          Text('updateYourProfile').tr().fontSize(13).bold(),
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {
                         context.pushNamed('profileUpdate');
                       },
                     ),
-                  ).height(120),
-                ),
-                Expanded(
-                  child: Card(
+                  ),
+                  Card(
                     margin: EdgeInsets.zero,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
+                        spacing: 8,
                         children: [
-                          Icon(
-                            Symbols.manage_accounts,
-                            size: 28,
-                          ).padding(bottom: 8),
-                          Text('accountSettings').tr().fontSize(16).bold(),
+                          Icon(Symbols.manage_accounts, size: 20),
+                          Text('accountSettings').tr().fontSize(13).bold(),
                         ],
                       ).padding(horizontal: 16, vertical: 12),
                       onTap: () {
                         context.pushNamed('accountSettings');
                       },
                     ),
-                  ).height(120),
-                ),
-              ],
-            ).padding(horizontal: 12),
+                  ),
+                ],
+              ).padding(horizontal: 12),
+            ).height(48),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.notifications),

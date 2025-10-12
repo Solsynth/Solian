@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -68,26 +69,28 @@ class WindowScaffold extends HookConsumerWidget {
       return null;
     }, []);
 
-    final pageButtonActions = [
-      IconButton(
-        icon: Icon(Symbols.keyboard_arrow_left),
-        onPressed:
-            ref.watch(routerProvider).canPop()
-                ? () => ref.read(routerProvider).pop()
-                : null,
-        iconSize: 16,
-        padding: EdgeInsets.all(8),
-        constraints: BoxConstraints(),
-        color: Theme.of(context).iconTheme.color,
-      ),
-      IconButton(
-        icon: Icon(Symbols.home),
-        onPressed: () => ref.read(routerProvider).go('/'),
-        iconSize: 16,
-        padding: EdgeInsets.all(8),
-        constraints: BoxConstraints(),
-        color: Theme.of(context).iconTheme.color,
-      ),
+    final router = ref.watch(routerProvider);
+
+    final pageActionsButton = [
+      if (router.canPop())
+        IconButton(
+          icon: Icon(Symbols.close),
+          onPressed: router.canPop() ? () => router.pop() : null,
+          iconSize: 16,
+          padding: EdgeInsets.all(8),
+          constraints: BoxConstraints(),
+          color: Theme.of(context).iconTheme.color,
+        )
+      else
+        IconButton(
+          icon: Icon(Symbols.home),
+          onPressed: () => router.go('/'),
+          iconSize: 16,
+          padding: EdgeInsets.all(8),
+          constraints: BoxConstraints(),
+          color: Theme.of(context).iconTheme.color,
+        ),
+      const Gap(8),
     ];
 
     if (!kIsWeb &&
@@ -111,13 +114,18 @@ class WindowScaffold extends HookConsumerWidget {
                               ? Stack(
                                 alignment: Alignment.center,
                                 children: [
-                                  Row(
-                                    children: [
-                                      if (Platform.isMacOS)
-                                        const SizedBox(width: 80),
-                                      ...pageButtonActions,
-                                    ],
-                                  ),
+                                  if (isWideScreen(context))
+                                    Row(
+                                      key: Key(
+                                        'app-page-action-${router.state.pageKey.value}',
+                                      ),
+                                      children: [
+                                        const Spacer(),
+                                        ...pageActionsButton,
+                                      ],
+                                    )
+                                  else
+                                    SizedBox(height: 32),
                                   Text(
                                     'Solar Network',
                                     textAlign: TextAlign.center,
@@ -374,7 +382,7 @@ class PageBackButton extends StatelessWidget {
     final isDesktop =
         !kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
 
-    if (isDesktop) return const SizedBox.shrink();
+    if (isDesktop && isWideScreen(context)) return const SizedBox.shrink();
 
     return IconButton(
       onPressed: () {
@@ -387,9 +395,11 @@ class PageBackButton extends StatelessWidget {
       },
       icon: Icon(
         color: color,
-        (!kIsWeb && (Platform.isMacOS || Platform.isIOS))
-            ? Symbols.arrow_back_ios_new
-            : Symbols.arrow_back,
+        context.canPop()
+            ? (!kIsWeb && (Platform.isMacOS || Platform.isIOS))
+                ? Symbols.arrow_back_ios_new
+                : Symbols.arrow_back
+            : Symbols.home,
         shadows: shadows,
       ),
     );

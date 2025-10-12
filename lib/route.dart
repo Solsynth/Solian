@@ -146,185 +146,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               return EventCalanderScreen(name: name);
             },
           ),
-          GoRoute(
-            name: 'creatorHub',
-            path: '/creators',
-            builder: (context, state) => const CreatorHubScreen(),
-            routes: [
-              // Web Feed Routes
-              GoRoute(
-                name: 'creatorFeeds',
-                path: ':name/feeds',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  return WebFeedListScreen(pubName: name);
-                },
-              ),
-              GoRoute(
-                name: 'creatorPosts',
-                path: ':name/posts',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  return CreatorPostListScreen(pubName: name);
-                },
-              ),
-              // Poll list route
-              GoRoute(
-                name: 'creatorPolls',
-                path: ':name/polls',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  return CreatorPollListScreen(pubName: name);
-                },
-              ),
-              // Poll routes
-              GoRoute(
-                name: 'creatorPollNew',
-                path: ':name/polls/new',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  // initialPollId left null for create; initialPublisher prefilled
-                  return PollEditorScreen(initialPublisher: name);
-                },
-              ),
-              GoRoute(
-                name: 'creatorPollEdit',
-                path: ':name/polls/:id/edit',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  final id = state.pathParameters['id']!;
-                  return PollEditorScreen(
-                    initialPollId: id,
-                    initialPublisher: name,
-                  );
-                },
-              ),
-              GoRoute(
-                name: 'creatorStickers',
-                path: ':name/stickers',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  return StickersScreen(pubName: name);
-                },
-              ),
-              GoRoute(
-                name: 'creatorNew',
-                path: 'new',
-                builder: (context, state) => const NewPublisherScreen(),
-              ),
-              GoRoute(
-                name: 'creatorEdit',
-                path: ':name/edit',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  return EditPublisherScreen(name: name);
-                },
-              ),
-            ],
-          ),
-          GoRoute(
-            name: 'developerHub',
-            path: '/developers',
-            builder:
-                (context, state) => DeveloperHubScreen(
-                  initialPublisherName: state.uri.queryParameters['publisher'],
-                  initialProjectId: state.uri.queryParameters['project'],
-                ),
-            routes: [
-              GoRoute(
-                name: 'developerProjectNew',
-                path: ':name/projects/new',
-                builder:
-                    (context, state) => NewProjectScreen(
-                      publisherName: state.pathParameters['name']!,
-                    ),
-              ),
-              GoRoute(
-                name: 'developerProjectEdit',
-                path: ':name/projects/:id/edit',
-                builder:
-                    (context, state) => EditProjectScreen(
-                      publisherName: state.pathParameters['name']!,
-                      id: state.pathParameters['id']!,
-                    ),
-              ),
-              GoRoute(
-                name: 'developerProjectDetail',
-                path: ':name/projects/:projectId',
-                builder: (context, state) {
-                  final name = state.pathParameters['name']!;
-                  final projectId = state.pathParameters['projectId']!;
-                  // Redirect to hub with project selected
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.go(
-                      '/developers?publisher=$name&project=$projectId',
-                    );
-                  });
-                  return const SizedBox.shrink(); // Temporary placeholder
-                },
-                routes: [
-                  GoRoute(
-                    name: 'developerAppNew',
-                    path: 'apps/new',
-                    builder:
-                        (context, state) => NewCustomAppScreen(
-                          publisherName: state.pathParameters['name']!,
-                          projectId: state.pathParameters['projectId']!,
-                        ),
-                  ),
-                  GoRoute(
-                    name: 'developerAppEdit',
-                    path: 'apps/:id/edit',
-                    builder:
-                        (context, state) => EditAppScreen(
-                          publisherName: state.pathParameters['name']!,
-                          projectId: state.pathParameters['projectId']!,
-                          id: state.pathParameters['id']!,
-                        ),
-                  ),
-                  GoRoute(
-                    name: 'developerAppDetail',
-                    path: 'apps/:appId',
-                    builder:
-                        (context, state) => AppDetailScreen(
-                          publisherName: state.pathParameters['name']!,
-                          projectId: state.pathParameters['projectId']!,
-                          appId: state.pathParameters['appId']!,
-                        ),
-                  ),
-                  GoRoute(
-                    name: 'developerBotNew',
-                    path: 'bots/new',
-                    builder:
-                        (context, state) => NewBotScreen(
-                          publisherName: state.pathParameters['name']!,
-                          projectId: state.pathParameters['projectId']!,
-                        ),
-                  ),
-                  GoRoute(
-                    name: 'developerBotDetail',
-                    path: 'bots/:botId',
-                    builder:
-                        (context, state) => BotDetailScreen(
-                          publisherName: state.pathParameters['name']!,
-                          projectId: state.pathParameters['projectId']!,
-                          botId: state.pathParameters['botId']!,
-                        ),
-                  ),
-                  GoRoute(
-                    name: 'developerBotEdit',
-                    path: 'bots/:id/edit',
-                    builder:
-                        (context, state) => EditBotScreen(
-                          publisherName: state.pathParameters['name']!,
-                          projectId: state.pathParameters['projectId']!,
-                          id: state.pathParameters['id']!,
-                        ),
-                  ),
-                ],
-              ),
-            ],
-          ),
 
           // Web articles
           GoRoute(
@@ -638,6 +459,189 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final name = state.pathParameters['name']!;
                   return AccountProfileScreen(name: name);
                 },
+              ),
+              // Creator hub tab
+              GoRoute(
+                name: 'creatorHub',
+                path: '/creators',
+                builder: (context, state) => const CreatorHubScreen(),
+                routes: [
+                  // Web Feed Routes
+                  GoRoute(
+                    name: 'creatorFeeds',
+                    path: ':name/feeds',
+                    builder: (context, state) {
+                      final name = state.pathParameters['name']!;
+                      return WebFeedListScreen(pubName: name);
+                    },
+                  ),
+                  GoRoute(
+                    name: 'creatorPosts',
+                    path: ':name/posts',
+                    builder: (context, state) {
+                      final name = state.pathParameters['name']!;
+                      return CreatorPostListScreen(pubName: name);
+                    },
+                  ),
+                  // Poll list route
+                  GoRoute(
+                    name: 'creatorPolls',
+                    path: ':name/polls',
+                    builder: (context, state) {
+                      final name = state.pathParameters['name']!;
+                      return CreatorPollListScreen(pubName: name);
+                    },
+                  ),
+                  // Poll routes
+                  GoRoute(
+                    name: 'creatorPollNew',
+                    path: ':name/polls/new',
+                    builder: (context, state) {
+                      final name = state.pathParameters['name']!;
+                      // initialPollId left null for create; initialPublisher prefilled
+                      return PollEditorScreen(initialPublisher: name);
+                    },
+                  ),
+                  GoRoute(
+                    name: 'creatorPollEdit',
+                    path: ':name/polls/:id/edit',
+                    builder: (context, state) {
+                      final name = state.pathParameters['name']!;
+                      final id = state.pathParameters['id']!;
+                      return PollEditorScreen(
+                        initialPollId: id,
+                        initialPublisher: name,
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    name: 'creatorStickers',
+                    path: ':name/stickers',
+                    builder: (context, state) {
+                      final name = state.pathParameters['name']!;
+                      return StickersScreen(pubName: name);
+                    },
+                  ),
+                  GoRoute(
+                    name: 'creatorNew',
+                    path: 'new',
+                    builder: (context, state) => const NewPublisherScreen(),
+                  ),
+                  GoRoute(
+                    name: 'creatorEdit',
+                    path: ':name/edit',
+                    builder: (context, state) {
+                      final name = state.pathParameters['name']!;
+                      return EditPublisherScreen(name: name);
+                    },
+                  ),
+                ],
+              ),
+
+              // Developer hub tab
+              GoRoute(
+                name: 'developerHub',
+                path: '/developers',
+                builder:
+                    (context, state) => DeveloperHubScreen(
+                      initialPublisherName:
+                          state.uri.queryParameters['publisher'],
+                      initialProjectId: state.uri.queryParameters['project'],
+                    ),
+                routes: [
+                  GoRoute(
+                    name: 'developerProjectNew',
+                    path: ':name/projects/new',
+                    builder:
+                        (context, state) => NewProjectScreen(
+                          publisherName: state.pathParameters['name']!,
+                        ),
+                  ),
+                  GoRoute(
+                    name: 'developerProjectEdit',
+                    path: ':name/projects/:id/edit',
+                    builder:
+                        (context, state) => EditProjectScreen(
+                          publisherName: state.pathParameters['name']!,
+                          id: state.pathParameters['id']!,
+                        ),
+                  ),
+                  GoRoute(
+                    name: 'developerProjectDetail',
+                    path: ':name/projects/:projectId',
+                    builder: (context, state) {
+                      final name = state.pathParameters['name']!;
+                      final projectId = state.pathParameters['projectId']!;
+                      // Redirect to hub with project selected
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        context.go(
+                          '/developers?publisher=$name&project=$projectId',
+                        );
+                      });
+                      return const SizedBox.shrink(); // Temporary placeholder
+                    },
+                    routes: [
+                      GoRoute(
+                        name: 'developerAppNew',
+                        path: 'apps/new',
+                        builder:
+                            (context, state) => NewCustomAppScreen(
+                              publisherName: state.pathParameters['name']!,
+                              projectId: state.pathParameters['projectId']!,
+                            ),
+                      ),
+                      GoRoute(
+                        name: 'developerAppEdit',
+                        path: 'apps/:id/edit',
+                        builder:
+                            (context, state) => EditAppScreen(
+                              publisherName: state.pathParameters['name']!,
+                              projectId: state.pathParameters['projectId']!,
+                              id: state.pathParameters['id']!,
+                            ),
+                      ),
+                      GoRoute(
+                        name: 'developerAppDetail',
+                        path: 'apps/:appId',
+                        builder:
+                            (context, state) => AppDetailScreen(
+                              publisherName: state.pathParameters['name']!,
+                              projectId: state.pathParameters['projectId']!,
+                              appId: state.pathParameters['appId']!,
+                            ),
+                      ),
+                      GoRoute(
+                        name: 'developerBotNew',
+                        path: 'bots/new',
+                        builder:
+                            (context, state) => NewBotScreen(
+                              publisherName: state.pathParameters['name']!,
+                              projectId: state.pathParameters['projectId']!,
+                            ),
+                      ),
+                      GoRoute(
+                        name: 'developerBotDetail',
+                        path: 'bots/:botId',
+                        builder:
+                            (context, state) => BotDetailScreen(
+                              publisherName: state.pathParameters['name']!,
+                              projectId: state.pathParameters['projectId']!,
+                              botId: state.pathParameters['botId']!,
+                            ),
+                      ),
+                      GoRoute(
+                        name: 'developerBotEdit',
+                        path: 'bots/:id/edit',
+                        builder:
+                            (context, state) => EditBotScreen(
+                              publisherName: state.pathParameters['name']!,
+                              projectId: state.pathParameters['projectId']!,
+                              id: state.pathParameters['id']!,
+                            ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

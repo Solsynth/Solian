@@ -5,9 +5,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/heatmap.dart';
+import '../services/responsive.dart';
 
 /// A reusable heatmap widget for displaying activity data in GitHub-style layout.
-/// Shows exactly 365 days of data ending at the current date.
+/// Shows exactly 365 days (wide screen) or 90 days (non-wide screen) of data ending at the current date.
 class ActivityHeatmapWidget extends HookConsumerWidget {
   final SnHeatmap heatmap;
 
@@ -17,11 +18,13 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedItem = useState<HeatmapItem?>(null);
 
-    // Generate exactly 365 days ending at current date
     final now = DateTime.now();
 
-    // Start from exactly 365 days ago
-    final startDate = now.subtract(const Duration(days: 365));
+    final isWide = isWideScreen(context);
+    final days = isWide ? 365 : 90;
+
+    // Start from exactly the selected days ago
+    final startDate = now.subtract(Duration(days: days));
     // End at current date
     final endDate = now;
 
@@ -32,7 +35,7 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
     // Find sunday of the week containing end date
     final endSunday = endDate.add(Duration(days: 7 - endDate.weekday));
 
-    // Generate weeks to cover exactly 365 days
+    // Generate weeks to cover the selected date range
     final weeks = <DateTime>[];
     var current = startMonday;
     while (current.isBefore(endSunday) || current.isAtSameMomentAs(endSunday)) {
@@ -45,7 +48,7 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
     for (final week in weeks) {
       for (var i = 0; i < 7; i++) {
         final date = week.add(Duration(days: i));
-        // Only include dates within our 365-day range
+        // Only include dates within our selected range
         if (date.isAfter(startDate.subtract(const Duration(days: 1))) &&
             date.isBefore(endDate.add(const Duration(days: 1)))) {
           final item = heatmap.items.firstWhere(

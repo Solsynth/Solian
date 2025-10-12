@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/screens/tabs.dart';
+import 'package:island/services/responsive.dart';
 
 class ConditionalBottomNav extends HookConsumerWidget {
   final Widget child;
@@ -17,10 +19,11 @@ class ConditionalBottomNav extends HookConsumerWidget {
       return null;
     }, [currentLocation]);
 
-    // Use the same route logic as TabsScreen for consistency
-    const mainTabRoutes = ['/', '/chat', '/realms', '/account'];
-
-    final shouldShowBottomNav = mainTabRoutes.contains(currentLocation);
+    final routes = kTabRoutes.sublist(
+      0,
+      isWideScreen(context) ? null : kWideScreenRouteStart,
+    );
+    final shouldShowBottomNav = routes.contains(currentLocation);
 
     return shouldShowBottomNav ? child : const SizedBox.shrink();
   }
