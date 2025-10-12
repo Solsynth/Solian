@@ -247,7 +247,7 @@ class _StickersGrid extends StatelessWidget {
       itemCount: stickers.length,
       itemBuilder: (context, index) {
         final sticker = stickers[index];
-        final placeholder = ':${pack.prefix}${sticker.slug}:';
+        final placeholder = ':${pack.prefix}+${sticker.slug}:';
         return Tooltip(
           message: placeholder,
           child: InkWell(
