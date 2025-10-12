@@ -2,16 +2,64 @@ import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/time.dart';
+import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
 import 'package:styled_widget/styled_widget.dart';
+
+part 'post_reaction_sheet.g.dart';
+
+@riverpod
+class ReactionListNotifier extends _$ReactionListNotifier
+    with CursorPagingNotifierMixin<SnPostReaction> {
+  static const int _pageSize = 20;
+
+  int? totalCount;
+
+  @override
+  Future<CursorPagingData<SnPostReaction>> build({
+    required String symbol,
+    required String postId,
+  }) {
+    return fetch(cursor: null);
+  }
+
+  @override
+  Future<CursorPagingData<SnPostReaction>> fetch({
+    required String? cursor,
+  }) async {
+    final client = ref.read(apiClientProvider);
+    final offset = cursor == null ? 0 : int.parse(cursor);
+
+    final response = await client.get(
+      '/sphere/posts/$postId/reactions',
+      queryParameters: {'symbol': symbol, 'offset': offset, 'take': _pageSize},
+    );
+
+    totalCount = int.tryParse(response.headers.value('x-total') ?? '0') ?? 0;
+
+    final List<dynamic> data = response.data;
+    final reactions =
+        data.map((json) => SnPostReaction.fromJson(json)).toList();
+
+    final hasMore = reactions.length == _pageSize;
+    final nextCursor = hasMore ? (offset + reactions.length).toString() : null;
+
+    return CursorPagingData(
+      items: reactions,
+      hasMore: hasMore,
+      nextCursor: nextCursor,
+    );
+  }
+}
 
 const kAvailableStickers = {
   'angry',
@@ -49,6 +97,7 @@ class PostReactionSheet extends StatelessWidget {
   final Function(String symbol, int attitude) onReact;
   final String postId;
   const PostReactionSheet({
+    super.key,
     required this.reactionsCount,
     required this.reactionsMade,
     required this.onReact,
@@ -162,6 +211,18 @@ class PostReactionSheet extends StatelessWidget {
                       symbol,
                       details.localPosition,
                       postId,
+                      reactionsCount[symbol] ?? 0,
+                    );
+                  }
+                },
+                onSecondaryTapUp: (details) {
+                  if (count > 0) {
+                    showReactionDetailsPopup(
+                      context,
+                      symbol,
+                      details.localPosition,
+                      postId,
+                      reactionsCount[symbol] ?? 0,
                     );
                   }
                 },
@@ -269,56 +330,20 @@ class PostReactionSheet extends StatelessWidget {
 class ReactionDetailsPopup extends HookConsumerWidget {
   final String symbol;
   final String postId;
+  final int totalCount;
   const ReactionDetailsPopup({
     super.key,
     required this.symbol,
     required this.postId,
+    required this.totalCount,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reactions = useState<List<SnPostReaction>>([]);
-    final isLoading = useState(false);
-    final hasMore = useState(true);
-    final offset = useState(0);
-
-    Future<void> loadReactions() async {
-      if (isLoading.value || !hasMore.value) return;
-
-      isLoading.value = true;
-      try {
-        final client = ref.watch(apiClientProvider);
-        final response = await client.get(
-          '/sphere/posts/${postId}/reactions',
-          queryParameters: {
-            'symbol': symbol,
-            'offset': offset.value,
-            'take': 20,
-          },
-        );
-
-        final newReactions =
-            (response.data as List)
-                .map((json) => SnPostReaction.fromJson(json))
-                .toList();
-
-        if (newReactions.length < 20) {
-          hasMore.value = false;
-        }
-
-        reactions.value = [...reactions.value, ...newReactions];
-        offset.value += newReactions.length;
-      } catch (err) {
-        // Handle error
-      } finally {
-        isLoading.value = false;
-      }
-    }
-
-    useEffect(() {
-      loadReactions();
-      return null;
-    }, []);
+    final provider = reactionListNotifierProvider(
+      symbol: symbol,
+      postId: postId,
+    );
 
     final width = math.min(MediaQuery.of(context).size.width * 0.8, 480.0);
     return PopupCard(
@@ -340,40 +365,39 @@ class ReactionDetailsPopup extends HookConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ).tr(),
                   const Spacer(),
-                  Text('${reactions.value.length} reactions'.tr()),
+                  Text('reactions'.plural(totalCount)),
                 ],
               ),
             ),
             const Divider(height: 1),
             Expanded(
-              child: ListView.builder(
-                itemCount: reactions.value.length + (hasMore.value ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == reactions.value.length) {
-                    if (isLoading.value) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    } else {
-                      loadReactions();
-                      return const SizedBox.shrink();
-                    }
-                  }
+              child: PagingHelperView(
+                provider: provider,
+                futureRefreshable: provider.future,
+                notifierRefreshable: provider.notifier,
+                contentBuilder:
+                    (data, widgetCount, endItemView) => ListView.builder(
+                      itemCount: widgetCount,
+                      itemBuilder: (context, index) {
+                        if (index == widgetCount - 1) {
+                          return endItemView;
+                        }
 
-                  final reaction = reactions.value[index];
-                  return ListTile(
-                    leading: ProfilePictureWidget(
-                      file: reaction.account?.profile.picture,
+                        final reaction = data.items[index];
+                        return ListTile(
+                          leading: AccountPfcGestureDetector(
+                            uname: reaction.account?.name ?? 'unknown',
+                            child: ProfilePictureWidget(
+                              file: reaction.account?.profile.picture,
+                            ),
+                          ),
+                          title: Text(reaction.account?.nick ?? 'unknown'.tr()),
+                          subtitle: Text(
+                            '${reaction.createdAt.formatRelative(context)} · ${reaction.createdAt.formatSystem()}',
+                          ),
+                        );
+                      },
                     ),
-                    title: Text(reaction.account?.nick ?? 'unknown'.tr()),
-                    subtitle: Text(
-                      '${reaction.createdAt.formatRelative(context)} · ${reaction.createdAt.formatSystem()}',
-                    ),
-                  );
-                },
               ),
             ),
           ],
@@ -388,11 +412,17 @@ Future<void> showReactionDetailsPopup(
   String symbol,
   Offset offset,
   String postId,
+  int totalCount,
 ) async {
   await showPopupCard<void>(
     offset: offset,
     context: context,
-    builder: (context) => ReactionDetailsPopup(symbol: symbol, postId: postId),
+    builder:
+        (context) => ReactionDetailsPopup(
+          symbol: symbol,
+          postId: postId,
+          totalCount: totalCount,
+        ),
     alignment: Alignment.center,
     dimBackground: true,
   );
