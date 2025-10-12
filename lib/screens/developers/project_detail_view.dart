@@ -74,28 +74,18 @@ class ProjectDetailView extends HookConsumerWidget {
     } else {
       return Column(
         children: [
-          TabBar(
-            controller: tabController,
-            tabs: [
-              Tab(
-                child: Text(
-                  'customApps'.tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor!,
-                  ),
+          Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: TabBar(
+              dividerColor: Colors.transparent,
+              controller: tabController,
+              tabs: [
+                Tab(
+                  child: Text('customApps'.tr(), textAlign: TextAlign.center),
                 ),
-              ),
-              Tab(
-                child: Text(
-                  'bots'.tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor!,
-                  ),
-                ),
-              ),
-            ],
+                Tab(child: Text('bots'.tr(), textAlign: TextAlign.center)),
+              ],
+            ),
           ),
           Expanded(
             child: TabBarView(

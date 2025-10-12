@@ -1,9 +1,10 @@
+import 'dart:math';
+
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/dev_project.dart';
 import 'package:island/models/developer.dart';
@@ -20,6 +21,7 @@ import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 part 'hub.g.dart';
 
@@ -64,7 +66,6 @@ class DeveloperHubScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = isWideScreen(context);
     final developers = ref.watch(developersProvider);
     final currentDeveloper = useState<SnDeveloper?>(
       developers.value?.firstOrNull,
@@ -87,274 +88,398 @@ class DeveloperHubScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(
-        leading: const PageBackButton(),
-        title: Text('Solar Network Cloud'),
-        actions: [
+      appBar: _ConsoleAppBar(
+        currentDeveloper: currentDeveloper.value,
+        currentProject: currentProject.value,
+        onProjectChanged: (value) {
+          currentProject.value = value;
+        },
+        onDeveloperChanged: (value) {
+          currentDeveloper.value = value;
+        },
+      ),
+      body: Column(
+        children: [
+          if (currentProject.value == null)
+            ...([
+              // Welcome Section
+              _WelcomeSection(currentDeveloper: currentDeveloper.value),
+
+              // Navigation Tabs
+              _NavigationTabs(),
+            ]),
+
+          // Main Content
           if (currentProject.value != null)
-            ProjectSelector(
+            Expanded(
+              child: ProjectDetailView(
+                publisherName: currentDeveloper.value!.publisher!.name,
+                project: currentProject.value!,
+                onBackToHub: () {
+                  currentProject.value = null;
+                },
+              ),
+            )
+          else
+            _MainContentSection(
               currentDeveloper: currentDeveloper.value,
-              currentProject: currentProject.value,
-              onProjectChanged: (value) {
-                currentProject.value = value;
+              projects: projects,
+              developerStats: developerStats,
+              onProjectSelected: (project) {
+                currentProject.value = project;
+              },
+              onDeveloperSelected: (developer) {
+                currentDeveloper.value = developer;
+              },
+              onCreateProject: () {
+                if (currentDeveloper.value != null) {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder:
+                        (context) => SheetScaffold(
+                          titleText: 'createProject'.tr(),
+                          child: ProjectForm(
+                            publisherName:
+                                currentDeveloper.value!.publisher!.name,
+                          ),
+                        ),
+                  ).then((value) {
+                    if (value != null) {
+                      ref.invalidate(
+                        devProjectsProvider(
+                          currentDeveloper.value!.publisher!.name,
+                        ),
+                      );
+                    }
+                  });
+                }
               },
             ),
-          if (!isWide)
-            DeveloperSelector(
-              isReadOnly: false,
-              currentDeveloper: currentDeveloper.value,
-              onDeveloperChanged: (value) {
-                currentDeveloper.value = value;
-              },
-            ),
-          const Gap(8),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final maxWidth = isWide ? 800.0 : double.infinity;
+    );
+  }
+}
 
-          return Center(
-            child:
-                currentProject.value != null
-                    ? ProjectDetailView(
-                      publisherName: currentDeveloper.value!.publisher!.name,
-                      project: currentProject.value!,
-                      onBackToHub: () {
-                        currentProject.value = null;
-                      },
+class _ConsoleAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final SnDeveloper? currentDeveloper;
+  final DevProject? currentProject;
+  final ValueChanged<DevProject?> onProjectChanged;
+  final ValueChanged<SnDeveloper?> onDeveloperChanged;
+
+  const _ConsoleAppBar({
+    required this.currentDeveloper,
+    required this.currentProject,
+    required this.onProjectChanged,
+    required this.onDeveloperChanged,
+  });
+
+  @override
+  Size get preferredSize => const Size.fromHeight(56);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      leading: const PageBackButton(),
+      title: Text('developerHub').tr(),
+      actions: [
+        if (currentProject != null)
+          ProjectSelector(
+            currentDeveloper: currentDeveloper,
+            currentProject: currentProject,
+            onProjectChanged: onProjectChanged,
+          ),
+        IconButton(
+          icon: const Icon(Symbols.help, color: Color(0xFF5F6368)),
+          onPressed: () {
+            launchUrlString('https://kb.solsynth.dev');
+          },
+        ),
+        const Gap(12),
+      ],
+    );
+  }
+}
+
+// Welcome Section
+class _WelcomeSection extends StatelessWidget {
+  final SnDeveloper? currentDeveloper;
+
+  const _WelcomeSection({required this.currentDeveloper});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors:
+                    isDark
+                        ? [
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                          Theme.of(context).colorScheme.surfaceContainerLow,
+                        ]
+                        : [const Color(0xFFE8F0FE), const Color(0xFFF1F3F4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          right: 16,
+          top: 0,
+          bottom: 0,
+          child: _RandomStickerImage(
+            width: 180,
+            height: 180,
+          ).opacity(isWideScreen(context) ? 1 : 0.5),
+        ),
+        Container(
+          height: 180,
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Good morning!',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w400,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const Gap(4),
+              Text(
+                currentDeveloper != null
+                    ? "You're working as ${currentDeveloper!.publisher!.nick}"
+                    : "Choose a developer and continue.",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Random Sticker Image Widget
+class _RandomStickerImage extends StatelessWidget {
+  final double? width;
+  final double? height;
+
+  const _RandomStickerImage({this.width, this.height});
+
+  static const List<String> _stickers = [
+    'assets/images/stickers/clap.png',
+    'assets/images/stickers/confuse.png',
+    'assets/images/stickers/pray.png',
+    'assets/images/stickers/thumb_up.png',
+  ];
+
+  String _getRandomSticker() {
+    final random = Random();
+    return _stickers[random.nextInt(_stickers.length)];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      _getRandomSticker(),
+      width: width ?? 80,
+      height: height ?? 80,
+      fit: BoxFit.contain,
+    );
+  }
+}
+
+// Navigation Tabs
+class _NavigationTabs extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
+      child: Row(
+        children: [
+          const Gap(24),
+          _NavTabItem(title: 'Dashboard', isActive: true),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavTabItem extends StatelessWidget {
+  final String title;
+  final bool isActive;
+
+  const _NavTabItem({required this.title, this.isActive = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color:
+                isActive
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.transparent,
+            width: 2,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color:
+                  isActive
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurface,
+              fontWeight: isActive ? FontWeight.w500 : FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Main Content Section
+class _MainContentSection extends HookConsumerWidget {
+  final SnDeveloper? currentDeveloper;
+  final AsyncValue<List<DevProject>> projects;
+  final AsyncValue<DeveloperStats?> developerStats;
+  final ValueChanged<DevProject> onProjectSelected;
+  final ValueChanged<SnDeveloper> onDeveloperSelected;
+  final VoidCallback onCreateProject;
+
+  const _MainContentSection({
+    required this.currentDeveloper,
+    required this.projects,
+    required this.developerStats,
+    required this.onProjectSelected,
+    required this.onDeveloperSelected,
+    required this.onCreateProject,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      child: developerStats.when(
+        data:
+            (stats) =>
+                currentDeveloper == null
+                    ? _DeveloperUnselectedWidget(
+                      onDeveloperSelected: onDeveloperSelected,
                     )
-                    : ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxWidth),
-                      child: developerStats.when(
-                        data:
-                            (stats) => SingleChildScrollView(
-                              child:
-                                  currentDeveloper.value == null
-                                      ? ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          maxWidth: 640,
-                                        ),
-                                        child: _DeveloperUnselectedWidget(
-                                          onDeveloperSelected: (developer) {
-                                            currentDeveloper.value = developer;
-                                          },
-                                        ),
-                                      ).center()
-                                      : isWide
-                                      ? Column(
-                                        spacing: 8,
-                                        children: [
-                                          DeveloperSelector(
-                                            isReadOnly: true,
-                                            currentDeveloper:
-                                                currentDeveloper.value,
-                                            onDeveloperChanged: (value) {
-                                              currentDeveloper.value = value;
-                                            },
-                                          ),
-                                          if (stats != null)
-                                            _DeveloperStatsWidget(
-                                              stats: stats,
-                                            ).padding(horizontal: 12),
-                                          Card(
-                                            margin: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                            ),
-                                            child: Column(
-                                              children: [
-                                                Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    16,
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      const Icon(
-                                                        Symbols.folder_code,
-                                                      ),
-                                                      const Gap(12),
-                                                      Text(
-                                                        'projects',
-                                                        style:
-                                                            Theme.of(context)
-                                                                .textTheme
-                                                                .titleMedium,
-                                                      ).tr(),
-                                                      const Spacer(),
-                                                      IconButton(
-                                                        visualDensity:
-                                                            VisualDensity
-                                                                .compact,
-                                                        icon: const Icon(
-                                                          Symbols.add,
-                                                        ),
-                                                        onPressed: () {
-                                                          context.pushNamed(
-                                                            'developerProjectNew',
-                                                            pathParameters: {
-                                                              'name':
-                                                                  currentDeveloper
-                                                                      .value!
-                                                                      .publisher!
-                                                                      .name,
-                                                            },
-                                                          );
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                if (projects
-                                                        .value
-                                                        ?.isNotEmpty ??
-                                                    false)
-                                                  ...(projects.value?.map(
-                                                        (
-                                                          project,
-                                                        ) => _ProjectListTile(
-                                                          project: project,
-                                                          publisherName:
-                                                              currentDeveloper
-                                                                  .value!
-                                                                  .publisher!
-                                                                  .name,
-                                                          onProjectSelected: (
-                                                            selectedProject,
-                                                          ) {
-                                                            currentProject
-                                                                    .value =
-                                                                selectedProject;
-                                                          },
-                                                        ),
-                                                      ) ??
-                                                      [])
-                                                else
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          16,
-                                                        ),
-                                                    child: Center(
-                                                      child:
-                                                          Text(
-                                                            'noProjects',
-                                                          ).tr(),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                      : Column(
-                                        spacing: 12,
-                                        children: [
-                                          if (stats != null)
-                                            _DeveloperStatsWidget(
-                                              stats: stats,
-                                            ).padding(horizontal: 16),
-                                          Card(
-                                            margin: const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                            ),
-                                            child: Column(
-                                              children: [
-                                                Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    16,
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      Text(
-                                                        'projects',
-                                                        style:
-                                                            Theme.of(context)
-                                                                .textTheme
-                                                                .titleMedium,
-                                                      ).tr(),
-                                                      const Spacer(),
-                                                      IconButton(
-                                                        icon: const Icon(
-                                                          Symbols.add,
-                                                        ),
-                                                        onPressed: () {
-                                                          context.pushNamed(
-                                                            'developerProjectNew',
-                                                            pathParameters: {
-                                                              'name':
-                                                                  currentDeveloper
-                                                                      .value!
-                                                                      .publisher!
-                                                                      .name,
-                                                            },
-                                                          );
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                if (projects
-                                                        .value
-                                                        ?.isNotEmpty ??
-                                                    false)
-                                                  ...(projects.value?.map(
-                                                        (
-                                                          project,
-                                                        ) => _ProjectListTile(
-                                                          project: project,
-                                                          publisherName:
-                                                              currentDeveloper
-                                                                  .value!
-                                                                  .publisher!
-                                                                  .name,
-                                                          onProjectSelected: (
-                                                            selectedProject,
-                                                          ) {
-                                                            currentProject
-                                                                    .value =
-                                                                selectedProject;
-                                                          },
-                                                        ),
-                                                      ) ??
-                                                      [])
-                                                else
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          16,
-                                                        ),
-                                                    child: Center(
-                                                      child:
-                                                          Text(
-                                                            'noProjects',
-                                                          ).tr(),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                    : Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Developer Stats
+                          if (stats != null) ...[
+                            Text(
+                              'Overview',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleLarge?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
-                        loading:
-                            () => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                        error:
-                            (err, stack) => ResponseErrorWidget(
-                              error: err,
-                              onRetry: () {
-                                ref.invalidate(
-                                  developerStatsProvider(
-                                    currentDeveloper.value?.publisher!.name,
+                            const Gap(16),
+                            _DeveloperStatsWidget(stats: stats),
+                            const Gap(24),
+                          ],
+
+                          // Projects Section
+                          Row(
+                            children: [
+                              Text(
+                                'Projects',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.titleLarge?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              const Spacer(),
+                              ElevatedButton.icon(
+                                onPressed: onCreateProject,
+                                icon: const Icon(Symbols.add),
+                                label: const Text('Create Project'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF1A73E8),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Gap(16),
+
+                          // Projects List
+                          projects.value?.isNotEmpty ?? false
+                              ? Column(
+                                children:
+                                    projects.value!
+                                        .map(
+                                          (project) => _ProjectListTile(
+                                            project: project,
+                                            publisherName:
+                                                currentDeveloper!
+                                                    .publisher!
+                                                    .name,
+                                            onProjectSelected:
+                                                onProjectSelected,
+                                          ),
+                                        )
+                                        .toList(),
+                              )
+                              : Container(
+                                padding: const EdgeInsets.all(48),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'No projects available',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                        ],
                       ),
                     ),
-          );
-        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error:
+            (err, stack) => ResponseErrorWidget(
+              error: err,
+              onRetry: () {
+                ref.invalidate(
+                  developerStatsProvider(currentDeveloper?.publisher?.name),
+                );
+              },
+            ),
       ),
     );
   }
@@ -660,10 +785,22 @@ class _ProjectListTile extends HookConsumerWidget {
             ],
         onSelected: (value) {
           if (value == 'edit') {
-            context.pushNamed(
-              'developerProjectEdit',
-              pathParameters: {'name': publisherName, 'id': project.id},
-            );
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder:
+                  (context) => SheetScaffold(
+                    titleText: 'editProject'.tr(),
+                    child: ProjectForm(
+                      publisherName: publisherName,
+                      project: project,
+                    ),
+                  ),
+            ).then((value) {
+              if (value != null) {
+                ref.invalidate(devProjectsProvider(publisherName));
+              }
+            });
           } else if (value == 'delete') {
             showConfirmAlert(
               'deleteProjectHint'.tr(),
@@ -814,6 +951,129 @@ class _DeveloperUnselectedWidget extends HookConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+class ProjectForm extends HookConsumerWidget {
+  final String publisherName;
+  final DevProject? project;
+
+  const ProjectForm({super.key, required this.publisherName, this.project});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isEditing = project != null;
+    final formKey = useMemoized(() => GlobalKey<FormState>());
+    final nameController = useTextEditingController(text: project?.name ?? '');
+    final slugController = useTextEditingController(text: project?.slug ?? '');
+    final descriptionController = useTextEditingController(
+      text: project?.description ?? '',
+    );
+    final submitting = useState(false);
+
+    Future<void> submit() async {
+      if (!(formKey.currentState?.validate() ?? false)) return;
+
+      try {
+        submitting.value = true;
+        final client = ref.read(apiClientProvider);
+        final data = {
+          'name': nameController.text,
+          'slug': slugController.text,
+          'description': descriptionController.text,
+        };
+
+        final resp =
+            isEditing
+                ? await client.put(
+                  '/develop/developers/$publisherName/projects/${project!.id}',
+                  data: data,
+                )
+                : await client.post(
+                  '/develop/developers/$publisherName/projects',
+                  data: data,
+                );
+
+        if (!context.mounted) return;
+        Navigator.of(context).pop(DevProject.fromJson(resp.data));
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        submitting.value = false;
+      }
+    }
+
+    return Column(
+      children: [
+        Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 16,
+            children: [
+              TextFormField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'name'.tr(),
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'fieldCannotBeEmpty'.tr();
+                  }
+                  return null;
+                },
+                onTapOutside:
+                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              ),
+              TextFormField(
+                controller: slugController,
+                decoration: InputDecoration(
+                  labelText: 'slug'.tr(),
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                  helperText: 'slugHint'.tr(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'fieldCannotBeEmpty'.tr();
+                  }
+                  return null;
+                },
+                onTapOutside:
+                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              ),
+              TextFormField(
+                controller: descriptionController,
+                decoration: InputDecoration(
+                  labelText: 'description'.tr(),
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                  alignLabelWithHint: true,
+                ),
+                minLines: 3,
+                maxLines: null,
+                onTapOutside:
+                    (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              ),
+            ],
+          ),
+        ),
+        const Gap(12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: submitting.value ? null : submit,
+            icon: const Icon(Symbols.save),
+            label: Text(isEditing ? 'saveChanges'.tr() : 'create'.tr()),
+          ),
+        ),
+      ],
+    ).padding(horizontal: 24, vertical: 16);
   }
 }
 
