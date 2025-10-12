@@ -173,7 +173,7 @@ class ComposeStateUtils {
     state.attachmentProgress.value = {};
 
     // Clear tags
-    state.tagsController.clearTags();
+    state.tags.value = [];
 
     // Clear categories
     state.categories.value = [];

@@ -23,7 +23,6 @@ import 'package:island/widgets/post/compose_poll.dart';
 import 'package:island/widgets/post/compose_recorder.dart';
 import 'package:island/pods/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
-import 'package:textfield_tags/textfield_tags.dart';
 import 'package:island/talker.dart';
 
 class ComposeState {
@@ -37,7 +36,7 @@ class ComposeState {
   final ValueNotifier<SnPublisher?> currentPublisher;
   final ValueNotifier<bool> submitting;
   final ValueNotifier<List<SnPostCategory>> categories;
-  StringTagController tagsController;
+  final ValueNotifier<List<String>> tags;
   final ValueNotifier<SnRealm?> realm;
   final ValueNotifier<SnPostEmbedView?> embedView;
   final String draftId;
@@ -56,7 +55,7 @@ class ComposeState {
     required this.attachmentProgress,
     required this.currentPublisher,
     required this.submitting,
-    required this.tagsController,
+    required this.tags,
     required this.categories,
     required this.realm,
     required this.embedView,
@@ -90,14 +89,10 @@ class ComposeLogic {
     int postType = 0,
   }) {
     final id = draftId ?? DateTime.now().millisecondsSinceEpoch.toString();
-    final tagsController = StringTagController();
 
     // Initialize tags from original post
-    if (originalPost != null) {
-      for (var tag in originalPost.tags) {
-        tagsController.addTag(tag.slug);
-      }
-    }
+    final tags =
+        originalPost?.tags.map((tag) => tag.slug).toList() ?? <String>[];
 
     // Initialize categories from original post
     final categories = originalPost?.categories ?? <SnPostCategory>[];
@@ -129,7 +124,7 @@ class ComposeLogic {
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(originalPost?.publisher),
-      tagsController: tagsController,
+      tags: ValueNotifier<List<String>>(tags),
       categories: ValueNotifier<List<SnPostCategory>>(categories),
       realm: ValueNotifier(originalPost?.realm),
       embedView: ValueNotifier<SnPostEmbedView?>(originalPost?.embedView),
@@ -141,10 +136,7 @@ class ComposeLogic {
   }
 
   static ComposeState createStateFromDraft(SnPost draft, {int postType = 0}) {
-    final tagsController = StringTagController();
-    for (var x in draft.tags) {
-      tagsController.addTag(x.slug);
-    }
+    final tags = draft.tags.map((tag) => tag.slug).toList();
 
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
@@ -158,7 +150,7 @@ class ComposeLogic {
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
-      tagsController: tagsController,
+      tags: ValueNotifier<List<String>>(tags),
       categories: ValueNotifier<List<SnPostCategory>>(draft.categories),
       realm: ValueNotifier(draft.realm),
       embedView: ValueNotifier<SnPostEmbedView?>(draft.embedView),
@@ -685,7 +677,7 @@ class ComposeLogic {
         'type': state.postType,
         if (repliedPost != null) 'replied_post_id': repliedPost.id,
         if (forwardedPost != null) 'forwarded_post_id': forwardedPost.id,
-        'tags': state.tagsController.getTags,
+        'tags': state.tags.value,
         'categories': state.categories.value.map((e) => e.slug).toList(),
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
@@ -781,7 +773,7 @@ class ComposeLogic {
     state.submitting.dispose();
     state.attachmentProgress.dispose();
     state.currentPublisher.dispose();
-    state.tagsController.dispose();
+    state.tags.dispose();
     state.categories.dispose();
     state.realm.dispose();
     state.embedView.dispose();

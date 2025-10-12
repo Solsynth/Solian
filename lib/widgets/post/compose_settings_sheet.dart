@@ -2,9 +2,11 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post_category.dart';
+import 'package:island/models/post_tag.dart';
 import 'package:island/models/realm.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/realm/realms.dart';
@@ -132,6 +134,26 @@ class ComposeSettingsSheet extends HookConsumerWidget {
 
   const ComposeSettingsSheet({super.key, required this.state});
 
+  Future<List<SnPostTag>> _fetchTagSuggestions(
+    String query,
+    WidgetRef ref,
+  ) async {
+    if (query.isEmpty) return [];
+
+    try {
+      final client = ref.read(apiClientProvider);
+      final response = await client.get(
+        '/sphere/posts/tags',
+        queryParameters: {'query': query},
+      );
+      return response.data
+          .map<SnPostTag>((json) => SnPostTag.fromJson(json))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -140,6 +162,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
     // Listen to visibility changes to trigger rebuilds
     final currentVisibility = useValueListenable(state.visibility);
     final currentCategories = useValueListenable(state.categories);
+    final currentTags = useValueListenable(state.tags);
     final currentRealm = useValueListenable(state.realm);
     final postCategories = ref.watch(postCategoriesProvider);
     final userRealms = ref.watch(realmsJoinedProvider);
@@ -255,23 +278,118 @@ class ComposeSettingsSheet extends HookConsumerWidget {
             ),
 
             // Tags field
-            TextFieldTags(
-              textfieldTagsController: state.tagsController,
-              textSeparators: const [' ', ','],
-              letterCase: LetterCase.normal,
-              validator: (String tag) {
-                if (tag.isEmpty) {
-                  return 'No, cannot be empty';
-                }
-                return null;
-              },
-              inputFieldBuilder: (context, inputFieldValues) {
-                return ChipTagInputField(
-                  inputFieldValues: inputFieldValues,
-                  labelText: 'tags',
-                  hintText: 'tagsHint',
-                );
-              },
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 12,
+                children: [
+                  Text(
+                    'tags'.tr(),
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  // Existing tags display
+                  if (currentTags.isNotEmpty)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children:
+                          currentTags.map((tag) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '#$tag',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const Gap(4),
+                                  InkWell(
+                                    onTap: () {
+                                      final newTags = List<String>.from(
+                                        state.tags.value,
+                                      )..remove(tag);
+                                      state.tags.value = newTags;
+                                    },
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                  // Tag input with autocomplete
+                  TypeAheadField<SnPostTag>(
+                    builder: (context, controller, focusNode) {
+                      return TextField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          hintText: 'addTag'.tr(),
+                          border: InputBorder.none,
+                          isCollapsed: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onSubmitted: (value) {
+                          state.tags.value = [...state.tags.value, value];
+                          controller.clear();
+                        },
+                      );
+                    },
+                    suggestionsCallback:
+                        (pattern) => _fetchTagSuggestions(pattern, ref),
+                    itemBuilder: (context, suggestion) {
+                      return ListTile(
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                        ),
+                        title: Text('#${suggestion.slug}'),
+                        dense: true,
+                      );
+                    },
+                    onSelected: (suggestion) {
+                      if (!state.tags.value.contains(suggestion.slug)) {
+                        state.tags.value = [
+                          ...state.tags.value,
+                          suggestion.slug,
+                        ];
+                      }
+                    },
+                    direction: VerticalDirection.down,
+                    hideOnEmpty: true,
+                    hideOnLoading: true,
+                    debounceDuration: const Duration(milliseconds: 300),
+                  ),
+                ],
+              ),
             ),
 
             // Categories field
