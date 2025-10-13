@@ -469,24 +469,28 @@ class ChatInput extends HookConsumerWidget {
                       ),
                       UploadMenu(
                         items: [
-                          MenuItemData(
+                          UploadMenuItemData(
                             Symbols.add_a_photo,
                             'addPhoto',
                             () => onPickFile(true),
                           ),
-                          MenuItemData(
+                          UploadMenuItemData(
                             Symbols.videocam,
                             'addVideo',
                             () => onPickFile(false),
                           ),
-                          MenuItemData(Symbols.mic, 'addAudio', onPickAudio),
-                          MenuItemData(
+                          UploadMenuItemData(
+                            Symbols.mic,
+                            'addAudio',
+                            onPickAudio,
+                          ),
+                          UploadMenuItemData(
                             Symbols.file_upload,
                             'uploadFile',
                             onPickGeneralFile,
                           ),
                           if (onLinkAttachment != null)
-                            MenuItemData(
+                            UploadMenuItemData(
                               Symbols.attach_file,
                               'linkAttachment',
                               onLinkAttachment!,

@@ -2,16 +2,16 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class MenuItemData {
+class UploadMenuItemData {
   final IconData icon;
   final String textKey;
   final VoidCallback onPressed;
 
-  const MenuItemData(this.icon, this.textKey, this.onPressed);
+  const UploadMenuItemData(this.icon, this.textKey, this.onPressed);
 }
 
 class UploadMenu extends StatelessWidget {
-  final List<MenuItemData> items;
+  final List<UploadMenuItemData> items;
   final bool isCompact;
   final Color? iconColor;
 
@@ -51,6 +51,7 @@ class UploadMenu extends StatelessWidget {
                   onPressed: item.onPressed,
                   leadingIcon: Icon(item.icon),
                   style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
                     padding: WidgetStatePropertyAll(
                       EdgeInsets.only(left: 12, right: 16, top: 20, bottom: 20),
                     ),

@@ -161,6 +161,7 @@ class MessageItem extends HookConsumerWidget {
       clipBehavior: Clip.none,
       children: [
         SwipeTo(
+          swipeSensitivity: 15,
           rightSwipeWidget: Transform.flip(
             flipX: true,
             child: Icon(Symbols.menu_open),
@@ -477,6 +478,8 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                   Navigator.pop(context);
                 },
               ),
+
+            Gap(MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),

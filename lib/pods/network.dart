@@ -114,9 +114,9 @@ final apiClientProvider = Provider<Dio>((ref) {
       dio: dio,
       retries: 3,
       retryDelays: const [
-        Duration(seconds: 1),
-        Duration(seconds: 2),
-        Duration(seconds: 3),
+        Duration(milliseconds: 300),
+        Duration(milliseconds: 500),
+        Duration(milliseconds: 1000),
       ],
       retryEvaluator: (err, _) => err.requestOptions.method == 'GET',
     ),

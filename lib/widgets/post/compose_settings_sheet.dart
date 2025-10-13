@@ -16,7 +16,6 @@ import 'package:island/widgets/post/compose_shared.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:textfield_tags/textfield_tags.dart';
 
 part 'compose_settings_sheet.g.dart';
 
@@ -35,98 +34,6 @@ Future<List<SnPostCategory>> postCategories(Ref ref) async {
     uniqueCategories[category.id] = category;
   }
   return uniqueCategories.values.toList();
-}
-
-/// A reusable widget for tag input fields with chip display
-class ChipTagInputField extends StatelessWidget {
-  final InputFieldValues inputFieldValues;
-  final String labelText;
-  final String hintText;
-
-  const ChipTagInputField({
-    super.key,
-    required this.inputFieldValues,
-    required this.labelText,
-    required this.hintText,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: inputFieldValues.textEditingController,
-      focusNode: inputFieldValues.focusNode,
-      decoration: InputDecoration(
-        label: Text(labelText).tr(),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: const EdgeInsets.all(16),
-        hintText: inputFieldValues.tags.isNotEmpty ? '' : hintText.tr(),
-        errorText: inputFieldValues.error,
-        prefixIconConstraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
-        ),
-        prefixIcon:
-            inputFieldValues.tags.isNotEmpty
-                ? SingleChildScrollView(
-                  controller: inputFieldValues.tagScrollController,
-                  scrollDirection: Axis.vertical,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8),
-                    child: Wrap(
-                      runSpacing: 4.0,
-                      spacing: 4.0,
-                      children:
-                          inputFieldValues.tags.map<Widget>((dynamic tag) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(20.0),
-                                ),
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              margin: const EdgeInsets.only(left: 5),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0,
-                                vertical: 5.0,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  InkWell(
-                                    child: Text(
-                                      '#$tag',
-                                      style: TextStyle(
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.onPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  const Gap(4),
-                                  InkWell(
-                                    child: const Icon(
-                                      Icons.cancel,
-                                      size: 14.0,
-                                      color: Color.fromARGB(255, 233, 233, 233),
-                                    ),
-                                    onTap: () {
-                                      inputFieldValues.onTagRemoved(tag);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                    ),
-                  ),
-                )
-                : null,
-      ),
-      onChanged: inputFieldValues.onTagChanged,
-      onSubmitted: inputFieldValues.onTagSubmitted,
-    );
-  }
 }
 
 class ComposeSettingsSheet extends HookConsumerWidget {

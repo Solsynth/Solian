@@ -82,10 +82,10 @@ class ComposeToolbar extends HookConsumerWidget {
     }
 
     final uploadMenuItems = [
-      MenuItemData(Symbols.add_a_photo, 'addPhoto', pickPhotoMedia),
-      MenuItemData(Symbols.videocam, 'addVideo', pickVideoMedia),
-      MenuItemData(Symbols.mic, 'addAudio', addAudio),
-      MenuItemData(Symbols.file_upload, 'uploadFile', pickGeneralFile),
+      UploadMenuItemData(Symbols.add_a_photo, 'addPhoto', pickPhotoMedia),
+      UploadMenuItemData(Symbols.videocam, 'addVideo', pickVideoMedia),
+      UploadMenuItemData(Symbols.mic, 'addAudio', addAudio),
+      UploadMenuItemData(Symbols.file_upload, 'uploadFile', pickGeneralFile),
     ];
 
     final colorScheme = Theme.of(context).colorScheme;
