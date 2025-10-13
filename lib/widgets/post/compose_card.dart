@@ -34,9 +34,9 @@ class PostComposeCard extends HookConsumerWidget {
   final SnPost? originalPost;
   final PostComposeInitialState? initialState;
   final VoidCallback? onCancel;
-  final Function(SnPost)? onSubmit;
+  final Function()? onSubmit;
   final Function(ComposeState)? onStateChanged;
-  final bool isInDialog;
+  final bool isDialog;
 
   const PostComposeCard({
     super.key,
@@ -45,7 +45,7 @@ class PostComposeCard extends HookConsumerWidget {
     this.onCancel,
     this.onSubmit,
     this.onStateChanged,
-    this.isInDialog = false,
+    this.isDialog = false,
   });
 
   @override
@@ -164,20 +164,19 @@ class PostComposeCard extends HookConsumerWidget {
           // Reset the form for new composition
           ComposeStateUtils.resetForm(state);
 
-          // Call the widget's onSubmit callback to trigger activity list refresh
-          // Note: onSubmit still receives the post from the return value
+          onSubmit?.call();
         },
       );
     }
 
     final maxHeight = math.min(
       640.0,
-      MediaQuery.of(context).size.height * (isInDialog ? 0.8 : 0.72),
+      MediaQuery.of(context).size.height * (isDialog ? 0.8 : 0.72),
     );
 
     return Card(
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainer,
+      color: isDialog ? Theme.of(context).colorScheme.surfaceContainer : null,
       child: Container(
         constraints: BoxConstraints(maxHeight: maxHeight),
         child: Column(
@@ -311,7 +310,7 @@ class PostComposeCard extends HookConsumerWidget {
                           onTap: () {
                             if (state.currentPublisher.value == null) {
                               // No publisher loaded, guide user to create one
-                              if (isInDialog) {
+                              if (isDialog) {
                                 Navigator.of(context).pop();
                               }
                               context.pushNamed('creatorNew').then((value) {
@@ -348,7 +347,7 @@ class PostComposeCard extends HookConsumerWidget {
                                 onPublisherTap: () {
                                   if (state.currentPublisher.value == null) {
                                     // No publisher loaded, guide user to create one
-                                    if (isInDialog) {
+                                    if (isDialog) {
                                       Navigator.of(context).pop();
                                     }
                                     context.pushNamed('creatorNew').then((

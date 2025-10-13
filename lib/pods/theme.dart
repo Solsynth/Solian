@@ -88,6 +88,7 @@ ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
       color: colorScheme.surfaceContainer.withOpacity(
         settings.cardTransparency,
       ),
+      elevation: settings.cardTransparency <= 1 ? 0 : null,
     ),
     pageTransitionsTheme: PageTransitionsTheme(
       builders: {

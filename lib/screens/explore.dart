@@ -330,7 +330,7 @@ class ExploreScreen extends HookConsumerWidget {
                       ),
                     PostFeaturedList(),
                     PostComposeCard(
-                      onSubmit: (post) {
+                      onSubmit: () {
                         activitiesNotifier.forceRefresh();
                       },
                     ),

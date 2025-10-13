@@ -99,7 +99,7 @@ class EventDetailsWidget extends StatelessWidget {
             ],
           ),
         if (event?.checkInResult == null && (event?.statuses.isEmpty ?? true))
-          Text('eventCalandarEmpty').tr(),
+          Text('eventCalendarEmpty').tr(),
       ],
     ).padding(vertical: 24, horizontal: 24);
   }

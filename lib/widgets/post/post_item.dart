@@ -334,7 +334,7 @@ class PostActionableItem extends HookConsumerWidget {
         );
       },
       child: Material(
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        color: Theme.of(context).cardTheme.color,
         borderRadius:
             borderRadius != null
                 ? BorderRadius.all(Radius.circular(borderRadius!))
