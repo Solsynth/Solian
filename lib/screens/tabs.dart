@@ -126,6 +126,7 @@ class TabsScreen extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       body: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),

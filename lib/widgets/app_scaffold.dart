@@ -314,28 +314,22 @@ class AppScaffold extends HookConsumerWidget {
 
     final noBackground = isNoBackground ?? isWideScreen(context);
 
-    final content = Column(
-      children: [
-        IgnorePointer(
-          child: SizedBox(height: appBar != null ? appBarHeight + safeTop : 0),
-        ),
-        if (body != null) Expanded(child: body!),
-      ],
-    );
-
-    return Focus(
+    final builtWidget = Focus(
       focusNode: focusNode,
       child: Scaffold(
         extendBody: extendBody ?? true,
         extendBodyBehindAppBar: true,
-        backgroundColor:
-            noBackground
-                ? Colors.transparent
-                : Theme.of(context).scaffoldBackgroundColor,
-        body:
-            noBackground
-                ? content
-                : AppBackground(isRoot: true, child: content),
+        backgroundColor: Colors.transparent,
+        body: Column(
+          children: [
+            IgnorePointer(
+              child: SizedBox(
+                height: appBar != null ? appBarHeight + safeTop : 0,
+              ),
+            ),
+            if (body != null) Expanded(child: body!),
+          ],
+        ),
         appBar: appBar,
         bottomNavigationBar: bottomNavigationBar,
         bottomSheet: bottomSheet,
@@ -348,6 +342,10 @@ class AppScaffold extends HookConsumerWidget {
         onEndDrawerChanged: onEndDrawerChanged,
       ),
     );
+
+    return noBackground
+        ? builtWidget
+        : AppBackground(isRoot: true, child: builtWidget);
   }
 }
 
