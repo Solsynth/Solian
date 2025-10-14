@@ -73,10 +73,8 @@ class ChatInput extends HookConsumerWidget {
     final chatSubscribe = ref.watch(chatSubscribeNotifierProvider(chatRoom.id));
 
     void send() {
+      inputFocusNode.requestFocus();
       onSend.call();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        inputFocusNode.requestFocus();
-      });
     }
 
     void insertNewLine() {
@@ -539,6 +537,10 @@ class ChatInput extends HookConsumerWidget {
                           onTapOutside:
                               (_) =>
                                   FocusManager.instance.primaryFocus?.unfocus(),
+                          textInputAction:
+                              settings.enterToSend
+                                  ? TextInputAction.send
+                                  : null,
                           onSubmitted:
                               settings.enterToSend ? (_) => send() : null,
                         );
