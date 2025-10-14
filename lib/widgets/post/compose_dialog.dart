@@ -23,12 +23,12 @@ class PostComposeDialog extends HookConsumerWidget {
     this.isBottomSheet = false,
   });
 
-  static Future<SnPost?> show(
+  static Future<bool?> show(
     BuildContext context, {
     SnPost? originalPost,
     PostComposeInitialState? initialState,
   }) {
-    return showDialog<SnPost>(
+    return showDialog<bool>(
       context: context,
       useRootNavigator: true,
       builder:
