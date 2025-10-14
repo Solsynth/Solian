@@ -68,21 +68,24 @@ class PostQuickReply extends HookConsumerWidget {
       }
     }
 
+    const kInputChipHeight = 54.0;
+
     return publishers.when(
       data:
           (data) => Material(
             elevation: 2,
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(28),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+            child: Container(
+              constraints: BoxConstraints(minHeight: kInputChipHeight),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
                     child: ProfilePictureWidget(
                       fileId: currentPublisher.value?.picture?.id,
-                      radius: 20,
+                      radius: (kInputChipHeight * 0.5) - 6,
                     ),
                     onTap: () {
                       showModalBottomSheet(
@@ -111,7 +114,8 @@ class PostQuickReply extends HookConsumerWidget {
                         visualDensity: VisualDensity.compact,
                       ),
                       style: TextStyle(fontSize: 14),
-                      maxLines: null,
+                      minLines: 1,
+                      maxLines: 5,
                       onTapOutside:
                           (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     ),
@@ -131,6 +135,10 @@ class PostQuickReply extends HookConsumerWidget {
                     },
                     icon: const Icon(Symbols.launch, size: 20),
                     visualDensity: VisualDensity.compact,
+                    constraints: BoxConstraints(
+                      maxHeight: kInputChipHeight - 6,
+                      minHeight: kInputChipHeight - 6,
+                    ),
                   ),
                   IconButton(
                     icon:
@@ -144,6 +152,10 @@ class PostQuickReply extends HookConsumerWidget {
                     color: Theme.of(context).colorScheme.primary,
                     onPressed: submitting.value ? null : performAction,
                     visualDensity: VisualDensity.compact,
+                    constraints: BoxConstraints(
+                      maxHeight: kInputChipHeight - 6,
+                      minHeight: kInputChipHeight - 6,
+                    ),
                   ),
                 ],
               ),
