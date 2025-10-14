@@ -73,7 +73,7 @@ class PostQuickReply extends HookConsumerWidget {
           (data) => Material(
             elevation: 2,
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(28),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
               child: Row(
@@ -82,7 +82,7 @@ class PostQuickReply extends HookConsumerWidget {
                   GestureDetector(
                     child: ProfilePictureWidget(
                       fileId: currentPublisher.value?.picture?.id,
-                      radius: 16,
+                      radius: 20,
                     ),
                     onTap: () {
                       showModalBottomSheet(
@@ -106,8 +106,9 @@ class PostQuickReply extends HookConsumerWidget {
                         isCollapsed: true,
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 12,
-                          vertical: 9,
+                          vertical: 14,
                         ),
+                        visualDensity: VisualDensity.compact,
                       ),
                       style: TextStyle(fontSize: 14),
                       maxLines: null,
