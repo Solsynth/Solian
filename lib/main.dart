@@ -120,13 +120,25 @@ void main() async {
       windowButtonVisibility: true,
     );
     windowManager.waitUntilReadyToShow(windowOptions, () async {
+      final env = Platform.environment;
+      final isWayland = env.containsKey('WAYLAND_DISPLAY');
+
+      if (isWayland) {
+        try {
+          await windowManager.setAsFrameless();
+        } catch (e) {
+          debugPrint('[Wayland] setAsFrameless failed: $e');
+        }
+      }
+      await windowManager.setAsFrameless();
       await windowManager.setMinimumSize(defaultSize);
       await windowManager.show();
       await windowManager.focus();
       final opacity = prefs.getDouble(kAppWindowOpacity) ?? 1.0;
       await windowManager.setOpacity(opacity);
       talker.info(
-        "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}",
+        "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}"
+        "${isWayland ? " (Wayland frameless fix applied)" : ""}",
       );
     });
   }
