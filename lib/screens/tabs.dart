@@ -66,12 +66,12 @@ class TabsScreen extends HookConsumerWidget {
       if (wideScreen)
         NavigationDestination(
           label: 'creatorHub'.tr(),
-          icon: const Icon(Symbols.draw),
+          icon: const Icon(Symbols.ink_pen),
         ),
       if (wideScreen)
         NavigationDestination(
           label: 'developerHub'.tr(),
-          icon: const Icon(Symbols.code),
+          icon: const Icon(Symbols.data_object),
         ),
     ];
 
