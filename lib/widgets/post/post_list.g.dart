@@ -6,7 +6,7 @@ part of 'post_list.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$postListNotifierHash() => r'3c0a8154ded4bcd8f5456f7a4ea2e542f57efa85';
+String _$postListNotifierHash() => r'fc139ad4df0deb67bcbb949560319f2f7fbfb503';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -38,6 +38,7 @@ abstract class _$PostListNotifier
   late final List<String>? tags;
   late final bool? pinned;
   late final bool shuffle;
+  late final bool? includeReplies;
 
   FutureOr<CursorPagingData<SnPost>> build({
     String? pubName,
@@ -47,6 +48,7 @@ abstract class _$PostListNotifier
     List<String>? tags,
     bool? pinned,
     bool shuffle = false,
+    bool? includeReplies,
   });
 }
 
@@ -69,6 +71,7 @@ class PostListNotifierFamily
     List<String>? tags,
     bool? pinned,
     bool shuffle = false,
+    bool? includeReplies,
   }) {
     return PostListNotifierProvider(
       pubName: pubName,
@@ -78,6 +81,7 @@ class PostListNotifierFamily
       tags: tags,
       pinned: pinned,
       shuffle: shuffle,
+      includeReplies: includeReplies,
     );
   }
 
@@ -93,6 +97,7 @@ class PostListNotifierFamily
       tags: provider.tags,
       pinned: provider.pinned,
       shuffle: provider.shuffle,
+      includeReplies: provider.includeReplies,
     );
   }
 
@@ -127,6 +132,7 @@ class PostListNotifierProvider
     List<String>? tags,
     bool? pinned,
     bool shuffle = false,
+    bool? includeReplies,
   }) : this._internal(
          () =>
              PostListNotifier()
@@ -136,7 +142,8 @@ class PostListNotifierProvider
                ..categories = categories
                ..tags = tags
                ..pinned = pinned
-               ..shuffle = shuffle,
+               ..shuffle = shuffle
+               ..includeReplies = includeReplies,
          from: postListNotifierProvider,
          name: r'postListNotifierProvider',
          debugGetCreateSourceHash:
@@ -153,6 +160,7 @@ class PostListNotifierProvider
          tags: tags,
          pinned: pinned,
          shuffle: shuffle,
+         includeReplies: includeReplies,
        );
 
   PostListNotifierProvider._internal(
@@ -169,6 +177,7 @@ class PostListNotifierProvider
     required this.tags,
     required this.pinned,
     required this.shuffle,
+    required this.includeReplies,
   }) : super.internal();
 
   final String? pubName;
@@ -178,6 +187,7 @@ class PostListNotifierProvider
   final List<String>? tags;
   final bool? pinned;
   final bool shuffle;
+  final bool? includeReplies;
 
   @override
   FutureOr<CursorPagingData<SnPost>> runNotifierBuild(
@@ -191,6 +201,7 @@ class PostListNotifierProvider
       tags: tags,
       pinned: pinned,
       shuffle: shuffle,
+      includeReplies: includeReplies,
     );
   }
 
@@ -207,7 +218,8 @@ class PostListNotifierProvider
               ..categories = categories
               ..tags = tags
               ..pinned = pinned
-              ..shuffle = shuffle,
+              ..shuffle = shuffle
+              ..includeReplies = includeReplies,
         from: from,
         name: null,
         dependencies: null,
@@ -220,6 +232,7 @@ class PostListNotifierProvider
         tags: tags,
         pinned: pinned,
         shuffle: shuffle,
+        includeReplies: includeReplies,
       ),
     );
   }
@@ -242,7 +255,8 @@ class PostListNotifierProvider
         other.categories == categories &&
         other.tags == tags &&
         other.pinned == pinned &&
-        other.shuffle == shuffle;
+        other.shuffle == shuffle &&
+        other.includeReplies == includeReplies;
   }
 
   @override
@@ -255,6 +269,7 @@ class PostListNotifierProvider
     hash = _SystemHash.combine(hash, tags.hashCode);
     hash = _SystemHash.combine(hash, pinned.hashCode);
     hash = _SystemHash.combine(hash, shuffle.hashCode);
+    hash = _SystemHash.combine(hash, includeReplies.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -284,6 +299,9 @@ mixin PostListNotifierRef
 
   /// The parameter `shuffle` of this provider.
   bool get shuffle;
+
+  /// The parameter `includeReplies` of this provider.
+  bool? get includeReplies;
 }
 
 class _PostListNotifierProviderElement
@@ -310,6 +328,9 @@ class _PostListNotifierProviderElement
   bool? get pinned => (origin as PostListNotifierProvider).pinned;
   @override
   bool get shuffle => (origin as PostListNotifierProvider).shuffle;
+  @override
+  bool? get includeReplies =>
+      (origin as PostListNotifierProvider).includeReplies;
 }
 
 // ignore_for_file: type=lint

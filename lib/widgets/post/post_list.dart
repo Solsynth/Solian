@@ -23,6 +23,7 @@ class PostListNotifier extends _$PostListNotifier
     List<String>? tags,
     bool? pinned,
     bool shuffle = false,
+    bool? includeReplies,
   }) {
     return fetch(cursor: null);
   }
@@ -42,6 +43,7 @@ class PostListNotifier extends _$PostListNotifier
       if (categories != null) 'categories': categories,
       if (shuffle) 'shuffle': true,
       if (pinned != null) 'pinned': pinned,
+      if (includeReplies != null) 'includeReplies': includeReplies,
     };
 
     final response = await client.get(

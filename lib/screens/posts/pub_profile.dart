@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/models/publisher.dart';
 import 'package:island/models/account.dart';
+import 'package:island/models/heatmap.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/services/color.dart';
@@ -20,6 +21,7 @@ import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/markdown.dart';
 import 'package:island/widgets/post/post_list.dart';
+import 'package:island/widgets/activity_heatmap.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/services/color_extraction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -222,6 +224,32 @@ class _PublisherBioWidget extends StatelessWidget {
   }
 }
 
+class _PublisherHeatmapWidget extends StatelessWidget {
+  final AsyncValue<SnHeatmap?> heatmap;
+  final bool forceDense;
+
+  const _PublisherHeatmapWidget({
+    required this.heatmap,
+    this.forceDense = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return heatmap.when(
+      data:
+          (data) =>
+              data != null
+                  ? ActivityHeatmapWidget(
+                    heatmap: data,
+                    forceDense: forceDense,
+                  ).padding(horizontal: 8)
+                  : const SizedBox.shrink(),
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}
+
 class _PublisherCategoryTabWidget extends StatelessWidget {
   final TabController categoryTabController;
 
@@ -292,6 +320,13 @@ Future<Color?> publisherAppbarForcegroundColor(Ref ref, String pubName) async {
   }
 }
 
+@riverpod
+Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final resp = await apiClient.get('/sphere/publishers/$uname/heatmap');
+  return SnHeatmap.fromJson(resp.data);
+}
+
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
   const PublisherProfileScreen({super.key, required this.name});
@@ -301,6 +336,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
     final publisher = ref.watch(publisherProvider(name));
     final badges = ref.watch(publisherBadgesProvider(name));
     final subStatus = ref.watch(publisherSubscriptionStatusProvider(name));
+    final heatmap = ref.watch(publisherHeatmapProvider(name));
     final appbarColor = ref.watch(
       publisherAppbarForcegroundColorProvider(name),
     );
@@ -446,6 +482,10 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                   ),
                                   _PublisherVerificationWidget(data: data),
                                   _PublisherBioWidget(data: data),
+                                  _PublisherHeatmapWidget(
+                                    heatmap: heatmap,
+                                    forceDense: true,
+                                  ),
                                 ],
                               ),
                             ),
@@ -516,6 +556,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         ),
                         SliverToBoxAdapter(
                           child: _PublisherBioWidget(data: data),
+                        ),
+                        SliverToBoxAdapter(
+                          child: _PublisherHeatmapWidget(heatmap: heatmap),
                         ),
                         SliverPostList(pubName: name, pinned: true),
                         SliverToBoxAdapter(

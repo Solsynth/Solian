@@ -530,5 +530,126 @@ class _PublisherAppbarForcegroundColorProviderElement
       (origin as PublisherAppbarForcegroundColorProvider).pubName;
 }
 
+String _$publisherHeatmapHash() => r'86db275ce3861a2855b5ec35fbfef85fc47b23a6';
+
+/// See also [publisherHeatmap].
+@ProviderFor(publisherHeatmap)
+const publisherHeatmapProvider = PublisherHeatmapFamily();
+
+/// See also [publisherHeatmap].
+class PublisherHeatmapFamily extends Family<AsyncValue<SnHeatmap?>> {
+  /// See also [publisherHeatmap].
+  const PublisherHeatmapFamily();
+
+  /// See also [publisherHeatmap].
+  PublisherHeatmapProvider call(String uname) {
+    return PublisherHeatmapProvider(uname);
+  }
+
+  @override
+  PublisherHeatmapProvider getProviderOverride(
+    covariant PublisherHeatmapProvider provider,
+  ) {
+    return call(provider.uname);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'publisherHeatmapProvider';
+}
+
+/// See also [publisherHeatmap].
+class PublisherHeatmapProvider extends AutoDisposeFutureProvider<SnHeatmap?> {
+  /// See also [publisherHeatmap].
+  PublisherHeatmapProvider(String uname)
+    : this._internal(
+        (ref) => publisherHeatmap(ref as PublisherHeatmapRef, uname),
+        from: publisherHeatmapProvider,
+        name: r'publisherHeatmapProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$publisherHeatmapHash,
+        dependencies: PublisherHeatmapFamily._dependencies,
+        allTransitiveDependencies:
+            PublisherHeatmapFamily._allTransitiveDependencies,
+        uname: uname,
+      );
+
+  PublisherHeatmapProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.uname,
+  }) : super.internal();
+
+  final String uname;
+
+  @override
+  Override overrideWith(
+    FutureOr<SnHeatmap?> Function(PublisherHeatmapRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PublisherHeatmapProvider._internal(
+        (ref) => create(ref as PublisherHeatmapRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        uname: uname,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<SnHeatmap?> createElement() {
+    return _PublisherHeatmapProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherHeatmapProvider && other.uname == uname;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, uname.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PublisherHeatmapRef on AutoDisposeFutureProviderRef<SnHeatmap?> {
+  /// The parameter `uname` of this provider.
+  String get uname;
+}
+
+class _PublisherHeatmapProviderElement
+    extends AutoDisposeFutureProviderElement<SnHeatmap?>
+    with PublisherHeatmapRef {
+  _PublisherHeatmapProviderElement(super.provider);
+
+  @override
+  String get uname => (origin as PublisherHeatmapProvider).uname;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

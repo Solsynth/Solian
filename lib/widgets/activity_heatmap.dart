@@ -11,8 +11,13 @@ import '../services/responsive.dart';
 /// Shows exactly 365 days (wide screen) or 90 days (non-wide screen) of data ending at the current date.
 class ActivityHeatmapWidget extends HookConsumerWidget {
   final SnHeatmap heatmap;
+  final bool forceDense;
 
-  const ActivityHeatmapWidget({super.key, required this.heatmap});
+  const ActivityHeatmapWidget({
+    super.key,
+    required this.heatmap,
+    this.forceDense = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,7 +26,7 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
     final now = DateTime.now();
 
     final isWide = isWideScreen(context);
-    final days = isWide ? 365 : 90;
+    final days = (isWide && !forceDense) ? 365 : 90;
 
     // Start from exactly the selected days ago
     final startDate = now.subtract(Duration(days: days));
