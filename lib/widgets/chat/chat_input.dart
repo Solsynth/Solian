@@ -550,11 +550,13 @@ class ChatInput extends HookConsumerWidget {
                         final triggerIndex =
                             atIndex > colonIndex ? atIndex : colonIndex;
                         if (triggerIndex == -1) return [];
+                        final chopped = pattern.substring(triggerIndex);
+                        if (chopped.contains(' ')) return [];
                         final service = ref.read(autocompleteServiceProvider);
                         try {
                           return await service.getSuggestions(
                             chatRoom.id,
-                            pattern,
+                            chopped,
                           );
                         } catch (e) {
                           return [];
@@ -645,7 +647,7 @@ class ChatInput extends HookConsumerWidget {
                       direction: VerticalDirection.up,
                       hideOnEmpty: true,
                       hideOnLoading: true,
-                      debounceDuration: const Duration(milliseconds: 500),
+                      debounceDuration: const Duration(milliseconds: 1000),
                     ),
                   ),
                   IconButton(

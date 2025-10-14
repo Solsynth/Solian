@@ -149,9 +149,11 @@ class ComposeFormFields extends HookConsumerWidget {
                   final triggerIndex =
                       atIndex > colonIndex ? atIndex : colonIndex;
                   if (triggerIndex == -1) return [];
+                  final chopped = pattern.substring(triggerIndex);
+                  if (chopped.contains(' ')) return [];
                   final service = ref.read(autocompleteServiceProvider);
                   try {
-                    return await service.getGeneralSuggestions(pattern);
+                    return await service.getGeneralSuggestions(chopped);
                   } catch (e) {
                     return [];
                   }
@@ -235,7 +237,7 @@ class ComposeFormFields extends HookConsumerWidget {
                 direction: VerticalDirection.down,
                 hideOnEmpty: true,
                 hideOnLoading: true,
-                debounceDuration: const Duration(milliseconds: 500),
+                debounceDuration: const Duration(milliseconds: 1000),
               ),
             ],
           ),
