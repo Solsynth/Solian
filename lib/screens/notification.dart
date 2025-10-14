@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
@@ -11,8 +10,8 @@ import 'package:island/pods/network.dart';
 import 'package:island/pods/websocket.dart';
 import 'package:island/route.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/markdown.dart';
+import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -128,19 +127,15 @@ class NotificationScreen extends HookConsumerWidget {
       ref.watch(notificationUnreadCountNotifierProvider.notifier).clear();
     }
 
-    return AppScaffold(
-      appBar: AppBar(
-        leading: const PageBackButton(),
-        title: const Text('notifications').tr(),
-        actions: [
-          IconButton(
-            onPressed: markAllRead,
-            icon: const Icon(Symbols.mark_as_unread),
-          ),
-          const Gap(8),
-        ],
-      ),
-      body: PagingHelperView(
+    return SheetScaffold(
+      titleText: 'notifications'.tr(),
+      actions: [
+        IconButton(
+          onPressed: markAllRead,
+          icon: const Icon(Symbols.mark_as_unread),
+        ),
+      ],
+      child: PagingHelperView(
         provider: notificationListNotifierProvider,
         futureRefreshable: notificationListNotifierProvider.future,
         notifierRefreshable: notificationListNotifierProvider.notifier,

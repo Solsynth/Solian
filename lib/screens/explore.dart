@@ -54,7 +54,11 @@ Widget notificationIndicatorWidget(
     trailing: const Icon(Symbols.chevron_right),
     contentPadding: EdgeInsets.only(left: 16, right: 15),
     onTap: () {
-      GoRouter.of(context).pushNamed('notifications');
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => const NotificationScreen(),
+      );
     },
   ),
 );

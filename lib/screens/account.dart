@@ -282,7 +282,11 @@ class AccountScreen extends HookConsumerWidget {
                 ],
               ),
               onTap: () {
-                context.pushNamed('notifications');
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => const NotificationScreen(),
+                );
               },
             ),
             ListTile(
