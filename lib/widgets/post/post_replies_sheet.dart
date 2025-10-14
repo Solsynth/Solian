@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/post.dart';
 import 'package:island/pods/userinfo.dart';
@@ -19,35 +20,37 @@ class PostRepliesSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'repliesCount'.plural(post.repliesCount),
-      child: Column(
+      child: Stack(
         children: [
-          // Replies list
-          Expanded(
-            child: CustomScrollView(
-              slivers: [
-                PostRepliesList(
-                  postId: post.id.toString(),
-                  onOpen: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
+          CustomScrollView(
+            slivers: [
+              PostRepliesList(
+                postId: post.id.toString(),
+                onOpen: () {
+                  Navigator.pop(context);
+                },
+              ),
+              SliverGap(80),
+            ],
           ),
-          // Quick reply section
           if (user.value != null)
-            PostQuickReply(
-              parent: post,
-              onPosted: () {
-                ref.invalidate(postRepliesNotifierProvider(post.id));
-              },
-              onLaunch: () {
-                Navigator.of(context).pop();
-              },
-            ).padding(
-              bottom: MediaQuery.of(context).padding.bottom + 16,
-              top: 8,
-              horizontal: 16,
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: PostQuickReply(
+                parent: post,
+                onPosted: () {
+                  ref.invalidate(postRepliesNotifierProvider(post.id));
+                },
+                onLaunch: () {
+                  Navigator.of(context).pop();
+                },
+              ).padding(
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+                top: 8,
+                horizontal: 16,
+              ),
             ),
         ],
       ),

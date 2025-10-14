@@ -20,6 +20,7 @@ class ArticleDetailScreen extends ConsumerWidget {
     final articleAsync = ref.watch(articleDetailProvider(articleId));
 
     return AppScaffold(
+      isNoBackground: false,
       body: articleAsync.when(
         data:
             (article) => AppScaffold(
