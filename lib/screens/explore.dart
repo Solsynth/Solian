@@ -57,7 +57,8 @@ Widget notificationIndicatorWidget(
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder: (context) => const NotificationScreen(),
+        useRootNavigator: true,
+        builder: (context) => const NotificationSheet(),
       );
     },
   ),

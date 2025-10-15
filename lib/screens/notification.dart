@@ -112,8 +112,8 @@ class NotificationListNotifier extends _$NotificationListNotifier
   }
 }
 
-class NotificationScreen extends HookConsumerWidget {
-  const NotificationScreen({super.key});
+class NotificationSheet extends HookConsumerWidget {
+  const NotificationSheet({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

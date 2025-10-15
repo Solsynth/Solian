@@ -25,7 +25,6 @@ import 'package:island/screens/tabs.dart';
 import 'package:island/screens/explore.dart';
 import 'package:island/screens/discovery/article_detail.dart';
 import 'package:island/screens/account.dart';
-import 'package:island/screens/notification.dart';
 import 'package:island/screens/wallet.dart';
 import 'package:island/screens/account/relationship.dart';
 import 'package:island/screens/account/profile.dart';
@@ -391,11 +390,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                         },
                       ),
                     ],
-                  ),
-                  GoRoute(
-                    name: 'notifications',
-                    path: '/account/notifications',
-                    builder: (context, state) => const NotificationScreen(),
                   ),
                   GoRoute(
                     name: 'wallet',
