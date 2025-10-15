@@ -130,7 +130,6 @@ void main() async {
           debugPrint('[Wayland] setAsFrameless failed: $e');
         }
       }
-      await windowManager.setAsFrameless();
       await windowManager.setMinimumSize(defaultSize);
       await windowManager.show();
       await windowManager.focus();
