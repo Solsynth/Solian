@@ -374,10 +374,10 @@ class PageBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop =
-        !kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
+    final hasPageAction =
+        !kIsWeb && Platform.isMacOS;
 
-    if (isDesktop && isWideScreen(context)) return const SizedBox.shrink();
+    if (hasPageAction && isWideScreen(context)) return const SizedBox.shrink();
 
     return IconButton(
       onPressed: () {

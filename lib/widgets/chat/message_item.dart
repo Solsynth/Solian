@@ -14,7 +14,6 @@ import 'package:island/pods/chat/messages_notifier.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/pods/config.dart';
 import 'package:island/widgets/account/account_pfc.dart';
-import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/chat/message_content.dart';
 import 'package:island/widgets/chat/message_indicators.dart';
 import 'package:island/widgets/chat/message_sender_info.dart';
@@ -666,17 +665,11 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
             ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
             : Theme.of(context).colorScheme.surfaceContainer;
 
-    final hasBackground =
-        ref.watch(backgroundImageFileProvider).valueOrNull != null;
-
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
 
     return Material(
-      color:
-          hasBackground
-              ? Colors.transparent
-              : Theme.of(context).colorScheme.surface,
+      color: Colors.transparent,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: Column(
