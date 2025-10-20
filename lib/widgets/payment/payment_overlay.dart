@@ -193,10 +193,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
       // Perform biometric authentication
       final bool didAuthenticate = await _localAuth.authenticate(
         localizedReason: 'biometricPrompt'.tr(),
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-        ),
+        biometricOnly: true,
       );
 
       if (didAuthenticate) {
