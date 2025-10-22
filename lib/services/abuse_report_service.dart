@@ -13,14 +13,14 @@ class AbuseReportService {
   Future<SnAbuseReport> getReport(String id) async {
     final response = await ref
         .read(apiClientProvider)
-        .get('/id/safety/reports/me/$id');
+        .get('/pass/safety/reports/me/$id');
     return SnAbuseReport.fromJson(response.data);
   }
 
   Future<List<SnAbuseReport>> getReports() async {
     final response = await ref
         .read(apiClientProvider)
-        .get('/id/safety/reports/me');
+        .get('/pass/safety/reports/me');
     return (response.data as List)
         .map((json) => SnAbuseReport.fromJson(json))
         .toList();

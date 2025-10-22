@@ -383,7 +383,7 @@ class AccountScreen extends HookConsumerWidget {
               onTap: () async {
                 final apiClient = ref.watch(apiClientProvider);
                 showLoadingModal(context);
-                await apiClient.delete('/id/accounts/me/sessions/current');
+                await apiClient.delete('/pass/accounts/me/sessions/current');
                 if (!context.mounted) return;
                 hideLoadingModal(context);
                 final userNotifier = ref.read(userInfoProvider.notifier);

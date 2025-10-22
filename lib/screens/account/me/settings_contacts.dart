@@ -25,7 +25,7 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/id/accounts/me/contacts/${contact.id}');
+        await client.delete('/pass/accounts/me/contacts/${contact.id}');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -38,7 +38,7 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/id/accounts/me/contacts/${contact.id}/verify');
+        await client.post('/pass/accounts/me/contacts/${contact.id}/verify');
         if (context.mounted) {
           showSnackBar('contactMethodVerificationSent'.tr());
         }
@@ -53,7 +53,7 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/id/accounts/me/contacts/${contact.id}/primary');
+        await client.post('/pass/accounts/me/contacts/${contact.id}/primary');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -66,7 +66,7 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/id/accounts/me/contacts/${contact.id}/public');
+        await client.post('/pass/accounts/me/contacts/${contact.id}/public');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -79,7 +79,7 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/id/accounts/me/contacts/${contact.id}/public');
+        await client.delete('/pass/accounts/me/contacts/${contact.id}/public');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -221,7 +221,7 @@ class ContactMethodNewSheet extends HookConsumerWidget {
         showLoadingModal(context);
         final apiClient = ref.read(apiClientProvider);
         await apiClient.post(
-          '/id/accounts/me/contacts',
+          '/pass/accounts/me/contacts',
           data: {'type': contactType.value, 'content': contentController.text},
         );
         if (context.mounted) {

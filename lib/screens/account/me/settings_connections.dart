@@ -77,7 +77,7 @@ class AccountConnectionSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/id/accounts/me/connections/${connection.id}');
+        await client.delete('/pass/accounts/me/connections/${connection.id}');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -175,7 +175,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
             if (context.mounted) showLoadingModal(context);
 
             await client.post(
-              '/id/auth/connect/apple/mobile',
+              '/pass/auth/connect/apple/mobile',
               data: {
                 'identity_token': credential.identityToken!,
                 'authorization_code': credential.authorizationCode,
@@ -200,7 +200,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
             final serverUrl = ref.watch(serverUrlProvider);
             final accessToken = ref.watch(tokenProvider);
             launchUrlString(
-              '$serverUrl/id/auth/login/${selectedProvider.value}?tk=${accessToken!.token}',
+              '$serverUrl/pass/auth/login/${selectedProvider.value}?tk=${accessToken!.token}',
             );
           } else {
             await Navigator.of(context, rootNavigator: true).push(
@@ -345,7 +345,7 @@ class AccountConnectionsSheet extends HookConsumerWidget {
                                 try {
                                   final client = ref.read(apiClientProvider);
                                   await client.delete(
-                                    '/id/accounts/me/connections/${connection.id}',
+                                    '/pass/accounts/me/connections/${connection.id}',
                                   );
                                   ref.invalidate(accountConnectionsProvider);
                                   return true;

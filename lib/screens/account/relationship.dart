@@ -21,7 +21,7 @@ part 'relationship.g.dart';
 @riverpod
 Future<List<SnRelationship>> sentFriendRequest(Ref ref) async {
   final client = ref.read(apiClientProvider);
-  final resp = await client.get('/id/relationships/requests');
+  final resp = await client.get('/pass/relationships/requests');
   return resp.data
       .map((e) => SnRelationship.fromJson(e))
       .cast<SnRelationship>()
@@ -43,7 +43,7 @@ class RelationshipListNotifier extends _$RelationshipListNotifier
     final take = 20;
 
     final response = await client.get(
-      '/id/relationships',
+      '/pass/relationships',
       queryParameters: {'offset': offset, 'take': take},
     );
 
@@ -226,7 +226,7 @@ class RelationshipScreen extends HookConsumerWidget {
       if (result == null) return;
 
       final client = ref.read(apiClientProvider);
-      await client.post('/id/relationships/${result.id}/friends');
+      await client.post('/pass/relationships/${result.id}/friends');
       ref.invalidate(sentFriendRequestProvider);
     }
 
@@ -240,7 +240,7 @@ class RelationshipScreen extends HookConsumerWidget {
         submitting.value = true;
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/id/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
+          '/pass/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
         );
         relationshipNotifier.forceRefresh();
         if (!context.mounted) return;
@@ -267,7 +267,7 @@ class RelationshipScreen extends HookConsumerWidget {
     ) async {
       final client = ref.read(apiClientProvider);
       await client.patch(
-        '/id/relationships/${relationship.accountId}',
+        '/pass/relationships/${relationship.accountId}',
         data: {'status': newStatus},
       );
       relationshipNotifier.forceRefresh();
@@ -350,7 +350,7 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
     Future<void> cancelRequest(SnRelationship request) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.delete('/id/relationships/${request.relatedId}/friends');
+        await client.delete('/pass/relationships/${request.relatedId}/friends');
         ref.invalidate(sentFriendRequestProvider);
       } catch (err) {
         showErrorAlert(err);

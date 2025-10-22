@@ -155,7 +155,7 @@ class _RealmAppbarForegroundColorProviderElement
       (origin as RealmAppbarForegroundColorProvider).realmSlug;
 }
 
-String _$realmIdentityHash() => r'c5e2977d243260947b919bc27146c134e34f0db1';
+String _$realmIdentityHash() => r'd5a3ecc6eeec291cebbfc9a45d8aac7195366381';
 
 /// See also [realmIdentity].
 @ProviderFor(realmIdentity)
@@ -276,7 +276,7 @@ class _RealmIdentityProviderElement
   String get realmSlug => (origin as RealmIdentityProvider).realmSlug;
 }
 
-String _$realmChatRoomsHash() => r'5f199906fb287b109e2a2d2a81dcb6675bdcb816';
+String _$realmChatRoomsHash() => r'54d36010221cd298f5ee0059259059f8b8aaff7b';
 
 /// See also [realmChatRooms].
 @ProviderFor(realmChatRooms)
@@ -399,7 +399,7 @@ class _RealmChatRoomsProviderElement
 }
 
 String _$realmMemberListNotifierHash() =>
-    r'db1fd8a6741dfb3d5bb921d5d965f0cfdc0e7bcc';
+    r'ab38c550c43cbf93d4c3e92e6658d76f40252c1f';
 
 abstract class _$RealmMemberListNotifier
     extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnRealmMember>> {

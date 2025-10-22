@@ -47,9 +47,7 @@ Future<Color?> realmAppbarForegroundColor(Ref ref, String realmSlug) async {
 Future<SnRealmMember?> realmIdentity(Ref ref, String realmSlug) async {
   try {
     final apiClient = ref.watch(apiClientProvider);
-    final response = await apiClient.get(
-      '/sphere/realms/$realmSlug/members/me',
-    );
+    final response = await apiClient.get('/pass/realms/$realmSlug/members/me');
     return SnRealmMember.fromJson(response.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -117,7 +115,7 @@ class RealmDetailScreen extends HookConsumerWidget {
         onPressed: () async {
           try {
             final apiClient = ref.read(apiClientProvider);
-            await apiClient.post('/sphere/realms/$slug/members/me');
+            await apiClient.post('/pass/realms/$slug/members/me');
             ref.invalidate(realmIdentityProvider(slug));
             ref.invalidate(realmsJoinedProvider);
             showSnackBar('realmJoinSuccess'.tr());
@@ -432,7 +430,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                               ).then((confirm) {
                                 if (confirm) {
                                   final client = ref.watch(apiClientProvider);
-                                  client.delete('/sphere/realms/$realmSlug');
+                                  client.delete('/pass/realms/$realmSlug');
                                   ref.invalidate(realmsJoinedProvider);
                                   if (context.mounted) {
                                     context.pop(true);
@@ -465,7 +463,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                                 if (confirm) {
                                   final client = ref.watch(apiClientProvider);
                                   await client.delete(
-                                    '/sphere/realms/$realmSlug/members/me',
+                                    '/pass/realms/$realmSlug/members/me',
                                   );
                                   ref.invalidate(realmsJoinedProvider);
                                   if (context.mounted) {
@@ -505,7 +503,7 @@ class _RealmActionMenu extends HookConsumerWidget {
                         if (confirm) {
                           final client = ref.watch(apiClientProvider);
                           await client.delete(
-                            '/sphere/realms/$realmSlug/members/me',
+                            '/pass/realms/$realmSlug/members/me',
                           );
                           ref.invalidate(realmsJoinedProvider);
                           if (context.mounted) {
@@ -539,7 +537,7 @@ class RealmMemberListNotifier extends _$RealmMemberListNotifier
     final offset = cursor != null ? int.parse(cursor) : 0;
 
     final response = await apiClient.get(
-      '/sphere/realms/$realmSlug/members',
+      '/pass/realms/$realmSlug/members',
       queryParameters: {
         'offset': offset,
         'take': _pageSize,
@@ -592,7 +590,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.post(
-          '/sphere/realms/invites/$realmSlug',
+          '/pass/realms/invites/$realmSlug',
           data: {'related_user_id': result.id, 'role': 0},
         );
         // Refresh the provider
@@ -729,7 +727,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                               try {
                                 final apiClient = ref.watch(apiClientProvider);
                                 await apiClient.delete(
-                                  '/sphere/realms/$realmSlug/members/${member.accountId}',
+                                  '/pass/realms/$realmSlug/members/${member.accountId}',
                                 );
                                 // Refresh the provider
                                 ref.invalidate(memberListProvider);
@@ -860,7 +858,7 @@ class _RealmMemberRoleSheet extends HookConsumerWidget {
 
                       final apiClient = ref.read(apiClientProvider);
                       await apiClient.patch(
-                        '/sphere/realms/$realmSlug/members/${member.accountId}/role',
+                        '/pass/realms/$realmSlug/members/${member.accountId}/role',
                         data: newRole,
                       );
 

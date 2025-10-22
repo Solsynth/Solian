@@ -7,7 +7,7 @@ part of 'check_in.dart';
 // **************************************************************************
 
 String _$checkInResultTodayHash() =>
-    r'402e3a3be0d441ae12b2370d19d09bf81326933f';
+    r'b4dc97b2243f542b36c295dc5cce3fe6097cb308';
 
 /// See also [checkInResultToday].
 @ProviderFor(checkInResultToday)
@@ -26,7 +26,7 @@ final checkInResultTodayProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CheckInResultTodayRef = AutoDisposeFutureProviderRef<SnCheckInResult?>;
-String _$nextNotableDayHash() => r'698370bec4be28774d332412c5a701f914064c90';
+String _$nextNotableDayHash() => r'c8404308f6b0f581cc7df251bce8f3c5ac130245';
 
 /// See also [nextNotableDay].
 @ProviderFor(nextNotableDay)

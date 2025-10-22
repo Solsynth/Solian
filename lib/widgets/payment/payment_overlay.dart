@@ -241,7 +241,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.post(
-        '/id/orders/${widget.order.id}/pay',
+        '/pass/orders/${widget.order.id}/pay',
         data: {'pin_code': pin},
       );
 

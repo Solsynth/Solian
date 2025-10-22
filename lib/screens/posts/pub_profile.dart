@@ -285,7 +285,9 @@ Future<List<SnAccountBadge>> publisherBadges(Ref ref, String pubName) async {
   final pub = await ref.watch(publisherProvider(pubName).future);
   if (pub.type != 0 || pub.account == null) return [];
   final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/id/accounts/${pub.account!.name}/badges");
+  final resp = await apiClient.get(
+    "/pass/accounts/${pub.account!.name}/badges",
+  );
   return List<SnAccountBadge>.from(
     resp.data.map((x) => SnAccountBadge.fromJson(x)),
   );

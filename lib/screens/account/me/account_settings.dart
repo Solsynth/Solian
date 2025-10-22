@@ -28,14 +28,14 @@ part 'account_settings.g.dart';
 @riverpod
 Future<List<SnAuthFactor>> authFactors(Ref ref) async {
   final client = ref.read(apiClientProvider);
-  final res = await client.get('/id/accounts/me/factors');
+  final res = await client.get('/pass/accounts/me/factors');
   return res.data.map<SnAuthFactor>((e) => SnAuthFactor.fromJson(e)).toList();
 }
 
 @riverpod
 Future<List<SnContactMethod>> contactMethods(Ref ref) async {
   final client = ref.read(apiClientProvider);
-  final resp = await client.get('/id/accounts/me/contacts');
+  final resp = await client.get('/pass/accounts/me/contacts');
   return resp.data
       .map<SnContactMethod>((e) => SnContactMethod.fromJson(e))
       .toList();
@@ -44,7 +44,7 @@ Future<List<SnContactMethod>> contactMethods(Ref ref) async {
 @riverpod
 Future<List<SnAccountConnection>> accountConnections(Ref ref) async {
   final client = ref.read(apiClientProvider);
-  final resp = await client.get('/id/accounts/me/connections');
+  final resp = await client.get('/pass/accounts/me/connections');
   return resp.data
       .map<SnAccountConnection>((e) => SnAccountConnection.fromJson(e))
       .toList();
@@ -67,7 +67,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/id/accounts/me');
+        await client.delete('/pass/accounts/me');
         if (context.mounted) {
           showSnackBar('accountDeletionSent'.tr());
         }
@@ -93,7 +93,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
         final userInfo = ref.read(userInfoProvider);
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/id/accounts/recovery/password',
+          '/pass/accounts/recovery/password',
           data: {'account': userInfo.value!.name, 'captcha_token': captchaTk},
         );
         if (context.mounted) {

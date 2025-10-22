@@ -6,7 +6,7 @@ part of 'relationship.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sentFriendRequestHash() => r'dc02ace6cb755a01ab862c9fcff3b26de7f946cb';
+String _$sentFriendRequestHash() => r'0c52813eb6f86c05f6e0b1e4e840d0d9c350aa9e';
 
 /// See also [sentFriendRequest].
 @ProviderFor(sentFriendRequest)
@@ -27,7 +27,7 @@ final sentFriendRequestProvider =
 typedef SentFriendRequestRef =
     AutoDisposeFutureProviderRef<List<SnRelationship>>;
 String _$relationshipListNotifierHash() =>
-    r'0a134ce69489a4f2002d2223853855b6f22e4e9f';
+    r'fc46920256f7c48445c00652165e879890f2c9a3';
 
 /// See also [RelationshipListNotifier].
 @ProviderFor(RelationshipListNotifier)

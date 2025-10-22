@@ -22,7 +22,7 @@ part 'account_devices.g.dart';
 Future<List<SnAuthDeviceWithChallenge>> authDevices(Ref ref) async {
   final resp = await ref
       .watch(apiClientProvider)
-      .get('/id/accounts/me/devices');
+      .get('/pass/accounts/me/devices');
   final currentId = await getUdid();
   final data =
       resp.data.map<SnAuthDeviceWithChallenge>((e) {
@@ -154,7 +154,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final apiClient = ref.watch(apiClientProvider);
-        await apiClient.delete('/id/accounts/me/devices/$sessionId');
+        await apiClient.delete('/pass/accounts/me/devices/$sessionId');
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -193,7 +193,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.patch(
-          '/id/accounts/me/devices/$sessionId/label',
+          '/pass/accounts/me/devices/$sessionId/label',
           data: jsonEncode(label),
         );
         ref.invalidate(authDevicesProvider);
@@ -284,7 +284,7 @@ class AccountSessionSheet extends HookConsumerWidget {
                                       apiClientProvider,
                                     );
                                     await apiClient.delete(
-                                      '/id/accounts/me/devices/${device.deviceId}',
+                                      '/pass/accounts/me/devices/${device.deviceId}',
                                     );
                                     ref.invalidate(authDevicesProvider);
                                   } catch (err) {

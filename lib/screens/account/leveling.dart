@@ -34,7 +34,7 @@ class LevelingHistoryNotifier extends _$LevelingHistoryNotifier
     final queryParams = {'offset': offset, 'take': _pageSize};
 
     final response = await client.get(
-      '/id/accounts/me/leveling',
+      '/pass/accounts/me/leveling',
       queryParameters: queryParams,
     );
     final total = int.parse(response.headers.value('X-Total') ?? '0');

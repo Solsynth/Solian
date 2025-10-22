@@ -433,7 +433,7 @@ Future<void> setRemoteActivityStatus(
 ) async {
   final apiClient = ref.read(apiClientProvider);
   await apiClient.post(
-    '/id/accounts/me/statuses',
+    '/pass/accounts/me/statuses',
     data: {
       'is_invisible': false,
       'is_not_disturb': false,
@@ -448,7 +448,7 @@ Future<void> setRemoteActivityStatus(
 Future<void> unsetRemoteActivityStatus(Ref ref, String appId) async {
   final apiClient = ref.read(apiClientProvider);
   await apiClient.delete(
-    '/id/accounts/me/statuses',
+    '/pass/accounts/me/statuses',
     queryParameters: {'app': appId},
   );
 }

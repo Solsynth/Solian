@@ -122,7 +122,7 @@ class EditRealmScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         final resp = await client.request(
-          '/sphere${slug == null ? '/realms' : '/realms/$slug'}',
+          '/pass${slug == null ? '/realms' : '/realms/$slug'}',
           data: {
             'slug': slugController.text,
             'name': nameController.text,

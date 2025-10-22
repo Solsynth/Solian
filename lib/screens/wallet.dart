@@ -28,7 +28,7 @@ part 'wallet.g.dart';
 Future<SnWallet?> walletCurrent(Ref ref) async {
   try {
     final apiClient = ref.watch(apiClientProvider);
-    final resp = await apiClient.get('/id/wallets');
+    final resp = await apiClient.get('/pass/wallets');
     return SnWallet.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -41,7 +41,7 @@ Future<SnWallet?> walletCurrent(Ref ref) async {
 @riverpod
 Future<SnWalletStats> walletStats(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/id/wallets/stats');
+  final resp = await client.get('/pass/wallets/stats');
   return SnWalletStats.fromJson(resp.data);
 }
 
@@ -1021,7 +1021,7 @@ class TransactionListNotifier extends _$TransactionListNotifier
     final queryParams = {'offset': offset, 'take': _pageSize};
 
     final response = await client.get(
-      '/id/wallets/transactions',
+      '/pass/wallets/transactions',
       queryParameters: queryParams,
     );
     final total = int.parse(response.headers.value('X-Total') ?? '0');
@@ -1048,7 +1048,9 @@ Future<List<SnWalletFund>> walletFunds(
   int take = 20,
 }) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/id/wallets/funds?offset=$offset&take=$take');
+  final resp = await client.get(
+    '/pass/wallets/funds?offset=$offset&take=$take',
+  );
   return (resp.data as List).map((e) => SnWalletFund.fromJson(e)).toList();
 }
 
@@ -1060,7 +1062,7 @@ Future<List<SnWalletFundRecipient>> walletFundRecipients(
 }) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get(
-    '/id/wallets/funds/recipients?offset=$offset&take=$take',
+    '/pass/wallets/funds/recipients?offset=$offset&take=$take',
   );
   return (resp.data as List)
       .map((e) => SnWalletFundRecipient.fromJson(e))
@@ -1070,7 +1072,7 @@ Future<List<SnWalletFundRecipient>> walletFundRecipients(
 @riverpod
 Future<SnWalletFund> walletFund(Ref ref, String fundId) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/id/wallets/funds/$fundId');
+  final resp = await client.get('/pass/wallets/funds/$fundId');
   return SnWalletFund.fromJson(resp.data);
 }
 
@@ -1262,7 +1264,7 @@ class WalletScreen extends HookConsumerWidget {
     Future<void> createWallet() async {
       final client = ref.read(apiClientProvider);
       try {
-        await client.post('/id/wallets');
+        await client.post('/pass/wallets');
         ref.invalidate(walletCurrentProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -1762,14 +1764,16 @@ class WalletScreen extends HookConsumerWidget {
     try {
       showLoadingModal(context);
       final resp = await client.post(
-        '/id/wallets/funds',
+        '/pass/wallets/funds',
         data: fundData,
         options: Options(headers: {'X-Noop': true}),
       );
       final fund = SnWalletFund.fromJson(resp.data);
       if (fund.status == 0) return; // Already created
 
-      final orderResp = await client.post('/id/wallets/funds/${fund.id}/order');
+      final orderResp = await client.post(
+        '/pass/wallets/funds/${fund.id}/order',
+      );
       final order = SnWalletOrder.fromJson(orderResp.data);
 
       if (context.mounted) hideLoadingModal(context);
@@ -1808,7 +1812,7 @@ class WalletScreen extends HookConsumerWidget {
     final client = ref.read(apiClientProvider);
     try {
       showLoadingModal(context);
-      await client.post('/id/wallets/transfer', data: transferData);
+      await client.post('/pass/wallets/transfer', data: transferData);
 
       if (context.mounted) hideLoadingModal(context);
 
