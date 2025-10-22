@@ -181,7 +181,7 @@ class _ConsoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leading: const PageBackButton(),
+      leading: const PageBackButton(backTo: '/account'),
       title: Text('developerHub').tr(),
       actions: [
         if (currentProject != null)
