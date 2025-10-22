@@ -7,7 +7,7 @@ part of 'stellar_program_tab.dart';
 // **************************************************************************
 
 String _$accountStellarSubscriptionHash() =>
-    r'80abcdefb3868775fd8fe3c980215713efff5948';
+    r'7cdfc7ca29aac240fc8704f4493498d87f307400';
 
 /// See also [accountStellarSubscription].
 @ProviderFor(accountStellarSubscription)
@@ -27,7 +27,7 @@ final accountStellarSubscriptionProvider =
 // ignore: unused_element
 typedef AccountStellarSubscriptionRef =
     AutoDisposeFutureProviderRef<SnWalletSubscription?>;
-String _$accountSentGiftsHash() => r'36fdf4e2be3805e8501cca1657d8be27aa891ef4';
+String _$accountSentGiftsHash() => r'460af8d22e16dc402848cb94e9b8a8a26d023c41';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -187,7 +187,7 @@ class _AccountSentGiftsProviderElement
 }
 
 String _$accountReceivedGiftsHash() =>
-    r'15f6f7e27aa0277b67b02dd72875ba3efd147dfd';
+    r'1208c27cca49e154af073071a197b37a2703f56d';
 
 /// See also [accountReceivedGifts].
 @ProviderFor(accountReceivedGifts)
@@ -328,7 +328,7 @@ class _AccountReceivedGiftsProviderElement
   int get take => (origin as AccountReceivedGiftsProvider).take;
 }
 
-String _$accountGiftHash() => r'598c5071fff3cc1dd7eb867df48d69fef04543db';
+String _$accountGiftHash() => r'70ca553e0b84cba9dfbee428f9bf44207138713a';
 
 /// See also [accountGift].
 @ProviderFor(accountGift)

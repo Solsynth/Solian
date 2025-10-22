@@ -6,7 +6,7 @@ part of 'credits.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$socialCreditsHash() => r'2599844e892127ee4d315caced5c10e4dbaea142';
+String _$socialCreditsHash() => r'a0284583e94bc97285c689ac2bc018536932da69';
 
 /// See also [socialCredits].
 @ProviderFor(socialCredits)
@@ -25,7 +25,7 @@ final socialCreditsProvider = AutoDisposeFutureProvider<double>.internal(
 // ignore: unused_element
 typedef SocialCreditsRef = AutoDisposeFutureProviderRef<double>;
 String _$socialCreditHistoryNotifierHash() =>
-    r'950db020754160f835c64cedf3fa2175e61e4d64';
+    r'3e87af246cc5dc72a1f3a87b81d1c87169bdfb5b';
 
 /// See also [SocialCreditHistoryNotifier].
 @ProviderFor(SocialCreditHistoryNotifier)

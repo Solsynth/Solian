@@ -26,7 +26,7 @@ part 'check_in.g.dart';
 Future<SnCheckInResult?> checkInResultToday(Ref ref) async {
   final client = ref.watch(apiClientProvider);
   try {
-    final resp = await client.get('/id/accounts/me/check-in');
+    final resp = await client.get('/pass/accounts/me/check-in');
     return SnCheckInResult.fromJson(resp.data);
   } catch (err) {
     if (err is DioException) {
@@ -42,7 +42,7 @@ Future<SnCheckInResult?> checkInResultToday(Ref ref) async {
 Future<SnNotableDay?> nextNotableDay(Ref ref) async {
   final client = ref.watch(apiClientProvider);
   try {
-    final resp = await client.get('/id/notable/me/next');
+    final resp = await client.get('/pass/notable/me/next');
     return SnNotableDay.fromJson(resp.data);
   } catch (err) {
     return null;
@@ -94,7 +94,7 @@ class CheckInWidget extends HookConsumerWidget {
       final client = ref.read(apiClientProvider);
       try {
         await client.post(
-          '/id/accounts/me/check-in',
+          '/pass/accounts/me/check-in',
           data: captchatTk == null ? null : jsonEncode(captchatTk),
         );
         ref.invalidate(checkInResultTodayProvider);

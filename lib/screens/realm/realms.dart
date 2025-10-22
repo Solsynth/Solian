@@ -21,7 +21,7 @@ part 'realms.g.dart';
 @riverpod
 Future<List<SnRealm>> realmsJoined(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/sphere/realms');
+  final resp = await client.get('/pass/realms');
   return resp.data.map((e) => SnRealm.fromJson(e)).cast<SnRealm>().toList();
 }
 
@@ -29,7 +29,7 @@ Future<List<SnRealm>> realmsJoined(Ref ref) async {
 Future<SnRealm?> realm(Ref ref, String? identifier) async {
   if (identifier == null) return null;
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/sphere/realms/$identifier');
+  final resp = await client.get('/pass/realms/$identifier');
   return SnRealm.fromJson(resp.data);
 }
 
@@ -128,7 +128,7 @@ class RealmListScreen extends HookConsumerWidget {
 @riverpod
 Future<List<SnRealmMember>> realmInvites(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/sphere/realms/invites');
+  final resp = await client.get('/pass/realms/invites');
   return resp.data
       .map((e) => SnRealmMember.fromJson(e))
       .cast<SnRealmMember>()
@@ -145,9 +145,7 @@ class _RealmInviteSheet extends HookConsumerWidget {
     Future<void> acceptInvite(SnRealmMember invite) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.post(
-          '/sphere/realms/invites/${invite.realm!.slug}/accept',
-        );
+        await client.post('/pass/realms/invites/${invite.realm!.slug}/accept');
         ref.invalidate(realmInvitesProvider);
         ref.invalidate(realmsJoinedProvider);
       } catch (err) {
@@ -158,9 +156,7 @@ class _RealmInviteSheet extends HookConsumerWidget {
     Future<void> declineInvite(SnRealmMember invite) async {
       try {
         final client = ref.read(apiClientProvider);
-        await client.post(
-          '/sphere/realms/invites/${invite.realm!.slug}/decline',
-        );
+        await client.post('/pass/realms/invites/${invite.realm!.slug}/decline');
         ref.invalidate(realmInvitesProvider);
       } catch (err) {
         showErrorAlert(err);

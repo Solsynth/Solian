@@ -7,7 +7,7 @@ part of 'leveling.dart';
 // **************************************************************************
 
 String _$levelingHistoryNotifierHash() =>
-    r'e795f9b7911c9e50f15c095ea237cb0e87bf1e89';
+    r'de51012e1590ac46388b6f3f2050b21cb96698d1';
 
 /// See also [LevelingHistoryNotifier].
 @ProviderFor(LevelingHistoryNotifier)

@@ -14,7 +14,7 @@ part 'credits.g.dart';
 @riverpod
 Future<double> socialCredits(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final response = await client.get('/id/accounts/me/credits');
+  final response = await client.get('/pass/accounts/me/credits');
   if (response.statusCode != 200) {
     throw Exception('Failed to load social credits');
   }
@@ -39,7 +39,7 @@ class SocialCreditHistoryNotifier extends _$SocialCreditHistoryNotifier
     final queryParams = {'offset': offset, 'take': _pageSize};
 
     final response = await client.get(
-      '/id/accounts/me/credits/history',
+      '/pass/accounts/me/credits/history',
       queryParameters: queryParams,
     );
     final total = int.parse(response.headers.value('X-Total') ?? '0');

@@ -27,14 +27,18 @@ class CurrentAccountStatusNotifier extends StateNotifier<SnAccountStatus?> {
   }
 }
 
-final currentAccountStatusProvider = StateNotifierProvider<CurrentAccountStatusNotifier, SnAccountStatus?>((ref) {
-  return CurrentAccountStatusNotifier();
-});
+final currentAccountStatusProvider =
+    StateNotifierProvider<CurrentAccountStatusNotifier, SnAccountStatus?>((
+      ref,
+    ) {
+      return CurrentAccountStatusNotifier();
+    });
 
 @riverpod
 Future<SnAccountStatus?> accountStatus(Ref ref, String uname) async {
   final userInfo = ref.watch(userInfoProvider);
-  if (uname == 'me' || (userInfo.value != null && uname == userInfo.value!.name)) {
+  if (uname == 'me' ||
+      (userInfo.value != null && uname == userInfo.value!.name)) {
     final local = ref.watch(currentAccountStatusProvider);
     if (local != null) {
       return local;
@@ -42,7 +46,7 @@ Future<SnAccountStatus?> accountStatus(Ref ref, String uname) async {
   }
   final apiClient = ref.watch(apiClientProvider);
   try {
-    final resp = await apiClient.get('/id/accounts/$uname/statuses');
+    final resp = await apiClient.get('/pass/accounts/$uname/statuses');
     return SnAccountStatus.fromJson(resp.data);
   } catch (err) {
     if (err is DioException) {
@@ -137,9 +141,13 @@ class AccountStatusWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfo = ref.watch(userInfoProvider);
     final localStatus = ref.watch(currentAccountStatusProvider);
-    final status = (uname == 'me' || (userInfo.value != null && uname == userInfo.value!.name && localStatus != null))
-        ? AsyncValue.data(localStatus)
-        : ref.watch(accountStatusProvider(uname));
+    final status =
+        (uname == 'me' ||
+                (userInfo.value != null &&
+                    uname == userInfo.value!.name &&
+                    localStatus != null))
+            ? AsyncValue.data(localStatus)
+            : ref.watch(accountStatusProvider(uname));
     final account = ref.watch(accountProvider(uname));
 
     return Padding(
@@ -166,16 +174,17 @@ class AccountStatusWidget extends HookConsumerWidget {
                 onLongPress: () {
                   showDialog(
                     context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Activity Details'),
-                      content: buildActivityDetails(status.value),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text('Close'),
+                    builder:
+                        (context) => AlertDialog(
+                          title: Text('Activity Details'),
+                          content: buildActivityDetails(status.value),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text('Close'),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
                   );
                 },
                 child: Tooltip(

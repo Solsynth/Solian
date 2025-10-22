@@ -33,7 +33,7 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
         submitting.value = true;
         final user = ref.watch(userInfoProvider);
         final apiClient = ref.read(apiClientProvider);
-        await apiClient.delete('/id/accounts/me/statuses');
+        await apiClient.delete('/pass/accounts/me/statuses');
         if (!context.mounted) return;
         ref.invalidate(accountStatusProvider(user.value!.name));
         Navigator.pop(context);
@@ -50,7 +50,7 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
         final user = ref.watch(userInfoProvider);
         final apiClient = ref.read(apiClientProvider);
         await apiClient.request(
-          '/id/accounts/me/statuses',
+          '/pass/accounts/me/statuses',
           data: {
             'attitude': attitude.value,
             'is_invisible': isInvisible.value,

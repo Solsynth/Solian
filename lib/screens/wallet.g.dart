@@ -6,7 +6,7 @@ part of 'wallet.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$walletCurrentHash() => r'088505ce1a78901016a3bda05217f813ed3b44c6';
+String _$walletCurrentHash() => r'bdc7cb27ce2286b561a03522085cc4efc884faad';
 
 /// See also [walletCurrent].
 @ProviderFor(walletCurrent)
@@ -24,7 +24,7 @@ final walletCurrentProvider = AutoDisposeFutureProvider<SnWallet?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef WalletCurrentRef = AutoDisposeFutureProviderRef<SnWallet?>;
-String _$walletStatsHash() => r'23d692a922c2388135be6a46afa73c018762eb57';
+String _$walletStatsHash() => r'2243011937b377a66cdf44cae144021cee69e82f';
 
 /// See also [walletStats].
 @ProviderFor(walletStats)
@@ -40,7 +40,7 @@ final walletStatsProvider = AutoDisposeFutureProvider<SnWalletStats>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef WalletStatsRef = AutoDisposeFutureProviderRef<SnWalletStats>;
-String _$walletFundsHash() => r'7ceb415f64fcadab2b10461e27b95bf92352c707';
+String _$walletFundsHash() => r'f60718c01ca5b7618a02682a0417669f750644a3';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -195,7 +195,7 @@ class _WalletFundsProviderElement
 }
 
 String _$walletFundRecipientsHash() =>
-    r'18eb815eb709449dd5c545d81fc0ee43ca667578';
+    r'3a5e32b2d20700edd5944885693aff127b58adb1';
 
 /// See also [walletFundRecipients].
 @ProviderFor(walletFundRecipients)
@@ -339,7 +339,7 @@ class _WalletFundRecipientsProviderElement
   int get take => (origin as WalletFundRecipientsProvider).take;
 }
 
-String _$walletFundHash() => r'a690b0def8f4293b4a8f244e44f8bb735687e5dd';
+String _$walletFundHash() => r'459efdee5e2775eedaa4312e0d317c218fa7e1fa';
 
 /// See also [walletFund].
 @ProviderFor(walletFund)
@@ -460,7 +460,7 @@ class _WalletFundProviderElement
 }
 
 String _$transactionListNotifierHash() =>
-    r'7b777cd44f3351f68f7bd1dd76bfe8b388381bdb';
+    r'74d3c15f45a6e55b36150ab38e98475a508fc932';
 
 /// See also [TransactionListNotifier].
 @ProviderFor(TransactionListNotifier)

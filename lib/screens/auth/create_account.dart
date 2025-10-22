@@ -49,7 +49,7 @@ class CreateAccountScreen extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/id/accounts',
+          '/pass/accounts',
           data: {
             'name': usernameController.text,
             'nick': nicknameController.text,

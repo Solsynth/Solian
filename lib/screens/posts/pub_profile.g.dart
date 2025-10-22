@@ -145,7 +145,7 @@ class _PublisherProviderElement
   String get uname => (origin as PublisherProvider).uname;
 }
 
-String _$publisherBadgesHash() => r'527efad74225fbacf558ac5db160ecce53a60c62';
+String _$publisherBadgesHash() => r'26776fd6cb611953f52bdb6a7dfa004c34d5cd8e';
 
 /// See also [publisherBadges].
 @ProviderFor(publisherBadges)
