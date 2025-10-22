@@ -289,7 +289,7 @@ class PostActionButtons extends HookConsumerWidget {
             builder: (context) => PostAwardHistorySheet(postId: post.id),
           );
         },
-        icon: const Icon(Symbols.star),
+        icon: const Icon(Symbols.emoji_events),
         label:
             post.awardedScore > 0
                 ? Text('${formatScore(post.awardedScore)} pts')

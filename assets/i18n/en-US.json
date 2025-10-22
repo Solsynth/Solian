@@ -871,6 +871,7 @@
     "pollShortTextAnswerPreview": "Short text answer (preview)",
     "award": "Award",
     "awardPost": "Award Post",
+    "awardPoints": "Awarded {} points",
     "awardMessage": "Message",
     "awardMessageHint": "Enter your award message...",
     "awardAttitude": "Attitude",
