@@ -237,7 +237,7 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                         loading: () => ResponseLoadingWidget(),
                       ),
                     ),
-                  ),
+                  ).padding(horizontal: 8),
                 ),
               ),
             const SliverGap(4),

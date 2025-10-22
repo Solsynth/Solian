@@ -647,35 +647,13 @@ class PostHeader extends StatelessWidget {
                         ]),
                     ],
                   ),
-                  Row(
-                    spacing: 6,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        !isFullPost && isRelativeTime
-                            ? (item.publishedAt ?? item.createdAt)!
-                                .formatRelative(context)
-                            : (item.publishedAt ?? item.createdAt)!
-                                .formatSystem(),
-                      ).fontSize(10),
-                      if (item.editedAt != null)
-                        Text(
-                          'editedAt'.tr(
-                            args: [
-                              !isFullPost && isRelativeTime
-                                  ? item.editedAt!.formatRelative(context)
-                                  : item.editedAt!.formatSystem(),
-                            ],
-                          ),
-                        ).fontSize(10),
-                      if (item.visibility != 0)
-                        Text(
-                          PostVisibilityHelpers.getVisibilityText(
-                            item.visibility,
-                          ).tr(),
-                        ).fontSize(10),
-                    ],
-                  ),
+                  Text(
+                    !isFullPost && isRelativeTime
+                        ? (item.publishedAt ?? item.createdAt)!.formatRelative(
+                          context,
+                        )
+                        : (item.publishedAt ?? item.createdAt)!.formatSystem(),
+                  ).fontSize(10),
                 ],
               ),
             ),
@@ -694,6 +672,7 @@ class PostBody extends ConsumerWidget {
   final Widget? translationSection;
   final bool isInteractive;
   final EdgeInsets renderingPadding;
+  final bool isRelativeTime;
 
   const PostBody({
     super.key,
@@ -703,10 +682,113 @@ class PostBody extends ConsumerWidget {
     this.translationSection,
     this.isInteractive = true,
     this.renderingPadding = EdgeInsets.zero,
+    this.isRelativeTime = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final metadataChildren = <Widget>[];
+
+    if (item.tags.isNotEmpty) {
+      metadataChildren.add(
+        Wrap(
+          runAlignment: WrapAlignment.center,
+          spacing: 8,
+          children: [
+            const Icon(Symbols.label, size: 16).padding(top: 2),
+            for (final tag in isFullPost ? item.tags : item.tags.take(3))
+              InkWell(
+                onTap:
+                    isInteractive
+                        ? () {
+                          GoRouter.of(context).pushNamed(
+                            'postTagDetail',
+                            pathParameters: {'slug': tag.slug},
+                          );
+                        }
+                        : null,
+                child: Text('#${tag.name ?? tag.slug}'),
+              ),
+            if (!isFullPost && item.tags.length > 3)
+              Text('+${item.tags.length - 3}').opacity(0.6),
+          ],
+        ),
+      );
+    }
+    if (item.categories.isNotEmpty) {
+      metadataChildren.add(
+        Wrap(
+          runAlignment: WrapAlignment.center,
+          spacing: 8,
+          children: [
+            const Icon(Symbols.category, size: 16).padding(top: 2),
+            for (final category
+                in isFullPost ? item.categories : item.categories.take(2))
+              InkWell(
+                onTap:
+                    isInteractive
+                        ? () {
+                          GoRouter.of(context).pushNamed(
+                            'postCategoryDetail',
+                            pathParameters: {'slug': category.slug},
+                          );
+                        }
+                        : null,
+                child: Text(category.categoryDisplayTitle),
+              ),
+            if (!isFullPost && item.categories.length > 2)
+              Text('+${item.categories.length - 2}').opacity(0.6),
+          ],
+        ),
+      );
+    }
+    if (item.editedAt != null) {
+      metadataChildren.add(
+        Row(
+          spacing: 8,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(Symbols.edit, size: 16),
+            Text(
+              'editedAt'.tr(
+                args: [
+                  !isFullPost && isRelativeTime
+                      ? item.editedAt!.formatRelative(context)
+                      : item.editedAt!.formatSystem(),
+                ],
+              ),
+            ).fontSize(13),
+          ],
+        ),
+      );
+    }
+    if (item.visibility != 0) {
+      metadataChildren.add(
+        Row(
+          spacing: 8,
+          children: [
+            const Icon(Symbols.visibility_lock, size: 16).padding(top: 2),
+            Text(
+              PostVisibilityHelpers.getVisibilityText(item.visibility).tr(),
+            ).fontSize(13),
+          ],
+        ),
+      );
+    }
+    if (item.awardedScore != 0) {
+      metadataChildren.add(
+        Row(
+          spacing: 8,
+          children: [
+            const Icon(Symbols.emoji_events, size: 16).padding(top: 2),
+            Text(
+              'awardPoints'.tr(args: [item.awardedScore.toString()]),
+            ).fontSize(13),
+          ],
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -819,63 +901,12 @@ class PostBody extends ConsumerWidget {
               vertical: 4,
             ),
           ),
-        if (item.tags.isNotEmpty || item.categories.isNotEmpty)
+        if (metadataChildren.isNotEmpty)
           Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 2,
-            children: [
-              if (item.tags.isNotEmpty)
-                Wrap(
-                  runAlignment: WrapAlignment.center,
-                  spacing: 8,
-                  children: [
-                    const Icon(Symbols.label, size: 16).padding(top: 2),
-                    for (final tag
-                        in isFullPost ? item.tags : item.tags.take(3))
-                      InkWell(
-                        onTap:
-                            isInteractive
-                                ? () {
-                                  GoRouter.of(context).pushNamed(
-                                    'postTagDetail',
-                                    pathParameters: {'slug': tag.slug},
-                                  );
-                                }
-                                : null,
-                        child: Text('#${tag.name ?? tag.slug}'),
-                      ),
-                    if (!isFullPost && item.tags.length > 3)
-                      Text('+${item.tags.length - 3}').opacity(0.6),
-                  ],
-                ),
-              if (item.categories.isNotEmpty)
-                Wrap(
-                  runAlignment: WrapAlignment.center,
-                  spacing: 8,
-                  children: [
-                    const Icon(Symbols.category, size: 16).padding(top: 2),
-                    for (final category
-                        in isFullPost
-                            ? item.categories
-                            : item.categories.take(2))
-                      InkWell(
-                        onTap:
-                            isInteractive
-                                ? () {
-                                  GoRouter.of(context).pushNamed(
-                                    'postCategoryDetail',
-                                    pathParameters: {'slug': category.slug},
-                                  );
-                                }
-                                : null,
-                        child: Text(category.categoryDisplayTitle),
-                      ),
-                    if (!isFullPost && item.categories.length > 2)
-                      Text('+${item.categories.length - 2}').opacity(0.6),
-                  ],
-                ),
-            ],
+            children: metadataChildren,
           ).padding(horizontal: renderingPadding.horizontal + 4, top: 4),
         if (item.meta?['embeds'] != null)
           EmbedListWidget(
