@@ -547,14 +547,6 @@ class PostHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (item.pinMode != null)
-          Row(
-            spacing: 4,
-            children: [
-              const Icon(Symbols.keep, size: 15, fill: 1),
-              Text('pinnedPost').tr().fontSize(13),
-            ],
-          ).opacity(0.8).padding(horizontal: 8, bottom: 4),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           spacing: 12,
@@ -689,6 +681,17 @@ class PostBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metadataChildren = <Widget>[];
 
+    if (item.pinMode != null) {
+      metadataChildren.add(
+        Row(
+          spacing: 8,
+          children: [
+            const Icon(Symbols.push_pin, size: 16),
+            Text('pinnedPost'.tr()).fontSize(13),
+          ],
+        ),
+      );
+    }
     if (item.tags.isNotEmpty) {
       metadataChildren.add(
         Wrap(
