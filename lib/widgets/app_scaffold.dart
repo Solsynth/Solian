@@ -370,12 +370,18 @@ class PageBackButton extends StatelessWidget {
   final Color? color;
   final List<Shadow>? shadows;
   final VoidCallback? onWillPop;
-  const PageBackButton({super.key, this.shadows, this.onWillPop, this.color});
+  final String? backTo;
+  const PageBackButton({
+    super.key,
+    this.shadows,
+    this.onWillPop,
+    this.color,
+    this.backTo,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final hasPageAction =
-        !kIsWeb && Platform.isMacOS;
+    final hasPageAction = !kIsWeb && Platform.isMacOS;
 
     if (hasPageAction && isWideScreen(context)) return const SizedBox.shrink();
 
@@ -385,7 +391,7 @@ class PageBackButton extends StatelessWidget {
         if (context.canPop()) {
           context.pop();
         } else {
-          context.go('/');
+          context.go(backTo ?? '/');
         }
       },
       icon: Icon(

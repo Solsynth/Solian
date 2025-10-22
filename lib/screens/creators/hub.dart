@@ -522,7 +522,7 @@ class CreatorHubScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        leading: const PageBackButton(),
+        leading: const PageBackButton(backTo: '/account'),
         title: Text('creatorHub').tr(),
         actions: [
           if (!isWideScreen(context))

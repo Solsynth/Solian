@@ -276,7 +276,7 @@ class _RealmIdentityProviderElement
   String get realmSlug => (origin as RealmIdentityProvider).realmSlug;
 }
 
-String _$realmChatRoomsHash() => r'54d36010221cd298f5ee0059259059f8b8aaff7b';
+String _$realmChatRoomsHash() => r'5f199906fb287b109e2a2d2a81dcb6675bdcb816';
 
 /// See also [realmChatRooms].
 @ProviderFor(realmChatRooms)

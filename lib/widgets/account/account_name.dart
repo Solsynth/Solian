@@ -36,11 +36,13 @@ const kVerificationMarkColors = [
 class AccountName extends StatelessWidget {
   final SnAccount account;
   final TextStyle? style;
+  final String? textOverride;
   final bool ignorePermissions;
   const AccountName({
     super.key,
     required this.account,
     this.style,
+    this.textOverride,
     this.ignorePermissions = false,
   });
 
@@ -177,7 +179,7 @@ class AccountName extends StatelessWidget {
                   child: ShaderMask(
                     shaderCallback: (bounds) => gradient.createShader(bounds),
                     child: Text(
-                      account.nick,
+                      textOverride ?? account.nick,
                       style: nameStyle.copyWith(color: Colors.white),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

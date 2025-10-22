@@ -570,7 +570,9 @@ class PostHeader extends StatelessWidget {
                       }
                       : null,
               child: ProfilePictureWidget(
-                file: item.publisher.picture,
+                file:
+                    item.publisher.picture ??
+                    item.publisher.account?.profile.picture,
                 radius: 16,
                 borderRadius: item.publisher.type == 0 ? null : 6,
               ),
@@ -586,11 +588,17 @@ class PostHeader extends StatelessWidget {
                     children: [
                       Flexible(
                         child:
-                            Text(
-                              item.publisher.nick,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ).bold(),
+                            item.publisher.account != null
+                                ? AccountName(
+                                  account: item.publisher.account!,
+                                  textOverride: item.publisher.nick,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                )
+                                : Text(
+                                  item.publisher.nick,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ).bold(),
                       ),
                       if (item.publisher.verification != null)
                         VerificationMark(mark: item.publisher.verification!),
