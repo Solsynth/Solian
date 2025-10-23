@@ -50,10 +50,13 @@ class TabsScreen extends HookConsumerWidget {
         label: 'explore'.tr(),
         icon: const Icon(Symbols.explore),
       ),
-      NavigationDestination(label: 'chat'.tr(), icon: const Icon(Symbols.chat)),
+      NavigationDestination(
+        label: 'chat'.tr(),
+        icon: const Icon(Symbols.chat_rounded),
+      ),
       NavigationDestination(
         label: 'realms'.tr(),
-        icon: const Icon(Symbols.workspaces),
+        icon: const Icon(Symbols.group),
       ),
       NavigationDestination(
         label: 'account'.tr(),
