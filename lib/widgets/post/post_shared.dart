@@ -770,7 +770,7 @@ class PostBody extends ConsumerWidget {
         Row(
           spacing: 8,
           children: [
-            const Icon(Symbols.visibility_lock, size: 16).padding(top: 2),
+            const Icon(Symbols.visibility_lock, size: 16),
             Text(
               PostVisibilityHelpers.getVisibilityText(item.visibility).tr(),
             ).fontSize(13),
@@ -783,9 +783,29 @@ class PostBody extends ConsumerWidget {
         Row(
           spacing: 8,
           children: [
-            const Icon(Symbols.emoji_events, size: 16).padding(top: 2),
+            const Icon(Symbols.emoji_events, size: 16),
             Text(
               'awardPoints'.tr(args: [item.awardedScore.toString()]),
+            ).fontSize(13),
+          ],
+        ),
+      );
+    }
+    if (item.featuredRecords.isNotEmpty) {
+      metadataChildren.add(
+        Row(
+          spacing: 8,
+          children: [
+            const Icon(Symbols.highlight, size: 16),
+            Text(
+              'postFeaturedIn'.tr(
+                args: [
+                  item.featuredRecords
+                      .map((e) => e.featuredAt ?? e.createdAt)
+                      .map((e) => e.formatCustom("yyyy/MM/dd"))
+                      .join(','),
+                ],
+              ),
             ).fontSize(13),
           ],
         ),

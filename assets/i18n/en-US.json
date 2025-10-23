@@ -1253,5 +1253,6 @@
     "availableWithYourPlan": "Available with your plan",
     "upgradeRequired": "Upgrade required",
     "settingsDisableAnimation": "Disable Animation",
-    "addTag": "Add Tag"
+    "addTag": "Add Tag",
+    "postFeaturedIn": "Post featured on {}"
 }

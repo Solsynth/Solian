@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPost {
 
- String get id; String? get title; String? get description; String? get language; DateTime? get editedAt; DateTime? get publishedAt; int get visibility; String? get content; String? get slug; int get type; Map<String, dynamic>? get meta; SnPostEmbedView? get embedView; int get viewsUnique; int get viewsTotal; int get upvotes; int get downvotes; int get repliesCount; int get awardedScore; int? get pinMode; String? get threadedPostId; SnPost? get threadedPost; String? get repliedPostId; SnPost? get repliedPost; String? get forwardedPostId; SnPost? get forwardedPost; String? get realmId; SnRealm? get realm; List<SnCloudFile> get attachments; SnPublisher get publisher; Map<String, int> get reactionsCount; Map<String, bool> get reactionsMade; List<dynamic> get reactions; List<SnPostTag> get tags; List<SnPostCategory> get categories; List<dynamic> get collections; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; bool get isTruncated;
+ String get id; String? get title; String? get description; String? get language; DateTime? get editedAt; DateTime? get publishedAt; int get visibility; String? get content; String? get slug; int get type; Map<String, dynamic>? get meta; SnPostEmbedView? get embedView; int get viewsUnique; int get viewsTotal; int get upvotes; int get downvotes; int get repliesCount; int get awardedScore; int? get pinMode; String? get threadedPostId; SnPost? get threadedPost; String? get repliedPostId; SnPost? get repliedPost; String? get forwardedPostId; SnPost? get forwardedPost; String? get realmId; SnRealm? get realm; List<SnCloudFile> get attachments; SnPublisher get publisher; Map<String, int> get reactionsCount; Map<String, bool> get reactionsMade; List<dynamic> get reactions; List<SnPostTag> get tags; List<SnPostCategory> get categories; List<dynamic> get collections; List<SnPostFeaturedRecord> get featuredRecords; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; bool get isTruncated;
 /// Create a copy of SnPost
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnPostCopyWith<SnPost> get copyWith => _$SnPostCopyWithImpl<SnPost>(this as SnP
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPost&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.language, language) || other.language == language)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.content, content) || other.content == content)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.embedView, embedView) || other.embedView == embedView)&&(identical(other.viewsUnique, viewsUnique) || other.viewsUnique == viewsUnique)&&(identical(other.viewsTotal, viewsTotal) || other.viewsTotal == viewsTotal)&&(identical(other.upvotes, upvotes) || other.upvotes == upvotes)&&(identical(other.downvotes, downvotes) || other.downvotes == downvotes)&&(identical(other.repliesCount, repliesCount) || other.repliesCount == repliesCount)&&(identical(other.awardedScore, awardedScore) || other.awardedScore == awardedScore)&&(identical(other.pinMode, pinMode) || other.pinMode == pinMode)&&(identical(other.threadedPostId, threadedPostId) || other.threadedPostId == threadedPostId)&&(identical(other.threadedPost, threadedPost) || other.threadedPost == threadedPost)&&(identical(other.repliedPostId, repliedPostId) || other.repliedPostId == repliedPostId)&&(identical(other.repliedPost, repliedPost) || other.repliedPost == repliedPost)&&(identical(other.forwardedPostId, forwardedPostId) || other.forwardedPostId == forwardedPostId)&&(identical(other.forwardedPost, forwardedPost) || other.forwardedPost == forwardedPost)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&const DeepCollectionEquality().equals(other.reactionsCount, reactionsCount)&&const DeepCollectionEquality().equals(other.reactionsMade, reactionsMade)&&const DeepCollectionEquality().equals(other.reactions, reactions)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.collections, collections)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.isTruncated, isTruncated) || other.isTruncated == isTruncated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPost&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.language, language) || other.language == language)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.content, content) || other.content == content)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.embedView, embedView) || other.embedView == embedView)&&(identical(other.viewsUnique, viewsUnique) || other.viewsUnique == viewsUnique)&&(identical(other.viewsTotal, viewsTotal) || other.viewsTotal == viewsTotal)&&(identical(other.upvotes, upvotes) || other.upvotes == upvotes)&&(identical(other.downvotes, downvotes) || other.downvotes == downvotes)&&(identical(other.repliesCount, repliesCount) || other.repliesCount == repliesCount)&&(identical(other.awardedScore, awardedScore) || other.awardedScore == awardedScore)&&(identical(other.pinMode, pinMode) || other.pinMode == pinMode)&&(identical(other.threadedPostId, threadedPostId) || other.threadedPostId == threadedPostId)&&(identical(other.threadedPost, threadedPost) || other.threadedPost == threadedPost)&&(identical(other.repliedPostId, repliedPostId) || other.repliedPostId == repliedPostId)&&(identical(other.repliedPost, repliedPost) || other.repliedPost == repliedPost)&&(identical(other.forwardedPostId, forwardedPostId) || other.forwardedPostId == forwardedPostId)&&(identical(other.forwardedPost, forwardedPost) || other.forwardedPost == forwardedPost)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&const DeepCollectionEquality().equals(other.reactionsCount, reactionsCount)&&const DeepCollectionEquality().equals(other.reactionsMade, reactionsMade)&&const DeepCollectionEquality().equals(other.reactions, reactions)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.collections, collections)&&const DeepCollectionEquality().equals(other.featuredRecords, featuredRecords)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.isTruncated, isTruncated) || other.isTruncated == isTruncated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,title,description,language,editedAt,publishedAt,visibility,content,slug,type,const DeepCollectionEquality().hash(meta),embedView,viewsUnique,viewsTotal,upvotes,downvotes,repliesCount,awardedScore,pinMode,threadedPostId,threadedPost,repliedPostId,repliedPost,forwardedPostId,forwardedPost,realmId,realm,const DeepCollectionEquality().hash(attachments),publisher,const DeepCollectionEquality().hash(reactionsCount),const DeepCollectionEquality().hash(reactionsMade),const DeepCollectionEquality().hash(reactions),const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(collections),createdAt,updatedAt,deletedAt,isTruncated]);
+int get hashCode => Object.hashAll([runtimeType,id,title,description,language,editedAt,publishedAt,visibility,content,slug,type,const DeepCollectionEquality().hash(meta),embedView,viewsUnique,viewsTotal,upvotes,downvotes,repliesCount,awardedScore,pinMode,threadedPostId,threadedPost,repliedPostId,repliedPost,forwardedPostId,forwardedPost,realmId,realm,const DeepCollectionEquality().hash(attachments),publisher,const DeepCollectionEquality().hash(reactionsCount),const DeepCollectionEquality().hash(reactionsMade),const DeepCollectionEquality().hash(reactions),const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(collections),const DeepCollectionEquality().hash(featuredRecords),createdAt,updatedAt,deletedAt,isTruncated]);
 
 @override
 String toString() {
-  return 'SnPost(id: $id, title: $title, description: $description, language: $language, editedAt: $editedAt, publishedAt: $publishedAt, visibility: $visibility, content: $content, slug: $slug, type: $type, meta: $meta, embedView: $embedView, viewsUnique: $viewsUnique, viewsTotal: $viewsTotal, upvotes: $upvotes, downvotes: $downvotes, repliesCount: $repliesCount, awardedScore: $awardedScore, pinMode: $pinMode, threadedPostId: $threadedPostId, threadedPost: $threadedPost, repliedPostId: $repliedPostId, repliedPost: $repliedPost, forwardedPostId: $forwardedPostId, forwardedPost: $forwardedPost, realmId: $realmId, realm: $realm, attachments: $attachments, publisher: $publisher, reactionsCount: $reactionsCount, reactionsMade: $reactionsMade, reactions: $reactions, tags: $tags, categories: $categories, collections: $collections, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, isTruncated: $isTruncated)';
+  return 'SnPost(id: $id, title: $title, description: $description, language: $language, editedAt: $editedAt, publishedAt: $publishedAt, visibility: $visibility, content: $content, slug: $slug, type: $type, meta: $meta, embedView: $embedView, viewsUnique: $viewsUnique, viewsTotal: $viewsTotal, upvotes: $upvotes, downvotes: $downvotes, repliesCount: $repliesCount, awardedScore: $awardedScore, pinMode: $pinMode, threadedPostId: $threadedPostId, threadedPost: $threadedPost, repliedPostId: $repliedPostId, repliedPost: $repliedPost, forwardedPostId: $forwardedPostId, forwardedPost: $forwardedPost, realmId: $realmId, realm: $realm, attachments: $attachments, publisher: $publisher, reactionsCount: $reactionsCount, reactionsMade: $reactionsMade, reactions: $reactions, tags: $tags, categories: $categories, collections: $collections, featuredRecords: $featuredRecords, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, isTruncated: $isTruncated)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnPostCopyWith<$Res>  {
   factory $SnPostCopyWith(SnPost value, $Res Function(SnPost) _then) = _$SnPostCopyWithImpl;
 @useResult
 $Res call({
- String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, String? slug, int type, Map<String, dynamic>? meta, SnPostEmbedView? embedView, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, int awardedScore, int? pinMode, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, String? realmId, SnRealm? realm, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, Map<String, bool> reactionsMade, List<dynamic> reactions, List<SnPostTag> tags, List<SnPostCategory> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
+ String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, String? slug, int type, Map<String, dynamic>? meta, SnPostEmbedView? embedView, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, int awardedScore, int? pinMode, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, String? realmId, SnRealm? realm, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, Map<String, bool> reactionsMade, List<dynamic> reactions, List<SnPostTag> tags, List<SnPostCategory> categories, List<dynamic> collections, List<SnPostFeaturedRecord> featuredRecords, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
 });
 
 
@@ -65,7 +65,7 @@ class _$SnPostCopyWithImpl<$Res>
 
 /// Create a copy of SnPost
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = freezed,Object? description = freezed,Object? language = freezed,Object? editedAt = freezed,Object? publishedAt = freezed,Object? visibility = null,Object? content = freezed,Object? slug = freezed,Object? type = null,Object? meta = freezed,Object? embedView = freezed,Object? viewsUnique = null,Object? viewsTotal = null,Object? upvotes = null,Object? downvotes = null,Object? repliesCount = null,Object? awardedScore = null,Object? pinMode = freezed,Object? threadedPostId = freezed,Object? threadedPost = freezed,Object? repliedPostId = freezed,Object? repliedPost = freezed,Object? forwardedPostId = freezed,Object? forwardedPost = freezed,Object? realmId = freezed,Object? realm = freezed,Object? attachments = null,Object? publisher = null,Object? reactionsCount = null,Object? reactionsMade = null,Object? reactions = null,Object? tags = null,Object? categories = null,Object? collections = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? isTruncated = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = freezed,Object? description = freezed,Object? language = freezed,Object? editedAt = freezed,Object? publishedAt = freezed,Object? visibility = null,Object? content = freezed,Object? slug = freezed,Object? type = null,Object? meta = freezed,Object? embedView = freezed,Object? viewsUnique = null,Object? viewsTotal = null,Object? upvotes = null,Object? downvotes = null,Object? repliesCount = null,Object? awardedScore = null,Object? pinMode = freezed,Object? threadedPostId = freezed,Object? threadedPost = freezed,Object? repliedPostId = freezed,Object? repliedPost = freezed,Object? forwardedPostId = freezed,Object? forwardedPost = freezed,Object? realmId = freezed,Object? realm = freezed,Object? attachments = null,Object? publisher = null,Object? reactionsCount = null,Object? reactionsMade = null,Object? reactions = null,Object? tags = null,Object? categories = null,Object? collections = null,Object? featuredRecords = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? isTruncated = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -102,7 +102,8 @@ as Map<String, bool>,reactions: null == reactions ? _self.reactions : reactions 
 as List<dynamic>,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
 as List<SnPostTag>,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
 as List<SnPostCategory>,collections: null == collections ? _self.collections : collections // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as List<dynamic>,featuredRecords: null == featuredRecords ? _self.featuredRecords : featuredRecords // ignore: cast_nullable_to_non_nullable
+as List<SnPostFeaturedRecord>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,isTruncated: null == isTruncated ? _self.isTruncated : isTruncated // ignore: cast_nullable_to_non_nullable
@@ -257,10 +258,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  String? slug,  int type,  Map<String, dynamic>? meta,  SnPostEmbedView? embedView,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  int awardedScore,  int? pinMode,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  String? realmId,  SnRealm? realm,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<SnPostTag> tags,  List<SnPostCategory> categories,  List<dynamic> collections,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  String? slug,  int type,  Map<String, dynamic>? meta,  SnPostEmbedView? embedView,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  int awardedScore,  int? pinMode,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  String? realmId,  SnRealm? realm,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<SnPostTag> tags,  List<SnPostCategory> categories,  List<dynamic> collections,  List<SnPostFeaturedRecord> featuredRecords,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPost() when $default != null:
-return $default(_that.id,_that.title,_that.description,_that.language,_that.editedAt,_that.publishedAt,_that.visibility,_that.content,_that.slug,_that.type,_that.meta,_that.embedView,_that.viewsUnique,_that.viewsTotal,_that.upvotes,_that.downvotes,_that.repliesCount,_that.awardedScore,_that.pinMode,_that.threadedPostId,_that.threadedPost,_that.repliedPostId,_that.repliedPost,_that.forwardedPostId,_that.forwardedPost,_that.realmId,_that.realm,_that.attachments,_that.publisher,_that.reactionsCount,_that.reactionsMade,_that.reactions,_that.tags,_that.categories,_that.collections,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isTruncated);case _:
+return $default(_that.id,_that.title,_that.description,_that.language,_that.editedAt,_that.publishedAt,_that.visibility,_that.content,_that.slug,_that.type,_that.meta,_that.embedView,_that.viewsUnique,_that.viewsTotal,_that.upvotes,_that.downvotes,_that.repliesCount,_that.awardedScore,_that.pinMode,_that.threadedPostId,_that.threadedPost,_that.repliedPostId,_that.repliedPost,_that.forwardedPostId,_that.forwardedPost,_that.realmId,_that.realm,_that.attachments,_that.publisher,_that.reactionsCount,_that.reactionsMade,_that.reactions,_that.tags,_that.categories,_that.collections,_that.featuredRecords,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isTruncated);case _:
   return orElse();
 
 }
@@ -278,10 +279,10 @@ return $default(_that.id,_that.title,_that.description,_that.language,_that.edit
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  String? slug,  int type,  Map<String, dynamic>? meta,  SnPostEmbedView? embedView,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  int awardedScore,  int? pinMode,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  String? realmId,  SnRealm? realm,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<SnPostTag> tags,  List<SnPostCategory> categories,  List<dynamic> collections,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  String? slug,  int type,  Map<String, dynamic>? meta,  SnPostEmbedView? embedView,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  int awardedScore,  int? pinMode,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  String? realmId,  SnRealm? realm,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<SnPostTag> tags,  List<SnPostCategory> categories,  List<dynamic> collections,  List<SnPostFeaturedRecord> featuredRecords,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)  $default,) {final _that = this;
 switch (_that) {
 case _SnPost():
-return $default(_that.id,_that.title,_that.description,_that.language,_that.editedAt,_that.publishedAt,_that.visibility,_that.content,_that.slug,_that.type,_that.meta,_that.embedView,_that.viewsUnique,_that.viewsTotal,_that.upvotes,_that.downvotes,_that.repliesCount,_that.awardedScore,_that.pinMode,_that.threadedPostId,_that.threadedPost,_that.repliedPostId,_that.repliedPost,_that.forwardedPostId,_that.forwardedPost,_that.realmId,_that.realm,_that.attachments,_that.publisher,_that.reactionsCount,_that.reactionsMade,_that.reactions,_that.tags,_that.categories,_that.collections,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isTruncated);}
+return $default(_that.id,_that.title,_that.description,_that.language,_that.editedAt,_that.publishedAt,_that.visibility,_that.content,_that.slug,_that.type,_that.meta,_that.embedView,_that.viewsUnique,_that.viewsTotal,_that.upvotes,_that.downvotes,_that.repliesCount,_that.awardedScore,_that.pinMode,_that.threadedPostId,_that.threadedPost,_that.repliedPostId,_that.repliedPost,_that.forwardedPostId,_that.forwardedPost,_that.realmId,_that.realm,_that.attachments,_that.publisher,_that.reactionsCount,_that.reactionsMade,_that.reactions,_that.tags,_that.categories,_that.collections,_that.featuredRecords,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isTruncated);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -295,10 +296,10 @@ return $default(_that.id,_that.title,_that.description,_that.language,_that.edit
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  String? slug,  int type,  Map<String, dynamic>? meta,  SnPostEmbedView? embedView,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  int awardedScore,  int? pinMode,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  String? realmId,  SnRealm? realm,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<SnPostTag> tags,  List<SnPostCategory> categories,  List<dynamic> collections,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  String? description,  String? language,  DateTime? editedAt,  DateTime? publishedAt,  int visibility,  String? content,  String? slug,  int type,  Map<String, dynamic>? meta,  SnPostEmbedView? embedView,  int viewsUnique,  int viewsTotal,  int upvotes,  int downvotes,  int repliesCount,  int awardedScore,  int? pinMode,  String? threadedPostId,  SnPost? threadedPost,  String? repliedPostId,  SnPost? repliedPost,  String? forwardedPostId,  SnPost? forwardedPost,  String? realmId,  SnRealm? realm,  List<SnCloudFile> attachments,  SnPublisher publisher,  Map<String, int> reactionsCount,  Map<String, bool> reactionsMade,  List<dynamic> reactions,  List<SnPostTag> tags,  List<SnPostCategory> categories,  List<dynamic> collections,  List<SnPostFeaturedRecord> featuredRecords,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  bool isTruncated)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPost() when $default != null:
-return $default(_that.id,_that.title,_that.description,_that.language,_that.editedAt,_that.publishedAt,_that.visibility,_that.content,_that.slug,_that.type,_that.meta,_that.embedView,_that.viewsUnique,_that.viewsTotal,_that.upvotes,_that.downvotes,_that.repliesCount,_that.awardedScore,_that.pinMode,_that.threadedPostId,_that.threadedPost,_that.repliedPostId,_that.repliedPost,_that.forwardedPostId,_that.forwardedPost,_that.realmId,_that.realm,_that.attachments,_that.publisher,_that.reactionsCount,_that.reactionsMade,_that.reactions,_that.tags,_that.categories,_that.collections,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isTruncated);case _:
+return $default(_that.id,_that.title,_that.description,_that.language,_that.editedAt,_that.publishedAt,_that.visibility,_that.content,_that.slug,_that.type,_that.meta,_that.embedView,_that.viewsUnique,_that.viewsTotal,_that.upvotes,_that.downvotes,_that.repliesCount,_that.awardedScore,_that.pinMode,_that.threadedPostId,_that.threadedPost,_that.repliedPostId,_that.repliedPost,_that.forwardedPostId,_that.forwardedPost,_that.realmId,_that.realm,_that.attachments,_that.publisher,_that.reactionsCount,_that.reactionsMade,_that.reactions,_that.tags,_that.categories,_that.collections,_that.featuredRecords,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isTruncated);case _:
   return null;
 
 }
@@ -310,7 +311,7 @@ return $default(_that.id,_that.title,_that.description,_that.language,_that.edit
 @JsonSerializable()
 
 class _SnPost implements SnPost {
-  const _SnPost({required this.id, this.title, this.description, this.language, this.editedAt, this.publishedAt = null, this.visibility = 0, this.content, this.slug, this.type = 0, final  Map<String, dynamic>? meta, this.embedView, this.viewsUnique = 0, this.viewsTotal = 0, this.upvotes = 0, this.downvotes = 0, this.repliesCount = 0, this.awardedScore = 0, this.pinMode, this.threadedPostId, this.threadedPost, this.repliedPostId, this.repliedPost, this.forwardedPostId, this.forwardedPost, this.realmId, this.realm, final  List<SnCloudFile> attachments = const [], required this.publisher, final  Map<String, int> reactionsCount = const {}, final  Map<String, bool> reactionsMade = const {}, final  List<dynamic> reactions = const [], final  List<SnPostTag> tags = const [], final  List<SnPostCategory> categories = const [], final  List<dynamic> collections = const [], this.createdAt = null, this.updatedAt = null, this.deletedAt, this.isTruncated = false}): _meta = meta,_attachments = attachments,_reactionsCount = reactionsCount,_reactionsMade = reactionsMade,_reactions = reactions,_tags = tags,_categories = categories,_collections = collections;
+  const _SnPost({required this.id, this.title, this.description, this.language, this.editedAt, this.publishedAt = null, this.visibility = 0, this.content, this.slug, this.type = 0, final  Map<String, dynamic>? meta, this.embedView, this.viewsUnique = 0, this.viewsTotal = 0, this.upvotes = 0, this.downvotes = 0, this.repliesCount = 0, this.awardedScore = 0, this.pinMode, this.threadedPostId, this.threadedPost, this.repliedPostId, this.repliedPost, this.forwardedPostId, this.forwardedPost, this.realmId, this.realm, final  List<SnCloudFile> attachments = const [], required this.publisher, final  Map<String, int> reactionsCount = const {}, final  Map<String, bool> reactionsMade = const {}, final  List<dynamic> reactions = const [], final  List<SnPostTag> tags = const [], final  List<SnPostCategory> categories = const [], final  List<dynamic> collections = const [], final  List<SnPostFeaturedRecord> featuredRecords = const [], this.createdAt = null, this.updatedAt = null, this.deletedAt, this.isTruncated = false}): _meta = meta,_attachments = attachments,_reactionsCount = reactionsCount,_reactionsMade = reactionsMade,_reactions = reactions,_tags = tags,_categories = categories,_collections = collections,_featuredRecords = featuredRecords;
   factory _SnPost.fromJson(Map<String, dynamic> json) => _$SnPostFromJson(json);
 
 @override final  String id;
@@ -398,6 +399,13 @@ class _SnPost implements SnPost {
   return EqualUnmodifiableListView(_collections);
 }
 
+ final  List<SnPostFeaturedRecord> _featuredRecords;
+@override@JsonKey() List<SnPostFeaturedRecord> get featuredRecords {
+  if (_featuredRecords is EqualUnmodifiableListView) return _featuredRecords;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_featuredRecords);
+}
+
 @override@JsonKey() final  DateTime? createdAt;
 @override@JsonKey() final  DateTime? updatedAt;
 @override final  DateTime? deletedAt;
@@ -416,16 +424,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPost&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.language, language) || other.language == language)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.content, content) || other.content == content)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.embedView, embedView) || other.embedView == embedView)&&(identical(other.viewsUnique, viewsUnique) || other.viewsUnique == viewsUnique)&&(identical(other.viewsTotal, viewsTotal) || other.viewsTotal == viewsTotal)&&(identical(other.upvotes, upvotes) || other.upvotes == upvotes)&&(identical(other.downvotes, downvotes) || other.downvotes == downvotes)&&(identical(other.repliesCount, repliesCount) || other.repliesCount == repliesCount)&&(identical(other.awardedScore, awardedScore) || other.awardedScore == awardedScore)&&(identical(other.pinMode, pinMode) || other.pinMode == pinMode)&&(identical(other.threadedPostId, threadedPostId) || other.threadedPostId == threadedPostId)&&(identical(other.threadedPost, threadedPost) || other.threadedPost == threadedPost)&&(identical(other.repliedPostId, repliedPostId) || other.repliedPostId == repliedPostId)&&(identical(other.repliedPost, repliedPost) || other.repliedPost == repliedPost)&&(identical(other.forwardedPostId, forwardedPostId) || other.forwardedPostId == forwardedPostId)&&(identical(other.forwardedPost, forwardedPost) || other.forwardedPost == forwardedPost)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&const DeepCollectionEquality().equals(other._reactionsCount, _reactionsCount)&&const DeepCollectionEquality().equals(other._reactionsMade, _reactionsMade)&&const DeepCollectionEquality().equals(other._reactions, _reactions)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._collections, _collections)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.isTruncated, isTruncated) || other.isTruncated == isTruncated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPost&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.language, language) || other.language == language)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.content, content) || other.content == content)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.embedView, embedView) || other.embedView == embedView)&&(identical(other.viewsUnique, viewsUnique) || other.viewsUnique == viewsUnique)&&(identical(other.viewsTotal, viewsTotal) || other.viewsTotal == viewsTotal)&&(identical(other.upvotes, upvotes) || other.upvotes == upvotes)&&(identical(other.downvotes, downvotes) || other.downvotes == downvotes)&&(identical(other.repliesCount, repliesCount) || other.repliesCount == repliesCount)&&(identical(other.awardedScore, awardedScore) || other.awardedScore == awardedScore)&&(identical(other.pinMode, pinMode) || other.pinMode == pinMode)&&(identical(other.threadedPostId, threadedPostId) || other.threadedPostId == threadedPostId)&&(identical(other.threadedPost, threadedPost) || other.threadedPost == threadedPost)&&(identical(other.repliedPostId, repliedPostId) || other.repliedPostId == repliedPostId)&&(identical(other.repliedPost, repliedPost) || other.repliedPost == repliedPost)&&(identical(other.forwardedPostId, forwardedPostId) || other.forwardedPostId == forwardedPostId)&&(identical(other.forwardedPost, forwardedPost) || other.forwardedPost == forwardedPost)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&const DeepCollectionEquality().equals(other._reactionsCount, _reactionsCount)&&const DeepCollectionEquality().equals(other._reactionsMade, _reactionsMade)&&const DeepCollectionEquality().equals(other._reactions, _reactions)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._collections, _collections)&&const DeepCollectionEquality().equals(other._featuredRecords, _featuredRecords)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.isTruncated, isTruncated) || other.isTruncated == isTruncated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,title,description,language,editedAt,publishedAt,visibility,content,slug,type,const DeepCollectionEquality().hash(_meta),embedView,viewsUnique,viewsTotal,upvotes,downvotes,repliesCount,awardedScore,pinMode,threadedPostId,threadedPost,repliedPostId,repliedPost,forwardedPostId,forwardedPost,realmId,realm,const DeepCollectionEquality().hash(_attachments),publisher,const DeepCollectionEquality().hash(_reactionsCount),const DeepCollectionEquality().hash(_reactionsMade),const DeepCollectionEquality().hash(_reactions),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_collections),createdAt,updatedAt,deletedAt,isTruncated]);
+int get hashCode => Object.hashAll([runtimeType,id,title,description,language,editedAt,publishedAt,visibility,content,slug,type,const DeepCollectionEquality().hash(_meta),embedView,viewsUnique,viewsTotal,upvotes,downvotes,repliesCount,awardedScore,pinMode,threadedPostId,threadedPost,repliedPostId,repliedPost,forwardedPostId,forwardedPost,realmId,realm,const DeepCollectionEquality().hash(_attachments),publisher,const DeepCollectionEquality().hash(_reactionsCount),const DeepCollectionEquality().hash(_reactionsMade),const DeepCollectionEquality().hash(_reactions),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_collections),const DeepCollectionEquality().hash(_featuredRecords),createdAt,updatedAt,deletedAt,isTruncated]);
 
 @override
 String toString() {
-  return 'SnPost(id: $id, title: $title, description: $description, language: $language, editedAt: $editedAt, publishedAt: $publishedAt, visibility: $visibility, content: $content, slug: $slug, type: $type, meta: $meta, embedView: $embedView, viewsUnique: $viewsUnique, viewsTotal: $viewsTotal, upvotes: $upvotes, downvotes: $downvotes, repliesCount: $repliesCount, awardedScore: $awardedScore, pinMode: $pinMode, threadedPostId: $threadedPostId, threadedPost: $threadedPost, repliedPostId: $repliedPostId, repliedPost: $repliedPost, forwardedPostId: $forwardedPostId, forwardedPost: $forwardedPost, realmId: $realmId, realm: $realm, attachments: $attachments, publisher: $publisher, reactionsCount: $reactionsCount, reactionsMade: $reactionsMade, reactions: $reactions, tags: $tags, categories: $categories, collections: $collections, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, isTruncated: $isTruncated)';
+  return 'SnPost(id: $id, title: $title, description: $description, language: $language, editedAt: $editedAt, publishedAt: $publishedAt, visibility: $visibility, content: $content, slug: $slug, type: $type, meta: $meta, embedView: $embedView, viewsUnique: $viewsUnique, viewsTotal: $viewsTotal, upvotes: $upvotes, downvotes: $downvotes, repliesCount: $repliesCount, awardedScore: $awardedScore, pinMode: $pinMode, threadedPostId: $threadedPostId, threadedPost: $threadedPost, repliedPostId: $repliedPostId, repliedPost: $repliedPost, forwardedPostId: $forwardedPostId, forwardedPost: $forwardedPost, realmId: $realmId, realm: $realm, attachments: $attachments, publisher: $publisher, reactionsCount: $reactionsCount, reactionsMade: $reactionsMade, reactions: $reactions, tags: $tags, categories: $categories, collections: $collections, featuredRecords: $featuredRecords, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, isTruncated: $isTruncated)';
 }
 
 
@@ -436,7 +444,7 @@ abstract mixin class _$SnPostCopyWith<$Res> implements $SnPostCopyWith<$Res> {
   factory _$SnPostCopyWith(_SnPost value, $Res Function(_SnPost) _then) = __$SnPostCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, String? slug, int type, Map<String, dynamic>? meta, SnPostEmbedView? embedView, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, int awardedScore, int? pinMode, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, String? realmId, SnRealm? realm, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, Map<String, bool> reactionsMade, List<dynamic> reactions, List<SnPostTag> tags, List<SnPostCategory> categories, List<dynamic> collections, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
+ String id, String? title, String? description, String? language, DateTime? editedAt, DateTime? publishedAt, int visibility, String? content, String? slug, int type, Map<String, dynamic>? meta, SnPostEmbedView? embedView, int viewsUnique, int viewsTotal, int upvotes, int downvotes, int repliesCount, int awardedScore, int? pinMode, String? threadedPostId, SnPost? threadedPost, String? repliedPostId, SnPost? repliedPost, String? forwardedPostId, SnPost? forwardedPost, String? realmId, SnRealm? realm, List<SnCloudFile> attachments, SnPublisher publisher, Map<String, int> reactionsCount, Map<String, bool> reactionsMade, List<dynamic> reactions, List<SnPostTag> tags, List<SnPostCategory> categories, List<dynamic> collections, List<SnPostFeaturedRecord> featuredRecords, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, bool isTruncated
 });
 
 
@@ -453,7 +461,7 @@ class __$SnPostCopyWithImpl<$Res>
 
 /// Create a copy of SnPost
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = freezed,Object? description = freezed,Object? language = freezed,Object? editedAt = freezed,Object? publishedAt = freezed,Object? visibility = null,Object? content = freezed,Object? slug = freezed,Object? type = null,Object? meta = freezed,Object? embedView = freezed,Object? viewsUnique = null,Object? viewsTotal = null,Object? upvotes = null,Object? downvotes = null,Object? repliesCount = null,Object? awardedScore = null,Object? pinMode = freezed,Object? threadedPostId = freezed,Object? threadedPost = freezed,Object? repliedPostId = freezed,Object? repliedPost = freezed,Object? forwardedPostId = freezed,Object? forwardedPost = freezed,Object? realmId = freezed,Object? realm = freezed,Object? attachments = null,Object? publisher = null,Object? reactionsCount = null,Object? reactionsMade = null,Object? reactions = null,Object? tags = null,Object? categories = null,Object? collections = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? isTruncated = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = freezed,Object? description = freezed,Object? language = freezed,Object? editedAt = freezed,Object? publishedAt = freezed,Object? visibility = null,Object? content = freezed,Object? slug = freezed,Object? type = null,Object? meta = freezed,Object? embedView = freezed,Object? viewsUnique = null,Object? viewsTotal = null,Object? upvotes = null,Object? downvotes = null,Object? repliesCount = null,Object? awardedScore = null,Object? pinMode = freezed,Object? threadedPostId = freezed,Object? threadedPost = freezed,Object? repliedPostId = freezed,Object? repliedPost = freezed,Object? forwardedPostId = freezed,Object? forwardedPost = freezed,Object? realmId = freezed,Object? realm = freezed,Object? attachments = null,Object? publisher = null,Object? reactionsCount = null,Object? reactionsMade = null,Object? reactions = null,Object? tags = null,Object? categories = null,Object? collections = null,Object? featuredRecords = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? isTruncated = null,}) {
   return _then(_SnPost(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -490,7 +498,8 @@ as Map<String, bool>,reactions: null == reactions ? _self._reactions : reactions
 as List<dynamic>,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
 as List<SnPostTag>,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
 as List<SnPostCategory>,collections: null == collections ? _self._collections : collections // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as List<dynamic>,featuredRecords: null == featuredRecords ? _self._featuredRecords : featuredRecords // ignore: cast_nullable_to_non_nullable
+as List<SnPostFeaturedRecord>,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,isTruncated: null == isTruncated ? _self.isTruncated : isTruncated // ignore: cast_nullable_to_non_nullable
@@ -2203,6 +2212,281 @@ $SnAccountCopyWith<$Res>? get account {
     return _then(_self.copyWith(account: value));
   });
 }
+}
+
+
+/// @nodoc
+mixin _$SnPostFeaturedRecord {
+
+ String get id; String get postId; DateTime? get featuredAt; int get socialCredits; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnPostFeaturedRecord
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPostFeaturedRecordCopyWith<SnPostFeaturedRecord> get copyWith => _$SnPostFeaturedRecordCopyWithImpl<SnPostFeaturedRecord>(this as SnPostFeaturedRecord, _$identity);
+
+  /// Serializes this SnPostFeaturedRecord to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostFeaturedRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.featuredAt, featuredAt) || other.featuredAt == featuredAt)&&(identical(other.socialCredits, socialCredits) || other.socialCredits == socialCredits)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,postId,featuredAt,socialCredits,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnPostFeaturedRecord(id: $id, postId: $postId, featuredAt: $featuredAt, socialCredits: $socialCredits, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPostFeaturedRecordCopyWith<$Res>  {
+  factory $SnPostFeaturedRecordCopyWith(SnPostFeaturedRecord value, $Res Function(SnPostFeaturedRecord) _then) = _$SnPostFeaturedRecordCopyWithImpl;
+@useResult
+$Res call({
+ String id, String postId, DateTime? featuredAt, int socialCredits, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnPostFeaturedRecordCopyWithImpl<$Res>
+    implements $SnPostFeaturedRecordCopyWith<$Res> {
+  _$SnPostFeaturedRecordCopyWithImpl(this._self, this._then);
+
+  final SnPostFeaturedRecord _self;
+  final $Res Function(SnPostFeaturedRecord) _then;
+
+/// Create a copy of SnPostFeaturedRecord
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? postId = null,Object? featuredAt = freezed,Object? socialCredits = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,postId: null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
+as String,featuredAt: freezed == featuredAt ? _self.featuredAt : featuredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,socialCredits: null == socialCredits ? _self.socialCredits : socialCredits // ignore: cast_nullable_to_non_nullable
+as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnPostFeaturedRecord].
+extension SnPostFeaturedRecordPatterns on SnPostFeaturedRecord {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPostFeaturedRecord value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPostFeaturedRecord() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPostFeaturedRecord value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPostFeaturedRecord():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPostFeaturedRecord value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPostFeaturedRecord() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String postId,  DateTime? featuredAt,  int socialCredits,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPostFeaturedRecord() when $default != null:
+return $default(_that.id,_that.postId,_that.featuredAt,_that.socialCredits,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String postId,  DateTime? featuredAt,  int socialCredits,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnPostFeaturedRecord():
+return $default(_that.id,_that.postId,_that.featuredAt,_that.socialCredits,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String postId,  DateTime? featuredAt,  int socialCredits,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPostFeaturedRecord() when $default != null:
+return $default(_that.id,_that.postId,_that.featuredAt,_that.socialCredits,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPostFeaturedRecord implements SnPostFeaturedRecord {
+  const _SnPostFeaturedRecord({required this.id, required this.postId, required this.featuredAt, required this.socialCredits, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  factory _SnPostFeaturedRecord.fromJson(Map<String, dynamic> json) => _$SnPostFeaturedRecordFromJson(json);
+
+@override final  String id;
+@override final  String postId;
+@override final  DateTime? featuredAt;
+@override final  int socialCredits;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnPostFeaturedRecord
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPostFeaturedRecordCopyWith<_SnPostFeaturedRecord> get copyWith => __$SnPostFeaturedRecordCopyWithImpl<_SnPostFeaturedRecord>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPostFeaturedRecordToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostFeaturedRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.postId, postId) || other.postId == postId)&&(identical(other.featuredAt, featuredAt) || other.featuredAt == featuredAt)&&(identical(other.socialCredits, socialCredits) || other.socialCredits == socialCredits)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,postId,featuredAt,socialCredits,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnPostFeaturedRecord(id: $id, postId: $postId, featuredAt: $featuredAt, socialCredits: $socialCredits, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPostFeaturedRecordCopyWith<$Res> implements $SnPostFeaturedRecordCopyWith<$Res> {
+  factory _$SnPostFeaturedRecordCopyWith(_SnPostFeaturedRecord value, $Res Function(_SnPostFeaturedRecord) _then) = __$SnPostFeaturedRecordCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String postId, DateTime? featuredAt, int socialCredits, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnPostFeaturedRecordCopyWithImpl<$Res>
+    implements _$SnPostFeaturedRecordCopyWith<$Res> {
+  __$SnPostFeaturedRecordCopyWithImpl(this._self, this._then);
+
+  final _SnPostFeaturedRecord _self;
+  final $Res Function(_SnPostFeaturedRecord) _then;
+
+/// Create a copy of SnPostFeaturedRecord
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? postId = null,Object? featuredAt = freezed,Object? socialCredits = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnPostFeaturedRecord(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,postId: null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
+as String,featuredAt: freezed == featuredAt ? _self.featuredAt : featuredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,socialCredits: null == socialCredits ? _self.socialCredits : socialCredits // ignore: cast_nullable_to_non_nullable
+as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
 }
 
 // dart format on

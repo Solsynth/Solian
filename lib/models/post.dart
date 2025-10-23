@@ -47,6 +47,7 @@ sealed class SnPost with _$SnPost {
     @Default([]) List<SnPostTag> tags,
     @Default([]) List<SnPostCategory> categories,
     @Default([]) List<dynamic> collections,
+    @Default([]) List<SnPostFeaturedRecord> featuredRecords,
     @Default(null) DateTime? createdAt,
     @Default(null) DateTime? updatedAt,
     DateTime? deletedAt,
@@ -160,4 +161,20 @@ sealed class SnPostReaction with _$SnPostReaction {
 
   factory SnPostReaction.fromJson(Map<String, dynamic> json) =>
       _$SnPostReactionFromJson(json);
+}
+
+@freezed
+sealed class SnPostFeaturedRecord with _$SnPostFeaturedRecord {
+  const factory SnPostFeaturedRecord({
+    required String id,
+    required String postId,
+    required DateTime? featuredAt,
+    required int socialCredits,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnPostFeaturedRecord;
+
+  factory SnPostFeaturedRecord.fromJson(Map<String, dynamic> json) =>
+      _$SnPostFeaturedRecordFromJson(json);
 }

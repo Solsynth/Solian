@@ -488,7 +488,9 @@ class PostItem extends HookConsumerWidget {
               child: TextButton.icon(
                 onPressed: translating.value ? null : translate,
                 style: ButtonStyle(
-                  padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+                  padding: const WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(horizontal: 2),
+                  ),
                   visualDensity: const VisualDensity(
                     horizontal: 0,
                     vertical: -4,

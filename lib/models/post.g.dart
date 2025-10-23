@@ -85,6 +85,11 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
           .toList() ??
       const [],
   collections: json['collections'] as List<dynamic>? ?? const [],
+  featuredRecords:
+      (json['featured_records'] as List<dynamic>?)
+          ?.map((e) => SnPostFeaturedRecord.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   createdAt:
       json['created_at'] == null
           ? null
@@ -136,6 +141,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'tags': instance.tags.map((e) => e.toJson()).toList(),
   'categories': instance.categories.map((e) => e.toJson()).toList(),
   'collections': instance.collections,
+  'featured_records': instance.featuredRecords.map((e) => e.toJson()).toList(),
   'created_at': instance.createdAt?.toIso8601String(),
   'updated_at': instance.updatedAt?.toIso8601String(),
   'deleted_at': instance.deletedAt?.toIso8601String(),
@@ -262,3 +268,33 @@ Map<String, dynamic> _$SnPostReactionToJson(_SnPostReaction instance) =>
       'account': instance.account?.toJson(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_SnPostFeaturedRecord _$SnPostFeaturedRecordFromJson(
+  Map<String, dynamic> json,
+) => _SnPostFeaturedRecord(
+  id: json['id'] as String,
+  postId: json['post_id'] as String,
+  featuredAt:
+      json['featured_at'] == null
+          ? null
+          : DateTime.parse(json['featured_at'] as String),
+  socialCredits: (json['social_credits'] as num).toInt(),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt:
+      json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+);
+
+Map<String, dynamic> _$SnPostFeaturedRecordToJson(
+  _SnPostFeaturedRecord instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'post_id': instance.postId,
+  'featured_at': instance.featuredAt?.toIso8601String(),
+  'social_credits': instance.socialCredits,
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
+};
