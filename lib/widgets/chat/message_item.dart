@@ -13,6 +13,7 @@ import 'package:island/pods/chat/chat_rooms.dart';
 import 'package:island/pods/chat/messages_notifier.dart';
 import 'package:island/pods/translate.dart';
 import 'package:island/pods/config.dart';
+import 'package:island/services/time.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/chat/message_content.dart';
 import 'package:island/widgets/chat/message_indicators.dart';
@@ -398,7 +399,19 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
               const Gap(4),
             ],
 
-            const Gap(8),
+            Row(
+              spacing: 6,
+              children: [
+                Icon(Symbols.send, size: 16),
+                Text(
+                  'messageSentAt'.tr(
+                    args: [widget.message.createdAt.formatSystem()],
+                  ),
+                ).fontSize(13),
+              ],
+            ).opacity(0.75).padding(horizontal: 20, top: 8, bottom: 6),
+
+            const Divider(),
 
             // Action buttons
             if (widget.isCurrentUser)
@@ -478,7 +491,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                 },
               ),
 
-            Gap(MediaQuery.of(context).padding.bottom),
+            Gap(MediaQuery.of(context).padding.bottom + 32),
           ],
         ),
       ),

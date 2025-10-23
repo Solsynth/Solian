@@ -1254,5 +1254,6 @@
     "upgradeRequired": "Upgrade required",
     "settingsDisableAnimation": "Disable Animation",
     "addTag": "Add Tag",
-    "postFeaturedIn": "Post featured on {}"
+    "postFeaturedIn": "Post featured on {}",
+    "messageSentAt": "Sent at {}"
 }

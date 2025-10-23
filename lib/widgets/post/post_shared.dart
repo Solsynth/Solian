@@ -798,7 +798,7 @@ class PostBody extends ConsumerWidget {
           children: [
             const Icon(Symbols.highlight, size: 16),
             Text(
-              'postFeaturedIn'.tr(
+              'postFeaturedOn'.tr(
                 args: [
                   item.featuredRecords
                       .map((e) => e.featuredAt ?? e.createdAt)
