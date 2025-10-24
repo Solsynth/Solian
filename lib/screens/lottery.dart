@@ -293,14 +293,23 @@ class LotteryTicketsList extends HookConsumerWidget {
     final numbers = <Widget>[];
 
     // Check if any numbers matched
-    bool hasAnyMatch = false;
+    bool hasAnyMatch =
+        ticket.matchedRegionOneNumbers != null &&
+        ticket.matchedRegionOneNumbers!.isNotEmpty;
 
     // Add region one numbers
     for (final number in ticket.regionOneNumbers) {
       final isMatched =
           ticket.matchedRegionOneNumbers?.contains(number) ?? false;
       if (isMatched) hasAnyMatch = true;
-      numbers.add(_buildNumberWidget(context, number, isMatched: isMatched));
+      numbers.add(
+        _buildNumberWidget(
+          context,
+          number,
+          isMatched: isMatched,
+          allUnmatched: !hasAnyMatch && ticket.drawStatus >= 1,
+        ),
+      );
     }
 
     // Add region two number
@@ -313,28 +322,15 @@ class LotteryTicketsList extends HookConsumerWidget {
         ticket.regionTwoNumber,
         isMatched: isSpecialMatched,
         isSpecial: true,
+        allUnmatched: !hasAnyMatch && ticket.drawStatus >= 1,
       ),
     );
 
-    final wrapWidget = Wrap(
+    return Wrap(
       spacing: 6,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: numbers,
     );
-
-    // If no numbers matched and ticket is drawn, apply red background
-    if (!hasAnyMatch && ticket.drawStatus >= 1) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: wrapWidget,
-      );
-    }
-
-    return wrapWidget;
   }
 
   Widget _buildNumberWidget(
@@ -342,6 +338,7 @@ class LotteryTicketsList extends HookConsumerWidget {
     int number, {
     bool isMatched = false,
     bool isSpecial = false,
+    bool allUnmatched = false,
   }) {
     Color backgroundColor;
     Color textColor;
@@ -364,6 +361,17 @@ class LotteryTicketsList extends HookConsumerWidget {
           isSpecial
               ? Theme.of(context).colorScheme.secondary
               : Theme.of(context).colorScheme.outline.withOpacity(0.3);
+
+      // Blend with red if all numbers are unmatched
+      if (allUnmatched) {
+        backgroundColor = Color.alphaBlend(
+          Colors.red.withOpacity(0.3),
+          backgroundColor,
+        );
+        if (!isSpecial) {
+          textColor = Color.alphaBlend(Colors.red.withOpacity(0.5), textColor);
+        }
+      }
     }
 
     return Container(
@@ -548,7 +556,7 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  const Gap(8),
+                  const Gap(16),
                   _buildMultiplierSelector(),
 
                   const Gap(16),
@@ -667,7 +675,7 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
             selectedNumbers.last == number &&
             selectedNumbers.length == 6;
 
-        return InkWell(
+        return GestureDetector(
           onTap: () => _toggleNumber(number),
           child: Container(
             decoration: BoxDecoration(
@@ -714,7 +722,8 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
       initialValue: multiplier.toString(),
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
-        labelText: 'Multiplier (1-10)',
+        labelText: 'multiplierLabel'.tr(),
+        prefixText: 'x',
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -723,7 +732,7 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
       ),
       onChanged: (value) {
         final parsed = int.tryParse(value);
-        if (parsed != null && parsed >= 1 && parsed <= 10) {
+        if (parsed != null && parsed >= 1) {
           setState(() => multiplier = parsed);
         }
       },
@@ -741,18 +750,24 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
   }
 
   Widget _buildPrizeStructure() {
-    final prizeStructure = {
-      '5+Special': '1000000.00',
-      '5': '100000.00',
-      '4+Special': '5000.00',
-      '4': '500.00',
-      '3+Special': '100.00',
-      '3': '50.00',
-      '2+Special': '10.00',
-      '2': '5.00',
-      '1+Special': '2.00',
-      '0+Special': '1.00',
-    };
+    // Base rewards for matched numbers (0-5)
+    final baseRewards = [0, 10, 100, 500, 1000, 10000];
+
+    final prizeStructure = <String, String>{};
+
+    // Generate prize structure for 0-5 matches with and without special
+    for (int matches = 5; matches >= 0; matches--) {
+      final baseReward = baseRewards[matches];
+
+      // With special number match (x10 multiplier)
+      final specialReward = baseReward * 10;
+      prizeStructure['$matches+Special'] = specialReward.toStringAsFixed(2);
+
+      // Without special number match
+      if (matches > 0) {
+        prizeStructure[matches.toString()] = baseReward.toStringAsFixed(2);
+      }
+    }
 
     return Card(
       child: Padding(
@@ -765,7 +780,11 @@ class _LotteryPurchaseSheetState extends State<LotteryPurchaseSheet> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(entry.key.tr()),
+                      Text(
+                        entry.key == '0+Special'
+                            ? 'specialOnly'.tr()
+                            : entry.key.tr(),
+                      ),
                       Text(
                         '${entry.value} ${'walletCurrencyShortPoints'.tr()}',
                       ),

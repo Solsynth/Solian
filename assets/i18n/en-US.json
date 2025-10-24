@@ -1258,6 +1258,7 @@
     "messageSentAt": "Sent at {}",
     "myTickets": "My Tickets",
     "drawHistory": "Draw History",
+    "lottery": "Lottery",
     "noLotteryTickets": "No lottery tickets yet",
     "buyYourFirstTicket": "Buy your first lottery ticket to get started!",
     "buyTicket": "Buy Ticket",
@@ -1272,7 +1273,7 @@
     "noDrawHistory": "No draw history yet",
     "buyLotteryTicket": "Buy Lottery Ticket",
     "selectNumbers": "Select Numbers",
-    "select5UniqueNumbers": "Select 5 unique numbers (0-99)",
+    "select5UniqueNumbers": "Select 5 unique numbers",
     "selectSpecialNumber": "Select Special Number",
     "selectMultiplier": "Select Multiplier",
     "baseCost": "Base Cost",
@@ -1285,5 +1286,9 @@
     "totalTickets": "Total Tickets",
     "totalWinners": "Total Winners",
     "prizePool": "Prize Pool",
-    "enterPinToConfirmPayment": "Enter your PIN code to confirm payment"
+    "enterPinToConfirmPayment": "Enter your PIN code to confirm payment",
+    "purchase": "Purchase",
+    "multiplierLabel": "Multiplier",
+    "specialOnly": "Special Only",
+    "matches": "Matches"
 }
