@@ -211,3 +211,44 @@ sealed class SnWalletFundRecipient with _$SnWalletFundRecipient {
   factory SnWalletFundRecipient.fromJson(Map<String, dynamic> json) =>
       _$SnWalletFundRecipientFromJson(json);
 }
+
+@freezed
+sealed class SnLotteryTicket with _$SnLotteryTicket {
+  const factory SnLotteryTicket({
+    required String id,
+    required String accountId,
+    required SnAccount? account,
+    required List<int> regionOneNumbers,
+    required int regionTwoNumber,
+    required int multiplier,
+    required int drawStatus,
+    required DateTime? drawDate,
+    required List<int>? matchedRegionOneNumbers,
+    required int? matchedRegionTwoNumber,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnLotteryTicket;
+
+  factory SnLotteryTicket.fromJson(Map<String, dynamic> json) =>
+      _$SnLotteryTicketFromJson(json);
+}
+
+@freezed
+sealed class SnLotteryRecord with _$SnLotteryRecord {
+  const factory SnLotteryRecord({
+    required String id,
+    required DateTime drawDate,
+    required List<int> winningRegionOneNumbers,
+    required int winningRegionTwoNumber,
+    required int totalTickets,
+    required int totalPrizesAwarded,
+    required double totalPrizeAmount,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnLotteryRecord;
+
+  factory SnLotteryRecord.fromJson(Map<String, dynamic> json) =>
+      _$SnLotteryRecordFromJson(json);
+}

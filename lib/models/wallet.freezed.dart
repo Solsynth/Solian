@@ -3184,4 +3184,625 @@ $SnAccountCopyWith<$Res>? get recipientAccount {
 }
 }
 
+
+/// @nodoc
+mixin _$SnLotteryTicket {
+
+ String get id; String get accountId; SnAccount? get account; List<int> get regionOneNumbers; int get regionTwoNumber; int get multiplier; int get drawStatus; DateTime? get drawDate; List<int>? get matchedRegionOneNumbers; int? get matchedRegionTwoNumber; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnLotteryTicket
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnLotteryTicketCopyWith<SnLotteryTicket> get copyWith => _$SnLotteryTicketCopyWithImpl<SnLotteryTicket>(this as SnLotteryTicket, _$identity);
+
+  /// Serializes this SnLotteryTicket to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnLotteryTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&const DeepCollectionEquality().equals(other.regionOneNumbers, regionOneNumbers)&&(identical(other.regionTwoNumber, regionTwoNumber) || other.regionTwoNumber == regionTwoNumber)&&(identical(other.multiplier, multiplier) || other.multiplier == multiplier)&&(identical(other.drawStatus, drawStatus) || other.drawStatus == drawStatus)&&(identical(other.drawDate, drawDate) || other.drawDate == drawDate)&&const DeepCollectionEquality().equals(other.matchedRegionOneNumbers, matchedRegionOneNumbers)&&(identical(other.matchedRegionTwoNumber, matchedRegionTwoNumber) || other.matchedRegionTwoNumber == matchedRegionTwoNumber)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,accountId,account,const DeepCollectionEquality().hash(regionOneNumbers),regionTwoNumber,multiplier,drawStatus,drawDate,const DeepCollectionEquality().hash(matchedRegionOneNumbers),matchedRegionTwoNumber,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnLotteryTicket(id: $id, accountId: $accountId, account: $account, regionOneNumbers: $regionOneNumbers, regionTwoNumber: $regionTwoNumber, multiplier: $multiplier, drawStatus: $drawStatus, drawDate: $drawDate, matchedRegionOneNumbers: $matchedRegionOneNumbers, matchedRegionTwoNumber: $matchedRegionTwoNumber, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnLotteryTicketCopyWith<$Res>  {
+  factory $SnLotteryTicketCopyWith(SnLotteryTicket value, $Res Function(SnLotteryTicket) _then) = _$SnLotteryTicketCopyWithImpl;
+@useResult
+$Res call({
+ String id, String accountId, SnAccount? account, List<int> regionOneNumbers, int regionTwoNumber, int multiplier, int drawStatus, DateTime? drawDate, List<int>? matchedRegionOneNumbers, int? matchedRegionTwoNumber, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+$SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class _$SnLotteryTicketCopyWithImpl<$Res>
+    implements $SnLotteryTicketCopyWith<$Res> {
+  _$SnLotteryTicketCopyWithImpl(this._self, this._then);
+
+  final SnLotteryTicket _self;
+  final $Res Function(SnLotteryTicket) _then;
+
+/// Create a copy of SnLotteryTicket
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? account = freezed,Object? regionOneNumbers = null,Object? regionTwoNumber = null,Object? multiplier = null,Object? drawStatus = null,Object? drawDate = freezed,Object? matchedRegionOneNumbers = freezed,Object? matchedRegionTwoNumber = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,regionOneNumbers: null == regionOneNumbers ? _self.regionOneNumbers : regionOneNumbers // ignore: cast_nullable_to_non_nullable
+as List<int>,regionTwoNumber: null == regionTwoNumber ? _self.regionTwoNumber : regionTwoNumber // ignore: cast_nullable_to_non_nullable
+as int,multiplier: null == multiplier ? _self.multiplier : multiplier // ignore: cast_nullable_to_non_nullable
+as int,drawStatus: null == drawStatus ? _self.drawStatus : drawStatus // ignore: cast_nullable_to_non_nullable
+as int,drawDate: freezed == drawDate ? _self.drawDate : drawDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,matchedRegionOneNumbers: freezed == matchedRegionOneNumbers ? _self.matchedRegionOneNumbers : matchedRegionOneNumbers // ignore: cast_nullable_to_non_nullable
+as List<int>?,matchedRegionTwoNumber: freezed == matchedRegionTwoNumber ? _self.matchedRegionTwoNumber : matchedRegionTwoNumber // ignore: cast_nullable_to_non_nullable
+as int?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of SnLotteryTicket
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnLotteryTicket].
+extension SnLotteryTicketPatterns on SnLotteryTicket {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnLotteryTicket value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnLotteryTicket() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnLotteryTicket value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnLotteryTicket():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnLotteryTicket value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnLotteryTicket() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  SnAccount? account,  List<int> regionOneNumbers,  int regionTwoNumber,  int multiplier,  int drawStatus,  DateTime? drawDate,  List<int>? matchedRegionOneNumbers,  int? matchedRegionTwoNumber,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnLotteryTicket() when $default != null:
+return $default(_that.id,_that.accountId,_that.account,_that.regionOneNumbers,_that.regionTwoNumber,_that.multiplier,_that.drawStatus,_that.drawDate,_that.matchedRegionOneNumbers,_that.matchedRegionTwoNumber,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  SnAccount? account,  List<int> regionOneNumbers,  int regionTwoNumber,  int multiplier,  int drawStatus,  DateTime? drawDate,  List<int>? matchedRegionOneNumbers,  int? matchedRegionTwoNumber,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnLotteryTicket():
+return $default(_that.id,_that.accountId,_that.account,_that.regionOneNumbers,_that.regionTwoNumber,_that.multiplier,_that.drawStatus,_that.drawDate,_that.matchedRegionOneNumbers,_that.matchedRegionTwoNumber,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  SnAccount? account,  List<int> regionOneNumbers,  int regionTwoNumber,  int multiplier,  int drawStatus,  DateTime? drawDate,  List<int>? matchedRegionOneNumbers,  int? matchedRegionTwoNumber,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnLotteryTicket() when $default != null:
+return $default(_that.id,_that.accountId,_that.account,_that.regionOneNumbers,_that.regionTwoNumber,_that.multiplier,_that.drawStatus,_that.drawDate,_that.matchedRegionOneNumbers,_that.matchedRegionTwoNumber,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnLotteryTicket implements SnLotteryTicket {
+  const _SnLotteryTicket({required this.id, required this.accountId, required this.account, required final  List<int> regionOneNumbers, required this.regionTwoNumber, required this.multiplier, required this.drawStatus, required this.drawDate, required final  List<int>? matchedRegionOneNumbers, required this.matchedRegionTwoNumber, required this.createdAt, required this.updatedAt, required this.deletedAt}): _regionOneNumbers = regionOneNumbers,_matchedRegionOneNumbers = matchedRegionOneNumbers;
+  factory _SnLotteryTicket.fromJson(Map<String, dynamic> json) => _$SnLotteryTicketFromJson(json);
+
+@override final  String id;
+@override final  String accountId;
+@override final  SnAccount? account;
+ final  List<int> _regionOneNumbers;
+@override List<int> get regionOneNumbers {
+  if (_regionOneNumbers is EqualUnmodifiableListView) return _regionOneNumbers;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_regionOneNumbers);
+}
+
+@override final  int regionTwoNumber;
+@override final  int multiplier;
+@override final  int drawStatus;
+@override final  DateTime? drawDate;
+ final  List<int>? _matchedRegionOneNumbers;
+@override List<int>? get matchedRegionOneNumbers {
+  final value = _matchedRegionOneNumbers;
+  if (value == null) return null;
+  if (_matchedRegionOneNumbers is EqualUnmodifiableListView) return _matchedRegionOneNumbers;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+@override final  int? matchedRegionTwoNumber;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnLotteryTicket
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnLotteryTicketCopyWith<_SnLotteryTicket> get copyWith => __$SnLotteryTicketCopyWithImpl<_SnLotteryTicket>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnLotteryTicketToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnLotteryTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&const DeepCollectionEquality().equals(other._regionOneNumbers, _regionOneNumbers)&&(identical(other.regionTwoNumber, regionTwoNumber) || other.regionTwoNumber == regionTwoNumber)&&(identical(other.multiplier, multiplier) || other.multiplier == multiplier)&&(identical(other.drawStatus, drawStatus) || other.drawStatus == drawStatus)&&(identical(other.drawDate, drawDate) || other.drawDate == drawDate)&&const DeepCollectionEquality().equals(other._matchedRegionOneNumbers, _matchedRegionOneNumbers)&&(identical(other.matchedRegionTwoNumber, matchedRegionTwoNumber) || other.matchedRegionTwoNumber == matchedRegionTwoNumber)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,accountId,account,const DeepCollectionEquality().hash(_regionOneNumbers),regionTwoNumber,multiplier,drawStatus,drawDate,const DeepCollectionEquality().hash(_matchedRegionOneNumbers),matchedRegionTwoNumber,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnLotteryTicket(id: $id, accountId: $accountId, account: $account, regionOneNumbers: $regionOneNumbers, regionTwoNumber: $regionTwoNumber, multiplier: $multiplier, drawStatus: $drawStatus, drawDate: $drawDate, matchedRegionOneNumbers: $matchedRegionOneNumbers, matchedRegionTwoNumber: $matchedRegionTwoNumber, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnLotteryTicketCopyWith<$Res> implements $SnLotteryTicketCopyWith<$Res> {
+  factory _$SnLotteryTicketCopyWith(_SnLotteryTicket value, $Res Function(_SnLotteryTicket) _then) = __$SnLotteryTicketCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String accountId, SnAccount? account, List<int> regionOneNumbers, int regionTwoNumber, int multiplier, int drawStatus, DateTime? drawDate, List<int>? matchedRegionOneNumbers, int? matchedRegionTwoNumber, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+@override $SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class __$SnLotteryTicketCopyWithImpl<$Res>
+    implements _$SnLotteryTicketCopyWith<$Res> {
+  __$SnLotteryTicketCopyWithImpl(this._self, this._then);
+
+  final _SnLotteryTicket _self;
+  final $Res Function(_SnLotteryTicket) _then;
+
+/// Create a copy of SnLotteryTicket
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? account = freezed,Object? regionOneNumbers = null,Object? regionTwoNumber = null,Object? multiplier = null,Object? drawStatus = null,Object? drawDate = freezed,Object? matchedRegionOneNumbers = freezed,Object? matchedRegionTwoNumber = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnLotteryTicket(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,regionOneNumbers: null == regionOneNumbers ? _self._regionOneNumbers : regionOneNumbers // ignore: cast_nullable_to_non_nullable
+as List<int>,regionTwoNumber: null == regionTwoNumber ? _self.regionTwoNumber : regionTwoNumber // ignore: cast_nullable_to_non_nullable
+as int,multiplier: null == multiplier ? _self.multiplier : multiplier // ignore: cast_nullable_to_non_nullable
+as int,drawStatus: null == drawStatus ? _self.drawStatus : drawStatus // ignore: cast_nullable_to_non_nullable
+as int,drawDate: freezed == drawDate ? _self.drawDate : drawDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,matchedRegionOneNumbers: freezed == matchedRegionOneNumbers ? _self._matchedRegionOneNumbers : matchedRegionOneNumbers // ignore: cast_nullable_to_non_nullable
+as List<int>?,matchedRegionTwoNumber: freezed == matchedRegionTwoNumber ? _self.matchedRegionTwoNumber : matchedRegionTwoNumber // ignore: cast_nullable_to_non_nullable
+as int?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of SnLotteryTicket
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$SnLotteryRecord {
+
+ String get id; DateTime get drawDate; List<int> get winningRegionOneNumbers; int get winningRegionTwoNumber; int get totalTickets; int get totalPrizesAwarded; double get totalPrizeAmount; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnLotteryRecord
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnLotteryRecordCopyWith<SnLotteryRecord> get copyWith => _$SnLotteryRecordCopyWithImpl<SnLotteryRecord>(this as SnLotteryRecord, _$identity);
+
+  /// Serializes this SnLotteryRecord to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnLotteryRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.drawDate, drawDate) || other.drawDate == drawDate)&&const DeepCollectionEquality().equals(other.winningRegionOneNumbers, winningRegionOneNumbers)&&(identical(other.winningRegionTwoNumber, winningRegionTwoNumber) || other.winningRegionTwoNumber == winningRegionTwoNumber)&&(identical(other.totalTickets, totalTickets) || other.totalTickets == totalTickets)&&(identical(other.totalPrizesAwarded, totalPrizesAwarded) || other.totalPrizesAwarded == totalPrizesAwarded)&&(identical(other.totalPrizeAmount, totalPrizeAmount) || other.totalPrizeAmount == totalPrizeAmount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,drawDate,const DeepCollectionEquality().hash(winningRegionOneNumbers),winningRegionTwoNumber,totalTickets,totalPrizesAwarded,totalPrizeAmount,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnLotteryRecord(id: $id, drawDate: $drawDate, winningRegionOneNumbers: $winningRegionOneNumbers, winningRegionTwoNumber: $winningRegionTwoNumber, totalTickets: $totalTickets, totalPrizesAwarded: $totalPrizesAwarded, totalPrizeAmount: $totalPrizeAmount, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnLotteryRecordCopyWith<$Res>  {
+  factory $SnLotteryRecordCopyWith(SnLotteryRecord value, $Res Function(SnLotteryRecord) _then) = _$SnLotteryRecordCopyWithImpl;
+@useResult
+$Res call({
+ String id, DateTime drawDate, List<int> winningRegionOneNumbers, int winningRegionTwoNumber, int totalTickets, int totalPrizesAwarded, double totalPrizeAmount, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnLotteryRecordCopyWithImpl<$Res>
+    implements $SnLotteryRecordCopyWith<$Res> {
+  _$SnLotteryRecordCopyWithImpl(this._self, this._then);
+
+  final SnLotteryRecord _self;
+  final $Res Function(SnLotteryRecord) _then;
+
+/// Create a copy of SnLotteryRecord
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? drawDate = null,Object? winningRegionOneNumbers = null,Object? winningRegionTwoNumber = null,Object? totalTickets = null,Object? totalPrizesAwarded = null,Object? totalPrizeAmount = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,drawDate: null == drawDate ? _self.drawDate : drawDate // ignore: cast_nullable_to_non_nullable
+as DateTime,winningRegionOneNumbers: null == winningRegionOneNumbers ? _self.winningRegionOneNumbers : winningRegionOneNumbers // ignore: cast_nullable_to_non_nullable
+as List<int>,winningRegionTwoNumber: null == winningRegionTwoNumber ? _self.winningRegionTwoNumber : winningRegionTwoNumber // ignore: cast_nullable_to_non_nullable
+as int,totalTickets: null == totalTickets ? _self.totalTickets : totalTickets // ignore: cast_nullable_to_non_nullable
+as int,totalPrizesAwarded: null == totalPrizesAwarded ? _self.totalPrizesAwarded : totalPrizesAwarded // ignore: cast_nullable_to_non_nullable
+as int,totalPrizeAmount: null == totalPrizeAmount ? _self.totalPrizeAmount : totalPrizeAmount // ignore: cast_nullable_to_non_nullable
+as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnLotteryRecord].
+extension SnLotteryRecordPatterns on SnLotteryRecord {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnLotteryRecord value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnLotteryRecord() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnLotteryRecord value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnLotteryRecord():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnLotteryRecord value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnLotteryRecord() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime drawDate,  List<int> winningRegionOneNumbers,  int winningRegionTwoNumber,  int totalTickets,  int totalPrizesAwarded,  double totalPrizeAmount,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnLotteryRecord() when $default != null:
+return $default(_that.id,_that.drawDate,_that.winningRegionOneNumbers,_that.winningRegionTwoNumber,_that.totalTickets,_that.totalPrizesAwarded,_that.totalPrizeAmount,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime drawDate,  List<int> winningRegionOneNumbers,  int winningRegionTwoNumber,  int totalTickets,  int totalPrizesAwarded,  double totalPrizeAmount,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnLotteryRecord():
+return $default(_that.id,_that.drawDate,_that.winningRegionOneNumbers,_that.winningRegionTwoNumber,_that.totalTickets,_that.totalPrizesAwarded,_that.totalPrizeAmount,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime drawDate,  List<int> winningRegionOneNumbers,  int winningRegionTwoNumber,  int totalTickets,  int totalPrizesAwarded,  double totalPrizeAmount,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnLotteryRecord() when $default != null:
+return $default(_that.id,_that.drawDate,_that.winningRegionOneNumbers,_that.winningRegionTwoNumber,_that.totalTickets,_that.totalPrizesAwarded,_that.totalPrizeAmount,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnLotteryRecord implements SnLotteryRecord {
+  const _SnLotteryRecord({required this.id, required this.drawDate, required final  List<int> winningRegionOneNumbers, required this.winningRegionTwoNumber, required this.totalTickets, required this.totalPrizesAwarded, required this.totalPrizeAmount, required this.createdAt, required this.updatedAt, required this.deletedAt}): _winningRegionOneNumbers = winningRegionOneNumbers;
+  factory _SnLotteryRecord.fromJson(Map<String, dynamic> json) => _$SnLotteryRecordFromJson(json);
+
+@override final  String id;
+@override final  DateTime drawDate;
+ final  List<int> _winningRegionOneNumbers;
+@override List<int> get winningRegionOneNumbers {
+  if (_winningRegionOneNumbers is EqualUnmodifiableListView) return _winningRegionOneNumbers;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_winningRegionOneNumbers);
+}
+
+@override final  int winningRegionTwoNumber;
+@override final  int totalTickets;
+@override final  int totalPrizesAwarded;
+@override final  double totalPrizeAmount;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnLotteryRecord
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnLotteryRecordCopyWith<_SnLotteryRecord> get copyWith => __$SnLotteryRecordCopyWithImpl<_SnLotteryRecord>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnLotteryRecordToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnLotteryRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.drawDate, drawDate) || other.drawDate == drawDate)&&const DeepCollectionEquality().equals(other._winningRegionOneNumbers, _winningRegionOneNumbers)&&(identical(other.winningRegionTwoNumber, winningRegionTwoNumber) || other.winningRegionTwoNumber == winningRegionTwoNumber)&&(identical(other.totalTickets, totalTickets) || other.totalTickets == totalTickets)&&(identical(other.totalPrizesAwarded, totalPrizesAwarded) || other.totalPrizesAwarded == totalPrizesAwarded)&&(identical(other.totalPrizeAmount, totalPrizeAmount) || other.totalPrizeAmount == totalPrizeAmount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,drawDate,const DeepCollectionEquality().hash(_winningRegionOneNumbers),winningRegionTwoNumber,totalTickets,totalPrizesAwarded,totalPrizeAmount,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnLotteryRecord(id: $id, drawDate: $drawDate, winningRegionOneNumbers: $winningRegionOneNumbers, winningRegionTwoNumber: $winningRegionTwoNumber, totalTickets: $totalTickets, totalPrizesAwarded: $totalPrizesAwarded, totalPrizeAmount: $totalPrizeAmount, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnLotteryRecordCopyWith<$Res> implements $SnLotteryRecordCopyWith<$Res> {
+  factory _$SnLotteryRecordCopyWith(_SnLotteryRecord value, $Res Function(_SnLotteryRecord) _then) = __$SnLotteryRecordCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, DateTime drawDate, List<int> winningRegionOneNumbers, int winningRegionTwoNumber, int totalTickets, int totalPrizesAwarded, double totalPrizeAmount, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnLotteryRecordCopyWithImpl<$Res>
+    implements _$SnLotteryRecordCopyWith<$Res> {
+  __$SnLotteryRecordCopyWithImpl(this._self, this._then);
+
+  final _SnLotteryRecord _self;
+  final $Res Function(_SnLotteryRecord) _then;
+
+/// Create a copy of SnLotteryRecord
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? drawDate = null,Object? winningRegionOneNumbers = null,Object? winningRegionTwoNumber = null,Object? totalTickets = null,Object? totalPrizesAwarded = null,Object? totalPrizeAmount = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnLotteryRecord(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,drawDate: null == drawDate ? _self.drawDate : drawDate // ignore: cast_nullable_to_non_nullable
+as DateTime,winningRegionOneNumbers: null == winningRegionOneNumbers ? _self._winningRegionOneNumbers : winningRegionOneNumbers // ignore: cast_nullable_to_non_nullable
+as List<int>,winningRegionTwoNumber: null == winningRegionTwoNumber ? _self.winningRegionTwoNumber : winningRegionTwoNumber // ignore: cast_nullable_to_non_nullable
+as int,totalTickets: null == totalTickets ? _self.totalTickets : totalTickets // ignore: cast_nullable_to_non_nullable
+as int,totalPrizesAwarded: null == totalPrizesAwarded ? _self.totalPrizesAwarded : totalPrizesAwarded // ignore: cast_nullable_to_non_nullable
+as int,totalPrizeAmount: null == totalPrizeAmount ? _self.totalPrizeAmount : totalPrizeAmount // ignore: cast_nullable_to_non_nullable
+as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
 // dart format on

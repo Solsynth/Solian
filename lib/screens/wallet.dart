@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
 import 'package:island/models/wallet.dart';
 import 'package:island/pods/network.dart';
+import 'package:island/screens/lottery.dart';
 import 'package:island/widgets/account/account_pfc.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/app_scaffold.dart';
@@ -998,11 +999,6 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
   }
 }
 
-const Map<String, IconData> kCurrencyIconData = {
-  'points': Symbols.toll,
-  'golds': Symbols.attach_money,
-};
-
 @riverpod
 class TransactionListNotifier extends _$TransactionListNotifier
     with CursorPagingNotifierMixin<SnTransaction> {
@@ -1249,7 +1245,7 @@ class WalletScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wallet = ref.watch(walletCurrentProvider);
-    final tabController = useTabController(initialLength: 2);
+    final tabController = useTabController(initialLength: 3);
     final currentTabIndex = useState(0);
 
     useEffect(() {
@@ -1328,18 +1324,20 @@ class WalletScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: Text('wallet').tr(),
         actions: [
-          IconButton(
-            icon: Icon(
-              currentTabIndex.value == 1
-                  ? Symbols.money_bag
-                  : Symbols.swap_horiz,
-            ),
-            onPressed: currentTabIndex.value == 1 ? createFund : createTransfer,
-            tooltip:
+          if (currentTabIndex.value != 2) // Hide for lottery tab
+            IconButton(
+              icon: Icon(
                 currentTabIndex.value == 1
-                    ? 'createFund'.tr()
-                    : 'createTransfer'.tr(),
-          ),
+                    ? Symbols.money_bag
+                    : Symbols.swap_horiz,
+              ),
+              onPressed:
+                  currentTabIndex.value == 1 ? createFund : createTransfer,
+              tooltip:
+                  currentTabIndex.value == 1
+                      ? 'createFund'.tr()
+                      : 'createTransfer'.tr(),
+            ),
           const Gap(8),
         ],
       ),
@@ -1410,6 +1408,7 @@ class WalletScreen extends HookConsumerWidget {
                       tabs: [
                         Tab(text: 'transactions'.tr()),
                         Tab(text: 'myFunds'.tr()),
+                        Tab(text: 'lottery'.tr()),
                       ],
                     ),
                   ),
@@ -1487,6 +1486,9 @@ class WalletScreen extends HookConsumerWidget {
 
                 // My Funds Tab
                 _buildFundsList(context, ref),
+
+                // Lottery Tab
+                const LotteryTab(),
               ],
             ),
           );
@@ -1859,3 +1861,8 @@ class WalletScreen extends HookConsumerWidget {
     }
   }
 }
+
+const Map<String, IconData> kCurrencyIconData = {
+  'points': Symbols.toll,
+  'golds': Symbols.attach_money,
+};
