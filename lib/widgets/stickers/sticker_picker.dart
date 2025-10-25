@@ -263,7 +263,7 @@ class _StickersGrid extends StatelessWidget {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: CloudImageWidget(
-                    fileId: sticker.imageId,
+                    fileId: sticker.image.id,
                     fit: BoxFit.contain,
                   ),
                 ),

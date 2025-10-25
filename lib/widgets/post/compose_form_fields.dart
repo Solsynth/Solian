@@ -202,7 +202,7 @@ class ComposeFormFields extends HookConsumerWidget {
                         child: SizedBox(
                           width: 28,
                           height: 28,
-                          child: CloudImageWidget(fileId: sticker.imageId),
+                          child: CloudImageWidget(fileId: sticker.image.id),
                         ),
                       );
                       break;

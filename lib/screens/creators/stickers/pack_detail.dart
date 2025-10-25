@@ -198,7 +198,7 @@ class StickerPackDetailContent extends HookConsumerWidget {
                                     ),
                                   ),
                                   child: CloudImageWidget(
-                                    fileId: sticker.imageId,
+                                    fileId: sticker.image.id,
                                     fit: BoxFit.contain,
                                   ),
                                 ),
@@ -318,7 +318,7 @@ class StickerForm extends HookConsumerWidget {
 
     final formKey = useMemoized(() => GlobalKey<FormState>(), []);
 
-    final image = useState<String?>(id == null ? '' : sticker.value?.imageId);
+    final image = useState<String?>(id == null ? '' : sticker.value?.image.id);
     final imageController = useTextEditingController(text: image.value);
     final slugController = useTextEditingController(
       text: id == null ? '' : sticker.value?.slug,
@@ -326,8 +326,8 @@ class StickerForm extends HookConsumerWidget {
 
     useEffect(() {
       if (sticker.value != null) {
-        image.value = sticker.value!.imageId;
-        imageController.text = sticker.value!.imageId;
+        image.value = sticker.value!.image.id;
+        imageController.text = sticker.value!.image.id;
         slugController.text = sticker.value!.slug;
       }
       return null;

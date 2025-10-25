@@ -613,7 +613,7 @@ class ChatInput extends HookConsumerWidget {
                                 width: 28,
                                 height: 28,
                                 child: CloudImageWidget(
-                                  fileId: sticker.imageId,
+                                  fileId: sticker.image.id,
                                 ),
                               ),
                             );
