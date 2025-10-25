@@ -168,6 +168,17 @@ class TabsScreen extends HookConsumerWidget {
                               await PostComposeDialog.show(context);
                             },
                           ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            leading: const Icon(Symbols.bubble_chart),
+                            title: Text('让我寻思寻思'),
+                            onTap: () async {
+                              Navigator.of(context).pop();
+                              context.pushNamed('thought');
+                            },
+                          ),
                           Consumer(
                             builder: (context, ref, _) {
                               final notificationCount = ref.watch(

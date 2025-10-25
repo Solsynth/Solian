@@ -37,6 +37,7 @@ import 'package:island/screens/chat/room.dart';
 import 'package:island/screens/chat/room_detail.dart';
 import 'package:island/screens/chat/call.dart';
 import 'package:island/screens/chat/search_messages.dart';
+import 'package:island/screens/thought/think.dart';
 import 'package:island/screens/creators/hub.dart';
 import 'package:island/screens/creators/posts/post_manage_list.dart';
 import 'package:island/screens/creators/stickers/stickers.dart';
@@ -130,6 +131,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               final id = state.pathParameters['id']!;
               return CallScreen(roomId: id);
             },
+          ),
+          GoRoute(
+            name: 'thought',
+            path: '/thought',
+            builder: (context, state) => const ThoughtScreen(),
           ),
           GoRoute(
             name: 'logs',
