@@ -580,7 +580,8 @@ class PostHeader extends StatelessWidget {
                     children: [
                       Flexible(
                         child:
-                            item.publisher.account != null
+                            (item.publisher.account != null &&
+                                    item.publisher.type == 0)
                                 ? AccountName(
                                   account: item.publisher.account!,
                                   textOverride: item.publisher.nick,
@@ -592,7 +593,10 @@ class PostHeader extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ).bold(),
                       ),
-                      if (item.publisher.verification != null)
+                      if ((item.publisher.account?.profile.verification !=
+                                  null &&
+                              item.publisher.type == 0) &&
+                          item.publisher.verification != null)
                         VerificationMark(mark: item.publisher.verification!),
                       if (item.realm == null)
                         Flexible(

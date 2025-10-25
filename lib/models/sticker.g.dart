@@ -9,7 +9,6 @@ part of 'sticker.dart';
 _SnSticker _$SnStickerFromJson(Map<String, dynamic> json) => _SnSticker(
   id: json['id'] as String,
   slug: json['slug'] as String,
-  imageId: json['image_id'] as String,
   image: SnCloudFile.fromJson(json['image'] as Map<String, dynamic>),
   packId: json['pack_id'] as String,
   pack:
@@ -28,7 +27,6 @@ Map<String, dynamic> _$SnStickerToJson(_SnSticker instance) =>
     <String, dynamic>{
       'id': instance.id,
       'slug': instance.slug,
-      'image_id': instance.imageId,
       'image': instance.image.toJson(),
       'pack_id': instance.packId,
       'pack': instance.pack?.toJson(),

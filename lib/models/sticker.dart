@@ -10,7 +10,6 @@ sealed class SnSticker with _$SnSticker {
   const factory SnSticker({
     required String id,
     required String slug,
-    required String imageId,
     required SnCloudFile image,
     required String packId,
     required SnStickerPack? pack,
