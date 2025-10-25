@@ -1290,5 +1290,14 @@
     "purchase": "Purchase",
     "multiplierLabel": "Multiplier",
     "specialOnly": "Special Only",
-    "matches": "Matches"
+    "matches": "Matches",
+    "thoughtDefaultTopic": "Reflection",
+    "thoughtAiName": "SN-chan",
+    "thoughtUserName": "You",
+    "thoughtStreamingHint": "Sn-chan is thinking...",
+    "thoughtInputHint": "Ask sn-chan anything...",
+    "thoughtNewConversation": "Start New Conversation",
+    "thoughtParseError": "Failed to parse AI response",
+    "aiThought": "AI Thought",
+    "aiThoughtTitle": "Let sn-chan think"
 }

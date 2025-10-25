@@ -1,6 +1,7 @@
 import "dart:async";
 import "dart:convert";
 import "package:dio/dio.dart";
+import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:gap/gap.dart";
@@ -43,7 +44,7 @@ class ThoughtScreen extends HookConsumerWidget {
             : const AsyncValue<List<SnThinkingThought>>.data([]);
 
     final localThoughts = useState<List<SnThinkingThought>>([]);
-    final currentTopic = useState<String?>('寻思');
+    final currentTopic = useState<String?>('aiThought'.tr());
 
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
@@ -61,7 +62,7 @@ class ThoughtScreen extends HookConsumerWidget {
         if (data.isNotEmpty && data.first.sequence?.topic != null) {
           currentTopic.value = data.first.sequence!.topic;
         } else {
-          currentTopic.value = '寻思';
+          currentTopic.value = 'aiThought'.tr();
         }
       });
       return null;
@@ -186,7 +187,7 @@ class ThoughtScreen extends HookConsumerWidget {
                 currentTopic.value = topic;
               }
             } catch (e) {
-              showErrorAlert('Failed to parse AI response');
+              showErrorAlert('thoughtParseError'.tr());
             }
           },
           onError: (error) {
@@ -195,7 +196,7 @@ class ThoughtScreen extends HookConsumerWidget {
             // Handle streaming response errors differently
             if (error is DioException && error.response?.data is ResponseBody) {
               // For streaming responses, show a generic error message
-              showErrorAlert('Failed to get AI response. Please try again.');
+              showErrorAlert('toughtParseError'.tr());
             } else {
               showErrorAlert(error);
             }
@@ -243,8 +244,8 @@ class ThoughtScreen extends HookConsumerWidget {
                     children: [
                       Text(
                         thought.role == ThinkingThoughtRole.assistant
-                            ? 'SN 酱'
-                            : '您',
+                            ? 'toughtAiName'.tr()
+                            : 'thoughtUserName'.tr(),
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       Tooltip(
@@ -309,7 +310,10 @@ class ThoughtScreen extends HookConsumerWidget {
             children: [
               Icon(Symbols.smart_toy, size: 20),
               const Gap(8),
-              Text('SN 酱', style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                'thoughtAiName'.tr(),
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               const Spacer(),
               SizedBox(
                 width: 16,
@@ -327,27 +331,9 @@ class ThoughtScreen extends HookConsumerWidget {
       ),
     );
 
-    Widget newConversationButton() => Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: FilledButton.icon(
-        onPressed: () {
-          // Clear current conversation and start new one
-          selectedSequenceId.value = null;
-          localThoughts.value = [];
-          currentTopic.value = '寻思';
-          messageController.clear();
-        },
-        icon: const Icon(Symbols.add),
-        label: const Text('开始新对话'),
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(double.infinity, 48),
-        ),
-      ),
-    );
-
     return AppScaffold(
       appBar: AppBar(
-        title: Text(currentTopic.value ?? '寻思'),
+        title: Text(currentTopic.value ?? 'aiThought'.tr()),
         actions: [
           IconButton(
             icon: const Icon(Symbols.history),
@@ -364,29 +350,25 @@ class ThoughtScreen extends HookConsumerWidget {
               );
             },
           ),
+          if (localThoughts.value.isNotEmpty &&
+              !isStreaming.value &&
+              localThoughts.value.last.role == ThinkingThoughtRole.assistant)
+            IconButton(
+              icon: const Icon(Symbols.add),
+              tooltip: 'thoughtNewConversation'.tr(),
+              onPressed: () {
+                // Clear current conversation and start new one
+                selectedSequenceId.value = null;
+                localThoughts.value = [];
+                currentTopic.value = 'aiThought'.tr();
+                messageController.clear();
+              },
+            ),
           const Gap(8),
         ],
       ),
       body: Column(
         children: [
-          // New conversation button - only show when there are messages and last is AI
-          AnimatedOpacity(
-            opacity:
-                (localThoughts.value.isNotEmpty &&
-                        localThoughts.value.last.role ==
-                            ThinkingThoughtRole.assistant &&
-                        !isStreaming.value)
-                    ? 1.0
-                    : 0.0,
-            duration: const Duration(milliseconds: 300),
-            child:
-                (localThoughts.value.isNotEmpty &&
-                        localThoughts.value.last.role ==
-                            ThinkingThoughtRole.assistant &&
-                        !isStreaming.value)
-                    ? newConversationButton()
-                    : const SizedBox.shrink(),
-          ),
           Expanded(
             child: thoughts.when(
               data:
@@ -447,8 +429,8 @@ class ThoughtScreen extends HookConsumerWidget {
                         decoration: InputDecoration(
                           hintText:
                               isStreaming.value
-                                  ? 'Sn-chan is thinking...'
-                                  : 'Ask sn-chan anything...',
+                                  ? 'thoughtStreamingHint'.tr()
+                                  : 'thoughtInputHint'.tr(),
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: const EdgeInsets.symmetric(

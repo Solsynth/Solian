@@ -173,7 +173,7 @@ class TabsScreen extends HookConsumerWidget {
                               horizontal: 24,
                             ),
                             leading: const Icon(Symbols.bubble_chart),
-                            title: Text('让 SN 酱寻思寻思'),
+                            title: Text('aiThoughtTitle'.tr()),
                             onTap: () async {
                               Navigator.of(context).pop();
                               context.pushNamed('thought');
