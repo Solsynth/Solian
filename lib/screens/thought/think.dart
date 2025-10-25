@@ -8,6 +8,7 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/models/thought.dart";
 import "package:island/pods/network.dart";
 import "package:island/pods/userinfo.dart";
+import "package:island/services/time.dart";
 import "package:island/widgets/alert.dart";
 import "package:island/widgets/app_scaffold.dart";
 import "package:island/widgets/content/markdown.dart";
@@ -42,7 +43,7 @@ class ThoughtScreen extends HookConsumerWidget {
             : const AsyncValue<List<SnThinkingThought>>.data([]);
 
     final localThoughts = useState<List<SnThinkingThought>>([]);
-    final currentTopic = useState<String?>('AI Thought');
+    final currentTopic = useState<String?>('寻思');
 
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
@@ -54,12 +55,13 @@ class ThoughtScreen extends HookConsumerWidget {
     // Update local thoughts when provider data changes
     useEffect(() {
       thoughts.whenData((data) {
+        // Server returns messages in DESC order (newest first), keep as-is for UI
         localThoughts.value = data;
         // Update topic from the first thought's sequence
         if (data.isNotEmpty && data.first.sequence?.topic != null) {
           currentTopic.value = data.first.sequence!.topic;
         } else {
-          currentTopic.value = 'AI Thought';
+          currentTopic.value = '寻思';
         }
       });
       return null;
@@ -170,43 +172,18 @@ class ThoughtScreen extends HookConsumerWidget {
                 }
               }
 
-              // Update sequence topic if found
-              if (topic != null && aiThought.sequence != null) {
-                final updatedSequence = aiThought.sequence!.copyWith(
-                  topic: topic,
-                );
-                final updatedThought = aiThought.copyWith(
-                  sequence: updatedSequence,
-                );
-                localThoughts.value = [updatedThought, ...localThoughts.value];
+              // Add AI thought to conversation
+              localThoughts.value = [aiThought, ...localThoughts.value];
 
-                // Also update topic in existing thoughts with same sequenceId
-                localThoughts.value =
-                    localThoughts.value.map((thought) {
-                      if (thought.sequenceId == aiThought.sequenceId &&
-                          thought.sequence != null) {
-                        return thought.copyWith(
-                          sequence: thought.sequence!.copyWith(topic: topic),
-                        );
-                      }
-                      return thought;
-                    }).toList();
+              // Update selected sequence ID if it was null (new conversation)
+              if (selectedSequenceId.value == null &&
+                  aiThought.sequenceId.isNotEmpty) {
+                selectedSequenceId.value = aiThought.sequenceId;
+              }
 
-                // Update current topic
+              // Update current topic if found (AI responses don't include sequence to prevent backend loops)
+              if (topic != null) {
                 currentTopic.value = topic;
-
-                // Update selected sequence ID to provide context for AI
-                if (selectedSequenceId.value != aiThought.sequenceId) {
-                  selectedSequenceId.value = aiThought.sequenceId;
-                }
-              } else {
-                localThoughts.value = [aiThought, ...localThoughts.value];
-
-                // Update selected sequence ID if it was null (new conversation)
-                if (selectedSequenceId.value == null &&
-                    aiThought.sequenceId.isNotEmpty) {
-                  selectedSequenceId.value = aiThought.sequenceId;
-                }
               }
             } catch (e) {
               showErrorAlert('Failed to parse AI response');
@@ -258,15 +235,39 @@ class ThoughtScreen extends HookConsumerWidget {
                   size: 20,
                 ),
                 const Gap(8),
-                Text(
-                  thought.role == ThinkingThoughtRole.assistant ? 'SN 酱' : '您',
-                  style: Theme.of(context).textTheme.titleSmall,
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.ideographic,
+                    spacing: 8,
+                    children: [
+                      Text(
+                        thought.role == ThinkingThoughtRole.assistant
+                            ? 'SN 酱'
+                            : '您',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      Tooltip(
+                        message: thought.createdAt.formatSystem(),
+                        child: Text(
+                          thought.createdAt.formatRelative(context),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
             const Gap(8),
             if (thought.content != null)
               MarkdownTextContent(
+                isSelectable: true,
                 content: thought.content!,
                 textStyle: Theme.of(context).textTheme.bodyMedium,
               ),
@@ -308,10 +309,7 @@ class ThoughtScreen extends HookConsumerWidget {
             children: [
               Icon(Symbols.smart_toy, size: 20),
               const Gap(8),
-              Text(
-                'AI Assistant',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
+              Text('SN 酱', style: Theme.of(context).textTheme.titleSmall),
               const Spacer(),
               SizedBox(
                 width: 16,
@@ -331,7 +329,7 @@ class ThoughtScreen extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
-        title: Text(currentTopic.value ?? 'AI Thought'),
+        title: Text(currentTopic.value ?? '寻思'),
         actions: [
           IconButton(
             icon: const Icon(Symbols.history),
@@ -348,6 +346,7 @@ class ThoughtScreen extends HookConsumerWidget {
               );
             },
           ),
+          const Gap(8),
         ],
       ),
       body: Column(
@@ -358,7 +357,7 @@ class ThoughtScreen extends HookConsumerWidget {
                   (thoughtList) => SuperListView.builder(
                     listController: listController,
                     controller: scrollController,
-                    padding: const EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.only(top: 16, bottom: 16),
                     reverse: true,
                     itemCount:
                         localThoughts.value.length +
@@ -413,7 +412,7 @@ class ThoughtScreen extends HookConsumerWidget {
                           hintText:
                               isStreaming.value
                                   ? 'Sn-chan is thinking...'
-                                  : 'Ask me anything...',
+                                  : 'Ask sn-chan anything...',
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: const EdgeInsets.symmetric(
