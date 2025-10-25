@@ -7,23 +7,14 @@ import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/models/thought.dart";
 import "package:island/pods/network.dart";
+import "package:island/pods/userinfo.dart";
 import "package:island/widgets/alert.dart";
 import "package:island/widgets/app_scaffold.dart";
 import "package:island/widgets/content/markdown.dart";
 import "package:island/widgets/response.dart";
+import "package:island/widgets/thought/thought_sequence_list.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
-
-// State management providers
-final thoughtSequencesProvider = FutureProvider<List<SnThinkingSequence>>((
-  ref,
-) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/insight/thought/sequences');
-  return (response.data as List)
-      .map((e) => SnThinkingSequence.fromJson(e))
-      .toList();
-});
 
 final thoughtSequenceProvider =
     FutureProvider.family<List<SnThinkingThought>, String>((
@@ -44,7 +35,6 @@ class ThoughtScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sequences = ref.watch(thoughtSequencesProvider);
     final selectedSequenceId = useState<String?>(null);
     final thoughts =
         selectedSequenceId.value != null
@@ -95,20 +85,31 @@ class ThoughtScreen extends HookConsumerWidget {
       final userMessage = messageController.text.trim();
 
       // Add user message to local thoughts
+      final userInfo = ref.read(userInfoProvider);
+      final now = DateTime.now();
       final userThought = SnThinkingThought(
-        id: 'temp-user-${DateTime.now().millisecondsSinceEpoch}',
+        id: 'user-${DateTime.now().millisecondsSinceEpoch}',
         content: userMessage,
         files: [],
         role: ThinkingThoughtRole.user,
         sequenceId: selectedSequenceId.value ?? '',
+        createdAt: now,
+        updatedAt: now,
         sequence:
             selectedSequenceId.value != null
                 ? thoughts.value?.firstOrNull?.sequence ??
                     SnThinkingSequence(
                       id: selectedSequenceId.value!,
                       accountId: '',
+                      createdAt: now,
+                      updatedAt: now,
                     )
-                : SnThinkingSequence(id: '', accountId: ''),
+                : SnThinkingSequence(
+                  id: '',
+                  accountId: userInfo.value!.id,
+                  createdAt: now,
+                  updatedAt: now,
+                ),
       );
       localThoughts.value = [userThought, ...localThoughts.value];
 
@@ -330,32 +331,10 @@ class ThoughtScreen extends HookConsumerWidget {
               showModalBottomSheet(
                 context: context,
                 builder:
-                    (context) => sequences.when(
-                      data:
-                          (seqs) => ListView.builder(
-                            itemCount: seqs.length,
-                            itemBuilder: (context, index) {
-                              final seq = seqs[index];
-                              return ListTile(
-                                title: Text(
-                                  seq.topic ?? 'Untitled Conversation',
-                                ),
-                                onTap: () {
-                                  selectedSequenceId.value = seq.id;
-                                  Navigator.of(context).pop();
-                                },
-                              );
-                            },
-                          ),
-                      loading:
-                          () =>
-                              const Center(child: CircularProgressIndicator()),
-                      error:
-                          (error, _) => ResponseErrorWidget(
-                            error: error,
-                            onRetry:
-                                () => ref.invalidate(thoughtSequencesProvider),
-                          ),
+                    (context) => ThoughtSequenceSelector(
+                      onSequenceSelected: (sequenceId) {
+                        selectedSequenceId.value = sequenceId;
+                      },
                     ),
               );
             },
@@ -424,7 +403,7 @@ class ThoughtScreen extends HookConsumerWidget {
                         decoration: InputDecoration(
                           hintText:
                               isStreaming.value
-                                  ? 'AI is thinking...'
+                                  ? 'Sn-chan is thinking...'
                                   : 'Ask me anything...',
                           border: InputBorder.none,
                           isDense: true,

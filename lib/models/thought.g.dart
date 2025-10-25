@@ -25,6 +25,12 @@ _SnThinkingSequence _$SnThinkingSequenceFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       topic: json['topic'] as String?,
       accountId: json['account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnThinkingSequenceToJson(_SnThinkingSequence instance) =>
@@ -32,6 +38,9 @@ Map<String, dynamic> _$SnThinkingSequenceToJson(_SnThinkingSequence instance) =>
       'id': instance.id,
       'topic': instance.topic,
       'account_id': instance.accountId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
 _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
@@ -53,6 +62,12 @@ _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
               : SnThinkingSequence.fromJson(
                 json['sequence'] as Map<String, dynamic>,
               ),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
     );
 
 Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
@@ -63,4 +78,7 @@ Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
       'role': const ThinkingThoughtRoleConverter().toJson(instance.role),
       'sequence_id': instance.sequenceId,
       'sequence': instance.sequence?.toJson(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
