@@ -3,14 +3,14 @@ import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/navigation/conditional_bottom_nav.dart';
-import 'package:island/widgets/post/compose_dialog.dart';
+import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 final currentRouteProvider = StateProvider<String?>((ref) => null);
 
@@ -120,6 +120,10 @@ class TabsScreen extends HookConsumerWidget {
                       .toList(),
               selectedIndex: currentIndex,
               onDestinationSelected: onDestinationSelected,
+              trailingAtBottom: true,
+              trailing: const FabMenu(
+                elevation: 0,
+              ).padding(bottom: MediaQuery.of(context).padding.bottom + 16),
             ),
             Expanded(
               child: ClipRRect(
@@ -145,78 +149,9 @@ class TabsScreen extends HookConsumerWidget {
         ),
         child: child ?? const SizedBox.shrink(),
       ),
-      floatingActionButton:
-          shouldShowFab
-              ? FloatingActionButton(
-                child: const Icon(Symbols.menu),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Gap(24),
-                          ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            leading: const Icon(Symbols.post_add_rounded),
-                            title: Text('postCompose'.tr()),
-                            onTap: () async {
-                              Navigator.of(context).pop();
-                              await PostComposeDialog.show(context);
-                            },
-                          ),
-                          ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            leading: const Icon(Symbols.bubble_chart),
-                            title: Text('aiThoughtTitle'.tr()),
-                            onTap: () async {
-                              Navigator.of(context).pop();
-                              context.pushNamed('thought');
-                            },
-                          ),
-                          Consumer(
-                            builder: (context, ref, _) {
-                              final notificationCount = ref.watch(
-                                notificationUnreadCountNotifierProvider,
-                              );
-                              return ListTile(
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                ),
-                                leading: const Icon(Symbols.notifications),
-                                trailing: Badge(
-                                  label: Text(notificationCount.toString()),
-                                  isLabelVisible: notificationCount.value! > 0,
-                                ),
-                                title: Text('notifications'.tr()),
-                                onTap: () async {
-                                  Navigator.of(context).pop();
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    useRootNavigator: true,
-                                    builder:
-                                        (context) => const NotificationSheet(),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                          Gap(MediaQuery.of(context).padding.bottom + 16),
-                        ],
-                      );
-                    },
-                  );
-                },
-              )
-              : null,
+      floatingActionButton: shouldShowFab ? const FabMenu() : null,
       floatingActionButtonLocation:
-          shouldShowFab ? TabbedFabLocation(context) : null,
+          shouldShowFab ? _DockedFabLocation(context) : null,
       bottomNavigationBar: ConditionalBottomNav(
         child: ClipRRect(
           borderRadius: BorderRadius.only(
@@ -269,10 +204,10 @@ class TabsScreen extends HookConsumerWidget {
   }
 }
 
-class TabbedFabLocation extends FloatingActionButtonLocation {
+class _DockedFabLocation extends FloatingActionButtonLocation {
   final BuildContext context;
 
-  const TabbedFabLocation(this.context);
+  const _DockedFabLocation(this.context);
 
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {

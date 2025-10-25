@@ -10,12 +10,13 @@ import 'package:island/pods/chat/call.dart';
 import 'package:island/pods/chat/chat_summary.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/screens/realm/realms.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
-import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/widgets/content/cloud_files.dart';
 import 'package:island/widgets/content/sheet.dart';
+import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
@@ -333,28 +334,30 @@ class ChatListScreen extends HookConsumerWidget {
       tabController.addListener(() {
         selectedTab.value = tabController.index;
       });
-      return null;
+
+      // Listen for chat rooms refresh events
+      final subscription = eventBus.on<ChatRoomsRefreshEvent>().listen((event) {
+        ref.invalidate(chatroomsJoinedProvider);
+      });
+
+      return () {
+        subscription.cancel();
+      };
     }, [tabController]);
 
-    Future<void> createDirectMessage() async {
-      final result = await showModalBottomSheet(
-        context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        builder: (context) => const AccountPickerSheet(),
-      );
-      if (result == null) return;
-      final client = ref.read(apiClientProvider);
-      try {
-        await client.post(
-          '/sphere/chat/direct',
-          data: {'related_user_id': result.id},
-        );
-        ref.invalidate(chatroomsJoinedProvider);
-      } catch (err) {
-        showErrorAlert(err);
-      }
-    }
+    useEffect(() {
+      // Set FAB type to chat
+      final fabMenuNotifier = ref.read(fabMenuTypeProvider.notifier);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        fabMenuNotifier.state = FabMenuType.chat;
+      });
+      return () {
+        // Clean up: reset FAB type to main
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          fabMenuNotifier.state = FabMenuType.main;
+        });
+      };
+    }, []);
 
     if (isAside) {
       return Card(
@@ -491,43 +494,7 @@ class ChatListScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            useRootNavigator: true,
-            builder:
-                (context) => Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ListTile(
-                      title: const Text('createChatRoom').tr(),
-                      leading: const Icon(Symbols.add),
-                      onTap: () {
-                        Navigator.pop(context);
-                        context.pushNamed('chatNew').then((value) {
-                          if (value != null) {
-                            ref.invalidate(chatroomsJoinedProvider);
-                          }
-                        });
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('createDirectMessage').tr(),
-                      leading: const Icon(Symbols.person),
-                      onTap: () {
-                        Navigator.pop(context);
-                        createDirectMessage();
-                      },
-                    ),
-                    Gap(MediaQuery.of(context).padding.bottom + 16),
-                  ],
-                ),
-          );
-        },
-        child: const Icon(Symbols.add),
-      ),
+      floatingActionButton: const FabMenu(),
       body: ChatListBodyWidget(
         isFloating: false,
         tabController: tabController,
