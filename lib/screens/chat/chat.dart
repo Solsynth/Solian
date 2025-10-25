@@ -238,10 +238,17 @@ class ChatListBodyWidget extends HookConsumerWidget {
                         room: item,
                         isDirect: item.type == 1,
                         onTap: () {
-                          context.pushNamed(
-                            'chatRoom',
-                            pathParameters: {'id': item.id},
-                          );
+                          if (isWideScreen(context)) {
+                            context.replaceNamed(
+                              'chatRoom',
+                              pathParameters: {'id': item.id},
+                            );
+                          } else {
+                            context.pushNamed(
+                              'chatRoom',
+                              pathParameters: {'id': item.id},
+                            );
+                          }
                         },
                       );
                     },

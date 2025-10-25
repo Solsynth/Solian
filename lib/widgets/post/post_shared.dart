@@ -756,15 +756,21 @@ class PostBody extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Icon(Symbols.edit, size: 16),
-            Text(
-              'editedAt'.tr(
-                args: [
+            Tooltip(
+              message:
                   !isFullPost && isRelativeTime
-                      ? item.editedAt!.formatRelative(context)
-                      : item.editedAt!.formatSystem(),
-                ],
-              ),
-            ).fontSize(13),
+                      ? item.editedAt!.formatSystem()
+                      : item.editedAt!.formatRelative(context),
+              child: Text(
+                'editedAt'.tr(
+                  args: [
+                    !isFullPost && isRelativeTime
+                        ? item.editedAt!.formatRelative(context)
+                        : item.editedAt!.formatSystem(),
+                  ],
+                ),
+              ).fontSize(13),
+            ),
           ],
         ),
       );
