@@ -52,6 +52,7 @@ class ThoughtScreen extends HookConsumerWidget {
             : const AsyncValue<List<SnThinkingThought>>.data([]);
 
     final localThoughts = useState<List<SnThinkingThought>>([]);
+    final currentTopic = useState<String?>('AI Thought');
 
     final messageController = useTextEditingController();
     final scrollController = useScrollController();
@@ -62,7 +63,15 @@ class ThoughtScreen extends HookConsumerWidget {
 
     // Update local thoughts when provider data changes
     useEffect(() {
-      thoughts.whenData((data) => localThoughts.value = data);
+      thoughts.whenData((data) {
+        localThoughts.value = data;
+        // Update topic from the first thought's sequence
+        if (data.isNotEmpty && data.first.sequence?.topic != null) {
+          currentTopic.value = data.first.sequence!.topic;
+        } else {
+          currentTopic.value = 'AI Thought';
+        }
+      });
       return null;
     }, [thoughts]);
 
@@ -138,13 +147,55 @@ class ThoughtScreen extends HookConsumerWidget {
             isStreaming.value = false;
             // Parse the response and add AI thought
             try {
-              final lines = buffer.toString().split('\n');
-              final lastLine = lines.lastWhere(
-                (line) => line.trim().isNotEmpty,
-              );
+              final lines =
+                  buffer
+                      .toString()
+                      .split('\n')
+                      .where((line) => line.trim().isNotEmpty)
+                      .toList();
+              final lastLine = lines.last;
               final responseJson = jsonDecode(lastLine);
               final aiThought = SnThinkingThought.fromJson(responseJson);
-              localThoughts.value = [aiThought, ...localThoughts.value];
+
+              // Check for topic in second last line
+              String? topic;
+              if (lines.length >= 2) {
+                final secondLastLine = lines[lines.length - 2];
+                final topicMatch = RegExp(
+                  r'<topic>(.*)</topic>',
+                ).firstMatch(secondLastLine);
+                if (topicMatch != null) {
+                  topic = topicMatch.group(1);
+                }
+              }
+
+              // Update sequence topic if found
+              if (topic != null && aiThought.sequence != null) {
+                final updatedSequence = aiThought.sequence!.copyWith(
+                  topic: topic,
+                );
+                final updatedThought = aiThought.copyWith(
+                  sequence: updatedSequence,
+                );
+                localThoughts.value = [updatedThought, ...localThoughts.value];
+
+                // Also update topic in existing thoughts with same sequenceId
+                localThoughts.value =
+                    localThoughts.value.map((thought) {
+                      if (thought.sequenceId == aiThought.sequenceId &&
+                          thought.sequence != null) {
+                        return thought.copyWith(
+                          sequence: thought.sequence!.copyWith(topic: topic),
+                        );
+                      }
+                      return thought;
+                    }).toList();
+
+                // Update current topic
+                currentTopic.value = topic;
+              } else {
+                localThoughts.value = [aiThought, ...localThoughts.value];
+              }
             } catch (e) {
               showErrorAlert('Failed to parse AI response');
             }
@@ -163,51 +214,75 @@ class ThoughtScreen extends HookConsumerWidget {
         );
 
         messageController.clear();
+        FocusManager.instance.primaryFocus?.unfocus();
       } catch (error) {
         isStreaming.value = false;
         showErrorAlert(error);
       }
     }
 
-    Widget thoughtItem(SnThinkingThought thought) => Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color:
-            thought.role == ThinkingThoughtRole.assistant
-                ? Theme.of(context).colorScheme.surfaceContainerHighest
-                : Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                thought.role == ThinkingThoughtRole.assistant
-                    ? Symbols.smart_toy
-                    : Symbols.person,
-                size: 20,
-              ),
-              const Gap(8),
-              Text(
-                thought.role == ThinkingThoughtRole.assistant
-                    ? 'AI Assistant'
-                    : 'You',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ],
-          ),
-          const Gap(8),
-          if (thought.content != null)
-            MarkdownTextContent(
-              content: thought.content!,
-              textStyle: Theme.of(context).textTheme.bodyMedium,
+    Widget thoughtItem(SnThinkingThought thought, int index) {
+      final key = Key('thought-${thought.id}');
+
+      final thoughtWidget = Container(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color:
+              thought.role == ThinkingThoughtRole.assistant
+                  ? Theme.of(context).colorScheme.surfaceContainerHighest
+                  : Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  thought.role == ThinkingThoughtRole.assistant
+                      ? Symbols.smart_toy
+                      : Symbols.person,
+                  size: 20,
+                ),
+                const Gap(8),
+                Text(
+                  thought.role == ThinkingThoughtRole.assistant
+                      ? 'AI Assistant'
+                      : 'You',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ],
             ),
-        ],
-      ),
-    );
+            const Gap(8),
+            if (thought.content != null)
+              MarkdownTextContent(
+                content: thought.content!,
+                textStyle: Theme.of(context).textTheme.bodyMedium,
+              ),
+          ],
+        ),
+      );
+
+      return TweenAnimationBuilder<double>(
+        key: key,
+        tween: Tween<double>(begin: 0.0, end: 1.0),
+        duration: Duration(
+          milliseconds: 400 + (index % 5) * 50,
+        ), // Staggered delay
+        curve: Curves.easeOutCubic,
+        builder: (context, animationValue, child) {
+          return Transform.translate(
+            offset: Offset(
+              0,
+              20 * (1 - animationValue),
+            ), // Slide up from bottom
+            child: Opacity(opacity: animationValue, child: child),
+          );
+        },
+        child: thoughtWidget,
+      );
+    }
 
     Widget streamingThoughtItem() => Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -246,7 +321,7 @@ class ThoughtScreen extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
-        title: const Text('AI Thought'),
+        title: Text(currentTopic.value ?? 'AI Thought'),
         actions: [
           IconButton(
             icon: const Icon(Symbols.history),
@@ -295,7 +370,7 @@ class ThoughtScreen extends HookConsumerWidget {
                   (thoughtList) => SuperListView.builder(
                     listController: listController,
                     controller: scrollController,
-                    padding: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.only(top: 16),
                     reverse: true,
                     itemCount:
                         localThoughts.value.length +
@@ -307,7 +382,7 @@ class ThoughtScreen extends HookConsumerWidget {
                       final thoughtIndex =
                           isStreaming.value ? index - 1 : index;
                       final thought = localThoughts.value[thoughtIndex];
-                      return thoughtItem(thought);
+                      return thoughtItem(thought, thoughtIndex);
                     },
                   ),
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -327,42 +402,51 @@ class ThoughtScreen extends HookConsumerWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              border: Border(
-                top: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                  width: 1,
-                ),
-              ),
+            margin: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              bottom: 16 + MediaQuery.of(context).padding.bottom,
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Ask me anything...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+            child: Material(
+              elevation: 2,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(32),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: messageController,
+                        keyboardType: TextInputType.multiline,
+                        enabled: !isStreaming.value,
+                        decoration: InputDecoration(
+                          hintText:
+                              isStreaming.value
+                                  ? 'AI is thinking...'
+                                  : 'Ask me anything...',
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                        ),
+                        maxLines: 5,
+                        minLines: 1,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => sendMessage(),
                       ),
                     ),
-                    maxLines: null,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => sendMessage(),
-                  ),
+                    IconButton(
+                      icon: Icon(isStreaming.value ? Symbols.stop : Icons.send),
+                      color: Theme.of(context).colorScheme.primary,
+                      onPressed: sendMessage,
+                    ),
+                  ],
                 ),
-                const Gap(8),
-                IconButton.filled(
-                  onPressed: isStreaming.value ? null : sendMessage,
-                  icon: Icon(isStreaming.value ? Symbols.stop : Symbols.send),
-                ),
-              ],
+              ),
             ),
           ),
         ],
