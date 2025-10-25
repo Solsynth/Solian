@@ -47,7 +47,6 @@ class MarkdownTextContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final baseUrl = ref.watch(serverUrlProvider);
     final doesEnlargeSticker = useMemoized(() {
       // Check if content only contains one sticker by matching the sticker pattern
       final stickerPattern = RegExp(stickerRegex);
@@ -86,6 +85,14 @@ class MarkdownTextContent extends HookConsumerWidget {
       outlineColor: Theme.of(context).colorScheme.outline,
       revealed: spoilerRevealed.value,
       onToggle: () => spoilerRevealed.value = !spoilerRevealed.value,
+    );
+
+    final baseUrl = ref.watch(serverUrlProvider);
+    final stickerGenerator = StickerGenerator(
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      isEnlarged: doesEnlargeSticker,
+      baseUrl: baseUrl,
     );
 
     return MarkdownBlock(
@@ -186,28 +193,6 @@ class MarkdownTextContent extends HookConsumerWidget {
                         ).clipRRect(all: 8),
                       ),
                     );
-                  case 'stickers':
-                    final size = doesEnlargeSticker ? 96.0 : 24.0;
-                    final stickerUri =
-                        '$baseUrl/sphere/stickers/lookup/${uri.pathSegments[0]}/open';
-                    return ClipRRect(
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainer,
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(8),
-                          ),
-                        ),
-                        child: UniversalImage(
-                          uri: stickerUri,
-                          width: size,
-                          height: size,
-                          fit: BoxFit.contain,
-                          noCacheOptimization: true,
-                        ),
-                      ),
-                    );
                 }
               }
               final content = ClipRRect(
@@ -228,7 +213,12 @@ class MarkdownTextContent extends HookConsumerWidget {
       generator: MarkdownTextContent.buildGenerator(
         isDark: isDark,
         linesMargin: linesMargin,
-        generators: [mentionGenerator, highlightGenerator, spoilerGenerator],
+        generators: [
+          mentionGenerator,
+          highlightGenerator,
+          spoilerGenerator,
+          stickerGenerator,
+        ],
       ),
     );
   }
@@ -284,9 +274,8 @@ class _StickerInlineSyntax extends markdown.InlineSyntax {
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
     final placeholder = match[1]!;
-    final image = markdown.Element.text('img', '')
-      ..attributes['src'] = Uri.encodeFull('solian://stickers/$placeholder');
-    parser.addNode(image);
+    final element = markdown.Element('sticker', [markdown.Text(placeholder)]);
+    parser.addNode(element);
 
     return true;
   }
@@ -554,6 +543,71 @@ class SpoilerSpanNode extends SpanNode {
                       ),
                     ],
                   ),
+        ),
+      ),
+    );
+  }
+}
+
+class StickerGenerator extends SpanNodeGeneratorWithTag {
+  StickerGenerator({
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required bool isEnlarged,
+    required String baseUrl,
+  }) : super(
+         tag: 'sticker',
+         generator: (
+           markdown.Element element,
+           MarkdownConfig config,
+           WidgetVisitor visitor,
+         ) {
+           return StickerSpanNode(
+             placeholder: element.textContent,
+             backgroundColor: backgroundColor,
+             foregroundColor: foregroundColor,
+             isEnlarged: isEnlarged,
+             baseUrl: baseUrl,
+           );
+         },
+       );
+}
+
+class StickerSpanNode extends SpanNode {
+  final String placeholder;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final bool isEnlarged;
+  final String baseUrl;
+
+  StickerSpanNode({
+    required this.placeholder,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.isEnlarged,
+    required this.baseUrl,
+  });
+
+  @override
+  InlineSpan build() {
+    final size = isEnlarged ? 96.0 : 24.0;
+    final stickerUri = '$baseUrl/sphere/stickers/lookup/$placeholder/open';
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: Container(
+          decoration: BoxDecoration(
+            color: backgroundColor.withOpacity(0.1),
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          child: UniversalImage(
+            uri: stickerUri,
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+            noCacheOptimization: true,
+          ),
         ),
       ),
     );
