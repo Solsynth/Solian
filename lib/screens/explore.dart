@@ -19,7 +19,6 @@ import 'package:island/widgets/check_in.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/compose_card.dart';
-import 'package:island/widgets/post/compose_dialog.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:riverpod_paging_utils/riverpod_paging_utils.dart';
@@ -90,10 +89,6 @@ class ExploreScreen extends HookConsumerWidget {
       tabController.addListener(listener);
       return () => tabController.removeListener(listener);
     }, [tabController]);
-
-    final activitiesNotifier = ref.watch(
-      activityListNotifierProvider(currentFilter.value).notifier,
-    );
 
     final now = DateTime.now();
 
@@ -213,27 +208,6 @@ class ExploreScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      floatingActionButton:
-          isWide
-              ? null
-              : InkWell(
-                onLongPress: () async {
-                  final result = await PostComposeDialog.show(context);
-                  if (result != null) {
-                    activitiesNotifier.forceRefresh();
-                  }
-                },
-                child: FloatingActionButton(
-                  heroTag: Key("explore-page-fab"),
-                  onPressed: () async {
-                    final result = await PostComposeDialog.show(context);
-                    if (result != null) {
-                      activitiesNotifier.forceRefresh();
-                    }
-                  },
-                  child: const Icon(Symbols.edit),
-                ),
-              ),
       body:
           isWide
               ? _buildWideBody(
@@ -334,11 +308,7 @@ class ExploreScreen extends HookConsumerWidget {
                         margin: EdgeInsets.zero,
                       ),
                     PostFeaturedList(),
-                    PostComposeCard(
-                      onSubmit: () {
-                        activitiesNotifier.forceRefresh();
-                      },
-                    ),
+                    const PostComposeCard(),
                   ],
                 ),
               ),

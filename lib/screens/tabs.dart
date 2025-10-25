@@ -3,11 +3,13 @@ import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island/screens/notification.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/navigation/conditional_bottom_nav.dart';
+import 'package:island/widgets/post/compose_dialog.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 final currentRouteProvider = StateProvider<String?>((ref) => null);
@@ -94,6 +96,12 @@ class TabsScreen extends HookConsumerWidget {
 
     final currentIndex = getCurrentIndex();
 
+    final routes = kTabRoutes.sublist(
+      0,
+      isWideScreen(context) ? null : kWideScreenRouteStart,
+    );
+    final shouldShowFab = routes.contains(currentLocation) && !wideScreen;
+
     if (isWideScreen(context)) {
       return Container(
         color: Theme.of(context).colorScheme.surfaceContainer,
@@ -137,29 +145,109 @@ class TabsScreen extends HookConsumerWidget {
         ),
         child: child ?? const SizedBox.shrink(),
       ),
+      floatingActionButton:
+          shouldShowFab
+              ? FloatingActionButton(
+                child: const Icon(Symbols.menu),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Gap(24),
+                          ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            leading: const Icon(Symbols.post_add_rounded),
+                            title: Text('postCompose'.tr()),
+                            onTap: () async {
+                              Navigator.of(context).pop();
+                              await PostComposeDialog.show(context);
+                            },
+                          ),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final notificationCount = ref.watch(
+                                notificationUnreadCountNotifierProvider,
+                              );
+                              return ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                leading: const Icon(Symbols.notifications),
+                                trailing: Badge(
+                                  label: Text(notificationCount.toString()),
+                                  isLabelVisible: notificationCount.value! > 0,
+                                ),
+                                title: Text('notifications'.tr()),
+                                onTap: () async {
+                                  Navigator.of(context).pop();
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    useRootNavigator: true,
+                                    builder:
+                                        (context) => const NotificationSheet(),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          Gap(MediaQuery.of(context).padding.bottom + 16),
+                        ],
+                      );
+                    },
+                  );
+                },
+              )
+              : null,
+      floatingActionButtonLocation:
+          shouldShowFab ? TabbedFabLocation(context) : null,
       bottomNavigationBar: ConditionalBottomNav(
         child: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-              ),
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: NavigationBar(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  overlayColor: const WidgetStatePropertyAll(
-                    Colors.transparent,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+          child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: BottomAppBar(
+                height: 56,
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                shape: AutomaticNotchedShape(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
-                  surfaceTintColor: Colors.transparent,
-                  height: 56,
-                  labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-                  selectedIndex: currentIndex,
-                  onDestinationSelected: onDestinationSelected,
-                  destinations: destinations,
+                ),
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: () {
+                    final navItems =
+                        destinations.asMap().entries.map<Widget>((entry) {
+                          int index = entry.key;
+                          NavigationDestination dest = entry.value;
+                          return IconButton(
+                            icon: dest.icon,
+                            onPressed: () => onDestinationSelected(index),
+                            color:
+                                index == currentIndex
+                                    ? Theme.of(context).colorScheme.primary
+                                    : null,
+                          );
+                        }).toList();
+                    // Add mock item in the center to leave space for FAB
+                    int centerIndex = navItems.length ~/ 2;
+                    navItems.insert(centerIndex, const SizedBox(width: 72));
+                    return navItems;
+                  }(),
                 ),
               ),
             ),
@@ -180,14 +268,13 @@ class TabbedFabLocation extends FloatingActionButtonLocation {
     final mediaQuery = MediaQuery.of(context);
     final safeAreaPadding = mediaQuery.padding;
 
-    // Calculate position with proper safe area considerations
+    // Center horizontally
     final double fabX =
-        scaffoldGeometry.scaffoldSize.width -
-        scaffoldGeometry.floatingActionButtonSize.width -
-        16 -
-        safeAreaPadding.right;
+        (scaffoldGeometry.scaffoldSize.width -
+            scaffoldGeometry.floatingActionButtonSize.width) /
+        2;
 
-    // Use safe area bottom padding + navigation bar height (typically 80px)
+    // Position closer to bottom with reduced padding
     final double fabY =
         scaffoldGeometry.scaffoldSize.height -
         scaffoldGeometry.floatingActionButtonSize.height -

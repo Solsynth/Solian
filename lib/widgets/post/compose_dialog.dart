@@ -6,6 +6,7 @@ import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/services/compose_storage_db.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:island/services/responsive.dart';
 import 'package:island/widgets/post/compose_card.dart';
 
@@ -74,7 +75,11 @@ class PostComposeDialog extends HookConsumerWidget {
           originalPost: originalPost,
           initialState: restoredInitialState.value ?? initialState,
           onCancel: () => Navigator.of(context).pop(),
-          onSubmit: () => Navigator.of(context).pop(true),
+          onSubmit: () {
+            // Fire event to notify listeners that a post was created
+            eventBus.fire(PostCreatedEvent());
+            Navigator.of(context).pop(true);
+          },
           isDialog: true,
         ),
       ),

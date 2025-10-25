@@ -337,7 +337,6 @@ class AppScaffold extends HookConsumerWidget {
         endDrawer: endDrawer,
         floatingActionButton: floatingActionButton,
         floatingActionButtonAnimator: floatingActionButtonAnimator,
-        floatingActionButtonLocation: TabbedFabLocation(context),
         onDrawerChanged: onDrawerChanged,
         onEndDrawerChanged: onEndDrawerChanged,
       ),
