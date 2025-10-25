@@ -44,6 +44,9 @@ sealed class SnThinkingSequence with _$SnThinkingSequence {
     required String id,
     String? topic,
     required String accountId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    DateTime? deletedAt,
   }) = _SnThinkingSequence;
 
   factory SnThinkingSequence.fromJson(Map<String, dynamic> json) =>
@@ -59,6 +62,9 @@ sealed class SnThinkingThought with _$SnThinkingThought {
     @ThinkingThoughtRoleConverter() required ThinkingThoughtRole role,
     required String sequenceId,
     SnThinkingSequence? sequence,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    DateTime? deletedAt,
   }) = _SnThinkingThought;
 
   factory SnThinkingThought.fromJson(Map<String, dynamic> json) =>

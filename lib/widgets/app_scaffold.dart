@@ -12,7 +12,6 @@ import 'package:island/pods/config.dart';
 import 'package:island/route.dart';
 import 'package:island/pods/userinfo.dart';
 import 'package:island/pods/websocket.dart';
-import 'package:island/screens/tabs.dart';
 import 'package:island/services/responsive.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
