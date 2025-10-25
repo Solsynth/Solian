@@ -219,7 +219,7 @@ PODS:
   - irondash_engine_context (0.0.1):
     - Flutter
   - Kingfisher (8.6.0)
-  - livekit_client (2.5.2):
+  - livekit_client (2.5.3):
     - Flutter
     - flutter_webrtc
     - WebRTC-SDK (= 137.7151.04)
@@ -520,7 +520,7 @@ SPEC CHECKSUMS:
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
   Kingfisher: 64278f126a815d0e2d391cdf71311b85882c4de0
-  livekit_client: 10e5f01922529565a0967660ecb1a6181778cc32
+  livekit_client: 86c8af579274e4b7a215185a8080db2d4e176f40
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
