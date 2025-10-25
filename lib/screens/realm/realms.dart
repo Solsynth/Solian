@@ -94,7 +94,6 @@ class RealmListScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      floatingActionButton: const FabMenu(),
       body: ExtendedRefreshIndicator(
         child: realms.when(
           data:

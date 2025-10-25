@@ -332,6 +332,7 @@ class ThoughtScreen extends HookConsumerWidget {
     );
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         title: Text(currentTopic.value ?? 'aiThought'.tr()),
         actions: [
@@ -367,94 +368,105 @@ class ThoughtScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: thoughts.when(
-              data:
-                  (thoughtList) => SuperListView.builder(
-                    listController: listController,
-                    controller: scrollController,
-                    padding: const EdgeInsets.only(top: 16, bottom: 16),
-                    reverse: true,
-                    itemCount:
-                        localThoughts.value.length +
-                        (isStreaming.value ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (isStreaming.value && index == 0) {
-                        return streamingThoughtItem();
-                      }
-                      final thoughtIndex =
-                          isStreaming.value ? index - 1 : index;
-                      final thought = localThoughts.value[thoughtIndex];
-                      return thoughtItem(thought, thoughtIndex);
-                    },
-                  ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error:
-                  (error, _) => ResponseErrorWidget(
-                    error: error,
-                    onRetry:
-                        () =>
-                            selectedSequenceId.value != null
-                                ? ref.invalidate(
-                                  thoughtSequenceProvider(
-                                    selectedSequenceId.value!,
-                                  ),
-                                )
-                                : null,
-                  ),
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              bottom: 16 + MediaQuery.of(context).padding.bottom,
-            ),
-            child: Material(
-              elevation: 2,
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(32),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: messageController,
-                        keyboardType: TextInputType.multiline,
-                        enabled: !isStreaming.value,
-                        decoration: InputDecoration(
-                          hintText:
-                              isStreaming.value
-                                  ? 'thoughtStreamingHint'.tr()
-                                  : 'thoughtInputHint'.tr(),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                        ),
-                        maxLines: 5,
-                        minLines: 1,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => sendMessage(),
+      body: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: 640),
+          child: Column(
+            children: [
+              Expanded(
+                child: thoughts.when(
+                  data:
+                      (thoughtList) => SuperListView.builder(
+                        listController: listController,
+                        controller: scrollController,
+                        padding: const EdgeInsets.only(top: 16, bottom: 16),
+                        reverse: true,
+                        itemCount:
+                            localThoughts.value.length +
+                            (isStreaming.value ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (isStreaming.value && index == 0) {
+                            return streamingThoughtItem();
+                          }
+                          final thoughtIndex =
+                              isStreaming.value ? index - 1 : index;
+                          final thought = localThoughts.value[thoughtIndex];
+                          return thoughtItem(thought, thoughtIndex);
+                        },
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(isStreaming.value ? Symbols.stop : Icons.send),
-                      color: Theme.of(context).colorScheme.primary,
-                      onPressed: sendMessage,
-                    ),
-                  ],
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error:
+                      (error, _) => ResponseErrorWidget(
+                        error: error,
+                        onRetry:
+                            () =>
+                                selectedSequenceId.value != null
+                                    ? ref.invalidate(
+                                      thoughtSequenceProvider(
+                                        selectedSequenceId.value!,
+                                      ),
+                                    )
+                                    : null,
+                      ),
                 ),
               ),
-            ),
+              Container(
+                margin: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: 16 + MediaQuery.of(context).padding.bottom,
+                ),
+                child: Material(
+                  elevation: 2,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(32),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 8,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: messageController,
+                            keyboardType: TextInputType.multiline,
+                            enabled: !isStreaming.value,
+                            decoration: InputDecoration(
+                              hintText:
+                                  isStreaming.value
+                                      ? 'thoughtStreamingHint'.tr()
+                                      : 'thoughtInputHint'.tr(),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                            ),
+                            maxLines: 5,
+                            minLines: 1,
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (_) => sendMessage(),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            isStreaming.value ? Symbols.stop : Icons.send,
+                          ),
+                          color: Theme.of(context).colorScheme.primary,
+                          onPressed: sendMessage,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

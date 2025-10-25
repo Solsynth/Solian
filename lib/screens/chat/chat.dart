@@ -494,7 +494,6 @@ class ChatListScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      floatingActionButton: const FabMenu(),
       body: ChatListBodyWidget(
         isFloating: false,
         tabController: tabController,
