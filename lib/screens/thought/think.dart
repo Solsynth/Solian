@@ -194,8 +194,19 @@ class ThoughtScreen extends HookConsumerWidget {
 
                 // Update current topic
                 currentTopic.value = topic;
+
+                // Update selected sequence ID to provide context for AI
+                if (selectedSequenceId.value != aiThought.sequenceId) {
+                  selectedSequenceId.value = aiThought.sequenceId;
+                }
               } else {
                 localThoughts.value = [aiThought, ...localThoughts.value];
+
+                // Update selected sequence ID if it was null (new conversation)
+                if (selectedSequenceId.value == null &&
+                    aiThought.sequenceId.isNotEmpty) {
+                  selectedSequenceId.value = aiThought.sequenceId;
+                }
               }
             } catch (e) {
               showErrorAlert('Failed to parse AI response');
@@ -248,9 +259,7 @@ class ThoughtScreen extends HookConsumerWidget {
                 ),
                 const Gap(8),
                 Text(
-                  thought.role == ThinkingThoughtRole.assistant
-                      ? 'AI Assistant'
-                      : 'You',
+                  thought.role == ThinkingThoughtRole.assistant ? 'SN 酱' : '您',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ],
