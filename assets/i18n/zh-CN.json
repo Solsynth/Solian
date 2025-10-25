@@ -1081,5 +1081,14 @@
     "postPublish": "发布帖子",
     "restoreDraftTitle": "恢复草稿",
     "restoreDraftMessage": "发现了一个草稿。你想要恢复它吗？",
-    "draft": "草稿"
+    "draft": "草稿",
+    "thoughtDefaultTopic": "寻思",
+    "thoughtAiName": "SN 酱",
+    "thoughtUserName": "您",
+    "thoughtStreamingHint": "Sn-chan 正在思考...",
+    "thoughtInputHint": "问 sn-chan 任何问题...",
+    "thoughtNewConversation": "开始新对话",
+    "thoughtParseError": "解析 AI 响应失败",
+    "aiThought": "寻思",
+    "aiThoughtTitle": "让 SN 酱寻思寻思"
 }
