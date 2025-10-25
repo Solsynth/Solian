@@ -11,3 +11,8 @@ class PostCreatedEvent {
 
   const PostCreatedEvent({this.postId, this.title, this.content});
 }
+
+/// Event fired when chat rooms need to be refreshed
+class ChatRoomsRefreshEvent {
+  const ChatRoomsRefreshEvent();
+}
