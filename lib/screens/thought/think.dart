@@ -72,7 +72,7 @@ class ThoughtScreen extends HookConsumerWidget {
       if (localThoughts.value.isNotEmpty || isStreaming.value) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           scrollController.animateTo(
-            scrollController.position.maxScrollExtent,
+            0,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
           );
@@ -327,6 +327,24 @@ class ThoughtScreen extends HookConsumerWidget {
       ),
     );
 
+    Widget newConversationButton() => Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: FilledButton.icon(
+        onPressed: () {
+          // Clear current conversation and start new one
+          selectedSequenceId.value = null;
+          localThoughts.value = [];
+          currentTopic.value = '寻思';
+          messageController.clear();
+        },
+        icon: const Icon(Symbols.add),
+        label: const Text('开始新对话'),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(double.infinity, 48),
+        ),
+      ),
+    );
+
     return AppScaffold(
       appBar: AppBar(
         title: Text(currentTopic.value ?? '寻思'),
@@ -351,6 +369,24 @@ class ThoughtScreen extends HookConsumerWidget {
       ),
       body: Column(
         children: [
+          // New conversation button - only show when there are messages and last is AI
+          AnimatedOpacity(
+            opacity:
+                (localThoughts.value.isNotEmpty &&
+                        localThoughts.value.last.role ==
+                            ThinkingThoughtRole.assistant &&
+                        !isStreaming.value)
+                    ? 1.0
+                    : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child:
+                (localThoughts.value.isNotEmpty &&
+                        localThoughts.value.last.role ==
+                            ThinkingThoughtRole.assistant &&
+                        !isStreaming.value)
+                    ? newConversationButton()
+                    : const SizedBox.shrink(),
+          ),
           Expanded(
             child: thoughts.when(
               data:
