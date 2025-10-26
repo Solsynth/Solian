@@ -707,15 +707,15 @@ class ChatRoomScreen extends HookConsumerWidget {
                           top: 8,
                           right: 8,
                           child: Container(
-                            width: 24,
-                            height: 24,
+                            width: 16,
+                            height: 16,
                             decoration: BoxDecoration(
                               color: Theme.of(context).colorScheme.primary,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.check,
-                              size: 16,
+                              size: 12,
                               color: Theme.of(context).colorScheme.onPrimary,
                             ),
                           ),

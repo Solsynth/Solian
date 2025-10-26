@@ -3,15 +3,13 @@ import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
-import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/models/thought.dart";
 import "package:island/pods/network.dart";
 import "package:island/pods/userinfo.dart";
 import "package:island/widgets/alert.dart";
 import "package:island/widgets/content/sheet.dart";
-import "package:island/widgets/thought/shared_widgets.dart";
-import "package:material_symbols_icons/material_symbols_icons.dart";
+import "package:island/widgets/thought/thought_shared.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
 
 class ThoughtSheet extends HookConsumerWidget {
@@ -208,145 +206,28 @@ class ThoughtSheet extends HookConsumerWidget {
                       localThoughts.value.length + (isStreaming.value ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (isStreaming.value && index == 0) {
-                      return streamingThoughtItem(
-                        streamingText.value,
-                        reasoningChunks.value,
-                        functionCalls.value,
-                        context,
+                      return ThoughtItem(
+                        isStreaming: true,
+                        streamingText: streamingText.value,
+                        reasoningChunks: reasoningChunks.value,
+                        streamingFunctionCalls: functionCalls.value,
                       );
                     }
                     final thoughtIndex = isStreaming.value ? index - 1 : index;
                     final thought = localThoughts.value[thoughtIndex];
-                    return thoughtItem(thought, thoughtIndex, context);
+                    return ThoughtItem(
+                      thought: thought,
+                      thoughtIndex: thoughtIndex,
+                    );
                   },
                 ),
               ),
-              Container(
-                margin: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  bottom: 16 + MediaQuery.of(context).padding.bottom,
-                ),
-                child: Material(
-                  elevation: 2,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(32),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 8,
-                    ),
-                    child: Column(
-                      children: [
-                        if (attachedMessages.isNotEmpty ||
-                            attachedPosts.isNotEmpty)
-                          Container(
-                            key: ValueKey(
-                              'attachments-${attachedMessages.length}-${attachedPosts.length}',
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            margin: const EdgeInsets.only(
-                              left: 4,
-                              right: 4,
-                              top: 4,
-                              bottom: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.outline.withOpacity(0.2),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-                                Icon(
-                                  Symbols.attach_file,
-                                  size: 14,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                const Gap(4),
-                                Text(
-                                  [
-                                    if (attachedMessages.isNotEmpty)
-                                      '${attachedMessages.length} message${attachedMessages.length > 1 ? 's' : ''}',
-                                    if (attachedPosts.isNotEmpty)
-                                      '${attachedPosts.length} post${attachedPosts.length > 1 ? 's' : ''}',
-                                  ].join(', '),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall!.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const Spacer(),
-                                SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: IconButton(
-                                    padding: EdgeInsets.zero,
-                                    icon: const Icon(Icons.close, size: 14),
-                                    onPressed: () {
-                                      // Note: Since these are final parameters, we can't modify them directly
-                                      // This would require making the sheet stateful or using a callback
-                                      // For now, just show the indicator without remove functionality
-                                    },
-                                    tooltip: 'clear'.tr(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: messageController,
-                                keyboardType: TextInputType.multiline,
-                                enabled: !isStreaming.value,
-                                decoration: InputDecoration(
-                                  hintText:
-                                      isStreaming.value
-                                          ? 'thoughtStreamingHint'.tr()
-                                          : 'thoughtInputHint'.tr(),
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 12,
-                                  ),
-                                ),
-                                maxLines: 5,
-                                minLines: 1,
-                                textInputAction: TextInputAction.send,
-                                onSubmitted: (_) => sendMessage(),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                isStreaming.value ? Symbols.stop : Icons.send,
-                              ),
-                              color: Theme.of(context).colorScheme.primary,
-                              onPressed: sendMessage,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              ThoughtInput(
+                messageController: messageController,
+                isStreaming: isStreaming.value,
+                onSend: sendMessage,
+                attachedMessages: attachedMessages,
+                attachedPosts: attachedPosts,
               ),
             ],
           ),

@@ -13,7 +13,7 @@ import "package:island/widgets/alert.dart";
 import "package:island/widgets/app_scaffold.dart";
 import "package:island/widgets/response.dart";
 import "package:island/widgets/thought/thought_sequence_list.dart";
-import "package:island/widgets/thought/shared_widgets.dart";
+import "package:island/widgets/thought/thought_shared.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
 import "package:collection/collection.dart";
@@ -276,17 +276,20 @@ class ThoughtScreen extends HookConsumerWidget {
                             (isStreaming.value ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (isStreaming.value && index == 0) {
-                            return streamingThoughtItem(
-                              streamingText.value,
-                              reasoningChunks.value,
-                              functionCalls.value,
-                              context,
+                            return ThoughtItem(
+                              isStreaming: true,
+                              streamingText: streamingText.value,
+                              reasoningChunks: reasoningChunks.value,
+                              streamingFunctionCalls: functionCalls.value,
                             );
                           }
                           final thoughtIndex =
                               isStreaming.value ? index - 1 : index;
                           final thought = localThoughts.value[thoughtIndex];
-                          return thoughtItem(thought, thoughtIndex, context);
+                          return ThoughtItem(
+                            thought: thought,
+                            thoughtIndex: thoughtIndex,
+                          );
                         },
                       ),
                   loading:
@@ -306,58 +309,10 @@ class ThoughtScreen extends HookConsumerWidget {
                       ),
                 ),
               ),
-              Container(
-                margin: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  bottom: 16 + MediaQuery.of(context).padding.bottom,
-                ),
-                child: Material(
-                  elevation: 2,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(32),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 8,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: messageController,
-                            keyboardType: TextInputType.multiline,
-                            enabled: !isStreaming.value,
-                            decoration: InputDecoration(
-                              hintText:
-                                  isStreaming.value
-                                      ? 'thoughtStreamingHint'.tr()
-                                      : 'thoughtInputHint'.tr(),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 12,
-                              ),
-                            ),
-                            maxLines: 5,
-                            minLines: 1,
-                            textInputAction: TextInputAction.send,
-                            onSubmitted: (_) => sendMessage(),
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            isStreaming.value ? Symbols.stop : Icons.send,
-                          ),
-                          color: Theme.of(context).colorScheme.primary,
-                          onPressed: sendMessage,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              ThoughtInput(
+                messageController: messageController,
+                isStreaming: isStreaming.value,
+                onSend: sendMessage,
               ),
             ],
           ),
