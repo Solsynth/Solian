@@ -16,6 +16,14 @@ _StreamThinkingRequest _$StreamThinkingRequestFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  attachedPosts:
+      (json['attached_posts'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+  attachedMessages:
+      (json['attached_messages'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList(),
 );
 
 Map<String, dynamic> _$StreamThinkingRequestToJson(
@@ -24,6 +32,8 @@ Map<String, dynamic> _$StreamThinkingRequestToJson(
   'user_message': instance.userMessage,
   'sequence_id': instance.sequenceId,
   'accpet_proposals': instance.accpetProposals,
+  'attached_posts': instance.attachedPosts,
+  'attached_messages': instance.attachedMessages,
 };
 
 _SnThinkingChunk _$SnThinkingChunkFromJson(Map<String, dynamic> json) =>
