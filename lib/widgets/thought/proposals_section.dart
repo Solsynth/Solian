@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 class ProposalsSection extends StatelessWidget {
@@ -21,7 +20,6 @@ class ProposalsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Gap(12),
         Wrap(
           spacing: 8,
           runSpacing: 8,

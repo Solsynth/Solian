@@ -46,7 +46,6 @@ class _FunctionCallsSectionState extends State<FunctionCallsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Gap(12),
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(

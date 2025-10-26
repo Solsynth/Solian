@@ -17,7 +17,6 @@ class ReasoningSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Gap(12),
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(

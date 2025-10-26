@@ -17,7 +17,6 @@ class TokenInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Gap(8),
         Row(
           children: [
             if (thought.modelName != null) ...[

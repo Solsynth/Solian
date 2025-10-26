@@ -24,12 +24,20 @@ class ThoughtContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: SelectableText(
-                streamingText,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  height: 1.4,
-                ),
+              child: MarkdownTextContent(
+                isSelectable: true,
+                content: streamingText,
+                extraBlockSyntaxList: [ProposalBlockSyntax()],
+                textStyle: Theme.of(context).textTheme.bodyMedium,
+                extraGenerators: [
+                  ProposalGenerator(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.secondaryContainer,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.onSecondaryContainer,
+                    borderColor: Theme.of(context).colorScheme.outline,
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 8),

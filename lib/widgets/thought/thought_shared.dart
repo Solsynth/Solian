@@ -13,7 +13,6 @@ import 'package:island/widgets/thought/thought_content.dart';
 import 'package:island/widgets/thought/thought_header.dart';
 import 'package:island/widgets/thought/token_info.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 List<Map<String, String>> _extractProposals(String content) {
   final proposalRegex = RegExp(
@@ -237,6 +236,7 @@ class ThoughtItem extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
               children: [
                 // Main content
                 ThoughtContent(
@@ -246,14 +246,21 @@ class ThoughtItem extends StatelessWidget {
                 ),
 
                 // Reasoning chunks (streaming only)
-                ReasoningSection(reasoningChunks: reasoningChunks),
+                if (reasoningChunks.isNotEmpty)
+                  ReasoningSection(reasoningChunks: reasoningChunks),
 
                 // Function calls
-                FunctionCallsSection(
-                  isStreaming: isStreaming,
-                  streamingFunctionCalls: streamingFunctionCalls,
-                  thought: thought,
-                ),
+                if (streamingFunctionCalls.isNotEmpty ||
+                    (thought?.chunks.isNotEmpty ?? false) &&
+                        thought!.chunks.any(
+                          (chunk) =>
+                              chunk.type == ThinkingChunkType.functionCall,
+                        ))
+                  FunctionCallsSection(
+                    isStreaming: isStreaming,
+                    streamingFunctionCalls: streamingFunctionCalls,
+                    thought: thought,
+                  ),
 
                 // Token count and model name (for completed AI thoughts only)
                 if (!isStreaming && isAI && thought != null)
@@ -266,10 +273,7 @@ class ThoughtItem extends StatelessWidget {
                     onProposalAction: _handleProposalAction,
                   ),
 
-                if (isStreaming && isAI)
-                  LinearProgressIndicator().padding(
-                    top: streamingText.isNotEmpty ? 8 : 0,
-                  ),
+                if (isStreaming && isAI) LinearProgressIndicator(),
               ],
             ),
           ),
