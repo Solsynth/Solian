@@ -13,6 +13,7 @@ import 'package:island/widgets/thought/thought_content.dart';
 import 'package:island/widgets/thought/thought_header.dart';
 import 'package:island/widgets/thought/token_info.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 List<Map<String, String>> _extractProposals(String content) {
   final proposalRegex = RegExp(
@@ -81,24 +82,24 @@ class ThoughtInput extends HookWidget {
                     'attachments-${attachedMessages?.length ?? 0}-${attachedPosts?.length ?? 0}',
                   ),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  margin: const EdgeInsets.only(
-                    left: 4,
-                    right: 4,
-                    top: 4,
-                    bottom: 4,
+                    horizontal: 16,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(
                       color: Theme.of(
                         context,
                       ).colorScheme.outline.withOpacity(0.2),
                       width: 1,
                     ),
+                  ),
+                  margin: const EdgeInsets.only(
+                    left: 8,
+                    right: 8,
+                    top: 8,
+                    bottom: 4,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.max,
@@ -263,6 +264,11 @@ class ThoughtItem extends StatelessWidget {
                   ProposalsSection(
                     proposals: proposals,
                     onProposalAction: _handleProposalAction,
+                  ),
+
+                if (isStreaming && isAI)
+                  LinearProgressIndicator().padding(
+                    top: streamingText.isNotEmpty ? 8 : 0,
                   ),
               ],
             ),

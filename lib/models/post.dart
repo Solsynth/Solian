@@ -51,6 +51,8 @@ sealed class SnPost with _$SnPost {
     @Default(null) DateTime? createdAt,
     @Default(null) DateTime? updatedAt,
     DateTime? deletedAt,
+    @Default(false) bool repliedGone,
+    @Default(false) bool forwardedGone,
     @Default(false) bool isTruncated,
   }) = _SnPost;
 

@@ -102,6 +102,8 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
       json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
+  repliedGone: json['replied_gone'] as bool? ?? false,
+  forwardedGone: json['forwarded_gone'] as bool? ?? false,
   isTruncated: json['is_truncated'] as bool? ?? false,
 );
 
@@ -145,6 +147,8 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'created_at': instance.createdAt?.toIso8601String(),
   'updated_at': instance.updatedAt?.toIso8601String(),
   'deleted_at': instance.deletedAt?.toIso8601String(),
+  'replied_gone': instance.repliedGone,
+  'forwarded_gone': instance.forwardedGone,
   'is_truncated': instance.isTruncated,
 };
 

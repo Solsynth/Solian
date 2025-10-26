@@ -1300,5 +1300,6 @@
     "thoughtParseError": "Failed to parse AI response",
     "thoughtFunctionCall": "Function Call",
     "aiThought": "AI Thought",
-    "aiThoughtTitle": "Let sn-chan think"
+    "aiThoughtTitle": "Let sn-chan think",
+    "postReferenceUnavailable": "Referenced post is unavailable"
 }

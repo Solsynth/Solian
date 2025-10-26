@@ -358,9 +358,11 @@ class ReferencedPostWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final referencePost = item.repliedPost ?? item.forwardedPost;
-    if (referencePost == null) return const SizedBox.shrink();
+    final isGone = item.repliedGone || item.forwardedGone;
 
-    final isReply = item.repliedPost != null;
+    if (referencePost == null && !isGone) return const SizedBox.shrink();
+
+    final isReply = item.repliedPost != null || item.repliedGone;
 
     final content = Container(
       padding: EdgeInsets.symmetric(
@@ -401,115 +403,136 @@ class ReferencedPostWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ProfilePictureWidget(
-                fileId: referencePost.publisher.picture?.id,
-                radius: 16,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      referencePost.publisher.nick,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    if (referencePost.visibility != 0)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            PostVisibilityHelpers.getVisibilityIcon(
-                              referencePost.visibility,
-                            ),
-                            size: 12,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            PostVisibilityHelpers.getVisibilityText(
-                              referencePost.visibility,
-                            ).tr(),
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ],
-                      ).padding(top: 2, bottom: 2),
-                    if (referencePost.title?.isNotEmpty ?? false)
-                      Text(
-                        referencePost.title!,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ).padding(top: 2, bottom: 2),
-                    if (referencePost.description?.isNotEmpty ?? false)
-                      Text(
-                        referencePost.description!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ).padding(bottom: 2),
-                    if (referencePost.content?.isNotEmpty ?? false)
-                      MarkdownTextContent(
-                        content: referencePost.content!,
-                        textStyle: const TextStyle(fontSize: 14),
-                        isSelectable: false,
-                        linesMargin:
-                            referencePost.type == 0
-                                ? const EdgeInsets.only(bottom: 4)
-                                : null,
-                        attachments: item.attachments,
-                      ).padding(bottom: 4),
-                    if (referencePost.isTruncated)
-                      const PostTruncateHint(
-                        isCompact: true,
-                        margin: EdgeInsets.only(top: 4, bottom: 8),
-                      ),
-                    if (referencePost.attachments.isNotEmpty &&
-                        referencePost.type != 1)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Symbols.attach_file,
-                            size: 12,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'postHasAttachments'.plural(
-                              referencePost.attachments.length,
-                            ),
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ).padding(vertical: 2),
-                  ],
+          if (isGone)
+            Row(
+              children: [
+                Icon(
+                  Symbols.visibility_off,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 8),
+                Text(
+                  'postReferenceUnavailable'.tr(),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.secondary,
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProfilePictureWidget(
+                  fileId: referencePost!.publisher.picture?.id,
+                  radius: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        referencePost.publisher.nick,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (referencePost.visibility != 0)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              PostVisibilityHelpers.getVisibilityIcon(
+                                referencePost.visibility,
+                              ),
+                              size: 12,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              PostVisibilityHelpers.getVisibilityText(
+                                referencePost.visibility,
+                              ).tr(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ],
+                        ).padding(top: 2, bottom: 2),
+                      if (referencePost.title?.isNotEmpty ?? false)
+                        Text(
+                          referencePost.title!,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ).padding(top: 2, bottom: 2),
+                      if (referencePost.description?.isNotEmpty ?? false)
+                        Text(
+                          referencePost.description!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ).padding(bottom: 2),
+                      if (referencePost.content?.isNotEmpty ?? false)
+                        MarkdownTextContent(
+                          content: referencePost.content!,
+                          textStyle: const TextStyle(fontSize: 14),
+                          isSelectable: false,
+                          linesMargin:
+                              referencePost.type == 0
+                                  ? const EdgeInsets.only(bottom: 4)
+                                  : null,
+                          attachments: item.attachments,
+                        ).padding(bottom: 4),
+                      if (referencePost.isTruncated)
+                        const PostTruncateHint(
+                          isCompact: true,
+                          margin: EdgeInsets.only(top: 4, bottom: 8),
+                        ),
+                      if (referencePost.attachments.isNotEmpty &&
+                          referencePost.type != 1)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Symbols.attach_file,
+                              size: 12,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'postHasAttachments'.plural(
+                                referencePost.attachments.length,
+                              ),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ).padding(vertical: 2),
+                    ],
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
 
-    if (!isInteractive) {
+    if (!isInteractive || isGone) {
       return content;
     }
 
@@ -517,7 +540,7 @@ class ReferencedPostWidget extends StatelessWidget {
       onTap:
           () => context.pushNamed(
             'postDetail',
-            pathParameters: {'id': referencePost.id},
+            pathParameters: {'id': referencePost!.id},
           ),
     );
   }

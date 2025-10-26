@@ -28,7 +28,7 @@ class ThoughtHeader extends StatelessWidget {
             fill: 1,
           ),
           Text(
-            isUser ? 'thoughtUserName'.tr() : 'aiThought'.tr(),
+            isUser ? 'thoughtUserName'.tr() : 'thoughtAiName'.tr(),
             style: Theme.of(context).textTheme.titleSmall!.copyWith(
               fontWeight: FontWeight.w600,
               color:
@@ -40,12 +40,29 @@ class ThoughtHeader extends StatelessWidget {
         ],
       );
     } else {
-      return Text(
-        'aiThought'.tr(),
-        style: Theme.of(context).textTheme.titleSmall!.copyWith(
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.primary,
-        ),
+      return Row(
+        spacing: 6,
+        children: [
+          Icon(
+            Symbols.smart_toy,
+            size: 16,
+            color:
+                isUser
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.secondary,
+            fill: 1,
+          ),
+          Text(
+            'thoughtAiName'.tr(),
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
+              fontWeight: FontWeight.w600,
+              color:
+                  isUser
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.secondary,
+            ),
+          ),
+        ],
       );
     }
   }
