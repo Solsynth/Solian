@@ -616,11 +616,11 @@ class PostHeader extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ).bold(),
                       ),
-                      if ((item.publisher.account?.profile.verification !=
-                                  null &&
-                              item.publisher.type == 0) &&
-                          item.publisher.verification != null)
-                        VerificationMark(mark: item.publisher.verification!),
+                      if (!(item.publisher.account?.profile.verification !=
+                              null &&
+                          item.publisher.type == 0))
+                        if (item.publisher.verification != null)
+                          VerificationMark(mark: item.publisher.verification!),
                       if (item.realm == null)
                         Flexible(
                           child:
