@@ -32,6 +32,9 @@ class MarkdownTextContent extends HookConsumerWidget {
   final EdgeInsets? linesMargin;
   final bool isSelectable;
   final List<SnCloudFile>? attachments;
+  final List<markdown.InlineSyntax> extraInlineSyntaxList;
+  final List<markdown.BlockSyntax> extraBlockSyntaxList;
+  final List<dynamic> extraGenerators;
 
   const MarkdownTextContent({
     super.key,
@@ -43,6 +46,9 @@ class MarkdownTextContent extends HookConsumerWidget {
     this.isSelectable = false,
     this.linesMargin,
     this.attachments,
+    this.extraInlineSyntaxList = const [],
+    this.extraBlockSyntaxList = const [],
+    this.extraGenerators = const [],
   });
 
   @override
@@ -218,7 +224,10 @@ class MarkdownTextContent extends HookConsumerWidget {
           highlightGenerator,
           spoilerGenerator,
           stickerGenerator,
+          ...extraGenerators,
         ],
+        extraInlineSyntaxList: extraInlineSyntaxList,
+        extraBlockSyntaxList: extraBlockSyntaxList,
       ),
     );
   }
@@ -227,6 +236,8 @@ class MarkdownTextContent extends HookConsumerWidget {
     bool isDark = false,
     EdgeInsets? linesMargin,
     List<dynamic> generators = const [],
+    List<markdown.InlineSyntax> extraInlineSyntaxList = const [],
+    List<markdown.BlockSyntax> extraBlockSyntaxList = const [],
   }) {
     return MarkdownGenerator(
       generators: [latexGenerator, ...generators],
@@ -236,7 +247,9 @@ class MarkdownTextContent extends HookConsumerWidget {
         _SpoilerInlineSyntax(),
         _StickerInlineSyntax(),
         LatexSyntax(isDark),
+        ...extraInlineSyntaxList,
       ],
+      blockSyntaxList: extraBlockSyntaxList,
       linesMargin: linesMargin ?? EdgeInsets.symmetric(vertical: 4),
     );
   }

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StreamThinkingRequest {
 
- String get userMessage; String? get sequenceId;
+ String get userMessage; String? get sequenceId; List<String> get accpetProposals;
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $StreamThinkingRequestCopyWith<StreamThinkingRequest> get copyWith => _$StreamTh
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other.accpetProposals, accpetProposals));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(accpetProposals));
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $StreamThinkingRequestCopyWith<$Res>  {
   factory $StreamThinkingRequestCopyWith(StreamThinkingRequest value, $Res Function(StreamThinkingRequest) _then) = _$StreamThinkingRequestCopyWithImpl;
 @useResult
 $Res call({
- String userMessage, String? sequenceId
+ String userMessage, String? sequenceId, List<String> accpetProposals
 });
 
 
@@ -65,11 +65,12 @@ class _$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,}) {
   return _then(_self.copyWith(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,accpetProposals: null == accpetProposals ? _self.accpetProposals : accpetProposals // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -151,10 +152,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals);case _:
   return orElse();
 
 }
@@ -172,10 +173,10 @@ return $default(_that.userMessage,_that.sequenceId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> accpetProposals)  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest():
-return $default(_that.userMessage,_that.sequenceId);}
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -189,10 +190,10 @@ return $default(_that.userMessage,_that.sequenceId);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId,  List<String> accpetProposals)?  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.accpetProposals);case _:
   return null;
 
 }
@@ -204,11 +205,18 @@ return $default(_that.userMessage,_that.sequenceId);case _:
 @JsonSerializable()
 
 class _StreamThinkingRequest implements StreamThinkingRequest {
-  const _StreamThinkingRequest({required this.userMessage, this.sequenceId});
+  const _StreamThinkingRequest({required this.userMessage, this.sequenceId, final  List<String> accpetProposals = const []}): _accpetProposals = accpetProposals;
   factory _StreamThinkingRequest.fromJson(Map<String, dynamic> json) => _$StreamThinkingRequestFromJson(json);
 
 @override final  String userMessage;
 @override final  String? sequenceId;
+ final  List<String> _accpetProposals;
+@override@JsonKey() List<String> get accpetProposals {
+  if (_accpetProposals is EqualUnmodifiableListView) return _accpetProposals;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_accpetProposals);
+}
+
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -223,16 +231,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other._accpetProposals, _accpetProposals));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(_accpetProposals));
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, accpetProposals: $accpetProposals)';
 }
 
 
@@ -243,7 +251,7 @@ abstract mixin class _$StreamThinkingRequestCopyWith<$Res> implements $StreamThi
   factory _$StreamThinkingRequestCopyWith(_StreamThinkingRequest value, $Res Function(_StreamThinkingRequest) _then) = __$StreamThinkingRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String userMessage, String? sequenceId
+ String userMessage, String? sequenceId, List<String> accpetProposals
 });
 
 
@@ -260,11 +268,12 @@ class __$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? accpetProposals = null,}) {
   return _then(_StreamThinkingRequest(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,accpetProposals: null == accpetProposals ? _self._accpetProposals : accpetProposals // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

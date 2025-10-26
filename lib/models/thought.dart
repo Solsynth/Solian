@@ -43,6 +43,7 @@ sealed class StreamThinkingRequest with _$StreamThinkingRequest {
   const factory StreamThinkingRequest({
     required String userMessage,
     String? sequenceId,
+    @Default([]) List<String> accpetProposals,
   }) = _StreamThinkingRequest;
 
   factory StreamThinkingRequest.fromJson(Map<String, dynamic> json) =>

@@ -16,8 +16,13 @@ import "package:island/widgets/app_scaffold.dart";
 import "package:island/widgets/content/markdown.dart";
 import "package:island/widgets/response.dart";
 import "package:island/widgets/thought/thought_sequence_list.dart";
+import "package:island/route.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
+import "package:styled_widget/styled_widget.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
+import "package:markdown/markdown.dart" as markdown;
+import "package:markdown_widget/markdown_widget.dart";
+import "package:collection/collection.dart";
 
 part 'think.g.dart';
 
@@ -40,6 +45,36 @@ class ThoughtScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Extract proposals from text content
+    List<Map<String, String>> extractProposals(String content) {
+      final proposalRegex = RegExp(
+        r'<proposal\s+type="([^"]+)">(.*?)<\/proposal>',
+        dotAll: true,
+      );
+      final matches = proposalRegex.allMatches(content);
+      return matches.map((match) {
+        return {'type': match.group(1)!, 'content': match.group(2)!};
+      }).toList();
+    }
+
+    void handleProposalAction(
+      BuildContext context,
+      Map<String, String> proposal,
+    ) {
+      switch (proposal['type']) {
+        case 'post_create':
+          // Navigate to post creation screen with the proposal content
+          AppRouter.push(
+            context,
+            '/posts/compose?initialContent=${Uri.encodeComponent(proposal['content'] ?? '')}&source=ai_proposal',
+          );
+          break;
+        default:
+          // Show a snackbar for unsupported proposal types
+          showSnackBar('Unsupported proposal type: ${proposal['type']}');
+      }
+    }
+
     final selectedSequenceId = useState<String?>(null);
     final thoughts =
         selectedSequenceId.value != null
@@ -124,6 +159,7 @@ class ThoughtScreen extends HookConsumerWidget {
       final request = StreamThinkingRequest(
         userMessage: userMessage,
         sequenceId: selectedSequenceId.value,
+        accpetProposals: ['post_create'],
       );
 
       try {
@@ -290,6 +326,10 @@ class ThoughtScreen extends HookConsumerWidget {
     Widget thoughtItem(SnThinkingThought thought, int index) {
       final key = Key('thought-${thought.id}');
 
+      // Extract proposals from thought content
+      final proposals =
+          thought.content != null ? extractProposals(thought.content!) : [];
+
       final thoughtWidget = Container(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         padding: const EdgeInsets.all(12),
@@ -350,8 +390,51 @@ class ThoughtScreen extends HookConsumerWidget {
               MarkdownTextContent(
                 isSelectable: true,
                 content: thought.content!,
+                extraBlockSyntaxList: [ProposalBlockSyntax()],
                 textStyle: Theme.of(context).textTheme.bodyMedium,
+                extraGenerators: [
+                  ProposalGenerator(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.secondaryContainer,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.onSecondaryContainer,
+                    borderColor: Theme.of(context).colorScheme.outline,
+                  ),
+                ],
               ),
+            if (proposals.isNotEmpty &&
+                thought.role == ThinkingThoughtRole.assistant) ...[
+              const Gap(12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    proposals.map((proposal) {
+                      return ElevatedButton.icon(
+                        onPressed:
+                            () => handleProposalAction(context, proposal),
+                        icon: Icon(switch (proposal['type']) {
+                          'post_create' => Symbols.add,
+                          _ => Symbols.lightbulb,
+                        }, size: 16),
+                        label: Text(switch (proposal['type']) {
+                          'post_create' => 'Create Post',
+                          _ => proposal['type'] ?? 'Action',
+                        }),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primaryContainer,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+              ),
+            ],
           ],
         ),
       );
@@ -406,6 +489,16 @@ class ThoughtScreen extends HookConsumerWidget {
           MarkdownTextContent(
             content: streamingText.value,
             textStyle: Theme.of(context).textTheme.bodyMedium,
+            extraBlockSyntaxList: [ProposalBlockSyntax()],
+            extraGenerators: [
+              ProposalGenerator(
+                backgroundColor:
+                    Theme.of(context).colorScheme.secondaryContainer,
+                foregroundColor:
+                    Theme.of(context).colorScheme.onSecondaryContainer,
+                borderColor: Theme.of(context).colorScheme.outline,
+              ),
+            ],
           ),
           if (reasoningChunks.value.isNotEmpty ||
               functionCalls.value.isNotEmpty) ...[
@@ -611,6 +704,138 @@ class ThoughtScreen extends HookConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class ProposalBlockSyntax extends markdown.BlockSyntax {
+  @override
+  RegExp get pattern => RegExp(r'^<proposal', caseSensitive: false);
+
+  @override
+  bool canParse(markdown.BlockParser parser) {
+    return pattern.hasMatch(parser.current.content);
+  }
+
+  @override
+  bool canEndBlock(markdown.BlockParser parser) {
+    return parser.current.content.contains('</proposal>');
+  }
+
+  @override
+  markdown.Node parse(markdown.BlockParser parser) {
+    final childLines = <String>[];
+
+    // Extract type from opening tag
+    final openingLine = parser.current.content;
+    final attrsMatch = RegExp(
+      r'<proposal(\s[^>]*)?>',
+      caseSensitive: false,
+    ).firstMatch(openingLine);
+    final attrs = attrsMatch?.group(1) ?? '';
+    final typeMatch = RegExp(r'type="([^"]*)"').firstMatch(attrs);
+    final type = typeMatch?.group(1) ?? '';
+
+    // Collect all lines until closing tag
+    while (!parser.isDone) {
+      childLines.add(parser.current.content);
+      if (canEndBlock(parser)) {
+        parser.advance();
+        break;
+      }
+      parser.advance();
+    }
+
+    // Extract content between tags
+    final fullContent = childLines.join('\n');
+    final contentMatch = RegExp(
+      r'<proposal[^>]*>(.*?)</proposal>',
+      dotAll: true,
+      caseSensitive: false,
+    ).firstMatch(fullContent);
+    final content = contentMatch?.group(1)?.trim() ?? '';
+
+    final element = markdown.Element('proposal', [markdown.Text(content)])
+      ..attributes['type'] = type;
+
+    return element;
+  }
+}
+
+class ProposalGenerator extends SpanNodeGeneratorWithTag {
+  ProposalGenerator({
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required Color borderColor,
+  }) : super(
+         tag: 'proposal',
+         generator: (
+           markdown.Element element,
+           MarkdownConfig config,
+           WidgetVisitor visitor,
+         ) {
+           return ProposalSpanNode(
+             text: element.textContent,
+             type: element.attributes['type'] ?? '',
+             backgroundColor: backgroundColor,
+             foregroundColor: foregroundColor,
+             borderColor: borderColor,
+           );
+         },
+       );
+}
+
+class ProposalSpanNode extends SpanNode {
+  final String text;
+  final String type;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color borderColor;
+
+  ProposalSpanNode({
+    required this.text,
+    required this.type,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.borderColor,
+  });
+
+  @override
+  InlineSpan build() {
+    return WidgetSpan(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          border: Border.all(color: borderColor, width: 1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 6,
+          children: [
+            Row(
+              spacing: 6,
+              children: [
+                Icon(Symbols.lightbulb, size: 16, color: foregroundColor),
+                Text(
+                  'SN-chan suggest you to create a post',
+                ).fontSize(13).opacity(0.8),
+              ],
+            ).padding(top: 3, bottom: 4),
+            Flexible(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: foregroundColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
