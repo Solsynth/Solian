@@ -41,6 +41,7 @@ class ThoughtSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final sequenceId = useState<String?>(null);
     final localThoughts = useState<List<SnThinkingThought>>([]);
     final currentTopic = useState<String?>('aiThought'.tr());
 
@@ -80,11 +81,11 @@ class ThoughtSheet extends HookConsumerWidget {
         content: userMessage,
         files: [],
         role: ThinkingThoughtRole.user,
-        sequenceId: '',
+        sequenceId: sequenceId.value ?? '',
         createdAt: now,
         updatedAt: now,
         sequence: SnThinkingSequence(
-          id: '',
+          id: sequenceId.value ?? '',
           accountId: userInfo.value!.id,
           createdAt: now,
           updatedAt: now,
@@ -94,7 +95,7 @@ class ThoughtSheet extends HookConsumerWidget {
 
       final request = StreamThinkingRequest(
         userMessage: userMessage,
-        sequenceId: null,
+        sequenceId: sequenceId.value,
         accpetProposals: ['post_create'],
         attachedMessages: attachedMessages,
         attachedPosts: attachedPosts,
@@ -158,6 +159,10 @@ class ThoughtSheet extends HookConsumerWidget {
                   final event = jsonDecode(jsonStr);
                   final aiThought = SnThinkingThought.fromJson(event['data']);
                   localThoughts.value = [aiThought, ...localThoughts.value];
+                  if (sequenceId.value == null &&
+                      aiThought.sequenceId.isNotEmpty) {
+                    sequenceId.value = aiThought.sequenceId;
+                  }
                   isStreaming.value = false;
                 }
               } catch (e) {
