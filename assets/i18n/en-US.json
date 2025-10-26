@@ -1298,6 +1298,7 @@
     "thoughtInputHint": "Ask sn-chan anything...",
     "thoughtNewConversation": "Start New Conversation",
     "thoughtParseError": "Failed to parse AI response",
+    "thoughtFunctionCall": "Function Call",
     "aiThought": "AI Thought",
     "aiThoughtTitle": "Let sn-chan think"
 }
