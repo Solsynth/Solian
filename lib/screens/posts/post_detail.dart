@@ -22,6 +22,7 @@ import 'package:island/widgets/response.dart';
 import 'package:island/utils/share_utils.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
+import 'package:island/screens/thought/think_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -294,6 +295,16 @@ class PostActionButtons extends HookConsumerWidget {
             post.awardedScore > 0
                 ? Text('${formatScore(post.awardedScore)} pts')
                 : Text('award').tr(),
+      ),
+    );
+
+    actions.add(
+      FilledButton.tonalIcon(
+        onPressed: () {
+          ThoughtSheet.show(context, attachedPosts: [post.id]);
+        },
+        icon: const Icon(Symbols.smart_toy),
+        label: Text('aiThought'.tr()),
       ),
     );
 

@@ -44,6 +44,8 @@ sealed class StreamThinkingRequest with _$StreamThinkingRequest {
     required String userMessage,
     String? sequenceId,
     @Default([]) List<String> accpetProposals,
+    List<String>? attachedPosts,
+    List<Map<String, dynamic>>? attachedMessages,
   }) = _StreamThinkingRequest;
 
   factory StreamThinkingRequest.fromJson(Map<String, dynamic> json) =>
