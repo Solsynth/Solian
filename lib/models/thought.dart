@@ -80,6 +80,8 @@ sealed class SnThinkingSequence with _$SnThinkingSequence {
   const factory SnThinkingSequence({
     required String id,
     String? topic,
+    @Default(0) int totalToken,
+    @Default(0) int paidToken,
     required String accountId,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -98,6 +100,8 @@ sealed class SnThinkingThought with _$SnThinkingThought {
     @Default([]) List<SnCloudFile> files,
     @Default([]) List<SnThinkingChunk> chunks,
     @ThinkingThoughtRoleConverter() required ThinkingThoughtRole role,
+    int? tokenCount,
+    String? modelName,
     required String sequenceId,
     SnThinkingSequence? sequence,
     required DateTime createdAt,

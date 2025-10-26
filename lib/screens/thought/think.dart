@@ -2,6 +2,7 @@ import "dart:convert";
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:gap/gap.dart";
 import "package:google_fonts/google_fonts.dart";
@@ -382,9 +383,28 @@ class ThoughtScreen extends HookConsumerWidget {
                     ],
                   ),
                 ),
+                if (thought.role == ThinkingThoughtRole.assistant)
+                  SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: IconButton(
+                      visualDensity: VisualDensity(
+                        horizontal: -4,
+                        vertical: -4,
+                      ),
+                      padding: EdgeInsets.zero,
+                      iconSize: 16,
+                      icon: Icon(Symbols.content_copy),
+                      onPressed: () {
+                        Clipboard.setData(
+                          ClipboardData(text: thought.content ?? ''),
+                        );
+                        showSnackBar('copiedToClipboard'.tr());
+                      },
+                    ),
+                  ),
               ],
             ),
-            const Gap(8),
             if (thought.chunks.isNotEmpty) ...[
               buildChunkTiles(thought.chunks),
               const Gap(8),
@@ -405,6 +425,36 @@ class ThoughtScreen extends HookConsumerWidget {
                   ),
                 ],
               ),
+            if (thought.role == ThinkingThoughtRole.assistant &&
+                (thought.tokenCount != null || thought.modelName != null)) ...[
+              const Gap(8),
+              Row(
+                children: [
+                  if (thought.modelName != null) ...[
+                    const Icon(Symbols.neurology, size: 16),
+                    const Gap(4),
+                    Text(
+                      '${thought.modelName}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const Gap(16),
+                  ],
+                  if (thought.tokenCount != null)
+                    ...([
+                      const Icon(Symbols.token, size: 16),
+                      const Gap(4),
+                      Text(
+                        '${thought.tokenCount} tokens',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ]),
+                ],
+              ),
+            ],
             if (proposals.isNotEmpty &&
                 thought.role == ThinkingThoughtRole.assistant) ...[
               const Gap(12),

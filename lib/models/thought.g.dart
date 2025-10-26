@@ -44,6 +44,8 @@ _SnThinkingSequence _$SnThinkingSequenceFromJson(Map<String, dynamic> json) =>
     _SnThinkingSequence(
       id: json['id'] as String,
       topic: json['topic'] as String?,
+      totalToken: (json['total_token'] as num?)?.toInt() ?? 0,
+      paidToken: (json['paid_token'] as num?)?.toInt() ?? 0,
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -57,6 +59,8 @@ Map<String, dynamic> _$SnThinkingSequenceToJson(_SnThinkingSequence instance) =>
     <String, dynamic>{
       'id': instance.id,
       'topic': instance.topic,
+      'total_token': instance.totalToken,
+      'paid_token': instance.paidToken,
       'account_id': instance.accountId,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
@@ -80,6 +84,8 @@ _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
       role: const ThinkingThoughtRoleConverter().fromJson(
         (json['role'] as num).toInt(),
       ),
+      tokenCount: (json['token_count'] as num?)?.toInt(),
+      modelName: json['model_name'] as String?,
       sequenceId: json['sequence_id'] as String,
       sequence:
           json['sequence'] == null
@@ -102,6 +108,8 @@ Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
       'files': instance.files.map((e) => e.toJson()).toList(),
       'chunks': instance.chunks.map((e) => e.toJson()).toList(),
       'role': const ThinkingThoughtRoleConverter().toJson(instance.role),
+      'token_count': instance.tokenCount,
+      'model_name': instance.modelName,
       'sequence_id': instance.sequenceId,
       'sequence': instance.sequence?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),

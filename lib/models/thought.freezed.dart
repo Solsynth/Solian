@@ -552,7 +552,7 @@ as Map<String, dynamic>?,
 /// @nodoc
 mixin _$SnThinkingSequence {
 
- String get id; String? get topic; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String? get topic; int get totalToken; int get paidToken; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -565,16 +565,16 @@ $SnThinkingSequenceCopyWith<SnThinkingSequence> get copyWith => _$SnThinkingSequ
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,topic,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnThinkingSequence(id: $id, topic: $topic, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -585,7 +585,7 @@ abstract mixin class $SnThinkingSequenceCopyWith<$Res>  {
   factory $SnThinkingSequenceCopyWith(SnThinkingSequence value, $Res Function(SnThinkingSequence) _then) = _$SnThinkingSequenceCopyWithImpl;
 @useResult
 $Res call({
- String id, String? topic, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -602,11 +602,13 @@ class _$SnThinkingSequenceCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? topic = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,topic: freezed == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
-as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,totalToken: null == totalToken ? _self.totalToken : totalToken // ignore: cast_nullable_to_non_nullable
+as int,paidToken: null == paidToken ? _self.paidToken : paidToken // ignore: cast_nullable_to_non_nullable
+as int,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -692,10 +694,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? topic,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnThinkingSequence() when $default != null:
-return $default(_that.id,_that.topic,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -713,10 +715,10 @@ return $default(_that.id,_that.topic,_that.accountId,_that.createdAt,_that.updat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? topic,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingSequence():
-return $default(_that.id,_that.topic,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -730,10 +732,10 @@ return $default(_that.id,_that.topic,_that.accountId,_that.createdAt,_that.updat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? topic,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingSequence() when $default != null:
-return $default(_that.id,_that.topic,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -745,11 +747,13 @@ return $default(_that.id,_that.topic,_that.accountId,_that.createdAt,_that.updat
 @JsonSerializable()
 
 class _SnThinkingSequence implements SnThinkingSequence {
-  const _SnThinkingSequence({required this.id, this.topic, required this.accountId, required this.createdAt, required this.updatedAt, this.deletedAt});
+  const _SnThinkingSequence({required this.id, this.topic, this.totalToken = 0, this.paidToken = 0, required this.accountId, required this.createdAt, required this.updatedAt, this.deletedAt});
   factory _SnThinkingSequence.fromJson(Map<String, dynamic> json) => _$SnThinkingSequenceFromJson(json);
 
 @override final  String id;
 @override final  String? topic;
+@override@JsonKey() final  int totalToken;
+@override@JsonKey() final  int paidToken;
 @override final  String accountId;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -768,16 +772,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,topic,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnThinkingSequence(id: $id, topic: $topic, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -788,7 +792,7 @@ abstract mixin class _$SnThinkingSequenceCopyWith<$Res> implements $SnThinkingSe
   factory _$SnThinkingSequenceCopyWith(_SnThinkingSequence value, $Res Function(_SnThinkingSequence) _then) = __$SnThinkingSequenceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? topic, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -805,11 +809,13 @@ class __$SnThinkingSequenceCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? topic = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnThinkingSequence(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,topic: freezed == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
-as String?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,totalToken: null == totalToken ? _self.totalToken : totalToken // ignore: cast_nullable_to_non_nullable
+as int,paidToken: null == paidToken ? _self.paidToken : paidToken // ignore: cast_nullable_to_non_nullable
+as int,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -824,7 +830,7 @@ as DateTime?,
 /// @nodoc
 mixin _$SnThinkingThought {
 
- String get id; String? get content; List<SnCloudFile> get files; List<SnThinkingChunk> get chunks;@ThinkingThoughtRoleConverter() ThinkingThoughtRole get role; String get sequenceId; SnThinkingSequence? get sequence; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String? get content; List<SnCloudFile> get files; List<SnThinkingChunk> get chunks;@ThinkingThoughtRoleConverter() ThinkingThoughtRole get role; int? get tokenCount; String? get modelName; String get sequenceId; SnThinkingSequence? get sequence; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnThinkingThought
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -837,16 +843,16 @@ $SnThinkingThoughtCopyWith<SnThinkingThought> get copyWith => _$SnThinkingThough
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingThought&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.files, files)&&const DeepCollectionEquality().equals(other.chunks, chunks)&&(identical(other.role, role) || other.role == role)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingThought&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.files, files)&&const DeepCollectionEquality().equals(other.chunks, chunks)&&(identical(other.role, role) || other.role == role)&&(identical(other.tokenCount, tokenCount) || other.tokenCount == tokenCount)&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,const DeepCollectionEquality().hash(files),const DeepCollectionEquality().hash(chunks),role,sequenceId,sequence,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,content,const DeepCollectionEquality().hash(files),const DeepCollectionEquality().hash(chunks),role,tokenCount,modelName,sequenceId,sequence,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnThinkingThought(id: $id, content: $content, files: $files, chunks: $chunks, role: $role, sequenceId: $sequenceId, sequence: $sequence, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnThinkingThought(id: $id, content: $content, files: $files, chunks: $chunks, role: $role, tokenCount: $tokenCount, modelName: $modelName, sequenceId: $sequenceId, sequence: $sequence, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -857,7 +863,7 @@ abstract mixin class $SnThinkingThoughtCopyWith<$Res>  {
   factory $SnThinkingThoughtCopyWith(SnThinkingThought value, $Res Function(SnThinkingThought) _then) = _$SnThinkingThoughtCopyWithImpl;
 @useResult
 $Res call({
- String id, String? content, List<SnCloudFile> files, List<SnThinkingChunk> chunks,@ThinkingThoughtRoleConverter() ThinkingThoughtRole role, String sequenceId, SnThinkingSequence? sequence, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? content, List<SnCloudFile> files, List<SnThinkingChunk> chunks,@ThinkingThoughtRoleConverter() ThinkingThoughtRole role, int? tokenCount, String? modelName, String sequenceId, SnThinkingSequence? sequence, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -874,14 +880,16 @@ class _$SnThinkingThoughtCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingThought
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? content = freezed,Object? files = null,Object? chunks = null,Object? role = null,Object? sequenceId = null,Object? sequence = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? content = freezed,Object? files = null,Object? chunks = null,Object? role = null,Object? tokenCount = freezed,Object? modelName = freezed,Object? sequenceId = null,Object? sequence = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String?,files: null == files ? _self.files : files // ignore: cast_nullable_to_non_nullable
 as List<SnCloudFile>,chunks: null == chunks ? _self.chunks : chunks // ignore: cast_nullable_to_non_nullable
 as List<SnThinkingChunk>,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as ThinkingThoughtRole,sequenceId: null == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
+as ThinkingThoughtRole,tokenCount: freezed == tokenCount ? _self.tokenCount : tokenCount // ignore: cast_nullable_to_non_nullable
+as int?,modelName: freezed == modelName ? _self.modelName : modelName // ignore: cast_nullable_to_non_nullable
+as String?,sequenceId: null == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
 as String,sequence: freezed == sequence ? _self.sequence : sequence // ignore: cast_nullable_to_non_nullable
 as SnThinkingSequence?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -980,10 +988,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? content,  List<SnCloudFile> files,  List<SnThinkingChunk> chunks, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? content,  List<SnCloudFile> files,  List<SnThinkingChunk> chunks, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  int? tokenCount,  String? modelName,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnThinkingThought() when $default != null:
-return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that.tokenCount,_that.modelName,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -1001,10 +1009,10 @@ return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? content,  List<SnCloudFile> files,  List<SnThinkingChunk> chunks, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? content,  List<SnCloudFile> files,  List<SnThinkingChunk> chunks, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  int? tokenCount,  String? modelName,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingThought():
-return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that.tokenCount,_that.modelName,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1018,10 +1026,10 @@ return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? content,  List<SnCloudFile> files,  List<SnThinkingChunk> chunks, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? content,  List<SnCloudFile> files,  List<SnThinkingChunk> chunks, @ThinkingThoughtRoleConverter()  ThinkingThoughtRole role,  int? tokenCount,  String? modelName,  String sequenceId,  SnThinkingSequence? sequence,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingThought() when $default != null:
-return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that.tokenCount,_that.modelName,_that.sequenceId,_that.sequence,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -1033,7 +1041,7 @@ return $default(_that.id,_that.content,_that.files,_that.chunks,_that.role,_that
 @JsonSerializable()
 
 class _SnThinkingThought implements SnThinkingThought {
-  const _SnThinkingThought({required this.id, this.content, final  List<SnCloudFile> files = const [], final  List<SnThinkingChunk> chunks = const [], @ThinkingThoughtRoleConverter() required this.role, required this.sequenceId, this.sequence, required this.createdAt, required this.updatedAt, this.deletedAt}): _files = files,_chunks = chunks;
+  const _SnThinkingThought({required this.id, this.content, final  List<SnCloudFile> files = const [], final  List<SnThinkingChunk> chunks = const [], @ThinkingThoughtRoleConverter() required this.role, this.tokenCount, this.modelName, required this.sequenceId, this.sequence, required this.createdAt, required this.updatedAt, this.deletedAt}): _files = files,_chunks = chunks;
   factory _SnThinkingThought.fromJson(Map<String, dynamic> json) => _$SnThinkingThoughtFromJson(json);
 
 @override final  String id;
@@ -1053,6 +1061,8 @@ class _SnThinkingThought implements SnThinkingThought {
 }
 
 @override@ThinkingThoughtRoleConverter() final  ThinkingThoughtRole role;
+@override final  int? tokenCount;
+@override final  String? modelName;
 @override final  String sequenceId;
 @override final  SnThinkingSequence? sequence;
 @override final  DateTime createdAt;
@@ -1072,16 +1082,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingThought&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._files, _files)&&const DeepCollectionEquality().equals(other._chunks, _chunks)&&(identical(other.role, role) || other.role == role)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingThought&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._files, _files)&&const DeepCollectionEquality().equals(other._chunks, _chunks)&&(identical(other.role, role) || other.role == role)&&(identical(other.tokenCount, tokenCount) || other.tokenCount == tokenCount)&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,const DeepCollectionEquality().hash(_files),const DeepCollectionEquality().hash(_chunks),role,sequenceId,sequence,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,content,const DeepCollectionEquality().hash(_files),const DeepCollectionEquality().hash(_chunks),role,tokenCount,modelName,sequenceId,sequence,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnThinkingThought(id: $id, content: $content, files: $files, chunks: $chunks, role: $role, sequenceId: $sequenceId, sequence: $sequence, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnThinkingThought(id: $id, content: $content, files: $files, chunks: $chunks, role: $role, tokenCount: $tokenCount, modelName: $modelName, sequenceId: $sequenceId, sequence: $sequence, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1092,7 +1102,7 @@ abstract mixin class _$SnThinkingThoughtCopyWith<$Res> implements $SnThinkingTho
   factory _$SnThinkingThoughtCopyWith(_SnThinkingThought value, $Res Function(_SnThinkingThought) _then) = __$SnThinkingThoughtCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? content, List<SnCloudFile> files, List<SnThinkingChunk> chunks,@ThinkingThoughtRoleConverter() ThinkingThoughtRole role, String sequenceId, SnThinkingSequence? sequence, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String? content, List<SnCloudFile> files, List<SnThinkingChunk> chunks,@ThinkingThoughtRoleConverter() ThinkingThoughtRole role, int? tokenCount, String? modelName, String sequenceId, SnThinkingSequence? sequence, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1109,14 +1119,16 @@ class __$SnThinkingThoughtCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingThought
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? content = freezed,Object? files = null,Object? chunks = null,Object? role = null,Object? sequenceId = null,Object? sequence = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? content = freezed,Object? files = null,Object? chunks = null,Object? role = null,Object? tokenCount = freezed,Object? modelName = freezed,Object? sequenceId = null,Object? sequence = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnThinkingThought(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String?,files: null == files ? _self._files : files // ignore: cast_nullable_to_non_nullable
 as List<SnCloudFile>,chunks: null == chunks ? _self._chunks : chunks // ignore: cast_nullable_to_non_nullable
 as List<SnThinkingChunk>,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as ThinkingThoughtRole,sequenceId: null == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
+as ThinkingThoughtRole,tokenCount: freezed == tokenCount ? _self.tokenCount : tokenCount // ignore: cast_nullable_to_non_nullable
+as int?,modelName: freezed == modelName ? _self.modelName : modelName // ignore: cast_nullable_to_non_nullable
+as String?,sequenceId: null == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
 as String,sequence: freezed == sequence ? _self.sequence : sequence // ignore: cast_nullable_to_non_nullable
 as SnThinkingSequence?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
