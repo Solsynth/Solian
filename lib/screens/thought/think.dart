@@ -1,10 +1,11 @@
-import "dart:async";
 import "dart:convert";
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:gap/gap.dart";
+import "package:google_fonts/google_fonts.dart";
+import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/models/thought.dart";
 import "package:island/pods/network.dart";
@@ -18,19 +19,21 @@ import "package:island/widgets/thought/thought_sequence_list.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
 
-final thoughtSequenceProvider =
-    FutureProvider.family<List<SnThinkingThought>, String>((
-      ref,
-      sequenceId,
-    ) async {
-      final apiClient = ref.watch(apiClientProvider);
-      final response = await apiClient.get(
-        '/insight/thought/sequences/$sequenceId',
-      );
-      return (response.data as List)
-          .map((e) => SnThinkingThought.fromJson(e))
-          .toList();
-    });
+part 'think.g.dart';
+
+@riverpod
+Future<List<SnThinkingThought>> thoughtSequence(
+  Ref ref,
+  String sequenceId,
+) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get(
+    '/insight/thought/sequences/$sequenceId',
+  );
+  return (response.data as List)
+      .map((e) => SnThinkingThought.fromJson(e))
+      .toList();
+}
 
 class ThoughtScreen extends HookConsumerWidget {
   const ThoughtScreen({super.key});
@@ -50,6 +53,8 @@ class ThoughtScreen extends HookConsumerWidget {
     final scrollController = useScrollController();
     final isStreaming = useState(false);
     final streamingText = useState<String>('');
+    final functionCalls = useState<List<String>>([]);
+    final reasoningChunks = useState<List<String>>([]);
 
     final listController = useMemoized(() => ListController(), []);
 
@@ -124,6 +129,8 @@ class ThoughtScreen extends HookConsumerWidget {
       try {
         isStreaming.value = true;
         streamingText.value = '';
+        functionCalls.value = [];
+        reasoningChunks.value = [];
 
         final apiClient = ref.read(apiClientProvider);
         final response = await apiClient.post(
@@ -137,65 +144,66 @@ class ThoughtScreen extends HookConsumerWidget {
         );
 
         final stream = response.data.stream;
-        final completer = Completer<String>();
-        final buffer = StringBuffer();
+        final lineBuffer = StringBuffer();
 
         stream.listen(
           (data) {
             final chunk = utf8.decode(data);
-            buffer.write(chunk);
-            streamingText.value = buffer.toString();
+            lineBuffer.write(chunk);
+            final lines = lineBuffer.toString().split('\n');
+            lineBuffer.clear();
+            lineBuffer.write(lines.last); // keep incomplete line
+
+            for (final line in lines.sublist(0, lines.length - 1)) {
+              if (line.trim().isEmpty) continue;
+              try {
+                if (line.startsWith('data: ')) {
+                  final jsonStr = line.substring(6);
+                  final event = jsonDecode(jsonStr);
+                  final type = event['type'];
+                  final eventData = event['data'];
+                  if (type == 'text') {
+                    streamingText.value += eventData;
+                  } else if (type == 'function_call') {
+                    functionCalls.value = [
+                      ...functionCalls.value,
+                      JsonEncoder.withIndent('  ').convert(eventData),
+                    ];
+                  } else if (type == 'reasoning') {
+                    reasoningChunks.value = [
+                      ...reasoningChunks.value,
+                      eventData,
+                    ];
+                  }
+                } else if (line.startsWith('topic: ')) {
+                  final jsonStr = line.substring(7);
+                  final event = jsonDecode(jsonStr);
+                  currentTopic.value = event['data'];
+                } else if (line.startsWith('thought: ')) {
+                  final jsonStr = line.substring(9);
+                  final event = jsonDecode(jsonStr);
+                  final aiThought = SnThinkingThought.fromJson(event['data']);
+                  localThoughts.value = [aiThought, ...localThoughts.value];
+                  if (selectedSequenceId.value == null &&
+                      aiThought.sequenceId.isNotEmpty) {
+                    selectedSequenceId.value = aiThought.sequenceId;
+                  }
+                  isStreaming.value = false;
+                }
+              } catch (e) {
+                // Ignore parsing errors for individual events
+              }
+            }
           },
           onDone: () {
-            completer.complete(buffer.toString());
-            isStreaming.value = false;
-            // Parse the response and add AI thought
-            try {
-              final lines =
-                  buffer
-                      .toString()
-                      .split('\n')
-                      .where((line) => line.trim().isNotEmpty)
-                      .toList();
-              final lastLine = lines.last;
-              final responseJson = jsonDecode(lastLine);
-              final aiThought = SnThinkingThought.fromJson(responseJson);
-
-              // Check for topic in second last line
-              String? topic;
-              if (lines.length >= 2) {
-                final secondLastLine = lines[lines.length - 2];
-                final topicMatch = RegExp(
-                  r'<topic>(.*)</topic>',
-                ).firstMatch(secondLastLine);
-                if (topicMatch != null) {
-                  topic = topicMatch.group(1);
-                }
-              }
-
-              // Add AI thought to conversation
-              localThoughts.value = [aiThought, ...localThoughts.value];
-
-              // Update selected sequence ID if it was null (new conversation)
-              if (selectedSequenceId.value == null &&
-                  aiThought.sequenceId.isNotEmpty) {
-                selectedSequenceId.value = aiThought.sequenceId;
-              }
-
-              // Update current topic if found (AI responses don't include sequence to prevent backend loops)
-              if (topic != null) {
-                currentTopic.value = topic;
-              }
-            } catch (e) {
+            if (isStreaming.value) {
+              isStreaming.value = false;
               showErrorAlert('thoughtParseError'.tr());
             }
           },
           onError: (error) {
-            completer.completeError(error);
             isStreaming.value = false;
-            // Handle streaming response errors differently
             if (error is DioException && error.response?.data is ResponseBody) {
-              // For streaming responses, show a generic error message
               showErrorAlert('toughtParseError'.tr());
             } else {
               showErrorAlert(error);
@@ -209,6 +217,74 @@ class ThoughtScreen extends HookConsumerWidget {
         isStreaming.value = false;
         showErrorAlert(error);
       }
+    }
+
+    Widget buildChunkTiles(List<SnThinkingChunk> chunks) {
+      return Column(
+        children: [
+          ...chunks
+              .where((chunk) => chunk.type == ThinkingChunkType.reasoning)
+              .map(
+                (chunk) => Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: Theme(
+                    data: Theme.of(
+                      context,
+                    ).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      title: Text(
+                        'Reasoning',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            chunk.data?['content'] ?? '',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ...chunks
+              .where((chunk) => chunk.type == ThinkingChunkType.functionCall)
+              .map(
+                (chunk) => Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: Theme(
+                    data: Theme.of(
+                      context,
+                    ).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      title: Text(
+                        'Function Call',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SelectableText(
+                            JsonEncoder.withIndent('  ').convert(chunk.data),
+                            style: GoogleFonts.robotoMono(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+        ],
+      );
     }
 
     Widget thoughtItem(SnThinkingThought thought, int index) {
@@ -244,7 +320,7 @@ class ThoughtScreen extends HookConsumerWidget {
                     children: [
                       Text(
                         thought.role == ThinkingThoughtRole.assistant
-                            ? 'toughtAiName'.tr()
+                            ? 'thoughtAiName'.tr()
                             : 'thoughtUserName'.tr(),
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
@@ -266,6 +342,10 @@ class ThoughtScreen extends HookConsumerWidget {
               ],
             ),
             const Gap(8),
+            if (thought.chunks.isNotEmpty) ...[
+              buildChunkTiles(thought.chunks),
+              const Gap(8),
+            ],
             if (thought.content != null)
               MarkdownTextContent(
                 isSelectable: true,
@@ -327,6 +407,71 @@ class ThoughtScreen extends HookConsumerWidget {
             content: streamingText.value,
             textStyle: Theme.of(context).textTheme.bodyMedium,
           ),
+          if (reasoningChunks.value.isNotEmpty ||
+              functionCalls.value.isNotEmpty) ...[
+            const Gap(8),
+            Column(
+              children: [
+                ...reasoningChunks.value.map(
+                  (chunk) => Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: Theme(
+                      data: Theme.of(
+                        context,
+                      ).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        title: Text(
+                          'Reasoning',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              chunk,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                ...functionCalls.value.map(
+                  (call) => Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: Theme(
+                      data: Theme.of(
+                        context,
+                      ).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        title: Text(
+                          'Function Call',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SelectableText(
+                              call,
+                              style: GoogleFonts.robotoMono(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

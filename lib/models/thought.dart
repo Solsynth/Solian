@@ -27,6 +27,17 @@ class ThinkingThoughtRoleConverter
   int toJson(ThinkingThoughtRole object) => object.value;
 }
 
+class ThinkingChunkTypeConverter
+    implements JsonConverter<ThinkingChunkType, int> {
+  const ThinkingChunkTypeConverter();
+
+  @override
+  ThinkingChunkType fromJson(int json) => ThinkingChunkType.fromValue(json);
+
+  @override
+  int toJson(ThinkingChunkType object) => object.value;
+}
+
 @freezed
 sealed class StreamThinkingRequest with _$StreamThinkingRequest {
   const factory StreamThinkingRequest({
@@ -36,6 +47,31 @@ sealed class StreamThinkingRequest with _$StreamThinkingRequest {
 
   factory StreamThinkingRequest.fromJson(Map<String, dynamic> json) =>
       _$StreamThinkingRequestFromJson(json);
+}
+
+enum ThinkingChunkType {
+  text(0),
+  reasoning(1),
+  functionCall(2),
+  unknown(3);
+
+  const ThinkingChunkType(this.value);
+  final int value;
+
+  static ThinkingChunkType fromValue(int value) {
+    return values.firstWhere((e) => e.value == value);
+  }
+}
+
+@freezed
+sealed class SnThinkingChunk with _$SnThinkingChunk {
+  const factory SnThinkingChunk({
+    @ThinkingChunkTypeConverter() required ThinkingChunkType type,
+    Map<String, dynamic>? data,
+  }) = _SnThinkingChunk;
+
+  factory SnThinkingChunk.fromJson(Map<String, dynamic> json) =>
+      _$SnThinkingChunkFromJson(json);
 }
 
 @freezed
@@ -59,6 +95,7 @@ sealed class SnThinkingThought with _$SnThinkingThought {
     required String id,
     String? content,
     @Default([]) List<SnCloudFile> files,
+    @Default([]) List<SnThinkingChunk> chunks,
     @ThinkingThoughtRoleConverter() required ThinkingThoughtRole role,
     required String sequenceId,
     SnThinkingSequence? sequence,

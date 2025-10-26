@@ -20,6 +20,20 @@ Map<String, dynamic> _$StreamThinkingRequestToJson(
   'sequence_id': instance.sequenceId,
 };
 
+_SnThinkingChunk _$SnThinkingChunkFromJson(Map<String, dynamic> json) =>
+    _SnThinkingChunk(
+      type: const ThinkingChunkTypeConverter().fromJson(
+        (json['type'] as num).toInt(),
+      ),
+      data: json['data'] as Map<String, dynamic>?,
+    );
+
+Map<String, dynamic> _$SnThinkingChunkToJson(_SnThinkingChunk instance) =>
+    <String, dynamic>{
+      'type': const ThinkingChunkTypeConverter().toJson(instance.type),
+      'data': instance.data,
+    };
+
 _SnThinkingSequence _$SnThinkingSequenceFromJson(Map<String, dynamic> json) =>
     _SnThinkingSequence(
       id: json['id'] as String,
@@ -52,6 +66,11 @@ _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
               ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      chunks:
+          (json['chunks'] as List<dynamic>?)
+              ?.map((e) => SnThinkingChunk.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       role: const ThinkingThoughtRoleConverter().fromJson(
         (json['role'] as num).toInt(),
       ),
@@ -75,6 +94,7 @@ Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
       'id': instance.id,
       'content': instance.content,
       'files': instance.files.map((e) => e.toJson()).toList(),
+      'chunks': instance.chunks.map((e) => e.toJson()).toList(),
       'role': const ThinkingThoughtRoleConverter().toJson(instance.role),
       'sequence_id': instance.sequenceId,
       'sequence': instance.sequence?.toJson(),
