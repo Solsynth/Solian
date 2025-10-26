@@ -14,9 +14,10 @@ import "package:island/services/time.dart";
 import "package:island/widgets/alert.dart";
 import "package:island/widgets/app_scaffold.dart";
 import "package:island/widgets/content/markdown.dart";
+import "package:island/widgets/post/compose_dialog.dart";
 import "package:island/widgets/response.dart";
 import "package:island/widgets/thought/thought_sequence_list.dart";
-import "package:island/route.dart";
+import "package:island/screens/posts/compose.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:styled_widget/styled_widget.dart";
 import "package:super_sliver_list/super_sliver_list.dart";
@@ -63,10 +64,12 @@ class ThoughtScreen extends HookConsumerWidget {
     ) {
       switch (proposal['type']) {
         case 'post_create':
-          // Navigate to post creation screen with the proposal content
-          AppRouter.push(
+          // Show post creation dialog with the proposal content
+          PostComposeDialog.show(
             context,
-            '/posts/compose?initialContent=${Uri.encodeComponent(proposal['content'] ?? '')}&source=ai_proposal',
+            initialState: PostComposeInitialState(
+              content: (proposal['content'] ?? '').trim(),
+            ),
           );
           break;
         default:
@@ -821,7 +824,7 @@ class ProposalSpanNode extends SpanNode {
               children: [
                 Icon(Symbols.lightbulb, size: 16, color: foregroundColor),
                 Text(
-                  'SN-chan suggest you to create a post',
+                  'SN-chan suggest you to ${type.split('_').reversed.join(' ')}',
                 ).fontSize(13).opacity(0.8),
               ],
             ).padding(top: 3, bottom: 4),
