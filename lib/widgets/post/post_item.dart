@@ -99,6 +99,8 @@ class PostActionableItem extends HookConsumerWidget {
       [user],
     );
 
+    final config = ref.watch(appSettingsNotifierProvider);
+
     final widgetItem = InkWell(
       borderRadius:
           borderRadius != null
@@ -334,7 +336,10 @@ class PostActionableItem extends HookConsumerWidget {
         );
       },
       child: Material(
-        color: Theme.of(context).cardTheme.color,
+        color:
+            config.cardTransparency < 1
+                ? Colors.transparent
+                : Theme.of(context).cardTheme.color,
         borderRadius:
             borderRadius != null
                 ? BorderRadius.all(Radius.circular(borderRadius!))
