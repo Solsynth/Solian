@@ -405,6 +405,7 @@ class ThoughtScreen extends HookConsumerWidget {
                   ),
               ],
             ),
+            const Gap(8),
             if (thought.chunks.isNotEmpty) ...[
               buildChunkTiles(thought.chunks),
               const Gap(8),
