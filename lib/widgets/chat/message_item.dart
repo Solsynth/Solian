@@ -43,6 +43,10 @@ class MessageItem extends HookConsumerWidget {
   final Map<int, double>? progress;
   final bool showAvatar;
   final Function(String messageId) onJump;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final Function(String messageId)? onToggleSelection;
+  final Function()? onEnterSelectionMode;
 
   const MessageItem({
     super.key,
@@ -52,6 +56,10 @@ class MessageItem extends HookConsumerWidget {
     required this.progress,
     required this.showAvatar,
     required this.onJump,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onToggleSelection,
+    this.onEnterSelectionMode,
   });
 
   static const kFlashDuration = 300;
@@ -110,6 +118,8 @@ class MessageItem extends HookConsumerWidget {
               isMobile: isMobile,
               remoteMessage: remoteMessage,
               message: message,
+              onToggleSelection: onToggleSelection,
+              onEnterSelectionMode: onEnterSelectionMode,
             ),
       );
     }
@@ -182,17 +192,27 @@ class MessageItem extends HookConsumerWidget {
           child: InkWell(
             mouseCursor: MouseCursor.defer,
             focusColor: Colors.transparent,
-            onLongPress: showActionMenu,
+            onLongPress: () {
+              if (isSelectionMode && onToggleSelection != null) {
+                onToggleSelection!(message.id);
+              } else {
+                showActionMenu();
+              }
+            },
             onSecondaryTap: showActionMenu,
             onTap: () {
-              // Jump to related message
-              if ([
-                    'messages.update',
-                    'messages.delete',
-                  ].contains(message.type) &&
-                  message.meta['message_id'] is String &&
-                  message.meta['message_id'] != null) {
-                onJump(message.meta['message_id']);
+              if (isSelectionMode && onToggleSelection != null) {
+                onToggleSelection!(message.id);
+              } else {
+                // Jump to related message
+                if ([
+                      'messages.update',
+                      'messages.delete',
+                    ].contains(message.type) &&
+                    message.meta['message_id'] is String &&
+                    message.meta['message_id'] != null) {
+                  onJump(message.meta['message_id']);
+                }
               }
             },
             child: SizedBox(
@@ -271,6 +291,8 @@ class MessageActionSheet extends StatefulWidget {
   final bool isMobile;
   final dynamic remoteMessage;
   final LocalChatMessage message;
+  final Function(String messageId)? onToggleSelection;
+  final Function()? onEnterSelectionMode;
 
   const MessageActionSheet({
     super.key,
@@ -283,6 +305,8 @@ class MessageActionSheet extends StatefulWidget {
     required this.isMobile,
     required this.remoteMessage,
     required this.message,
+    this.onToggleSelection,
+    this.onEnterSelectionMode,
   });
 
   @override
@@ -457,6 +481,21 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
               title: Text('forward'.tr()),
               onTap: () {
                 widget.onAction!.call(MessageItemAction.forward);
+                Navigator.pop(context);
+              },
+            ),
+
+            // AI Selection action
+            _ActionListTile(
+              leading: Icon(Symbols.smart_toy),
+              title: Text('Select for AI'),
+              onTap: () {
+                if (widget.onEnterSelectionMode != null) {
+                  widget.onEnterSelectionMode!();
+                  if (widget.onToggleSelection != null) {
+                    widget.onToggleSelection!(widget.message.id);
+                  }
+                }
                 Navigator.pop(context);
               },
             ),

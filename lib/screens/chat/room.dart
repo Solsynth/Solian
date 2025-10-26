@@ -34,6 +34,7 @@ import "package:island/widgets/chat/call_button.dart";
 import "package:island/widgets/chat/chat_input.dart";
 import "package:island/widgets/chat/chat_link_attachments.dart";
 import "package:island/widgets/chat/public_room_preview.dart";
+import "package:island/screens/thought/think_sheet.dart";
 
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;
@@ -144,6 +145,10 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messageEditingTo = useState<SnChatMessage?>(null);
     final attachments = useState<List<UniversalFile>>([]);
     final attachmentProgress = useState<Map<String, Map<int, double>>>({});
+
+    // Selection mode state
+    final isSelectionMode = useState<bool>(false);
+    final selectedMessages = useState<Set<String>>({});
 
     var isLoading = false;
     var isScrollingToMessage = false; // Flag to prevent scroll conflicts
@@ -283,6 +288,53 @@ class ChatRoomScreen extends HookConsumerWidget {
       messageController.addListener(onTextChange);
       return () => messageController.removeListener(onTextChange);
     }, [messageController]);
+
+    // Selection functions
+    void toggleSelectionMode() {
+      isSelectionMode.value = !isSelectionMode.value;
+      if (!isSelectionMode.value) {
+        selectedMessages.value = {};
+      }
+    }
+
+    void toggleMessageSelection(String messageId) {
+      final newSelection = Set<String>.from(selectedMessages.value);
+      if (newSelection.contains(messageId)) {
+        newSelection.remove(messageId);
+      } else {
+        newSelection.add(messageId);
+      }
+      selectedMessages.value = newSelection;
+    }
+
+    void openThinkingSheet() {
+      if (selectedMessages.value.isEmpty) return;
+
+      // Convert selected message IDs to message data
+      final selectedMessageData =
+          messages.valueOrNull
+              ?.where((msg) => selectedMessages.value.contains(msg.id))
+              .map(
+                (msg) => {
+                  'id': msg.id,
+                  'content': msg.content,
+                  'senderId': msg.senderId,
+                  'createdAt': msg.createdAt.toIso8601String(),
+                  'attachments': msg.attachments,
+                },
+              )
+              .toList() ??
+          [];
+
+      ThoughtSheet.show(
+        context,
+        attachedMessages: selectedMessageData,
+        attachedPosts: [], // Could be extended to include posts
+      );
+
+      // Exit selection mode after opening
+      toggleSelectionMode();
+    }
 
     final compactHeader = isWideScreen(context);
 
@@ -571,42 +623,106 @@ class ChatRoomScreen extends HookConsumerWidget {
         final messageWidget = chatIdentity.when(
           skipError: true,
           data:
-              (identity) => MessageItem(
-                key: settings.disableAnimation ? key : null,
-                message: message,
-                isCurrentUser: identity?.id == message.senderId,
-                onAction: (action) {
-                  switch (action) {
-                    case MessageItemAction.delete:
-                      messagesNotifier.deleteMessage(message.id);
-                    case MessageItemAction.edit:
-                      messageEditingTo.value = message.toRemoteMessage();
-                      messageController.text =
-                          messageEditingTo.value?.content ?? '';
-                      attachments.value =
-                          messageEditingTo.value!.attachments
-                              .map((e) => UniversalFile.fromAttachment(e))
-                              .toList();
-                    case MessageItemAction.forward:
-                      messageForwardingTo.value = message.toRemoteMessage();
-                    case MessageItemAction.reply:
-                      messageReplyingTo.value = message.toRemoteMessage();
-                    case MessageItemAction.resend:
-                      messagesNotifier.retryMessage(message.id);
+              (identity) => GestureDetector(
+                onLongPress: () {
+                  if (!isSelectionMode.value) {
+                    toggleSelectionMode();
+                    toggleMessageSelection(message.id);
                   }
                 },
-                onJump: (messageId) {
-                  scrollToMessage(
-                    messageId: messageId,
-                    messageList: messageList,
-                    messagesNotifier: messagesNotifier,
-                    listController: listController,
-                    scrollController: scrollController,
-                    ref: ref,
-                  );
+                onTap: () {
+                  if (isSelectionMode.value) {
+                    toggleMessageSelection(message.id);
+                  }
                 },
-                progress: attachmentProgress.value[message.id],
-                showAvatar: isLastInGroup,
+                child: Container(
+                  color:
+                      selectedMessages.value.contains(message.id)
+                          ? Theme.of(
+                            context,
+                          ).colorScheme.primaryContainer.withOpacity(0.3)
+                          : null,
+                  child: Stack(
+                    children: [
+                      MessageItem(
+                        key: settings.disableAnimation ? key : null,
+                        message: message,
+                        isCurrentUser: identity?.id == message.senderId,
+                        onAction:
+                            isSelectionMode.value
+                                ? null
+                                : (action) {
+                                  switch (action) {
+                                    case MessageItemAction.delete:
+                                      messagesNotifier.deleteMessage(
+                                        message.id,
+                                      );
+                                    case MessageItemAction.edit:
+                                      messageEditingTo.value =
+                                          message.toRemoteMessage();
+                                      messageController.text =
+                                          messageEditingTo.value?.content ?? '';
+                                      attachments.value =
+                                          messageEditingTo.value!.attachments
+                                              .map(
+                                                (e) =>
+                                                    UniversalFile.fromAttachment(
+                                                      e,
+                                                    ),
+                                              )
+                                              .toList();
+                                    case MessageItemAction.forward:
+                                      messageForwardingTo.value =
+                                          message.toRemoteMessage();
+                                    case MessageItemAction.reply:
+                                      messageReplyingTo.value =
+                                          message.toRemoteMessage();
+                                    case MessageItemAction.resend:
+                                      messagesNotifier.retryMessage(message.id);
+                                  }
+                                },
+                        onJump: (messageId) {
+                          scrollToMessage(
+                            messageId: messageId,
+                            messageList: messageList,
+                            messagesNotifier: messagesNotifier,
+                            listController: listController,
+                            scrollController: scrollController,
+                            ref: ref,
+                          );
+                        },
+                        progress: attachmentProgress.value[message.id],
+                        showAvatar: isLastInGroup,
+                        isSelectionMode: isSelectionMode.value,
+                        isSelected: selectedMessages.value.contains(message.id),
+                        onToggleSelection: toggleMessageSelection,
+                        onEnterSelectionMode: () {
+                          if (!isSelectionMode.value) {
+                            toggleSelectionMode();
+                          }
+                        },
+                      ),
+                      if (selectedMessages.value.contains(message.id))
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
           loading:
               () => MessageItem(
@@ -756,71 +872,73 @@ class ChatRoomScreen extends HookConsumerWidget {
                     ),
                   ),
                 ),
-                chatRoom.when(
-                  data:
-                      (room) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ChatInput(
-                            messageController: messageController,
-                            chatRoom: room!,
-                            onSend: sendMessage,
-                            onClear: () {
-                              if (messageEditingTo.value != null) {
-                                attachments.value.clear();
-                                messageController.clear();
-                              }
-                              messageEditingTo.value = null;
-                              messageReplyingTo.value = null;
-                              messageForwardingTo.value = null;
-                            },
-                            messageEditingTo: messageEditingTo.value,
-                            messageReplyingTo: messageReplyingTo.value,
-                            messageForwardingTo: messageForwardingTo.value,
-                            onPickFile: (bool isPhoto) {
-                              if (isPhoto) {
-                                pickPhotoMedia();
-                              } else {
-                                pickVideoMedia();
-                              }
-                            },
-                            onPickAudio: pickAudioMedia,
-                            onPickGeneralFile: pickGeneralFile,
-                            onLinkAttachment: linkAttachment,
-                            attachments: attachments.value,
-                            onUploadAttachment: uploadAttachment,
-                            onDeleteAttachment: (index) async {
-                              final attachment = attachments.value[index];
-                              if (attachment.isOnCloud && !attachment.isLink) {
-                                final client = ref.watch(apiClientProvider);
-                                await client.delete(
-                                  '/drive/files/${attachment.data.id}',
-                                );
-                              }
-                              final clone = List.of(attachments.value);
-                              clone.removeAt(index);
-                              attachments.value = clone;
-                            },
-                            onMoveAttachment: (idx, delta) {
-                              if (idx + delta < 0 ||
-                                  idx + delta >= attachments.value.length) {
-                                return;
-                              }
-                              final clone = List.of(attachments.value);
-                              clone.insert(idx + delta, clone.removeAt(idx));
-                              attachments.value = clone;
-                            },
-                            onAttachmentsChanged: (newAttachments) {
-                              attachments.value = newAttachments;
-                            },
-                            attachmentProgress: attachmentProgress.value,
-                          ),
-                          Gap(MediaQuery.of(context).padding.bottom),
-                        ],
-                      ),
-                  error: (_, _) => const SizedBox.shrink(),
-                  loading: () => const SizedBox.shrink(),
-                ),
+                if (!isSelectionMode.value)
+                  chatRoom.when(
+                    data:
+                        (room) => Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ChatInput(
+                              messageController: messageController,
+                              chatRoom: room!,
+                              onSend: sendMessage,
+                              onClear: () {
+                                if (messageEditingTo.value != null) {
+                                  attachments.value.clear();
+                                  messageController.clear();
+                                }
+                                messageEditingTo.value = null;
+                                messageReplyingTo.value = null;
+                                messageForwardingTo.value = null;
+                              },
+                              messageEditingTo: messageEditingTo.value,
+                              messageReplyingTo: messageReplyingTo.value,
+                              messageForwardingTo: messageForwardingTo.value,
+                              onPickFile: (bool isPhoto) {
+                                if (isPhoto) {
+                                  pickPhotoMedia();
+                                } else {
+                                  pickVideoMedia();
+                                }
+                              },
+                              onPickAudio: pickAudioMedia,
+                              onPickGeneralFile: pickGeneralFile,
+                              onLinkAttachment: linkAttachment,
+                              attachments: attachments.value,
+                              onUploadAttachment: uploadAttachment,
+                              onDeleteAttachment: (index) async {
+                                final attachment = attachments.value[index];
+                                if (attachment.isOnCloud &&
+                                    !attachment.isLink) {
+                                  final client = ref.watch(apiClientProvider);
+                                  await client.delete(
+                                    '/drive/files/${attachment.data.id}',
+                                  );
+                                }
+                                final clone = List.of(attachments.value);
+                                clone.removeAt(index);
+                                attachments.value = clone;
+                              },
+                              onMoveAttachment: (idx, delta) {
+                                if (idx + delta < 0 ||
+                                    idx + delta >= attachments.value.length) {
+                                  return;
+                                }
+                                final clone = List.of(attachments.value);
+                                clone.insert(idx + delta, clone.removeAt(idx));
+                                attachments.value = clone;
+                              },
+                              onAttachmentsChanged: (newAttachments) {
+                                attachments.value = newAttachments;
+                              },
+                              attachmentProgress: attachmentProgress.value,
+                            ),
+                            Gap(MediaQuery.of(context).padding.bottom),
+                          ],
+                        ),
+                    error: (_, _) => const SizedBox.shrink(),
+                    loading: () => const SizedBox.shrink(),
+                  ),
               ],
             ),
           ),
@@ -855,6 +973,43 @@ class ChatRoomScreen extends HookConsumerWidget {
                       'Syncing...',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                  ],
+                ),
+              ),
+            ),
+          // Selection mode toolbar
+          if (isSelectionMode.value)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                color: Theme.of(context).colorScheme.surface,
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 8,
+                  bottom: MediaQuery.of(context).padding.bottom + 8,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: toggleSelectionMode,
+                      tooltip: 'Cancel selection',
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${selectedMessages.value.length} selected',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const Spacer(),
+                    if (selectedMessages.value.isNotEmpty)
+                      FilledButton.icon(
+                        onPressed: openThinkingSheet,
+                        icon: Icon(Symbols.smart_toy),
+                        label: const Text('AI Think'),
+                      ),
                   ],
                 ),
               ),
