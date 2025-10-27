@@ -38,12 +38,14 @@ class AccountName extends StatelessWidget {
   final TextStyle? style;
   final String? textOverride;
   final bool ignorePermissions;
+  final bool hideVerificationMark;
   const AccountName({
     super.key,
     required this.account,
     this.style,
     this.textOverride,
     this.ignorePermissions = false,
+    this.hideVerificationMark = false,
   });
 
   Alignment _parseGradientDirection(String direction) {
@@ -188,7 +190,8 @@ class AccountName extends StatelessWidget {
                 ),
                 if (account.perkSubscription != null)
                   StellarMembershipMark(membership: account.perkSubscription!),
-                if (account.profile.verification != null)
+                if (account.profile.verification != null &&
+                    !hideVerificationMark)
                   VerificationMark(mark: account.profile.verification!),
                 if (account.automatedId != null)
                   Tooltip(
