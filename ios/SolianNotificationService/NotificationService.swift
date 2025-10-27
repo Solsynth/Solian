@@ -87,13 +87,8 @@ class NotificationService: UNNotificationServiceExtension {
             
             let intent = self.createMessageIntent(with: sender, meta: metaCopy, body: content.body)
             self.donateInteraction(for: intent)
-            let updatedContent = try? request.content.updating(from: intent)
             content.categoryIdentifier = "CHAT_MESSAGE"
-            if let updatedContent = updatedContent {
-                self.contentHandler?(updatedContent)
-            } else {
-                self.contentHandler?(content)
-            }
+            self.contentHandler?(content)
         })
     }
     
@@ -192,7 +187,7 @@ class NotificationService: UNNotificationServiceExtension {
     private func createMessageIntent(with sender: INPerson, meta: [AnyHashable: Any], body: String) -> INSendMessageIntent {
         INSendMessageIntent(
             recipients: nil,
-            outgoingMessageType: .outgoingMessageText,
+            outgoingMessageType: .incomingMessageText,
             content: body,
             speakableGroupName: meta["room_name"] != nil ? INSpeakableString(spokenPhrase: meta["room_name"] as! String) : nil,
             conversationIdentifier: "\(meta["room_id"] ?? "")",
