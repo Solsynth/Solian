@@ -149,6 +149,7 @@ class CheckInWidget extends HookConsumerWidget {
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
+                          trackGap: 0,
                           value: progress,
                           strokeWidth: 2,
                         ),
