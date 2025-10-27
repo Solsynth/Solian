@@ -478,7 +478,7 @@ class ExploreScreen extends HookConsumerWidget {
               if (user.value != null)
                 SliverToBoxAdapter(
                   child: CheckInWidget(
-                    margin: const EdgeInsets.only(bottom: 8),
+                    margin: const EdgeInsets.only(bottom: 8, top: 8),
                   ),
                 ),
               SliverToBoxAdapter(
