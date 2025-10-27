@@ -5,7 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:island/models/thought.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/post/compose_dialog.dart';
+import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:island/widgets/thought/function_calls_section.dart';
 import 'package:island/widgets/thought/proposals_section.dart';
 import 'package:island/widgets/thought/reasoning_section.dart';
@@ -29,7 +29,7 @@ void _handleProposalAction(BuildContext context, Map<String, String> proposal) {
   switch (proposal['type']) {
     case 'post_create':
       // Show post creation dialog with the proposal content
-      PostComposeDialog.show(
+      PostComposeSheet.show(
         context,
         initialState: PostComposeInitialState(
           content: (proposal['content'] ?? '').trim(),

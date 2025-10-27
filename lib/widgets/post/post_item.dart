@@ -26,7 +26,7 @@ import 'package:island/widgets/post/embed_view_renderer.dart';
 import 'package:island/widgets/post/post_reaction_sheet.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
 import 'package:island/widgets/share/share_sheet.dart';
-import 'package:island/widgets/post/compose_dialog.dart';
+import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
 import 'package:screenshot/screenshot.dart';
@@ -180,7 +180,7 @@ class PostActionableItem extends HookConsumerWidget {
                 title: 'edit'.tr(),
                 image: MenuImage.icon(Symbols.edit),
                 callback: () async {
-                  final result = await PostComposeDialog.show(
+                  final result = await PostComposeSheet.show(
                     context,
                     originalPost: item,
                   );
@@ -227,7 +227,7 @@ class PostActionableItem extends HookConsumerWidget {
               title: 'reply'.tr(),
               image: MenuImage.icon(Symbols.reply),
               callback: () async {
-                final result = await PostComposeDialog.show(
+                final result = await PostComposeSheet.show(
                   context,
                   initialState: PostComposeInitialState(replyingTo: item),
                 );
@@ -240,7 +240,7 @@ class PostActionableItem extends HookConsumerWidget {
               title: 'forward'.tr(),
               image: MenuImage.icon(Symbols.forward),
               callback: () async {
-                final result = await PostComposeDialog.show(
+                final result = await PostComposeSheet.show(
                   context,
                   initialState: PostComposeInitialState(forwardingTo: item),
                 );

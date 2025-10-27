@@ -17,12 +17,12 @@ import 'package:material_symbols_icons/symbols.dart';
 
 /// A dialog that wraps PostComposeCard for easy use in dialogs.
 /// This provides a convenient way to show the compose interface in a modal dialog.
-class PostComposeDialog extends HookConsumerWidget {
+class PostComposeSheet extends HookConsumerWidget {
   final SnPost? originalPost;
   final PostComposeInitialState? initialState;
   final bool isBottomSheet;
 
-  const PostComposeDialog({
+  const PostComposeSheet({
     super.key,
     this.originalPost,
     this.initialState,
@@ -39,7 +39,7 @@ class PostComposeDialog extends HookConsumerWidget {
       isScrollControlled: true,
       useRootNavigator: true,
       builder:
-          (context) => PostComposeDialog(
+          (context) => PostComposeSheet(
             originalPost: originalPost,
             initialState: initialState,
             isBottomSheet: true,

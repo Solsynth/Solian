@@ -10,7 +10,7 @@ import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/content/cloud_files.dart';
-import 'package:island/widgets/post/compose_dialog.dart';
+import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:island/widgets/post/publishers_modal.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -124,7 +124,7 @@ class PostQuickReply extends HookConsumerWidget {
                   IconButton(
                     onPressed: () async {
                       onLaunch?.call();
-                      final value = await PostComposeDialog.show(
+                      final value = await PostComposeSheet.show(
                         context,
                         initialState: PostComposeInitialState(
                           content: contentController.text,

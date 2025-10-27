@@ -178,10 +178,9 @@ class ComposeToolbar extends HookConsumerWidget {
                       horizontal: -4,
                       vertical: -4,
                     ),
-                    padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
                       minWidth: 32,
-                      minHeight: 32,
+                      minHeight: 48,
                     ),
                   )
                 else if (originalPost == null)
@@ -195,10 +194,9 @@ class ComposeToolbar extends HookConsumerWidget {
                       horizontal: -4,
                       vertical: -4,
                     ),
-                    padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
                       minWidth: 32,
-                      minHeight: 32,
+                      minHeight: 48,
                     ),
                   ),
               ],

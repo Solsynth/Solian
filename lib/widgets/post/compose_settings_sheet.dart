@@ -157,6 +157,8 @@ class ComposeSettingsSheet extends HookConsumerWidget {
       );
     }
 
+    final tagInputController = useTextEditingController();
+
     return SheetScaffold(
       titleText: 'postSettings'.tr(),
       heightFactor: 0.6,
@@ -255,6 +257,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                     ),
                   // Tag input with autocomplete
                   TypeAheadField<SnPostTag>(
+                    controller: tagInputController,
                     builder: (context, controller, focusNode) {
                       return TextField(
                         controller: controller,
@@ -279,6 +282,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                           borderRadius: BorderRadius.all(Radius.circular(8)),
                         ),
                         title: Text('#${suggestion.slug}'),
+                        subtitle: Text('${suggestion.usage} posts'),
                         dense: true,
                       );
                     },
@@ -289,6 +293,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                           suggestion.slug,
                         ];
                       }
+                      tagInputController.clear();
                     },
                     direction: VerticalDirection.down,
                     hideOnEmpty: true,

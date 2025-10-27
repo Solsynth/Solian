@@ -8,7 +8,7 @@ import 'package:island/screens/notification.dart';
 import 'package:island/services/event_bus.dart';
 import 'package:island/widgets/account/account_picker.dart';
 import 'package:island/widgets/alert.dart';
-import 'package:island/widgets/post/compose_dialog.dart';
+import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 enum FabMenuType { main, chat, realm }
@@ -166,7 +166,7 @@ class FabMenu extends HookConsumerWidget {
               title: Text('postCompose').tr(),
               onTap: () async {
                 Navigator.of(context).pop();
-                await PostComposeDialog.show(context);
+                await PostComposeSheet.show(context);
               },
             ),
             const Divider(),

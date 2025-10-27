@@ -36,7 +36,8 @@ class PostComposeCard extends HookConsumerWidget {
   final VoidCallback? onCancel;
   final Function()? onSubmit;
   final Function(ComposeState)? onStateChanged;
-  final bool isDialog;
+  final bool isContained;
+  final bool showHeader;
 
   const PostComposeCard({
     super.key,
@@ -45,7 +46,8 @@ class PostComposeCard extends HookConsumerWidget {
     this.onCancel,
     this.onSubmit,
     this.onStateChanged,
-    this.isDialog = false,
+    this.isContained = false,
+    this.showHeader = true,
   });
 
   @override
@@ -169,14 +171,12 @@ class PostComposeCard extends HookConsumerWidget {
       );
     }
 
-    final maxHeight = math.min(
-      640.0,
-      MediaQuery.of(context).size.height * (isDialog ? 0.8 : 0.72),
-    );
+    final maxHeight = math.min(640.0, MediaQuery.of(context).size.height * 0.8);
 
     return Card(
       margin: EdgeInsets.zero,
-      color: isDialog ? Theme.of(context).colorScheme.surfaceContainer : null,
+      color: isContained ? Colors.transparent : null,
+      elevation: isContained ? 0 : null,
       child: Container(
         constraints: BoxConstraints(maxHeight: maxHeight),
         child: Column(
@@ -184,75 +184,81 @@ class PostComposeCard extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header with actions
-            Container(
-              height: 65,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: theme.colorScheme.outline.withOpacity(0.2),
+            if (showHeader)
+              Container(
+                height: 65,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: theme.colorScheme.outline.withOpacity(0.2),
+                    ),
                   ),
                 ),
-              ),
-              child: Row(
-                children: [
-                  const Gap(4),
-                  Text(
-                    'postCompose'.tr(),
-                    style: theme.textTheme.titleMedium!.copyWith(fontSize: 18),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Symbols.settings),
-                    onPressed: showSettingsSheet,
-                    tooltip: 'postSettings'.tr(),
-                    visualDensity: const VisualDensity(
-                      horizontal: -4,
-                      vertical: -2,
+                child: Row(
+                  children: [
+                    const Gap(4),
+                    Text(
+                      'postCompose'.tr(),
+                      style: theme.textTheme.titleMedium!.copyWith(
+                        fontSize: 18,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed:
-                        (state.submitting.value ||
-                                state.currentPublisher.value == null)
-                            ? null
-                            : performSubmit,
-                    icon:
-                        state.submitting.value
-                            ? SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : Icon(
-                              originalPost != null
-                                  ? Symbols.edit
-                                  : Symbols.upload,
-                            ),
-                    tooltip:
-                        originalPost != null
-                            ? 'postUpdate'.tr()
-                            : 'postPublish'.tr(),
-                    visualDensity: const VisualDensity(
-                      horizontal: -4,
-                      vertical: -2,
-                    ),
-                  ),
-                  if (onCancel != null)
+                    const Spacer(),
                     IconButton(
-                      icon: const Icon(Symbols.close),
-                      onPressed: onCancel,
-                      tooltip: 'cancel'.tr(),
+                      icon: const Icon(Symbols.settings),
+                      onPressed: showSettingsSheet,
+                      tooltip: 'postSettings'.tr(),
                       visualDensity: const VisualDensity(
                         horizontal: -4,
                         vertical: -2,
                       ),
                     ),
-                ],
+                    IconButton(
+                      onPressed:
+                          (state.submitting.value ||
+                                  state.currentPublisher.value == null)
+                              ? null
+                              : performSubmit,
+                      icon:
+                          state.submitting.value
+                              ? SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : Icon(
+                                originalPost != null
+                                    ? Symbols.edit
+                                    : Symbols.upload,
+                              ),
+                      tooltip:
+                          originalPost != null
+                              ? 'postUpdate'.tr()
+                              : 'postPublish'.tr(),
+                      visualDensity: const VisualDensity(
+                        horizontal: -4,
+                        vertical: -2,
+                      ),
+                    ),
+                    if (onCancel != null)
+                      IconButton(
+                        icon: const Icon(Symbols.close),
+                        onPressed: onCancel,
+                        tooltip: 'cancel'.tr(),
+                        visualDensity: const VisualDensity(
+                          horizontal: -4,
+                          vertical: -2,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
 
             // Info banner (reply/forward)
             ComposeInfoBanner(
@@ -310,7 +316,7 @@ class PostComposeCard extends HookConsumerWidget {
                           onTap: () {
                             if (state.currentPublisher.value == null) {
                               // No publisher loaded, guide user to create one
-                              if (isDialog) {
+                              if (isContained) {
                                 Navigator.of(context).pop();
                               }
                               context.pushNamed('creatorNew').then((value) {
@@ -347,7 +353,7 @@ class PostComposeCard extends HookConsumerWidget {
                                 onPublisherTap: () {
                                   if (state.currentPublisher.value == null) {
                                     // No publisher loaded, guide user to create one
-                                    if (isDialog) {
+                                    if (isContained) {
                                       Navigator.of(context).pop();
                                     }
                                     context.pushNamed('creatorNew').then((
