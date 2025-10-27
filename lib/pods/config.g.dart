@@ -30,7 +30,7 @@ Map<String, dynamic> _$ThemeColorsToJson(_ThemeColors instance) =>
 // **************************************************************************
 
 String _$appSettingsNotifierHash() =>
-    r'10ebd893c39d24ae588a4c0bf4144ee4656465a4';
+    r'22b695f2023e3251db3296858acd701f7211d757';
 
 /// See also [AppSettingsNotifier].
 @ProviderFor(AppSettingsNotifier)

@@ -422,6 +422,48 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
+      // FAB position settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('fabPosition').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.adjust),
+        trailing: DropdownButtonHideUnderline(
+          child: DropdownButton2<String>(
+            isExpanded: true,
+            items: [
+              DropdownMenuItem<String>(
+                value: 'left',
+                child: Text('Left').fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'center',
+                child: Text('Center').fontSize(14),
+              ),
+              DropdownMenuItem<String>(
+                value: 'right',
+                child: Text('Right').fontSize(14),
+              ),
+            ],
+            value: settings.fabPosition,
+            onChanged: (String? value) {
+              if (value != null) {
+                ref
+                    .read(appSettingsNotifierProvider.notifier)
+                    .setFabPosition(value);
+                showSnackBar('settingsApplied'.tr());
+              }
+            },
+            buttonStyleData: const ButtonStyleData(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+              height: 40,
+              width: 120,
+            ),
+            menuItemStyleData: const MenuItemStyleData(height: 40),
+          ),
+        ),
+      ),
+
       // Card background opacity settings
       ListTile(
         minLeadingWidth: 48,

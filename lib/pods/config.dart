@@ -35,6 +35,7 @@ const kAppMessageDisplayStyle = 'app_message_display_style';
 const kAppThemeMode = 'app_theme_mode';
 const kMaterialYouToggleStoreKey = 'app_theme_material_you';
 const kAppDisableAnimation = 'app_disable_animation';
+const kAppFabPosition = 'app_fab_position';
 const kFeaturedPostsCollapsedId =
     'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
 
@@ -98,6 +99,7 @@ sealed class AppSettings with _$AppSettings {
     required String? themeMode,
     required bool useMaterial3,
     required bool disableAnimation,
+    required String fabPosition,
   }) = _AppSettings;
 }
 
@@ -125,6 +127,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       themeMode: prefs.getString(kAppThemeMode) ?? 'system',
       useMaterial3: prefs.getBool(kMaterialYouToggleStoreKey) ?? true,
       disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
+      fabPosition: prefs.getString(kAppFabPosition) ?? 'center',
     );
   }
 
@@ -281,6 +284,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppDisableAnimation, value);
     state = state.copyWith(disableAnimation: value);
+  }
+
+  void setFabPosition(String value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppFabPosition, value);
+    state = state.copyWith(fabPosition: value);
   }
 }
 

@@ -1254,7 +1254,7 @@
     "upgradeRequired": "Upgrade required",
     "settingsDisableAnimation": "Disable Animation",
     "addTag": "Add Tag",
-    "postFeaturedIn": "Post featured on {}",
+    "postFeaturedOn": "Post featured on {}",
     "messageSentAt": "Sent at {}",
     "myTickets": "My Tickets",
     "drawHistory": "Draw History",
@@ -1301,5 +1301,6 @@
     "thoughtFunctionCall": "Function Call",
     "aiThought": "AI Thought",
     "aiThoughtTitle": "Let sn-chan think",
-    "postReferenceUnavailable": "Referenced post is unavailable"
+    "postReferenceUnavailable": "Referenced post is unavailable",
+    "fabLocation": "FAB Location"
 }

@@ -11,6 +11,7 @@ import 'package:island/widgets/navigation/conditional_bottom_nav.dart';
 import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:island/pods/config.dart';
 
 final currentRouteProvider = StateProvider<String?>((ref) => null);
 
@@ -101,6 +102,7 @@ class TabsScreen extends HookConsumerWidget {
       isWideScreen(context) ? null : kWideScreenRouteStart,
     );
     final shouldShowFab = routes.contains(currentLocation) && !wideScreen;
+    final settings = ref.watch(appSettingsNotifierProvider);
 
     if (isWideScreen(context)) {
       return Container(
@@ -151,7 +153,9 @@ class TabsScreen extends HookConsumerWidget {
       ),
       floatingActionButton: shouldShowFab ? const FabMenu() : null,
       floatingActionButtonLocation:
-          shouldShowFab ? _DockedFabLocation(context) : null,
+          shouldShowFab
+              ? _DockedFabLocation(context, settings.fabPosition)
+              : null,
       bottomNavigationBar: ConditionalBottomNav(
         child: ClipRRect(
           borderRadius: BorderRadius.only(
@@ -189,9 +193,18 @@ class TabsScreen extends HookConsumerWidget {
                                     : null,
                           );
                         }).toList();
-                    // Add mock item in the center to leave space for FAB
-                    int centerIndex = navItems.length ~/ 2;
-                    navItems.insert(centerIndex, const SizedBox(width: 72));
+                    // Add mock item to leave space for FAB based on position
+                    final gapIndex = switch (settings.fabPosition) {
+                      'left' => 0,
+                      'right' => navItems.length,
+                      _ => navItems.length ~/ 2, // center
+                    };
+                    navItems.insert(
+                      gapIndex,
+                      SizedBox(
+                        width: settings.fabPosition == 'center' ? 72 : 48,
+                      ),
+                    );
                     return navItems;
                   }(),
                 ),
@@ -206,19 +219,28 @@ class TabsScreen extends HookConsumerWidget {
 
 class _DockedFabLocation extends FloatingActionButtonLocation {
   final BuildContext context;
+  final String fabPosition;
 
-  const _DockedFabLocation(this.context);
+  const _DockedFabLocation(this.context, this.fabPosition);
 
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
     final mediaQuery = MediaQuery.of(context);
     final safeAreaPadding = mediaQuery.padding;
 
-    // Center horizontally
-    final double fabX =
+    // Position horizontally based on setting
+    final double fabX = switch (fabPosition) {
+      'left' => scaffoldGeometry.minInsets.left + 24,
+      'right' =>
+        scaffoldGeometry.scaffoldSize.width -
+            scaffoldGeometry.floatingActionButtonSize.width -
+            scaffoldGeometry.minInsets.right -
+            24,
+      _ =>
         (scaffoldGeometry.scaffoldSize.width -
-            scaffoldGeometry.floatingActionButtonSize.width) /
-        2;
+                scaffoldGeometry.floatingActionButtonSize.width) /
+            2, // center
+    };
 
     // Position closer to bottom with reduced padding
     final double fabY =
