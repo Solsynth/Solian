@@ -206,8 +206,11 @@ class ExploreScreen extends HookConsumerWidget {
       ).padding(horizontal: 8),
     );
 
+    final appBar = isWide ? null : _buildAppBar(tabController, context);
+
     return AppScaffold(
       isNoBackground: false,
+      appBar: appBar,
       body:
           isWide
               ? _buildWideBody(
@@ -221,7 +224,7 @@ class ExploreScreen extends HookConsumerWidget {
                 selectedDay,
                 currentFilter.value,
               )
-              : _buildNarrowBody(context, ref, filterBar, currentFilter.value),
+              : _buildNarrowBody(context, ref, currentFilter.value),
     );
   }
 
@@ -337,10 +340,121 @@ class ExploreScreen extends HookConsumerWidget {
     ).padding(horizontal: 12);
   }
 
+  PreferredSizeWidget _buildAppBar(
+    TabController tabController,
+    BuildContext context,
+  ) {
+    final foregroundColor = Theme.of(context).appBarTheme.foregroundColor;
+
+    return AppBar(
+      toolbarHeight: 48 + 4,
+      flexibleSpace: Container(
+        height: 48,
+        margin: const EdgeInsets.only(left: 8, right: 8, top: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: TabBar(
+                controller: tabController,
+                tabAlignment: TabAlignment.start,
+                isScrollable: true,
+                dividerColor: Colors.transparent,
+                tabs: [
+                  Tab(
+                    icon: Tooltip(
+                      message: 'explore'.tr(),
+                      child: Icon(Symbols.explore, color: foregroundColor),
+                    ),
+                  ),
+                  Tab(
+                    icon: Tooltip(
+                      message: 'exploreFilterSubscriptions'.tr(),
+                      child: Icon(
+                        Symbols.subscriptions,
+                        color: foregroundColor,
+                      ),
+                    ),
+                  ),
+                  Tab(
+                    icon: Tooltip(
+                      message: 'exploreFilterFriends'.tr(),
+                      child: Icon(Symbols.people, color: foregroundColor),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                context.pushNamed('articles');
+              },
+              icon: Icon(Symbols.auto_stories, color: foregroundColor),
+              tooltip: 'webArticlesStand'.tr(),
+            ),
+            PopupMenuButton(
+              itemBuilder:
+                  (context) => [
+                    PopupMenuItem(
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.category),
+                          const Gap(12),
+                          Text('categories').tr(),
+                        ],
+                      ),
+                      onTap: () {
+                        context.pushNamed('postCategories');
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.label),
+                          const Gap(12),
+                          Text('tags').tr(),
+                        ],
+                      ),
+                      onTap: () {
+                        context.pushNamed('postTags');
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.shuffle),
+                          const Gap(12),
+                          Text('postShuffle').tr(),
+                        ],
+                      ),
+                      onTap: () {
+                        context.pushNamed('postShuffle');
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.search),
+                          const Gap(12),
+                          Text('search').tr(),
+                        ],
+                      ),
+                      onTap: () {
+                        context.pushNamed('postSearch');
+                      },
+                    ),
+                  ],
+              icon: Icon(Symbols.action_key, color: foregroundColor),
+              tooltip: 'search'.tr(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildNarrowBody(
     BuildContext context,
     WidgetRef ref,
-    Widget filterBar,
     String? currentFilter,
   ) {
     final user = ref.watch(userInfoProvider);
@@ -354,45 +468,39 @@ class ExploreScreen extends HookConsumerWidget {
 
     final bodyView = _buildActivityList(context, ref, currentFilter);
 
-    return Column(
-      spacing: 8,
-      children: [
-        filterBar.padding(horizontal: 8, top: 8),
-        Expanded(
-          child: ExtendedRefreshIndicator(
-            onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-              child: CustomScrollView(
-                slivers: [
-                  if (user.value != null)
-                    SliverToBoxAdapter(
-                      child: CheckInWidget(
-                        margin: const EdgeInsets.only(bottom: 8),
-                      ),
-                    ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: PostFeaturedList(),
-                    ),
+    return Expanded(
+      child: ExtendedRefreshIndicator(
+        onRefresh: () => Future.sync(activitiesNotifier.forceRefresh),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          child: CustomScrollView(
+            slivers: [
+              if (user.value != null)
+                SliverToBoxAdapter(
+                  child: CheckInWidget(
+                    margin: const EdgeInsets.only(bottom: 8),
                   ),
-                  if (notificationCount.value != null &&
-                      notificationCount.value! > 0)
-                    SliverToBoxAdapter(
-                      child: notificationIndicatorWidget(
-                        context,
-                        count: notificationCount.value ?? 0,
-                        margin: const EdgeInsets.only(bottom: 8),
-                      ),
-                    ),
-                  bodyView,
-                ],
+                ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: PostFeaturedList(),
+                ),
               ),
-            ).padding(horizontal: 8),
+              if (notificationCount.value != null &&
+                  notificationCount.value! > 0)
+                SliverToBoxAdapter(
+                  child: notificationIndicatorWidget(
+                    context,
+                    count: notificationCount.value ?? 0,
+                    margin: const EdgeInsets.only(bottom: 8),
+                  ),
+                ),
+              bodyView,
+            ],
           ),
-        ),
-      ],
+        ).padding(horizontal: 8),
+      ),
     );
   }
 }
