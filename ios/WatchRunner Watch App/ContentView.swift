@@ -1,4 +1,3 @@
-
 //
 //  ContentView.swift
 //  WatchRunner Watch App
@@ -113,10 +112,6 @@ struct SnActivity: Codable, Identifiable {
     let type: String
     let data: ActivityData?
     let createdAt: Date
-    
-    enum CodingKeys: String, CodingKey {
-        case id, type, data, createdAt
-    }
 }
 
 enum ActivityData: Codable {
@@ -239,6 +234,7 @@ class NetworkService {
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
         
         return try decoder.decode([SnActivity].self, from: data)
     }
@@ -269,6 +265,7 @@ class ActivityViewModel: ObservableObject {
             self.activities = fetchedActivities
         } catch {
             self.errorMessage = error.localizedDescription
+            print("[watchOS] fetchActivities failed with error: \(error)")
         }
 
         isLoading = false
@@ -291,11 +288,15 @@ struct ActivityListView: View {
                 ProgressView()
             } else if let errorMessage = viewModel.errorMessage {
                 VStack {
-                    Text("Error")
+                    Text("Error fetching data")
                         .font(.headline)
                     Text(errorMessage)
                         .font(.caption)
+                        .lineLimit(nil)
                 }
+                .padding()
+            } else if viewModel.activities.isEmpty {
+                Text("No activities found.")
             } else {
                 List(viewModel.activities) { activity in
                     switch activity.type {
