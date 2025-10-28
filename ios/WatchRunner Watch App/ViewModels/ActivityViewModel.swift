@@ -19,7 +19,8 @@ class ActivityViewModel: ObservableObject {
     private let networkService = NetworkService()
     let filter: String
     private var isMock = false
-    
+    private var hasFetched = false // Add this
+
     init(filter: String, mockActivities: [SnActivity]? = nil) {
         self.filter = filter
         if let mockActivities = mockActivities {
@@ -29,10 +30,11 @@ class ActivityViewModel: ObservableObject {
     }
 
     func fetchActivities(token: String, serverUrl: String) async {
-        if isMock { return }
+        if isMock || hasFetched { return } // Check hasFetched
         guard !isLoading else { return }
         isLoading = true
         errorMessage = nil
+        hasFetched = true // Set hasFetched
 
         do {
             let fetchedActivities = try await networkService.fetchActivities(filter: filter, token: token, serverUrl: serverUrl)
@@ -40,6 +42,7 @@ class ActivityViewModel: ObservableObject {
         } catch {
             self.errorMessage = error.localizedDescription
             print("[watchOS] fetchActivities failed with error: \(error)")
+            hasFetched = false // Reset on error
         }
 
         isLoading = false

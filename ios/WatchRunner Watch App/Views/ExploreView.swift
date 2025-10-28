@@ -11,53 +11,49 @@ import SwiftUI
 struct ExploreView: View {
     @StateObject private var appState = AppState()
     @State private var isComposing = false
+    @State private var selectedTab: String = "Explore"
 
     var body: some View {
         NavigationStack {
-            Group {
-                if appState.isReady {
-                    TabView {
-                        NavigationStack {
-                            ActivityListView(filter: "Explore")
-                        }
+            if appState.isReady {
+                TabView(selection: $selectedTab) {
+                    ActivityListView(filter: "Explore")
+                        .tag("Explore")
                         .tabItem {
                             Label("Explore", systemImage: "safari")
                         }
 
-                        NavigationStack {
-                            ActivityListView(filter: "Subscriptions")
-                        }
+                    ActivityListView(filter: "Subscriptions")
+                        .tag("Subscriptions")
                         .tabItem {
                             Label("Subscriptions", systemImage: "star")
                         }
 
-                        NavigationStack {
-                            ActivityListView(filter: "Friends")
-                        }
+                    ActivityListView(filter: "Friends")
+                        .tag("Friends")
                         .tabItem {
                             Label("Friends", systemImage: "person.2")
                         }
-                    }
-                    .environmentObject(appState)
-                } else {
-                    ProgressView { Text("Connecting to phone...") }
-                        .onAppear {
-                            appState.requestData()
+                }
+                .navigationTitle(selectedTab)
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: { isComposing = true }) {
+                            Label("Compose", systemImage: "plus")
                         }
-                }
-            }
-            .navigationTitle("Explore")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: { isComposing = true }) {
-                        Label("Compose", systemImage: "plus")
                     }
                 }
+                .environmentObject(appState)
+            } else {
+                ProgressView { Text("Connecting to phone...") }
+                    .onAppear {
+                        appState.requestData()
+                    }
             }
-            .sheet(isPresented: $isComposing) {
-                ComposePostView()
-                    .environmentObject(appState)
-            }
+        }
+        .sheet(isPresented: $isComposing) {
+            ComposePostView()
+                .environmentObject(appState)
         }
     }
 }

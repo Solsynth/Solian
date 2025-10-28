@@ -12,11 +12,11 @@ import SwiftUI
 struct ActivityListView: View {
     @StateObject private var viewModel: ActivityViewModel
     @EnvironmentObject var appState: AppState
-
+    
     init(filter: String, mockActivities: [SnActivity]? = nil) {
         _viewModel = StateObject(wrappedValue: ActivityViewModel(filter: filter, mockActivities: mockActivities))
     }
-
+    
     var body: some View {
         Group {
             if viewModel.isLoading {
@@ -37,24 +37,27 @@ struct ActivityListView: View {
                     switch activity.type {
                     case "posts.new", "posts.new.replies":
                         if case .post(let post) = activity.data {
-                            NavigationLink(destination: PostDetailView(post: post)) {
+                            NavigationLink(
+                                destination: PostDetailView(post: post).environmentObject(appState)
+                            ) {
                                 PostRowView(post: post)
                             }
                         }
                     case "discovery":
-                         if case .discovery(let discoveryData) = activity.data {
-                             DiscoveryView(discoveryData: discoveryData)
-                         }
+                        if case .discovery(let discoveryData) = activity.data {
+                            DiscoveryView(discoveryData: discoveryData)
+                        }
                     default:
                         Text("Unknown activity type: \(activity.type)")
                     }
                 }
             }
         }
-        .task {
-            // Only fetch if appState is ready and token/serverUrl are available
+        .onAppear {
             if appState.isReady, let token = appState.token, let serverUrl = appState.serverUrl {
-                await viewModel.fetchActivities(token: token, serverUrl: serverUrl)
+                Task.detached {
+                    await viewModel.fetchActivities(token: token, serverUrl: serverUrl)
+                }
             }
         }
         .navigationTitle(viewModel.filter)
