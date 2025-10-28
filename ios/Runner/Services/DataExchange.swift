@@ -26,6 +26,6 @@ extension UserDefaults {
     }
     
     func getServerUrl(forKey key: String = "app_server_url") -> String {
-        return self.getFlutterValue(forKey: key) ?? "https://nt.solian.app"
+        return self.getFlutterValue(forKey: key) ?? "https://api.solian.app"
     }
 }
