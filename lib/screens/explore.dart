@@ -350,7 +350,11 @@ class ExploreScreen extends HookConsumerWidget {
       toolbarHeight: 48 + 4,
       flexibleSpace: Container(
         height: 48,
-        margin: const EdgeInsets.only(left: 8, right: 8, top: 4),
+        margin: EdgeInsets.only(
+          left: 8,
+          right: 8,
+          top: 4 + MediaQuery.of(context).padding.top,
+        ),
         child: Row(
           children: [
             Expanded(
