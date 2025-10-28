@@ -1,0 +1,142 @@
+//
+//  PostViews.swift
+//  WatchRunner Watch App
+//
+//  Created by LittleSheep on 2025/10/29.
+//
+
+import SwiftUI
+
+struct PostRowView: View {
+    let post: SnPost
+    @EnvironmentObject var appState: AppState
+    @StateObject private var imageLoader = ImageLoader() // Instantiate ImageLoader
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
+                    if imageLoader.isLoading {
+                        ProgressView()
+                            .frame(width: 24, height: 24)
+                    } else if let image = imageLoader.image {
+                        image
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .clipShape(Circle())
+                    } else if let errorMessage = imageLoader.errorMessage {
+                        Text("Failed: \(errorMessage)")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .frame(width: 24, height: 24)
+                    } else {
+                        // Placeholder if no image and not loading
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .clipShape(Circle())
+                            .foregroundColor(.gray)
+                    }
+                }
+                Text(post.publisher.nick ?? post.publisher.name)
+                    .font(.subheadline)
+                    .bold()
+            }
+            .task(id: post.publisher.picture?.id) { // Use task(id:) to reload image when pictureId changes
+                if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
+                    await imageLoader.loadImage(from: imageUrl, token: token)
+                }
+            }
+            
+            if let title = post.title, !title.isEmpty {
+                Text(title)
+                    .font(.headline)
+            }
+            
+            if let content = post.content, !content.isEmpty {
+                Text(content)
+                    .font(.body)
+            }
+        }
+    }
+}
+
+struct PostDetailView: View {
+    let post: SnPost
+    @EnvironmentObject var appState: AppState
+    @StateObject private var publisherImageLoader = ImageLoader() // Instantiate ImageLoader for publisher avatar
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
+                        if publisherImageLoader.isLoading {
+                            ProgressView()
+                                .frame(width: 32, height: 32)
+                        } else if let image = publisherImageLoader.image {
+                            image
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                        } else if let errorMessage = publisherImageLoader.errorMessage {
+                            Text("Failed: \(errorMessage)")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .frame(width: 32, height: 32)
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    Text("@\(post.publisher.name)")
+                        .font(.headline)
+                }
+                .task(id: post.publisher.picture?.id) { // Use task(id:) to reload image when pictureId changes
+                    if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
+                        await publisherImageLoader.loadImage(from: imageUrl, token: token)
+                    }
+                }
+                
+                if let title = post.title, !title.isEmpty {
+                    Text(title)
+                        .font(.title2)
+                        .bold()
+                }
+                
+                if let content = post.content, !content.isEmpty {
+                    Text(content)
+                        .font(.body)
+                }
+                
+                if !post.attachments.isEmpty {
+                    Divider()
+                    Text("Attachments").font(.headline)
+                    ForEach(post.attachments) { attachment in
+                        AttachmentImageView(attachment: attachment)
+                    }
+                }
+                
+                if !post.tags.isEmpty {
+                    Divider()
+                    Text("Tags").font(.headline)
+                    FlowLayout(alignment: .leading, spacing: 4) {
+                        ForEach(post.tags) { tag in
+                            Text("#\(tag.name ?? tag.slug)")
+                                .font(.caption)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(Capsule().fill(Color.accentColor.opacity(0.2)))
+                                .cornerRadius(5)
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("Post")
+    }
+}
