@@ -10,6 +10,7 @@ import SwiftUI
 struct AccountView: View {
     @EnvironmentObject var appState: AppState
     @State private var user: SnAccount?
+    @State private var status: SnAccountStatus?
     @State private var isLoading = false
     @State private var error: Error?
     
@@ -102,20 +103,64 @@ struct AccountView: View {
                         }
                     }
                     
-                    // Bio
-                    if let bio = user.profile.bio, !bio.isEmpty {
-                        Text(bio)
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(.secondary)
-                    } else {
-                        Text("No bio available")
-                            .font(.body)
-                            .foregroundColor(.secondary)
+                    // Status
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Status")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            NavigationLink(
+                                destination: StatusCreationView(initialStatus: status)
+                                    .environmentObject(appState)
+                            ) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.1))
+                                        .frame(width: 28, height: 28)
+                                    Image(systemName: "pencil")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .frame(width: 28, height: 28)
+                        }
+                        
+                        if let status = status {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Circle()
+                                        .fill(status.isOnline ? Color.green : Color.gray)
+                                        .frame(width: 8, height: 8)
+                                    Text(status.label.isEmpty ? "No status" : status.label)
+                                        .font(.body)
+                                }
+                                
+                                if status.isInvisible {
+                                    Text("Invisible")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                if status.isNotDisturb {
+                                    Text("Do Not Disturb")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                if let clearedAt = status.clearedAt {
+                                    Text("Clears: \(clearedAt.formatted(date: .abbreviated, time: .shortened))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        } else {
+                            Text("No status set")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     // Level and Progress
-                    VStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("Level \(user.profile.level)")
                             .font(.title3)
                             .bold()
@@ -127,10 +172,25 @@ struct AccountView: View {
                             .foregroundColor(.secondary)
                     }
                     
+                    // Bio
+                    if let bio = user.profile.bio, !bio.isEmpty {
+                        Text(bio)
+                            .font(.body)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.secondary)
+                            .frame(alignment: .leading)
+                    } else {
+                        Text("No bio available")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .frame(alignment: .leading)
+                    }
+                    
                     // Member since
-                    Text("Member since: \(user.createdAt.formatted(.dateTime.month(.abbreviated).year()))")
+                    Text("Joined at \(user.createdAt.formatted(.dateTime.month(.abbreviated).year()))")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .frame(alignment: .leading)
                 }
                 .padding()
                 // Load images when user data is available
@@ -168,6 +228,7 @@ struct AccountView: View {
         
         do {
             user = try await networkService.fetchUserProfile(token: token, serverUrl: serverUrl)
+            status = try await networkService.fetchAccountStatus(token: token, serverUrl: serverUrl)
         } catch {
             self.error = error
         }
