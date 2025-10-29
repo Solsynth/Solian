@@ -181,7 +181,10 @@ struct ChatRoomListItem: View {
     }
 
     var body: some View {
-        NavigationLink(destination: ChatRoomView(room: room)) {
+        NavigationLink(
+            destination: ChatRoomView(room: room)
+                .environmentObject(appState)
+        ) {
             HStack {
                 // Avatar using ImageLoader pattern
                 Group {
@@ -292,9 +295,23 @@ struct ChatRoomView: View {
     }
 
     private func loadMessages() async {
-        // Placeholder for message loading
-        // In a full implementation, this would fetch messages from the API
-        // For now, just show empty state
+        guard let token = appState.token, let serverUrl = appState.serverUrl else {
+            isLoading = false
+            return
+        }
+
+        do {
+            let messages = try await appState.networkService.fetchChatMessages(
+                chatRoomId: room.id,
+                token: token,
+                serverUrl: serverUrl
+            )
+            self.messages = messages.sorted { $0.createdAt < $1.createdAt }
+        } catch {
+            print("[watchOS] Error loading messages: \(error.localizedDescription)")
+            self.error = error
+        }
+
         isLoading = false
     }
 }
