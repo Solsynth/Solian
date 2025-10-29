@@ -16,6 +16,9 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
     @Published var serverUrl: String?
 
     private let session: WCSession
+    private let userDefaults = UserDefaults.standard
+    private let tokenKey = "token"
+    private let serverUrlKey = "serverUrl"
 
     override init() {
         self.session = .default
@@ -23,6 +26,10 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
         print("[watchOS] Activating WCSession")
         self.session.delegate = self
         self.session.activate()
+        
+        // Load cached data
+        self.token = userDefaults.string(forKey: tokenKey)
+        self.serverUrl = userDefaults.string(forKey: serverUrlKey)
     }
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
@@ -41,9 +48,11 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
         DispatchQueue.main.async {
             if let token = message["token"] as? String {
                 self.token = token
+                self.userDefaults.set(token, forKey: self.tokenKey)
             }
             if let serverUrl = message["serverUrl"] as? String {
                 self.serverUrl = serverUrl
+                self.userDefaults.set(serverUrl, forKey: self.serverUrlKey)
             }
         }
     }
@@ -56,13 +65,16 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
         
         print("[watchOS] Requesting data from phone")
         session.sendMessage(["request": "data"]) { [weak self] response in
+            guard let self = self else { return }
             print("[watchOS] Received reply: \(response)")
             DispatchQueue.main.async {
                 if let token = response["token"] as? String {
-                    self?.token = token
+                    self.token = token
+                    self.userDefaults.set(token, forKey: self.tokenKey)
                 }
                 if let serverUrl = response["serverUrl"] as? String {
-                    self?.serverUrl = serverUrl
+                    self.serverUrl = serverUrl
+                    self.userDefaults.set(serverUrl, forKey: self.serverUrlKey)
                 }
             }
         } errorHandler: { error in
