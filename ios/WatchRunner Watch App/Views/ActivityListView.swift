@@ -12,11 +12,11 @@ import SwiftUI
 struct ActivityListView: View {
     @StateObject private var viewModel: ActivityViewModel
     @EnvironmentObject var appState: AppState
-    
+
     init(filter: String, mockActivities: [SnActivity]? = nil) {
         _viewModel = StateObject(wrappedValue: ActivityViewModel(filter: filter, mockActivities: mockActivities))
     }
-    
+
     var body: some View {
         Group {
             if viewModel.isLoading {
@@ -33,22 +33,42 @@ struct ActivityListView: View {
             } else if viewModel.activities.isEmpty {
                 Text("No activities found.")
             } else {
-                List(viewModel.activities) { activity in
-                    switch activity.type {
-                    case "posts.new", "posts.new.replies":
-                        if case .post(let post) = activity.data {
-                            NavigationLink(
-                                destination: PostDetailView(post: post).environmentObject(appState)
-                            ) {
-                                PostRowView(post: post)
+                List {
+                    ForEach(viewModel.activities) { activity in
+                        switch activity.type {
+                        case "posts.new", "posts.new.replies":
+                            if case .post(let post) = activity.data {
+                                NavigationLink(
+                                    destination: PostDetailView(post: post).environmentObject(appState)
+                                ) {
+                                    PostRowView(post: post)
+                                }
                             }
+                        case "discovery":
+                            if case .discovery(let discoveryData) = activity.data {
+                                DiscoveryView(discoveryData: discoveryData)
+                            }
+                        default:
+                            Text("Unknown activity type: \(activity.type)")
                         }
-                    case "discovery":
-                        if case .discovery(let discoveryData) = activity.data {
-                            DiscoveryView(discoveryData: discoveryData)
+                    }
+                    if viewModel.hasMore {
+                        if viewModel.isLoadingMore {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
+                            }
+                        } else {
+                            Button("Load More") {
+                                Task {
+                                    if let token = appState.token, let serverUrl = appState.serverUrl {
+                                        await viewModel.loadMoreActivities(token: token, serverUrl: serverUrl)
+                                    }
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
                         }
-                    default:
-                        Text("Unknown activity type: \(activity.type)")
                     }
                 }
             }

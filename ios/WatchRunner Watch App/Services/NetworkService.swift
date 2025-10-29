@@ -12,7 +12,7 @@ import Foundation
 class NetworkService {
     private let session = URLSession.shared
 
-    func fetchActivities(filter: String, cursor: String? = nil, token: String, serverUrl: String) async throws -> [SnActivity] {
+    func fetchActivities(filter: String, cursor: String? = nil, token: String, serverUrl: String) async throws -> ActivityResponse {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
@@ -29,17 +29,22 @@ class NetworkService {
         var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        
+
         request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await session.data(for: request)
-        
+
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
-        return try decoder.decode([SnActivity].self, from: data)
+
+        let activities = try decoder.decode([SnActivity].self, from: data)
+
+        let hasMore = (activities.first?.type ?? "empty") != "empty"
+        let nextCursor = activities.isEmpty ? nil : activities.map { $0.createdAt }.min()?.ISO8601Format()
+
+        return ActivityResponse(activities: activities, hasMore: hasMore, nextCursor: nextCursor)
     }
 
     func createPost(title: String, content: String, token: String, serverUrl: String) async throws {

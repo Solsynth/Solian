@@ -207,3 +207,9 @@ struct NotificationResponse {
     let total: Int
     let hasMore: Bool
 }
+
+struct ActivityResponse {
+    let activities: [SnActivity]
+    let hasMore: Bool
+    let nextCursor: String?
+}
