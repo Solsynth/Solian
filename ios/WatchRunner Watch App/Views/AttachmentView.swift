@@ -46,26 +46,34 @@ struct AttachmentView: View {
                     }
                 } else if mimeType.starts(with: "video") {
                     if let serverUrl = appState.serverUrl, let videoUrl = getAttachmentUrl(for: attachment.id, serverUrl: serverUrl) {
-                        let thumbnailUrl = videoUrl.appendingPathComponent("thumbnail") // Construct thumbnail URL
                         NavigationLink(destination: VideoPlayerView(videoUrl: videoUrl)) {
-                            AsyncImage(url: thumbnailUrl) { phase in
-                                if let image = phase.image {
+                            if imageLoader.isLoading {
+                                ProgressView()
+                            } else if let image = imageLoader.image {
+                                ZStack {
                                     image
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                         .frame(maxWidth: .infinity)
                                         .cornerRadius(8)
-                                } else if phase.error != nil {
-                                    Image(systemName: "play.rectangle.fill") // Placeholder for video thumbnail
+
+                                    Image(systemName: "play.circle.fill")
                                         .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(maxWidth: .infinity)
-                                        .foregroundColor(.gray)
-                                        .cornerRadius(8)
-                                } else {
-                                    ProgressView()
-                                        .cornerRadius(8)
+                                        .scaledToFit()
+                                        .frame(width: 36, height: 36)
+                                        .foregroundColor(.white)
+                                        .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
                                 }
+                            } else if imageLoader.errorMessage != nil {
+                                Image(systemName: "play.rectangle.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(maxWidth: .infinity)
+                                    .foregroundColor(.gray)
+                                    .cornerRadius(8)
+                            } else {
+                                ProgressView()
+                                    .cornerRadius(8)
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -89,6 +97,11 @@ struct AttachmentView: View {
             if let serverUrl = appState.serverUrl, let attachmentUrl = getAttachmentUrl(for: attachment.id, serverUrl: serverUrl), let token = appState.token {
                 if attachment.mimeType?.starts(with: "image") == true {
                     await imageLoader.loadImage(from: attachmentUrl, token: token)
+                }
+                if attachment.mimeType?.starts(with: "video") == true {
+                    let thumbnailUrl = attachmentUrl
+                        .appending(queryItems: [URLQueryItem(name: "thumbnail", value: "true")]) // Construct thumbnail URL
+                    await imageLoader.loadImage(from: thumbnailUrl, token: token)
                 }
             }
         }

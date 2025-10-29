@@ -82,27 +82,25 @@ struct PostDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id {
-                        if publisherImageLoader.isLoading {
-                            ProgressView()
-                                .frame(width: 32, height: 32)
-                        } else if let image = publisherImageLoader.image {
-                            image
-                                .resizable()
-                                .frame(width: 32, height: 32)
-                                .clipShape(Circle())
-                        } else if let errorMessage = publisherImageLoader.errorMessage {
-                            Text("Failed: \(errorMessage)")
-                                .font(.caption)
-                                .foregroundColor(.red)
-                                .frame(width: 32, height: 32)
-                        } else {
-                            Image(systemName: "person.circle.fill")
-                                .resizable()
-                                .frame(width: 32, height: 32)
-                                .clipShape(Circle())
-                                .foregroundColor(.gray)
-                        }
+                    if publisherImageLoader.isLoading {
+                        ProgressView()
+                            .frame(width: 32, height: 32)
+                    } else if let image = publisherImageLoader.image {
+                        image
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                            .clipShape(Circle())
+                    } else if let errorMessage = publisherImageLoader.errorMessage {
+                        Text("Failed: \(errorMessage)")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .frame(width: 32, height: 32)
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                            .clipShape(Circle())
+                            .foregroundColor(.gray)
                     }
                     Text("@\(post.publisher.name)")
                         .font(.headline)
@@ -138,7 +136,7 @@ struct PostDetailView: View {
                         ForEach(post.tags) { tag in
                             Text("#\(tag.name ?? tag.slug)")
                                 .font(.caption)
-                                .padding(.horizontal, 6)
+                                .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
                                 .background(Capsule().fill(Color.accentColor.opacity(0.2)))
                                 .cornerRadius(5)
@@ -147,6 +145,7 @@ struct PostDetailView: View {
                 }
             }
             .padding()
+            .frame(width: .infinity)
         }
         .navigationTitle("Post")
     }
