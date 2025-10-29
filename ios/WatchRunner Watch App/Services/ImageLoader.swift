@@ -18,15 +18,12 @@ class ImageLoader: ObservableObject {
     @Published var errorMessage: String?
     @Published var isLoading = false
 
-    private var dataTask: URLSessionDataTask?
-    private let session: URLSession
+    private var currentTask: DownloadTask?
 
-    init(session: URLSession = .shared) {
-        self.session = session
-    }
+    init() {}
 
     deinit {
-        dataTask?.cancel()
+        currentTask?.cancel()
     }
 
     func loadImage(from initialUrl: URL, token: String) async {
@@ -34,70 +31,67 @@ class ImageLoader: ObservableObject {
         errorMessage = nil
         image = nil
 
-        do {
-            // First request with Authorization header
-            var request = URLRequest(url: initialUrl)
-            request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
-            request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        // Create request modifier for authorization
+        let modifier = AnyModifier { request in
+            var r = request
+            r.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
+            r.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+            return r
+        }
 
-            let (data, response) = try await session.data(for: request)
+        // Use WebP processor as default since the app seems to handle WebP images
+        let processor = WebPProcessor.default
 
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 302, let redirectLocation = httpResponse.allHeaderFields["Location"] as? String, let redirectUrl = URL(string: redirectLocation) {
-                    print("[watchOS] Redirecting to: \(redirectUrl)")
-                    // Second request to the redirected URL (S3 signed URL) without Authorization header
-                    let (redirectData, _) = try await session.data(from: redirectUrl)
-                    if let uiImage = UIImage(data: redirectData) {
-                        self.image = Image(uiImage: uiImage)
-                        print("[watchOS] Image loaded successfully from redirect URL.")
-                    } else {
-                        // Try KingfisherWebP for WebP
-                        let processor = WebPProcessor.default // Correct usage
-                        if let kfImage = processor.process(item: .data(redirectData), options: KingfisherParsedOptionsInfo(
-                            [
-                                .processor(processor),
-                                .loadDiskFileSynchronously,
-                                .cacheOriginalImage
-                            ]
-                        )) {
-                            self.image = Image(uiImage: kfImage)
-                            print("[watchOS] Image loaded successfully from redirect URL using KingfisherWebP.")
-                        } else {
-                            self.errorMessage = "Invalid image data from redirect (could not decode with KingfisherWebP)."
+        // Use KingfisherManager to retrieve image with caching
+        currentTask = KingfisherManager.shared.retrieveImage(
+            with: initialUrl,
+            options: [
+                .requestModifier(modifier),
+                .processor(processor),
+                .cacheOriginalImage, // Cache the original image data
+                .loadDiskFileSynchronously // Load from disk cache synchronously if available
+            ]
+        ) { [weak self] result in
+            guard let self = self else { return }
+
+            Task { @MainActor in
+                switch result {
+                case .success(let value):
+                    self.image = Image(uiImage: value.image)
+                    print("[watchOS] Image loaded successfully from \(value.cacheType == .none ? "network" : "cache (\(value.cacheType))").")
+                    self.isLoading = false
+                case .failure(let error):
+                    // If WebP processor fails (likely due to format), try with default processor
+                    let defaultProcessor = DefaultImageProcessor.default
+                    self.currentTask = KingfisherManager.shared.retrieveImage(
+                        with: initialUrl,
+                        options: [
+                            .requestModifier(modifier),
+                            .processor(defaultProcessor),
+                            .cacheOriginalImage,
+                            .loadDiskFileSynchronously
+                        ]
+                    ) { [weak self] fallbackResult in
+                        guard let self = self else { return }
+
+                        Task { @MainActor in
+                            switch fallbackResult {
+                            case .success(let value):
+                                self.image = Image(uiImage: value.image)
+                                print("[watchOS] Image loaded successfully from \(value.cacheType == .none ? "network" : "cache (\(value.cacheType))") using fallback processor.")
+                            case .failure(let fallbackError):
+                                self.errorMessage = fallbackError.localizedDescription
+                                print("[watchOS] Image loading failed: \(fallbackError.localizedDescription)")
+                            }
+                            self.isLoading = false
                         }
                     }
-                } else if httpResponse.statusCode == 200 {
-                    if let uiImage = UIImage(data: data) {
-                        self.image = Image(uiImage: uiImage)
-                        print("[watchOS] Image loaded successfully from initial URL.")
-                    } else {
-                        // Try KingfisherWebP for WebP
-                        let processor = WebPProcessor.default // Correct usage
-                        if let kfImage = processor.process(item: .data(data), options: KingfisherParsedOptionsInfo(
-                            [
-                                .processor(processor),
-                                .loadDiskFileSynchronously,
-                                .cacheOriginalImage
-                            ]
-                        )) {
-                            self.image = Image(uiImage: kfImage)
-                            print("[watchOS] Image loaded successfully from initial URL using KingfisherWebP.")
-                        } else {
-                            self.errorMessage = "Invalid image data (could not decode with KingfisherWebP)."
-                        }
-                    }
-                } else {
-                    self.errorMessage = "HTTP Status Code: \(httpResponse.statusCode)"
                 }
             }
-        } catch {
-            self.errorMessage = error.localizedDescription
-            print("[watchOS] Image loading failed: \(error.localizedDescription)")
         }
-        isLoading = false
     }
 
     func cancel() {
-        dataTask?.cancel()
+        currentTask?.cancel()
     }
 }
