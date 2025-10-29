@@ -124,3 +124,86 @@ struct SnWebArticle: Codable, Identifiable {
     let title: String
     let url: String
 }
+
+struct SnNotification: Codable, Identifiable {
+    let id: String
+    let topic: String
+    let title: String
+    let subtitle: String
+    let content: String
+    let meta: [String: AnyCodable]?
+    let priority: Int
+    let viewedAt: Date?
+    let accountId: String
+    let createdAt: Date
+    let updatedAt: Date
+    let deletedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case topic
+        case title
+        case subtitle
+        case content
+        case meta
+        case priority
+        case viewedAt = "viewedAt"
+        case accountId = "accountId"
+        case createdAt = "createdAt"
+        case updatedAt = "updatedAt"
+        case deletedAt = "deletedAt"
+    }
+}
+
+struct AnyCodable: Codable {
+    let value: Any
+
+    init(_ value: Any) {
+        self.value = value
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let intValue = try? container.decode(Int.self) {
+            value = intValue
+        } else if let doubleValue = try? container.decode(Double.self) {
+            value = doubleValue
+        } else if let boolValue = try? container.decode(Bool.self) {
+            value = boolValue
+        } else if let stringValue = try? container.decode(String.self) {
+            value = stringValue
+        } else if let arrayValue = try? container.decode([AnyCodable].self) {
+            value = arrayValue
+        } else if let dictValue = try? container.decode([String: AnyCodable].self) {
+            value = dictValue
+        } else {
+            value = NSNull()
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch value {
+        case let intValue as Int:
+            try container.encode(intValue)
+        case let doubleValue as Double:
+            try container.encode(doubleValue)
+        case let boolValue as Bool:
+            try container.encode(boolValue)
+        case let stringValue as String:
+            try container.encode(stringValue)
+        case let arrayValue as [AnyCodable]:
+            try container.encode(arrayValue)
+        case let dictValue as [String: AnyCodable]:
+            try container.encode(dictValue)
+        default:
+            try container.encodeNil()
+        }
+    }
+}
+
+struct NotificationResponse {
+    let notifications: [SnNotification]
+    let total: Int
+    let hasMore: Bool
+}

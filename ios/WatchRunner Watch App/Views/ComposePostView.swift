@@ -17,23 +17,24 @@ struct ComposePostView: View {
             Form {
                 TextField("Title", text: $viewModel.title)
                 TextField("Content", text: $viewModel.content)
-                    .frame(height: 100)
             }
             .navigationTitle("New Post")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button("Cancel", systemImage: "xmark") {
                         dismiss()
                     }
+                    .labelStyle(.iconOnly)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Post") {
+                    Button("Post", systemImage: "square.and.arrow.up") {
                         Task {
                             if let token = appState.token, let serverUrl = appState.serverUrl {
                                 await viewModel.createPost(token: token, serverUrl: serverUrl)
                             }
                         }
                     }
+                    .labelStyle(.iconOnly)
                     .disabled(viewModel.isPosting)
                 }
             }

@@ -66,4 +66,33 @@ class NetworkService {
             throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
         }
     }
+
+    func fetchNotifications(offset: Int = 0, take: Int = 20, token: String, serverUrl: String) async throws -> NotificationResponse {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(url: baseURL.appendingPathComponent("/ring/notifications"), resolvingAgainstBaseURL: false)!
+        var queryItems = [URLQueryItem(name: "offset", value: String(offset)), URLQueryItem(name: "take", value: String(take))]
+        components.queryItems = queryItems
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        let notifications = try decoder.decode([SnNotification].self, from: data)
+
+        let httpResponse = response as? HTTPURLResponse
+        let total = Int(httpResponse?.value(forHTTPHeaderField: "X-Total") ?? "0") ?? 0
+        let hasMore = offset + notifications.count < total
+
+        return NotificationResponse(notifications: notifications, total: total, hasMore: hasMore)
+    }
 }

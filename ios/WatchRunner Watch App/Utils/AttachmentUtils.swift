@@ -16,6 +16,5 @@ func getAttachmentUrl(for fileId: String, serverUrl: String) -> URL? {
     } else {
         urlString = "\(serverUrl)/drive/files/\(fileId)"
     }
-    print("[watchOS] Generated image URL: \(urlString)")
     return URL(string: urlString)
 }
