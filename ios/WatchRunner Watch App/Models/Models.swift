@@ -271,7 +271,7 @@ struct SnChatMessage: Codable, Identifiable {
     let content: String?
     let nonce: String?
     let meta: [String: AnyCodable]
-    let membersMentioned: [String]
+    let membersMentioned: [String]?
     let editedAt: Date?
     let attachments: [SnCloudFile]
     let reactions: [SnChatReaction]
@@ -283,6 +283,31 @@ struct SnChatMessage: Codable, Identifiable {
     let createdAt: Date
     let updatedAt: Date
     let deletedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, type, content, nonce, meta, membersMentioned, editedAt, attachments, reactions, repliedMessageId, forwardedMessageId, senderId, sender, chatRoomId, createdAt, updatedAt, deletedAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        type = try container.decode(String.self, forKey: .type)
+        content = try container.decodeIfPresent(String.self, forKey: .content)
+        nonce = try container.decodeIfPresent(String.self, forKey: .nonce)
+        meta = try container.decode([String: AnyCodable].self, forKey: .meta)
+        membersMentioned = try container.decodeIfPresent([String].self, forKey: .membersMentioned) ?? []
+        editedAt = try container.decodeIfPresent(Date.self, forKey: .editedAt)
+        attachments = try container.decode([SnCloudFile].self, forKey: .attachments)
+        reactions = try container.decode([SnChatReaction].self, forKey: .reactions)
+        repliedMessageId = try container.decodeIfPresent(String.self, forKey: .repliedMessageId)
+        forwardedMessageId = try container.decodeIfPresent(String.self, forKey: .forwardedMessageId)
+        senderId = try container.decode(String.self, forKey: .senderId)
+        sender = try container.decode(SnChatMember.self, forKey: .sender)
+        chatRoomId = try container.decode(String.self, forKey: .chatRoomId)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
+    }
 }
 
 struct SnChatReaction: Codable, Identifiable {
@@ -327,4 +352,14 @@ struct ChatRoomsResponse {
 
 struct ChatInvitesResponse {
     let invites: [SnChatMember]
+}
+
+struct MessageSyncResponse: Codable {
+    let messages: [SnChatMessage]
+    let currentTimestamp: Date
+
+    enum CodingKeys: String, CodingKey {
+        case messages
+        case currentTimestamp = "current_timestamp"
+    }
 }
