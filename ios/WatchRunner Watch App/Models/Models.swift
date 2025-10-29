@@ -213,3 +213,20 @@ struct ActivityResponse {
     let hasMore: Bool
     let nextCursor: String?
 }
+
+struct SnAccount: Codable {
+    let id: String
+    let name: String
+    let nick: String
+    let profile: SnUserProfile
+    let createdAt: Date
+}
+
+struct SnUserProfile: Codable {
+    let bio: String?
+    let picture: SnCloudFile?
+    let background: SnCloudFile?
+    let level: Int
+    let experience: Int
+    let levelingProgress: Double
+}

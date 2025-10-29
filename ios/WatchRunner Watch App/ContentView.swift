@@ -15,6 +15,7 @@ struct ContentView: View {
     enum Panel: Hashable {
         case explore
         case notifications
+        case account
     }
 
     var body: some View {
@@ -22,6 +23,7 @@ struct ContentView: View {
             List(selection: $selection) {
                 Label("Explore", systemImage: "globe").tag(Panel.explore)
                 Label("Notifications", systemImage: "bell").tag(Panel.notifications)
+                Label("Account", systemImage: "person.circle").tag(Panel.account)
             }
             .listStyle(.automatic)
         } detail: {
@@ -31,6 +33,9 @@ struct ContentView: View {
                     .environmentObject(appState)
             case .notifications:
                 NotificationView()
+                    .environmentObject(appState)
+            case .account:
+                AccountView()
                     .environmentObject(appState)
             case .none:
                 Text("Select a panel")

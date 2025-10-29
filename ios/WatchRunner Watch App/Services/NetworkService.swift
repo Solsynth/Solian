@@ -100,4 +100,25 @@ class NetworkService {
 
         return NotificationResponse(notifications: notifications, total: total, hasMore: hasMore)
     }
+
+    func fetchUserProfile(token: String, serverUrl: String) async throws -> SnAccount {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/pass/accounts/me")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, _) = try await session.data(for: request)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        return try decoder.decode(SnAccount.self, from: data)
+    }
 }
