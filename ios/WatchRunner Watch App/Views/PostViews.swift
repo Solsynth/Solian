@@ -145,7 +145,6 @@ struct PostDetailView: View {
                 }
             }
             .padding()
-            .frame(width: .infinity)
         }
         .navigationTitle("Post")
     }

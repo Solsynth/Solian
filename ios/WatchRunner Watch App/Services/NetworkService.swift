@@ -121,4 +121,94 @@ class NetworkService {
 
         return try decoder.decode(SnAccount.self, from: data)
     }
+
+    func fetchAccountStatus(token: String, serverUrl: String) async throws -> SnAccountStatus? {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/pass/accounts/me/statuses")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 404 {
+            return nil
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        return try decoder.decode(SnAccountStatus.self, from: data)
+    }
+
+    func createOrUpdateStatus(attitude: Int, isInvisible: Bool, isNotDisturb: Bool, label: String?, token: String, serverUrl: String) async throws -> SnAccountStatus {
+        // First check if status exists
+        let existingStatus = try? await fetchAccountStatus(token: token, serverUrl: serverUrl)
+        let method = existingStatus == nil ? "POST" : "PATCH"
+
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/pass/accounts/me/statuses")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        var body: [String: Any] = [
+            "attitude": attitude,
+            "is_invisible": isInvisible,
+            "is_not_disturb": isNotDisturb
+        ]
+
+        if let label = label, !label.isEmpty {
+            body["label"] = label
+        }
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await session.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 201 && httpResponse.statusCode != 200 {
+            let responseBody = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] createOrUpdateStatus failed with status code: \(httpResponse.statusCode), body: \(responseBody)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        return try decoder.decode(SnAccountStatus.self, from: data)
+    }
+
+    func clearStatus(token: String, serverUrl: String) async throws {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/pass/accounts/me/statuses")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 204 {
+            let responseBody = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] clearStatus failed with status code: \(httpResponse.statusCode), body: \(responseBody)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+    }
 }

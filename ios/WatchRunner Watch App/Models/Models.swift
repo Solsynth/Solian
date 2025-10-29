@@ -230,3 +230,19 @@ struct SnUserProfile: Codable {
     let experience: Int
     let levelingProgress: Double
 }
+
+struct SnAccountStatus: Codable {
+    let id: String
+    let attitude: Int
+    let isOnline: Bool
+    let isInvisible: Bool
+    let isNotDisturb: Bool
+    let isCustomized: Bool
+    let label: String
+    let meta: [String: AnyCodable]?
+    let clearedAt: Date?
+    let accountId: String
+    let createdAt: Date
+    let updatedAt: Date
+    let deletedAt: Date?
+}
