@@ -13,10 +13,11 @@ struct AccountView: View {
     @State private var status: SnAccountStatus?
     @State private var isLoading = false
     @State private var error: Error?
-    
+    @State private var showingClearConfirmation = false
+
     @StateObject private var profileImageLoader = ImageLoader()
     @StateObject private var bannerImageLoader = ImageLoader()
-    
+
     private let networkService = NetworkService()
     
     var body: some View {
@@ -110,8 +111,23 @@ struct AccountView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             Spacer()
+                            if status?.isCustomized == true {
+                                Button(action: {
+                                    showingClearConfirmation = true
+                                }) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.red.opacity(0.1))
+                                            .frame(width: 28, height: 28)
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.red)
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                                .frame(width: 28, height: 28)
+                            }
                             NavigationLink(
-                                destination: StatusCreationView(initialStatus: status)
+                                destination: StatusCreationView(initialStatus: status?.isCustomized == true ? status : nil)
                                     .environmentObject(appState)
                             ) {
                                 ZStack {
@@ -210,6 +226,16 @@ struct AccountView: View {
             }
         }
         .navigationTitle("Account")
+        .confirmationDialog("Clear Status", isPresented: $showingClearConfirmation) {
+            Button("Clear Status", role: .destructive) {
+                Task {
+                    await clearStatus()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to clear your status? This action cannot be undone.")
+        }
         .onAppear {
             Task.detached {
                 await loadUserProfile()
@@ -222,18 +248,33 @@ struct AccountView: View {
             error = NSError(domain: "AccountView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Authentication not available"])
             return
         }
-        
+
         isLoading = true
         error = nil
-        
+
         do {
             user = try await networkService.fetchUserProfile(token: token, serverUrl: serverUrl)
             status = try await networkService.fetchAccountStatus(token: token, serverUrl: serverUrl)
         } catch {
             self.error = error
         }
-        
+
         isLoading = false
+    }
+
+    private func clearStatus() async {
+        guard let token = appState.token, let serverUrl = appState.serverUrl else {
+            error = NSError(domain: "AccountView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Authentication not available"])
+            return
+        }
+
+        do {
+            try await networkService.clearStatus(token: token, serverUrl: serverUrl)
+            // Refresh status after clearing
+            status = try await networkService.fetchAccountStatus(token: token, serverUrl: serverUrl)
+        } catch {
+            self.error = error
+        }
     }
 }
 
