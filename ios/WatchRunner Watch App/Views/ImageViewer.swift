@@ -1,14 +1,7 @@
-//
-//  AttachmentImageView.swift
-//  WatchRunner Watch App
-//
-//  Created by LittleSheep on 2025/10/29.
-//
-
 import SwiftUI
 
-struct AttachmentImageView: View {
-    let attachment: SnCloudFile
+struct ImageViewer: View {
+    let imageUrl: URL
     @EnvironmentObject var appState: AppState
     @StateObject private var imageLoader = ImageLoader()
 
@@ -20,19 +13,22 @@ struct AttachmentImageView: View {
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .scaledToFit()
             } else if let errorMessage = imageLoader.errorMessage {
-                Text("Failed to load attachment: \(errorMessage)")
+                Text("Failed to load image: \(errorMessage)")
                     .font(.caption)
                     .foregroundColor(.red)
             } else {
-                Text("File: \(attachment.id)")
+                Text("Failed to load image.")
             }
         }
-        .task(id: attachment.id) {
-            if let serverUrl = appState.serverUrl, let imageUrl = getAttachmentUrl(for: attachment.id, serverUrl: serverUrl), let token = appState.token, attachment.mimeType?.starts(with: "image") == true {
+        .task(id: imageUrl) {
+            if let token = appState.token {
                 await imageLoader.loadImage(from: imageUrl, token: token)
             }
         }
+        .navigationTitle("Image")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

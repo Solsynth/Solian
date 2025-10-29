@@ -116,7 +116,7 @@ struct PostDetailView: View {
                     Divider()
                     Text("Attachments").font(.headline)
                     ForEach(post.attachments) { attachment in
-                        AttachmentImageView(attachment: attachment)
+                        AttachmentView(attachment: attachment)
                     }
                 }
                 
