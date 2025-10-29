@@ -282,10 +282,31 @@ struct ChatRoomView: View {
                         .foregroundColor(.secondary)
                 }
             } else {
-                List(messages) { message in
-                    ChatMessageItem(message: message)
+                ScrollViewReader { scrollView in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 8) {
+                            ForEach(messages) { message in
+                                ChatMessageItem(message: message)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                    }
+                    .onAppear {
+                        // Scroll to bottom when messages load
+                        if let lastMessage = messages.last {
+                            scrollView.scrollTo(lastMessage.id, anchor: .bottom)
+                        }
+                    }
+                    .onChange(of: messages.count) { _ in
+                        // Scroll to bottom when new messages arrive
+                        if let lastMessage = messages.last {
+                            withAnimation {
+                                scrollView.scrollTo(lastMessage.id, anchor: .bottom)
+                            }
+                        }
+                    }
                 }
-                .listStyle(.plain)
             }
         }
         .navigationTitle(room.name ?? "Chat")
@@ -306,6 +327,7 @@ struct ChatRoomView: View {
                 token: token,
                 serverUrl: serverUrl
             )
+            // Sort with newest messages first (for flipped list, newest will appear at bottom)
             self.messages = messages.sorted { $0.createdAt < $1.createdAt }
         } catch {
             print("[watchOS] Error loading messages: \(error.localizedDescription)")
@@ -318,21 +340,61 @@ struct ChatRoomView: View {
 
 struct ChatMessageItem: View {
     let message: SnChatMessage
+    @EnvironmentObject var appState: AppState
+    @StateObject private var avatarLoader = ImageLoader()
+
+    private var avatarPictureId: String? {
+        message.sender.account.profile.picture?.id
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(message.sender.account.nick)
-                    .font(.system(size: 12, weight: .medium))
-                Spacer()
-                Text(message.createdAt, style: .time)
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+        HStack(alignment: .top, spacing: 8) {
+            // Avatar
+            Group {
+                if avatarLoader.isLoading {
+                    ProgressView()
+                        .frame(width: 24, height: 24)
+                } else if let image = avatarLoader.image {
+                    image
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .clipShape(Circle())
+                } else {
+                    Circle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: 24, height: 24)
+                        .overlay(
+                            Text(message.sender.account.nick.prefix(1).uppercased())
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.primary)
+                        )
+                }
+            }
+            .task(id: avatarPictureId) {
+                if let serverUrl = appState.serverUrl,
+                   let pictureId = avatarPictureId,
+                   let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl),
+                   let token = appState.token {
+                    await avatarLoader.loadImage(from: imageUrl, token: token)
+                }
             }
 
-            if let content = message.content {
-                Text(content)
-                    .font(.system(size: 14))
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(message.sender.account.nick)
+                        .font(.system(size: 12, weight: .medium))
+                    Spacer()
+                    Text(message.createdAt, style: .time)
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                }
+
+                if let content = message.content {
+                    Text(content)
+                        .font(.system(size: 14))
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
         .padding(.vertical, 4)
