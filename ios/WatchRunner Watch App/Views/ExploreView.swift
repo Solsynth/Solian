@@ -22,18 +22,21 @@ struct ExploreView: View {
                         .tabItem {
                             Label("Explore", systemImage: "safari")
                         }
+                        .labelStyle(.titleOnly)
 
                     ActivityListView(filter: "Subscriptions")
                         .tag("Subscriptions")
                         .tabItem {
                             Label("Subscriptions", systemImage: "star")
                         }
+                        .labelStyle(.titleOnly)
 
                     ActivityListView(filter: "Friends")
                         .tag("Friends")
                         .tabItem {
                             Label("Friends", systemImage: "person.2")
                         }
+                        .labelStyle(.titleOnly)
                 }
                 .navigationTitle(selectedTab)
                 .toolbar {

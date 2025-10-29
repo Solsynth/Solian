@@ -1,4 +1,3 @@
-//
 //  Models.swift
 //  WatchRunner Watch App
 //
@@ -88,7 +87,7 @@ enum DiscoveryItemData: Codable {
         }
         self = .unknown
     }
-    
+
     func encode(to encoder: Encoder) throws {
         // Not needed for decoding
     }
@@ -245,4 +244,87 @@ struct SnAccountStatus: Codable {
     let createdAt: Date
     let updatedAt: Date
     let deletedAt: Date?
+}
+
+// MARK: - Chat Models
+
+struct SnChatRoom: Codable, Identifiable {
+    let id: String
+    let name: String?
+    let description: String?
+    let type: Int
+    let isPublic: Bool
+    let isCommunity: Bool
+    let picture: SnCloudFile?
+    let background: SnCloudFile?
+    let realmId: String?
+    let realm: SnRealm?
+    let createdAt: Date
+    let updatedAt: Date
+    let deletedAt: Date?
+    let members: [SnChatMember]?
+}
+
+struct SnChatMessage: Codable, Identifiable {
+    let id: String
+    let type: String
+    let content: String?
+    let nonce: String?
+    let meta: [String: AnyCodable]
+    let membersMentioned: [String]
+    let editedAt: Date?
+    let attachments: [SnCloudFile]
+    let reactions: [SnChatReaction]
+    let repliedMessageId: String?
+    let forwardedMessageId: String?
+    let senderId: String
+    let sender: SnChatMember
+    let chatRoomId: String
+    let createdAt: Date
+    let updatedAt: Date
+    let deletedAt: Date?
+}
+
+struct SnChatReaction: Codable, Identifiable {
+    let id: String
+    let messageId: String
+    let senderId: String
+    let sender: SnChatMember
+    let symbol: String
+    let attitude: Int
+    let createdAt: Date
+    let updatedAt: Date
+    let deletedAt: Date?
+}
+
+struct SnChatMember: Codable, Identifiable {
+    let id: String
+    let chatRoomId: String
+    let chatRoom: SnChatRoom?
+    let accountId: String
+    let account: SnAccount
+    let nick: String?
+    let role: Int
+    let notify: Int
+    let joinedAt: Date?
+    let breakUntil: Date?
+    let timeoutUntil: Date?
+    let isBot: Bool
+    let status: SnAccountStatus?
+    let createdAt: Date
+    let updatedAt: Date
+    let deletedAt: Date?
+}
+
+struct SnChatSummary: Codable {
+    let unreadCount: Int
+    let lastMessage: SnChatMessage?
+}
+
+struct ChatRoomsResponse {
+    let rooms: [SnChatRoom]
+}
+
+struct ChatInvitesResponse {
+    let invites: [SnChatMember]
 }

@@ -14,6 +14,7 @@ struct ContentView: View {
 
     enum Panel: Hashable {
         case explore
+        case chat
         case notifications
         case account
     }
@@ -22,6 +23,7 @@ struct ContentView: View {
         NavigationSplitView {
             List(selection: $selection) {
                 Label("Explore", systemImage: "globe").tag(Panel.explore)
+                Label("Chat", systemImage: "message").tag(Panel.chat)
                 Label("Notifications", systemImage: "bell").tag(Panel.notifications)
                 Label("Account", systemImage: "person.circle").tag(Panel.account)
             }
@@ -30,6 +32,9 @@ struct ContentView: View {
             switch selection {
             case .explore:
                 ExploreView()
+                    .environmentObject(appState)
+            case .chat:
+                ChatView()
                     .environmentObject(appState)
             case .notifications:
                 NotificationView()

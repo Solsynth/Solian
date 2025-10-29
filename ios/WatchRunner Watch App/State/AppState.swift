@@ -15,7 +15,8 @@ class AppState: ObservableObject {
     @Published var token: String? = nil
     @Published var serverUrl: String? = nil
     @Published var isReady = false
-    
+
+    let networkService = NetworkService()
     private var wcService = WatchConnectivityService()
     private var cancellables = Set<AnyCancellable>()
 
