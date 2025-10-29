@@ -15,28 +15,26 @@ struct PostRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
-                    if imageLoader.isLoading {
-                        ProgressView()
-                            .frame(width: 24, height: 24)
-                    } else if let image = imageLoader.image {
-                        image
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                            .clipShape(Circle())
-                    } else if let errorMessage = imageLoader.errorMessage {
-                        Text("Failed: \(errorMessage)")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .frame(width: 24, height: 24)
-                    } else {
-                        // Placeholder if no image and not loading
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                            .clipShape(Circle())
-                            .foregroundColor(.gray)
-                    }
+                if imageLoader.isLoading {
+                    ProgressView()
+                        .frame(width: 24, height: 24)
+                } else if let image = imageLoader.image {
+                    image
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .clipShape(Circle())
+                } else if let errorMessage = imageLoader.errorMessage {
+                    Text("Failed: \(errorMessage)")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .frame(width: 24, height: 24)
+                } else {
+                    // Placeholder if no image and not loading
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .clipShape(Circle())
+                        .foregroundColor(.gray)
                 }
                 Text(post.publisher.nick ?? post.publisher.name)
                     .font(.subheadline)
@@ -57,7 +55,21 @@ struct PostRowView: View {
                 Text(content)
                     .font(.body)
             }
-        }
+            
+            if !post.attachments.isEmpty {
+                AttachmentView(attachment: post.attachments[0])
+                if post.attachments.count > 1 {
+                    HStack(spacing: 8) {
+                        Image(systemName: "paperclip.circle.fill")
+                            .frame(width: 12, height: 12)
+                            .foregroundStyle(.gray)
+                        Text("\(post.attachments.count - 1)+ attachments")
+                            .font(.footnote)
+                            .foregroundStyle(.gray)
+                    }
+                }
+            }
+        }.padding(.vertical)
     }
 }
 
@@ -70,7 +82,7 @@ struct PostDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
+                    if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id {
                         if publisherImageLoader.isLoading {
                             ProgressView()
                                 .frame(width: 32, height: 32)
@@ -95,7 +107,8 @@ struct PostDetailView: View {
                     Text("@\(post.publisher.name)")
                         .font(.headline)
                 }
-                .task(id: post.publisher.picture?.id) { // Use task(id:) to reload image when pictureId changes
+                // Use task(id:) to reload image when pictureId changes
+                .task(id: post.publisher.picture?.id) {
                     if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
                         await publisherImageLoader.loadImage(from: imageUrl, token: token)
                     }
@@ -113,7 +126,6 @@ struct PostDetailView: View {
                 }
                 
                 if !post.attachments.isEmpty {
-                    Divider()
                     Text("Attachments").font(.headline)
                     ForEach(post.attachments) { attachment in
                         AttachmentView(attachment: attachment)
@@ -121,7 +133,6 @@ struct PostDetailView: View {
                 }
                 
                 if !post.tags.isEmpty {
-                    Divider()
                     Text("Tags").font(.headline)
                     FlowLayout(alignment: .leading, spacing: 4) {
                         ForEach(post.tags) { tag in
