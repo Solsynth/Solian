@@ -93,11 +93,11 @@ struct AccountView: View {
                         }
                         
                         // Username and Handle
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading) {
                             Text(user.nick)
                                 .font(.headline)
                             Text("@\(user.name)")
-                                .font(.subheadline)
+                                .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                     }
