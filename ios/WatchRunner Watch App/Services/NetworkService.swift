@@ -148,9 +148,9 @@ class NetworkService {
     }
 
     func createOrUpdateStatus(attitude: Int, isInvisible: Bool, isNotDisturb: Bool, label: String?, token: String, serverUrl: String) async throws -> SnAccountStatus {
-        // First check if status exists
+        // Check if there's already a customized status
         let existingStatus = try? await fetchAccountStatus(token: token, serverUrl: serverUrl)
-        let method = existingStatus == nil ? "POST" : "PATCH"
+        let method = (existingStatus?.isCustomized == true) ? "PATCH" : "POST"
 
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
