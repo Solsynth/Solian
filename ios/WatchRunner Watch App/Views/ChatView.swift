@@ -196,7 +196,7 @@ struct ChatRoomListItem: View {
                             .resizable()
                             .frame(width: 32, height: 32)
                             .clipShape(Circle())
-                    } else if let errorMessage = avatarLoader.errorMessage {
+                    } else if avatarLoader.errorMessage != nil {
                         // Error state - show fallback
                         Circle()
                             .fill(Color.gray.opacity(0.3))
@@ -250,15 +250,28 @@ struct ChatRoomListItem: View {
     }
 }
 
+import Combine
+import SwiftUI
+
 struct ChatRoomView: View {
     let room: SnChatRoom
     @EnvironmentObject var appState: AppState
     @State private var messages: [SnChatMessage] = []
     @State private var isLoading = false
     @State private var error: Error?
+    @State private var webSocketConnectionState: WebSocketState = .disconnected // New state for WebSocket status
+
+    @State private var cancellables = Set<AnyCancellable>() // For managing subscriptions
 
     var body: some View {
         VStack {
+            // Display WebSocket connection status
+            Text(webSocketStatusMessage)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .padding(.vertical, 2)
+                .animation(.easeInOut, value: webSocketConnectionState) // Animate status changes
+
             if isLoading {
                 ProgressView()
             } else if error != nil {
@@ -313,6 +326,24 @@ struct ChatRoomView: View {
         .task {
             await loadMessages()
         }
+        .onAppear {
+            setupWebSocketListeners()
+        }
+        .onDisappear {
+            cancellables.forEach { $0.cancel() }
+            cancellables.removeAll()
+        }
+    }
+
+    private var webSocketStatusMessage: String {
+        switch webSocketConnectionState {
+        case .connected: return "Connected"
+        case .connecting: return "Connecting..."
+        case .disconnected: return "Disconnected"
+        case .serverDown: return "Server Down"
+        case .duplicateDevice: return "Duplicate Device"
+        case .error(let msg): return "Error: \(msg)"
+        }
     }
 
     private func loadMessages() async {
@@ -335,6 +366,47 @@ struct ChatRoomView: View {
         }
 
         isLoading = false
+    }
+
+    private func setupWebSocketListeners() {
+        // Listen for WebSocket packets (new messages)
+        appState.networkService.packetStream
+            .receive(on: DispatchQueue.main) // Ensure UI updates on main thread
+            .sink(receiveCompletion: { completion in
+                if case .failure(let err) = completion {
+                    print("[ChatRoomView] WebSocket packet stream error: \(err.localizedDescription)")
+                }
+            }, receiveValue: { packet in
+                // Assuming 'message.created' is the type for new messages
+                if packet.type == "message.created",
+                   let messageData = packet.data {
+                    do {
+                        let jsonData = try JSONSerialization.data(withJSONObject: messageData, options: [])
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .iso8601
+                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        let newMessage = try decoder.decode(SnChatMessage.self, from: jsonData)
+
+                        if newMessage.chatRoomId == room.id {
+                            // Avoid adding duplicates
+                            if !messages.contains(where: { $0.id == newMessage.id }) {
+                                messages.append(newMessage)
+                            }
+                        }
+                    } catch {
+                        print("[ChatRoomView] Error decoding message from websocket: \(error.localizedDescription)")
+                    }
+                }
+            })
+            .store(in: &cancellables)
+
+        // Listen for WebSocket connection state changes
+        appState.networkService.stateStream
+            .receive(on: DispatchQueue.main) // Ensure UI updates on main thread
+            .sink { state in
+                webSocketConnectionState = state
+            }
+            .store(in: &cancellables)
     }
 }
 

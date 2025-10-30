@@ -26,10 +26,15 @@ class AppState: ObservableObject {
             .sink { [weak self] token, serverUrl in
                 self?.token = token
                 self?.serverUrl = serverUrl
-                if token != nil && serverUrl != nil {
-                    self?.isReady = true
-                }
-            }
+            if let token = token, let serverUrl = serverUrl {
+                self?.isReady = true
+                // Auto-connect WebSocket here
+                self?.networkService.connectWebSocket(token: token, serverUrl: serverUrl)
+            } else {
+                self?.isReady = false
+                // Disconnect WebSocket if token or serverUrl become nil
+                self?.networkService.disconnectWebSocket()
+            }            }
             .store(in: &cancellables)
     }
     

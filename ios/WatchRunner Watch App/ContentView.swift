@@ -22,7 +22,9 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selection) {
-                AppInfoHeaderView().listRowBackground(Color.clear)
+                AppInfoHeaderView()
+                    .listRowBackground(Color.clear)
+                    .environmentObject(appState)
                 
                 Label("Explore", systemImage: "globe.fill").tag(Panel.explore)
                 Label("Chat", systemImage: "message.fill").tag(Panel.chat)

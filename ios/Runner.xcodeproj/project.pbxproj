@@ -148,6 +148,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7355265E2EB3A8870013AFE4 /* Exceptions for "WatchRunner Watch App" folder in "WatchRunner Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"WatchRunner-Watch-App-Info.plist",
+			);
+			target = 7310A7D32EB10962002C0FD3 /* WatchRunner Watch App */;
+		};
 		73ACDFCA2E3D0E6100B63535 /* Exceptions for "SolianBroadcastExtension" folder in "SolianBroadcastExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -182,6 +189,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		7310A7D52EB10962002C0FD3 /* WatchRunner Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7355265E2EB3A8870013AFE4 /* Exceptions for "WatchRunner Watch App" folder in "WatchRunner Watch App" target */,
+			);
 			path = "WatchRunner Watch App";
 			sourceTree = "<group>";
 		};
@@ -1092,6 +1102,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WatchRunner-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = WatchRunner;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dev.solsynth.solian;
@@ -1140,6 +1151,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WatchRunner-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = WatchRunner;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dev.solsynth.solian;
@@ -1185,6 +1197,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WatchRunner-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = WatchRunner;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dev.solsynth.solian;
