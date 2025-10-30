@@ -26,7 +26,7 @@ struct AppInfoHeaderView : View {
                     
                     // Display WebSocket connection status
                     Text(webSocketStatusMessage)
-                        .font(.caption2)
+                        .font(.system(size: 10))
                         .foregroundColor(.secondary)
                 }
             }

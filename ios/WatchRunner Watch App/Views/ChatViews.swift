@@ -259,18 +259,22 @@ struct ChatRoomView: View {
     @State private var messages: [SnChatMessage] = []
     @State private var isLoading = false
     @State private var error: Error?
-    @State private var webSocketConnectionState: WebSocketState = .disconnected // New state for WebSocket status
+    @State private var wsState: WebSocketState = .disconnected // New state for WebSocket status
 
     @State private var cancellables = Set<AnyCancellable>() // For managing subscriptions
 
     var body: some View {
         VStack {
             // Display WebSocket connection status
-            Text(webSocketStatusMessage)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .padding(.vertical, 2)
-                .animation(.easeInOut, value: webSocketConnectionState) // Animate status changes
+            if (wsState != .connected)
+            {
+                Text(webSocketStatusMessage)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 2)
+                    .animation(.easeInOut, value: wsState) // Animate status changes
+                    .transition(.opacity)
+            }
 
             if isLoading {
                 ProgressView()
@@ -336,7 +340,7 @@ struct ChatRoomView: View {
     }
 
     private var webSocketStatusMessage: String {
-        switch webSocketConnectionState {
+        switch wsState {
         case .connected: return "Connected"
         case .connecting: return "Connecting..."
         case .disconnected: return "Disconnected"
@@ -368,6 +372,15 @@ struct ChatRoomView: View {
         isLoading = false
     }
 
+    private func sendReadReceipt() {
+        let data: [String: Any] = ["chat_room_id": room.id]
+        let packet: [String: Any] = ["type": "messages.read", "data": data, "endpoint": "sphere"]
+        if let jsonData = try? JSONSerialization.data(withJSONObject: packet, options: []),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            appState.networkService.sendWebSocketMessage(message: jsonString)
+        }
+    }
+
     private func setupWebSocketListeners() {
         // Listen for WebSocket packets (new messages)
         appState.networkService.packetStream
@@ -377,20 +390,33 @@ struct ChatRoomView: View {
                     print("[ChatRoomView] WebSocket packet stream error: \(err.localizedDescription)")
                 }
             }, receiveValue: { packet in
-                // Assuming 'message.created' is the type for new messages
-                if packet.type == "message.created",
+                if ["messages.new", "messages.update", "messages.delete"].contains(packet.type),
                    let messageData = packet.data {
                     do {
                         let jsonData = try JSONSerialization.data(withJSONObject: messageData, options: [])
                         let decoder = JSONDecoder()
                         decoder.dateDecodingStrategy = .iso8601
                         decoder.keyDecodingStrategy = .convertFromSnakeCase
-                        let newMessage = try decoder.decode(SnChatMessage.self, from: jsonData)
+                        let message = try decoder.decode(SnChatMessage.self, from: jsonData)
 
-                        if newMessage.chatRoomId == room.id {
-                            // Avoid adding duplicates
-                            if !messages.contains(where: { $0.id == newMessage.id }) {
-                                messages.append(newMessage)
+                        if message.chatRoomId == room.id {
+                            switch packet.type {
+                            case "messages.new":
+                                if message.type.hasPrefix("call") {
+                                    // TODO: Handle ongoing call
+                                }
+                                if !messages.contains(where: { $0.id == message.id }) {
+                                    messages.append(message)
+                                }
+                                sendReadReceipt()
+                            case "messages.update":
+                                if let index = messages.firstIndex(where: { $0.id == message.id }) {
+                                    messages[index] = message
+                                }
+                            case "messages.delete":
+                                messages.removeAll(where: { $0.id == message.id })
+                            default:
+                                break
                             }
                         }
                     } catch {
@@ -404,7 +430,7 @@ struct ChatRoomView: View {
         appState.networkService.stateStream
             .receive(on: DispatchQueue.main) // Ensure UI updates on main thread
             .sink { state in
-                webSocketConnectionState = state
+                wsState = state
             }
             .store(in: &cancellables)
     }
