@@ -218,7 +218,7 @@ PODS:
     - Flutter
   - irondash_engine_context (0.0.1):
     - Flutter
-  - Kingfisher (8.6.0)
+  - Kingfisher (8.6.1)
   - KingfisherWebP (1.7.2):
     - Kingfisher (~> 8.0)
     - libwebp (>= 1.1.0)
@@ -537,7 +537,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
-  Kingfisher: 64278f126a815d0e2d391cdf71311b85882c4de0
+  Kingfisher: 7ac7a7288653787a54206b11a3c74f49ab650f1f
   KingfisherWebP: 38b9721821947f547afb78f933f75f4f9e0ae402
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   livekit_client: 86c8af579274e4b7a215185a8080db2d4e176f40

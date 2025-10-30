@@ -70,12 +70,12 @@ dependencies:
   device_info_plus: ^11.5.0
   tus_client_dart:
     git: https://github.com/LittleSheep2Code/tus_client.git
-  cross_file: ^0.3.4+2
+  cross_file: ^0.3.5
   image_picker: ^1.2.0
   file_picker: ^10.3.3
   riverpod_annotation: ^2.6.1
   image_picker_platform_interface: ^2.11.1
-  image_picker_android: ^0.8.13+5
+  image_picker_android: ^0.8.13+7
   super_context_menu: ^0.9.1
   modal_bottom_sheet: ^3.0.0
   firebase_messaging: ^16.0.3
@@ -112,7 +112,7 @@ dependencies:
 
   flutter_popup_card: ^0.0.6
   timezone: ^0.10.1
-  flutter_timezone: ^5.0.0
+  flutter_timezone: ^5.0.1
   fl_chart: ^1.1.1
   sign_in_with_apple: ^7.0.1
   flutter_svg: ^2.2.1
@@ -161,7 +161,7 @@ dependencies:
   app_links: ^6.4.1
   syncfusion_flutter_pdfviewer: ^31.1.21
   swipe_to: ^1.0.6
-  fl_heatmap: ^0.4.5
+  fl_heatmap: ^0.4.6
   dio_smart_retry: ^7.0.1
   flutter_expandable_fab: ^2.5.2
   event_bus: ^2.0.1
