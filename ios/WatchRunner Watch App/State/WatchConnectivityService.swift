@@ -14,6 +14,7 @@ import Combine
 class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
     @Published var token: String?
     @Published var serverUrl: String?
+    @Published var isFetched: Bool?
 
     private let session: WCSession
     private let userDefaults = UserDefaults.standard
@@ -30,6 +31,7 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
         // Load cached data
         self.token = userDefaults.string(forKey: tokenKey)
         self.serverUrl = userDefaults.string(forKey: serverUrlKey)
+        self.isFetched = false
     }
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
@@ -58,7 +60,13 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
     }
 
     func requestDataFromPhone() {
+        if self.isFetched == true {
+            print("[watchOS] Skipped fetch from phone due to tried.")
+            return
+        }
+        
         guard session.isReachable else {
+            self.isFetched = true
             print("[watchOS] Phone is not reachable")
             return
         }
@@ -68,6 +76,7 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
             guard let self = self else { return }
             print("[watchOS] Received reply: \(response)")
             DispatchQueue.main.async {
+                self.isFetched = true
                 if let token = response["token"] as? String {
                     self.token = token
                     self.userDefaults.set(token, forKey: self.tokenKey)
