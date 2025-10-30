@@ -260,6 +260,7 @@ struct ChatRoomView: View {
     @State private var isLoading = false
     @State private var error: Error?
     @State private var wsState: WebSocketState = .disconnected // New state for WebSocket status
+    @State private var hasLoadedMessages = false // Track if messages have been loaded
 
     @State private var cancellables = Set<AnyCancellable>() // For managing subscriptions
 
@@ -351,10 +352,16 @@ struct ChatRoomView: View {
     }
 
     private func loadMessages() async {
+        // Prevent reloading if already loaded
+        guard !hasLoadedMessages else { return }
+
         guard let token = appState.token, let serverUrl = appState.serverUrl else {
             isLoading = false
             return
         }
+
+        isLoading = true
+        error = nil
 
         do {
             let messages = try await appState.networkService.fetchChatMessages(
@@ -364,6 +371,7 @@ struct ChatRoomView: View {
             )
             // Sort with newest messages first (for flipped list, newest will appear at bottom)
             self.messages = messages.sorted { $0.createdAt < $1.createdAt }
+            hasLoadedMessages = true
         } catch {
             print("[watchOS] Error loading messages: \(error.localizedDescription)")
             self.error = error
@@ -487,11 +495,25 @@ struct ChatMessageItem: View {
                         .foregroundColor(.secondary)
                 }
 
-                if let content = message.content {
+                if let content = message.content, !content.isEmpty {
                     Text(content)
                         .font(.system(size: 14))
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+
+                if !message.attachments.isEmpty {
+                    AttachmentView(attachment: message.attachments[0])
+                    if message.attachments.count > 1 {
+                        HStack(spacing: 8) {
+                            Image(systemName: "paperclip.circle.fill")
+                                .frame(width: 12, height: 12)
+                                .foregroundStyle(.gray)
+                            Text("\(message.attachments.count - 1)+ attachments")
+                                .font(.footnote)
+                                .foregroundStyle(.gray)
+                        }
+                    }
                 }
             }
         }
