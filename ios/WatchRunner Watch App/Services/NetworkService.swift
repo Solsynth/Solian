@@ -380,16 +380,16 @@ class NetworkService {
             print(context)
             return []
         } catch DecodingError.keyNotFound(let key, let context) {
-            print("Key '\(key)' not found:", context.debugDescription)
-            print("codingPath:", context.codingPath)
+            print("[watchOS] Message decode failed: Key '\(key)' not found:", context.debugDescription)
+            print("[watchOS] Message decode failed: codingPath:", context.codingPath)
             return []
         } catch DecodingError.valueNotFound(let value, let context) {
-            print("Value '\(value)' not found:", context.debugDescription)
-            print("codingPath:", context.codingPath)
+            print("[watchOS] Message decode failed: Value '\(value)' not found:", context.debugDescription)
+            print("[watchOS] Message decode failed: codingPath:", context.codingPath)
             return []
         } catch DecodingError.typeMismatch(let type, let context) {
-            print("Type '\(type)' mismatch:", context.debugDescription)
-            print("codingPath:", context.codingPath)
+            print("[watchOS] Message decode failed: Type '\(type)' mismatch:", context.debugDescription)
+            print("[watchOS] Message decode failed: codingPath:", context.codingPath)
             return []
         } catch {
             print("error: ", error)
