@@ -261,6 +261,8 @@ struct ChatRoomView: View {
     @State private var error: Error?
     @State private var wsState: WebSocketState = .disconnected // New state for WebSocket status
     @State private var hasLoadedMessages = false // Track if messages have been loaded
+    @State private var messageText = "" // Text input for sending messages
+    @State private var isSending = false // Track sending state
 
     @State private var cancellables = Set<AnyCancellable>() // For managing subscriptions
 
@@ -316,7 +318,7 @@ struct ChatRoomView: View {
                             scrollView.scrollTo(lastMessage.id, anchor: .bottom)
                         }
                     }
-                    .onChange(of: messages.count) { _ in
+                    .onChange(of: messages.count) { _, _ in
                         // Scroll to bottom when new messages arrive
                         if let lastMessage = messages.last {
                             withAnimation {
@@ -326,6 +328,35 @@ struct ChatRoomView: View {
                     }
                 }
             }
+
+            // Message input area
+            HStack(spacing: 8) {
+                TextField("Send message...", text: $messageText)
+                    .font(.system(size: 14))
+                    .disabled(isSending)
+                    .frame(height: 40)
+
+                Button {
+                    Task {
+                        await sendMessage()
+                    }
+                } label: {
+                    if isSending {
+                        ProgressView()
+                            .frame(width: 20, height: 20)
+                    } else {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                    }
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.glass)
+                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
+                .frame(width: 40, height: 40)
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
         }
         .navigationTitle(room.name ?? "Chat")
         .task {
@@ -378,6 +409,66 @@ struct ChatRoomView: View {
         }
 
         isLoading = false
+    }
+
+    private func sendMessage() async {
+        let content = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !content.isEmpty,
+              let token = appState.token,
+              let serverUrl = appState.serverUrl else { return }
+
+        isSending = true
+
+        do {
+            // Generate a nonce for the message
+            let nonce = UUID().uuidString
+
+            // Prepare the request data
+            let messageData: [String: Any] = [
+                "content": content,
+                "attachments_id": [], // Empty for now, can be extended for attachments
+                "meta": [:],
+                "nonce": nonce
+            ]
+
+            // Create the URL
+            guard let url = URL(string: "\(serverUrl)/sphere/chat/\(room.id)/messages") else {
+                throw URLError(.badURL)
+            }
+
+            // Create the request
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONSerialization.data(withJSONObject: messageData, options: [])
+
+            // Send the request
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                throw URLError(.badServerResponse)
+            }
+
+            // Parse the response to get the sent message
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            let sentMessage = try decoder.decode(SnChatMessage.self, from: data)
+
+            // Add the message to the local list
+            messages.append(sentMessage)
+
+            // Clear the input
+            messageText = ""
+
+        } catch {
+            print("[watchOS] Error sending message: \(error.localizedDescription)")
+            // Could show an error alert here
+        }
+
+        isSending = false
     }
 
     private func sendReadReceipt() {
