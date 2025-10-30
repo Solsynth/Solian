@@ -11,37 +11,35 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var appState = AppState()
     @State private var selection: Panel? = .explore
-
+    
     enum Panel: Hashable {
         case explore
         case chat
         case notifications
         case account
     }
-
+    
     var body: some View {
         NavigationSplitView {
             List(selection: $selection) {
-                Label("Explore", systemImage: "globe").tag(Panel.explore)
-                Label("Chat", systemImage: "message").tag(Panel.chat)
-                Label("Notifications", systemImage: "bell").tag(Panel.notifications)
-                Label("Account", systemImage: "person.circle").tag(Panel.account)
+                AppInfoHeaderView().listRowBackground(Color.clear)
+                
+                Label("Explore", systemImage: "globe.fill").tag(Panel.explore)
+                Label("Chat", systemImage: "message.fill").tag(Panel.chat)
+                Label("Notifications", systemImage: "bell.fill").tag(Panel.notifications)
+                Label("Account", systemImage: "person.circle.fill").tag(Panel.account)
             }
             .listStyle(.automatic)
         } detail: {
             switch selection {
             case .explore:
-                ExploreView()
-                    .environmentObject(appState)
+                ExploreView().environmentObject(appState)
             case .chat:
-                ChatView()
-                    .environmentObject(appState)
+                ChatView().environmentObject(appState)
             case .notifications:
-                NotificationView()
-                    .environmentObject(appState)
+                NotificationView().environmentObject(appState)
             case .account:
-                AccountView()
-                    .environmentObject(appState)
+                AccountView().environmentObject(appState)
             case .none:
                 Text("Select a panel")
             }

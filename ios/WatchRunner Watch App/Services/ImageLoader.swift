@@ -58,9 +58,8 @@ class ImageLoader: ObservableObject {
                 switch result {
                 case .success(let value):
                     self.image = Image(uiImage: value.image)
-                    print("[watchOS] Image loaded successfully from \(value.cacheType == .none ? "network" : "cache (\(value.cacheType))").")
                     self.isLoading = false
-                case .failure(let error):
+                case .failure(_):
                     // If WebP processor fails (likely due to format), try with default processor
                     let defaultProcessor = DefaultImageProcessor.default
                     self.currentTask = KingfisherManager.shared.retrieveImage(
@@ -78,7 +77,6 @@ class ImageLoader: ObservableObject {
                             switch fallbackResult {
                             case .success(let value):
                                 self.image = Image(uiImage: value.image)
-                                print("[watchOS] Image loaded successfully from \(value.cacheType == .none ? "network" : "cache (\(value.cacheType))") using fallback processor.")
                             case .failure(let fallbackError):
                                 self.errorMessage = fallbackError.localizedDescription
                                 print("[watchOS] Image loading failed: \(fallbackError.localizedDescription)")
