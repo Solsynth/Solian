@@ -263,6 +263,8 @@ struct ChatRoomView: View {
     @State private var hasLoadedMessages = false // Track if messages have been loaded
     @State private var messageText = "" // Text input for sending messages
     @State private var isSending = false // Track sending state
+    @State private var isInputHidden = false // Track if input should be hidden during scrolling
+    @State private var scrollTimer: Timer? // Timer to show input after scrolling stops
 
     @State private var cancellables = Set<AnyCancellable>() // For managing subscriptions
 
@@ -311,6 +313,7 @@ struct ChatRoomView: View {
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 8)
+                        .padding(.bottom, 8)
                     }
                     .onAppear {
                         // Scroll to bottom when messages load
@@ -326,37 +329,55 @@ struct ChatRoomView: View {
                             }
                         }
                     }
+                    .onScrollPhaseChange { _, phase  in
+                        switch phase {
+                        case .interacting:
+                            if !isInputHidden {
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    isInputHidden = true
+                                }
+                            }
+                        case .idle:
+                            withAnimation(.easeIn(duration: 0.3)) {
+                                isInputHidden = false
+                            }
+                        default: break
+                        }
+                    }
                 }
             }
 
             // Message input area
-            HStack(spacing: 8) {
-                TextField("Send message...", text: $messageText)
-                    .font(.system(size: 14))
-                    .disabled(isSending)
-                    .frame(height: 40)
+            if !isInputHidden {
+                HStack(spacing: 8) {
+                    TextField("Send message...", text: $messageText)
+                        .font(.system(size: 14))
+                        .disabled(isSending)
+                        .frame(height: 40)
 
-                Button {
-                    Task {
-                        await sendMessage()
+                    Button {
+                        Task {
+                            await sendMessage()
+                        }
+                    } label: {
+                        if isSending {
+                            ProgressView()
+                                .frame(width: 20, height: 20)
+                        } else {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                        }
                     }
-                } label: {
-                    if isSending {
-                        ProgressView()
-                            .frame(width: 20, height: 20)
-                    } else {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                    }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.glass)
+                    .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
+                    .frame(width: 40, height: 40)
                 }
-                .labelStyle(.iconOnly)
-                .buttonStyle(.glass)
-                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
-                .frame(width: 40, height: 40)
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
-            .padding(.horizontal)
-            .padding(.top, 8)
         }
         .navigationTitle(room.name ?? "Chat")
         .task {
@@ -368,6 +389,8 @@ struct ChatRoomView: View {
         .onDisappear {
             cancellables.forEach { $0.cancel() }
             cancellables.removeAll()
+            scrollTimer?.invalidate()
+            scrollTimer = nil
         }
     }
 
