@@ -49,9 +49,6 @@ struct ExploreView: View {
                 .environmentObject(appState)
             } else {
                 ProgressView { Text("Connecting to phone...") }
-                    .onAppear {
-                        appState.requestData()
-                    }
             }
         }
         .sheet(isPresented: $isComposing) {

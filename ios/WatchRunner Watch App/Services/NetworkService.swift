@@ -455,17 +455,19 @@ class NetworkService {
     }
     
     func connectWebSocket(token: String, serverUrl: String) {
-        connectLock.lock()
-        defer { connectLock.unlock() }
-
         webSocketQueue.async { [weak self] in
             guard let self = self else { return }
 
+            self.connectLock.lock()
+            defer { self.connectLock.unlock() }
+            
             // Prevent redundant connection attempts
             if self.currentConnectionState == .connecting || self.currentConnectionState == .connected {
                 print("[WebSocket] Already connecting or connected, ignoring new connect request.")
                 return
             }
+            
+            self.currentConnectionState = .connecting
 
             // Ensure any existing task is cancelled before starting a new one
             self.webSocketTask?.cancel(with: .goingAway, reason: nil)
@@ -490,13 +492,12 @@ class NetworkService {
                 return
             }
 
-            print("[WebSocket] Trying connecting to \(url)")
-            self.currentConnectionState = .connecting
-
             var request = URLRequest(url: url)
             request.setValue("AtField \(token)", forHTTPHeaderField: "Authorization")
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
+            
+            print("[WebSocket] Trying connecting to \(url)")
+            
             self.webSocketTask = self.session.webSocketTask(with: request)
             self.webSocketTask?.resume()
 
