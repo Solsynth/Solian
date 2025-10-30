@@ -219,6 +219,21 @@ PODS:
   - irondash_engine_context (0.0.1):
     - Flutter
   - Kingfisher (8.6.0)
+  - KingfisherWebP (1.7.2):
+    - Kingfisher (~> 8.0)
+    - libwebp (>= 1.1.0)
+  - libwebp (1.5.0):
+    - libwebp/demux (= 1.5.0)
+    - libwebp/mux (= 1.5.0)
+    - libwebp/sharpyuv (= 1.5.0)
+    - libwebp/webp (= 1.5.0)
+  - libwebp/demux (1.5.0):
+    - libwebp/webp
+  - libwebp/mux (1.5.0):
+    - libwebp/demux
+  - libwebp/sharpyuv (1.5.0)
+  - libwebp/webp (1.5.0):
+    - libwebp/sharpyuv
   - livekit_client (2.5.3):
     - Flutter
     - flutter_webrtc
@@ -333,6 +348,7 @@ DEPENDENCIES:
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - irondash_engine_context (from `.symlinks/plugins/irondash_engine_context/ios`)
   - Kingfisher (~> 8.0)
+  - KingfisherWebP
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
   - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
@@ -375,6 +391,8 @@ SPEC REPOS:
     - GoogleDataTransport
     - GoogleUtilities
     - Kingfisher
+    - KingfisherWebP
+    - libwebp
     - nanopb
     - OrderedSet
     - PromisesObjC
@@ -520,6 +538,8 @@ SPEC CHECKSUMS:
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
   Kingfisher: 64278f126a815d0e2d391cdf71311b85882c4de0
+  KingfisherWebP: 38b9721821947f547afb78f933f75f4f9e0ae402
+  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   livekit_client: 86c8af579274e4b7a215185a8080db2d4e176f40
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
@@ -551,6 +571,6 @@ SPEC CHECKSUMS:
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
 
-PODFILE CHECKSUM: c818292390b02fa379036ea099713a332bd7193f
+PODFILE CHECKSUM: 3096dc559be56aca856e757e1dc65ca039801e2e
 
 COCOAPODS: 1.16.2

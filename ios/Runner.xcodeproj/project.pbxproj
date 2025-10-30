@@ -3,13 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		7310A7DF2EB10963002C0FD3 /* WatchRunner Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 7310A7D42EB10962002C0FD3 /* WatchRunner Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73ACDFAD2E3D0E6100B63535 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */; };
 		73ACDFC32E3D0E6100B63535 /* SolianBroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73C305D82E0BE878009035B9 /* SolianShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -20,6 +21,7 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		A1D34487886D362AC8B99B2E /* Pods_WatchRunner_Watch_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 802C1CFCA7F1E069AAEFB454 /* Pods_WatchRunner_Watch_App.framework */; };
 		B87C0E607033790E71B54D73 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6D834CA86410B09796B312B /* Pods_Runner.framework */; };
 		D174D53FF3E8EA943491A5CC /* Pods_SolianShareExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B40764A2C4CC0E7DC70A0D3 /* Pods_SolianShareExtension.framework */; };
 		D1772CE196985AE8E8C9F2E5 /* Pods_SolianNotificationService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39FE4CC6223F0D3C0E1FFD04 /* Pods_SolianNotificationService.framework */; };
@@ -58,6 +60,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		7310A7DE2EB10963002C0FD3 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				7310A7DF2EB10963002C0FD3 /* WatchRunner Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		73268D1D2DEAFD670076E970 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -84,6 +97,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		103EA2362B9E9F127016A1F1 /* Pods-WatchRunner Watch App.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WatchRunner Watch App.profile.xcconfig"; path = "Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App.profile.xcconfig"; sourceTree = "<group>"; };
 		14118AC858B441AB16B7309E /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
@@ -100,6 +114,7 @@
 		39FE4CC6223F0D3C0E1FFD04 /* Pods_SolianNotificationService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SolianNotificationService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3A1C47BD29CC6AC2587D4DBE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		7310A7D42EB10962002C0FD3 /* WatchRunner Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "WatchRunner Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		737E920B2DB6A9FF00BE9CDB /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianBroadcastExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
@@ -111,6 +126,8 @@
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		7B40764A2C4CC0E7DC70A0D3 /* Pods_SolianShareExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SolianShareExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		802C1CFCA7F1E069AAEFB454 /* Pods_WatchRunner_Watch_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WatchRunner_Watch_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		86D60BA96DA647E1B11AA7F0 /* Pods-WatchRunner Watch App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WatchRunner Watch App.debug.xcconfig"; path = "Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App.debug.xcconfig"; sourceTree = "<group>"; };
 		8B40620B1EEBB09456406A3C /* Pods-SolianNotificationService.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianNotificationService.profile.xcconfig"; path = "Target Support Files/Pods-SolianNotificationService/Pods-SolianNotificationService.profile.xcconfig"; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -120,6 +137,7 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9AE244813FCDFAA941430393 /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		A2EB1DAFDE9B8E6D88BBF7A3 /* Pods-WatchRunner Watch App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WatchRunner Watch App.release.xcconfig"; path = "Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App.release.xcconfig"; sourceTree = "<group>"; };
 		A499FDB2082EB000933AA8C5 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		A85FF612AE7623A9934E57CE /* Pods-SolianShareExtension.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianShareExtension.profile.xcconfig"; path = "Target Support Files/Pods-SolianShareExtension/Pods-SolianShareExtension.profile.xcconfig"; sourceTree = "<group>"; };
 		AA0CA8A3E15DEE023BB27438 /* Pods_NotificationService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,6 +148,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7355265E2EB3A8870013AFE4 /* Exceptions for "WatchRunner Watch App" folder in "WatchRunner Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"WatchRunner-Watch-App-Info.plist",
+			);
+			target = 7310A7D32EB10962002C0FD3 /* WatchRunner Watch App */;
+		};
 		73ACDFCA2E3D0E6100B63535 /* Exceptions for "SolianBroadcastExtension" folder in "SolianBroadcastExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -162,6 +187,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		7310A7D52EB10962002C0FD3 /* WatchRunner Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7355265E2EB3A8870013AFE4 /* Exceptions for "WatchRunner Watch App" folder in "WatchRunner Watch App" target */,
+			);
+			path = "WatchRunner Watch App";
+			sourceTree = "<group>";
+		};
 		73268D272DEB012A0076E970 /* Services */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -202,6 +235,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				755557017FD1B99AFC4F9127 /* Pods_RunnerTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7310A7D12EB10962002C0FD3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1D34487886D362AC8B99B2E /* Pods_WatchRunner_Watch_App.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,6 +299,7 @@
 				7B40764A2C4CC0E7DC70A0D3 /* Pods_SolianShareExtension.framework */,
 				73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */,
 				73ACDFB82E3D0E6100B63535 /* UIKit.framework */,
+				802C1CFCA7F1E069AAEFB454 /* Pods_WatchRunner_Watch_App.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -280,6 +322,9 @@
 				17FAB080A9C53193ABD9C15B /* Pods-SolianShareExtension.debug.xcconfig */,
 				27C66EFB5A705F1A822C3EB0 /* Pods-SolianShareExtension.release.xcconfig */,
 				A85FF612AE7623A9934E57CE /* Pods-SolianShareExtension.profile.xcconfig */,
+				86D60BA96DA647E1B11AA7F0 /* Pods-WatchRunner Watch App.debug.xcconfig */,
+				A2EB1DAFDE9B8E6D88BBF7A3 /* Pods-WatchRunner Watch App.release.xcconfig */,
+				103EA2362B9E9F127016A1F1 /* Pods-WatchRunner Watch App.profile.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -303,6 +348,7 @@
 				73CDD67B2DEC00480059D95D /* SolianNotificationService */,
 				73C305CF2E0BE878009035B9 /* SolianShareExtension */,
 				73ACDFAE2E3D0E6100B63535 /* SolianBroadcastExtension */,
+				7310A7D52EB10962002C0FD3 /* WatchRunner Watch App */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				91E124CE95BCB4DCD890160D /* Pods */,
@@ -319,6 +365,7 @@
 				73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */,
 				73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */,
 				73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */,
+				7310A7D42EB10962002C0FD3 /* WatchRunner Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -362,6 +409,28 @@
 			productName = RunnerTests;
 			productReference = 331C8081294A63A400263BE5 /* RunnerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		7310A7D32EB10962002C0FD3 /* WatchRunner Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7310A7E32EB10963002C0FD3 /* Build configuration list for PBXNativeTarget "WatchRunner Watch App" */;
+			buildPhases = (
+				DDEDA1BA6278B94F0F7B9B61 /* [CP] Check Pods Manifest.lock */,
+				7310A7D02EB10962002C0FD3 /* Sources */,
+				7310A7D12EB10962002C0FD3 /* Frameworks */,
+				7310A7D22EB10962002C0FD3 /* Resources */,
+				C74B07D6587D29C67A198025 /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				7310A7D52EB10962002C0FD3 /* WatchRunner Watch App */,
+			);
+			name = "WatchRunner Watch App";
+			productName = "WatchRunner Watch App";
+			productReference = 7310A7D42EB10962002C0FD3 /* WatchRunner Watch App.app */;
+			productType = "com.apple.product-type.application";
 		};
 		73ACDFAA2E3D0E6100B63535 /* SolianBroadcastExtension */ = {
 			isa = PBXNativeTarget;
@@ -434,6 +503,7 @@
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				73268D1D2DEAFD670076E970 /* Embed Foundation Extensions */,
+				7310A7DE2EB10963002C0FD3 /* Embed Watch Content */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
@@ -463,13 +533,16 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastSwiftUpdateCheck = 1640;
+				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					331C8080294A63A400263BE5 = {
 						CreatedOnToolsVersion = 14.0;
 						TestTargetID = 97C146ED1CF9000F007C117D;
+					};
+					7310A7D32EB10962002C0FD3 = {
+						CreatedOnToolsVersion = 26.0.1;
 					};
 					73ACDFAA2E3D0E6100B63535 = {
 						CreatedOnToolsVersion = 16.4;
@@ -504,12 +577,20 @@
 				73CDD6792DEC00480059D95D /* SolianNotificationService */,
 				73C305CD2E0BE878009035B9 /* SolianShareExtension */,
 				73ACDFAA2E3D0E6100B63535 /* SolianBroadcastExtension */,
+				7310A7D32EB10962002C0FD3 /* WatchRunner Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		331C807F294A63A400263BE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7310A7D22EB10962002C0FD3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -683,6 +764,45 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
 		};
+		C74B07D6587D29C67A198025 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DDEDA1BA6278B94F0F7B9B61 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-WatchRunner Watch App-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		E86CDE9D6464F4F52B910856 /* FlutterFire: "flutterfire upload-crashlytics-symbols" */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -731,6 +851,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7310A7D02EB10962002C0FD3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -940,6 +1067,147 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = Profile;
+		};
+		7310A7E02EB10963002C0FD3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 86D60BA96DA647E1B11AA7F0 /* Pods-WatchRunner Watch App.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W7HPZ53V6B;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WatchRunner-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = WatchRunner;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dev.solsynth.solian;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		7310A7E12EB10963002C0FD3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2EB1DAFDE9B8E6D88BBF7A3 /* Pods-WatchRunner Watch App.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W7HPZ53V6B;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WatchRunner-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = WatchRunner;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dev.solsynth.solian;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		7310A7E22EB10963002C0FD3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 103EA2362B9E9F127016A1F1 /* Pods-WatchRunner Watch App.profile.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W7HPZ53V6B;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WatchRunner-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = WatchRunner;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dev.solsynth.solian;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Profile;
 		};
@@ -1483,6 +1751,16 @@
 				331C8088294A63A400263BE5 /* Debug */,
 				331C8089294A63A400263BE5 /* Release */,
 				331C808A294A63A400263BE5 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7310A7E32EB10963002C0FD3 /* Build configuration list for PBXNativeTarget "WatchRunner Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7310A7E02EB10963002C0FD3 /* Debug */,
+				7310A7E12EB10963002C0FD3 /* Release */,
+				7310A7E22EB10963002C0FD3 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
