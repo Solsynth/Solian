@@ -27,6 +27,7 @@ import 'package:island/widgets/realm/realm_card.dart';
 import 'package:island/widgets/publisher/publisher_card.dart';
 import 'package:island/widgets/web_article_card.dart';
 import 'package:island/widgets/extended_refresh_indicator.dart';
+import 'package:island/services/event_bus.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'explore.g.dart';
@@ -89,6 +90,17 @@ class ExploreScreen extends HookConsumerWidget {
       tabController.addListener(listener);
       return () => tabController.removeListener(listener);
     }, [tabController]);
+
+    // Listen for post creation events to refresh activities
+    useEffect(() {
+      final subscription = eventBus.on<PostCreatedEvent>().listen((event) {
+        // Refresh all activity lists when a new post is created
+        ref.invalidate(activityListNotifierProvider(null));
+        ref.invalidate(activityListNotifierProvider('subscriptions'));
+        ref.invalidate(activityListNotifierProvider('friends'));
+      });
+      return subscription.cancel;
+    }, []);
 
     final now = DateTime.now();
 
@@ -479,10 +491,11 @@ class ExploreScreen extends HookConsumerWidget {
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           child: CustomScrollView(
             slivers: [
+              const SliverGap(8),
               if (user.value != null)
                 SliverToBoxAdapter(
                   child: CheckInWidget(
-                    margin: const EdgeInsets.only(bottom: 8, top: 8),
+                    margin: const EdgeInsets.only(bottom: 8),
                   ),
                 ),
               SliverToBoxAdapter(
