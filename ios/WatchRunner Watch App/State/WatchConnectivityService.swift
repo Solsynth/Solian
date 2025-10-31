@@ -15,6 +15,7 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
     @Published var token: String?
     @Published var serverUrl: String?
     @Published var isFetched: Bool?
+    @Published var errorMessage: String?
 
     private let session: WCSession
     private let userDefaults = UserDefaults.standard
@@ -37,6 +38,9 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error {
             print("[watchOS] WCSession activation failed with error: \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                self.errorMessage = "WCSession activation failed: \(error.localizedDescription)"
+            }
             return
         }
         print("[watchOS] WCSession activated with state: \(activationState.rawValue)")
@@ -67,7 +71,11 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
         
         guard session.isReachable else {
             self.isFetched = true
-            print("[watchOS] Phone is not reachable")
+            let errorMsg = "Phone is not reachable"
+            print("[watchOS] \(errorMsg)")
+            DispatchQueue.main.async {
+                self.errorMessage = errorMsg
+            }
             return
         }
         
@@ -88,6 +96,9 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
             }
         } errorHandler: { error in
             print("[watchOS] sendMessage failed with error: \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to get data from phone: \(error.localizedDescription)"
+            }
         }
     }
 }

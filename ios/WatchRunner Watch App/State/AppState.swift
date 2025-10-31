@@ -15,6 +15,7 @@ class AppState: ObservableObject {
     @Published var token: String? = nil
     @Published var serverUrl: String? = nil
     @Published var isReady = false
+    @Published var errorMessage: String? = nil
 
     let networkService = NetworkService()
     private var wcService = WatchConnectivityService()
@@ -22,13 +23,14 @@ class AppState: ObservableObject {
     private var hasAttemptedConnection = false
 
     init() {
-        wcService.$token.combineLatest(wcService.$serverUrl, wcService.$isFetched)
+        wcService.$token.combineLatest(wcService.$serverUrl, wcService.$isFetched, wcService.$errorMessage)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] (token: String?, serverUrl: String?, isFetched: Bool?) in
+            .sink { [weak self] (token: String?, serverUrl: String?, isFetched: Bool?, errorMessage: String?) in
                 guard let self = self else { return }
                 
                 self.token = token
                 self.serverUrl = serverUrl
+                self.errorMessage = errorMessage
 
                 if let token = token, let serverUrl = serverUrl, !token.isEmpty, !serverUrl.isEmpty {
                     self.isReady = true
