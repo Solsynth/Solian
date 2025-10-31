@@ -57,37 +57,57 @@ class NotificationService: UNNotificationServiceExtension {
         guard let meta = content.userInfo["meta"] as? [AnyHashable: Any] else {
             throw ParseNotificationPayloadError.missingMetadata("The notification has no meta.")
         }
-        
+
         let pfpIdentifier = meta["pfp"] as? String
-        
         let metaCopy = meta as? [String: Any] ?? [:]
         let pfpUrl = pfpIdentifier != nil ? getAttachmentUrl(for: pfpIdentifier!) : nil
-        
-        let targetSize = 512
-        let scaleProcessor = ResizingImageProcessor(referenceSize: CGSize(width: targetSize, height: targetSize), mode: .aspectFit)
-        
-        KingfisherManager.shared.retrieveImage(with: URL(string: pfpUrl!)!, options: [.processor(scaleProcessor)], completionHandler: { result in
-            var image: Data?
-            switch result {
-            case .success(let value):
-                image = value.image.pngData()
-            case .failure(let error):
-                print("Unable to get pfp url: \(error)")
-            }
-            
-            let handle = INPersonHandle(value: "\(metaCopy["user_id"] ?? "")", type: .unknown)
+
+        let handle = INPersonHandle(value: "\(metaCopy["user_id"] ?? "")", type: .unknown)
+
+        if let pfpUrl = pfpUrl, let url = URL(string: pfpUrl) {
+            let targetSize = 512
+            let scaleProcessor = ResizingImageProcessor(referenceSize: CGSize(width: targetSize, height: targetSize), mode: .aspectFit)
+
+            KingfisherManager.shared.retrieveImage(with: url, options: [.processor(scaleProcessor)], completionHandler: { result in
+                var image: Data?
+                switch result {
+                case .success(let value):
+                    image = value.image.pngData()
+                case .failure(let error):
+                    print("Unable to get pfp url: \(error)")
+                }
+
+                let sender = INPerson(
+                    personHandle: handle,
+                    nameComponents: PersonNameComponents(nickname: "\(metaCopy["sender_name"] ?? "")"),
+                    displayName: content.title,
+                    image: image == nil ? nil : INImage(imageData: image!),
+                    contactIdentifier: nil,
+                    customIdentifier: nil
+                )
+
+                let intent = self.createMessageIntent(with: sender, meta: metaCopy, body: content.body)
+                self.donateInteraction(for: intent)
+
+                content.categoryIdentifier = "CHAT_MESSAGE"
+                self.contentHandler?(content)
+            })
+        } else {
             let sender = INPerson(
                 personHandle: handle,
                 nameComponents: PersonNameComponents(nickname: "\(metaCopy["sender_name"] ?? "")"),
                 displayName: content.title,
-                image: image == nil ? nil : INImage(imageData: image!),
+                image: nil,
                 contactIdentifier: nil,
                 customIdentifier: nil
             )
-            
+
+            let intent = self.createMessageIntent(with: sender, meta: metaCopy, body: content.body)
+            self.donateInteraction(for: intent)
+
             content.categoryIdentifier = "CHAT_MESSAGE"
             self.contentHandler?(content)
-        })
+        }
     }
     
     private func handleDefaultNotification(content: UNMutableNotificationContent) throws {

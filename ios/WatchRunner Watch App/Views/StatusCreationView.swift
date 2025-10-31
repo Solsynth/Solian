@@ -81,14 +81,14 @@ struct StatusCreationView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.automatic)
                     
                     Button(isSubmitting ? "Saving..." : "Save") {
                         Task {
                             await submitStatus()
                         }
                     }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.automatic)
                     .disabled(isSubmitting)
                 }
                 .padding(.horizontal)

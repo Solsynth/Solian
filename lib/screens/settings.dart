@@ -425,7 +425,7 @@ class SettingsScreen extends HookConsumerWidget {
       // FAB position settings
       ListTile(
         minLeadingWidth: 48,
-        title: Text('fabPosition').tr(),
+        title: Text('fabLocation').tr(),
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         leading: const Icon(Symbols.adjust),
         trailing: DropdownButtonHideUnderline(

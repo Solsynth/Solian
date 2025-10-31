@@ -370,7 +370,7 @@ struct ChatRoomView: View {
                         }
                     }
                     .labelStyle(.iconOnly)
-                    .buttonStyle(.glass)
+                    .buttonStyle(.automatic)
                     .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
                     .frame(width: 40, height: 40)
                 }

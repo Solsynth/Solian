@@ -62,3 +62,9 @@ If you want to build the release version, use the flutter build command. Learn m
 ```bash
 flutter build <platform>
 ```
+
+### Known Issues
+
+Due to the issues with the flutter build tools, [see](https://github.com/flutter/flutter/issues/160622).
+
+Since there is a watchOS app for iOS, you're unable to use the flutter cli to run iOS app. Use xcode instead.

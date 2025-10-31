@@ -9,12 +9,24 @@ export 'content/alert.native.dart'
     if (dart.library.html) 'content/alert.web.dart';
 
 void showSnackBar(String message, {SnackBarAction? action}) {
+  final context = globalOverlay.currentState!.context;
+  final screenWidth = MediaQuery.of(context).size.width;
+  final padding = 40.0;
+  final availableWidth = screenWidth - padding;
+
   showTopSnackBar(
     globalOverlay.currentState!,
-    ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 480),
-      child: Center(
-        child: Card(child: Text(message).padding(horizontal: 20, vertical: 16)),
+    Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: availableWidth.clamp(0, 400),
+          maxWidth: availableWidth.clamp(0, 600),
+        ),
+        child: Card(
+          elevation: 2,
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          child: Text(message).padding(horizontal: 20, vertical: 16),
+        ),
       ),
     ),
     snackBarPosition: SnackBarPosition.bottom,

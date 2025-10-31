@@ -22,23 +22,6 @@ class ComposeSubmitUtils {
       throw Exception('Already submitting');
     }
 
-    // Don't submit empty posts (no content and no attachments)
-    final hasContent =
-        state.titleController.text.trim().isNotEmpty ||
-        state.descriptionController.text.trim().isNotEmpty ||
-        state.contentController.text.trim().isNotEmpty;
-    final hasAttachments = state.attachments.value.isNotEmpty;
-
-    if (!hasContent && !hasAttachments) {
-      // Show error message if context is mounted
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('postContentEmpty')));
-      }
-      throw Exception('Post content is empty'); // Don't submit empty posts
-    }
-
     try {
       state.submitting.value = true;
 
