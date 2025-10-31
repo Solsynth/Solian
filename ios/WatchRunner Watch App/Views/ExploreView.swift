@@ -9,7 +9,7 @@ import SwiftUI
 
 // The main view with the TabView for filtering.
 struct ExploreView: View {
-    @StateObject private var appState = AppState()
+    @EnvironmentObject private var appState: AppState
     @State private var isComposing = false
     @State private var selectedTab: String = "Explore"
 
@@ -46,14 +46,22 @@ struct ExploreView: View {
                         }
                     }
                 }
-                .environmentObject(appState)
             } else {
-                ProgressView { Text("Connecting to phone...") }
+                VStack {
+                    ProgressView { Text("Syncing...") }
+                    Button("Retry") {
+                        appState.requestData()
+                    }
+                }
             }
         }
         .sheet(isPresented: $isComposing) {
             ComposePostView()
-                .environmentObject(appState)
         }
+        .alert("Error", isPresented: .constant(appState.errorMessage != nil), actions: {
+            Button("OK") { appState.errorMessage = nil }
+        }, message: {
+            Text(appState.errorMessage ?? "")
+        })
     }
 }
