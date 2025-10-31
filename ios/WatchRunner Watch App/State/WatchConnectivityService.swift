@@ -1,15 +1,6 @@
-//
-//  WatchConnectivityService.swift
-//  WatchRunner Watch App
-//
-//  Created by LittleSheep on 2025/10/29.
-//
-
-import Foundation
 import WatchConnectivity
 import Combine
-
-// MARK: - Watch Connectivity
+import Foundation
 
 class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
     @Published var token: String?
@@ -49,6 +40,22 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
         }
     }
 
+    func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
+        print("[watchOS] Received application context: \(applicationContext)")
+        DispatchQueue.main.async {
+            if let token = applicationContext["token"] as? String {
+                self.token = token
+                self.userDefaults.set(token, forKey: self.tokenKey)
+            }
+            if let serverUrl = applicationContext["serverUrl"] as? String {
+                self.serverUrl = serverUrl
+                self.userDefaults.set(serverUrl, forKey: self.serverUrlKey)
+            }
+            self.isFetched = true
+            self.errorMessage = nil
+        }
+    }
+
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         print("[watchOS] Received message: \(message)")
         DispatchQueue.main.async {
@@ -64,41 +71,43 @@ class WatchConnectivityService: NSObject, WCSessionDelegate, ObservableObject {
     }
 
     func requestDataFromPhone() {
-        if self.isFetched == true {
-            print("[watchOS] Skipped fetch from phone due to tried.")
-            return
+    // Check if we already have valid data to avoid unnecessary requests
+    if let token = self.token, let serverUrl = self.serverUrl, !token.isEmpty, !serverUrl.isEmpty {
+        print("[watchOS] Skipped fetch - already have valid data")
+        self.isFetched = true
+        return
+    }
+    
+    guard session.activationState == .activated else {
+        print("[watchOS] Session not activated yet, state: \(session.activationState.rawValue)")
+        DispatchQueue.main.async {
+            self.errorMessage = "Session not ready yet"
         }
-        
-        guard session.isReachable else {
+        return
+    }
+    
+    print("[watchOS] Requesting data from phone")
+    session.sendMessage(["request": "data"]) { [weak self] response in
+        guard let self = self else { return }
+        print("[watchOS] Received reply: \(response)")
+        DispatchQueue.main.async {
             self.isFetched = true
-            let errorMsg = "Phone is not reachable"
-            print("[watchOS] \(errorMsg)")
-            DispatchQueue.main.async {
-                self.errorMessage = errorMsg
+            if let token = response["token"] as? String {
+                self.token = token
+                self.userDefaults.set(token, forKey: self.tokenKey)
             }
-            return
+            if let serverUrl = response["serverUrl"] as? String {
+                self.serverUrl = serverUrl
+                self.userDefaults.set(serverUrl, forKey: self.serverUrlKey)
+            }
+            self.errorMessage = nil // Clear any previous errors
         }
-        
-        print("[watchOS] Requesting data from phone")
-        session.sendMessage(["request": "data"]) { [weak self] response in
-            guard let self = self else { return }
-            print("[watchOS] Received reply: \(response)")
-            DispatchQueue.main.async {
-                self.isFetched = true
-                if let token = response["token"] as? String {
-                    self.token = token
-                    self.userDefaults.set(token, forKey: self.tokenKey)
-                }
-                if let serverUrl = response["serverUrl"] as? String {
-                    self.serverUrl = serverUrl
-                    self.userDefaults.set(serverUrl, forKey: self.serverUrlKey)
-                }
-            }
-        } errorHandler: { error in
-            print("[watchOS] sendMessage failed with error: \(error.localizedDescription)")
-            DispatchQueue.main.async {
-                self.errorMessage = "Failed to get data from phone: \(error.localizedDescription)"
-            }
+    } errorHandler: { error in
+        print("[watchOS] sendMessage failed with error: \(error.localizedDescription)")
+        DispatchQueue.main.async {
+            self.errorMessage = "Failed to get data from phone: \(error.localizedDescription)"
+            // Don't set isFetched = true on error - allow retry
         }
     }
+}
 }
