@@ -348,13 +348,15 @@ class ChatListScreen extends HookConsumerWidget {
     useEffect(() {
       // Set FAB type to chat
       final fabMenuNotifier = ref.read(fabMenuTypeProvider.notifier);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future(() {
         fabMenuNotifier.state = FabMenuType.chat;
       });
       return () {
         // Clean up: reset FAB type to main
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          fabMenuNotifier.state = FabMenuType.main;
+          if (fabMenuNotifier.state == FabMenuType.chat) {
+            fabMenuNotifier.state = FabMenuType.main;
+          }
         });
       };
     }, []);

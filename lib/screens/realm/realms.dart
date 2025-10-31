@@ -46,13 +46,15 @@ class RealmListScreen extends HookConsumerWidget {
     useEffect(() {
       // Set FAB type to realm
       final fabMenuNotifier = ref.read(fabMenuTypeProvider.notifier);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future(() {
         fabMenuNotifier.state = FabMenuType.realm;
       });
       return () {
         // Clean up: reset FAB type to main
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          fabMenuNotifier.state = FabMenuType.main;
+          if (fabMenuNotifier.state == FabMenuType.realm) {
+            fabMenuNotifier.state = FabMenuType.main;
+          }
         });
       };
     }, []);
