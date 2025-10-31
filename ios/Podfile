@@ -31,6 +31,8 @@ target 'Runner' do
   use_modular_headers!
 
   pod 'Alamofire'
+  pod 'Kingfisher', '~> 8.0'
+  pod 'KingfisherWebP'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
@@ -40,8 +42,6 @@ target 'Runner' do
 
   target 'SolianNotificationService' do
     inherit! :search_paths
-    pod 'Kingfisher', '~> 8.0'
-    pod 'Alamofire'
   end
 
   target 'SolianShareExtension' do
