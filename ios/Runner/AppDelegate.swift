@@ -5,14 +5,14 @@ import WatchConnectivity
 @main
 @objc class AppDelegate: FlutterAppDelegate {
     let notifyDelegate = NotifyDelegate()
-    private var watchConnectivityService: WatchConnectivityService?
-    
+    private static var sharedWatchConnectivityService: WatchConnectivityService?
+
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = notifyDelegate
-        
+
         let replyableMessageCategory = UNNotificationCategory(
             identifier: "CHAT_MESSAGE",
             actions: [
@@ -25,38 +25,45 @@ import WatchConnectivity
             intentIdentifiers: [],
             options: []
         )
-        
         UNUserNotificationCenter.current().setNotificationCategories([replyableMessageCategory])
         
         GeneratedPluginRegistrant.register(with: self)
         
+        // Always initialize and retain a strong reference
         if WCSession.isSupported() {
-            watchConnectivityService = WatchConnectivityService()
+            AppDelegate.sharedWatchConnectivityService = WatchConnectivityService.shared
+        } else {
+            print("[iOS] WCSession not supported on this device.")
         }
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 }
 
-class WatchConnectivityService: NSObject, WCSessionDelegate {
-    private let session: WCSession
-
-    override init() {
-        self.session = .default
+final class WatchConnectivityService: NSObject, WCSessionDelegate {
+    static let shared = WatchConnectivityService()
+    private let session: WCSession = .default
+    
+    private override init() {
         super.init()
-        print("[iOS] Activating WCSession")
-        self.session.delegate = self
-        self.session.activate()
+        print("[iOS] Activating WCSession...")
+        session.delegate = self
+        session.activate()
     }
+
+    // MARK: - WCSessionDelegate
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error {
-            print("[iOS] WCSession activation failed with error: \(error.localizedDescription)")
-            return
+            print("[iOS] WCSession activation failed: \(error.localizedDescription)")
+        } else {
+            print("[iOS] WCSession activated with state: \(activationState.rawValue)")
+            if activationState == .activated {
+                sendDataToWatch()
+            }
         }
-        print("[iOS] WCSession activated with state: \(activationState.rawValue)")
     }
-    
+
     func sessionDidBecomeInactive(_ session: WCSession) {}
     
     func sessionDidDeactivate(_ session: WCSession) {
@@ -69,16 +76,34 @@ class WatchConnectivityService: NSObject, WCSessionDelegate {
             let token = UserDefaults.standard.getFlutterToken()
             let serverUrl = UserDefaults.standard.getServerUrl()
             
-            print("[iOS] Retrieved token: \(token ?? "nil")")
-            print("[iOS] Retrieved serverUrl: \(serverUrl)")
-            
-            var data: [String: Any] = ["serverUrl": serverUrl]
+            var data: [String: Any] = ["serverUrl": serverUrl ?? ""]
             if let token = token {
                 data["token"] = token
             }
             
             print("[iOS] Replying with data: \(data)")
             replyHandler(data)
+        }
+    }
+
+    func sendDataToWatch() {
+        guard session.activationState == .activated else {
+            return
+        }
+        
+        let token = UserDefaults.standard.getFlutterToken()
+        let serverUrl = UserDefaults.standard.getServerUrl()
+        
+        var data: [String: Any] = ["serverUrl": serverUrl ?? ""]
+        if let token = token {
+            data["token"] = token
+        }
+        
+        do {
+            try session.updateApplicationContext(data)
+            print("[iOS] Sent application context: \(data)")
+        } catch {
+            print("[iOS] Failed to send application context: \(error.localizedDescription)")
         }
     }
 }
