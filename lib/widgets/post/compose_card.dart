@@ -38,6 +38,7 @@ class PostComposeCard extends HookConsumerWidget {
   final Function(ComposeState)? onStateChanged;
   final bool isContained;
   final bool showHeader;
+  final ComposeState? providedState;
 
   const PostComposeCard({
     super.key,
@@ -48,6 +49,7 @@ class PostComposeCard extends HookConsumerWidget {
     this.onStateChanged,
     this.isContained = false,
     this.showHeader = true,
+    this.providedState,
   });
 
   @override
@@ -64,75 +66,79 @@ class PostComposeCard extends HookConsumerWidget {
     final notifier = ref.read(composeStorageNotifierProvider.notifier);
 
     // Create compose state
-    final state = useMemoized(
-      () => ComposeLogic.createState(
-        originalPost: originalPost,
-        forwardedPost: forwardedPost,
-        repliedPost: repliedPost,
-        postType: 0,
-      ),
-      [originalPost, forwardedPost, repliedPost],
-    );
+    final ComposeState composeState =
+        providedState ??
+        useMemoized(
+          () => ComposeLogic.createState(
+            originalPost: originalPost,
+            forwardedPost: forwardedPost,
+            repliedPost: repliedPost,
+            postType: 0,
+          ),
+          [originalPost, forwardedPost, repliedPost],
+        );
 
     // Add a listener to the entire state to trigger rebuilds
     final stateNotifier = useMemoized(
       () => Listenable.merge([
-        state.titleController,
-        state.descriptionController,
-        state.contentController,
-        state.visibility,
-        state.attachments,
-        state.attachmentProgress,
-        state.currentPublisher,
-        state.submitting,
+        composeState.titleController,
+        composeState.descriptionController,
+        composeState.contentController,
+        composeState.visibility,
+        composeState.attachments,
+        composeState.attachmentProgress,
+        composeState.currentPublisher,
+        composeState.submitting,
       ]),
-      [state],
+      [composeState],
     );
     useListenable(stateNotifier);
 
     // Notify parent of state changes
     useEffect(() {
-      onStateChanged?.call(state);
+      onStateChanged?.call(composeState);
       return null;
-    }, [state]);
+    }, [composeState]);
 
     // Use shared state management utilities
-    ComposeStateUtils.usePublisherInitialization(ref, state);
-    ComposeStateUtils.useInitialStateLoader(state, initialState);
+    ComposeStateUtils.usePublisherInitialization(ref, composeState);
+    ComposeStateUtils.useInitialStateLoader(composeState, initialState);
 
     // Dispose state when widget is disposed
     useEffect(() {
       return () {
-        if (!submitted.value &&
-            originalPost == null &&
-            state.currentPublisher.value != null) {
-          final hasContent =
-              state.titleController.text.trim().isNotEmpty ||
-              state.descriptionController.text.trim().isNotEmpty ||
-              state.contentController.text.trim().isNotEmpty;
-          final hasAttachments = state.attachments.value.isNotEmpty;
-          if (hasContent || hasAttachments) {
-            final draft = SnPost(
-              id: state.draftId,
-              title: state.titleController.text,
-              description: state.descriptionController.text,
-              content: state.contentController.text,
-              visibility: state.visibility.value,
-              type: state.postType,
-              attachments:
-                  state.attachments.value
-                      .where((e) => e.isOnCloud)
-                      .map((e) => e.data as SnCloudFile)
-                      .toList(),
-              publisher: state.currentPublisher.value!,
-              updatedAt: DateTime.now(),
-            );
-            notifier
-                .saveDraft(draft)
-                .catchError((e) => debugPrint('Failed to save draft: $e'));
+        if (providedState == null) {
+          if (!submitted.value &&
+              originalPost == null &&
+              composeState.currentPublisher.value != null) {
+            final hasContent =
+                composeState.titleController.text.trim().isNotEmpty ||
+                composeState.descriptionController.text.trim().isNotEmpty ||
+                composeState.contentController.text.trim().isNotEmpty;
+            final hasAttachments = composeState.attachments.value.isNotEmpty;
+            if (hasContent || hasAttachments) {
+              final draft = SnPost(
+                id: composeState.draftId,
+                title: composeState.titleController.text,
+                description: composeState.descriptionController.text,
+                content: composeState.contentController.text,
+                visibility: composeState.visibility.value,
+                type: composeState.postType,
+                attachments:
+                    composeState.attachments.value
+                        .where((e) => e.isOnCloud)
+                        .map((e) => e.data as SnCloudFile)
+                        .toList(),
+                publisher: composeState.currentPublisher.value!,
+                updatedAt: DateTime.now(),
+              );
+              notifier
+                  .saveDraft(draft)
+                  .catchError((e) => debugPrint('Failed to save draft: $e'));
+            }
           }
+          ComposeLogic.dispose(composeState);
         }
-        ComposeLogic.dispose(state);
       };
     }, []);
 
@@ -142,14 +148,14 @@ class PostComposeCard extends HookConsumerWidget {
         context: context,
         isScrollControlled: true,
         useRootNavigator: true,
-        builder: (context) => ComposeSettingsSheet(state: state),
+        builder: (context) => ComposeSettingsSheet(state: composeState),
       );
     }
 
     Future<void> performSubmit() async {
       await ComposeSubmitUtils.performSubmit(
         ref,
-        state,
+        composeState,
         context,
         originalPost: originalPost,
         repliedPost: repliedPost,
@@ -161,10 +167,10 @@ class PostComposeCard extends HookConsumerWidget {
           // Delete draft after successful submission
           ref
               .read(composeStorageNotifierProvider.notifier)
-              .deleteDraft(state.draftId);
+              .deleteDraft(composeState.draftId);
 
           // Reset the form for new composition
-          ComposeStateUtils.resetForm(state);
+          ComposeStateUtils.resetForm(composeState);
 
           onSubmit?.call();
         },
@@ -219,12 +225,12 @@ class PostComposeCard extends HookConsumerWidget {
                     ),
                     IconButton(
                       onPressed:
-                          (state.submitting.value ||
-                                  state.currentPublisher.value == null)
+                          (composeState.submitting.value ||
+                                  composeState.currentPublisher.value == null)
                               ? null
                               : performSubmit,
                       icon:
-                          state.submitting.value
+                          composeState.submitting.value
                               ? SizedBox(
                                 width: 24,
                                 height: 24,
@@ -288,7 +294,7 @@ class PostComposeCard extends HookConsumerWidget {
                 onKeyEvent:
                     (event) => ComposeLogic.handleKeyPress(
                       event,
-                      state,
+                      composeState,
                       ref,
                       context,
                       originalPost: originalPost,
@@ -306,22 +312,27 @@ class PostComposeCard extends HookConsumerWidget {
                         // Publisher profile picture
                         GestureDetector(
                           child: ProfilePictureWidget(
-                            fileId: state.currentPublisher.value?.picture?.id,
+                            fileId:
+                                composeState
+                                    .currentPublisher
+                                    .value
+                                    ?.picture
+                                    ?.id,
                             radius: 20,
                             fallbackIcon:
-                                state.currentPublisher.value == null
+                                composeState.currentPublisher.value == null
                                     ? Symbols.question_mark
                                     : null,
                           ),
                           onTap: () {
-                            if (state.currentPublisher.value == null) {
+                            if (composeState.currentPublisher.value == null) {
                               // No publisher loaded, guide user to create one
                               if (isContained) {
                                 Navigator.of(context).pop();
                               }
                               context.pushNamed('creatorNew').then((value) {
                                 if (value != null) {
-                                  state.currentPublisher.value =
+                                  composeState.currentPublisher.value =
                                       value as SnPublisher;
                                   ref.invalidate(publishersManagedProvider);
                                 }
@@ -335,7 +346,7 @@ class PostComposeCard extends HookConsumerWidget {
                                 builder: (context) => const PublisherModal(),
                               ).then((value) {
                                 if (value != null) {
-                                  state.currentPublisher.value = value;
+                                  composeState.currentPublisher.value = value;
                                 }
                               });
                             }
@@ -348,10 +359,11 @@ class PostComposeCard extends HookConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               ComposeFormFields(
-                                state: state,
+                                state: composeState,
                                 showPublisherAvatar: false,
                                 onPublisherTap: () {
-                                  if (state.currentPublisher.value == null) {
+                                  if (composeState.currentPublisher.value ==
+                                      null) {
                                     // No publisher loaded, guide user to create one
                                     if (isContained) {
                                       Navigator.of(context).pop();
@@ -360,7 +372,7 @@ class PostComposeCard extends HookConsumerWidget {
                                       value,
                                     ) {
                                       if (value != null) {
-                                        state.currentPublisher.value =
+                                        composeState.currentPublisher.value =
                                             value as SnPublisher;
                                         ref.invalidate(
                                           publishersManagedProvider,
@@ -377,14 +389,18 @@ class PostComposeCard extends HookConsumerWidget {
                                           (context) => const PublisherModal(),
                                     ).then((value) {
                                       if (value != null) {
-                                        state.currentPublisher.value = value;
+                                        composeState.currentPublisher.value =
+                                            value;
                                       }
                                     });
                                   }
                                 },
                               ),
                               const Gap(8),
-                              ComposeAttachments(state: state, isCompact: true),
+                              ComposeAttachments(
+                                state: composeState,
+                                isCompact: true,
+                              ),
                             ],
                           ),
                         ),
@@ -404,7 +420,7 @@ class PostComposeCard extends HookConsumerWidget {
                   bottomRight: Radius.circular(8),
                 ),
                 child: ComposeToolbar(
-                  state: state,
+                  state: composeState,
                   originalPost: originalPost,
                   isCompact: true,
                 ),

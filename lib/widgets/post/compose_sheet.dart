@@ -58,7 +58,7 @@ class PostComposeSheet extends HookConsumerWidget {
         initialState?.forwardingTo ?? originalPost?.forwardedPost;
 
     // Create compose state
-    final state = useMemoized(
+    final ComposeState state = useMemoized(
       () => ComposeLogic.createState(
         originalPost: originalPost,
         forwardedPost: forwardedPost,
@@ -101,6 +101,9 @@ class PostComposeSheet extends HookConsumerWidget {
       }
       return null;
     }, [drafts, prompted.value]);
+
+    // Dispose state when widget is disposed
+    useEffect(() => () => ComposeLogic.dispose(state), []);
 
     // Helper methods for actions
     void showSettingsSheet() {
@@ -165,6 +168,7 @@ class PostComposeSheet extends HookConsumerWidget {
         },
         isContained: true,
         showHeader: false,
+        providedState: state,
       ),
     );
   }
