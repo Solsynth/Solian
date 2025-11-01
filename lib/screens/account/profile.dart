@@ -884,7 +884,9 @@ class AccountProfileScreen extends HookConsumerWidget {
                               ),
                             ),
                             SliverToBoxAdapter(
-                              child: ActivityPresenceWidget(uname: name),
+                              child: ActivityPresenceWidget(
+                                uname: name,
+                              ).padding(horizontal: 4, top: 4, bottom: 8),
                             ),
                           ],
                         ),
