@@ -256,7 +256,7 @@ class ActivityPresenceWidget extends ConsumerWidget {
               children: [
                 Text(
                   'activities',
-                ).tr().bold().padding(horizontal: 8, vertical: 4),
+                ).tr().bold().padding(horizontal: 16, vertical: 4),
                 if (activities.isEmpty)
                   Row(
                     spacing: 4,
@@ -264,7 +264,7 @@ class ActivityPresenceWidget extends ConsumerWidget {
                       const Icon(Symbols.inbox, size: 16),
                       Text('dataEmpty').tr().fontSize(13),
                     ],
-                  ).opacity(0.75).padding(horizontal: 8),
+                  ).opacity(0.75).padding(horizontal: 16, bottom: 8),
                 ...activities.map((activity) {
                   final dcImages = _buildDiscordImages(ref, activity);
 

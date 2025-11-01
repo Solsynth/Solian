@@ -54,56 +54,134 @@ class _AccountBasicInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ProfilePictureWidget(file: data.profile.picture, radius: 32),
-          const Gap(20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
+    return Card(
+      child: Builder(
+        builder: (context) {
+          final hasBackground = data.profile.background?.id != null;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (isWideScreen(context) && hasBackground)
+                Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    AccountName(account: data, style: TextStyle(fontSize: 20)),
-                    const Gap(6),
-                    Flexible(
-                      child: Text(
-                        '@${data.name}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ).fontSize(14).opacity(0.85),
+                    ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
+                      child: AspectRatio(
+                        aspectRatio: 16 / 7,
+                        child: CloudImageWidget(
+                          file: data.profile.background,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -24,
+                      left: 16,
+                      child: ProfilePictureWidget(
+                        file: data.profile.picture,
+                        radius: 32,
+                      ),
                     ),
                   ],
                 ),
-                if (accountDeveloper.value != null)
-                  Row(
-                    spacing: 7,
+              Builder(
+                builder: (context) {
+                  final showBackground = isWideScreen(context) && hasBackground;
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: showBackground ? 0 : 20,
                     children: [
-                      const Icon(Symbols.smart_toy, size: 18),
-                      Text(
-                        'botAutomatedBy'.tr(
-                          args: [accountDeveloper.value!.publisher!.nick],
+                      if (!showBackground)
+                        ProfilePictureWidget(
+                          file: data.profile.picture,
+                          radius: 32,
                         ),
-                      ).fontSize(13),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              spacing: 4,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Flexible(
+                                  child: AccountName(
+                                    account: data,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                if (isWideScreen(context))
+                                  Flexible(
+                                    child: Text(
+                                      '@${data.name}',
+                                    ).fontSize(11).padding(bottom: 2.5),
+                                  ),
+                              ],
+                            ),
+                            if (!isWideScreen(context))
+                              Text(
+                                '@${data.name}',
+                              ).fontSize(11).padding(bottom: 2.5),
+                            Text(
+                              (data.profile.bio.isNotEmpty)
+                                  ? data.profile.bio
+                                  : 'descriptionNone'.tr(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (accountDeveloper.value != null)
+                              Row(
+                                spacing: 7,
+                                children: [
+                                  const Icon(Symbols.smart_toy, size: 18),
+                                  Text(
+                                    'botAutomatedBy'.tr(
+                                      args: [
+                                        accountDeveloper.value!.publisher!.nick,
+                                      ],
+                                    ),
+                                  ).fontSize(13),
+                                ],
+                              ).opacity(0.75).padding(top: 4),
+                            const Gap(4),
+                            AccountStatusWidget(
+                              uname: uname,
+                              padding: EdgeInsets.zero,
+                            ),
+                            const Gap(8),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          SharePlus.instance.share(
+                            ShareParams(
+                              uri: Uri.parse(
+                                'https://solian.app/@${data.name}',
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Symbols.share),
+                      ),
                     ],
-                  ).opacity(0.75),
-                const Gap(4),
-                AccountStatusWidget(uname: uname, padding: EdgeInsets.zero),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: () {
-              SharePlus.instance.share(
-                ShareParams(uri: Uri.parse('https://solian.app/@${data.name}')),
-              );
-            },
-            icon: const Icon(Symbols.share),
-          ),
-        ],
+                  ).padding(
+                    left: 16,
+                    right: 16,
+                    top: 16 + (showBackground ? 16 : 0),
+                  );
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -764,33 +842,14 @@ class AccountProfileScreen extends HookConsumerWidget {
                       color: appbarColor.value,
                       shadows: [appbarShadow],
                     ),
-                    flexibleSpace: Stack(
-                      children: [
-                        Positioned.fill(
-                          child:
-                              data.profile.background?.id != null
-                                  ? CloudImageWidget(
-                                    file: data.profile.background,
-                                  )
-                                  : Container(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).appBarTheme.backgroundColor,
-                                  ),
-                        ),
-                        FlexibleSpaceBar(
-                          title: Text(
-                            data.nick,
-                            style: TextStyle(
-                              color:
-                                  appbarColor.value ??
-                                  Theme.of(context).appBarTheme.foregroundColor,
-                              shadows: [appbarShadow],
-                            ),
-                          ),
-                        ),
-                      ],
+                    title: Text(
+                      data.nick,
+                      style: TextStyle(
+                        color:
+                            appbarColor.value ??
+                            Theme.of(context).appBarTheme.foregroundColor,
+                        shadows: [appbarShadow],
+                      ),
                     ),
                   )
                   : null,
@@ -806,7 +865,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                                 data: data,
                                 uname: name,
                                 accountDeveloper: accountDeveloper,
-                              ),
+                              ).padding(horizontal: 4, top: 20),
                             ),
                             if (data.badges.isNotEmpty)
                               SliverToBoxAdapter(
@@ -857,7 +916,12 @@ class AccountProfileScreen extends HookConsumerWidget {
                       Flexible(
                         child: CustomScrollView(
                           slivers: [
-                            SliverGap(24),
+                            SliverGap(18),
+                            SliverToBoxAdapter(
+                              child: ActivityPresenceWidget(
+                                uname: name,
+                              ).padding(horizontal: 4, top: 4, bottom: 4),
+                            ),
                             SliverToBoxAdapter(
                               child: _AccountPublisherList(
                                 publishers: accountPublishers.value ?? [],
@@ -882,11 +946,6 @@ class AccountProfileScreen extends HookConsumerWidget {
                                   margin: EdgeInsets.zero,
                                 ),
                               ),
-                            ),
-                            SliverToBoxAdapter(
-                              child: ActivityPresenceWidget(
-                                uname: name,
-                              ).padding(horizontal: 4, top: 4, bottom: 8),
                             ),
                           ],
                         ),
@@ -939,7 +998,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                           data: data,
                           uname: name,
                           accountDeveloper: accountDeveloper,
-                        ),
+                        ).padding(horizontal: 4, top: 8),
                       ),
                       if (data.badges.isNotEmpty)
                         SliverToBoxAdapter(
