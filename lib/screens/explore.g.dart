@@ -7,7 +7,7 @@ part of 'explore.dart';
 // **************************************************************************
 
 String _$activityListNotifierHash() =>
-    r'167021cada54da7c8d8437eef1ffb387a92ea2e3';
+    r'a3ad3242f08139bef14a2f0fab6591ce8b3cb9f0';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -31,10 +31,11 @@ class _SystemHash {
 }
 
 abstract class _$ActivityListNotifier
-    extends BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnActivity>> {
+    extends
+        BuildlessAutoDisposeAsyncNotifier<CursorPagingData<SnTimelineEvent>> {
   late final String? filter;
 
-  FutureOr<CursorPagingData<SnActivity>> build(String? filter);
+  FutureOr<CursorPagingData<SnTimelineEvent>> build(String? filter);
 }
 
 /// See also [ActivityListNotifier].
@@ -43,7 +44,7 @@ const activityListNotifierProvider = ActivityListNotifierFamily();
 
 /// See also [ActivityListNotifier].
 class ActivityListNotifierFamily
-    extends Family<AsyncValue<CursorPagingData<SnActivity>>> {
+    extends Family<AsyncValue<CursorPagingData<SnTimelineEvent>>> {
   /// See also [ActivityListNotifier].
   const ActivityListNotifierFamily();
 
@@ -79,7 +80,7 @@ class ActivityListNotifierProvider
     extends
         AutoDisposeAsyncNotifierProviderImpl<
           ActivityListNotifier,
-          CursorPagingData<SnActivity>
+          CursorPagingData<SnTimelineEvent>
         > {
   /// See also [ActivityListNotifier].
   ActivityListNotifierProvider(String? filter)
@@ -110,7 +111,7 @@ class ActivityListNotifierProvider
   final String? filter;
 
   @override
-  FutureOr<CursorPagingData<SnActivity>> runNotifierBuild(
+  FutureOr<CursorPagingData<SnTimelineEvent>> runNotifierBuild(
     covariant ActivityListNotifier notifier,
   ) {
     return notifier.build(filter);
@@ -135,7 +136,7 @@ class ActivityListNotifierProvider
   @override
   AutoDisposeAsyncNotifierProviderElement<
     ActivityListNotifier,
-    CursorPagingData<SnActivity>
+    CursorPagingData<SnTimelineEvent>
   >
   createElement() {
     return _ActivityListNotifierProviderElement(this);
@@ -158,7 +159,7 @@ class ActivityListNotifierProvider
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin ActivityListNotifierRef
-    on AutoDisposeAsyncNotifierProviderRef<CursorPagingData<SnActivity>> {
+    on AutoDisposeAsyncNotifierProviderRef<CursorPagingData<SnTimelineEvent>> {
   /// The parameter `filter` of this provider.
   String? get filter;
 }
@@ -167,7 +168,7 @@ class _ActivityListNotifierProviderElement
     extends
         AutoDisposeAsyncNotifierProviderElement<
           ActivityListNotifier,
-          CursorPagingData<SnActivity>
+          CursorPagingData<SnTimelineEvent>
         >
     with ActivityListNotifierRef {
   _ActivityListNotifierProviderElement(super.provider);

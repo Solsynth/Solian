@@ -634,7 +634,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
 }
 
 class _ActivityListView extends HookConsumerWidget {
-  final CursorPagingData<SnActivity> data;
+  final CursorPagingData<SnTimelineEvent> data;
   final int widgetCount;
   final Widget endItemView;
   final ActivityListNotifier activitiesNotifier;
@@ -697,13 +697,13 @@ class _ActivityListView extends HookConsumerWidget {
 
 @riverpod
 class ActivityListNotifier extends _$ActivityListNotifier
-    with CursorPagingNotifierMixin<SnActivity> {
+    with CursorPagingNotifierMixin<SnTimelineEvent> {
   @override
-  Future<CursorPagingData<SnActivity>> build(String? filter) =>
+  Future<CursorPagingData<SnTimelineEvent>> build(String? filter) =>
       fetch(cursor: null);
 
   @override
-  Future<CursorPagingData<SnActivity>> fetch({required String? cursor}) async {
+  Future<CursorPagingData<SnTimelineEvent>> fetch({required String? cursor}) async {
     final client = ref.read(apiClientProvider);
     final take = 20;
 
@@ -720,9 +720,9 @@ class ActivityListNotifier extends _$ActivityListNotifier
       queryParameters: queryParameters,
     );
 
-    final List<SnActivity> items =
+    final List<SnTimelineEvent> items =
         (response.data as List)
-            .map((e) => SnActivity.fromJson(e as Map<String, dynamic>))
+            .map((e) => SnTimelineEvent.fromJson(e as Map<String, dynamic>))
             .toList();
 
     final hasMore = (items.firstOrNull?.type ?? 'empty') != 'empty';
@@ -742,7 +742,7 @@ class ActivityListNotifier extends _$ActivityListNotifier
     );
   }
 
-  void updateOne(int index, SnActivity activity) {
+  void updateOne(int index, SnTimelineEvent activity) {
     final currentState = state.valueOrNull;
     if (currentState == null) return;
 

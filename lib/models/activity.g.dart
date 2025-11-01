@@ -27,20 +27,21 @@ Map<String, dynamic> _$SnNotableDayToJson(_SnNotableDay instance) =>
       'holidays': instance.holidays,
     };
 
-_SnActivity _$SnActivityFromJson(Map<String, dynamic> json) => _SnActivity(
-  id: json['id'] as String,
-  type: json['type'] as String,
-  resourceIdentifier: json['resource_identifier'] as String,
-  data: json['data'],
-  createdAt: DateTime.parse(json['created_at'] as String),
-  updatedAt: DateTime.parse(json['updated_at'] as String),
-  deletedAt:
-      json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
-);
+_SnTimelineEvent _$SnTimelineEventFromJson(Map<String, dynamic> json) =>
+    _SnTimelineEvent(
+      id: json['id'] as String,
+      type: json['type'] as String,
+      resourceIdentifier: json['resource_identifier'] as String,
+      data: json['data'],
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt:
+          json['deleted_at'] == null
+              ? null
+              : DateTime.parse(json['deleted_at'] as String),
+    );
 
-Map<String, dynamic> _$SnActivityToJson(_SnActivity instance) =>
+Map<String, dynamic> _$SnTimelineEventToJson(_SnTimelineEvent instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
@@ -125,7 +126,7 @@ Map<String, dynamic> _$SnEventCalendarEntryToJson(
 _SnPresenceActivity _$SnPresenceActivityFromJson(Map<String, dynamic> json) =>
     _SnPresenceActivity(
       id: json['id'] as String,
-      type: json['type'] as String,
+      type: (json['type'] as num).toInt(),
       manualId: json['manual_id'] as String?,
       title: json['title'] as String?,
       subtitle: json['subtitle'] as String?,

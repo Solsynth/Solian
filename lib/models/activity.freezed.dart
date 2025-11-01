@@ -288,22 +288,22 @@ as List<int>,
 
 
 /// @nodoc
-mixin _$SnActivity {
+mixin _$SnTimelineEvent {
 
  String get id; String get type; String get resourceIdentifier; dynamic get data; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
-/// Create a copy of SnActivity
+/// Create a copy of SnTimelineEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnActivityCopyWith<SnActivity> get copyWith => _$SnActivityCopyWithImpl<SnActivity>(this as SnActivity, _$identity);
+$SnTimelineEventCopyWith<SnTimelineEvent> get copyWith => _$SnTimelineEventCopyWithImpl<SnTimelineEvent>(this as SnTimelineEvent, _$identity);
 
-  /// Serializes this SnActivity to a JSON map.
+  /// Serializes this SnTimelineEvent to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnTimelineEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -312,15 +312,15 @@ int get hashCode => Object.hash(runtimeType,id,type,resourceIdentifier,const Dee
 
 @override
 String toString() {
-  return 'SnActivity(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnTimelineEvent(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnActivityCopyWith<$Res>  {
-  factory $SnActivityCopyWith(SnActivity value, $Res Function(SnActivity) _then) = _$SnActivityCopyWithImpl;
+abstract mixin class $SnTimelineEventCopyWith<$Res>  {
+  factory $SnTimelineEventCopyWith(SnTimelineEvent value, $Res Function(SnTimelineEvent) _then) = _$SnTimelineEventCopyWithImpl;
 @useResult
 $Res call({
  String id, String type, String resourceIdentifier, dynamic data, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
@@ -331,14 +331,14 @@ $Res call({
 
 }
 /// @nodoc
-class _$SnActivityCopyWithImpl<$Res>
-    implements $SnActivityCopyWith<$Res> {
-  _$SnActivityCopyWithImpl(this._self, this._then);
+class _$SnTimelineEventCopyWithImpl<$Res>
+    implements $SnTimelineEventCopyWith<$Res> {
+  _$SnTimelineEventCopyWithImpl(this._self, this._then);
 
-  final SnActivity _self;
-  final $Res Function(SnActivity) _then;
+  final SnTimelineEvent _self;
+  final $Res Function(SnTimelineEvent) _then;
 
-/// Create a copy of SnActivity
+/// Create a copy of SnTimelineEvent
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? resourceIdentifier = null,Object? data = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
@@ -356,8 +356,8 @@ as DateTime?,
 }
 
 
-/// Adds pattern-matching-related methods to [SnActivity].
-extension SnActivityPatterns on SnActivity {
+/// Adds pattern-matching-related methods to [SnTimelineEvent].
+extension SnTimelineEventPatterns on SnTimelineEvent {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -370,10 +370,10 @@ extension SnActivityPatterns on SnActivity {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnActivity value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnTimelineEvent value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnActivity() when $default != null:
+case _SnTimelineEvent() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -392,10 +392,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnActivity value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnTimelineEvent value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnActivity():
+case _SnTimelineEvent():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -410,10 +410,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnActivity value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnTimelineEvent value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnActivity() when $default != null:
+case _SnTimelineEvent() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -433,7 +433,7 @@ return $default(_that);case _:
 
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String type,  String resourceIdentifier,  dynamic data,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnActivity() when $default != null:
+case _SnTimelineEvent() when $default != null:
 return $default(_that.id,_that.type,_that.resourceIdentifier,_that.data,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
@@ -454,7 +454,7 @@ return $default(_that.id,_that.type,_that.resourceIdentifier,_that.data,_that.cr
 
 @optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String type,  String resourceIdentifier,  dynamic data,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
-case _SnActivity():
+case _SnTimelineEvent():
 return $default(_that.id,_that.type,_that.resourceIdentifier,_that.data,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -471,7 +471,7 @@ return $default(_that.id,_that.type,_that.resourceIdentifier,_that.data,_that.cr
 
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String type,  String resourceIdentifier,  dynamic data,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
-case _SnActivity() when $default != null:
+case _SnTimelineEvent() when $default != null:
 return $default(_that.id,_that.type,_that.resourceIdentifier,_that.data,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
@@ -483,9 +483,9 @@ return $default(_that.id,_that.type,_that.resourceIdentifier,_that.data,_that.cr
 /// @nodoc
 @JsonSerializable()
 
-class _SnActivity implements SnActivity {
-  const _SnActivity({required this.id, required this.type, required this.resourceIdentifier, required this.data, required this.createdAt, required this.updatedAt, required this.deletedAt});
-  factory _SnActivity.fromJson(Map<String, dynamic> json) => _$SnActivityFromJson(json);
+class _SnTimelineEvent implements SnTimelineEvent {
+  const _SnTimelineEvent({required this.id, required this.type, required this.resourceIdentifier, required this.data, required this.createdAt, required this.updatedAt, required this.deletedAt});
+  factory _SnTimelineEvent.fromJson(Map<String, dynamic> json) => _$SnTimelineEventFromJson(json);
 
 @override final  String id;
 @override final  String type;
@@ -495,20 +495,20 @@ class _SnActivity implements SnActivity {
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
 
-/// Create a copy of SnActivity
+/// Create a copy of SnTimelineEvent
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnActivityCopyWith<_SnActivity> get copyWith => __$SnActivityCopyWithImpl<_SnActivity>(this, _$identity);
+_$SnTimelineEventCopyWith<_SnTimelineEvent> get copyWith => __$SnTimelineEventCopyWithImpl<_SnTimelineEvent>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnActivityToJson(this, );
+  return _$SnTimelineEventToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnTimelineEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -517,15 +517,15 @@ int get hashCode => Object.hash(runtimeType,id,type,resourceIdentifier,const Dee
 
 @override
 String toString() {
-  return 'SnActivity(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnTimelineEvent(id: $id, type: $type, resourceIdentifier: $resourceIdentifier, data: $data, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnActivityCopyWith<$Res> implements $SnActivityCopyWith<$Res> {
-  factory _$SnActivityCopyWith(_SnActivity value, $Res Function(_SnActivity) _then) = __$SnActivityCopyWithImpl;
+abstract mixin class _$SnTimelineEventCopyWith<$Res> implements $SnTimelineEventCopyWith<$Res> {
+  factory _$SnTimelineEventCopyWith(_SnTimelineEvent value, $Res Function(_SnTimelineEvent) _then) = __$SnTimelineEventCopyWithImpl;
 @override @useResult
 $Res call({
  String id, String type, String resourceIdentifier, dynamic data, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
@@ -536,17 +536,17 @@ $Res call({
 
 }
 /// @nodoc
-class __$SnActivityCopyWithImpl<$Res>
-    implements _$SnActivityCopyWith<$Res> {
-  __$SnActivityCopyWithImpl(this._self, this._then);
+class __$SnTimelineEventCopyWithImpl<$Res>
+    implements _$SnTimelineEventCopyWith<$Res> {
+  __$SnTimelineEventCopyWithImpl(this._self, this._then);
 
-  final _SnActivity _self;
-  final $Res Function(_SnActivity) _then;
+  final _SnTimelineEvent _self;
+  final $Res Function(_SnTimelineEvent) _then;
 
-/// Create a copy of SnActivity
+/// Create a copy of SnTimelineEvent
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? resourceIdentifier = null,Object? data = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_SnActivity(
+  return _then(_SnTimelineEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,resourceIdentifier: null == resourceIdentifier ? _self.resourceIdentifier : resourceIdentifier // ignore: cast_nullable_to_non_nullable
@@ -1429,7 +1429,7 @@ $SnCheckInResultCopyWith<$Res>? get checkInResult {
 /// @nodoc
 mixin _$SnPresenceActivity {
 
- String get id; String get type; String? get manualId; String? get title; String? get subtitle; String? get caption; Map<String, dynamic>? get meta; int get leaseMinutes; DateTime get leaseExpiresAt; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; int get type; String? get manualId; String? get title; String? get subtitle; String? get caption; Map<String, dynamic>? get meta; int get leaseMinutes; DateTime get leaseExpiresAt; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnPresenceActivity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1462,7 +1462,7 @@ abstract mixin class $SnPresenceActivityCopyWith<$Res>  {
   factory $SnPresenceActivityCopyWith(SnPresenceActivity value, $Res Function(SnPresenceActivity) _then) = _$SnPresenceActivityCopyWithImpl;
 @useResult
 $Res call({
- String id, String type, String? manualId, String? title, String? subtitle, String? caption, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int type, String? manualId, String? title, String? subtitle, String? caption, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1483,7 +1483,7 @@ class _$SnPresenceActivityCopyWithImpl<$Res>
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
+as int,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
 as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
@@ -1576,7 +1576,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String type,  String? manualId,  String? title,  String? subtitle,  String? caption,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int type,  String? manualId,  String? title,  String? subtitle,  String? caption,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPresenceActivity() when $default != null:
 return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -1597,7 +1597,7 @@ return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String type,  String? manualId,  String? title,  String? subtitle,  String? caption,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int type,  String? manualId,  String? title,  String? subtitle,  String? caption,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnPresenceActivity():
 return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -1614,7 +1614,7 @@ return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String type,  String? manualId,  String? title,  String? subtitle,  String? caption,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int type,  String? manualId,  String? title,  String? subtitle,  String? caption,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPresenceActivity() when $default != null:
 return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -1633,7 +1633,7 @@ class _SnPresenceActivity implements SnPresenceActivity {
   factory _SnPresenceActivity.fromJson(Map<String, dynamic> json) => _$SnPresenceActivityFromJson(json);
 
 @override final  String id;
-@override final  String type;
+@override final  int type;
 @override final  String? manualId;
 @override final  String? title;
 @override final  String? subtitle;
@@ -1687,7 +1687,7 @@ abstract mixin class _$SnPresenceActivityCopyWith<$Res> implements $SnPresenceAc
   factory _$SnPresenceActivityCopyWith(_SnPresenceActivity value, $Res Function(_SnPresenceActivity) _then) = __$SnPresenceActivityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String type, String? manualId, String? title, String? subtitle, String? caption, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int type, String? manualId, String? title, String? subtitle, String? caption, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1708,7 +1708,7 @@ class __$SnPresenceActivityCopyWithImpl<$Res>
   return _then(_SnPresenceActivity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
+as int,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
 as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable

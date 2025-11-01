@@ -1302,5 +1302,9 @@
     "aiThought": "AI Thought",
     "aiThoughtTitle": "Let sn-chan think",
     "postReferenceUnavailable": "Referenced post is unavailable",
-    "fabLocation": "FAB Location"
+    "fabLocation": "FAB Location",
+    "activities": "Activities",
+    "presenceTypeGaming": "Playing",
+    "presenceTypeMusic": "Listening to Music",
+    "presenceTypeWorkout": "Working out"
 }

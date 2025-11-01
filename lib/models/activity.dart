@@ -19,8 +19,8 @@ sealed class SnNotableDay with _$SnNotableDay {
 }
 
 @freezed
-sealed class SnActivity with _$SnActivity {
-  const factory SnActivity({
+sealed class SnTimelineEvent with _$SnTimelineEvent {
+  const factory SnTimelineEvent({
     required String id,
     required String type,
     required String resourceIdentifier,
@@ -28,10 +28,10 @@ sealed class SnActivity with _$SnActivity {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
-  }) = _SnActivity;
+  }) = _SnTimelineEvent;
 
-  factory SnActivity.fromJson(Map<String, dynamic> json) =>
-      _$SnActivityFromJson(json);
+  factory SnTimelineEvent.fromJson(Map<String, dynamic> json) =>
+      _$SnTimelineEventFromJson(json);
 }
 
 @freezed
@@ -79,7 +79,7 @@ sealed class SnEventCalendarEntry with _$SnEventCalendarEntry {
 sealed class SnPresenceActivity with _$SnPresenceActivity {
   const factory SnPresenceActivity({
     required String id,
-    required String type,
+    required int type,
     required String? manualId,
     required String? title,
     required String? subtitle,

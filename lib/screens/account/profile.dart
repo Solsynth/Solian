@@ -1013,7 +1013,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                       SliverToBoxAdapter(
                         child: ActivityPresenceWidget(
                           uname: name,
-                        ).padding(horizontal: 4),
+                        ).padding(horizontal: 8),
                       ),
                     ],
                   ),
