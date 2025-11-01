@@ -74,72 +74,111 @@ class AccountScreen extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (user.value?.profile.background?.id != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
-                      ),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 7,
-                        child: CloudImageWidget(
-                          file: user.value?.profile.background,
-                          fit: BoxFit.cover,
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(8),
+                            topRight: Radius.circular(8),
+                          ),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 7,
+                            child: CloudImageWidget(
+                              file: user.value?.profile.background,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          bottom: -24,
+                          left: 16,
+                          child: GestureDetector(
+                            child: ProfilePictureWidget(
+                              file: user.value?.profile.picture,
+                              radius: 32,
+                            ),
+                            onTap: () {
+                              context.pushNamed(
+                                'accountProfile',
+                                pathParameters: {'name': user.value!.name},
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 16,
-                    children: [
-                      GestureDetector(
-                        child: ProfilePictureWidget(
-                          file: user.value?.profile.picture,
-                          radius: 24,
-                        ),
-                        onTap: () {
-                          context.pushNamed(
-                            'accountProfile',
-                            pathParameters: {'name': user.value!.name},
-                          );
-                        },
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              spacing: 4,
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
+                  Builder(
+                    builder: (context) {
+                      final hasBackground =
+                          user.value?.profile.background?.id != null;
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        spacing: hasBackground ? 0 : 16,
+                        children: [
+                          if (!hasBackground)
+                            GestureDetector(
+                              child: ProfilePictureWidget(
+                                file: user.value?.profile.picture,
+                                radius: 24,
+                              ),
+                              onTap: () {
+                                context.pushNamed(
+                                  'accountProfile',
+                                  pathParameters: {'name': user.value!.name},
+                                );
+                              },
+                            ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Flexible(
-                                  child: AccountName(
-                                    account: user.value!,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                Row(
+                                  spacing: 4,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Flexible(
+                                      child: AccountName(
+                                        account: user.value!,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    Flexible(
+                                      child: Text(
+                                        '@${user.value!.name}',
+                                      ).fontSize(11).padding(bottom: 2.5),
+                                    ),
+                                  ],
                                 ),
-                                Flexible(child: Text('@${user.value!.name}')),
+                                Text(
+                                  (user.value!.profile.bio.isNotEmpty)
+                                      ? user.value!.profile.bio
+                                      : 'descriptionNone'.tr(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const Gap(12),
                               ],
                             ),
-                            Text(
-                              (user.value!.profile.bio.isNotEmpty)
-                                  ? user.value!.profile.bio
-                                  : 'descriptionNone'.tr(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ).padding(horizontal: 16, top: 16),
-                  AccountStatusCreationWidget(uname: user.value!.name),
+                          ),
+                        ],
+                      ).padding(
+                        left: 16,
+                        right: 16,
+                        top: 16 + (hasBackground ? 16 : 0),
+                      );
+                    },
+                  ),
                 ],
               ),
             ).padding(horizontal: 8),
+            Card(
+              margin: EdgeInsets.zero,
+              child: AccountStatusCreationWidget(uname: user.value!.name),
+            ).padding(horizontal: 12, bottom: 4),
             LevelingProgressCard(
               isCompact: true,
               level: user.value!.profile.level,
