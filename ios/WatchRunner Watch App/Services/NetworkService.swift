@@ -44,7 +44,13 @@ struct WebSocketPacket {
 // MARK: - Network Service
 
 class NetworkService {
-    private let session = URLSession.shared
+    private let session: URLSession
+    
+    init() {
+        let config = URLSessionConfiguration.ephemeral
+        config.waitsForConnectivity = true
+        session = URLSession(configuration: config)
+    }
     
     // Add a serial queue for WebSocket operations
     private let webSocketQueue = DispatchQueue(label: "com.solian.websocketQueue")
