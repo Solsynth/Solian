@@ -11,7 +11,7 @@ import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-enum FabMenuType { main, chat, realm }
+enum FabMenuType { main, compose, chat, realm }
 
 /// Global state provider for FAB menu type
 final fabMenuTypeProvider = StateProvider<FabMenuType>(
@@ -69,7 +69,7 @@ class FabMenu extends HookConsumerWidget {
             contentPadding: const EdgeInsets.symmetric(horizontal: 24),
             leading: const Icon(Symbols.notifications),
             trailing: Badge(
-              label: Text(notificationCount.toString()),
+              label: Text(notificationCount.value.toString()),
               isLabelVisible: notificationCount.value! > 0,
             ),
             title: Text('notifications').tr(),
@@ -88,6 +88,38 @@ class FabMenu extends HookConsumerWidget {
     ];
 
     switch (fabType) {
+      case FabMenuType.compose:
+        icon = Symbols.create;
+        useRootNavigator = false;
+        menuContent = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Gap(24),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: const Icon(Symbols.post_add_rounded),
+              title: Text('postCompose').tr(),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await PostComposeSheet.show(context);
+              },
+            ),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: const Icon(Symbols.article),
+              title: Text('articleCompose').tr(),
+              onTap: () async {
+                Navigator.of(context).pop();
+                GoRouter.of(context).pushNamed('articleCompose');
+              },
+            ),
+            const Divider(),
+            ...commonEntires,
+            Gap(MediaQuery.of(context).padding.bottom + 16),
+          ],
+        );
+        break;
+
       case FabMenuType.chat:
         icon = Symbols.chat_add_on;
         useRootNavigator = true;
@@ -160,16 +192,6 @@ class FabMenu extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Gap(24),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(Symbols.post_add_rounded),
-              title: Text('postCompose').tr(),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await PostComposeSheet.show(context);
-              },
-            ),
-            const Divider(),
             ...commonEntires,
             Gap(MediaQuery.of(context).padding.bottom + 16),
           ],

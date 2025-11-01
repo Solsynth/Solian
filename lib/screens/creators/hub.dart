@@ -177,8 +177,14 @@ class PublisherSelector extends StatelessWidget {
         iconStyleData: IconStyleData(
           icon: Icon(Icons.arrow_drop_down),
           iconSize: 19,
-          iconEnabledColor: Theme.of(context).appBarTheme.foregroundColor!,
-          iconDisabledColor: Theme.of(context).appBarTheme.foregroundColor!,
+          iconEnabledColor:
+              isWideScreen(context)
+                  ? null
+                  : Theme.of(context).appBarTheme.foregroundColor!,
+          iconDisabledColor:
+              isWideScreen(context)
+                  ? null
+                  : Theme.of(context).appBarTheme.foregroundColor!,
         ),
       ),
     );
@@ -561,6 +567,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                               ? Column(
                                 spacing: 8,
                                 children: [
+                                  const SizedBox.shrink(),
                                   PublisherSelector(
                                     currentPublisher: currentPublisher.value,
                                     publishersMenu: publishersMenu,

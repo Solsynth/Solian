@@ -50,6 +50,7 @@ import 'package:island/screens/creators/publishers_form.dart';
 import 'package:island/screens/creators/webfeed/webfeed_list.dart';
 import 'package:island/screens/poll/poll_editor.dart';
 import 'package:island/screens/posts/compose.dart';
+import 'package:island/screens/posts/compose_article.dart';
 import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/screens/posts/publisher_profile.dart';
 import 'package:island/screens/auth/login.dart';
@@ -106,11 +107,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           // Standalone routes without bottom navigation
           GoRoute(
-            name: 'postEdit',
-            path: '/posts/:id/edit',
+            name: 'articleCompose',
+            path: '/articles/compose',
+            builder:
+                (context, state) => ArticleComposeScreen(
+                  initialState: state.extra as PostComposeInitialState?,
+                ),
+          ),
+          GoRoute(
+            name: 'articleEdit',
+            path: '/articles/:id/edit',
             builder: (context, state) {
               final id = state.pathParameters['id']!;
-              return PostEditScreen(id: id);
+              return ArticleEditScreen(id: id);
             },
           ),
           GoRoute(

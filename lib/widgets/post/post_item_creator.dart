@@ -10,6 +10,7 @@ import 'package:island/services/time.dart';
 import 'package:island/widgets/alert.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/post_shared.dart';
+import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
@@ -45,13 +46,23 @@ class PostItemCreator extends HookConsumerWidget {
               title: 'edit'.tr(),
               image: MenuImage.icon(Symbols.edit),
               callback: () {
-                context
-                    .pushNamed('postEdit', pathParameters: {'id': item.id})
-                    .then((value) {
-                      if (value != null) {
-                        onRefresh?.call();
-                      }
-                    });
+                if (item.type == 1) {
+                  context
+                      .pushNamed('articleEdit', pathParameters: {'id': item.id})
+                      .then((value) {
+                        if (value != null) {
+                          onRefresh?.call();
+                        }
+                      });
+                } else {
+                  PostComposeSheet.show(context, originalPost: item).then((
+                    value,
+                  ) {
+                    if (value == true) {
+                      onRefresh?.call();
+                    }
+                  });
+                }
               },
             ),
             MenuAction(
