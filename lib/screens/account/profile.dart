@@ -22,6 +22,7 @@ import 'package:island/utils/text.dart';
 import 'package:island/services/time.dart';
 import 'package:island/services/timezone/native.dart';
 import 'package:island/widgets/account/account_name.dart';
+import 'package:island/widgets/account/activity_presence.dart';
 import 'package:island/widgets/account/badge.dart';
 import 'package:island/widgets/account/fortune_graph.dart';
 import 'package:island/widgets/account/leveling_progress.dart';
@@ -882,6 +883,9 @@ class AccountProfileScreen extends HookConsumerWidget {
                                 ),
                               ),
                             ),
+                            SliverToBoxAdapter(
+                              child: ActivityPresenceWidget(uname: name),
+                            ),
                           ],
                         ),
                       ),
@@ -1004,6 +1008,11 @@ class AccountProfileScreen extends HookConsumerWidget {
                             events: accountEvents,
                             eventCalandarUser: data.name,
                           ),
+                        ).padding(horizontal: 4),
+                      ),
+                      SliverToBoxAdapter(
+                        child: ActivityPresenceWidget(
+                          uname: name,
                         ).padding(horizontal: 4),
                       ),
                     ],

@@ -4,13 +4,17 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/account.dart';
+import 'package:island/models/activity.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/talker.dart';
 import 'package:island/widgets/account/status.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+part 'activity_rpc.g.dart';
 
 // Conditional imports for IPC server - use web stubs on web platform
 import 'ipc_server.dart' if (dart.library.html) 'ipc_server.web.dart';
@@ -294,13 +298,24 @@ class _WsSocketWrapper {
 class ServerState {
   final String status;
   final List<String> activities;
+  final String? currentActivityManualId;
 
-  ServerState({required this.status, this.activities = const []});
+  ServerState({
+    required this.status,
+    this.activities = const [],
+    this.currentActivityManualId,
+  });
 
-  ServerState copyWith({String? status, List<String>? activities}) {
+  ServerState copyWith({
+    String? status,
+    List<String>? activities,
+    String? currentActivityManualId,
+  }) {
     return ServerState(
       status: status ?? this.status,
       activities: activities ?? this.activities,
+      currentActivityManualId:
+          currentActivityManualId ?? this.currentActivityManualId,
     );
   }
 }
@@ -332,6 +347,10 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
 
   void addActivity(String activity) {
     state = state.copyWith(activities: [...state.activities, activity]);
+  }
+
+  void setCurrentActivityManualId(String? id) {
+    state = state.copyWith(currentActivityManualId: id);
   }
 }
 
@@ -377,7 +396,26 @@ final rpcServerStateProvider =
             final appId = socket.clientId;
             final meta = data['args']['activity'];
             try {
-              await setRemoteActivityStatus(ref, label, appId, meta);
+              final apiClient = ref.watch(apiClientProvider);
+              final currentId = notifier.state.currentActivityManualId;
+              final isUpdate = currentId == appId;
+              final activityData = {
+                'type': 'Gaming',
+                'manualId': appId,
+                'title': label,
+                'meta': meta,
+                'leaseMinutes': 30,
+              };
+              if (isUpdate) {
+                await apiClient.put(
+                  '/pass/activities',
+                  queryParameters: {'manual_id': appId},
+                  data: {'leaseMinutes': 30},
+                );
+              } else {
+                await apiClient.post('/pass/activities', data: activityData);
+                notifier.setCurrentActivityManualId(appId);
+              }
               final now = DateTime.now();
               final status = SnAccountStatus(
                 id: 'local_$appId',
@@ -410,7 +448,12 @@ final rpcServerStateProvider =
           notifier.updateStatus('Client disconnected');
           final appId = socket.clientId;
           try {
-            await unsetRemoteActivityStatus(ref, appId);
+            final apiClient = ref.watch(apiClientProvider);
+            await apiClient.delete(
+              '/pass/activities',
+              queryParameters: {'manual_id': appId},
+            );
+            notifier.setCurrentActivityManualId(null);
             ref.read(currentAccountStatusProvider.notifier).clearStatus();
           } catch (e) {
             talker.log('Failed to unset remote activity status: $e');
@@ -425,30 +468,13 @@ final rpcServerProvider = Provider<ActivityRpcServer>((ref) {
   return notifier.server;
 });
 
-Future<void> setRemoteActivityStatus(
+@riverpod
+Future<List<SnPresenceActivity>> presenceActivities(
   Ref ref,
-  String label,
-  String appId,
-  Map<String, dynamic> meta,
+  String uname,
 ) async {
-  final apiClient = ref.read(apiClientProvider);
-  await apiClient.post(
-    '/pass/accounts/me/statuses',
-    data: {
-      'is_invisible': false,
-      'is_not_disturb': false,
-      'is_automated': true,
-      'label': label,
-      'app_identifier': appId,
-      'meta': meta,
-    },
-  );
-}
-
-Future<void> unsetRemoteActivityStatus(Ref ref, String appId) async {
-  final apiClient = ref.read(apiClientProvider);
-  await apiClient.delete(
-    '/pass/accounts/me/statuses',
-    queryParameters: {'app': appId},
-  );
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get('/pass/accounts/$uname/activities');
+  final data = response.data as List<dynamic>;
+  return data.map((json) => SnPresenceActivity.fromJson(json)).toList();
 }

@@ -1425,4 +1425,305 @@ $SnCheckInResultCopyWith<$Res>? get checkInResult {
 }
 }
 
+
+/// @nodoc
+mixin _$SnPresenceActivity {
+
+ String get id; String get type; String? get manualId; String? get title; String? get subtitle; String? get caption; Map<String, dynamic>? get meta; int get leaseMinutes; DateTime get leaseExpiresAt; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnPresenceActivity
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPresenceActivityCopyWith<SnPresenceActivity> get copyWith => _$SnPresenceActivityCopyWithImpl<SnPresenceActivity>(this as SnPresenceActivity, _$identity);
+
+  /// Serializes this SnPresenceActivity to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPresenceActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.manualId, manualId) || other.manualId == manualId)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.caption, caption) || other.caption == caption)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.leaseMinutes, leaseMinutes) || other.leaseMinutes == leaseMinutes)&&(identical(other.leaseExpiresAt, leaseExpiresAt) || other.leaseExpiresAt == leaseExpiresAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,type,manualId,title,subtitle,caption,const DeepCollectionEquality().hash(meta),leaseMinutes,leaseExpiresAt,accountId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnPresenceActivity(id: $id, type: $type, manualId: $manualId, title: $title, subtitle: $subtitle, caption: $caption, meta: $meta, leaseMinutes: $leaseMinutes, leaseExpiresAt: $leaseExpiresAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPresenceActivityCopyWith<$Res>  {
+  factory $SnPresenceActivityCopyWith(SnPresenceActivity value, $Res Function(SnPresenceActivity) _then) = _$SnPresenceActivityCopyWithImpl;
+@useResult
+$Res call({
+ String id, String type, String? manualId, String? title, String? subtitle, String? caption, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnPresenceActivityCopyWithImpl<$Res>
+    implements $SnPresenceActivityCopyWith<$Res> {
+  _$SnPresenceActivityCopyWithImpl(this._self, this._then);
+
+  final SnPresenceActivity _self;
+  final $Res Function(SnPresenceActivity) _then;
+
+/// Create a copy of SnPresenceActivity
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? manualId = freezed,Object? title = freezed,Object? subtitle = freezed,Object? caption = freezed,Object? meta = freezed,Object? leaseMinutes = null,Object? leaseExpiresAt = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
+as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
+as String?,caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
+as String?,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,leaseMinutes: null == leaseMinutes ? _self.leaseMinutes : leaseMinutes // ignore: cast_nullable_to_non_nullable
+as int,leaseExpiresAt: null == leaseExpiresAt ? _self.leaseExpiresAt : leaseExpiresAt // ignore: cast_nullable_to_non_nullable
+as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnPresenceActivity].
+extension SnPresenceActivityPatterns on SnPresenceActivity {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPresenceActivity value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPresenceActivity() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPresenceActivity value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPresenceActivity():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPresenceActivity value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPresenceActivity() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String type,  String? manualId,  String? title,  String? subtitle,  String? caption,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPresenceActivity() when $default != null:
+return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String type,  String? manualId,  String? title,  String? subtitle,  String? caption,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnPresenceActivity():
+return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String type,  String? manualId,  String? title,  String? subtitle,  String? caption,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPresenceActivity() when $default != null:
+return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPresenceActivity implements SnPresenceActivity {
+  const _SnPresenceActivity({required this.id, required this.type, required this.manualId, required this.title, required this.subtitle, required this.caption, required final  Map<String, dynamic>? meta, required this.leaseMinutes, required this.leaseExpiresAt, required this.accountId, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  factory _SnPresenceActivity.fromJson(Map<String, dynamic> json) => _$SnPresenceActivityFromJson(json);
+
+@override final  String id;
+@override final  String type;
+@override final  String? manualId;
+@override final  String? title;
+@override final  String? subtitle;
+@override final  String? caption;
+ final  Map<String, dynamic>? _meta;
+@override Map<String, dynamic>? get meta {
+  final value = _meta;
+  if (value == null) return null;
+  if (_meta is EqualUnmodifiableMapView) return _meta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
+@override final  int leaseMinutes;
+@override final  DateTime leaseExpiresAt;
+@override final  String accountId;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnPresenceActivity
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPresenceActivityCopyWith<_SnPresenceActivity> get copyWith => __$SnPresenceActivityCopyWithImpl<_SnPresenceActivity>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPresenceActivityToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPresenceActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.manualId, manualId) || other.manualId == manualId)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.caption, caption) || other.caption == caption)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.leaseMinutes, leaseMinutes) || other.leaseMinutes == leaseMinutes)&&(identical(other.leaseExpiresAt, leaseExpiresAt) || other.leaseExpiresAt == leaseExpiresAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,type,manualId,title,subtitle,caption,const DeepCollectionEquality().hash(_meta),leaseMinutes,leaseExpiresAt,accountId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnPresenceActivity(id: $id, type: $type, manualId: $manualId, title: $title, subtitle: $subtitle, caption: $caption, meta: $meta, leaseMinutes: $leaseMinutes, leaseExpiresAt: $leaseExpiresAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPresenceActivityCopyWith<$Res> implements $SnPresenceActivityCopyWith<$Res> {
+  factory _$SnPresenceActivityCopyWith(_SnPresenceActivity value, $Res Function(_SnPresenceActivity) _then) = __$SnPresenceActivityCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String type, String? manualId, String? title, String? subtitle, String? caption, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnPresenceActivityCopyWithImpl<$Res>
+    implements _$SnPresenceActivityCopyWith<$Res> {
+  __$SnPresenceActivityCopyWithImpl(this._self, this._then);
+
+  final _SnPresenceActivity _self;
+  final $Res Function(_SnPresenceActivity) _then;
+
+/// Create a copy of SnPresenceActivity
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? manualId = freezed,Object? title = freezed,Object? subtitle = freezed,Object? caption = freezed,Object? meta = freezed,Object? leaseMinutes = null,Object? leaseExpiresAt = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnPresenceActivity(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
+as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
+as String?,caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
+as String?,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,leaseMinutes: null == leaseMinutes ? _self.leaseMinutes : leaseMinutes // ignore: cast_nullable_to_non_nullable
+as int,leaseExpiresAt: null == leaseExpiresAt ? _self.leaseExpiresAt : leaseExpiresAt // ignore: cast_nullable_to_non_nullable
+as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
 // dart format on

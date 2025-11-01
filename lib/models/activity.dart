@@ -74,3 +74,25 @@ sealed class SnEventCalendarEntry with _$SnEventCalendarEntry {
   factory SnEventCalendarEntry.fromJson(Map<String, dynamic> json) =>
       _$SnEventCalendarEntryFromJson(json);
 }
+
+@freezed
+sealed class SnPresenceActivity with _$SnPresenceActivity {
+  const factory SnPresenceActivity({
+    required String id,
+    required String type,
+    required String? manualId,
+    required String? title,
+    required String? subtitle,
+    required String? caption,
+    required Map<String, dynamic>? meta,
+    required int leaseMinutes,
+    required DateTime leaseExpiresAt,
+    required String accountId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnPresenceActivity;
+
+  factory SnPresenceActivity.fromJson(Map<String, dynamic> json) =>
+      _$SnPresenceActivityFromJson(json);
+}
