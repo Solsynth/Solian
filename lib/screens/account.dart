@@ -250,62 +250,82 @@ class AccountScreen extends HookConsumerWidget {
                 ],
               ).padding(horizontal: 12),
             const SizedBox.shrink(),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                spacing: 8,
-                children: [
-                  Card(
-                    margin: EdgeInsets.zero,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  const minWidth = 160.0;
+                  const spacing = 8.0;
+                  const padding = 24.0; // 12 * 2
+                  final totalMin = 3 * minWidth + 2 * spacing;
+                  final availableWidth = constraints.maxWidth - padding;
+                  final children = [
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Row(
+                          spacing: 8,
+                          children: [
+                            Icon(Symbols.settings, size: 20),
+                            Text('appSettings').tr().fontSize(13).bold(),
+                          ],
+                        ).padding(horizontal: 16, vertical: 12),
+                        onTap: () {
+                          context.pushNamed('settings');
+                        },
+                      ),
+                    ),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Row(
+                          spacing: 8,
+                          children: [
+                            Icon(Symbols.person_edit, size: 20),
+                            Text('updateYourProfile').tr().fontSize(13).bold(),
+                          ],
+                        ).padding(horizontal: 16, vertical: 12),
+                        onTap: () {
+                          context.pushNamed('profileUpdate');
+                        },
+                      ),
+                    ),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Row(
+                          spacing: 8,
+                          children: [
+                            Icon(Symbols.manage_accounts, size: 20),
+                            Text('accountSettings').tr().fontSize(13).bold(),
+                          ],
+                        ).padding(horizontal: 16, vertical: 12),
+                        onTap: () {
+                          context.pushNamed('accountSettings');
+                        },
+                      ),
+                    ),
+                  ];
+                  if (availableWidth > totalMin) {
+                    return Row(
+                      spacing: 8,
+                      children: children.map((child) => Expanded(child: child)).toList(),
+                    ).padding(horizontal: 12).height(48);
+                  } else {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
                       child: Row(
                         spacing: 8,
-                        children: [
-                          Icon(Symbols.settings, size: 20),
-                          Text('appSettings').tr().fontSize(13).bold(),
-                        ],
-                      ).padding(horizontal: 16, vertical: 12),
-                      onTap: () {
-                        context.pushNamed('settings');
-                      },
-                    ),
-                  ),
-                  Card(
-                    margin: EdgeInsets.zero,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Row(
-                        spacing: 8,
-                        children: [
-                          Icon(Symbols.person_edit, size: 20),
-                          Text('updateYourProfile').tr().fontSize(13).bold(),
-                        ],
-                      ).padding(horizontal: 16, vertical: 12),
-                      onTap: () {
-                        context.pushNamed('profileUpdate');
-                      },
-                    ),
-                  ),
-                  Card(
-                    margin: EdgeInsets.zero,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Row(
-                        spacing: 8,
-                        children: [
-                          Icon(Symbols.manage_accounts, size: 20),
-                          Text('accountSettings').tr().fontSize(13).bold(),
-                        ],
-                      ).padding(horizontal: 16, vertical: 12),
-                      onTap: () {
-                        context.pushNamed('accountSettings');
-                      },
-                    ),
-                  ),
-                ],
-              ).padding(horizontal: 12),
-            ).height(48),
+                        children: children.map((child) => SizedBox(width: minWidth, child: child)).toList(),
+                      ).padding(horizontal: 12),
+                    ).height(48);
+                  }
+                },
+              ),
+            ),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.notifications),
