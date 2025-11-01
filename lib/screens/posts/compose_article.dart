@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/file.dart';
 import 'package:island/models/post.dart';
 import 'package:island/screens/creators/publishers_form.dart';
+import 'package:island/screens/posts/compose.dart';
 import 'package:island/screens/posts/post_detail.dart';
 import 'package:island/services/compose_storage_db.dart';
 import 'package:island/services/responsive.dart';
@@ -49,8 +50,9 @@ class ArticleEditScreen extends HookConsumerWidget {
 
 class ArticleComposeScreen extends HookConsumerWidget {
   final SnPost? originalPost;
+  final PostComposeInitialState? initialState;
 
-  const ArticleComposeScreen({super.key, this.originalPost});
+  const ArticleComposeScreen({super.key, this.originalPost, this.initialState});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,9 +102,25 @@ class ArticleComposeScreen extends HookConsumerWidget {
       return null;
     }, [publishers]);
 
+    // Load initial state if provided (for sharing functionality)
+    useEffect(() {
+      if (initialState != null) {
+        state.titleController.text = initialState!.title ?? '';
+        state.descriptionController.text = initialState!.description ?? '';
+        state.contentController.text = initialState!.content ?? '';
+        if (initialState!.visibility != null) {
+          state.visibility.value = initialState!.visibility!;
+        }
+        if (initialState!.attachments.isNotEmpty) {
+          state.attachments.value = List.from(initialState!.attachments);
+        }
+      }
+      return null;
+    }, [initialState]);
+
     // Load draft if available (only for new articles)
     useEffect(() {
-      if (originalPost == null) {
+      if (originalPost == null && initialState == null) {
         // Try to load the most recent article draft
         final drafts = ref.read(composeStorageNotifierProvider);
         if (drafts.isNotEmpty) {
@@ -199,6 +217,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
           border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
           borderRadius: BorderRadius.circular(8),
         ),
+        margin: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -219,7 +238,12 @@ class ArticleComposeScreen extends HookConsumerWidget {
                 ],
               ),
             ),
-            Expanded(child: widgetItem),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: widgetItem,
+              ),
+            ),
           ],
         ),
       );
@@ -246,7 +270,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                     }
                   });
                 },
-              ),
+              ).padding(top: 16),
 
               // Attachments preview
               ValueListenableBuilder<List<UniversalFile>>(

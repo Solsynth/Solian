@@ -16,6 +16,7 @@ import 'package:island/services/responsive.dart';
 import 'package:island/widgets/app_scaffold.dart';
 import 'package:island/models/post.dart';
 import 'package:island/widgets/check_in.dart';
+import 'package:island/widgets/navigation/fab_menu.dart';
 import 'package:island/widgets/post/post_featured.dart';
 import 'package:island/widgets/post/post_item.dart';
 import 'package:island/widgets/post/compose_card.dart';
@@ -71,6 +72,22 @@ class ExploreScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 3);
     final currentFilter = useState<String?>(null);
+
+    useEffect(() {
+      // Set FAB type to chat
+      final fabMenuNotifier = ref.read(fabMenuTypeProvider.notifier);
+      Future(() {
+        fabMenuNotifier.state = FabMenuType.compose;
+      });
+      return () {
+        // Clean up: reset FAB type to main
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (fabMenuNotifier.state == FabMenuType.compose) {
+            fabMenuNotifier.state = FabMenuType.main;
+          }
+        });
+      };
+    }, []);
 
     useEffect(() {
       void listener() {
@@ -703,7 +720,9 @@ class ActivityListNotifier extends _$ActivityListNotifier
       fetch(cursor: null);
 
   @override
-  Future<CursorPagingData<SnTimelineEvent>> fetch({required String? cursor}) async {
+  Future<CursorPagingData<SnTimelineEvent>> fetch({
+    required String? cursor,
+  }) async {
     final client = ref.read(apiClientProvider);
     final take = 20;
 

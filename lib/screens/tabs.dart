@@ -51,33 +51,33 @@ class TabsScreen extends HookConsumerWidget {
     final destinations = [
       NavigationDestination(
         label: 'explore'.tr(),
-        icon: const Icon(Symbols.explore),
+        icon: const Icon(Symbols.explore_rounded),
       ),
       NavigationDestination(
         label: 'chat'.tr(),
-        icon: const Icon(Symbols.chat_rounded),
+        icon: const Icon(Symbols.forum_rounded),
       ),
       NavigationDestination(
         label: 'realms'.tr(),
-        icon: const Icon(Symbols.group),
+        icon: const Icon(Symbols.group_rounded),
       ),
       NavigationDestination(
         label: 'account'.tr(),
         icon: Badge.count(
           count: notificationUnreadCount.value ?? 0,
           isLabelVisible: (notificationUnreadCount.value ?? 0) > 0,
-          child: const Icon(Symbols.account_circle),
+          child: const Icon(Symbols.person_rounded),
         ),
       ),
       if (wideScreen)
         NavigationDestination(
           label: 'creatorHub'.tr(),
-          icon: const Icon(Symbols.ink_pen),
+          icon: const Icon(Symbols.design_services_rounded),
         ),
       if (wideScreen)
         NavigationDestination(
           label: 'developerHub'.tr(),
-          icon: const Icon(Symbols.data_object),
+          icon: const Icon(Symbols.data_object_rounded),
         ),
     ];
 

@@ -108,13 +108,21 @@ class PostActionButtons extends HookConsumerWidget {
       final editButtons = <Widget>[
         FilledButton.tonal(
           onPressed: () {
-            context.pushNamed('postEdit', pathParameters: {'id': post.id}).then(
-              (value) {
-                if (value != null) {
+            if (post.type == 1) {
+              context
+                  .pushNamed('articleEdit', pathParameters: {'id': post.id})
+                  .then((value) {
+                    if (value != null) {
+                      onRefresh?.call();
+                    }
+                  });
+            } else {
+              PostComposeSheet.show(context, originalPost: post).then((value) {
+                if (value == true) {
                   onRefresh?.call();
                 }
-              },
-            );
+              });
+            }
           },
           style: FilledButton.styleFrom(
             shape: const RoundedRectangleBorder(
