@@ -18,6 +18,7 @@ import 'package:island/widgets/post/post_award_history_sheet.dart';
 import 'package:island/widgets/post/post_pin_sheet.dart';
 import 'package:island/widgets/post/post_quick_reply.dart';
 import 'package:island/widgets/post/post_replies.dart';
+import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:island/widgets/response.dart';
 import 'package:island/utils/share_utils.dart';
 import 'package:island/widgets/safety/abuse_report_helper.dart';
@@ -229,9 +230,9 @@ class PostActionButtons extends HookConsumerWidget {
     final replyButtons = <Widget>[
       FilledButton.tonal(
         onPressed: () {
-          context.pushNamed(
-            'postCompose',
-            extra: PostComposeInitialState(replyingTo: post),
+          PostComposeSheet.show(
+            context,
+            initialState: PostComposeInitialState(replyingTo: post),
           );
         },
         style: FilledButton.styleFrom(
@@ -255,9 +256,9 @@ class PostActionButtons extends HookConsumerWidget {
         message: 'forward'.tr(),
         child: FilledButton.tonal(
           onPressed: () {
-            context.pushNamed(
-              'postCompose',
-              extra: PostComposeInitialState(forwardingTo: post),
+            PostComposeSheet.show(
+              context,
+              initialState: PostComposeInitialState(forwardingTo: post),
             );
           },
           style: FilledButton.styleFrom(

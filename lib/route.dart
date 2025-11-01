@@ -106,17 +106,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           // Standalone routes without bottom navigation
           GoRoute(
-            name: 'postCompose',
-            path: '/posts/compose',
-            builder:
-                (context, state) => PostComposeScreen(
-                  initialState: state.extra as PostComposeInitialState?,
-                  type:
-                      int.tryParse(state.uri.queryParameters['type'] ?? '0') ??
-                      0,
-                ),
-          ),
-          GoRoute(
             name: 'postEdit',
             path: '/posts/:id/edit',
             builder: (context, state) {

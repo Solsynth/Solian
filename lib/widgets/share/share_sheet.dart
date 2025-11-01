@@ -10,6 +10,7 @@ import 'package:island/widgets/content/sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/screens/posts/compose.dart';
 import 'package:island/models/file.dart';
+import 'package:island/widgets/post/compose_sheet.dart';
 import 'package:island/pods/link_preview.dart';
 import 'package:island/pods/network.dart';
 import 'package:mime/mime.dart';
@@ -174,9 +175,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
         attachments: attachments,
       );
 
-      // Navigate to compose screen
+      // Show compose sheet
       if (mounted) {
-        context.pushNamed('postCompose', extra: initialState);
+        PostComposeSheet.show(context, initialState: initialState);
         Navigator.of(context).pop(); // Close the share sheet
       }
     } catch (e) {
