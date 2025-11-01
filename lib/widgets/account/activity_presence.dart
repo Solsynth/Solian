@@ -24,6 +24,7 @@ class ActivityPresenceWidget extends ConsumerWidget {
     return activitiesAsync.when(
       data:
           (activities) => Card(
+            margin: EdgeInsets.zero,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 8,
@@ -32,10 +33,13 @@ class ActivityPresenceWidget extends ConsumerWidget {
                   'activities',
                 ).tr().bold().padding(horizontal: 8, vertical: 4),
                 if (activities.isEmpty)
-                  Row(children: [
-                    const Icon(Symbols.inbox),
-                    Text('dataEmpty').tr()
-                  ],).opacity(0.75),
+                  Row(
+                    spacing: 4,
+                    children: [
+                      const Icon(Symbols.inbox, size: 16),
+                      Text('dataEmpty').tr().fontSize(13),
+                    ],
+                  ).opacity(0.75).padding(horizontal: 8),
                 ...activities.map(
                   (activity) => Card(
                     elevation: 0,
@@ -57,11 +61,22 @@ class ActivityPresenceWidget extends ConsumerWidget {
                           StreamBuilder(
                             stream: Stream.periodic(const Duration(seconds: 1)),
                             builder: (context, snapshot) {
-                              final duration = DateTime.now().difference(activity.createdAt);
-                              final hours = duration.inHours.toString().padLeft(2, '0');
-                              final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
-                              final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-                              return Text('$hours:$minutes:$seconds').textColor(Colors.green);
+                              final duration = DateTime.now().difference(
+                                activity.createdAt,
+                              );
+                              final hours = duration.inHours.toString().padLeft(
+                                2,
+                                '0',
+                              );
+                              final minutes = (duration.inMinutes % 60)
+                                  .toString()
+                                  .padLeft(2, '0');
+                              final seconds = (duration.inSeconds % 60)
+                                  .toString()
+                                  .padLeft(2, '0');
+                              return Text(
+                                '$hours:$minutes:$seconds',
+                              ).textColor(Colors.green);
                             },
                           ),
                           if (activity.subtitle?.isNotEmpty ?? false)
