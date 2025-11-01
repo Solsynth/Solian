@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart' hide Response;
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/talker.dart';
-import 'package:island/widgets/account/status.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -117,6 +117,11 @@ class ActivityRpcServer {
         // Set up IPC handlers
         _ipcServer!.handlePacket = (socket, packet, _) {
           _handleIpcPacket(socket, packet);
+        };
+
+        // Set up IPC close handler
+        _ipcServer!.onSocketClose = (socket) {
+          handlers['close']?.call(socket);
         };
 
         await _ipcServer!.start();
@@ -298,31 +303,37 @@ class ServerState {
   final String status;
   final List<String> activities;
   final String? currentActivityManualId;
+  final Map<String, dynamic>? currentActivityData;
 
   ServerState({
     required this.status,
     this.activities = const [],
     this.currentActivityManualId,
+    this.currentActivityData,
   });
 
   ServerState copyWith({
     String? status,
     List<String>? activities,
     String? currentActivityManualId,
+    Map<String, dynamic>? currentActivityData,
   }) {
     return ServerState(
       status: status ?? this.status,
       activities: activities ?? this.activities,
       currentActivityManualId:
           currentActivityManualId ?? this.currentActivityManualId,
+      currentActivityData: currentActivityData ?? this.currentActivityData,
     );
   }
 }
 
 class ServerStateNotifier extends StateNotifier<ServerState> {
   final ActivityRpcServer server;
+  final Dio apiClient;
+  Timer? _renewalTimer;
 
-  ServerStateNotifier(this.server)
+  ServerStateNotifier(this.apiClient, this.server)
     : super(ServerState(status: 'Server not started'));
 
   String? get currentActivityManualId => state.currentActivityManualId;
@@ -350,8 +361,37 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
     state = state.copyWith(activities: [...state.activities, activity]);
   }
 
-  void setCurrentActivityManualId(String? id) {
-    state = state.copyWith(currentActivityManualId: id);
+  void setCurrentActivity(String? id, Map<String, dynamic>? data) {
+    state = state.copyWith(currentActivityManualId: id, currentActivityData: data);
+    if (id != null && data != null) {
+      _startRenewal();
+    } else {
+      _stopRenewal();
+    }
+  }
+
+  void _startRenewal() {
+    _renewalTimer?.cancel();
+    const int renewalIntervalSeconds = kPresenseActivityLease * 60 - 30;
+    _renewalTimer = Timer.periodic(Duration(seconds: renewalIntervalSeconds), (timer) {
+      _renewActivity();
+    });
+  }
+
+  void _stopRenewal() {
+    _renewalTimer?.cancel();
+    _renewalTimer = null;
+  }
+
+  Future<void> _renewActivity() async {
+    if (state.currentActivityData != null) {
+      try {
+        await apiClient.post('/pass/activities', data: state.currentActivityData);
+        talker.log('Activity lease renewed');
+      } catch (e) {
+        talker.log('Failed to renew activity lease: $e');
+      }
+    }
   }
 }
 
@@ -362,8 +402,9 @@ final rpcServerStateProvider = StateNotifierProvider<
   ServerStateNotifier,
   ServerState
 >((ref) {
+  final apiClient = ref.watch(apiClientProvider);
   final server = ActivityRpcServer({});
-  final notifier = ServerStateNotifier(server);
+  final notifier = ServerStateNotifier(apiClient, server);
   server.updateHandlers({
     'connection': (socket) {
       final clientId =
@@ -395,8 +436,17 @@ final rpcServerStateProvider = StateNotifierProvider<
     'message': (socket, dynamic data) async {
       if (data['cmd'] == 'SET_ACTIVITY') {
         final activity = data['args']['activity'];
+        final appId = socket.clientId;
+
+        final currentId = notifier.currentActivityManualId;
+        if (currentId != null && currentId != appId) {
+          talker.info(
+            'Skipped the new SET_ACTIVITY command due to there is one existing...',
+          );
+          return;
+        }
+
         notifier.addActivity('Activity: ${activity['details'] ?? 'Untitled'}');
-        final appId = activity['application_id'] ?? socket.clientId;
         // https://discord.com/developers/docs/topics/rpc#setactivity-set-activity-argument-structure
         final type = switch (activity['type']) {
           0 => 1, // Discord Playing -> Playing
@@ -404,29 +454,31 @@ final rpcServerStateProvider = StateNotifierProvider<
           3 => 2, // Discord Watching -> Listening
           _ => 1, // Discord Competing (or null) -> Playing
         };
+        final title = activity['name'] ?? activity['assets']?['small_text'];
+        final subtitle =
+            activity['details'] ?? activity['assets']?['large_text'];
+        var imageSmall = activity['assets']?['small_image'];
+        var imageLarge = activity['assets']?['large_image'];
+        if (imageSmall != null && !imageSmall!.contains(':')) imageSmall = 'discord:$imageSmall';
+        if (imageLarge != null && !imageLarge!.contains(':')) imageLarge = 'discord:$imageLarge';
         try {
           final apiClient = ref.watch(apiClientProvider);
-          final currentId = notifier.currentActivityManualId;
-          final isUpdate = currentId == appId;
           final activityData = {
             'type': type,
             'manual_id': appId,
-            'title': activity['name'],
-            'subtitle': activity['details'],
+            'title': title,
+            'subtitle': subtitle,
             'caption': activity['state'],
+            'title_url': activity['assets']?['small_text_url'],
+            'subtitle_url': activity['assets']?['large_text_url'],
+            'small_image': imageSmall,
+            'large_image': imageLarge,
             'meta': activity,
             'lease_minutes': kPresenseActivityLease,
           };
-          if (isUpdate) {
-            await apiClient.put(
-              '/pass/activities',
-              queryParameters: {'manualId': appId},
-              data: {'lease_minutes': kPresenseActivityLease},
-            );
-          } else {
-            await apiClient.post('/pass/activities', data: activityData);
-            notifier.setCurrentActivityManualId(appId);
-          }
+
+          await apiClient.post('/pass/activities', data: activityData);
+          notifier.setCurrentActivity(appId, activityData);
         } catch (e) {
           talker.log('Failed to set remote activity status: $e');
         }
@@ -440,15 +492,14 @@ final rpcServerStateProvider = StateNotifierProvider<
     },
     'close': (socket) async {
       notifier.updateStatus('Client disconnected');
-      final appId = socket.clientId;
+      final currentId = notifier.currentActivityManualId;
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.delete(
           '/pass/activities',
-          queryParameters: {'manualId': appId},
+          queryParameters: {'manualId': currentId},
         );
-        notifier.setCurrentActivityManualId(null);
-        ref.read(currentAccountStatusProvider.notifier).clearStatus();
+        notifier.setCurrentActivity(null, null);
       } catch (e) {
         talker.log('Failed to unset remote activity status: $e');
       }

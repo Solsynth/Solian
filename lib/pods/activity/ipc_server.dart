@@ -79,6 +79,8 @@ abstract class IpcServer {
     Map<String, Function> handlers,
   )?
   handlePacket;
+
+  void Function(IpcSocketWrapper socket)? onSocketClose;
 }
 
 // Abstract base class for IPC socket wrapper
@@ -178,6 +180,8 @@ class MultiPlatformIpcServer extends IpcServer {
       },
       onDone: () {
         talker.log('IPC connection closed');
+        removeSocket(socket);
+        onSocketClose?.call(socket);
         socket.close();
       },
       onError: (e) {
