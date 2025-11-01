@@ -1043,6 +1043,11 @@ class AccountProfileScreen extends HookConsumerWidget {
                           ).padding(horizontal: 4),
                         ),
                       SliverToBoxAdapter(
+                        child: ActivityPresenceWidget(
+                          uname: name,
+                        ).padding(horizontal: 8, top: 4, bottom: 4),
+                      ),
+                      SliverToBoxAdapter(
                         child: _AccountPublisherList(
                           publishers: accountPublishers.value ?? [],
                         ).padding(horizontal: 4),
@@ -1070,11 +1075,6 @@ class AccountProfileScreen extends HookConsumerWidget {
                             eventCalandarUser: data.name,
                           ),
                         ).padding(horizontal: 4),
-                      ),
-                      SliverToBoxAdapter(
-                        child: ActivityPresenceWidget(
-                          uname: name,
-                        ).padding(horizontal: 8, top: 4, bottom: 8),
                       ),
                     ],
                   ),

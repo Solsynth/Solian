@@ -46,121 +46,178 @@ class _PublisherBasisWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 20,
-      children: [
-        GestureDetector(
-          child: Badge(
-            isLabelVisible: data.type == 0,
-            padding: EdgeInsets.all(4),
-            label: Icon(
-              Symbols.launch,
-              size: 16,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            offset: Offset(0, 48),
-            child: ProfilePictureWidget(
-              file: data.picture,
-              radius: 32,
-              borderRadius: data.type == 0 ? null : 12,
-            ),
-          ),
-          onTap: () {
-            if (data.account?.name != null) {
-              Navigator.pop(context, true);
-              context.pushNamed(
-                'accountProfile',
-                pathParameters: {'name': data.account!.name},
-              );
-            }
-          },
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Card(
+      child: Builder(
+        builder: (context) {
+          final hasBackground = data.background?.id != null;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                spacing: 6,
-                children: [
-                  Text(data.nick).fontSize(20),
-                  if (data.verification != null)
-                    VerificationMark(mark: data.verification!),
-                  Expanded(
-                    child: Text(
-                      '@${data.name}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ).fontSize(14).opacity(0.85),
-                  ),
-                ],
-              ),
-              if (data.type == 0 && data.account != null)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 6,
+              if (isWideScreen(context) && hasBackground)
+                Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    Icon(
-                      data.type == 0 ? Symbols.person : Symbols.workspaces,
-                      fill: 1,
-                      size: 17,
-                    ),
-                    Text(
-                      'publisherBelongsTo'.tr(args: ['@${data.account!.name}']),
-                    ).fontSize(14),
-                  ],
-                ).opacity(0.85),
-              const Gap(4),
-              if (data.type == 0 && data.account != null)
-                AccountStatusWidget(
-                  uname: data.account!.name,
-                  padding: EdgeInsets.zero,
-                ),
-              subStatus
-                  .when(
-                    data:
-                        (status) => FilledButton.icon(
-                          onPressed:
-                              subscribing.value
-                                  ? null
-                                  : (status.isSubscribed
-                                      ? unsubscribe
-                                      : subscribe),
-                          icon: Icon(
-                            status.isSubscribed
-                                ? Symbols.remove_circle
-                                : Symbols.add_circle,
-                          ),
-                          label:
-                              Text(
-                                status.isSubscribed
-                                    ? 'unsubscribe'
-                                    : 'subscribe',
-                              ).tr(),
-                          style: ButtonStyle(
-                            visualDensity: VisualDensity(vertical: -2),
-                          ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
+                      child: AspectRatio(
+                        aspectRatio: 16 / 7,
+                        child: CloudImageWidget(
+                          file: data.background,
+                          fit: BoxFit.cover,
                         ),
-                    error: (_, _) => const SizedBox(),
-                    loading:
-                        () => const SizedBox(
-                          height: 36,
-                          child: Center(
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -24,
+                      left: 16,
+                      child: ProfilePictureWidget(
+                        file: data.picture,
+                        radius: 32,
+                        borderRadius: data.type == 0 ? null : 12,
+                      ),
+                    ),
+                  ],
+                ),
+              Builder(
+                builder: (context) {
+                  final showBackground = isWideScreen(context) && hasBackground;
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: showBackground ? 0 : 20,
+                    children: [
+                      if (!showBackground)
+                        GestureDetector(
+                          child: Badge(
+                            isLabelVisible: data.type == 0,
+                            padding: EdgeInsets.all(4),
+                            label: Icon(
+                              Symbols.launch,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            offset: Offset(0, 48),
+                            child: ProfilePictureWidget(
+                              file: data.picture,
+                              radius: 32,
+                              borderRadius: data.type == 0 ? null : 12,
                             ),
                           ),
+                          onTap: () {
+                            if (data.account?.name != null) {
+                              Navigator.pop(context, true);
+                              context.pushNamed(
+                                'accountProfile',
+                                pathParameters: {'name': data.account!.name},
+                              );
+                            }
+                          },
                         ),
-                  )
-                  .padding(top: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              spacing: 6,
+                              children: [
+                                Text(data.nick).fontSize(20),
+                                if (data.verification != null)
+                                  VerificationMark(mark: data.verification!),
+                                if (isWideScreen(context))
+                                  Expanded(
+                                    child: Text(
+                                      '@${data.name}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ).fontSize(14).opacity(0.85),
+                                  ),
+                              ],
+                            ),
+                            if (!isWideScreen(context))
+                              Text(
+                                '@${data.name}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ).fontSize(14).opacity(0.85).padding(top: 4),
+                            if (data.type == 0 && data.account != null)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                spacing: 6,
+                                children: [
+                                  Icon(
+                                    data.type == 0 ? Symbols.person : Symbols.workspaces,
+                                    fill: 1,
+                                    size: 17,
+                                  ),
+                                  Text(
+                                    'publisherBelongsTo'.tr(args: ['@${data.account!.name}']),
+                                  ).fontSize(14),
+                                ],
+                              ).opacity(0.85),
+                            const Gap(4),
+                            if (data.type == 0 && data.account != null)
+                              AccountStatusWidget(
+                                uname: data.account!.name,
+                                padding: EdgeInsets.zero,
+                              ),
+                            subStatus
+                                .when(
+                                  data:
+                                      (status) => FilledButton.icon(
+                                        onPressed:
+                                            subscribing.value
+                                                ? null
+                                                : (status.isSubscribed
+                                                    ? unsubscribe
+                                                    : subscribe),
+                                        icon: Icon(
+                                          status.isSubscribed
+                                              ? Symbols.remove_circle
+                                              : Symbols.add_circle,
+                                        ),
+                                        label:
+                                            Text(
+                                              status.isSubscribed
+                                                  ? 'unsubscribe'
+                                                  : 'subscribe',
+                                            ).tr(),
+                                        style: ButtonStyle(
+                                          visualDensity: VisualDensity(vertical: -2),
+                                        ),
+                                      ),
+                                  error: (_, _) => const SizedBox(),
+                                  loading:
+                                      () => const SizedBox(
+                                        height: 36,
+                                        child: Center(
+                                          child: SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          ),
+                                        ),
+                                      ),
+                                )
+                                .padding(vertical: 8),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ).padding(
+                    left: 16,
+                    right: 16,
+                    top: 16 + (showBackground ? 16 : 0),
+                  );
+                },
+              ),
             ],
-          ),
-        ),
-      ],
-    ).padding(horizontal: 24, top: 24);
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -400,35 +457,14 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         color: appbarColor.value,
                         shadows: [appbarShadow],
                       ),
-                      flexibleSpace: Stack(
-                        children: [
-                          Positioned.fill(
-                            child:
-                                data.background?.id != null
-                                    ? CloudImageWidget(file: data.background)
-                                    : Container(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).appBarTheme.backgroundColor,
-                                    ),
-                          ),
-                          FlexibleSpaceBar(
-                            title: Text(
-                              data.nick,
-                              style: TextStyle(
-                                color:
-                                    appbarColor.value ??
-                                    Theme.of(
-                                      context,
-                                    ).appBarTheme.foregroundColor,
-                                shadows: [appbarShadow],
-                              ),
-                            ),
-                            background:
-                                Container(), // Empty container since background is handled by Stack
-                          ),
-                        ],
+                      title: Text(
+                        data.nick,
+                        style: TextStyle(
+                          color:
+                              appbarColor.value ??
+                              Theme.of(context).appBarTheme.foregroundColor,
+                          shadows: [appbarShadow],
+                        ),
                       ),
                     )
                     : null,
@@ -477,7 +513,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                     subscribing: subscribing,
                                     subscribe: subscribe,
                                     unsubscribe: unsubscribe,
-                                  ).padding(bottom: 8),
+                                  ).padding(horizontal: 4, top: 20),
                                   _PublisherBadgesWidget(
                                     data: data,
                                     badges: badges,
@@ -487,7 +523,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                   _PublisherHeatmapWidget(
                                     heatmap: heatmap,
                                     forceDense: true,
-                                  ),
+                                  ).padding(vertical: 4),
                                 ],
                               ),
                             ),
@@ -545,7 +581,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                             subscribing: subscribing,
                             subscribe: subscribe,
                             unsubscribe: unsubscribe,
-                          ).padding(bottom: 8),
+                          ).padding(horizontal: 4, top: 8),
                         ),
                         SliverToBoxAdapter(
                           child: _PublisherBadgesWidget(
@@ -560,7 +596,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                           child: _PublisherBioWidget(data: data),
                         ),
                         SliverToBoxAdapter(
-                          child: _PublisherHeatmapWidget(heatmap: heatmap),
+                          child: _PublisherHeatmapWidget(heatmap: heatmap).padding(vertical: 4),
                         ),
                         SliverPostList(pubName: name, pinned: true),
                         SliverToBoxAdapter(
