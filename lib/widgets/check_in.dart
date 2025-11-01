@@ -296,7 +296,7 @@ class CheckInWidget extends HookConsumerWidget {
 }
 
 class CheckInActivityWidget extends StatelessWidget {
-  final SnActivity item;
+  final SnTimelineEvent item;
   const CheckInActivityWidget({super.key, required this.item});
 
   @override

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/models/account.dart';
 import 'package:island/models/activity.dart';
 import 'package:island/pods/network.dart';
 import 'package:island/talker.dart';
@@ -14,10 +13,10 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-part 'activity_rpc.g.dart';
-
 // Conditional imports for IPC server - use web stubs on web platform
 import 'ipc_server.dart' if (dart.library.html) 'ipc_server.web.dart';
+
+part 'activity_rpc.g.dart';
 
 const String kRpcLogPrefix = 'arRPC.websocket';
 const String kRpcIpcLogPrefix = 'arRPC.ipc';
@@ -125,7 +124,7 @@ class ActivityRpcServer {
         talker.log('[$kRpcLogPrefix] IPC server error: $e');
       }
     } else {
-      talker.log('IPC server disabled on macOS or web in production mode');
+      talker.log('IPC server disabled on macOS or web');
     }
   }
 
@@ -326,6 +325,8 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
   ServerStateNotifier(this.server)
     : super(ServerState(status: 'Server not started'));
 
+  String? get currentActivityManualId => state.currentActivityManualId;
+
   Future<void> start() async {
     if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
       try {
@@ -354,114 +355,107 @@ class ServerStateNotifier extends StateNotifier<ServerState> {
   }
 }
 
+const kPresenseActivityLease = 5;
+
 // Providers
-final rpcServerStateProvider =
-    StateNotifierProvider<ServerStateNotifier, ServerState>((ref) {
-      final server = ActivityRpcServer({});
-      final notifier = ServerStateNotifier(server);
-      server.updateHandlers({
-        'connection': (socket) {
-          final clientId =
-              socket is _WsSocketWrapper
-                  ? socket.clientId
-                  : (socket as IpcSocketWrapper).clientId;
-          notifier.updateStatus('Client connected (ID: $clientId)');
-          socket.send({
-            'cmd': 'DISPATCH',
-            'data': {
-              'v': 1,
-              'config': {
-                'cdn_host': 'fake.cdn',
-                'api_endpoint': '//fake.api',
-                'environment': 'dev',
-              },
-              'user': {
-                'id': 'fake_user_id',
-                'username': 'FakeUser',
-                'discriminator': '0001',
-                'avatar': null,
-                'bot': false,
-              },
-            },
-            'evt': 'READY',
-            'nonce': '12345',
-          });
+final rpcServerStateProvider = StateNotifierProvider<
+  ServerStateNotifier,
+  ServerState
+>((ref) {
+  final server = ActivityRpcServer({});
+  final notifier = ServerStateNotifier(server);
+  server.updateHandlers({
+    'connection': (socket) {
+      final clientId =
+          socket is _WsSocketWrapper
+              ? socket.clientId
+              : (socket as IpcSocketWrapper).clientId;
+      notifier.updateStatus('Client connected (ID: $clientId)');
+      socket.send({
+        'cmd': 'DISPATCH',
+        'data': {
+          'v': 1,
+          'config': {
+            'cdn_host': 'fake.cdn',
+            'api_endpoint': '//fake.api',
+            'environment': 'dev',
+          },
+          'user': {
+            'id': 'fake_user_id',
+            'username': 'FakeUser',
+            'discriminator': '0001',
+            'avatar': null,
+            'bot': false,
+          },
         },
-        'message': (socket, dynamic data) async {
-          if (data['cmd'] == 'SET_ACTIVITY') {
-            notifier.addActivity(
-              'Activity: ${data['args']['activity']['details'] ?? ''}',
-            );
-            final label = data['args']['activity']['details'] ?? '';
-            final appId = socket.clientId;
-            final meta = data['args']['activity'];
-            try {
-              final apiClient = ref.watch(apiClientProvider);
-              final currentId = notifier.state.currentActivityManualId;
-              final isUpdate = currentId == appId;
-              final activityData = {
-                'type': 'Gaming',
-                'manualId': appId,
-                'title': label,
-                'meta': meta,
-                'leaseMinutes': 30,
-              };
-              if (isUpdate) {
-                await apiClient.put(
-                  '/pass/activities',
-                  queryParameters: {'manual_id': appId},
-                  data: {'leaseMinutes': 30},
-                );
-              } else {
-                await apiClient.post('/pass/activities', data: activityData);
-                notifier.setCurrentActivityManualId(appId);
-              }
-              final now = DateTime.now();
-              final status = SnAccountStatus(
-                id: 'local_$appId',
-                attitude: 0,
-                isOnline: true,
-                isInvisible: false,
-                isNotDisturb: false,
-                isCustomized: true,
-                label: label,
-                meta: meta,
-                clearedAt: null,
-                accountId: 'me',
-                createdAt: now,
-                updatedAt: now,
-                deletedAt: null,
-              );
-              ref.read(currentAccountStatusProvider.notifier).setStatus(status);
-            } catch (e) {
-              talker.log('Failed to set remote activity status: $e');
-            }
-            socket.send({
-              'cmd': 'SET_ACTIVITY',
-              'data': data['args']['activity'],
-              'evt': null,
-              'nonce': data['nonce'],
-            });
-          }
-        },
-        'close': (socket) async {
-          notifier.updateStatus('Client disconnected');
-          final appId = socket.clientId;
-          try {
-            final apiClient = ref.watch(apiClientProvider);
-            await apiClient.delete(
-              '/pass/activities',
-              queryParameters: {'manual_id': appId},
-            );
-            notifier.setCurrentActivityManualId(null);
-            ref.read(currentAccountStatusProvider.notifier).clearStatus();
-          } catch (e) {
-            talker.log('Failed to unset remote activity status: $e');
-          }
-        },
+        'evt': 'READY',
+        'nonce': '12345',
       });
-      return notifier;
-    });
+    },
+    'message': (socket, dynamic data) async {
+      if (data['cmd'] == 'SET_ACTIVITY') {
+        final activity = data['args']['activity'];
+        notifier.addActivity('Activity: ${activity['details'] ?? 'Untitled'}');
+        final appId = activity['application_id'] ?? socket.clientId;
+        // https://discord.com/developers/docs/topics/rpc#setactivity-set-activity-argument-structure
+        final type = switch (activity['type']) {
+          0 => 1, // Discord Playing -> Playing
+          2 => 2, // Discord Music -> Listening
+          3 => 2, // Discord Watching -> Listening
+          _ => 1, // Discord Competing (or null) -> Playing
+        };
+        try {
+          final apiClient = ref.watch(apiClientProvider);
+          final currentId = notifier.currentActivityManualId;
+          final isUpdate = currentId == appId;
+          final activityData = {
+            'type': type,
+            'manual_id': appId,
+            'title': activity['name'],
+            'subtitle': activity['details'],
+            'caption': activity['state'],
+            'meta': activity,
+            'lease_minutes': kPresenseActivityLease,
+          };
+          if (isUpdate) {
+            await apiClient.put(
+              '/pass/activities',
+              queryParameters: {'manualId': appId},
+              data: {'lease_minutes': kPresenseActivityLease},
+            );
+          } else {
+            await apiClient.post('/pass/activities', data: activityData);
+            notifier.setCurrentActivityManualId(appId);
+          }
+        } catch (e) {
+          talker.log('Failed to set remote activity status: $e');
+        }
+        socket.send({
+          'cmd': 'SET_ACTIVITY',
+          'data': data['args']['activity'],
+          'evt': null,
+          'nonce': data['nonce'],
+        });
+      }
+    },
+    'close': (socket) async {
+      notifier.updateStatus('Client disconnected');
+      final appId = socket.clientId;
+      try {
+        final apiClient = ref.watch(apiClientProvider);
+        await apiClient.delete(
+          '/pass/activities',
+          queryParameters: {'manualId': appId},
+        );
+        notifier.setCurrentActivityManualId(null);
+        ref.read(currentAccountStatusProvider.notifier).clearStatus();
+      } catch (e) {
+        talker.log('Failed to unset remote activity status: $e');
+      }
+    },
+  });
+  return notifier;
+});
 
 final rpcServerProvider = Provider<ActivityRpcServer>((ref) {
   final notifier = ref.watch(rpcServerStateProvider.notifier);
@@ -474,7 +468,7 @@ Future<List<SnPresenceActivity>> presenceActivities(
   String uname,
 ) async {
   final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/pass/accounts/$uname/activities');
+  final response = await apiClient.get('/pass/activities/$uname');
   final data = response.data as List<dynamic>;
   return data.map((json) => SnPresenceActivity.fromJson(json)).toList();
 }
